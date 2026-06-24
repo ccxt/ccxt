@@ -86,6 +86,7 @@ var FunctionsMap = map[string]any{
 	"ticker":                          TestTicker,
 	"trade":                           TestTrade,
 	"tradingFee":                      TestTradingFee,
+	"afterConstruct":                  TestAfterConstruct,
 	"features":                        TestFeatures,
 	"fetchAccounts":                   TestFetchAccounts,
 	"fetchBalance":                    TestFetchBalance,

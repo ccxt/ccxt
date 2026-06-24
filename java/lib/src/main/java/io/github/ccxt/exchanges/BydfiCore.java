@@ -3395,7 +3395,7 @@ public class BydfiCore extends BydfiApi
             put( "txid", BydfiCore.this.safeString(transaction, "txId") );
             put( "type", null );
             put( "currency", code );
-            put( "network", BydfiCore.this.networkIdToCode(BydfiCore.this.safeString(transaction, "network")) );
+            put( "network", BydfiCore.this.networkIdToCode(BydfiCore.this.safeString(transaction, "network"), code) );
             put( "amount", BydfiCore.this.safeNumber(transaction, "amount") );
             put( "status", BydfiCore.this.parseTransactionStatus(rawStatus) );
             put( "timestamp", timestamp );

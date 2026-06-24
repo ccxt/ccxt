@@ -1,5 +1,5 @@
 import kucoinRest from '../kucoin.js';
-import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kucoin extends kucoinRest {
     describe(): any;
@@ -7,13 +7,13 @@ export default class kucoin extends kucoinRest {
     negotiateHelper(privateChannel: any, connectId: any, params?: {}): Promise<string>;
     requestId(): any;
     subscribe(url: any, messageHash: any, subscriptionHash: any, params?: {}, subscription?: any): Promise<any>;
-    subscribePublicUta(messageHash: any, channel: any, symbol: any, params?: {}, subscription?: any): Promise<any>;
-    subscribePrivateUta(messageHashes: any, subscribeHash: any, channel: any, symbol?: any, params?: {}, subscription?: any): Promise<any>;
+    subscribePublicUta(messageHash: any, channel: any, symbol: any, params?: {}, subscription?: NullableDict): Promise<any>;
+    subscribePrivateUta(messageHashes: any, subscribeHash: any, channel: any, symbol?: Str, params?: {}, subscription?: NullableDict): Promise<any>;
     getUtaUrl(): Promise<string>;
     authenticateUta(): Promise<string>;
-    unSubscribe(url: any, messageHash: any, topic: any, subscriptionHash: any, params?: {}, subscription?: Dict): Promise<any>;
-    subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: any): Promise<any>;
-    unSubscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: Dict): Promise<any>;
+    unSubscribe(url: any, messageHash: any, topic: any, subscriptionHash: any, params?: {}, subscription?: NullableDict): Promise<any>;
+    subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: NullableDict): Promise<any>;
+    unSubscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: NullableDict): Promise<any>;
     /**
      * @method
      * @name kucoin#watchTicker
@@ -60,7 +60,7 @@ export default class kucoin extends kucoinRest {
     handleTicker(client: Client, message: any): void;
     handleContractTicker(client: Client, message: any): void;
     handleUtaTicker(client: Client, message: any): void;
-    parseWsUtaTicker(ticker: any, market?: any): Ticker;
+    parseWsUtaTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name kucoin#watchBidsAsks
@@ -74,7 +74,7 @@ export default class kucoin extends kucoinRest {
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchMultiHelper(methodName: any, channelName: string, isFuturesChannel: boolean, symbols?: Strings, params?: {}): Promise<any>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name kucoin#watchOHLCV
@@ -161,7 +161,7 @@ export default class kucoin extends kucoinRest {
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): void;
     handleUtaTrade(client: Client, message: any): void;
-    parseWsUtaTrade(trade: any, market?: any): Trade;
+    parseWsUtaTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name kucoin#watchOrderBook
@@ -258,8 +258,8 @@ export default class kucoin extends kucoinRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     getOrdersMessageHashSuffix(topic: any): string;
     parseWsOrderStatus(status: any): string;
-    parseWsOrder(order: any, market?: any): Order;
-    parseWsUtaOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
+    parseWsUtaOrder(order: any, market?: Market): Order;
     handleOrder(client: Client, message: any): void;
     handleUtaOrder(client: Client, message: any): void;
     /**
@@ -281,7 +281,7 @@ export default class kucoin extends kucoinRest {
     getMyTradesMessageHashSuffix(topic: any): string;
     handleMyTrade(client: Client, message: any): void;
     handleUtaMyTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name kucoin#watchBalance
@@ -329,7 +329,7 @@ export default class kucoin extends kucoinRest {
     loadPositionSnapshot(client: any, messageHash: any, symbol: any): Promise<void>;
     handlePosition(client: Client, message: any): void;
     handleUtaPosition(client: Client, message: any): void;
-    parseWsUtaPosition(position: any, market?: any): Position;
+    parseWsUtaPosition(position: any, market?: Market): Position;
     handleSubject(client: Client, message: any): void;
     ping(client: Client): {
         id: any;

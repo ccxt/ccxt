@@ -290,7 +290,7 @@ public partial class alpaca : ccxt.alpaca
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, "p", "s");
+        object bidAsk = this.parseOrderBookBidAsk(delta, "p", "s");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 

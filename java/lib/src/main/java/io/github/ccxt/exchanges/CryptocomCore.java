@@ -549,7 +549,8 @@ public class CryptocomCore extends CryptocomApi
                 response = (this.v1PrivatePostPrivateGetCurrencyNetworks(parameters)).join();
             } catch(Exception e)
             {
-                if (Helpers.isTrue(Helpers.isInstance(e, ExchangeError.class)))
+                Object erString = this.exceptionMessage(e);
+                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(erString, "SYS_ERROR"), 0)))
                 {
                     // sub-accounts can't access this endpoint
                     // {"code":"10001","msg":"SYS_ERROR"}
@@ -601,61 +602,59 @@ public class CryptocomCore extends CryptocomApi
             //
             Object resultData = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object currencyMap = this.safeDict(resultData, "currency_map", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(currencyMap);
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-            {
-                Object key = Helpers.GetValue(keys, i);
-                Object currency = Helpers.GetValue(currencyMap, key);
-                Object id = key;
-                Object code = this.safeCurrencyCode(id);
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                Object chains = this.safeList(currency, "network_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chain = Helpers.GetValue(chains, j);
-                    Object networkId = this.safeString(chain, "network_id");
-                    Object network = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
-        put( "info", chain );
-        put( "id", networkId );
-        put( "network", network );
-        put( "active", null );
-        put( "deposit", CryptocomCore.this.safeBool(chain, "deposit_enabled", false) );
-        put( "withdraw", CryptocomCore.this.safeBool(chain, "withdraw_enabled", false) );
-        put( "fee", CryptocomCore.this.safeNumber(chain, "withdrawal_fee") );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", CryptocomCore.this.safeNumber(chain, "min_withdrawal_amount") );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
-        put( "id", id );
-        put( "code", code );
-        put( "name", CryptocomCore.this.safeString(currency, "full_name") );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "type", "crypto" );
-        put( "networks", networks );
-    }}));
-            }
-            return result;
+            Object enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
+            return this.parseCurrencies(enhancedArray);
         });
 
+    }
+
+    public Object parseCurrency(Object currency)
+    {
+        Object id = this.safeString(currency, "_coin_id");
+        Object code = this.safeCurrencyCode(id);
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        Object chains = this.safeList(currency, "network_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chain = Helpers.GetValue(chains, j);
+            Object networkId = this.safeString(chain, "network_id");
+            Object network = this.networkIdToCode(networkId, code);
+            Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
+    put( "info", chain );
+    put( "id", networkId );
+    put( "network", network );
+    put( "active", null );
+    put( "deposit", CryptocomCore.this.safeBool(chain, "deposit_enabled", false) );
+    put( "withdraw", CryptocomCore.this.safeBool(chain, "withdraw_enabled", false) );
+    put( "fee", CryptocomCore.this.safeNumber(chain, "withdrawal_fee") );
+    put( "precision", null );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", CryptocomCore.this.safeNumber(chain, "min_withdrawal_amount") );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "info", currency );
+            put( "id", id );
+            put( "code", code );
+            put( "name", CryptocomCore.this.safeString(currency, "full_name") );
+            put( "active", null );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "fee", null );
+            put( "precision", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "type", "crypto" );
+            put( "networks", networks );
+        }});
     }
 
     /**
@@ -781,7 +780,7 @@ public class CryptocomCore extends CryptocomApi
                 Object strike = this.safeString(market, "strike");
                 Object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
                 Object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
-                Object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
+                Object expiryString = this.omitZero(((String)this.safeString(market, "expiry_timestamp_ms")));
                 Object expiry = ((Helpers.isTrue((!Helpers.isEqual(expiryString, null))))) ? Helpers.parseInt(expiryString) : null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object type = null;
@@ -1443,7 +1442,7 @@ public class CryptocomCore extends CryptocomApi
         final Object finalSide = side;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "instrument_name", Helpers.GetValue(market, "id") );
-            put( "side", ((String)finalSide).toUpperCase() );
+            put( "side", ((String)((String)finalSide)).toUpperCase() );
             put( "quantity", CryptocomCore.this.amountToPrecision(symbol, amount) );
         }};
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "LIMIT"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP_LIMIT")))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
@@ -1644,7 +1643,7 @@ public class CryptocomCore extends CryptocomApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
+                Object orderRequest = this.createAdvancedOrderRequest(((String)marketId), ((String)type), side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             Object contigency = this.safeString(parameters, "contingency_type", "LIST");
@@ -1722,7 +1721,7 @@ public class CryptocomCore extends CryptocomApi
         final Object finalSide = side;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "instrument_name", Helpers.GetValue(market, "id") );
-            put( "side", ((String)finalSide).toUpperCase() );
+            put( "side", ((String)((String)finalSide)).toUpperCase() );
         }};
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "LIMIT"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP_LIMIT")))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
@@ -2069,10 +2068,10 @@ public class CryptocomCore extends CryptocomApi
                 Object order = Helpers.GetValue(orders, i);
                 Object id = this.safeString(order, "id");
                 Object symbol = this.safeString(order, "symbol");
-                Object market = this.market(symbol);
+                Object market = this.market(((String)symbol));
                 Object orderItem = new java.util.HashMap<String, Object>() {{
                     put( "instrument_name", Helpers.GetValue(market, "id") );
-                    put( "order_id", String.valueOf(id) );
+                    put( "order_id", String.valueOf(((String)id)) );
                 }};
                 ((java.util.List<Object>)orderRequests).add(orderItem);
             }
@@ -2259,7 +2258,7 @@ public class CryptocomCore extends CryptocomApi
             var addressrawTagVariable = Helpers.split(addressString, "?");
             address = ((java.util.List<Object>) addressrawTagVariable).get(0);
             rawTag = ((java.util.List<Object>) addressrawTagVariable).get(1);
-            Object splitted = Helpers.split(rawTag, "=");
+            Object splitted = Helpers.split(((String)rawTag), "=");
             tag = Helpers.GetValue(splitted, 1);
         } else
         {
@@ -2305,7 +2304,7 @@ public class CryptocomCore extends CryptocomApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(((String)networkCode), code);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
                 Helpers.addElementToObject(request, "network_id", networkId);
@@ -2424,9 +2423,9 @@ public class CryptocomCore extends CryptocomApi
             Object network = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
             Object depositAddresses = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
-            if (Helpers.isTrue(Helpers.inOp(depositAddresses, network)))
+            if (Helpers.isTrue(Helpers.inOp(depositAddresses, ((String)network))))
             {
-                return Helpers.GetValue(depositAddresses, network);
+                return Helpers.GetValue(depositAddresses, ((String)network));
             }
             Object keys = Helpers.objectKeys(depositAddresses);
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
@@ -2738,7 +2737,7 @@ public class CryptocomCore extends CryptocomApi
             put( "REJECTED", "rejected" );
             put( "EXPIRED", "expired" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseTimeInForce(Object timeInForce)
@@ -2748,7 +2747,7 @@ public class CryptocomCore extends CryptocomApi
             put( "IMMEDIATE_OR_CANCEL", "IOC" );
             put( "FILL_OR_KILL", "FOK" );
         }};
-        return this.safeString(timeInForces, timeInForce, timeInForce);
+        return this.safeString(timeInForces, ((String)timeInForce), timeInForce);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -3857,12 +3856,12 @@ public class CryptocomCore extends CryptocomApi
             paramsKeys = obj;
         } else
         {
-            Object sorted = this.keysort(obj);
-            paramsKeys = Helpers.objectKeys(sorted);
+            Object objectKeys = Helpers.objectKeys(obj);
+            paramsKeys = this.sort(objectKeys);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(paramsKeys)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(paramsKeys))); i++)
         {
-            Object key = Helpers.GetValue(paramsKeys, i);
+            Object key = Helpers.GetValue((java.util.List<String>)(paramsKeys), i);
             returnString = Helpers.add(returnString, key);
             Object value = Helpers.GetValue(obj, key);
             if (Helpers.isTrue(Helpers.isEqual(value, "undefined")))
@@ -4030,9 +4029,9 @@ public class CryptocomCore extends CryptocomApi
         //
         Object result = new java.util.HashMap<String, Object>() {{}};
         Helpers.addElementToObject(result, "info", response);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
         {
-            Object symbol = Helpers.GetValue(this.symbols, i);
+            Object symbol = Helpers.GetValue(((Object)this.symbols), i);
             Object market = this.market(symbol);
             Object isSwap = Helpers.GetValue(market, "swap");
             Object takerFeeKey = ((Helpers.isTrue(isSwap))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
@@ -4081,7 +4080,7 @@ public class CryptocomCore extends CryptocomApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object type = this.safeString(api, 0);
         Object access = this.safeString(api, 1);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type), "/"), path);
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)type)), "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {

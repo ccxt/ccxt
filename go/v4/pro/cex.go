@@ -1204,7 +1204,7 @@ func  (this *CexCore) HandleOrderBookUpdate(client any, message any)  {
     client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func  (this *CexCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta, 0, 1)
+    var bidAsk any = this.ParseOrderBookBidAsk(delta, 0, 1)
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func  (this *CexCore) HandleDeltas(bookside any, deltas any)  {

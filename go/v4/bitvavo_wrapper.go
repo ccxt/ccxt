@@ -29,6 +29,7 @@ func NewBitvavoFromCore(core *BitvavoCore) *Bitvavo {
 /**
  * @method
  * @name bitvavo#fetchTime
+ * @see https://docs.bitvavo.com/docs/rest-api/get-server-time/
  * @description fetches the current integer timestamp in milliseconds from the exchange server
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -44,7 +45,7 @@ func (this *Bitvavo) FetchTime(params ...any) (int64, error) {
 /**
  * @method
  * @name bitvavo#fetchMarkets
- * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-markets/
  * @description retrieves data on all markets for bitvavo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -60,7 +61,7 @@ func (this *Bitvavo) FetchMarkets(params ...any) ([]MarketInterface, error) {
 /**
  * @method
  * @name bitvavo#fetchCurrencies
- * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
  * @description fetches all available currencies on an exchange
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
@@ -76,7 +77,7 @@ func (this *Bitvavo) FetchCurrencies(params ...any) (Currencies, error) {
 /**
  * @method
  * @name bitvavo#fetchTicker
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -104,6 +105,7 @@ func (this *Bitvavo) FetchTicker(symbol string, options ...FetchTickerOptions) (
 /**
  * @method
  * @name bitvavo#fetchTickers
+ * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -136,7 +138,7 @@ func (this *Bitvavo) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 /**
  * @method
  * @name bitvavo#fetchTrades
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-trades/
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -178,7 +180,7 @@ func (this *Bitvavo) FetchTrades(symbol string, options ...FetchTradesOptions) (
 /**
  * @method
  * @name bitvavo#fetchTradingFees
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-account-fees/
  * @description fetch the trading fees for multiple markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
@@ -193,8 +195,36 @@ func (this *Bitvavo) FetchTradingFees(params ...any) (TradingFees, error) {
 
 /**
  * @method
+ * @name bitvavo#fetchTradingFee
+ * @see https://docs.bitvavo.com/docs/rest-api/get-market-fees/
+ * @description fetch the trading fees for a market
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *Bitvavo) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
+
+	opts := FetchTradingFeeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTradingFee(symbol, params)
+	if IsError(res) {
+		return TradingFeeInterface{}, CreateReturnError(res)
+	}
+	return NewTradingFeeInterface(res), nil
+}
+
+/**
+ * @method
  * @name bitvavo#fetchOrderBook
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-order-book/
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -228,7 +258,7 @@ func (this *Bitvavo) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 /**
  * @method
  * @name bitvavo#fetchOHLCV
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -276,7 +306,7 @@ func (this *Bitvavo) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 /**
  * @method
  * @name bitvavo#fetchBalance
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-account-balance/
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -291,7 +321,138 @@ func (this *Bitvavo) FetchBalance(params ...any) (Balances, error) {
 
 /**
  * @method
+ * @name bitvavo#fetchAccounts
+ * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
+ * @description fetch all the accounts associated with a profile
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+ */
+func (this *Bitvavo) FetchAccounts(params ...any) ([]Account, error) {
+	res := <-this.Core.FetchAccounts(params...)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewAccountArray(res), nil
+}
+
+/**
+ * @method
+ * @name bitvavo#transfer
+ * @see https://docs.bitvavo.com/docs/institutional-api/create-transfer/
+ * @description transfer currency internally between the master account and a subaccount
+ * @param {string} code unified currency code
+ * @param {float} amount amount to transfer
+ * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
+ * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {string} [params.subaccountId] the unique identifier for the subaccount
+ * @param {string} [params.clientRequestId] client defined unique id
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Bitvavo) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
+
+	opts := TransferOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.Transfer(code, amount, fromAccount, toAccount, params)
+	if IsError(res) {
+		return TransferEntry{}, CreateReturnError(res)
+	}
+	return NewTransferEntry(res), nil
+}
+
+/**
+ * @method
+ * @name bitvavo#fetchTransfers
+ * @see https://docs.bitvavo.com/docs/institutional-api/get-transfers/
+ * @description fetch a history of internal transfers made on an account
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {int} [since] the earliest time in ms to fetch transfers for
+ * @param {int} [limit] the maximum number of transfers structures to retrieve
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {string} [params.subaccountId] the unique identifier for the subaccount
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Bitvavo) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
+
+	opts := FetchTransfersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTransfers(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTransferEntryArray(res), nil
+}
+
+/**
+ * @method
+ * @name bitvavo#fetchTransfer
+ * @see https://docs.bitvavo.com/docs/institutional-api/get-transfer/
+ * @description fetches a transfer
+ * @param {string} id transfer id
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Bitvavo) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
+
+	opts := FetchTransferOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTransfer(id, code, params)
+	if IsError(res) {
+		return TransferEntry{}, CreateReturnError(res)
+	}
+	return NewTransferEntry(res), nil
+}
+
+/**
+ * @method
  * @name bitvavo#fetchDepositAddress
+ * @see https://docs.bitvavo.com/docs/rest-api/get-deposit-data/
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -320,7 +481,7 @@ func (this *Bitvavo) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @method
  * @name bitvavo#createOrder
  * @description create a trade order
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
+ * @see https://docs.bitvavo.com/docs/rest-api/create-order/
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -368,7 +529,7 @@ func (this *Bitvavo) CreateOrder(symbol string, typeVar string, side string, amo
  * @method
  * @name bitvavo#editOrder
  * @description edit a trade order
- * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+ * @see https://docs.bitvavo.com/docs/rest-api/update-order/
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -410,9 +571,8 @@ func (this *Bitvavo) EditOrder(id string, symbol string, typeVar string, side st
 /**
  * @method
  * @name bitvavo#cancelOrder
- * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
  * @description cancels an open order
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
+ * @see https://docs.bitvavo.com/docs/rest-api/cancel-order/
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -445,7 +605,7 @@ func (this *Bitvavo) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 /**
  * @method
  * @name bitvavo#cancelAllOrders
- * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+ * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
  * @description cancel all open orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -477,9 +637,38 @@ func (this *Bitvavo) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 
 /**
  * @method
+ * @name bitvavo#cancelAllOrdersAfter
+ * @description dead man's switch, cancel all orders after the given timeout
+ * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders-after/
+ * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
+ * @returns {object} the api result
+ */
+func (this *Bitvavo) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
+
+	opts := CancelAllOrdersAfterOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CancelAllOrdersAfter(timeout, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+
+/**
+ * @method
  * @name bitvavo#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-order/
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -512,7 +701,7 @@ func (this *Bitvavo) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 /**
  * @method
  * @name bitvavo#fetchOrders
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-orders/
  * @description fetches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
@@ -559,7 +748,7 @@ func (this *Bitvavo) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 /**
  * @method
  * @name bitvavo#fetchOpenOrders
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-open-orders/
  * @description fetch all unfilled currently open orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -604,7 +793,7 @@ func (this *Bitvavo) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 /**
  * @method
  * @name bitvavo#fetchMyTrades
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-trade-history/
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -650,7 +839,55 @@ func (this *Bitvavo) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 
 /**
  * @method
+ * @name bitvavo#fetchLedger
+ * @see https://docs.bitvavo.com/docs/rest-api/get-transaction-history/
+ * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+ * @param {string} [code] unified currency code
+ * @param {int} [since] timestamp in ms of the earliest ledger entry
+ * @param {int} [limit] max number of ledger entries to return
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {int} [params.until] timestamp in ms of the latest ledger entry
+ * @param {int} [params.page] the page number for the transaction history
+ * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+ */
+func (this *Bitvavo) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
+
+	opts := FetchLedgerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchLedger(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLedgerEntryArray(res), nil
+}
+
+/**
+ * @method
  * @name bitvavo#withdraw
+ * @see https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
  * @description make a withdrawal
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
@@ -686,7 +923,7 @@ func (this *Bitvavo) Withdraw(code string, amount float64, address string, optio
 /**
  * @method
  * @name bitvavo#fetchWithdrawals
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-withdrawal-history/
  * @description fetch all withdrawals made from an account
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
@@ -731,7 +968,7 @@ func (this *Bitvavo) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 /**
  * @method
  * @name bitvavo#fetchDeposits
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-deposit-history/
  * @description fetch all deposits made to an account
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -777,7 +1014,7 @@ func (this *Bitvavo) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @method
  * @name bitvavo#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -816,9 +1053,6 @@ func (this *Bitvavo) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 }
 func (this *Bitvavo) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Bitvavo) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Bitvavo) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
@@ -910,9 +1144,6 @@ func (this *Bitvavo) EditOrderWithClientOrderId(clientOrderId string, symbol str
 func (this *Bitvavo) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Bitvavo) FetchAccounts(params ...any) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
 func (this *Bitvavo) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
@@ -996,9 +1227,6 @@ func (this *Bitvavo) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRate
 }
 func (this *Bitvavo) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
 	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Bitvavo) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedger(options...)
 }
 func (this *Bitvavo) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
 	return this.exchangeTyped.FetchLedgerEntry(id, options...)
@@ -1102,9 +1330,6 @@ func (this *Bitvavo) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremi
 func (this *Bitvavo) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Bitvavo) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
-	return this.exchangeTyped.FetchTradingFee(symbol, options...)
-}
 func (this *Bitvavo) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
@@ -1117,12 +1342,6 @@ func (this *Bitvavo) FetchTransactionFees(options ...FetchTransactionFeesOptions
 func (this *Bitvavo) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchTransactions(options...)
 }
-func (this *Bitvavo) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Bitvavo) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
-}
 func (this *Bitvavo) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
@@ -1131,9 +1350,6 @@ func (this *Bitvavo) SetMarginMode(marginMode string, options ...SetMarginModeOp
 }
 func (this *Bitvavo) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Bitvavo) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)
 }
 func (this *Bitvavo) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrdersWs(options...)

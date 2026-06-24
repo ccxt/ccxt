@@ -49,12 +49,12 @@ func (this *Gemini) FetchCurrencies(params ...any) (Currencies, error) {
  * @param {object} [params] extra parameters specific to the endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Gemini) FetchCurrenciesFromWeb(params ...any) (map[string]any, error) {
+func (this *Gemini) FetchCurrenciesFromWeb(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrenciesFromWeb(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Currencies{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewCurrencies(res), nil
 }
 
 /**

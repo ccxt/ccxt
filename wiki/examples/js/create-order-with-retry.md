@@ -1,8 +1,5 @@
-- [Create Order With Retry](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -67,5 +64,5 @@ const params = {}         // edit here
     }
     console.log (order)
 }) ()
- 
+
 ```

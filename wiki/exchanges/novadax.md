@@ -44,7 +44,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-novadax.fetchTime ([params])
+novadax.fetchTime (params?)
 ```
 
 
@@ -64,7 +64,7 @@ retrieves data on all markets for novadax
 
 
 ```javascript
-novadax.fetchMarkets ([params])
+novadax.fetchMarkets (params?)
 ```
 
 
@@ -85,7 +85,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-novadax.fetchTicker (symbol[, params])
+novadax.fetchTicker (symbol, params?)
 ```
 
 
@@ -106,7 +106,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-novadax.fetchTickers (symbols[, params])
+novadax.fetchTickers (symbols, params?)
 ```
 
 
@@ -128,7 +128,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-novadax.fetchOrderBook (symbol[, limit, params])
+novadax.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -151,7 +151,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-novadax.fetchTrades (symbol[, since, limit, params])
+novadax.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -175,7 +175,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-novadax.fetchOHLCV (symbol, timeframe[, since, limit, params])
+novadax.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -195,7 +195,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-novadax.fetchBalance ([params])
+novadax.fetchBalance (params?)
 ```
 
 
@@ -221,7 +221,7 @@ create a trade order
 
 
 ```javascript
-novadax.createOrder (symbol, type, side, amount[, price, params])
+novadax.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -243,7 +243,7 @@ cancels an open order
 
 
 ```javascript
-novadax.cancelOrder (id, symbol[, params])
+novadax.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -265,7 +265,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-novadax.fetchOrder (id, symbol[, params])
+novadax.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -288,7 +288,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-novadax.fetchOrders (symbol[, since, limit, params])
+novadax.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -311,7 +311,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-novadax.fetchOpenOrders (symbol[, since, limit, params])
+novadax.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -334,7 +334,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-novadax.fetchClosedOrders (symbol[, since, limit, params])
+novadax.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -358,7 +358,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-novadax.fetchOrderTrades (id, symbol[, since, limit, params])
+novadax.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -382,7 +382,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-novadax.transfer (code, amount, fromAccount, toAccount[, params])
+novadax.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -406,7 +406,7 @@ make a withdrawal
 
 
 ```javascript
-novadax.withdraw (code, amount, address, tag[, params])
+novadax.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -426,7 +426,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-novadax.fetchAccounts ([params])
+novadax.fetchAccounts (params?)
 ```
 
 
@@ -449,7 +449,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-novadax.fetchDeposits (code[, since, limit, params])
+novadax.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -472,7 +472,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-novadax.fetchWithdrawals (code[, since, limit, params])
+novadax.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -495,7 +495,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-novadax.fetchDepositsWithdrawals ([code, since, limit, params])
+novadax.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -518,6 +518,6 @@ fetch all trades made by the user
 
 
 ```javascript
-novadax.fetchMyTrades (symbol[, since, limit, params])
+novadax.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 

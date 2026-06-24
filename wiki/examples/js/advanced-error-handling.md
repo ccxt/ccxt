@@ -1,13 +1,10 @@
-- [Advanced Error Handling](./examples/js/)
-
-
- ```javascript
- "use strict";
+```javascript
+"use strict";
 
 const ccxt      = require ('../../ccxt.js');
 
 // instantiate the exchange
-let exchange = new ccxt.coinbasepro  ({
+let exchange = new ccxt.coinbaseexchange  ({
     'apiKey': 'XXXXXXXXXXXXXX',
     'secret': 'YYYYYYYYYYYYYY',
 });
@@ -41,5 +38,5 @@ async function checkOrders(){
 
 //  for demonstrational purposes, we use 1000 ms interval
 setInterval(checkOrders, 1000); 
- 
+
 ```

@@ -122,7 +122,7 @@
                         "precision": 1e-8,
                         "type": "crypto",
                         "name": null,
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 1,
@@ -134,7 +134,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 10,
                                 "precision": 1e-8,
                                 "limits": {
@@ -164,7 +164,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 5,
                                 "precision": 1e-8,
                                 "limits": {
@@ -194,7 +194,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 1,
                                 "precision": 1e-8,
                                 "limits": {
@@ -224,7 +224,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": 2,
                                 "precision": 1e-8,
                                 "limits": {

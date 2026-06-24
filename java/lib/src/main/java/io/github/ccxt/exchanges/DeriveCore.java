@@ -351,7 +351,6 @@ public class DeriveCore extends DeriveApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object result = new java.util.HashMap<String, Object>() {{}};
             Object tokenResponse = (this.publicGetGetAllCurrencies(parameters)).join();
             //
             //    {
@@ -402,37 +401,37 @@ public class DeriveCore extends DeriveApi
             // }
             //
             Object currencies = this.safeList(tokenResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
-            {
-                Object currency = Helpers.GetValue(currencies, i);
-                Object currencyId = this.safeString(currency, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", currencyId );
-        put( "name", null );
-        put( "code", code );
-        put( "precision", null );
-        put( "active", null );
-        put( "fee", null );
-        put( "networks", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "info", currency );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(currencies);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object currencyId = this.safeString(rawCurrency, "currency");
+        Object code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", currencyId );
+            put( "name", null );
+            put( "code", code );
+            put( "precision", null );
+            put( "active", null );
+            put( "fee", null );
+            put( "networks", null );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "info", rawCurrency );
+        }});
     }
 
     /**
@@ -1023,7 +1022,7 @@ public class DeriveCore extends DeriveApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
@@ -1157,7 +1156,7 @@ public class DeriveCore extends DeriveApi
         Object binaryMessageLength = this.binaryLength(binaryMessage);
         Object x19 = this.base16ToBinary("19");
         Object newline = this.base16ToBinary("0a");
-        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((String)this.numberToString(binaryMessageLength))));
         return Helpers.add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
@@ -1224,14 +1223,14 @@ public class DeriveCore extends DeriveApi
             Object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
-            Object orderSide = ((String)side).toLowerCase();
+            Object orderSide = ((String)((String)side)).toLowerCase();
             Object nonce = this.milliseconds();
             // Order signature expiry must be between 2592000 and 7776000 sec from now
             Object signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((sandboxMode)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
-            Object priceString = this.numberToString(price);
+            Object priceString = ((String)this.numberToString(price));
             Object maxFee = null;
             var maxFeeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "max_fee");
             maxFee = ((java.util.List<Object>) maxFeeparametersVariable).get(0);
@@ -1240,9 +1239,9 @@ public class DeriveCore extends DeriveApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a max_fee argument in params")) ;
             }
-            Object maxFeeString = this.numberToString(maxFee);
-            Object amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, Helpers.isEqual(orderSide, "buy")))), keccak(), "binary");
+            Object maxFeeString = ((String)this.numberToString(maxFee));
+            Object amountString = ((String)this.numberToString(amount));
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, Helpers.isEqual(orderSide, "buy")))), keccak(), "binary");
             Object deriveWalletAddress = null;
             var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("createOrder", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
@@ -1380,7 +1379,7 @@ public class DeriveCore extends DeriveApi
             Object rawOrder = this.safeDict(result, "raw_data");
             if (Helpers.isTrue(Helpers.isEqual(rawOrder, null)))
             {
-                rawOrder = this.safeDict(result, "order");
+                rawOrder = this.safeDict(result, "order", new java.util.HashMap<String, Object>() {{}});
             }
             Object order = this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "type", type);
@@ -1422,17 +1421,17 @@ public class DeriveCore extends DeriveApi
             Object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
-            Object orderSide = ((String)side).toLowerCase();
+            Object orderSide = ((String)((String)side)).toLowerCase();
             Object nonce = this.milliseconds();
             Object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             // TODO: subaccount id / trade module address
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((sandboxMode)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
-            Object priceString = this.numberToString(price);
+            Object priceString = ((String)this.numberToString(price));
             Object maxFeeString = this.safeString(parameters, "max_fee", "0");
-            Object amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, Helpers.isEqual(orderSide, "buy")))), keccak(), "binary");
+            Object amountString = ((String)this.numberToString(amount));
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, Helpers.isEqual(orderSide, "buy")))), keccak(), "binary");
             Object deriveWalletAddress = null;
             var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("editOrder", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
@@ -1551,7 +1550,7 @@ public class DeriveCore extends DeriveApi
             //   }
             //
             Object result = this.safeDict(response, "result");
-            Object rawOrder = this.safeDict(result, "order");
+            Object rawOrder = this.safeDict(result, "order", new java.util.HashMap<String, Object>() {{}});
             Object order = this.parseOrder(rawOrder, market);
             return order;
         });
@@ -1661,7 +1660,7 @@ public class DeriveCore extends DeriveApi
             Object extendParams = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
-            Object order = this.safeDict(response, "result");
+            Object order = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(isByClientOrder))
             {
                 Helpers.addElementToObject(extendParams, "client_order_id", clientOrderIdExchangeSpecific);
@@ -1843,13 +1842,13 @@ public class DeriveCore extends DeriveApi
             if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
                 Object pagination = this.safeDict(data, "pagination");
-                Object currentPage = this.safeInteger(pagination, "num_pages");
+                Object currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isTrue(Helpers.isGreaterThan(page, currentPage)))
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 }
             }
-            Object orders = this.safeList(data, "orders");
+            Object orders = this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -1953,7 +1952,7 @@ public class DeriveCore extends DeriveApi
             put( "gtc", "GTC" );
             put( "post_only", "PO" );
         }};
-        return this.safeString(timeInForces, timeInForce);
+        return this.safeString(timeInForces, ((String)timeInForce));
     }
 
     public Object parseOrderStatus(Object status)
@@ -2038,7 +2037,7 @@ public class DeriveCore extends DeriveApi
         {
             market = this.safeMarket(marketId, market);
         }
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = this.safeString(market, "symbol");
         Object price = this.safeString(order, "limit_price");
         Object average = this.safeString(order, "average_price");
         Object amount = this.safeString(order, "desired_amount");
@@ -2297,7 +2296,7 @@ public class DeriveCore extends DeriveApi
             if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
                 Object pagination = this.safeDict(result, "pagination");
-                Object currentPage = this.safeInteger(pagination, "num_pages");
+                Object currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isTrue(Helpers.isGreaterThan(page, currentPage)))
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2555,7 +2554,7 @@ public class DeriveCore extends DeriveApi
             if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
                 Object pagination = this.safeDict(result, "pagination");
-                Object currentPage = this.safeInteger(pagination, "num_pages");
+                Object currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isTrue(Helpers.isGreaterThan(page, currentPage)))
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2757,7 +2756,7 @@ public class DeriveCore extends DeriveApi
             //
             Object currency = this.safeCurrency(code);
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object events = this.safeList(result, "events");
+            Object events = this.safeList(result, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(events, currency, since, limit, parameters);
         });
 
@@ -2818,7 +2817,7 @@ public class DeriveCore extends DeriveApi
             //
             Object currency = this.safeCurrency(code);
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object events = this.safeList(result, "events");
+            Object events = this.safeList(result, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(events, currency, since, limit, parameters);
         });
 
@@ -2876,7 +2875,7 @@ public class DeriveCore extends DeriveApi
             put( "settled", "ok" );
             put( "reverted", "failed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object handleDeriveSubaccountId(Object methodName, Object parameters)

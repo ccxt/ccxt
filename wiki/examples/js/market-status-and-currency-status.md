@@ -1,8 +1,5 @@
-- [Market Status And Currency Status](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
@@ -31,5 +28,5 @@ import asTable from 'as-table';
     log.yellow.noLocate (asTable (currencies))
 
 }) ()
- 
+
 ```

@@ -508,11 +508,10 @@ func (this *XtCore) Describe() any {
 			"networks": map[string]any{
 				"ERC20": "Ethereum",
 				"TRC20": "Tron",
+				"TRX":   "Tron",
 				"BEP20": "BNB Smart Chain",
 				"BEP2":  "BNB-BEP2",
 				"ETH":   "Ethereum",
-				"TRON":  "Tron",
-				"BNB":   "BNB Smart Chain",
 				"AVAX":  "AVAX C-Chain",
 				"GAL":   "GAL(FT)",
 				"ALEO":  "ALEO(IOU)",
@@ -959,8 +958,8 @@ func (this *XtCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes99112 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes99112)
+			retRes99012 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes99012)
 		}
 		var promisesUnresolved any = []any{this.FetchSpotMarkets(params), this.FetchSwapAndFutureMarkets(params)}
 
@@ -1418,17 +1417,17 @@ func (this *XtCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes14108 := (<-this.LoadMarkets())
-		PanicOnError(retRes14108)
+		retRes14098 := (<-this.LoadMarkets())
+		PanicOnError(retRes14098)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes141419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-			PanicOnError(retRes141419)
-			ch <- retRes141419
+			retRes141319 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+			PanicOnError(retRes141319)
+			ch <- retRes141319
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1547,7 +1546,8 @@ func (this *XtCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var volumeIndex any = Ternary(IsTrue((GetValue(market, "inverse"))), "v", "a")
+	var isInverse any = this.SafeBool(market, "inverse")
+	var volumeIndex any = Ternary(IsTrue((isInverse)), "v", "a")
 	return []any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber2(ohlcv, "q", volumeIndex)}
 }
 

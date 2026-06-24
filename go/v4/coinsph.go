@@ -624,7 +624,7 @@ func (this *CoinsphCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
 		var networkItem any = GetValue(networkList, j)
 		var network any = this.SafeString(networkItem, "network")
-		var networkCode any = this.NetworkIdToCode(network)
+		var networkCode any = this.NetworkIdToCode(network, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"info":      networkItem,
 			"id":        network,

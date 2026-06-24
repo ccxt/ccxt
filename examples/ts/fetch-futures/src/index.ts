@@ -1,5 +1,5 @@
 // Example code in typescript
-// Based on /examples/js/fetch-okex-futures.js
+// Based on /examples/js/fetch-okx-futures.js
 
 import * as ccxt from 'ccxt';
 const log = require('ololog');

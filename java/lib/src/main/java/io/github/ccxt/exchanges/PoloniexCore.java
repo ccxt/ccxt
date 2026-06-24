@@ -1637,7 +1637,7 @@ public class PoloniexCore extends PoloniexApi
             }
             if (Helpers.isTrue(Helpers.isTrue(isContract) && Helpers.isTrue(!Helpers.isEqual(symbol, null))))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             var requestparametersVariable = this.handleUntilOption(endKey, request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
@@ -3171,19 +3171,26 @@ public class PoloniexCore extends PoloniexApi
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
-            var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
-            var request = ((java.util.List<Object>) requestextraParamscurrencynetworkEntryVariable).get(0);
-            var extraParams = ((java.util.List<Object>) requestextraParamscurrencynetworkEntryVariable).get(1);
-            var currency = ((java.util.List<Object>) requestextraParamscurrencynetworkEntryVariable).get(2);
-            var networkEntry = ((java.util.List<Object>) requestextraParamscurrencynetworkEntryVariable).get(3);
-            parameters = extraParams;
-            Helpers.addElementToObject(request, "amount", this.currencyToPrecision(code, amount));
-            Helpers.addElementToObject(request, "address", address);
+            Object currency = this.currency(code);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "coin", Helpers.GetValue(currency, "id") );
+                put( "amount", PoloniexCore.this.currencyToPrecision(code, amount) );
+                put( "address", address );
+            }};
+            Object networkCode = null;
+            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw requires a network parameter for "), code), ".")) ;
+            }
+            Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, code));
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {
                 Helpers.addElementToObject(request, "paymentId", tag);
             }
-            Object response = (this.privatePostWalletsWithdraw(this.extend(request, parameters))).join();
+            Object response = (this.privatePostV2WalletsWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "response": "Withdrew 1.00000000 USDT.",
@@ -3191,11 +3198,7 @@ public class PoloniexCore extends PoloniexApi
             //         "withdrawalNumber": 13449869
             //     }
             //
-            Object withdrawResponse = new java.util.HashMap<String, Object>() {{
-                put( "response", response );
-                put( "withdrawNetworkEntry", networkEntry );
-            }};
-            return this.parseTransaction(withdrawResponse, currency);
+            return this.parseTransaction(response, currency);
         });
 
     }
@@ -3466,7 +3469,7 @@ public class PoloniexCore extends PoloniexApi
                     {
                         Object networkId = Helpers.GetValue(childChains, j);
                         networkId = Helpers.replace((String)networkId, (String)code, (String)"");
-                        Object networkCode = this.networkIdToCode(networkId);
+                        Object networkCode = this.networkIdToCode(networkId, Helpers.GetValue(currency, "code"));
                         Object networkInfo = this.safeValue(response, networkId);
                         Object networkObject = new java.util.HashMap<String, Object>() {{}};
                         Object withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
@@ -3507,7 +3510,7 @@ public class PoloniexCore extends PoloniexApi
         }};
         Helpers.addElementToObject(depositWithdrawFee, "withdraw", withdrawResult);
         Helpers.addElementToObject(depositWithdrawFee, "deposit", depositResult);
-        Object networkCode = this.networkIdToCode(networkId);
+        Object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
         Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
@@ -3788,7 +3791,7 @@ public class PoloniexCore extends PoloniexApi
         Object longLeverage = null;
         Object marketId = null;
         Object marginMode = null;
-        Object data = this.safeList(leverage, "data");
+        Object data = this.safeList(leverage, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object entry = Helpers.GetValue(data, i);

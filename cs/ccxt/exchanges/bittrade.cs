@@ -360,7 +360,6 @@ public partial class bittrade : Exchange
                     { "HECO", "hrc20" },
                     { "HT", "hrc20" },
                     { "ALGO", "algo" },
-                    { "OMNI", "" },
                 } },
                 { "fetchOrdersByStatesMethod", "private_get_order_orders" },
                 { "fetchOpenOrdersMethod", "fetch_open_orders_v1" },

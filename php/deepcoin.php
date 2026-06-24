@@ -820,7 +820,7 @@ class deepcoin extends Exchange {
             'instId' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 2000);
+            $request['limit'] = min ($limit, 500);
         }
         $productGroup = $this->get_product_group_from_market($market);
         $request['productGroup'] = $productGroup;
@@ -831,8 +831,8 @@ class deepcoin extends Exchange {
 
     public function get_product_group_from_market(array $market): string {
         $productGroup = 'Spot';
-        if ($market['swap']) {
-            if ($market['linear']) {
+        if ($this->safe_bool($market, 'swap')) {
+            if ($this->safe_bool($market, 'linear')) {
                 $productGroup = 'SwapU';
             } else {
                 $productGroup = 'Swap';
@@ -1077,7 +1077,7 @@ class deepcoin extends Exchange {
         $amount = $this->safe_number($transaction, 'amount');
         $timestamp = $this->safe_timestamp($transaction, 'createTime');
         $networkId = $this->safe_string($transaction, 'chainName');
-        $network = $this->network_id_to_code($networkId);
+        $network = $this->network_id_to_code($networkId, $code);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         return array(
             'info' => $transaction,
@@ -1228,10 +1228,11 @@ class deepcoin extends Exchange {
         $chain = $this->safe_string($response, 'chain');
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
+        $code = $this->safe_string($currency, 'code');
         return array(
             'info' => $response,
             'currency' => null,
-            'network' => $this->network_id_to_code($chain),
+            'network' => $this->network_id_to_code($chain, $code),
             'address' => $address,
             'tag' => $this->safe_string($response, 'memo'),
         );
@@ -2818,7 +2819,7 @@ class deepcoin extends Exchange {
         return $this->parse_funding_rate_histories($rows, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($info, ?array $market = null) {
+    public function parse_funding_rate_history($info, ?array $market = null): array {
         //
         //     {
         //         "instrumentID" => "ETHUSD",
@@ -2973,7 +2974,7 @@ class deepcoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $requestPath = $path;
         if ($method === 'GET') {
             $query = $this->urlencode($params);

@@ -679,7 +679,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -725,90 +725,89 @@ class coinex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $coin = $data[$i];
-            $asset = $this->safe_dict($coin, 'asset', array());
-            $chains = $this->safe_list($coin, 'chains', array());
-            $currencyId = $this->safe_string($asset, 'ccy');
-            if ($currencyId === null) {
-                continue; // coinex returns empty structures for some reason
+        return $this->parse_currencies($data);
+    }
+
+    public function parse_currency($coin): array {
+        $asset = $this->safe_dict($coin, 'asset', array());
+        $chains = $this->safe_list($coin, 'chains', array());
+        $currencyId = $this->safe_string($asset, 'ccy');
+        if ($currencyId === null) {
+            return null; // coinex returns empty structures for some reason
+        }
+        $code = $this->safe_currency_code($currencyId);
+        $canDeposit = $this->safe_bool($asset, 'deposit_enabled');
+        $canWithdraw = $this->safe_bool($asset, 'withdraw_enabled');
+        $firstChain = $this->safe_dict($chains, 0, array());
+        $firstPrecisionString = $this->parse_precision($this->safe_string($firstChain, 'withdrawal_precision'));
+        $networks = array();
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'chain');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            if ($networkId === null) {
+                continue;
             }
-            $code = $this->safe_currency_code($currencyId);
-            $canDeposit = $this->safe_bool($asset, 'deposit_enabled');
-            $canWithdraw = $this->safe_bool($asset, 'withdraw_enabled');
-            $firstChain = $this->safe_dict($chains, 0, array());
-            $firstPrecisionString = $this->parse_precision($this->safe_string($firstChain, 'withdrawal_precision'));
-            $networks = array();
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'chain');
-                $networkCode = $this->network_id_to_code($networkId, $code);
-                if ($networkId === null) {
-                    continue;
-                }
-                $precisionString = $this->parse_precision($this->safe_string($chain, 'withdrawal_precision'));
-                $feeString = $this->safe_string($chain, 'withdrawal_fee');
-                $minNetworkDepositString = $this->safe_string($chain, 'min_deposit_amount');
-                $minNetworkWithdrawString = $this->safe_string($chain, 'min_withdraw_amount');
-                $canDepositChain = $this->safe_bool($chain, 'deposit_enabled');
-                $canWithdrawChain = $this->safe_bool($chain, 'withdraw_enabled');
-                $network = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'name' => null,
-                    'active' => $canDepositChain && $canWithdrawChain,
-                    'deposit' => $canDepositChain,
-                    'withdraw' => $canWithdrawChain,
-                    'fee' => $this->parse_number($feeString),
-                    'precision' => $this->parse_number($precisionString),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->parse_number($minNetworkDepositString),
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->parse_number($minNetworkWithdrawString),
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $chain,
-                );
-                $networks[$networkCode] = $network;
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $currencyId,
-                'code' => $code,
+            $precisionString = $this->parse_precision($this->safe_string($chain, 'withdrawal_precision'));
+            $feeString = $this->safe_string($chain, 'withdrawal_fee');
+            $minNetworkDepositString = $this->safe_string($chain, 'min_deposit_amount');
+            $minNetworkWithdrawString = $this->safe_string($chain, 'min_withdraw_amount');
+            $canDepositChain = $this->safe_bool($chain, 'deposit_enabled');
+            $canWithdrawChain = $this->safe_bool($chain, 'withdraw_enabled');
+            $network = array(
+                'id' => $networkId,
+                'network' => $networkCode,
                 'name' => null,
-                'active' => $canDeposit && $canWithdraw,
-                'deposit' => $canDeposit,
-                'withdraw' => $canWithdraw,
-                'fee' => null,
-                'precision' => $this->parse_number($firstPrecisionString),
+                'active' => $canDepositChain && $canWithdrawChain,
+                'deposit' => $canDepositChain,
+                'withdraw' => $canWithdrawChain,
+                'fee' => $this->parse_number($feeString),
+                'precision' => $this->parse_number($precisionString),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => null,
+                        'min' => $this->parse_number($minNetworkDepositString),
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => null,
+                        'min' => $this->parse_number($minNetworkWithdrawString),
                         'max' => null,
                     ),
                 ),
-                'networks' => $networks,
-                'type' => 'crypto',
-                'info' => $coin,
-            ));
+                'info' => $chain,
+            );
+            $networks[$networkCode] = $network;
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'code' => $code,
+            'name' => null,
+            'active' => $canDeposit && $canWithdraw,
+            'deposit' => $canDeposit,
+            'withdraw' => $canWithdraw,
+            'fee' => null,
+            'precision' => $this->parse_number($firstPrecisionString),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'type' => 'crypto',
+            'info' => $coin,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -1097,7 +1096,6 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = null;
         if ($market['swap']) {
             $response = $this->v2PublicGetFuturesTicker ($this->extend($request, $params));
         } else {
@@ -1276,7 +1274,6 @@ class coinex extends Exchange {
             'limit' => $limit,
             'interval' => '0',
         );
-        $response = null;
         if ($market['swap']) {
             $response = $this->v2PublicGetFuturesDepth ($this->extend($request, $params));
             //
@@ -1434,7 +1431,6 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 1000);
         }
-        $response = null;
         if ($market['swap']) {
             $response = $this->v2PublicGetFuturesDeals ($this->extend($request, $params));
         } else {
@@ -1476,7 +1472,6 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = null;
         if ($market['spot']) {
             $response = $this->v2PublicGetSpotMarket ($this->extend($request, $params));
             //
@@ -1541,7 +1536,6 @@ class coinex extends Exchange {
         $this->load_markets();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
-        $response = null;
         if ($type === 'swap') {
             $response = $this->v2PublicGetFuturesMarket ($params);
             //
@@ -1659,7 +1653,6 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = null;
         if ($market['swap']) {
             $response = $this->v2PublicGetFuturesKline ($this->extend($request, $params));
         } else {
@@ -2698,7 +2691,6 @@ class coinex extends Exchange {
                 }
             }
             $innerData = $this->safe_dict($entry, 'data', array());
-            $order = null;
             if ($market['spot'] && !$isTriggerOrder) {
                 $entry['status'] = $status;
                 $order = $this->parse_order($entry, $market);
@@ -3963,7 +3955,7 @@ class coinex extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a "network" parameter');
         }
-        $request['chain'] = $this->network_code_to_id($networkCode); // required for on-chain, not required for inter-user transfer
+        $request['chain'] = $this->network_code_to_id($networkCode, $currency['code']); // required for on-chain, not required for inter-user transfer
         $response = $this->v2PrivateGetAssetsDepositAddress ($this->extend($request, $params));
         //
         //     {
@@ -4129,7 +4121,6 @@ class coinex extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = null;
         if ($defaultMethod === 'v2PrivateGetFuturesPendingPosition') {
             $response = $this->v2PrivateGetFuturesPendingPosition ($this->extend($request, $params));
         } else {
@@ -4615,7 +4606,7 @@ class coinex extends Exchange {
             'marginMode' => 'isolated',
             'amount' => $this->parse_number(Precise::string_abs($change)),
             'total' => $this->safe_number($data, 'margin_avbl'),
-            'code' => $market['quote'],
+            'code' => $this->safe_string($market, 'quote'),
             'status' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -4904,7 +4895,7 @@ class coinex extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = $this->network_code_to_id($networkCode); // required for on-chain, not required for inter-user transfer
+            $request['chain'] = $this->network_code_to_id($networkCode, $currency['code']); // required for on-chain, not required for inter-user transfer
         }
         $response = $this->v2PrivatePostAssetsWithdraw ($this->extend($request, $params));
         //
@@ -5114,7 +5105,7 @@ class coinex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -5831,7 +5822,9 @@ class coinex extends Exchange {
                 $result['withdraw']['percentage'] = false;
                 $networkId = $this->safe_string($entry, 'chain');
                 if ($networkId) {
-                    $networkCode = $this->network_id_to_code($networkId, $this->safe_string($asset, 'ccy'));
+                    $currencyId = $this->safe_string($asset, 'ccy');
+                    $feeCode = $this->safe_currency_code($currencyId, $currency);
+                    $networkCode = $this->network_id_to_code($networkId, $feeCode);
                     $result['networks'][$networkCode] = array(
                         'withdraw' => array(
                             'fee' => $this->safe_number($entry, 'withdrawal_fee'),
@@ -6048,7 +6041,7 @@ class coinex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -6071,7 +6064,7 @@ class coinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $path = $this->implode_params($path, $params);
         $version = $api[0];
         $requestUrl = $api[1];

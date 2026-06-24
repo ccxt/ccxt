@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import htxRest from '../htx.js';
 import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class htx extends htxRest {
     describe() {
@@ -102,7 +102,7 @@ export default class htx extends htxRest {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'api': 'api',
+                'api': 'api', // or api-aws for clients hosted on AWS
                 'watchOrderBook': {
                     'maxRetries': 3,
                     'checksum': true,
@@ -118,12 +118,12 @@ export default class htx extends htxRest {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'bad-request': BadRequest,
-                        '2002': AuthenticationError,
+                        'bad-request': BadRequest, // {  ts: 1586323747018,  status: 'error',    'err-code': 'bad-request',  err-msg': 'invalid mbp.150.symbol linkusdt', id: '2'}
+                        '2002': AuthenticationError, // { action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state' }
                         '2021': BadRequest,
-                        '2001': BadSymbol,
-                        '2011': BadSymbol,
-                        '2040': BadRequest,
+                        '2001': BadSymbol, // { action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
+                        '2011': BadSymbol, // { op: 'sub', cid: '1649149285', topic: 'orders_cross.ltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637 }
+                        '2040': BadRequest, // { op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684 }
                         '4007': BadRequest, // { op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540 }
                     },
                 },
@@ -682,7 +682,7 @@ export default class htx extends htxRest {
             orderbook.reset(snapshot);
             orderbook['nonce'] = version;
         }
-        if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
+        if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger(orderbook, 'nonce', 0)) {
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum) {
                 throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));

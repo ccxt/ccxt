@@ -383,7 +383,6 @@ class lbank extends Exchange {
              */
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
-            $response = null;
             if ($type === 'swap') {
                 $response = Async\await($this->contractPublicGetCfdOpenApiV1PubGetTime ($params));
             } else {
@@ -456,67 +455,67 @@ class lbank extends Exchange {
             //
             $currenciesData = $this->safe_list($response, 'data', array());
             $grouped = $this->group_by($currenciesData, 'assetCode');
-            $groupedKeys = is_array($grouped) ? array_keys($grouped) : array();
-            $result = array();
-            for ($i = 0; $i < count($groupedKeys); $i++) {
-                $id = (string) ($groupedKeys[$i]); // some currencies are numeric
-                $code = $this->safe_currency_code($id);
-                $networksRaw = $grouped[$id];
-                $networks = array();
-                for ($j = 0; $j < count($networksRaw); $j++) {
-                    $networkEntry = $networksRaw[$j];
-                    $networkId = $this->safe_string($networkEntry, 'chain');
-                    if ($networkId === null) {
-                        $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
-                    }
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkEntry, 'min'),
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($networkEntry, 'minTransfer'),
-                                'max' => null,
-                            ),
-                        ),
-                        'active' => null,
-                        'deposit' => null,
-                        'withdraw' => $this->safe_bool($networkEntry, 'canWithDraw'),
-                        'fee' => $this->safe_number($networkEntry, 'fee'),
-                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'transferAmtScale'))),
-                        'info' => $networkEntry,
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'precision' => null,
-                    'type' => null,
-                    'name' => null,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                    'info' => $networksRaw,
-                ));
-            }
-            return $result;
+            $values = is_array($grouped) ? array_values($grouped) : array();
+            return $this->parse_currencies($values);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency[0], 'assetCode'); // first member is guaranteed
+        $code = $this->safe_currency_code($id);
+        $networksRaw = $rawCurrency;
+        $networks = array();
+        for ($j = 0; $j < count($networksRaw); $j++) {
+            $networkEntry = $networksRaw[$j];
+            $networkId = $this->safe_string($networkEntry, 'chain');
+            if ($networkId === null) {
+                $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
+            }
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min'),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'minTransfer'),
+                        'max' => null,
+                    ),
+                ),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => $this->safe_bool($networkEntry, 'canWithDraw'),
+                'fee' => $this->safe_number($networkEntry, 'fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'transferAmtScale'))),
+                'info' => $networkEntry,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'precision' => null,
+            'type' => null,
+            'name' => null,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'info' => $networksRaw,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -855,7 +854,6 @@ class lbank extends Exchange {
             $request = array();
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            $response = null;
             if ($type === 'swap') {
                 $request['productGroup'] = 'SwapU';
                 $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketData ($this->extend($request, $params)));
@@ -936,7 +934,6 @@ class lbank extends Exchange {
             );
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
-            $response = null;
             if ($type === 'swap') {
                 $request['depth'] = $limit;
                 $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketOrder ($this->extend($request, $params)));
@@ -1081,7 +1078,7 @@ class lbank extends Exchange {
         $fee = null;
         $feeCost = $this->safe_string($trade, 'tradeFee');
         if ($feeCost !== null) {
-            $feeCurr = ($side === 'buy') ? $market['base'] : $market['quote'];
+            $feeCurr = ($side === 'buy') ? $this->safe_string($market, 'base') : $this->safe_string($market, 'quote');
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurr,
@@ -1136,7 +1133,6 @@ class lbank extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'spotPublicGetTrades');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            $response = null;
             if ($method === 'spotPublicGetSupplementTrades') {
                 $response = Async\await($this->spotPublicGetSupplementTrades ($this->extend($request, $params)));
             } else {
@@ -1504,7 +1500,6 @@ class lbank extends Exchange {
             $options = $this->safe_value($this->options, 'fetchBalance', array());
             $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementUserInfo');
             $method = $this->safe_string($params, 'method', $defaultMethod);
-            $response = null;
             if ($method === 'spotPrivatePostSupplementUserInfoAccount') {
                 $response = Async\await($this->spotPrivatePostSupplementUserInfoAccount ());
             } elseif ($method === 'spotPrivatePostUserInfo') {
@@ -1708,7 +1703,6 @@ class lbank extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementCreateOrder');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            $response = null;
             if ($method === 'spotPrivatePostCreateOrder') {
                 $response = Async\await($this->spotPrivatePostCreateOrder ($this->extend($request, $params)));
             } else {
@@ -2302,7 +2296,6 @@ class lbank extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'fetchDepositAddressDefault');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            $response = null;
             if ($method === 'fetchDepositAddressSupplement') {
                 $response = Async\await($this->fetch_deposit_address_supplement($code, $params));
             } else {
@@ -2344,7 +2337,7 @@ class lbank extends Exchange {
             return array(
                 'info' => $response,
                 'currency' => $code,
-                'network' => $this->network_id_to_code($this->safe_string($result, 'netWork')),
+                'network' => $this->network_id_to_code($this->safe_string($result, 'netWork'), $code),
                 'address' => $address,
                 'tag' => $tag,
             );
@@ -2540,7 +2533,7 @@ class lbank extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'networkName')),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'networkName'), $code),
             'address' => $address,
             'addressTo' => $addressTo,
             'addressFrom' => $addressFrom,
@@ -2686,7 +2679,6 @@ class lbank extends Exchange {
             // private only returns information for currencies with non-zero balance
             Async\await($this->load_markets());
             $isAuthorized = $this->check_required_credentials(false);
-            $result = null;
             if ($isAuthorized === true) {
                 $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
                 $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
@@ -2752,7 +2744,7 @@ class lbank extends Exchange {
                     $networkEntry = $networkList[$j];
                     $fee = $this->safe_number($networkEntry, 'withdrawFee');
                     if ($fee !== null) {
-                        $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'));
+                        $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
                         $withdrawFees[$code][$networkCode] = $fee;
                     }
                 }
@@ -2807,7 +2799,7 @@ class lbank extends Exchange {
                 if ($canWithdraw === 'true') {
                     $currencyId = $this->safe_string($item, 'assetCode');
                     $codeInner = $this->safe_currency_code($currencyId);
-                    $network = $this->network_id_to_code($this->safe_string($item, 'chain'));
+                    $network = $this->network_id_to_code($this->safe_string($item, 'chain'), $codeInner);
                     if ($network === null) {
                         $network = $codeInner;
                     }
@@ -2840,7 +2832,6 @@ class lbank extends Exchange {
              */
             Async\await($this->load_markets());
             $isAuthorized = $this->check_required_credentials(false);
-            $response = null;
             if ($isAuthorized === true) {
                 $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
                 $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
@@ -2858,7 +2849,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function fetch_private_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_private_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             // complete $response
             // incl. for coins which null in public method
@@ -2899,7 +2890,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function fetch_public_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_public_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             // extremely incomplete $response
             // vast majority fees null
@@ -2932,7 +2923,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_public_deposit_withdraw_fees($response, $codes = null) {
+    public function parse_public_deposit_withdraw_fees($response, ?array $codes = null) {
         //
         //    array(
         //        array(
@@ -2966,7 +2957,7 @@ class lbank extends Exchange {
                             $resultCodeInfo = $result[$code]['info'];
                             $resultCodeInfo[] = $fee;
                         }
-                        $networkCode = $this->network_id_to_code($this->safe_string($fee, 'chain'));
+                        $networkCode = $this->network_id_to_code($this->safe_string($fee, 'chain'), $code);
                         if ($networkCode !== null) {
                             $result[$code]['networks'][$networkCode] = array(
                                 'withdraw' => array(
@@ -3019,10 +3010,11 @@ class lbank extends Exchange {
         //    }
         //
         $result = $this->deposit_withdraw_fee($fee);
+        $code = $this->safe_string($currency, 'code');
         $networkList = $this->safe_value($fee, 'networkList', array());
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $networkList[$j];
-            $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'));
+            $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
             $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
             $isDefault = $this->safe_value($networkEntry, 'isDefault');
             if ($withdrawFee !== null) {
@@ -3047,7 +3039,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         // Every spot endpoint ends with ".do"

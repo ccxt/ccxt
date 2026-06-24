@@ -322,7 +322,7 @@ class zebpay extends Exchange {
         return $this->array_concat($spotMarkets, $futureMarkets);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -364,89 +364,88 @@ class zebpay extends Exchange {
         //     }
         //
         $rows = $this->safe_list($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $currency = $rows[$i];
-            $currencyId = $this->safe_string($currency, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $name = $this->safe_string($currency, 'name');
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
-            $chains = $this->safe_list($currency, 'chains', array());
-            $networks = array();
-            $minWithdrawFeeString = null;
-            $minWithdrawString = null;
-            $minDepositString = null;
-            $deposit = false;
-            $withdraw = false;
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'chainId');
-                $networkCode = $this->network_id_to_code($networkId);
-                $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled') === true;
-                $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
-                $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled') === true;
-                $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
-                $withdrawFeeString = $this->safe_string($chain, 'withdrawalFee');
-                if ($withdrawFeeString !== null) {
-                    $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
-                }
-                $minNetworkWithdrawString = $this->safe_string($chain, 'withdrawalMinSize');
-                if ($minNetworkWithdrawString !== null) {
-                    $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
-                }
-                $minNetworkDepositString = $this->safe_string($chain, 'depositMinSize');
-                if ($minNetworkDepositString !== null) {
-                    $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
-                }
-                $networks[$networkCode] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => $depositAllowed && $withdrawAllowed,
-                    'deposit' => $depositAllowed,
-                    'withdraw' => $withdrawAllowed,
-                    'fee' => $this->parse_number($withdrawFeeString),
-                    'precision' => $precision,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->parse_number($minNetworkWithdrawString),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->parse_number($minNetworkDepositString),
-                            'max' => null,
-                        ),
-                    ),
-                );
+        return $this->parse_currencies($rows);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $precision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision')));
+        $chains = $this->safe_list($rawCurrency, 'chains', array());
+        $networks = array();
+        $minWithdrawFeeString = null;
+        $minWithdrawString = null;
+        $minDepositString = null;
+        $deposit = false;
+        $withdraw = false;
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'chainId');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled') === true;
+            $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
+            $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled') === true;
+            $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
+            $withdrawFeeString = $this->safe_string($chain, 'withdrawalFee');
+            if ($withdrawFeeString !== null) {
+                $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
             }
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'code' => $code,
-                'id' => $currencyId,
-                'name' => $name,
-                'active' => $deposit && $withdraw,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => $this->parse_number($minWithdrawFeeString),
+            $minNetworkWithdrawString = $this->safe_string($chain, 'withdrawalMinSize');
+            if ($minNetworkWithdrawString !== null) {
+                $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+            }
+            $minNetworkDepositString = $this->safe_string($chain, 'depositMinSize');
+            if ($minNetworkDepositString !== null) {
+                $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
+            }
+            $networks[$networkCode] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => $depositAllowed && $withdrawAllowed,
+                'deposit' => $depositAllowed,
+                'withdraw' => $withdrawAllowed,
+                'fee' => $this->parse_number($withdrawFeeString),
                 'precision' => $precision,
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
-                        'min' => $this->parse_number($minWithdrawString),
+                        'min' => $this->parse_number($minNetworkWithdrawString),
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => $this->parse_number($minDepositString),
+                        'min' => $this->parse_number($minNetworkDepositString),
                         'max' => null,
                     ),
                 ),
-                'networks' => $networks,
-            ));
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $name,
+            'active' => $deposit && $withdraw,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => $this->parse_number($minWithdrawFeeString),
+            'precision' => $precision,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->parse_number($minWithdrawString),
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => $this->parse_number($minDepositString),
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_trading_fee(string $symbol, $params = array ()): array {
@@ -1265,7 +1264,7 @@ class zebpay extends Exchange {
         //         }
         //     }
         //
-        $responseData = $this->safe_dict($response, 'data');
+        $responseData = $this->safe_dict($response, 'data', array());
         return $this->parse_order($responseData, $market);
     }
 
@@ -1391,7 +1390,7 @@ class zebpay extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => strtoupper($market['id']),
+            'symbol' => $this->safe_string_upper($market, 'id'),
         );
         $response = $this->privateSwapGetV1TradeUserLeverage ($this->extend($request, $params));
         //
@@ -1850,7 +1849,7 @@ class zebpay extends Exchange {
         $timestamp = $this->milliseconds();
         return array(
             'info' => $info,
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'type' => null,
             'marginMode' => null,
             'amount' => $this->safe_number($info, 'amount'),
@@ -1862,7 +1861,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $params = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
         $marketType = $isV1 ? 'swap' : 'spot';

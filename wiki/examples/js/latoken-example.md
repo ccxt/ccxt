@@ -1,8 +1,5 @@
-- [Latoken Example](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog';
@@ -109,5 +106,5 @@ const table   = asTable.configure ({ delimiter: ' | ' }),
 
     }
 
-}) () 
+}) ()
 ```

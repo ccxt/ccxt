@@ -661,7 +661,7 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta, 0, 1);
+        Object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 

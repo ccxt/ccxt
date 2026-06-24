@@ -3447,7 +3447,7 @@ public partial class kucoin : Exchange
             parameters = ((IList<object>)networkCodeparametersVariable)[1];
             if (isTrue(!isEqual(networkCode, null)))
             {
-                ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
+                ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode, code)).ToLower();
             }
             //
             //     {
@@ -4206,6 +4206,7 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object market = this.market(symbol);
         object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
         object response = await this.utaPrivatePostAccountModeOrderPlace(request);
         //
@@ -4220,7 +4221,7 @@ public partial class kucoin : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data);
+        return this.parseOrder(data, market);
     }
 
     public virtual object createUtaOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -5913,7 +5914,7 @@ public partial class kucoin : Exchange
                 {
                     throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol parameter for hf and margin orders")) ;
                 }
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             }
         }
         parameters = this.omit(parameters, new List<object>() {"stop", "clientOid", "clientOrderId", "trigger"});
@@ -5930,7 +5931,7 @@ public partial class kucoin : Exchange
                 {
                     if (isTrue(!isEqual(symbol, null)))
                     {
-                        ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                        ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
                     }
                     response = await this.privateGetStopOrderQueryOrderByClientOid(this.extend(request, parameters));
                 }
@@ -8751,7 +8752,7 @@ public partial class kucoin : Exchange
         object response = await this.utaPrivatePostAccountTransfer(this.extend(request, parameters));
         //
         //
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transfer = this.parseTransfer(data, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
@@ -8849,7 +8850,7 @@ public partial class kucoin : Exchange
             //
             response = await this.privatePostAccountsUniversalTransfer(this.extend(request, parameters));
         }
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transfer = this.parseTransfer(data, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
@@ -10181,7 +10182,7 @@ public partial class kucoin : Exchange
             }
             if (isTrue(!isEqual(symbol, null)))
             {
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             }
             ((IDictionary<string,object>)request)["isIsolated"] = (isEqual(marginMode, "isolated"));
             response = await this.privatePostPositionUpdateUserLeverage(this.extend(request, parameters));
@@ -11152,7 +11153,7 @@ public partial class kucoin : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument when cancelling by clientOrderIds")) ;
             }
             ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
+                { "symbol", this.safeString(market, "id") },
                 { "clientOid", this.safeString(clientOrderIds, i) },
             });
         }
@@ -11163,7 +11164,7 @@ public partial class kucoin : Exchange
             {
                 ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
                     { "orderId", orderId },
-                    { "symbol", getValue(market, "id") },
+                    { "symbol", this.safeString(market, "id") },
                 });
             } else
             {
@@ -11405,7 +11406,7 @@ public partial class kucoin : Exchange
         marginType = ((bool) isTrue((isEqual(marginType, "ISOLATED")))) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
             { "info", marginMode },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginType },
         };
     }
@@ -11954,6 +11955,7 @@ public partial class kucoin : Exchange
                 { "KC-API-KEY", this.apiKey },
                 { "KC-API-TIMESTAMP", timestamp },
             }, headers);
+            headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
             object apiKeyVersion = this.safeString(headers, "KC-API-KEY-VERSION");
             if (isTrue(isEqual(apiKeyVersion, "2")))
             {
@@ -12110,7 +12112,7 @@ public partial class kucoin : Exchange
 
     /**
      * @method
-     * @name kucoinfutures#fetchPositionsADLRank
+     * @name kucoin#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
      * @param {string[]} [symbols] list of unified market symbols

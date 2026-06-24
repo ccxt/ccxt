@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinspot.js';
-import { ExchangeError, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Dict, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Fee, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -535,7 +535,7 @@ export default class coinspot extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -607,9 +607,9 @@ export default class coinspot extends Exchange {
         //       "side": "buy",
         //       "price": 0.5168600000125209
         //     }
-        let timestamp = undefined;
-        let priceString = undefined;
-        let fee = undefined;
+        let timestamp: Int = undefined;
+        let priceString: Str = undefined;
+        let fee: Fee = undefined;
         const audTotal = this.safeString (trade, 'audtotal');
         const costString = this.safeString (trade, 'total', audTotal);
         const side = this.safeString (trade, 'side');
@@ -666,7 +666,7 @@ export default class coinspot extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = 'privatePostMy' + this.capitalize (side);
+        const sideUpper = side.toUpperCase ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
@@ -676,8 +676,20 @@ export default class coinspot extends Exchange {
             'amount': amount,
             'rate': price,
         };
-        const response = await this[method] (this.extend (request, params));
-        return this.parseOrder (response);
+        let response: Dict;
+        if (sideUpper === 'BUY') {
+            response = await this.privatePostMyBuy (this.extend (request, params));
+        } else if (sideUpper === 'SELL') {
+            response = await this.privatePostMySell (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' createOrder only support buy/sell side');
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder ({
+            'info': response,
+        });
     }
 
     /**
@@ -700,7 +712,7 @@ export default class coinspot extends Exchange {
         const request: Dict = {
             'id': id,
         };
-        let response = undefined;
+        let response: Dict;
         if (side === 'buy') {
             response = await this.privatePostMyBuyCancel (this.extend (request, params));
         } else {
@@ -714,7 +726,19 @@ export default class coinspot extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        const status = this.safeString (response, 'status');
+        if (status === 'error') {
+            const feedback = this.id + ' ' + this.json (response);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
+    }
+
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const isVersionedApi = Array.isArray (api);
         const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api;

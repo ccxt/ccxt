@@ -1,8 +1,5 @@
-- [Coinone Fetch Tickers](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import { nice as ansi } from 'ansicolor';
 import ololog from 'ololog';
@@ -56,5 +53,5 @@ async function fetchOneByOneAndPrint () {
     log ('\n')
     await fetchOneByOneAndPrint ()
 }) ()
- 
+
 ```

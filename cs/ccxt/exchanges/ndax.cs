@@ -474,45 +474,44 @@ public partial class ndax : Exchange
         //        },
         //        ...
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "ProductId");
+        object code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
+        object ProductType = this.safeString(rawCurrency, "ProductType");
+        object type = ((bool) isTrue((isEqual(ProductType, "NationalCurrency")))) ? "fiat" : "crypto";
+        if (isTrue(isEqual(ProductType, "Unknown")))
         {
-            object currency = getValue(response, i);
-            object id = this.safeString(currency, "ProductId");
-            object code = this.safeCurrencyCode(this.safeString(currency, "Product"));
-            object ProductType = this.safeString(currency, "ProductType");
-            object type = ((bool) isTrue((isEqual(ProductType, "NationalCurrency")))) ? "fiat" : "crypto";
-            if (isTrue(isEqual(ProductType, "Unknown")))
-            {
-                // such currency is just a blanket entry
-                type = "other";
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "name", this.safeString(currency, "ProductFullName") },
-                { "code", code },
-                { "type", type },
-                { "precision", this.safeNumber(currency, "TickSize") },
-                { "info", currency },
-                { "active", !isTrue(this.safeBool(currency, "IsDisabled")) },
-                { "deposit", this.safeBool(currency, "DepositEnabled") },
-                { "withdraw", this.safeBool(currency, "WithdrawEnabled") },
-                { "fee", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", new Dictionary<string, object>() {} },
-                { "margin", this.safeBool(currency, "MarginEnabled") },
-            });
+            // such currency is just a blanket entry
+            type = "other";
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "name", this.safeString(rawCurrency, "ProductFullName") },
+            { "code", code },
+            { "type", type },
+            { "precision", this.safeNumber(rawCurrency, "TickSize") },
+            { "info", rawCurrency },
+            { "active", !isTrue(this.safeBool(rawCurrency, "IsDisabled")) },
+            { "deposit", this.safeBool(rawCurrency, "DepositEnabled") },
+            { "withdraw", this.safeBool(rawCurrency, "WithdrawEnabled") },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+            { "margin", this.safeBool(rawCurrency, "MarginEnabled") },
+        });
     }
 
     /**
@@ -677,7 +676,7 @@ public partial class ndax : Exchange
                 object newNonce = this.safeInteger(level, 0);
                 nonce = mathMax(nonce, newNonce);
             }
-            object bidask = this.parseBidAsk(level, priceKey, amountKey);
+            object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             object levelSide = this.safeInteger(level, 9);
             object side = ((bool) isTrue(levelSide)) ? asksKey : bidsKey;
             object resultSide = getValue(result, side);

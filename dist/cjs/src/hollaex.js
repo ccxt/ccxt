@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var hollaex$1 = require('./abstract/hollaex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -176,8 +176,8 @@ class hollaex extends hollaex$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -198,7 +198,7 @@ class hollaex extends hollaex$1["default"] {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -217,8 +217,8 @@ class hollaex extends hollaex$1["default"] {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -226,9 +226,9 @@ class hollaex extends hollaex$1["default"] {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -491,66 +491,63 @@ class hollaex extends hollaex$1["default"] {
         //     }
         //
         const coins = this.safeDict(response, 'coins', {});
-        const keys = Object.keys(coins);
-        const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const currency = coins[key];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const withdrawalLimits = this.safeList(currency, 'withdrawal_limits', []);
-            const rawType = this.safeString(currency, 'type');
-            const type = (rawType === 'blockchain') ? 'crypto' : 'other';
-            const rawNetworks = this.safeDict(currency, 'withdrawal_fees', {});
-            const networks = {};
-            const networkIds = Object.keys(rawNetworks);
-            for (let j = 0; j < networkIds.length; j++) {
-                const networkId = networkIds[j];
-                const networkEntry = this.safeDict(rawNetworks, networkId);
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': this.safeBool(networkEntry, 'active'),
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber(networkEntry, 'value'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'info': networkEntry,
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'numericId': this.safeInteger(currency, 'id'),
-                'code': code,
-                'info': currency,
-                'name': this.safeString(currency, 'fullname'),
-                'active': this.safeBool(currency, 'active'),
-                'deposit': this.safeBool(currency, 'allow_deposit'),
-                'withdraw': this.safeBool(currency, 'allow_withdrawal'),
-                'fee': this.safeNumber(currency, 'withdrawal_fee'),
-                'precision': this.safeNumber(currency, 'increment_unit'),
+        const values = Object.values(coins);
+        return this.parseCurrencies(values);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const withdrawalLimits = this.safeList(rawCurrency, 'withdrawal_limits', []);
+        const rawType = this.safeString(rawCurrency, 'type');
+        const type = (rawType === 'blockchain') ? 'crypto' : 'other';
+        const rawNetworks = this.safeDict(rawCurrency, 'withdrawal_fees', {});
+        const networks = {};
+        const networkIds = Object.keys(rawNetworks);
+        for (let j = 0; j < networkIds.length; j++) {
+            const networkId = networkIds[j];
+            const networkEntry = this.safeDict(rawNetworks, networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': this.safeBool(networkEntry, 'active'),
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber(networkEntry, 'value'),
+                'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': this.safeNumber(currency, 'min'),
-                        'max': this.safeNumber(currency, 'max'),
-                    },
                     'withdraw': {
                         'min': undefined,
-                        'max': this.safeValue(withdrawalLimits, 0),
+                        'max': undefined,
                     },
                 },
-                'networks': networks,
-                'type': type,
-            });
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'numericId': this.safeInteger(rawCurrency, 'id'),
+            'code': code,
+            'info': rawCurrency,
+            'name': this.safeString(rawCurrency, 'fullname'),
+            'active': this.safeBool(rawCurrency, 'active'),
+            'deposit': this.safeBool(rawCurrency, 'allow_deposit'),
+            'withdraw': this.safeBool(rawCurrency, 'allow_withdrawal'),
+            'fee': this.safeNumber(rawCurrency, 'withdrawal_fee'),
+            'precision': this.safeNumber(rawCurrency, 'increment_unit'),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(rawCurrency, 'min'),
+                    'max': this.safeNumber(rawCurrency, 'max'),
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': this.safeValue(withdrawalLimits, 0),
+                },
+            },
+            'networks': networks,
+            'type': type,
+        });
     }
     /**
      * @method
@@ -2010,7 +2007,7 @@ class hollaex extends hollaex$1["default"] {
                     auth += body;
                 }
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             headers['api-signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

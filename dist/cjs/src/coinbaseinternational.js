@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbaseinternational$1 = require('./abstract/coinbaseinternational.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -22,7 +22,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'countries': ['US'],
             'certified': false,
             'pro': true,
-            'rateLimit': 100,
+            'rateLimit': 100, // 10 requests per second
             'version': 'v1',
             'userAgent': this.userAgents['chrome'],
             'headers': {
@@ -244,7 +244,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             },
             'options': {
                 'brokerId': 'nfqkvdjp',
-                'portfolio': '',
+                'portfolio': '', // default portfolio id
                 'withdraw': {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
@@ -266,8 +266,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': true,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo implementation
+                        'takeProfitPrice': false, // todo implementation
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -281,7 +281,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'iceberg': false,
                     },
                     'createOrders': undefined,
@@ -925,7 +925,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     }
     /**
      * @method
-     * @name exchange#fetchDepositsWithdrawals
+     * @name coinbaseinternational#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -1189,14 +1189,15 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const addressFrom = this.safeStringN(transaction, ['from_address', 'from_cb_account', this.safeStringN(fromPorfolio, ['id', 'uuid', 'name']), 'from_counterparty_id']);
         const toPorfolio = this.safeDict(transaction, 'from_portfolio', {});
         const addressTo = this.safeStringN(transaction, ['to_address', 'to_cb_account', this.safeStringN(toPorfolio, ['id', 'uuid', 'name']), 'to_counterparty_id']);
+        const code = this.safeString(currency, 'code');
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'transfer_uuid'),
             'txid': this.safeString(transaction, 'transaction_uuid'),
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network_name')),
-            'address': undefined,
+            'network': this.networkIdToCode(this.safeString(transaction, 'network_name'), code),
+            'address': undefined, // TODO check if withdraw or deposit and populate
             'addressTo': addressTo,
             'addressFrom': addressFrom,
             'tag': undefined,
@@ -2272,7 +2273,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 }
             }
             const auth = nonce + method + savedPath + payload;
-            const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
             headers = {
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'CB-ACCESS-SIGN': signature,

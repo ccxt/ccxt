@@ -457,7 +457,7 @@ class bullish extends Exchange {
         return $this->safe_integer($response, 'timestamp');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -885,7 +885,7 @@ class bullish extends Exchange {
         ));
     }
 
-    public function parse_market_type(string $type, ?string $defaultType = null): string {
+    public function parse_market_type(?string $type = null, ?string $defaultType = null): ?string {
         $types = array(
             'SPOT' => 'spot',
             'PERPETUAL' => 'swap',
@@ -1012,7 +1012,6 @@ class bullish extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $response = null;
         if ($clientOrderId !== null) {
             $response = $this->privateGetV1TradesClientOrderIdClientOrderId ($this->extend($request, $params));
         } else {
@@ -2115,7 +2114,7 @@ class bullish extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['network'] = $this->network_code_to_id($networkCode);
+            $request['network'] = $this->network_code_to_id($networkCode, $code);
         } else {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
         }
@@ -2189,7 +2188,7 @@ class bullish extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($network),
+            'network' => $this->network_id_to_code($network, $code),
             'addressFrom' => $sourceAddress,
             'address' => $address,
             'addressTo' => $address,
@@ -2392,7 +2391,7 @@ class bullish extends Exchange {
                 for ($i = 0; $i < count($safeResponse); $i++) {
                     $entry = $this->safe_dict($safeResponse, $i, array());
                     $networkId = $this->safe_string($entry, 'network');
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     if ($network === $networkCode) {
                         $data = $entry;
                         break;
@@ -2409,10 +2408,11 @@ class bullish extends Exchange {
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         $id = $this->safe_string($depositAddress, 'symbol');
         $network = $this->safe_string($depositAddress, 'network');
+        $code = $this->safe_currency_code($id, $currency);
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($id, $currency),
-            'network' => $this->network_id_to_code($network),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($network, $code),
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => null,
         );
@@ -2826,7 +2826,7 @@ class bullish extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()): OpenInterest {
+    public function fetch_open_interest(string $symbol, $params = array ()): array {
         /**
          * fetches the open interest of a specific $market
          *
@@ -2935,7 +2935,7 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
@@ -2969,12 +2969,14 @@ class bullish extends Exchange {
                 }
             }
             if ($path === 'v1/users/hmac/login') {
+                $headers = ($headers === null) ? array() : $headers;
                 $headers['BX-PUBLIC-KEY'] = $this->apiKey;
             } else {
                 $token = $this->token;
                 if (($token === null)) {
                     throw new AuthenticationError($this->id . ' requires a $token, please call signIn() first');
                 }
+                $headers = ($headers === null) ? array() : $headers;
                 $headers['Authorization'] = 'Bearer ' . $token;
                 // $headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }

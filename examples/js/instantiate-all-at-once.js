@@ -5,7 +5,7 @@ import ccxt from '../../js/ccxt.js';
 async function test () {
 
     let exchanges = { 
-        "bittrex": {
+        "binance": {
             "apiKey": "YOUR_API_KEY", 
             "secret": "YOUR_SECRET",
         },

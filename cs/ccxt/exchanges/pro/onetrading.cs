@@ -412,7 +412,7 @@ public partial class onetrading : ccxt.onetrading
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        object bidAsk = this.parseBidAsk(delta, 1, 2);
+        object bidAsk = this.parseOrderBookBidAsk(delta, 1, 2);
         object type = this.safeString(delta, 0);
         if (isTrue(isEqual(type, "BUY")))
         {

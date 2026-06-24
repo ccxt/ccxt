@@ -1695,7 +1695,7 @@ public class GrvtCore extends GrvtApi
 
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
      * @param {string} [code] unified currency code of the currency transferred
@@ -1898,6 +1898,8 @@ public class GrvtCore extends GrvtApi
         Object networkCode = null;
         Object addressFrom = this.safeString(transaction, "from_account_id");
         Object addressTo = this.safeString(transaction, "to_account_id");
+        Object currencyId = this.safeString(transaction, "currency");
+        Object code = this.safeCurrencyCode(currencyId, currency);
         if (Helpers.isTrue(Helpers.inOp(transaction, "transfer_metadata")))
         {
             Object metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
@@ -1906,7 +1908,7 @@ public class GrvtCore extends GrvtApi
                 Object parsedMeta = this.parseJson(metaData);
                 direction = this.safeStringLower(parsedMeta, "direction");
                 txId = this.safeString(parsedMeta, "provider_tx_id");
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"));
+                networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"), code);
                 if (Helpers.isTrue(Helpers.isEqual(direction, "withdrawal")))
                 {
                     addressTo = this.safeString(parsedMeta, "endpoint");
@@ -1917,8 +1919,6 @@ public class GrvtCore extends GrvtApi
             }
         }
         Object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
-        Object currencyId = this.safeString(transaction, "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
         final Object finalTxId = txId;
         final Object finalDirection = direction;
         final Object finalNetworkCode = networkCode;
@@ -2295,7 +2295,7 @@ public class GrvtCore extends GrvtApi
             var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
             var networkCode = ((java.util.List<Object>) networkCodequeryVariable).get(0);
             var query = ((java.util.List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " withdraw() requires a network parameter")) ;
@@ -3515,7 +3515,7 @@ public class GrvtCore extends GrvtApi
         Object price = null;
         Object filled = null;
         Object avgPrice = null;
-        Object legs = this.safeList(order, "legs");
+        Object legs = this.safeList(order, "legs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object metadata = this.safeDict(order, "metadata", new java.util.HashMap<String, Object>() {{}});
         Object stateObj = this.safeDict(order, "state", new java.util.HashMap<String, Object>() {{}});
         Object filledAmounts = this.safeList(stateObj, "traded_size", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3551,7 +3551,7 @@ public class GrvtCore extends GrvtApi
             put( "lastTradeTimeStamp", null );
             put( "lastUpdateTimestamp", GrvtCore.this.safeIntegerProduct(stateObj, "update_time", 0.000001) );
             put( "status", GrvtCore.this.parseOrderStatus(GrvtCore.this.safeString(stateObj, "status")) );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", GrvtCore.this.safeString(finalMarket, "symbol") );
             put( "type", orderType );
             put( "timeInForce", timeInForce );
             put( "postOnly", isPostOnly );

@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import type { Balances, Dict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, NullableDict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -160,7 +160,7 @@ export default class lighter extends lighterRest {
         // }
         //
         const data = this.safeDict (message, 'order_book', {});
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -443,7 +443,7 @@ export default class lighter extends lighterRest {
         return await this.unWatchTickers (symbols, params);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -538,7 +538,7 @@ export default class lighter extends lighterRest {
             this.handleLiquidation (client, message);
         }
         const data = this.safeList (message, 'trades', []);
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -600,7 +600,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    parseWsOrderTrade (trade, market = undefined) {
+    parseWsOrderTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -637,8 +637,8 @@ export default class lighter extends lighterRest {
         const isMakerAsk = this.safeBool (trade, 'is_maker_ask');
         const side = isMakerAsk ? 'buy' : 'sell';
         const accountIndex = this.safeInteger (trade, 'accountIndex');
-        let order = undefined;
-        let takerOrMaker = undefined;
+        let order: Str = undefined;
+        let takerOrMaker: Str = undefined;
         if (accountIndex !== undefined) {
             if (this.safeInteger (trade, 'bid_account_id') === accountIndex) {
                 order = this.safeString (trade, 'bid_id');
@@ -648,7 +648,7 @@ export default class lighter extends lighterRest {
                 takerOrMaker = isMakerAsk ? 'maker' : 'taker';
             }
         }
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (takerOrMaker !== undefined) {
             const feeRateRaw = (takerOrMaker === 'maker') ? this.safeString (trade, 'maker_fee') : this.safeString (trade, 'taker_fee');
             const feeRate = (feeRateRaw !== undefined) ? Precise.stringDiv (feeRateRaw, '1000000') : '0';
@@ -711,7 +711,7 @@ export default class lighter extends lighterRest {
         //         "type": "update/account_all_trades"
         //     }
         //
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const accountIndex = parts[1];
         const data = this.safeDict (message, 'trades', {});
@@ -761,7 +761,7 @@ export default class lighter extends lighterRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchMyTrades', 'accountIndex', 'account_index');
         let messageHash = this.getMessageHash ('myTrades');
         if (symbol !== undefined) {
@@ -789,7 +789,7 @@ export default class lighter extends lighterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'unWatchMyTrades', 'accountIndex', 'account_index');
         let messageHash = this.getMessageHash ('unsubscribe', 'myTrades');
         if (symbol !== undefined) {
@@ -804,7 +804,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    parseWsLiquidation (liquidation, market = undefined) {
+    parseWsLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -893,7 +893,7 @@ export default class lighter extends lighterRest {
         //     }
         //
         const data = this.safeList (message, 'liquidation_trades', []);
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -947,9 +947,9 @@ export default class lighter extends lighterRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleParamString (params, 'type', defaultType);
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchBalance', 'accountIndex', 'account_index');
         const messageHash = this.getMessageHash ('balances', undefined, type);
         const request = {};
@@ -1017,7 +1017,7 @@ export default class lighter extends lighterRest {
         //        "type": "update/user_stats"
         //    }
         //
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         let type = 'spot';
         if (channel.indexOf ('user_stats:') >= 0) {
             type = 'swap';
@@ -1065,9 +1065,9 @@ export default class lighter extends lighterRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchOrders', 'accountIndex', 'account_index');
-        let messageHash = undefined;
+        let messageHash: Str = undefined;
         const request = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -1095,9 +1095,9 @@ export default class lighter extends lighterRest {
      */
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        let accountIndex = undefined;
+        let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchOrders', 'accountIndex', 'account_index');
-        let messageHash = undefined;
+        let messageHash: Str = undefined;
         const request = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -1193,7 +1193,7 @@ export default class lighter extends lighterRest {
             this.handlePing (client, message);
             return;
         }
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         if (channel.indexOf ('order_book:') >= 0) {
             this.handleOrderBook (client, message);
             return;

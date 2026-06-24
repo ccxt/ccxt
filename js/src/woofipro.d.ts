@@ -1,5 +1,5 @@
 import Exchange from './abstract/woofipro.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict } from './base/types.js';
 /**
  * @class woofipro
  * @augments Exchange
@@ -51,7 +51,8 @@ export default class woofipro extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): any;
+    parseCurrency(rawCurrency: Dict): Currency;
+    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): Dict;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -487,11 +488,11 @@ export default class woofipro extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     nonce(): number;
-    sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

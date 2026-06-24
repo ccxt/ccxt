@@ -1,8 +1,5 @@
-- [Exchange Capabilities](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog';
@@ -137,5 +134,5 @@ async function main () {
 }
 
 main ()
- 
+
 ```

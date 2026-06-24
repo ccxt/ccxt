@@ -637,7 +637,7 @@ class coinsph extends Exchange {
         for ($j = 0; $j < count($networkList); $j++) {
             $networkItem = $networkList[$j];
             $network = $this->safe_string($networkItem, 'network');
-            $networkCode = $this->network_id_to_code($network);
+            $networkCode = $this->network_id_to_code($network, $code);
             $networks[$networkCode] = array(
                 'info' => $networkItem,
                 'id' => $network,
@@ -2259,7 +2259,7 @@ class coinsph extends Exchange {
         return $urlEncodedParam;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api];
         $query = $this->omit($params, $this->extract_params($path));
         $endpoint = $this->implode_params($path, $params);

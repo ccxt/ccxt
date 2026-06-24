@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var indodax$1 = require('./abstract/indodax.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class indodax extends indodax$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'indodax',
             'name': 'INDODAX',
-            'countries': ['ID'],
+            'countries': ['ID'], // Indonesia
             // 10 requests per second for making trades => 1000ms / 10 = 100ms
             // 180 requests per minute (public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
             'rateLimit': 50,
@@ -134,7 +134,7 @@ class indodax extends indodax$1["default"] {
                 'transfer': false,
                 'withdraw': true,
             },
-            'version': '2.0',
+            'version': '2.0', // as of 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api': {
@@ -164,7 +164,7 @@ class indodax extends indodax$1["default"] {
                         'getInfo': 4,
                         'transHistory': 4,
                         'trade': 1,
-                        'tradeHistory': 4,
+                        'tradeHistory': 4, // TODO add fetchMyTrades
                         'openOrders': 4,
                         'orderHistory': 4,
                         'getOrder': 4,
@@ -187,7 +187,7 @@ class indodax extends indodax$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    'invalid_pair': errors.BadSymbol,
+                    'invalid_pair': errors.BadSymbol, // {"error":"invalid_pair","error_description":"Invalid Pair"}
                     'Insufficient balance.': errors.InsufficientFunds,
                     'invalid order.': errors.OrderNotFound,
                     'Invalid credentials. API not found or session has expired.': errors.AuthenticationError,
@@ -210,9 +210,9 @@ class indodax extends indodax$1["default"] {
             },
             // exchange-specific options
             'options': {
-                'recvWindow': 5 * 1000,
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'recvWindow': 5 * 1000, // default 5 sec
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'XLM': 'Stellar Token',
                     'BSC': 'bep20',
@@ -244,7 +244,7 @@ class indodax extends indodax$1["default"] {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': true,
+                            'IOC': true, // todo implementation
                             'FOK': false,
                             'PO': false,
                             'GTD': false,
@@ -258,7 +258,7 @@ class indodax extends indodax$1["default"] {
                         'iceberg': false,
                     },
                     'createOrders': undefined,
-                    'fetchMyTrades': undefined,
+                    'fetchMyTrades': undefined, // todo implement
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
@@ -276,7 +276,7 @@ class indodax extends indodax$1["default"] {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'daysBackCanceled': 1,
                         'untilDays': undefined,
                         'trigger': false,
@@ -525,8 +525,8 @@ class indodax extends indodax$1["default"] {
         //
         const symbol = this.safeSymbol(undefined, market);
         const timestamp = this.safeTimestamp(ticker, 'server_time');
-        const baseVolume = 'vol_' + market['baseId'].toLowerCase();
-        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase();
+        const baseVolume = 'vol_' + this.safeStringLower(market, 'baseId');
+        const quoteVolume = 'vol_' + this.safeStringLower(market, 'quoteId');
         const last = this.safeString(ticker, 'last');
         return this.safeTicker({
             'symbol': symbol,
@@ -1096,9 +1096,9 @@ class indodax extends indodax$1["default"] {
         await this.loadMarkets();
         const request = {};
         if (since !== undefined) {
-            const startTime = this.iso8601(since).slice(0, 10);
+            const startTime = this.yyyymmdd(since);
             request['start'] = startTime;
-            request['end'] = this.iso8601(this.milliseconds()).slice(0, 10);
+            request['end'] = this.yyyymmdd(this.milliseconds());
         }
         const response = await this.privatePostTransHistory(this.extend(request, params));
         //
@@ -1384,11 +1384,11 @@ class indodax extends indodax$1["default"] {
                         network = [];
                         const networkIds = networkId.split(',');
                         for (let j = 0; j < networkIds.length; j++) {
-                            network.push(this.networkIdToCode(networkIds[j]).toUpperCase());
+                            network.push(this.networkIdToCode(networkIds[j], code).toUpperCase());
                         }
                     }
                     else {
-                        network = this.networkIdToCode(networkId).toUpperCase();
+                        network = this.networkIdToCode(networkId, code).toUpperCase();
                     }
                 }
                 const finalNetwork = network; // java req
@@ -1423,7 +1423,7 @@ class indodax extends indodax$1["default"] {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512),
+                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha2_js.sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

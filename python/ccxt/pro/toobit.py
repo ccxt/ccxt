@@ -129,7 +129,7 @@ class toobit(ccxt.async_support.toobit):
         if pongTimestamp is not None:
             self.handle_incoming_pong(client, pongTimestamp)
             return
-        methods: dict = {
+        methods = {
             'trade': self.handle_trades,
             'kline': self.handle_ohlcv,
             'realtimes': self.handle_tickers,
@@ -196,7 +196,7 @@ class toobit(ccxt.async_support.toobit):
             subParams.append(rawHash)
         marketIds = self.market_ids(symbols)
         url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
-        request: dict = {
+        request = {
             'symbol': ','.join(marketIds),
             'topic': 'trade',
             'event': 'sub',
@@ -285,7 +285,7 @@ class toobit(ccxt.async_support.toobit):
         messageHashes = []
         timeframes = self.safe_dict(self.options['ws'], 'timeframes', {})
         marketIds = []
-        selectedTimeframe: Str = None
+        selectedTimeframe = None
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
             symbolStr = self.safe_string(data, 0)
@@ -299,7 +299,7 @@ class toobit(ccxt.async_support.toobit):
                 selectedTimeframe = rawTimeframe
             marketIds.append(marketId)
             messageHashes.append('ohlcv::' + symbolStr + '::' + unfiedTimeframe)
-        request: dict = {
+        request = {
             'symbol': ','.join(marketIds),
             'topic': 'kline_' + selectedTimeframe,
             'event': 'sub',
@@ -410,14 +410,14 @@ class toobit(ccxt.async_support.toobit):
             subParams.append(rawHash)
         marketIds = self.market_ids(symbols)
         url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
-        request: dict = {
+        request = {
             'symbol': ','.join(marketIds),
             'topic': 'realtimes',
             'event': 'sub',
         }
         ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -499,7 +499,7 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        channel: Str = None
+        channel = None
         channel, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'channel', 'depth')
         messageHashes = []
         subParams = []
@@ -511,7 +511,7 @@ class toobit(ccxt.async_support.toobit):
             subParams.append(rawHash)
         marketIds = self.market_ids(symbols)
         url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
-        request: dict = {
+        request = {
             'symbol': ','.join(marketIds),
             'topic': channel,
             'event': 'sub',
@@ -566,7 +566,7 @@ class toobit(ccxt.async_support.toobit):
             client.resolve(orderBook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta)
+        bidAsk = self.parse_order_book_bid_ask(delta)
         bookside.storeArray(bidAsk)
 
     def handle_order_book_partial_snapshot(self, client: Client, message):
@@ -789,7 +789,7 @@ class toobit(ccxt.async_support.toobit):
         symbol = self.safe_symbol(marketId, market)
         priceType = self.safe_string_lower(order, 'pt')
         rawOrderType = self.safe_string_lower(order, 'o')
-        orderType: Str = None
+        orderType = None
         if priceType == 'market':
             orderType = 'market'
         else:
@@ -945,7 +945,7 @@ class toobit(ccxt.async_support.toobit):
             self.positions[type] = ArrayCacheBySymbolBySide()
 
     async def load_positions_snapshot(self, client, messageHash, type):
-        params: dict = {
+        params = {
             'type': type,
         }
         positions = await self.fetch_positions(None, params)

@@ -332,71 +332,64 @@ class luno extends Exchange {
             //     }
             //
             $currenciesData = $this->safe_list($response, 'data', array());
-            $result = array();
-            for ($i = 0; $i < count($currenciesData); $i++) {
-                $networkEntry = $currenciesData[$i];
-                $id = $this->safe_string($networkEntry, 'native_currency');
-                $code = $this->safe_currency_code($id);
-                if (!(is_array($result) && array_key_exists($code, $result))) {
-                    $result[$code] = array(
-                        'id' => $id,
-                        'code' => $code,
-                        'precision' => null,
-                        'type' => null,
-                        'name' => null,
-                        'active' => null,
-                        'deposit' => null,
-                        'withdraw' => null,
-                        'fee' => null,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                        'networks' => array(),
-                        'info' => array(),
-                    );
-                }
-                $networkId = $this->safe_string($networkEntry, 'name');
-                $networkCode = $this->network_id_to_code($networkId);
-                $result[$code]['networks'][$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => null,
-                    'info' => $networkEntry,
-                );
-                // add entry in $info
-                $info = $this->safe_list($result[$code], 'info', array());
-                $info[] = $networkEntry;
-                $result[$code]['info'] = $info;
-            }
-            // only after all entries are formed in currencies, restructure each entry
-            $allKeys = is_array($result) ? array_keys($result) : array();
-            for ($i = 0; $i < count($allKeys); $i++) {
-                $code = $allKeys[$i];
-                $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network entry
-            }
-            return $result;
+            $grouped = $this->group_by($currenciesData, 'native_currency');
+            $values = is_array($grouped) ? array_values($grouped) : array();
+            return $this->parse_currencies($values);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency[0], 'native_currency'); // first item is guaranteed
+        $code = $this->safe_currency_code($id);
+        $networks = array();
+        for ($i = 0; $i < count($rawCurrency); $i++) {
+            $networkEntry = $rawCurrency[$i];
+            $networkId = $this->safe_string($networkEntry, 'name');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
+                'precision' => null,
+                'info' => $networkEntry,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'precision' => null,
+            'type' => null,
+            'name' => null,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -934,12 +927,12 @@ class luno extends Exchange {
         $feeCost = null;
         if ($feeBaseString !== null) {
             if (!Precise::string_equals($feeBaseString, '0.0')) {
-                $feeCurrency = $market['base'];
+                $feeCurrency = $this->safe_string($market, 'base');
                 $feeCost = $feeBaseString;
             }
         } elseif ($feeCounterString !== null) {
             if (!Precise::string_equals($feeCounterString, '0.0')) {
-                $feeCurrency = $market['quote'];
+                $feeCurrency = $this->safe_string($market, 'quote');
                 $feeCost = $feeCounterString;
             }
         }
@@ -949,7 +942,7 @@ class luno extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'order' => $orderId,
             'type' => null,
             'side' => $side,
@@ -1512,7 +1505,7 @@ class luno extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($query) {

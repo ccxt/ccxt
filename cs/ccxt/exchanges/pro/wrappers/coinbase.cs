@@ -95,6 +95,7 @@ public partial class coinbase
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

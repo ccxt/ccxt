@@ -1,10 +1,7 @@
-- [Basic Orderbook Polling](./examples/js/)
+```javascript
+import ccxt from '../../js/ccxt.js';
 
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
-
-const id = 'huobipro', exchange = new ccxt[id] ({ enableRateLimit: true }), symbol = 'ETH/BTC';(async function main () {
+const id = 'htx', exchange = new ccxt[id] ({ enableRateLimit: true }), symbol = 'ETH/BTC';(async function main () {
 
     await exchange.loadMarkets ()
 
@@ -14,5 +11,5 @@ const id = 'huobipro', exchange = new ccxt[id] ({ enableRateLimit: true }), symb
         console.log (new Date (), i, symbol, orderbook.asks[0], orderbook.bids[0])
     }
 
-}) () 
+}) ()
 ```

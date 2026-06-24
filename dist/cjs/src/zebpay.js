@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var zebpay$1 = require('./abstract/zebpay.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -194,13 +194,13 @@ class zebpay extends zebpay$1["default"] {
             'exceptions': {
                 'exact': {
                     '77': errors.InvalidOrder,
-                    '400': errors.BadRequest,
-                    '401': errors.AuthenticationError,
-                    '403': errors.NotSupported,
-                    '404': errors.NotSupported,
-                    '429': errors.RateLimitExceeded,
-                    '500': errors.ExchangeNotAvailable,
-                    '503': errors.ExchangeNotAvailable,
+                    '400': errors.BadRequest, // Bad Request -- Invalid request format
+                    '401': errors.AuthenticationError, // Unauthorized -- Invalid API Key
+                    '403': errors.NotSupported, // Forbidden -- The request is forbidden
+                    '404': errors.NotSupported, // Not Found -- The specified resource could not be found
+                    '429': errors.RateLimitExceeded, // Too Many Requests -- Access limit breached
+                    '500': errors.ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                    '503': errors.ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
                     '3013': errors.OrderNotFound,
                     'Order quantity is out of range': errors.InvalidOrder,
                     'Invalid trade order type': errors.InvalidOrder,
@@ -260,7 +260,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -368,89 +368,87 @@ class zebpay extends zebpay$1["default"] {
         //     }
         //
         const rows = this.safeList(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'name');
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision')));
-            const chains = this.safeList(currency, 'chains', []);
-            const networks = {};
-            let minWithdrawFeeString = undefined;
-            let minWithdrawString = undefined;
-            let minDepositString = undefined;
-            let deposit = false;
-            let withdraw = false;
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'chainId');
-                const networkCode = this.networkIdToCode(networkId);
-                const depositAllowed = this.safeBool(chain, 'isDepositEnabled') === true;
-                deposit = (depositAllowed) ? depositAllowed : deposit;
-                const withdrawAllowed = this.safeBool(chain, 'isWithdrawEnabled') === true;
-                withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
-                const withdrawFeeString = this.safeString(chain, 'withdrawalFee');
-                if (withdrawFeeString !== undefined) {
-                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise["default"].stringMin(withdrawFeeString, minWithdrawFeeString);
-                }
-                const minNetworkWithdrawString = this.safeString(chain, 'withdrawalMinSize');
-                if (minNetworkWithdrawString !== undefined) {
-                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise["default"].stringMin(minNetworkWithdrawString, minWithdrawString);
-                }
-                const minNetworkDepositString = this.safeString(chain, 'depositMinSize');
-                if (minNetworkDepositString !== undefined) {
-                    minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise["default"].stringMin(minNetworkDepositString, minDepositString);
-                }
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': depositAllowed && withdrawAllowed,
-                    'deposit': depositAllowed,
-                    'withdraw': withdrawAllowed,
-                    'fee': this.parseNumber(withdrawFeeString),
-                    'precision': precision,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.parseNumber(minNetworkWithdrawString),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.parseNumber(minNetworkDepositString),
-                            'max': undefined,
-                        },
-                    },
-                };
+        return this.parseCurrencies(rows);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        const name = this.safeString(rawCurrency, 'name');
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision')));
+        const chains = this.safeList(rawCurrency, 'chains', []);
+        const networks = {};
+        let minWithdrawFeeString = undefined;
+        let minWithdrawString = undefined;
+        let minDepositString = undefined;
+        let deposit = false;
+        let withdraw = false;
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'chainId');
+            const networkCode = this.networkIdToCode(networkId, code);
+            const depositAllowed = this.safeBool(chain, 'isDepositEnabled') === true;
+            deposit = (depositAllowed) ? depositAllowed : deposit;
+            const withdrawAllowed = this.safeBool(chain, 'isWithdrawEnabled') === true;
+            withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
+            const withdrawFeeString = this.safeString(chain, 'withdrawalFee');
+            if (withdrawFeeString !== undefined) {
+                minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise["default"].stringMin(withdrawFeeString, minWithdrawFeeString);
             }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': name,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': this.parseNumber(minWithdrawFeeString),
+            const minNetworkWithdrawString = this.safeString(chain, 'withdrawalMinSize');
+            if (minNetworkWithdrawString !== undefined) {
+                minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise["default"].stringMin(minNetworkWithdrawString, minWithdrawString);
+            }
+            const minNetworkDepositString = this.safeString(chain, 'depositMinSize');
+            if (minNetworkDepositString !== undefined) {
+                minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise["default"].stringMin(minNetworkDepositString, minDepositString);
+            }
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
+                'active': depositAllowed && withdrawAllowed,
+                'deposit': depositAllowed,
+                'withdraw': withdrawAllowed,
+                'fee': this.parseNumber(withdrawFeeString),
                 'precision': precision,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': this.parseNumber(minWithdrawString),
+                        'min': this.parseNumber(minNetworkWithdrawString),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.parseNumber(minDepositString),
+                        'min': this.parseNumber(minNetworkDepositString),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': name,
+            'active': deposit && withdraw,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': this.parseNumber(minWithdrawFeeString),
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.parseNumber(minWithdrawString),
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': this.parseNumber(minDepositString),
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -511,7 +509,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1268,7 +1266,7 @@ class zebpay extends zebpay$1["default"] {
         //         }
         //     }
         //
-        const responseData = this.safeDict(response, 'data');
+        const responseData = this.safeDict(response, 'data', {});
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {
@@ -1390,7 +1388,7 @@ class zebpay extends zebpay$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id'].toUpperCase(),
+            'symbol': this.safeStringUpper(market, 'id'),
         };
         const response = await this.privateSwapGetV1TradeUserLeverage(this.extend(request, params));
         //
@@ -1462,7 +1460,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -1506,7 +1504,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.
@@ -1837,7 +1835,7 @@ class zebpay extends zebpay$1["default"] {
         const timestamp = this.milliseconds();
         return {
             'info': info,
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
             'type': undefined,
             'marginMode': undefined,
             'amount': this.safeNumber(info, 'amount'),
@@ -1881,13 +1879,13 @@ class zebpay extends zebpay$1["default"] {
             if (method === 'GET' || (method === 'DELETE' && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
                 const queryString = this.urlencode(params);
-                signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256.sha256, 'hex');
+                signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha2_js.sha256, 'hex');
                 url += '?' + queryString;
             }
             else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
                 body = this.json(params);
-                signature = this.hmac(this.encode(body), this.encode(this.secret), sha256.sha256, 'hex');
+                signature = this.hmac(this.encode(body), this.encode(this.secret), sha2_js.sha256, 'hex');
             }
             headers = {
                 'Referrer': 'ccxt',

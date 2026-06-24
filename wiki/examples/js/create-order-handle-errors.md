@@ -1,8 +1,5 @@
-- [Create Order Handle Errors](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 // ----------------------------------------------------------------------------
 
@@ -12,7 +9,7 @@ import ccxt from '../../js/ccxt.js';
 
 (async () => {
 
-    const exchange = new ccxt.bittrex ({
+    const exchange = new ccxt.binance ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET_KEY',
         'verbose': false, // set to true to see more debugging output
@@ -57,5 +54,5 @@ import ccxt from '../../js/ccxt.js';
     }
 
 }) ()
- 
+
 ```

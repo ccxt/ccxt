@@ -880,6 +880,43 @@ public partial class Exchange
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
     }
 
+    public object extendedStarknetSign(object msgHash, object privateKey)
+    {
+        var privateKeyString = privateKey.ToString();
+        var msgHashStr = msgHash.ToString();
+        var bigIntHash = extendedParseStarknetBigInteger(msgHashStr);
+        var bigIntKey = extendedParseStarknetBigInteger(privateKeyString);
+        var res = ECDSA.Sign(bigIntHash, bigIntKey);
+        return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public BigInteger extendedParseStarknetBigInteger(string value)
+    {
+        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            return BigInteger.Parse("00" + value[2..], System.Globalization.NumberStyles.AllowHexSpecifier);
+        }
+        for (var i = 0; i < value.Length; i++)
+        {
+            var c = value[i];
+            if ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+            {
+                return BigInteger.Parse("00" + value, System.Globalization.NumberStyles.AllowHexSpecifier);
+            }
+        }
+        return BigInteger.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public object extendedStarknetGetSelectorFromName(object name)
+    {
+        return StarknetOps.CalculateFunctionSelector(name.ToString());
+    }
+
+    public object extendedStarknetComputePoseidonHashOnElements(object data)
+    {
+        return StarknetPoseidon.HashMany(data).ToString();
+    }
+
     public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
     {
         var domain = domain2 as IDictionary<string, object>;
@@ -1070,8 +1107,21 @@ public partial class Exchange
     public object getProperty(object obj, object property, object defaultValue = null)
     {
         var type = obj.GetType();
-        var prop = type.GetProperty(property.ToString());
-        return (prop != null) ? prop.GetValue(obj) : defaultValue;
+        var name = property.ToString();
+
+        var prop = type.GetProperty(name);
+        if (prop != null) 
+        {
+            return prop.GetValue(obj);
+        }
+
+        var field = type.GetField(name);
+        if (field != null) 
+        {
+            return field.GetValue(obj);
+        }
+
+        return defaultValue;
     }
 
     public object fixStringifiedJsonMembers(object content2)

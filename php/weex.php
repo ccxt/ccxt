@@ -491,20 +491,17 @@ class weex extends Exchange {
                     'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
-                    'ARBITRUM' => 'ARBITRUM(ARB)',
-                    'ARB' => 'ARBITRUM(ARB)',
-                    'SOLANA' => 'SOLANA(SOL)',
+                    'ARBONE' => 'ARBITRUM(ARB)',
                     'SOL' => 'SOLANA(SOL)',
                     'OP' => 'OPTIMISM(OP)',
                     'OPTIMISM' => 'OPTIMISM(OP)',
-                    'AVALANCHEC' => 'AVALANCHE_C(AVAX_C)',
                     'AVAXC' => 'AVALANCHE_C(AVAX_C)',
                 ),
                 'networksById' => array(
                     'BEP20(BSC)' => 'BEP20',
                     'ERC20' => 'ERC20',
                     'POLYGON(MATIC)' => 'MATIC',
-                    'ARBITRUM(ARB)' => 'ARB',
+                    'ARBITRUM(ARB)' => 'ARBONE',
                     'SOLANA(SOL)' => 'SOL',
                     'OPTIMISM(OP)' => 'OP',
                     'AVALANCHE_C(AVAX_C)' => 'AVAXC',
@@ -731,7 +728,7 @@ class weex extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -851,73 +848,72 @@ class weex extends Exchange {
         //         }
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $this->safe_dict($response, $i);
-            $currencyId = $this->safe_string($currency, 'coin');
-            $code = $this->safe_currency_code($currencyId);
-            $name = $this->safe_string($currency, 'name');
-            $networks = array();
-            $chains = $this->safe_list($currency, 'networkList', array());
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $this->safe_dict($chains, $j);
-                $networkId = $this->safe_string($chain, 'network');
-                $networkCode = $this->network_id_to_code($networkId);
-                $networks[$networkCode] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => $this->safe_bool($chain, 'depositEnable'),
-                    'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
-                    'fee' => $this->safe_number($chain, 'withdrawFee'),
-                    'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
-                    'isDefault' => $this->safe_bool($chain, 'isDefault', false),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'withdrawMin'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($chain, 'depositDust'),
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            $networksLength = count($networkKeys);
-            $emptyChains = $networksLength === 0; // non-functional coins
-            $valueForEmpty = $emptyChains ? false : null;
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'code' => $code,
-                'id' => $currencyId,
-                'type' => 'crypto',
-                'name' => $name,
+        return $this->parse_currencies($response);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'coin');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $networks = array();
+        $chains = $this->safe_list($rawCurrency, 'networkList', array());
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $this->safe_dict($chains, $j);
+            $networkId = $this->safe_string($chain, 'network');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $networkCode,
                 'active' => null,
-                'deposit' => $valueForEmpty,
-                'withdraw' => $valueForEmpty,
-                'fee' => null,
-                'precision' => null,
+                'deposit' => $this->safe_bool($chain, 'depositEnable'),
+                'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
+                'isDefault' => $this->safe_bool($chain, 'isDefault', false),
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($chain, 'withdrawMin'),
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($chain, 'depositDust'),
                         'max' => null,
                     ),
                 ),
-                'networks' => $networks,
-            ));
+            );
         }
-        return $result;
+        $networkKeys = is_array($networks) ? array_keys($networks) : array();
+        $networksLength = count($networkKeys);
+        $emptyChains = $networksLength === 0; // non-functional coins
+        $valueForEmpty = $emptyChains ? false : null;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'type' => 'crypto',
+            'name' => $name,
+            'active' => null,
+            'deposit' => $valueForEmpty,
+            'withdraw' => $valueForEmpty,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -1117,7 +1113,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbolsLength === 1) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = null;
         if ($marketType === 'spot') {
@@ -1555,8 +1551,11 @@ class weex extends Exchange {
         $timestamp = $this->safe_integer($trade, 'time');
         $isBuyer = $this->safe_bool($trade, 'isBuyer');
         $side = $this->safe_string_lower($trade, 'side');
+        $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
         if ($isBuyer !== null) {
             $side = $isBuyer ? 'buy' : 'sell';
+        } elseif ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
         }
         $isSpot = true;
         if ($market === null) {
@@ -1589,6 +1588,8 @@ class weex extends Exchange {
         $takerOrMaker = null;
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        } elseif ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1667,7 +1668,7 @@ class weex extends Exchange {
         $request = array();
         if ($symbolsLength === 1) {
             $market = $this->get_market_from_symbols($symbols);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = $this->contractGetCapiV3MarketPremiumIndex ($this->extend($request, $params));
         //
@@ -2416,7 +2417,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = null;
         if ($isSpot) {
@@ -2681,7 +2682,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2971,7 +2972,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -3752,12 +3753,12 @@ class weex extends Exchange {
         $timestamp = $this->safe_integer($data, 'requestTime');
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
-            'code' => $market['settle'],
+            'code' => $this->safe_string($market, 'settle'),
             'status' => $status,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -3794,7 +3795,7 @@ class weex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);

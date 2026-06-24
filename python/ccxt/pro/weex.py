@@ -98,7 +98,7 @@ class weex(ccxt.async_support.weex):
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
         if unsubscribe:
             method = 'UNSUBSCRIBE'
-        message: dict = {
+        message = {
             'id': id,
             'method': method,
             'params': channels,
@@ -117,7 +117,7 @@ class weex(ccxt.async_support.weex):
         if unsubscribe:
             method = 'UNSUBSCRIBE'
         id = self.request_id()
-        message: dict = {
+        message = {
             'id': id,
             'method': method,
             'params': [channel],
@@ -134,7 +134,7 @@ class weex(ccxt.async_support.weex):
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
         originalHeaders = self.options['ws']['options']['headers']
         userAgent = self.safe_string(originalHeaders, 'User-Agent', 'ccxt')
-        extendedOptions: dict = {
+        extendedOptions = {
             'ws': {
                 'options': {
                     'headers': {
@@ -151,7 +151,7 @@ class weex(ccxt.async_support.weex):
         # instantiate client
         self.client(url)
         # return headers to original state
-        defaultOptions: dict = {
+        defaultOptions = {
             'ws': {
                 'options': {
                     'headers': {
@@ -206,7 +206,7 @@ class weex(ccxt.async_support.weex):
             channels.append(channelName)
         newTicker = await self.subscribe_public(messageHashes, channels, isContract, params)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -754,7 +754,7 @@ class weex(ccxt.async_support.weex):
             channel = market['id'] + '@depth' + depth
             messageHashes.append(messageHash)
             channels.append(channel)
-        subscription: dict = {
+        subscription = {
             'limit': limit,
         }
         orderbook = await self.subscribe_public(messageHashes, channels, isContract, params, subscription)
@@ -859,7 +859,7 @@ class weex(ccxt.async_support.weex):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta)
+        bidAsk = self.parse_order_book_bid_ask(delta)
         bookside.storeArray(bidAsk)
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1075,7 +1075,7 @@ class weex(ccxt.async_support.weex):
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
         data = self.safe_list(message, 'd', [])
-        symbols: dict = {}
+        symbols = {}
         for i in range(0, len(data)):
             trade = self.safe_dict(data, i, {})
             parsed = self.parse_ws_my_trade(trade)
@@ -1258,7 +1258,7 @@ class weex(ccxt.async_support.weex):
         #     }
         #
         data = self.safe_list(message, 'd', [])
-        symbols: dict = {}
+        symbols = {}
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -1467,7 +1467,7 @@ class weex(ccxt.async_support.weex):
             self.balance[type] = {}
 
     async def load_balance_snapshot(self, client, messageHash, type):
-        params: dict = {
+        params = {
             'type': type,
         }
         response = await self.fetch_balance(params)
@@ -1719,7 +1719,7 @@ class weex(ccxt.async_support.weex):
         #
         #     {"type": "ping", "time": "1776172740000"} - private
         #
-        response: dict = {
+        response = {
             'id': self.request_id(),
             'method': 'PONG',
         }

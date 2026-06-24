@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { ed25519 } from '@noble/curves/ed25519.js';
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { eddsa } from '../base/functions/crypto.js';
-import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 //  ---------------------------------------------------------------------------
 export default class backpack extends backpackRest {
     describe() {
@@ -882,7 +882,7 @@ export default class backpack extends backpackRest {
         client.resolve(storedOrderBook, messageHash);
     }
     handleDelta(orderbook, delta) {
-        const timestamp = this.parseToInt(this.safeInteger(delta, 'T') / 1000);
+        const timestamp = this.parseToInt(this.safeInteger(delta, 'T', 0) / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
         orderbook['nonce'] = this.safeInteger(delta, 'u');
@@ -895,7 +895,7 @@ export default class backpack extends backpackRest {
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk(bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk(bidAsks[i]);
             bookSide.storeArray(bidAsk);
         }
     }

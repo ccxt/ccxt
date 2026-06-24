@@ -713,15 +713,16 @@ func  (this *HashkeyCore) ParseWsTrade(trade any, optionalArgs ...any) any  {
     market = this.SafeMarket(marketId, market)
     var timestamp any = this.SafeInteger(trade, "t")
     var isBuyerMaker any = this.SafeBool(trade, "m")
+    var isPublicTrade any = ccxt.IsEqual(this.SafeString(trade, "e"), nil)
     var side any = nil
     var takerOrMaker any = nil
     if ccxt.IsTrue(!ccxt.IsEqual(isBuyerMaker, nil)) {
-        if ccxt.IsTrue(isBuyerMaker) {
-            side = "sell"
-            takerOrMaker = "maker"
-        } else {
-            side = "buy"
+        if ccxt.IsTrue(isPublicTrade) {
             takerOrMaker = "taker"
+            side = ccxt.Ternary(ccxt.IsTrue(isBuyerMaker), "sell", "buy")
+        } else {
+            takerOrMaker = ccxt.Ternary(ccxt.IsTrue(isBuyerMaker), "maker", "taker")
+            side = this.SafeStringLower(trade, "S")
         }
     }
     return this.SafeTrade(map[string]any {
@@ -729,7 +730,7 @@ func  (this *HashkeyCore) ParseWsTrade(trade any, optionalArgs ...any) any  {
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
         "symbol": ccxt.GetValue(market, "symbol"),
-        "side": this.SafeStringLower(trade, "S", side),
+        "side": side,
         "price": this.SafeString(trade, "p"),
         "amount": this.SafeString(trade, "q"),
         "cost": nil,
@@ -765,8 +766,8 @@ func  (this *HashkeyCore) WatchPositions(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes6188 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6188)
+            retRes6198 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6198)
         
             listenKey:= (<-this.Authenticate())
             ccxt.PanicOnError(listenKey)
@@ -887,8 +888,8 @@ func  (this *HashkeyCore) WatchBalance(optionalArgs ...any) <- chan any {
             listenKey:= (<-this.Authenticate())
             ccxt.PanicOnError(listenKey)
         
-            retRes7208 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7208)
+            retRes7218 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7218)
             var typeVar any = "spot"
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
@@ -907,13 +908,13 @@ func  (this *HashkeyCore) WatchBalance(optionalArgs ...any) <- chan any {
             params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable,1)
             if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
         
-                retRes73212 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
-                ccxt.PanicOnError(retRes73212)
+                retRes73312 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+                ccxt.PanicOnError(retRes73312)
             }
         
-                retRes73415 :=  (<-this.Watch(url, messageHash, nil, messageHash))
-                ccxt.PanicOnError(retRes73415)
-                ch <- retRes73415
+                retRes73515 :=  (<-this.Watch(url, messageHash, nil, messageHash))
+                ccxt.PanicOnError(retRes73515)
+                ch <- retRes73515
                 return nil
         
             }()
@@ -1060,8 +1061,8 @@ func  (this *HashkeyCore) KeepAliveListenKey(listenKey any, optionalArgs ...any)
                         }()
             		    // try block:
                         
-                    retRes83012 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
-                    ccxt.PanicOnError(retRes83012)
+                    retRes83112 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
+                    ccxt.PanicOnError(retRes83112)
                     var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
                     this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
             		    return nil

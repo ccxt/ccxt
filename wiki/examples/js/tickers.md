@@ -1,8 +1,5 @@
-- [Tickers](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
@@ -108,5 +105,5 @@ let printTickers = async (id) => {
     process.exit ()
 
 }) ()
- 
+
 ```

@@ -474,7 +474,7 @@ func (this *CoinmetroCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 			var market any = this.ParseMarket(GetValue(response, i))
 			// there are several broken (unavailable info) markets
-			if IsTrue(IsTrue(IsEqual(GetValue(market, "base"), nil)) || IsTrue(IsEqual(GetValue(market, "quote"), nil))) {
+			if IsTrue(IsTrue(IsEqual(this.SafeString(market, "base"), nil)) || IsTrue(IsEqual(this.SafeString(market, "quote"), nil))) {
 				continue
 			}
 			AppendToArray(&result, market)
@@ -987,7 +987,7 @@ func (this *CoinmetroCore) FetchOrderBook(symbol any, optionalArgs ...any) <-cha
 	}()
 	return ch
 }
-func (this *CoinmetroCore) ParseBidsAsks(bidasks any, optionalArgs ...any) any {
+func (this *CoinmetroCore) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)
@@ -1000,7 +1000,7 @@ func (this *CoinmetroCore) ParseBidsAsks(bidasks any, optionalArgs ...any) any {
 		var priceString any = this.SafeString(prices, i)
 		var price any = this.SafeNumber(prices, i)
 		var volume any = this.SafeNumber(bidasks, priceString)
-		AppendToArray(&result, []any{price, volume})
+		AppendToArray(&(result), []any{price, volume})
 	}
 	return result
 }
@@ -1602,7 +1602,7 @@ func (this *CoinmetroCore) CreateOrder(symbol any, typeVar any, side any, amount
 		//         "takerQty": 0.002
 		//     }
 		//
-		ch <- this.ParseOrder(response, market)
+		ch <- this.ParseOrder(response)
 		return nil
 
 	}()
@@ -2280,7 +2280,7 @@ func (this *CoinmetroCore) Sign(path any, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
+	headers := GetArg(optionalArgs, 3, map[string]any{})
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body

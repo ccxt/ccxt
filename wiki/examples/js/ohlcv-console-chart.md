@@ -1,8 +1,5 @@
-- [Ohlcv Console Chart](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import asciichart from 'asciichart';
@@ -30,5 +27,5 @@ ansicolor.nice
     log.yellow ("\n" + chart, bitcoinRate, "\n")
     process.exit ()
 
-}) () 
+}) ()
 ```

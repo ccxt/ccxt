@@ -36,7 +36,7 @@ class alpaca extends alpaca$1["default"] {
                 'watchPosition': false,
                 'watchPositions': false,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTrades': true,
             },
             'urls': {
@@ -267,7 +267,7 @@ class alpaca extends alpaca$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 'p', 's');
+        const bidAsk = this.parseOrderBookBidAsk(delta, 'p', 's');
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas) {

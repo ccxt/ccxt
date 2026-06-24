@@ -1,14 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
+import { md5 } from '@noble/hashes/legacy.js';
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/lbank.js';
 import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate } from './base/types.js';
+import type { Balances, Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, Fee, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -379,9 +379,9 @@ export default class lbank extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
-        let response = undefined;
+        let response: Dict;
         if (type === 'swap') {
             response = await this.contractPublicGetCfdOpenApiV1PubGetTime (params);
         } else {
@@ -454,66 +454,66 @@ export default class lbank extends Exchange {
         //
         const currenciesData = this.safeList (response, 'data', []);
         const grouped = this.groupBy (currenciesData, 'assetCode');
-        const groupedKeys = Object.keys (grouped);
-        const result: Dict = {};
-        for (let i = 0; i < groupedKeys.length; i++) {
-            const id = (groupedKeys[i]).toString (); // some currencies are numeric
-            const code = this.safeCurrencyCode (id);
-            const networksRaw = grouped[id];
-            const networks = {};
-            for (let j = 0; j < networksRaw.length; j++) {
-                const networkEntry = networksRaw[j];
-                let networkId = this.safeString (networkEntry, 'chain');
-                if (networkId === undefined) {
-                    networkId = this.safeString (networkEntry, 'assetCode'); // use type as fallback if networkId is not present
-                }
-                const networkCode = this.networkIdToCode (networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (networkEntry, 'min'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (networkEntry, 'minTransfer'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': this.safeBool (networkEntry, 'canWithDraw'),
-                    'fee': this.safeNumber (networkEntry, 'fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'transferAmtScale'))),
-                    'info': networkEntry,
-                };
+        const values = Object.values (grouped);
+        return this.parseCurrencies (values);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency[0], 'assetCode'); // first member is guaranteed
+        const code = this.safeCurrencyCode (id);
+        const networksRaw = rawCurrency;
+        const networks = {};
+        for (let j = 0; j < networksRaw.length; j++) {
+            const networkEntry = networksRaw[j];
+            let networkId = this.safeString (networkEntry, 'chain');
+            if (networkId === undefined) {
+                networkId = this.safeString (networkEntry, 'assetCode'); // use type as fallback if networkId is not present
             }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'precision': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+            const networkCode = this.networkIdToCode (networkId, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber (networkEntry, 'min'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber (networkEntry, 'minTransfer'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-                'info': networksRaw,
-            });
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': this.safeBool (networkEntry, 'canWithDraw'),
+                'fee': this.safeNumber (networkEntry, 'fee'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'transferAmtScale'))),
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'precision': undefined,
+            'type': undefined,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'info': networksRaw,
+        });
     }
 
     /**
@@ -552,11 +552,11 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
-            const parts = marketId.split ('_');
+            const parts = (marketId as string).split ('_');
             const baseId = parts[0];
             const quoteId = parts[1];
             const base = this.safeCurrencyCode (baseId);
@@ -649,7 +649,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
@@ -832,7 +832,7 @@ export default class lbank extends Exchange {
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
             const symbolsLength = symbols.length;
@@ -841,9 +841,9 @@ export default class lbank extends Exchange {
             }
         }
         const request: Dict = {};
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response = undefined;
+        let response: Dict;
         if (type === 'swap') {
             request['productGroup'] = 'SwapU';
             response = await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, params));
@@ -920,9 +920,9 @@ export default class lbank extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
-        let response = undefined;
+        let response: Dict;
         if (type === 'swap') {
             request['depth'] = limit;
             response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder (this.extend (request, params));
@@ -1041,8 +1041,8 @@ export default class lbank extends Exchange {
             costString = this.safeString (trade, 'dealVolumePrice');
         }
         let side = this.safeString2 (trade, 'tradeType', 'type');
-        let type = undefined;
-        let takerOrMaker = undefined;
+        let type: Str = undefined;
+        let takerOrMaker: Str = undefined;
         if (side !== undefined) {
             const parts = side.split ('_');
             side = this.safeString (parts, 0);
@@ -1063,10 +1063,10 @@ export default class lbank extends Exchange {
         }
         const order = this.safeString (trade, 'orderUuid');
         const symbol = this.safeSymbol (undefined, market);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (trade, 'tradeFee');
         if (feeCost !== undefined) {
-            const feeCurr = (side === 'buy') ? market['base'] : market['quote'];
+            const feeCurr = (side === 'buy') ? this.safeString (market, 'base') : this.safeString (market, 'quote');
             fee = {
                 'cost': feeCost,
                 'currency': feeCurr,
@@ -1120,7 +1120,7 @@ export default class lbank extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'spotPublicGetTrades');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        let response = undefined;
+        let response: Dict;
         if (method === 'spotPublicGetSupplementTrades') {
             response = await this.spotPublicGetSupplementTrades (this.extend (request, params));
         } else {
@@ -1381,7 +1381,7 @@ export default class lbank extends Exchange {
         const fundingRate = this.safeNumber (ticker, 'fundingRate');
         const fundingTime = this.safeInteger (ticker, 'nextFeeTime');
         const positionFeeTime = this.safeInteger (ticker, 'positionFeeTime');
-        let intervalString = undefined;
+        let intervalString: Str = undefined;
         if (positionFeeTime !== undefined) {
             const interval = this.parseToInt (positionFeeTime / 60 / 60);
             intervalString = interval.toString () + 'h';
@@ -1480,7 +1480,7 @@ export default class lbank extends Exchange {
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const defaultMethod = this.safeString (options, 'method', 'spotPrivatePostSupplementUserInfo');
         const method = this.safeString (params, 'method', defaultMethod);
-        let response = undefined;
+        let response: Dict;
         if (method === 'spotPrivatePostSupplementUserInfoAccount') {
             response = await this.spotPrivatePostSupplementUserInfoAccount ();
         } else if (method === 'spotPrivatePostUserInfo') {
@@ -1573,7 +1573,7 @@ export default class lbank extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            result[(symbol as string)] = fee;
         }
         return result;
     }
@@ -1646,7 +1646,7 @@ export default class lbank extends Exchange {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else if (side === 'buy') {
                 request['type'] = side + '_' + 'market';
-                let quoteAmount = undefined;
+                let quoteAmount: Str = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber (params, 'cost');
@@ -1676,7 +1676,7 @@ export default class lbank extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'spotPrivatePostSupplementCreateOrder');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        let response = undefined;
+        let response: Dict;
         if (method === 'spotPrivatePostCreateOrder') {
             response = await this.spotPrivatePostCreateOrder (this.extend (request, params));
         } else {
@@ -1709,7 +1709,7 @@ export default class lbank extends Exchange {
             '3': 'canceled', // filled partially and cancelled
             '4': 'closed', // disposal processing
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1806,11 +1806,11 @@ export default class lbank extends Exchange {
         const rawStatus = this.safeString (order, 'status');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        let timeInForce = undefined;
+        let timeInForce: Str = undefined;
         let postOnly = false;
         let type = 'limit';
         const rawType = this.safeString2 (order, 'type', 'tradeType'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        const parts = rawType.split ('_');
+        const parts = (rawType as string).split ('_');
         const side = this.safeString (parts, 0);
         const typePart = this.safeString (parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (typePart === 'market') {
@@ -1828,7 +1828,7 @@ export default class lbank extends Exchange {
         }
         const price = this.safeString (order, 'price');
         const costString = this.safeString (order, 'cummulativeQuoteQty');
-        let amountString = undefined;
+        let amountString: Str = undefined;
         if (rawType !== 'buy_market') {
             amountString = this.safeString2 (order, 'origQty', 'amount');
         }
@@ -2232,7 +2232,7 @@ export default class lbank extends Exchange {
         const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        network = this.safeString (networks, (network as string), network); // handle ERC20>ETH alias
         return network;
     }
 
@@ -2252,7 +2252,7 @@ export default class lbank extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'fetchDepositAddressDefault');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        let response = undefined;
+        let response: Dict;
         if (method === 'fetchDepositAddressSupplement') {
             response = await this.fetchDepositAddressSupplement (code, params);
         } else {
@@ -2292,7 +2292,7 @@ export default class lbank extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.networkIdToCode (this.safeString (result, 'netWork')),
+            'network': this.networkIdToCode (this.safeString (result, 'netWork'), code),
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -2307,7 +2307,7 @@ export default class lbank extends Exchange {
         };
         const networks = this.safeValue (this.options, 'networks');
         let network = this.safeStringUpper (params, 'network');
-        network = this.safeString (networks, network, network);
+        network = this.safeString (networks, (network as string), network);
         if (network !== undefined) {
             request['networkName'] = network;
             params = this.omit (params, 'network');
@@ -2376,7 +2376,7 @@ export default class lbank extends Exchange {
         const network = this.safeStringUpper2 (params, 'network', 'networkName');
         params = this.omit (params, [ 'network', 'networkName' ]);
         const networks = this.safeValue (this.options, 'networks');
-        const networkId = this.safeString (networks, network, network);
+        const networkId = this.safeString (networks, (network as string), network);
         if (networkId !== undefined) {
             request['networkName'] = networkId;
         }
@@ -2449,7 +2449,7 @@ export default class lbank extends Exchange {
         //      }
         //
         const id = this.safeString (transaction, 'id');
-        let type = undefined;
+        let type: Str = undefined;
         if (id === undefined) {
             type = 'deposit';
         } else {
@@ -2458,8 +2458,8 @@ export default class lbank extends Exchange {
         const txid = this.safeString (transaction, 'txId');
         const timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
         const address = this.safeString (transaction, 'address');
-        let addressFrom = undefined;
-        let addressTo = undefined;
+        let addressFrom: Str = undefined;
+        let addressTo: Str = undefined;
         if (type === 'deposit') {
             addressFrom = address;
         } else {
@@ -2469,7 +2469,7 @@ export default class lbank extends Exchange {
         const currencyId = this.safeString2 (transaction, 'coin', 'coid');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'), type);
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -2483,7 +2483,7 @@ export default class lbank extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (this.safeString (transaction, 'networkName')),
+            'network': this.networkIdToCode (this.safeString (transaction, 'networkName'), code),
             'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -2518,7 +2518,7 @@ export default class lbank extends Exchange {
             // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime': end time, timestamp in milliseconds, default now
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -2573,7 +2573,7 @@ export default class lbank extends Exchange {
             // 'endTime': end time, timestamp in milliseconds, default now
             // 'withdrawOrderId': Custom withdrawal id
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -2626,7 +2626,7 @@ export default class lbank extends Exchange {
         // private only returns information for currencies with non-zero balance
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
-        let result = undefined;
+        let result: Dict;
         if (isAuthorized === true) {
             const options = this.safeValue (this.options, 'fetchTransactionFees', {});
             const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
@@ -2690,7 +2690,7 @@ export default class lbank extends Exchange {
                 const networkEntry = networkList[j];
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
                 if (fee !== undefined) {
-                    const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'));
+                    const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);
                     withdrawFees[code][networkCode] = fee;
                 }
             }
@@ -2743,7 +2743,7 @@ export default class lbank extends Exchange {
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString (item, 'assetCode');
                 const codeInner = this.safeCurrencyCode (currencyId);
-                let network = this.networkIdToCode (this.safeString (item, 'chain'));
+                let network = this.networkIdToCode (this.safeString (item, 'chain'), codeInner);
                 if (network === undefined) {
                     network = codeInner;
                 }
@@ -2774,7 +2774,7 @@ export default class lbank extends Exchange {
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
-        let response = undefined;
+        let response: Dict;
         if (isAuthorized === true) {
             const options = this.safeValue (this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
@@ -2791,7 +2791,7 @@ export default class lbank extends Exchange {
         return response;
     }
 
-    async fetchPrivateDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchPrivateDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
@@ -2830,7 +2830,7 @@ export default class lbank extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 
-    async fetchPublicDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchPublicDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         // extremely incomplete response
         // vast majority fees undefined
         await this.loadMarkets ();
@@ -2861,7 +2861,7 @@ export default class lbank extends Exchange {
         return this.parsePublicDepositWithdrawFees (data, codes);
     }
 
-    parsePublicDepositWithdrawFees (response, codes = undefined) {
+    parsePublicDepositWithdrawFees (response, codes: Strings = undefined) {
         //
         //    [
         //        {
@@ -2895,7 +2895,7 @@ export default class lbank extends Exchange {
                             const resultCodeInfo = result[code]['info'];
                             resultCodeInfo.push (fee);
                         }
-                        const networkCode = this.networkIdToCode (this.safeString (fee, 'chain'));
+                        const networkCode = this.networkIdToCode (this.safeString (fee, 'chain'), code);
                         if (networkCode !== undefined) {
                             result[code]['networks'][networkCode] = {
                                 'withdraw': {
@@ -2948,10 +2948,11 @@ export default class lbank extends Exchange {
         //    }
         //
         const result = this.depositWithdrawFee (fee);
+        const code = this.safeString (currency, 'code');
         const networkList = this.safeValue (fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
-            const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'));
+            const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);
             const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
             const isDefault = this.safeValue (networkEntry, 'isDefault');
             if (withdrawFee !== undefined) {
@@ -2976,7 +2977,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every spot endpoint ends with ".do"
@@ -2996,7 +2997,7 @@ export default class lbank extends Exchange {
             query = this.extend ({
                 'api_key': this.apiKey,
             }, query);
-            let signatureMethod = undefined;
+            let signatureMethod: Str = undefined;
             if (this.secret.length > 32) {
                 signatureMethod = 'RSA';
             } else {
@@ -3011,10 +3012,10 @@ export default class lbank extends Exchange {
             const encoded = this.encode (auth);
             const hash = this.hash (encoded, md5);
             const uppercaseHash = hash.toUpperCase ();
-            let sign = undefined;
+            let sign: Str = undefined;
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool (this.options, 'cacheSecretAsPem', true);
-                let pem = undefined;
+                let pem: Str = undefined;
                 if (cacheSecretAsPem) {
                     pem = this.safeValue (this.options, 'pem');
                     if (pem === undefined) {
@@ -3114,7 +3115,7 @@ export default class lbank extends Exchange {
                 '10601': 'Interface closed unavailable',
                 '10701': 'invalid asset code',
                 '10702': 'not allowed deposit',
-            }, errorCode, this.json (response));
+            }, (errorCode as string), this.json (response));
             const ErrorClass = this.safeValue ({
                 '10001': BadRequest,
                 '10002': AuthenticationError,
@@ -3165,7 +3166,7 @@ export default class lbank extends Exchange {
                 '10601': ExchangeError, // 'Interface closed unavailable',
                 '10701': BadSymbol, // 'invalid asset code',
                 '10702': PermissionDenied, // 'not allowed deposit',
-            }, errorCode, ExchangeError);
+            }, (errorCode as string), ExchangeError);
             throw new ErrorClass (message);
         }
         return undefined;

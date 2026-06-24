@@ -1,8 +1,5 @@
-- [Fetch All Tickers To Files 2](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 import { writeFileSync } from 'fs';
 import path from 'path';
 
@@ -54,5 +51,5 @@ async function main () {
 
 }
 
-main () 
+main ()
 ```

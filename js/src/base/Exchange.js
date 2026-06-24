@@ -5,6 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/starknet';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { sha1 } from '@noble/hashes/legacy.js';
 import * as functions from './functions.js';
 // import {
 //     // keys as keysFunc,
@@ -13,32 +18,23 @@ import * as functions from './functions.js';
 //     // vwap as vwapFunc,
 // } from './functions.js';
 // import exceptions from "./errors.js"
-import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser, } from './errors.js';
+import { ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser, } from './errors.js';
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-// ----------------------------------------------------------------------------
-//
-import { axolotl } from './functions/crypto.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
-import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
-import { keccak_256 } from '../static_dependencies/noble-hashes/sha3.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
-import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 const { isNode, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
-arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, } = functions;
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -59,8 +55,22 @@ export default class Exchange {
         this.certified = false;
         this.pro = false;
         this.countries = undefined;
+        this.proxyUrl = undefined;
+        this.proxy_url = undefined;
+        this.httpProxy = undefined;
+        this.http_proxy = undefined;
+        this.httpsProxy = undefined;
+        this.https_proxy = undefined;
+        this.socksProxy = undefined;
+        this.socks_proxy = undefined;
         this.userAgent = undefined;
         this.user_agent = undefined;
+        this.wsProxy = undefined;
+        this.ws_proxy = undefined;
+        this.wssProxy = undefined;
+        this.wss_proxy = undefined;
+        this.wsSocksProxy = undefined;
+        this.ws_socks_proxy = undefined;
         //
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -99,7 +109,6 @@ export default class Exchange {
         this.transactions = {};
         this.myLiquidations = undefined;
         this.requiresWeb3 = false;
-        this.requiresEddsa = false;
         this.precision = undefined;
         this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
@@ -312,7 +321,6 @@ export default class Exchange {
         this.positions = undefined;
         // web3 and cryptography flags
         this.requiresWeb3 = false;
-        this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
         this.enableLastJsonResponse = false;
@@ -392,9 +400,7 @@ export default class Exchange {
         const nameBytes = new TextEncoder().encode(name);
         const data = new Uint8Array([...nsBytes, ...nameBytes]);
         const nsHash = sha1(data);
-        // eslint-disable-next-line
         nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
-        // eslint-disable-next-line
         nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
         const hex = [...nsHash.slice(0, 16)]
             .map((b) => b.toString(16).padStart(2, '0'))
@@ -502,7 +508,6 @@ export default class Exchange {
         }
     }
     log(...args) {
-        // eslint-disable-next-line no-console
         console.log(...args);
     }
     async loadProxyModules() {
@@ -523,7 +528,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
+                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
                     }
                     catch (err) {
                         // TODO: handle error
@@ -732,7 +737,7 @@ export default class Exchange {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch; // eslint-disable-line
+                        this.fetchImplementation = fetch;
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -1320,9 +1325,6 @@ export default class Exchange {
         const length = Math.min(100000, message.length);
         return message.slice(0, length);
     }
-    axolotl(payload, hexKey, ed25519) {
-        return axolotl(payload, hexKey, ed25519);
-    }
     fixStringifiedJsonMembers(content) {
         // used for instance in bingx
         // when stringified json has members with their values also stringified, like:
@@ -1345,10 +1347,10 @@ export default class Exchange {
         // Removes the "0x" prefix if present
         const cleanPrivateKey = this.remove0xPrefix(privateKey);
         // Get the public key from the private key using secp256k1 curve
-        const publicKeyBytes = secp256k1.getPublicKey(cleanPrivateKey);
+        const publicKeyBytes = secp256k1.getPublicKey(this.base16ToBinary(cleanPrivateKey));
         // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
         // secp256k1.getPublicKey returns compressed key, we need uncompressed
-        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex(publicKeyBytes).toRawBytes(false).slice(1); // Remove 0x04 prefix
+        const publicKeyUncompressed = secp256k1.Point.fromBytes(publicKeyBytes).toBytes(false).slice(1); // Remove 0x04 prefix
         // Hash the public key with Keccak256
         const publicKeyHash = keccak_256(publicKeyUncompressed);
         // Take the last 20 bytes (40 hex chars)
@@ -1399,6 +1401,16 @@ export default class Exchange {
         // TODO: unify to ecdsa
         const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.replace('0x', ''));
         return this.json([signature.r.toString(), signature.s.toString()]);
+    }
+    extendedStarknetSign(msgHash, pri) {
+        const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.replace('0x', ''));
+        return this.json([signature.r.toString(), signature.s.toString()]);
+    }
+    extendedStarknetGetSelectorFromName(name) {
+        return Starknet.hash.getSelectorFromName(name);
+    }
+    extendedStarknetComputePoseidonHashOnElements(data) {
+        return Starknet.hash.computePoseidonHashOnElements(data);
     }
     async getZKContractSignatureObj(seed, params = {}) {
         const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId')), sha256, 'hex'))).toString();
@@ -1610,7 +1622,7 @@ export default class Exchange {
         if (wasmExecPath === undefined || wasmExecPath === '') {
             throw new Error('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
         }
-        await import(wasmExecPath);
+        await import(filePathToFileUrlForWindows(wasmExecPath));
         const go = new globalThis.Go();
         // read wasm from disks
         const bytes = new Uint8Array(readFile(libraryPath, null)); // it should point to lighter.wasm
@@ -1627,7 +1639,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return signer;
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateGroupedOrders(signer, request) {
         const orders = request['orders'];
         const ordersArr = [];
@@ -1651,7 +1662,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder(signer, request) {
         const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
@@ -1675,7 +1685,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount(signer, request) {
         const res = (globalThis.SignCreateSubAccount(1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
@@ -1717,7 +1726,6 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignApproveIntegrator(signer, request) {
         const res = globalThis.SignApproveIntegrator(request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['approval_expiry'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
@@ -1730,14 +1738,26 @@ export default class Exchange {
         this.checkLighterSignedError(res);
         return [res.privateKey, res.publicKey];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignChangePubkey(signer, request) {
         const res = globalThis.SignChangePubKey(Buffer.from(request['pubkey']).toString(), 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo, res.messageToSign];
     }
-    /* eslint-enable */
+    setLastRestRequestTimestamp() {
+        // hand-written per language (not transpiled): in most languages this is a
+        // plain assignment, but the Go implementation guards the write with a mutex
+        // because concurrent requests would otherwise data-race on this field
+        this.lastRestRequestTimestamp = this.milliseconds();
+    }
+    setLastRequest(request) {
+        // hand-written per language (not transpiled): plain assignments in most
+        // languages, but the Go implementation guards the writes with a mutex because
+        // concurrent requests would otherwise data-race on these bookkeeping fields
+        this.last_request_headers = request['headers'];
+        this.last_request_body = request['body'];
+        this.last_request_url = request['url'];
+    }
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -1783,12 +1803,12 @@ export default class Exchange {
             'name': this.name,
             'countries': this.countries,
             'enableRateLimit': this.enableRateLimit,
-            'rateLimit': this.rateLimit,
+            'rateLimit': this.rateLimit, // milliseconds = seconds * 1000
             'rateLimiterAlgorithm': this.rateLimiterAlgorithm,
-            'timeout': this.timeout,
-            'certified': this.certified,
-            'pro': this.pro,
-            'alias': this.alias,
+            'timeout': this.timeout, // milliseconds = seconds * 1000
+            'certified': this.certified, // if certified by the CCXT dev team
+            'pro': this.pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': this.alias, // whether this exchange is an alias to another exchange
             'dex': false,
             'has': {
                 'publicAPI': true,
@@ -2049,14 +2069,14 @@ export default class Exchange {
                 'accountId': false,
                 'login': false,
                 'password': false,
-                'twofa': false,
-                'privateKey': false,
-                'walletAddress': false,
+                'twofa': false, // 2-factor authentication (one-time password key)
+                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
+                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
                 'token': false, // reserved for HTTP auth in some cases
             },
-            'markets': undefined,
-            'currencies': {},
-            'timeframes': undefined,
+            'markets': undefined, // to be filled manually or by fetchMarkets
+            'currencies': {}, // to be filled manually or by fetchMarkets
+            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
             'fees': {
                 'trading': {
                     'tierBased': undefined,
@@ -2134,23 +2154,31 @@ export default class Exchange {
         }
         return defaultValue;
     }
-    safeBool2(dictionary, key1, key2, defaultValue = undefined) {
+    safeBool2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN(dictionary, [key1, key2], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key1);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        const value2 = this.safeValue(dictionaryOrList, key2);
+        if (typeof value2 === 'boolean') {
+            return value2;
+        }
+        return defaultValue;
     }
-    safeBool(dictionary, key, defaultValue = undefined) {
+    safeBool(dictionaryOrList, key, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        const value = this.safeValue(dictionary, key, defaultValue);
+        const value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (typeof value === 'boolean') {
             return value;
         }
@@ -2172,14 +2200,14 @@ export default class Exchange {
         }
         return defaultValue;
     }
-    safeDict(dictionary, key, defaultValue = undefined) {
+    safeDict(dictionaryOrList, key, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        const value = this.safeValue(dictionary, key, defaultValue);
+        const value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (value === undefined) {
             return defaultValue;
         }
@@ -2188,14 +2216,22 @@ export default class Exchange {
         }
         return defaultValue;
     }
-    safeDict2(dictionary, key1, key2, defaultValue = undefined) {
+    safeDict2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN(dictionary, [key1, key2], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key1);
+        if (this.isDictionary(value)) {
+            return value;
+        }
+        const value2 = this.safeValue(dictionaryOrList, key2);
+        if (this.isDictionary(value2)) {
+            return value2;
+        }
+        return defaultValue;
     }
     safeListN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
@@ -2223,7 +2259,15 @@ export default class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN(dictionaryOrList, [key1, key2], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key1);
+        if ((value !== undefined) && Array.isArray(value)) {
+            return value;
+        }
+        const value2 = this.safeValue(dictionaryOrList, key2);
+        if ((value2 !== undefined) && Array.isArray(value2)) {
+            return value2;
+        }
+        return defaultValue;
     }
     safeList(dictionaryOrList, key, defaultValue = undefined) {
         /**
@@ -2251,7 +2295,7 @@ export default class Exchange {
     }
     handleDeltasWithKeys(bookSide, deltas, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         for (let i = 0; i < deltas.length; i++) {
-            const bidAsk = this.parseBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
+            const bidAsk = this.parseOrderBookBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
             bookSide.storeArray(bidAsk);
         }
     }
@@ -2708,6 +2752,9 @@ export default class Exchange {
         const arr = this.toArray(rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
             const parsed = this.parseCurrency(arr[i]);
+            if (parsed === undefined) {
+                continue;
+            }
             const code = parsed['code'];
             result[code] = parsed;
         }
@@ -3232,21 +3279,6 @@ export default class Exchange {
                 const currencyWithdraw = this.safeBool(currency, 'withdraw');
                 if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
-                }
-                // set network 'active' to false if D or W is disabled
-                let active = this.safeBool(network, 'active');
-                if (active === undefined) {
-                    if (deposit && withdraw) {
-                        currency['networks'][key]['active'] = true;
-                    }
-                    else if (deposit !== undefined && withdraw !== undefined) {
-                        currency['networks'][key]['active'] = false;
-                    }
-                }
-                active = this.safeBool(currency['networks'][key], 'active'); // dict might have been updated on above lines, so access directly instead of `network` variable
-                const currencyActive = this.safeBool(currency, 'active');
-                if (currencyActive === undefined || active) {
-                    currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString(network, 'fee');
@@ -3861,7 +3893,7 @@ export default class Exchange {
             'postOnly': postOnly,
             'trades': trades,
             'reduceOnly': this.safeValue(order, 'reduceOnly'),
-            'stopPrice': triggerPrice,
+            'stopPrice': triggerPrice, // ! deprecated, use triggerPrice instead
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -4096,6 +4128,21 @@ export default class Exchange {
             }
         }
         return arr[length - 1];
+    }
+    addKeyInArrayItems(obj, keyName) {
+        const result = [];
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const item = obj[key];
+            if (item === undefined) {
+                continue;
+            }
+            const itemWithKey = this.extend({}, item);
+            itemWithKey[keyName] = key;
+            result.push(itemWithKey);
+        }
+        return result;
     }
     invertFlatStringDictionary(dict) {
         const reversed = {};
@@ -4523,11 +4570,11 @@ export default class Exchange {
         }
         return result;
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
+            result.push(this.parseOrderBookBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -4554,11 +4601,11 @@ export default class Exchange {
     parseOHLCV(ohlcv, market = undefined) {
         if (Array.isArray(ohlcv)) {
             return [
-                this.safeInteger(ohlcv, 0),
-                this.safeNumber(ohlcv, 1),
-                this.safeNumber(ohlcv, 2),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
+                this.safeInteger(ohlcv, 0), // timestamp
+                this.safeNumber(ohlcv, 1), // open
+                this.safeNumber(ohlcv, 2), // high
+                this.safeNumber(ohlcv, 3), // low
+                this.safeNumber(ohlcv, 4), // close
                 this.safeNumber(ohlcv, 5), // volume
             ];
         }
@@ -4777,8 +4824,8 @@ export default class Exchange {
         return this.parseNumber(value, d);
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -5150,11 +5197,9 @@ export default class Exchange {
         [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', 0);
         for (let i = 0; i < retries + 1; i++) {
             try {
-                this.lastRestRequestTimestamp = this.milliseconds();
+                this.setLastRestRequestTimestamp();
                 const request = this.sign(path, api, method, params, headers, body);
-                this.last_request_headers = request['headers'];
-                this.last_request_body = request['body'];
-                this.last_request_url = request['url'];
+                this.setLastRequest(request);
                 return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
             }
             catch (e) {
@@ -5233,12 +5278,12 @@ export default class Exchange {
             if (isFirstCandle || openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms)) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.push([
-                    openingTime,
-                    price,
-                    price,
-                    price,
-                    price,
-                    trade['amount'],
+                    openingTime, // timestamp
+                    price, // O
+                    price, // H
+                    price, // L
+                    price, // C
+                    trade['amount'], // V
                     1, // count
                 ]);
             }
@@ -5336,7 +5381,7 @@ export default class Exchange {
     async fetchLedgerEntry(id, code = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchLedgerEntry() is not supported yet');
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeFloat(bidask, priceKey);
         const amount = this.safeFloat(bidask, amountKey);
         const countOrId = this.safeInteger(bidask, countOrIdKey);
@@ -5350,7 +5395,7 @@ export default class Exchange {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
+        if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
         let code = currencyId;
@@ -6542,8 +6587,8 @@ export default class Exchange {
     }
     isLeveragedCurrency(currencyCode, checkBaseCoin = false, existingCurrencies = undefined) {
         const leverageSuffixes = [
-            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',
-            'UP', 'DOWN',
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
             'BULL', 'BEAR', // similar
         ];
         for (let i = 0; i < leverageSuffixes.length; i++) {
@@ -7610,7 +7655,7 @@ export default class Exchange {
                     errors = 0;
                     result = this.arrayConcat(result, response);
                     const last = this.safeValue(response, responseLength - 1);
-                    paginationTimestamp = this.safeInteger(last, 'timestamp') + 1;
+                    paginationTimestamp = this.safeInteger(last, 'timestamp', 0) + 1;
                     if ((until !== undefined) && (paginationTimestamp >= until)) {
                         break;
                     }
@@ -7887,8 +7932,8 @@ export default class Exchange {
         }
         return this.extend(interest, {
             'symbol': symbol,
-            'baseVolume': this.safeNumber(interest, 'baseVolume'),
-            'quoteVolume': this.safeNumber(interest, 'quoteVolume'),
+            'baseVolume': this.safeNumber(interest, 'baseVolume'), // deprecated
+            'quoteVolume': this.safeNumber(interest, 'quoteVolume'), // deprecated
             'openInterestAmount': this.safeNumber(interest, 'openInterestAmount'),
             'openInterestValue': this.safeNumber(interest, 'openInterestValue'),
             'timestamp': this.safeInteger(interest, 'timestamp'),
@@ -8267,7 +8312,7 @@ export default class Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
          */
         throw new NotSupported(this.id + ' fetchOrdersByStatusWs () is not supported yet');
     }

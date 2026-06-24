@@ -465,7 +465,7 @@ func (this *BigoneCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = GetValue(chains, j)
 		var networkId any = this.SafeString(chain, "gateway_name")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var deposit any = this.SafeBool(chain, "is_deposit_enabled")
 		var withdraw any = this.SafeBool(chain, "is_withdrawal_enabled")
 		var minDepositAmount any = this.SafeString(chain, "min_deposit_amount")
@@ -2250,7 +2250,7 @@ func (this *BigoneCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		ch <- map[string]any{
 			"info":     response,
 			"currency": code,
-			"network":  this.NetworkIdToCode(selectedNetworkId),
+			"network":  this.NetworkIdToCode(selectedNetworkId, code),
 			"address":  address,
 			"tag":      tag,
 		}
@@ -2626,7 +2626,7 @@ func (this *BigoneCore) Withdraw(code any, amount any, address any, optionalArgs
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			AddElementToObject(request, "gateway_name", this.NetworkCodeToId(networkCode))
+			AddElementToObject(request, "gateway_name", this.NetworkCodeToId(networkCode, GetValue(currency, "code")))
 		}
 		// requires write permission on the wallet
 

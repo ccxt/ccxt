@@ -1,14 +1,11 @@
-- [Fetch Ticker From Multiple Exchanges](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 (async () => {
 
     const exchanges = [
-        'bittrex',
+        'kraken',
         'poloniex',
     ]
 
@@ -36,5 +33,5 @@ import ccxt from '../../js/ccxt.js';
 
     ))
 
-}) () 
+}) ()
 ```

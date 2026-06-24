@@ -513,11 +513,10 @@ public class XtCore extends XtApi
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "ERC20", "Ethereum" );
                     put( "TRC20", "Tron" );
+                    put( "TRX", "Tron" );
                     put( "BEP20", "BNB Smart Chain" );
                     put( "BEP2", "BNB-BEP2" );
                     put( "ETH", "Ethereum" );
-                    put( "TRON", "Tron" );
-                    put( "BNB", "BNB Smart Chain" );
                     put( "AVAX", "AVAX C-Chain" );
                     put( "GAL", "GAL(FT)" );
                     put( "ALEO", "ALEO(IOU)" );
@@ -1562,7 +1561,8 @@ public class XtCore extends XtApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object volumeIndex = ((Helpers.isTrue((Helpers.GetValue(market, "inverse"))))) ? "v" : "a";
+        Object isInverse = this.safeBool(market, "inverse");
+        Object volumeIndex = ((Helpers.isTrue((isInverse)))) ? "v" : "a";
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)));
     }
 

@@ -8,7 +8,7 @@ import ansicolor from 'ansicolor';
 
 ansicolor.nice
 
-const exchange = new ccxt.bittrex ({
+const exchange = new ccxt.binance ({
     apiKey: "YOUR_API_KEY",
     secret: "YOUR_SECRET",
 })

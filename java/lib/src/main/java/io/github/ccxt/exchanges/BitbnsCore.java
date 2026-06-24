@@ -1421,6 +1421,7 @@ public class BitbnsCore extends BitbnsApi
             }};
             Object payload = this.stringToBase64(this.json(auth));
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512());
+            headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
             Helpers.addElementToObject(headers, "X-BITBNS-PAYLOAD", payload);
             Helpers.addElementToObject(headers, "X-BITBNS-SIGNATURE", signature);
             Helpers.addElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded");

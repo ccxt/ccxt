@@ -74,7 +74,7 @@ class cryptomus extends Exchange {
                 'fetchConvertTradeHistory' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => false, // temporarily, until they fix the endpoint
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
@@ -374,7 +374,7 @@ class cryptomus extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -404,46 +404,51 @@ class cryptomus extends Exchange {
         //
         $coins = $this->safe_list($response, 'result');
         $groupedById = $this->group_by($coins, 'currency_code');
-        $keys = is_array($groupedById) ? array_keys($groupedById) : array();
-        $result = array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $id = $keys[$i];
-            $code = $this->safe_currency_code($id);
-            $networks = array();
-            $networkEntries = $groupedById[$id];
-            for ($j = 0; $j < count($networkEntries); $j++) {
-                $networkEntry = $networkEntries[$j];
-                $networkId = $this->safe_string($networkEntry, 'network_code');
-                $networkCode = $this->network_id_to_code($networkId);
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($networkEntry, 'min_withdraw'),
-                            'max' => $this->safe_number($networkEntry, 'max_withdraw'),
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($networkEntry, 'min_deposit'),
-                            'max' => $this->safe_number($networkEntry, 'max_deposit'),
-                        ),
-                    ),
-                    'active' => null,
-                    'deposit' => $this->safe_bool($networkEntry, 'can_withdraw'),
-                    'withdraw' => $this->safe_bool($networkEntry, 'can_deposit'),
-                    'fee' => null,
-                    'precision' => null,
-                    'info' => $networkEntry,
-                );
+        $groupedArray = is_array($groupedById) ? array_values($groupedById) : array();
+        return $this->parse_currencies($groupedArray);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        // currency here is array of $networks
+        $id = null; // all entried have same $id, were grouped by
+        $code = null;
+        $networks = array();
+        for ($i = 0; $i < count($rawCurrency); $i++) {
+            $networkEntry = $rawCurrency[$i];
+            // set ID on first loop
+            if ($id === null) {
+                $id = $this->safe_string($networkEntry, 'currency_code');
+                $code = $this->safe_currency_code($id);
             }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'networks' => $networks,
-                'info' => $networkEntries,
-            ));
+            $networkId = $this->safe_string($networkEntry, 'network_code');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_withdraw'),
+                        'max' => $this->safe_number($networkEntry, 'max_withdraw'),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_deposit'),
+                        'max' => $this->safe_number($networkEntry, 'max_deposit'),
+                    ),
+                ),
+                'active' => null,
+                'deposit' => $this->safe_bool($networkEntry, 'can_deposit'),
+                'withdraw' => $this->safe_bool($networkEntry, 'can_withdraw'),
+                'fee' => null,
+                'precision' => null,
+                'info' => $networkEntry,
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'networks' => $networks,
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
@@ -609,7 +614,7 @@ class cryptomus extends Exchange {
             'id' => $this->safe_string($trade, 'trade_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'side' => $this->safe_string($trade, 'type'),
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'quote_volume'), // quote_volume is amount
@@ -709,7 +714,6 @@ class cryptomus extends Exchange {
         $priceToString = $this->number_to_string($price);
         $cost = null;
         list($cost, $params) = $this->handle_param_string($params, 'cost');
-        $response = null;
         if ($type === 'market') {
             if ($sideBuy) {
                 $createMarketBuyOrderRequiresPrice = true;
@@ -1025,7 +1029,7 @@ class cryptomus extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
         $response = $this->privateGetV2UserApiExchangeAccountTariffs ($params);
         //
@@ -1085,8 +1089,12 @@ class cryptomus extends Exchange {
         $feeTiers = $this->safe_list($data, 'tariff_steps', array());
         $result = array();
         $tiers = $this->parse_fee_tiers($feeTiers);
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        if ($symbols === null) {
+            return $result;
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -1119,7 +1127,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;

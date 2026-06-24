@@ -126,7 +126,7 @@ class coinone extends coinone$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 'price', 'qty');
+        const bidAsk = this.parseOrderBookBidAsk(delta, 'price', 'qty');
         bookside.storeArray(bidAsk);
     }
     /**

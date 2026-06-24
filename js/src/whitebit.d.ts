@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currency, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currency, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -25,6 +25,7 @@ export default class whitebit extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name whitebit#fetchTransactionFees
@@ -50,7 +51,7 @@ export default class whitebit extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;
+    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): Dict;
     /**
      * @method
      * @name whitebit#fetchTradingFees
@@ -529,7 +530,7 @@ export default class whitebit extends Exchange {
         id: any;
         amount: number;
     };
-    parseFundingHistories(contracts: any, market?: any, since?: Int, limit?: Int): FundingHistory[];
+    parseFundingHistories(contracts: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
     /**
      * @method
      * @name whitebit#fetchDepositsWithdrawals
@@ -666,11 +667,11 @@ export default class whitebit extends Exchange {
         datetime: string;
     };
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: any;
+        headers: Dict;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

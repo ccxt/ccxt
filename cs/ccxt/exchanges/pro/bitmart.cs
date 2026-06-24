@@ -300,6 +300,10 @@ public partial class bitmart : ccxt.bitmart
         //    }
         //
         object channel = this.safeString2(message, "table", "group");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
         object data = this.safeValue(message, "data");
         if (isTrue(isEqual(data, null)))
         {
@@ -385,7 +389,7 @@ public partial class bitmart : ccxt.bitmart
         marketType = ((IList<object>)symbolsmarketTypeparametersVariable)[1];
         parameters = ((IList<object>)symbolsmarketTypeparametersVariable)[2];
         object channelName = "trade";
-        object trades = await this.subscribeMultiple("trade", channelName, marketType, symbols, parameters);
+        object trades = await this.subscribeMultiple("trade", channelName, ((string)marketType), symbols, parameters);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeDict(trades, 0);
@@ -441,7 +445,7 @@ public partial class bitmart : ccxt.bitmart
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "unsubscribe", true },
         });
-        return await this.subscribeMultiple("trade", channelName, marketType, symbols, parameters);
+        return await this.subscribeMultiple("trade", channelName, ((string)marketType), symbols, parameters);
     }
 
     public virtual object getParamsForMultipleSub(object methodName, object symbols, object limit = null, object parameters = null)
@@ -1591,7 +1595,7 @@ public partial class bitmart : ccxt.bitmart
         // use a reverse lookup in a static map instead
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         object timeframe = this.findTimeframe(interval, timeframes);
-        object duration = this.parseTimeframe(timeframe);
+        object duration = this.parseTimeframe(((string)timeframe));
         object durationInMs = multiply(duration, 1000);
         if (isTrue(isSpot))
         {
@@ -1602,7 +1606,7 @@ public partial class bitmart : ccxt.bitmart
                 object symbol = getValue(market, "symbol");
                 object rawOHLCV = this.safeList(getValue(data, i), "candle");
                 object parsed = this.parseOHLCV(rawOHLCV, market);
-                ((List<object>)parsed)[Convert.ToInt32(0)] = multiply(this.parseToInt(divide(getValue(parsed, 0), durationInMs)), durationInMs);
+                ((List<object>)parsed)[Convert.ToInt32(0)] = multiply(this.parseToInt(divide(this.parseToInt(getValue(parsed, 0)), durationInMs)), durationInMs);
                 ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
                 object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
                 if (isTrue(isEqual(stored, null)))
@@ -1956,7 +1960,7 @@ public partial class bitmart : ccxt.bitmart
         {
             channel = "depth50";
         }
-        object orderbook = await this.subscribeMultiple("orderbook", channel, type, symbols, parameters);
+        object orderbook = await this.subscribeMultiple("orderbook", ((string)channel), type, symbols, parameters);
         return (orderbook as IOrderBook).limit();
     }
 
@@ -1990,7 +1994,7 @@ public partial class bitmart : ccxt.bitmart
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "unsubscribe", true },
         });
-        return await this.subscribeMultiple("orderbook", channel, type, symbols, parameters);
+        return await this.subscribeMultiple("orderbook", ((string)channel), type, symbols, parameters);
     }
 
     /**
@@ -2215,7 +2219,7 @@ public partial class bitmart : ccxt.bitmart
         object unsubHash = add("unsubscribe::", subHash);
         object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
         // clean up both ways of storing subscription and unsubscription
-        this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash, subHashIsPrefix);
+        this.cleanUnsubscription(client as WebSocketClient, ((string)subHash), unsubHash, subHashIsPrefix);
         this.cleanUnsubscription(client as WebSocketClient, messageTopic, unSubMessageTopic, subHashIsPrefix);
         this.cleanCache(subscription);
     }
@@ -2226,7 +2230,7 @@ public partial class bitmart : ccxt.bitmart
         object channel = this.safeString(parts, 0);
         object marketTypeAndTopic = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeStringLower(marketTypeAndTopic, 0);
-        object marketType = this.parseMarketType(rawMarketType);
+        object marketType = this.parseMarketType(((string)rawMarketType));
         object topic = this.safeString(marketTypeAndTopic, 1);
         object thirdPart = this.safeString(marketTypeAndTopic, 2);
         if (isTrue(!isEqual(thirdPart, null)))
@@ -2404,6 +2408,16 @@ public partial class bitmart : ccxt.bitmart
             if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "fundingRate"), 0)))
             {
                 this.handleFundingRate(client as WebSocketClient, message);
+                return;
+            }
+            // 'ticker' is a substring of 'bookTicker', so a bookTicker channel could
+            // be wrongly captured by (or double-dispatched with) the 'ticker' key in a
+            // first-match loop (in Go map iteration order is randomized). Check the
+            // bookTicker prefix explicitly, then fall back to a simple first-match.
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "bookTicker"), 0)))
+            {
+                this.handleBidAsk(client as WebSocketClient, message);
+                return;
             }
             object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -2413,6 +2427,7 @@ public partial class bitmart : ccxt.bitmart
                 {
                     object method = this.safeValue(methods, key);
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+                    return;
                 }
             }
         }

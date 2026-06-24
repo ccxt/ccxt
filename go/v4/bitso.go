@@ -2143,7 +2143,7 @@ func (this *BitsoCore) ParseTransaction(transaction any, optionalArgs ...any) an
 	var networkId any = this.SafeString2(transaction, "network", "method")
 	var status any = this.SafeString(transaction, "status")
 	var withdrawId any = this.SafeString(transaction, "wid")
-	var networkCode any = this.NetworkIdToCode(networkId)
+	var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
 	var networkCodeUpper any = Ternary(IsTrue((!IsEqual(networkCode, nil))), ToUpper(networkCode), nil)
 	return map[string]any{
 		"id":          this.SafeString2(transaction, "wid", "fid"),

@@ -545,7 +545,7 @@ class ascendex extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $networkEtnry = $chains[$j];
             $networkId = $this->safe_string($networkEtnry, 'chainName');
-            $networkCode = $this->network_code_to_id($networkId);
+            $networkCode = $this->network_code_to_id($networkId, $code);
             $networks[$networkCode] = array(
                 'fee' => $this->safe_number($networkEtnry, 'withdrawFee'),
                 'active' => null,
@@ -1610,7 +1610,7 @@ class ascendex extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
+        $triggerPrice = $this->omit_zero(($this->safe_string($order, 'stopPrice')));
         $reduceOnly = null;
         $execInst = $this->safe_string_lower($order, 'execInst');
         if ($execInst === 'reduceonly') {
@@ -2534,7 +2534,7 @@ class ascendex extends Exchange {
                 'time' => $this->milliseconds(),
             );
             if ($symbol !== null) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             $response = null;
             if (($type === 'spot') || ($type === 'margin')) {
@@ -2630,7 +2630,7 @@ class ascendex extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $networkCode = $this->safe_string_2($params, 'network', 'chainName');
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $currency['code']);
             $params = $this->omit($params, array( 'chainName' ));
             $request = array(
                 'asset' => $currency['id'],
@@ -3111,12 +3111,12 @@ class ascendex extends Exchange {
         $status = ($errorCode === '0') ? 'ok' : 'failed';
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
-            'code' => $market['quote'],
+            'code' => $this->safe_string($market, 'quote'),
             'status' => $status,
             'timestamp' => null,
             'datetime' => null,
@@ -3690,7 +3690,6 @@ class ascendex extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $response = null;
             $response = Async\await($this->v2PublicGetFuturesPricingData ($this->extend($request, $params)));
             //
             //    {
@@ -3766,7 +3765,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $version = $api[0];
         $access = $api[1];
         $type = $this->safe_string($api, 2);

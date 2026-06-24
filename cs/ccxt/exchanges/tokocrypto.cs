@@ -927,7 +927,7 @@ public partial class tokocrypto : Exchange
         object response = null;
         if (isTrue(isEqual(getValue(market, "quote"), "USDT")))
         {
-            ((IDictionary<string,object>)request)["symbol"] = add(getValue(market, "baseId"), getValue(market, "quoteId"));
+            ((IDictionary<string,object>)request)["symbol"] = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
             response = await this.binanceGetDepth(this.extend(request, parameters));
         } else
         {
@@ -1362,7 +1362,7 @@ public partial class tokocrypto : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "symbol", add(getValue(market, "baseId"), getValue(market, "quoteId")) },
+            { "symbol", add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")) },
         };
         object response = await this.binanceGetTicker24hr(this.extend(request, parameters));
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -2621,7 +2621,7 @@ public partial class tokocrypto : Exchange
         var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["network"] = ((string)networkId).ToUpper();

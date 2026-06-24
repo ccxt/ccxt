@@ -1134,7 +1134,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        Object timestamp = this.parseToInt(Helpers.divide(this.safeInteger(delta, "T"), 1000));
+        Object timestamp = this.parseToInt(Helpers.divide(this.safeInteger(delta, "T", 0), 1000));
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "u"));
@@ -1150,7 +1150,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
     {
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidAsks)); i++)
         {
-            Object bidAsk = this.parseBidAsk(Helpers.GetValue(bidAsks, i));
+            Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
         }
     }

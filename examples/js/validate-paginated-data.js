@@ -43,7 +43,7 @@ async function main () {
         'bitget': 'BTC/USDT',
         'kucoin': 'BTC/USDT',
         'kucoinfutures': 'BTC/USDT:USDT',
-        'okex': 'BTC/USDT',
+        'okx': 'BTC/USDT',
         'bybit': 'BTC/USDT'
     }
     const timeframe = '1m';

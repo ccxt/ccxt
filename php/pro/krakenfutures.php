@@ -805,12 +805,12 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     $previousOrder['fee'] = array(
                         'rate' => null,
                         'cost' => '0',
-                        'currency' => $this->number_to_string($trade['fee']['currency']),
+                        'currency' => $this->number_to_string($this->safe_string($trade['fee'], 'currency')),
                     );
                 }
-                if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
+                if (($previousOrder['fee']['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
                     $stringOrderCost = $this->number_to_string($previousOrder['fee']['cost']);
-                    $stringTradeCost = $this->number_to_string($trade['fee']['cost']);
+                    $stringTradeCost = $this->number_to_string($this->safe_number($trade['fee'], 'cost'));
                     $previousOrder['fee']['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);
                 }
                 // update the newUpdates count
@@ -1596,7 +1596,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return $messageHash;
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //    {
         //        event => 'alert',

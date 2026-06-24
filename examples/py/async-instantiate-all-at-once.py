@@ -17,7 +17,7 @@ async def main():
         exchange = getattr(ccxt, id)
         exchanges[id] = exchange()
     # now exchanges dictionary contains all exchange instances...
-    print(await exchanges['bittrex'].fetch_order_book('ETH/BTC'))
+    print(await exchanges['kucoin'].fetch_order_book('ETH/BTC'))
     # close the aiohttp session object
     for id in exchanges:
         await exchanges[id].close()

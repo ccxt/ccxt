@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var kucoin$1 = require('./abstract/kucoin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ class kucoin extends kucoin$1["default"] {
             'id': 'kucoin',
             'name': 'KuCoin',
             'countries': ['SC'],
-            'rateLimit': 7.5,
+            'rateLimit': 7.5, // 4000 requests per 30 seconds (VIP0 for spot)
             'version': 'v2',
             'certified': true,
             'pro': true,
@@ -261,7 +261,7 @@ class kucoin extends kucoin$1["default"] {
                         'hf/margin/oco-orders': 2,
                         'etf/info': 25,
                         'margin/currencies': 20,
-                        'risk/limit/strategy': 20,
+                        'risk/limit/strategy': 20, // Deprecate
                         'isolated/symbols': 3,
                         'margin/symbols': 3,
                         'isolated/account/{symbol}': 50,
@@ -373,27 +373,27 @@ class kucoin extends kucoin$1["default"] {
                 'futuresPublic': {
                     'get': {
                         'contracts/active': 6,
-                        'contracts/{symbol}': 6,
-                        'ticker': 4,
-                        'allTickers': 10,
-                        'level2/snapshot': 6,
-                        'level2/depth20': 10,
-                        'level2/depth100': 20,
-                        'trade/history': 10,
-                        'kline/query': 6,
-                        'interest/query': 10,
-                        'index/query': 4,
-                        'mark-price/{symbol}/current': 6,
-                        'premium/query': 6,
-                        'trade-statistics': 6,
-                        'funding-rate/{symbol}/current': 4,
-                        'contract/funding-rates': 10,
-                        'timestamp': 4,
-                        'status': 8,
+                        'contracts/{symbol}': 6, // 3PW
+                        'ticker': 4, // 2PW
+                        'allTickers': 10, // 5PW
+                        'level2/snapshot': 6, // 3PW
+                        'level2/depth20': 10, // 5PW
+                        'level2/depth100': 20, // 10PW
+                        'trade/history': 10, // 5PW
+                        'kline/query': 6, // 3PW
+                        'interest/query': 10, // 5PW
+                        'index/query': 4, // 2PW
+                        'mark-price/{symbol}/current': 6, // 3PW
+                        'premium/query': 6, // 3PW
+                        'trade-statistics': 6, // 3PW
+                        'funding-rate/{symbol}/current': 4, // 2PW
+                        'contract/funding-rates': 10, // 5PW
+                        'timestamp': 4, // 2PW
+                        'status': 8, // 4PW
                         // ?
                         'level2/message/query': 1.3953,
                         'contracts/risk-limit/{symbol}': 3,
-                        'level3/message/query': 3,
+                        'level3/message/query': 3, // deprecated，level3/snapshot is suggested
                         'level3/snapshot': 3, // v2
                     },
                     'post': {
@@ -404,28 +404,28 @@ class kucoin extends kucoin$1["default"] {
                 'futuresPrivate': {
                     'get': {
                         // account
-                        'transaction-history': 4,
+                        'transaction-history': 4, // 2MW
                         // funding
-                        'account-overview': 10,
-                        'account-overview-all': 12,
+                        'account-overview': 10, // 5FW
+                        'account-overview-all': 12, // 6FW
                         'transfer-list': 20,
                         // futures
-                        'orders': 4,
-                        'stopOrders': 12,
-                        'recentDoneOrders': 10,
-                        'orders/{orderId}': 10,
-                        'orders/byClientOid': 10,
-                        'fills': 10,
-                        'recentFills': 6,
+                        'orders': 4, // 2FW
+                        'stopOrders': 12, // 6FW
+                        'recentDoneOrders': 10, // 5FW
+                        'orders/{orderId}': 10, // 5FW
+                        'orders/byClientOid': 10, // 5FW
+                        'fills': 10, // 5FW
+                        'recentFills': 6, // 3FW
                         'trade-fees': 6,
-                        'openOrderStatistics': 20,
-                        'position': 4,
-                        'positions': 4,
-                        'margin/maxWithdrawMargin': 20,
-                        'contracts/risk-limit/{symbol}': 10,
-                        'funding-history': 10,
-                        'copy-trade/futures/get-max-open-size': 8,
-                        'copy-trade/futures/position/margin/max-withdraw-margin': 20,
+                        'openOrderStatistics': 20, // 10FW
+                        'position': 4, // 2FW
+                        'positions': 4, // 2FW
+                        'margin/maxWithdrawMargin': 20, // 10FW
+                        'contracts/risk-limit/{symbol}': 10, // 5FW
+                        'funding-history': 10, // 5FW
+                        'copy-trade/futures/get-max-open-size': 8, // 4FW
+                        'copy-trade/futures/position/margin/max-withdraw-margin': 20, // 10FW
                         'history-positions': 4,
                         'position/getMarginMode': 4,
                         'position/getPositionMode': 4,
@@ -443,25 +443,25 @@ class kucoin extends kucoin$1["default"] {
                         'transfer-out': 20,
                         'transfer-in': 20,
                         // futures
-                        'orders': 4,
+                        'orders': 4, // 2FW
                         'st-orders': 4,
-                        'orders/test': 4,
-                        'orders/multi': 6,
-                        'position/margin/auto-deposit-status': 8,
-                        'margin/withdrawMargin': 10,
-                        'position/margin/deposit-margin': 8,
-                        'position/risk-limit-level/change': 8,
-                        'copy-trade/futures/orders': 4,
-                        'copy-trade/futures/orders/test': 4,
-                        'copy-trade/futures/st-orders': 4,
-                        'copy-trade/futures/position/margin/deposit-margin': 8,
-                        'copy-trade/futures/position/margin/withdraw-margin': 20,
-                        'copy-trade/futures/position/risk-limit-level/change': 4,
-                        'copy-trade/futures/position/margin/auto-deposit-status': 8,
-                        'copy-trade/futures/position/changeMarginMode': 4,
-                        'copy-trade/futures/position/changeCrossUserLeverage': 4,
-                        'copy-trade/getCrossModeMarginRequirement': 6,
-                        'copy-trade/position/switchPositionMode': 4,
+                        'orders/test': 4, // 2FW
+                        'orders/multi': 6, // 3FW
+                        'position/margin/auto-deposit-status': 8, // 4FW
+                        'margin/withdrawMargin': 10, // 10FW
+                        'position/margin/deposit-margin': 8, // 4FW
+                        'position/risk-limit-level/change': 8, // 4FW
+                        'copy-trade/futures/orders': 4, // 2FW
+                        'copy-trade/futures/orders/test': 4, // 2FW
+                        'copy-trade/futures/st-orders': 4, // 2FW
+                        'copy-trade/futures/position/margin/deposit-margin': 8, // 4FW
+                        'copy-trade/futures/position/margin/withdraw-margin': 20, // 10FW
+                        'copy-trade/futures/position/risk-limit-level/change': 4, // 2FW
+                        'copy-trade/futures/position/margin/auto-deposit-status': 8, // 4FW
+                        'copy-trade/futures/position/changeMarginMode': 4, // 2FW
+                        'copy-trade/futures/position/changeCrossUserLeverage': 4, // 2FW
+                        'copy-trade/getCrossModeMarginRequirement': 6, // 3FW
+                        'copy-trade/position/switchPositionMode': 4, // 2FW
                         'changeCrossUserLeverage': 4,
                         'withdrawals': 4,
                         'sub/api-key': 4,
@@ -472,13 +472,13 @@ class kucoin extends kucoin$1["default"] {
                         'bullet-private': 20, // 10FW
                     },
                     'delete': {
-                        'orders/{orderId}': 2,
-                        'orders/client-order/{clientOid}': 2,
-                        'orders': 20,
-                        'stopOrders': 30,
-                        'copy-trade/futures/orders': 1.5,
-                        'copy-trade/futures/orders/client-order': 1.5,
-                        'orders/multi-cancel': 40,
+                        'orders/{orderId}': 2, // 1FW
+                        'orders/client-order/{clientOid}': 2, // 1FW
+                        'orders': 20, // 10FW
+                        'stopOrders': 30, // 15FW
+                        'copy-trade/futures/orders': 1.5, // 1FW
+                        'copy-trade/futures/orders/client-order': 1.5, // 1FW
+                        'orders/multi-cancel': 40, // 20FW
                         'withdrawals/{withdrawalId}': 10,
                         'cancel/transfer-out': 10,
                         'sub/api-key': 10,
@@ -486,7 +486,7 @@ class kucoin extends kucoin$1["default"] {
                 },
                 'webExchange': {
                     'get': {
-                        'currency/currency/chain-info': 1,
+                        'currency/currency/chain-info': 1, // this is temporary from webApi
                         'contract/{symbol}/funding-rates': 2,
                     },
                 },
@@ -516,18 +516,18 @@ class kucoin extends kucoin$1["default"] {
                         'otc-loan/discount-rate-configs': 20,
                         'otc-loan/loan': 2,
                         'otc-loan/accounts': 2,
-                        'earn/redeem-preview': 10,
-                        'earn/saving/products': 10,
-                        'earn/hold-assets': 10,
-                        'earn/promotion/products': 10,
-                        'earn/kcs-staking/products': 10,
-                        'earn/staking/products': 10,
-                        'earn/eth-staking/products': 10,
+                        'earn/redeem-preview': 10, // 5EW
+                        'earn/saving/products': 10, // 5EW
+                        'earn/hold-assets': 10, // 5EW
+                        'earn/promotion/products': 10, // 5EW
+                        'earn/kcs-staking/products': 10, // 5EW
+                        'earn/staking/products': 10, // 5EW
+                        'earn/eth-staking/products': 10, // 5EW
                         'struct-earn/dual/products': 6,
                         'struct-earn/orders': 10,
                     },
                     'post': {
-                        'earn/orders': 10,
+                        'earn/orders': 10, // 5EW
                         'struct-earn/orders': 10,
                     },
                     'delete': {
@@ -577,7 +577,7 @@ class kucoin extends kucoin$1["default"] {
                         'sub-account/balance': 10,
                         'user/fee-rate': 6,
                         'dcp/query': 4,
-                        'unified/account/leverage': 20,
+                        'unified/account/leverage': 20, // returns {"code":"404","msg":"Not Found","retry":false,"success":false}
                         'position/funding-history': 30,
                         'account/interest-limits': 20,
                     },
@@ -597,7 +597,7 @@ class kucoin extends kucoin$1["default"] {
                 },
             },
             'timeframes': {
-                '1m': '1min',
+                '1m': '1min', // spot and uta
                 '3m': '3min',
                 '5m': '5min',
                 '15m': '15min',
@@ -618,18 +618,18 @@ class kucoin extends kucoin$1["default"] {
                     'Order not exist or not allow to be cancelled': errors.OrderNotFound,
                     'The order does not exist.': errors.OrderNotFound,
                     'order not exist': errors.OrderNotFound,
-                    'order not exist.': errors.OrderNotFound,
-                    'order_not_exist': errors.OrderNotFound,
-                    'order_not_exist_or_not_allow_to_cancel': errors.InvalidOrder,
-                    'Order size below the minimum requirement.': errors.InvalidOrder,
-                    'Order size increment invalid.': errors.InvalidOrder,
-                    'The withdrawal amount is below the minimum requirement.': errors.ExchangeError,
-                    'Unsuccessful! Exceeded the max. funds out-transfer limit': errors.InsufficientFunds,
+                    'order not exist.': errors.OrderNotFound, // duplicated error temporarily
+                    'order_not_exist': errors.OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                    'order_not_exist_or_not_allow_to_cancel': errors.InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                    'Order size below the minimum requirement.': errors.InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
+                    'Order size increment invalid.': errors.InvalidOrder, // {"msg":"Order size increment invalid.","code":"600100"}
+                    'The withdrawal amount is below the minimum requirement.': errors.ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
+                    'Unsuccessful! Exceeded the max. funds out-transfer limit': errors.InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
                     'The amount increment is invalid.': errors.BadRequest,
-                    'The quantity is below the minimum requirement.': errors.InvalidOrder,
-                    'not in the given range!': errors.BadRequest,
-                    'recAccountType not in the given range': errors.BadRequest,
-                    'Unsupported trading pair.': errors.BadSymbol,
+                    'The quantity is below the minimum requirement.': errors.InvalidOrder, // {"msg":"The quantity is below the minimum requirement.","code":"400100"}
+                    'not in the given range!': errors.BadRequest, // {"msg":"price not in the given range!","code":"400100"}
+                    'recAccountType not in the given range': errors.BadRequest, // {"msg":"recAccountType not in the given range","code":"400100"}
+                    'Unsupported trading pair.': errors.BadSymbol, // {"msg":"Unsupported trading pair.","code":"400100"}
                     '400': errors.BadRequest,
                     '401': errors.AuthenticationError,
                     '403': errors.NotSupported,
@@ -637,79 +637,79 @@ class kucoin extends kucoin$1["default"] {
                     '405': errors.NotSupported,
                     '415': errors.NotSupported,
                     '429': errors.RateLimitExceeded,
-                    '500': errors.ExchangeNotAvailable,
+                    '500': errors.ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': errors.ExchangeNotAvailable,
-                    '101030': errors.PermissionDenied,
-                    '103000': errors.InvalidOrder,
-                    '112010': errors.PermissionDenied,
-                    '130101': errors.BadRequest,
-                    '130102': errors.ExchangeError,
-                    '130103': errors.OrderNotFound,
-                    '130104': errors.ExchangeError,
-                    '130105': errors.InsufficientFunds,
-                    '130106': errors.NotSupported,
-                    '130107': errors.ExchangeError,
-                    '130108': errors.OrderNotFound,
-                    '130201': errors.PermissionDenied,
-                    '130202': errors.ExchangeError,
-                    '130203': errors.InsufficientFunds,
-                    '130204': errors.BadRequest,
-                    '130301': errors.InsufficientFunds,
-                    '130302': errors.PermissionDenied,
-                    '130303': errors.NotSupported,
-                    '130304': errors.NotSupported,
-                    '130305': errors.NotSupported,
-                    '130306': errors.NotSupported,
-                    '130307': errors.NotSupported,
-                    '130308': errors.InvalidOrder,
-                    '130309': errors.InvalidOrder,
-                    '130310': errors.ExchangeError,
-                    '130311': errors.InvalidOrder,
-                    '130312': errors.InvalidOrder,
-                    '130313': errors.InvalidOrder,
-                    '130314': errors.InvalidOrder,
-                    '130315': errors.NotSupported,
-                    '126000': errors.ExchangeError,
-                    '126001': errors.NotSupported,
-                    '126002': errors.ExchangeError,
-                    '126003': errors.InvalidOrder,
-                    '126004': errors.ExchangeError,
-                    '126005': errors.PermissionDenied,
-                    '126006': errors.ExchangeError,
-                    '126007': errors.ExchangeError,
-                    '126009': errors.ExchangeError,
-                    '126010': errors.ExchangeError,
-                    '126011': errors.ExchangeError,
-                    '126013': errors.InsufficientFunds,
-                    '126015': errors.ExchangeError,
-                    '126021': errors.NotSupported,
-                    '126022': errors.InvalidOrder,
-                    '126027': errors.InvalidOrder,
-                    '126028': errors.InvalidOrder,
-                    '126029': errors.InvalidOrder,
-                    '126030': errors.InvalidOrder,
-                    '126033': errors.InvalidOrder,
-                    '126034': errors.InvalidOrder,
-                    '126036': errors.InvalidOrder,
-                    '126037': errors.ExchangeError,
-                    '126038': errors.ExchangeError,
-                    '126039': errors.ExchangeError,
-                    '126041': errors.ExchangeError,
-                    '126042': errors.ExchangeError,
-                    '126043': errors.OrderNotFound,
-                    '126044': errors.InvalidOrder,
-                    '126045': errors.NotSupported,
-                    '126046': errors.NotSupported,
-                    '126047': errors.PermissionDenied,
-                    '126048': errors.PermissionDenied,
-                    '135005': errors.ExchangeError,
-                    '135018': errors.ExchangeError,
+                    '101030': errors.PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
+                    '103000': errors.InvalidOrder, // {"code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is: 0USDT"}
+                    '112010': errors.PermissionDenied, // {"msg":"Invalid Unified Account user.","code":"112010"}
+                    '130101': errors.BadRequest, // Parameter error
+                    '130102': errors.ExchangeError, // Maximum subscription amount has been exceeded.
+                    '130103': errors.OrderNotFound, // Subscription order does not exist.
+                    '130104': errors.ExchangeError, // Maximum number of subscription orders has been exceeded.
+                    '130105': errors.InsufficientFunds, // Insufficient balance.
+                    '130106': errors.NotSupported, // The currency does not support redemption.
+                    '130107': errors.ExchangeError, // Redemption amount exceeds subscription amount.
+                    '130108': errors.OrderNotFound, // Redemption order does not exist.
+                    '130201': errors.PermissionDenied, // Your account has restricted access to certain features. Please contact customer service for further assistance
+                    '130202': errors.ExchangeError, // The system is renewing the loan automatically. Please try again later
+                    '130203': errors.InsufficientFunds, // Insufficient account balance
+                    '130204': errors.BadRequest, // As the total lending amount for platform leverage reaches the platform's maximum position limit, the system suspends the borrowing function of leverage
+                    '130301': errors.InsufficientFunds, // Insufficient account balance
+                    '130302': errors.PermissionDenied, // Your relevant permission rights have been restricted, you can contact customer service for processing
+                    '130303': errors.NotSupported, // The current trading pair does not support isolated positions
+                    '130304': errors.NotSupported, // The trading function of the current trading pair is not enabled
+                    '130305': errors.NotSupported, // The current trading pair does not support cross position
+                    '130306': errors.NotSupported, // The account has not opened leveraged trading
+                    '130307': errors.NotSupported, // Please reopen the leverage agreement
+                    '130308': errors.InvalidOrder, // Position renewal freeze
+                    '130309': errors.InvalidOrder, // Position forced liquidation freeze
+                    '130310': errors.ExchangeError, // Abnormal leverage account status
+                    '130311': errors.InvalidOrder, // Failed to place an order, triggering buy limit
+                    '130312': errors.InvalidOrder, // Trigger global position limit, suspend buying
+                    '130313': errors.InvalidOrder, // Trigger global position limit, suspend selling
+                    '130314': errors.InvalidOrder, // Trigger the global position limit and prompt the remaining quantity available for purchase
+                    '130315': errors.NotSupported, // This feature has been suspended due to country restrictions
+                    '126000': errors.ExchangeError, // Abnormal margin trading
+                    '126001': errors.NotSupported, // Users currently do not support high frequency
+                    '126002': errors.ExchangeError, // There is a risk problem in your account and transactions are temporarily not allowed!
+                    '126003': errors.InvalidOrder, // The commission amount is less than the minimum transaction amount for a single commission
+                    '126004': errors.ExchangeError, // Trading pair does not exist or is prohibited
+                    '126005': errors.PermissionDenied, // This trading pair requires advanced KYC certification before trading
+                    '126006': errors.ExchangeError, // Trading pair is not available
+                    '126007': errors.ExchangeError, // Trading pair suspended
+                    '126009': errors.ExchangeError, // Trading pair is suspended from creating orders
+                    '126010': errors.ExchangeError, // Trading pair suspended order cancellation
+                    '126011': errors.ExchangeError, // There are too many orders in the order
+                    '126013': errors.InsufficientFunds, // Insufficient account balance
+                    '126015': errors.ExchangeError, // It is prohibited to place orders on this trading pair
+                    '126021': errors.NotSupported, // This digital asset does not support user participation in your region, thank you for your understanding!
+                    '126022': errors.InvalidOrder, // The final transaction price of your order will trigger the price protection strategy. To protect the price from deviating too much, please place an order again.
+                    '126027': errors.InvalidOrder, // Only limit orders are supported
+                    '126028': errors.InvalidOrder, // Only limit orders are supported before the specified time
+                    '126029': errors.InvalidOrder, // The maximum order price is: xxx
+                    '126030': errors.InvalidOrder, // The minimum order price is: xxx
+                    '126033': errors.InvalidOrder, // Duplicate order
+                    '126034': errors.InvalidOrder, // Failed to create take profit and stop loss order
+                    '126036': errors.InvalidOrder, // Failed to create margin order
+                    '126037': errors.ExchangeError, // Due to country and region restrictions, this function has been suspended!
+                    '126038': errors.ExchangeError, // Third-party service call failed (internal exception)
+                    '126039': errors.ExchangeError, // Third-party service call failed, reason: xxx
+                    '126041': errors.ExchangeError, // clientTimestamp parameter error
+                    '126042': errors.ExchangeError, // Exceeded maximum position limit
+                    '126043': errors.OrderNotFound, // Order does not exist
+                    '126044': errors.InvalidOrder, // clientOid duplicate
+                    '126045': errors.NotSupported, // This digital asset does not support user participation in your region, thank you for your understanding!
+                    '126046': errors.NotSupported, // This digital asset does not support your IP region, thank you for your understanding!
+                    '126047': errors.PermissionDenied, // Please complete identity verification
+                    '126048': errors.PermissionDenied, // Please complete authentication for the master account
+                    '135005': errors.ExchangeError, // Margin order query business abnormality
+                    '135018': errors.ExchangeError, // Margin order query service abnormality
                     '200004': errors.InsufficientFunds,
-                    '210014': errors.InvalidOrder,
-                    '210021': errors.InsufficientFunds,
-                    '230003': errors.InsufficientFunds,
-                    '260000': errors.InvalidAddress,
-                    '260100': errors.InsufficientFunds,
+                    '210014': errors.InvalidOrder, // {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
+                    '210021': errors.InsufficientFunds, // {"code":"210021","msg":"Balance not enough"}
+                    '230003': errors.InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
+                    '260000': errors.InvalidAddress, // {"code":"260000","msg":"Deposit address already exists."}
+                    '260100': errors.InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                     '300000': errors.InvalidOrder,
                     '400000': errors.BadSymbol,
                     '400001': errors.AuthenticationError,
@@ -720,35 +720,35 @@ class kucoin extends kucoin$1["default"] {
                     '400006': errors.AuthenticationError,
                     '400007': errors.AuthenticationError,
                     '400008': errors.NotSupported,
-                    '400100': errors.BadRequest,
-                    '400200': errors.InvalidOrder,
-                    '400330': errors.InvalidOrder,
-                    '400350': errors.InvalidOrder,
-                    '400370': errors.InvalidOrder,
-                    '400400': errors.BadRequest,
-                    '400401': errors.AuthenticationError,
-                    '400500': errors.RestrictedLocation,
-                    '400600': errors.BadSymbol,
-                    '400760': errors.InvalidOrder,
-                    '401000': errors.BadRequest,
-                    '408000': errors.BadRequest,
+                    '400100': errors.BadRequest, // {"msg":"account.available.amount","code":"400100"} or {"msg":"Withdrawal amount is below the minimum requirement.","code":"400100"} or  {"msg":"pageSize should not greater than 500","code":"400100"}
+                    '400200': errors.InvalidOrder, // {"code":"400200","msg":"Forbidden to place an order"}
+                    '400330': errors.InvalidOrder, // {"msg":"Order price can't deviate from NAV by 50%","code":"400330"}
+                    '400350': errors.InvalidOrder, // {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
+                    '400370': errors.InvalidOrder, // {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
+                    '400400': errors.BadRequest, // Parameter error
+                    '400401': errors.AuthenticationError, // User is not logged in
+                    '400500': errors.RestrictedLocation, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
+                    '400600': errors.BadSymbol, // {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
+                    '400760': errors.InvalidOrder, // {"code":"400760","msg":"order price should be more than XX"}
+                    '401000': errors.BadRequest, // {"code":"401000","msg":"The interface has been deprecated"}
+                    '408000': errors.BadRequest, // Network timeout, please try again later
                     '411100': errors.AccountSuspended,
-                    '415000': errors.BadRequest,
-                    '400303': errors.PermissionDenied,
-                    '500000': errors.ExchangeNotAvailable,
-                    '260220': errors.InvalidAddress,
-                    '600100': errors.InsufficientFunds,
-                    '600101': errors.InvalidOrder,
-                    '900014': errors.BadRequest,
+                    '415000': errors.BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
+                    '400303': errors.PermissionDenied, // {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
+                    '500000': errors.ExchangeNotAvailable, // {"code":"500000","msg":"Internal Server Error"}
+                    '260220': errors.InvalidAddress, // { "code": "260220", "msg": "deposit.address.not.exists" }
+                    '600100': errors.InsufficientFunds, // {"msg":"Funds below the minimum requirement.","code":"600100"}
+                    '600101': errors.InvalidOrder, // {"msg":"The order funds should more then 0.1 USDT.","code":"600101"}
+                    '900014': errors.BadRequest, // {"code":"900014","msg":"Invalid chainId"}
                     // futures errors
-                    '330012': errors.InvalidOrder,
-                    '330005': errors.InvalidOrder,
-                    '100001': errors.OrderNotFound,
-                    '100004': errors.BadRequest,
+                    '330012': errors.InvalidOrder, // {"msg":"Your order is in One-Way Mode, while your account is set to Hedge Mode. Update your settings so they match and try again.","code":"330012"}
+                    '330005': errors.InvalidOrder, // {"msg":"The order's margin mode does not match the selected one. Please switch and try again.","code":"330005"}
+                    '100001': errors.OrderNotFound, // {"msg":"error.getOrder.orderNotExist","code":"100001"}
+                    '100004': errors.BadRequest, // {"code":"100004","msg":"Order is in not cancelable state"}
                     '300003': errors.InsufficientFunds,
                     '300012': errors.InvalidOrder,
-                    '404000': errors.NotSupported,
-                    '300009': errors.InvalidOrder,
+                    '404000': errors.NotSupported, // URL Not Found -- The requested resource could not be found
+                    '300009': errors.InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
                     '330008': errors.InsufficientFunds, // {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
@@ -886,17 +886,17 @@ class kucoin extends kucoin$1["default"] {
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
                 'ALT': 'APTOSLAUNCHTOKEN',
-                'KALT': 'ALT',
+                'KALT': 'ALT', // ALTLAYER
                 'FUD': 'FTX Users\' Debt',
             },
             'options': {
-                'hf': undefined,
+                'hf': undefined, // would be auto set to `true/false` after first load
                 'uta': undefined,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
                     'brokenCurrencies': ['00', 'OPEN_ERROR', 'HUF', 'BDT'], // skip buggy entries: https://t.me/KuCoin_API/217798
                 },
@@ -963,7 +963,7 @@ class kucoin extends kucoin$1["default"] {
                             'margin/accounts': 'v3',
                             'isolated/accounts': 'v3',
                             // 'deposit-addresses': 'v2',
-                            'deposit-addresses': 'v1',
+                            'deposit-addresses': 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
                             // spot trading
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
@@ -1114,7 +1114,7 @@ class kucoin extends kucoin$1["default"] {
                     'HECO': 'heco',
                     'HRC20': 'heco',
                     'MATIC': 'matic',
-                    'KCC': 'kcc',
+                    'KCC': 'kcc', // kucoin community chain
                     'SOL': 'sol',
                     'ALGO': 'algo',
                     'EOS': 'eos',
@@ -1123,7 +1123,7 @@ class kucoin extends kucoin$1["default"] {
                     'ARBONE': 'arbitrum',
                     'AVAXX': 'avax',
                     'AVAXC': 'avaxc',
-                    'TLOS': 'tlos',
+                    'TLOS': 'tlos', // tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
                     'OP': 'optimism',
@@ -1195,7 +1195,7 @@ class kucoin extends kucoin$1["default"] {
                     'ZEC': 'zec',
                     'POKT': 'pokt',
                     'OASYS': 'oas',
-                    'OASIS': 'oasis',
+                    'OASIS': 'oasis', // a.k.a. ROSE
                     'ETC': 'etc',
                     'AKT': 'akt',
                     'FSN': 'fsn',
@@ -1207,12 +1207,12 @@ class kucoin extends kucoin$1["default"] {
                     'STX': 'stx',
                     'DGB': 'dgb',
                     'DCR': 'dcr',
-                    'CKB': 'ckb',
-                    'ELA': 'ela',
+                    'CKB': 'ckb', // ckb2 is just odd entry
+                    'ELA': 'ela', // esc might be another chain elastos smart chain
                     'HYDRA': 'hydra',
                     'BTM': 'btm',
                     'KARDIA': 'kai',
-                    'SXP': 'sxp',
+                    'SXP': 'sxp', // a.k.a. solar swipe
                     'NEBL': 'nebl',
                     'ZEN': 'zen',
                     'SDN': 'sdn',
@@ -1231,7 +1231,7 @@ class kucoin extends kucoin$1["default"] {
                     'PIVX': 'pivx',
                     'SERO': 'sero',
                     'METER': 'meter',
-                    'STATEMINE': 'statemine',
+                    'STATEMINE': 'statemine', // a.k.a. RMRK
                     'DVPN': 'dvpn',
                     'XPRT': 'xprt',
                     'MOVR': 'movr',
@@ -1338,10 +1338,10 @@ class kucoin extends kucoin$1["default"] {
                         'marginMode': true,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': false,
+                        'triggerDirection': false, // true for uta
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
-                        'attachedStopLossTakeProfit': undefined,
+                        'attachedStopLossTakeProfit': undefined, // not supported
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
@@ -1353,7 +1353,7 @@ class kucoin extends kucoin$1["default"] {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo implement
                         'iceberg': true, // todo implement
                     },
                     'createOrders': {
@@ -1363,7 +1363,7 @@ class kucoin extends kucoin$1["default"] {
                         'marginMode': true,
                         'limit': undefined,
                         'daysBack': undefined,
-                        'untilDays': 7,
+                        'untilDays': 7, // per  implementation comments
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -1421,12 +1421,12 @@ class kucoin extends kucoin$1["default"] {
                             'PO': true,
                             'GTD': false,
                         },
-                        'hedged': false,
+                        'hedged': false, // true for uta
                         'trailing': false,
-                        'leverage': true,
+                        'leverage': true, // todo implement
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo implement
                         'iceberg': true,
                     },
                     'createOrders': {
@@ -3614,7 +3614,7 @@ class kucoin extends kucoin$1["default"] {
             let networkCode = undefined;
             [networkCode, params] = this.handleNetworkCodeAndParams(params);
             if (networkCode !== undefined) {
-                request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
+                request['chain'] = this.networkCodeToId(networkCode, code).toLowerCase();
             }
             //
             //     {
@@ -4140,7 +4140,7 @@ class kucoin extends kucoin$1["default"] {
             'clientOid': clientOrderId,
             'side': side,
             'symbol': market['id'],
-            'type': type,
+            'type': type, // limit or market
             'leverage': 1,
         };
         const marginModeUpper = this.safeStringUpper(params, 'marginMode');
@@ -4292,6 +4292,7 @@ class kucoin extends kucoin$1["default"] {
      */
     async createUtaOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
+        const market = this.market(symbol);
         const request = this.createUtaOrderRequest(symbol, type, side, amount, price, params);
         const response = await this.utaPrivatePostAccountModeOrderPlace(request);
         //
@@ -4306,7 +4307,7 @@ class kucoin extends kucoin$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data);
+        return this.parseOrder(data, market);
     }
     createUtaOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -4322,8 +4323,8 @@ class kucoin extends kucoin$1["default"] {
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId', this.uuid());
         params = this.omit(params, ['clientOid', 'clientOrderId']);
         const request = {
-            'accountMode': accountMode,
-            'tradeType': tradeType,
+            'accountMode': accountMode, // 'unified' or 'classic',
+            'tradeType': tradeType, // 'SPOT', 'FUTURES', 'MARGIN', 'ISOLATED' or 'CROSS'
             'clientOid': clientOrderId,
             'symbol': market['id'],
             // 'triggerDirection'- 'UP' or 'DOWN (required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
@@ -5212,7 +5213,7 @@ class kucoin extends kucoin$1["default"] {
         [trigger, params] = this.handleParamBool(params, 'trigger', trigger);
         const orderFilter = trigger ? 'ADVANCED' : 'NORMAL';
         const request = {
-            'accountMode': 'unified',
+            'accountMode': 'unified', // only unified account is supported for batch cancelling orders
             'symbol': market['id'],
             'tradeType': tradeType,
             'orderFilter': orderFilter,
@@ -5835,7 +5836,7 @@ class kucoin extends kucoin$1["default"] {
                 if (symbol === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol parameter for hf and margin orders');
                 }
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
         }
         params = this.omit(params, ['stop', 'clientOid', 'clientOrderId', 'trigger']);
@@ -5848,7 +5849,7 @@ class kucoin extends kucoin$1["default"] {
                 }
                 else {
                     if (symbol !== undefined) {
-                        request['symbol'] = market['id'];
+                        request['symbol'] = this.safeString(market, 'id');
                     }
                     response = await this.privateGetStopOrderQueryOrderByClientOid(this.extend(request, params));
                 }
@@ -6395,7 +6396,7 @@ class kucoin extends kucoin$1["default"] {
             'postOnly': this.safeBool(order, 'postOnly'),
             'side': this.safeString(order, 'side'),
             'amount': this.safeString(order, 'size'),
-            'price': this.safeString(order, 'price'),
+            'price': this.safeString(order, 'price'), // price is zero for market order, omitZero is called in safeOrder2
             'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'cost': this.safeString(order, 'dealFunds'),
             'filled': this.safeString(order, 'dealSize'),
@@ -6498,7 +6499,7 @@ class kucoin extends kucoin$1["default"] {
             'price': this.safeString(order, 'price'),
             'triggerPrice': this.safeString2(order, 'stopPrice', 'triggerPrice'),
             'cost': cost,
-            'filled': filled,
+            'filled': filled, // todo check if filledSize is in base or quote
             'remaining': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -6524,12 +6525,12 @@ class kucoin extends kucoin$1["default"] {
     }
     parseOrderStatus(status) {
         const statuses = {
-            '0': 'open',
-            '1': 'open',
-            '2': 'open',
-            '3': 'closed',
-            '4': 'open',
-            '5': 'canceled',
+            '0': 'open', // notTriggered
+            '1': 'open', // triggered
+            '2': 'open', // live
+            '3': 'closed', // filled
+            '4': 'open', // partial filled
+            '5': 'canceled', // canceled
             '6': 'closed', // partial canceled
         };
         return this.safeString(statuses, status, status);
@@ -8386,7 +8387,7 @@ class kucoin extends kucoin$1["default"] {
         const response = await this.utaPrivatePostAccountTransfer(this.extend(request, params));
         //
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
@@ -8471,7 +8472,7 @@ class kucoin extends kucoin$1["default"] {
             //
             response = await this.privatePostAccountsUniversalTransfer(this.extend(request, params));
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
@@ -8594,40 +8595,40 @@ class kucoin extends kucoin$1["default"] {
     }
     parseLedgerEntryType(type) {
         const types = {
-            'Assets Transferred in After Upgrading': 'transfer',
-            'Deposit': 'transaction',
-            'Withdrawal': 'transaction',
-            'Transfer': 'transfer',
-            'Trade_Exchange': 'trade',
+            'Assets Transferred in After Upgrading': 'transfer', // Assets Transferred in After V1 to V2 Upgrading
+            'Deposit': 'transaction', // Deposit
+            'Withdrawal': 'transaction', // Withdrawal
+            'Transfer': 'transfer', // Transfer
+            'Trade_Exchange': 'trade', // Trade
             // 'Vote for Coin': 'Vote for Coin', // Vote for Coin
-            'KuCoin Bonus': 'bonus',
-            'Referral Bonus': 'referral',
-            'Rewards': 'bonus',
+            'KuCoin Bonus': 'bonus', // KuCoin Bonus
+            'Referral Bonus': 'referral', // Referral Bonus
+            'Rewards': 'bonus', // Activities Rewards
             // 'Distribution': 'Distribution', // Distribution, such as get GAS by holding NEO
-            'Airdrop/Fork': 'airdrop',
-            'Other rewards': 'bonus',
-            'Fee Rebate': 'rebate',
-            'Buy Crypto': 'trade',
-            'Sell Crypto': 'sell',
-            'Public Offering Purchase': 'trade',
+            'Airdrop/Fork': 'airdrop', // Airdrop/Fork
+            'Other rewards': 'bonus', // Other rewards, except Vote, Airdrop, Fork
+            'Fee Rebate': 'rebate', // Fee Rebate
+            'Buy Crypto': 'trade', // Use credit card to buy crypto
+            'Sell Crypto': 'sell', // Use credit card to sell crypto
+            'Public Offering Purchase': 'trade', // Public Offering Purchase for Spotlight
             // 'Send red envelope': 'Send red envelope', // Send red envelope
             // 'Open red envelope': 'Open red envelope', // Open red envelope
             // 'Staking': 'Staking', // Staking
             // 'LockDrop Vesting': 'LockDrop Vesting', // LockDrop Vesting
             // 'Staking Profits': 'Staking Profits', // Staking Profits
             // 'Redemption': 'Redemption', // Redemption
-            'Refunded Fees': 'fee',
-            'KCS Pay Fees': 'fee',
-            'Margin Trade': 'trade',
-            'Loans': 'Loans',
+            'Refunded Fees': 'fee', // Refunded Fees
+            'KCS Pay Fees': 'fee', // KCS Pay Fees
+            'Margin Trade': 'trade', // Margin Trade
+            'Loans': 'Loans', // Loans
             // 'Borrowings': 'Borrowings', // Borrowings
             // 'Debt Repayment': 'Debt Repayment', // Debt Repayment
             // 'Loans Repaid': 'Loans Repaid', // Loans Repaid
             // 'Lendings': 'Lendings', // Lendings
             // 'Pool transactions': 'Pool transactions', // Pool-X transactions
-            'Instant Exchange': 'trade',
-            'Sub-account transfer': 'transfer',
-            'Liquidation Fees': 'fee',
+            'Instant Exchange': 'trade', // Instant Exchange
+            'Sub-account transfer': 'transfer', // Sub-account transfer
+            'Liquidation Fees': 'fee', // Liquidation Fees
             // 'Soft Staking Profits': 'Soft Staking Profits', // Soft Staking Profits
             // 'Voting Earnings': 'Voting Earnings', // Voting Earnings on Pool-X
             // 'Redemption of Voting': 'Redemption of Voting', // Redemption of Voting on Pool-X
@@ -9687,7 +9688,7 @@ class kucoin extends kucoin$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' setLeverage requires a symbol parameter for isolated margin');
             }
             if (symbol !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
             request['isIsolated'] = (marginMode === 'isolated');
             response = await this.privatePostPositionUpdateUserLeverage(this.extend(request, params));
@@ -10610,7 +10611,7 @@ class kucoin extends kucoin$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds');
             }
             ordersRequests.push({
-                'symbol': market['id'],
+                'symbol': this.safeString(market, 'id'),
                 'clientOid': this.safeString(clientOrderIds, i),
             });
         }
@@ -10619,7 +10620,7 @@ class kucoin extends kucoin$1["default"] {
             if (uta) {
                 ordersRequests.push({
                     'orderId': orderId,
-                    'symbol': market['id'],
+                    'symbol': this.safeString(market, 'id'),
                 });
             }
             else {
@@ -10846,7 +10847,7 @@ class kucoin extends kucoin$1["default"] {
         marginType = (marginType === 'ISOLATED') ? 'isolated' : 'cross';
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginType,
         };
     }
@@ -11323,16 +11324,17 @@ class kucoin extends kucoin$1["default"] {
                 'KC-API-KEY': this.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
             }, headers);
+            headers = (headers === undefined) ? {} : headers;
             const apiKeyVersion = this.safeString(headers, 'KC-API-KEY-VERSION');
             if (apiKeyVersion === '2') {
-                const passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), sha256.sha256, 'base64');
+                const passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), sha2_js.sha256, 'base64');
                 headers['KC-API-PASSPHRASE'] = passphrase;
             }
             else {
                 headers['KC-API-PASSPHRASE'] = this.password;
             }
             const payload = timestamp + method + endpoint + endpart;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             headers['KC-API-SIGN'] = signature;
             let partner = this.safeDict(this.options, 'partner', {});
             const isUtaFuturePrivate = isUtaPrivate && (tradeType === 'FUTURES');
@@ -11342,7 +11344,7 @@ class kucoin extends kucoin$1["default"] {
             const partnerSecret = this.safeString2(partner, 'secret', 'key');
             if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
                 const partnerPayload = timestamp + partnerId + this.apiKey;
-                const partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256.sha256, 'base64');
+                const partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha2_js.sha256, 'base64');
                 headers['KC-API-PARTNER-SIGN'] = partnerSignature;
                 headers['KC-API-PARTNER'] = partnerId;
                 headers['KC-API-PARTNER-VERIFY'] = 'true';
@@ -11453,7 +11455,7 @@ class kucoin extends kucoin$1["default"] {
     }
     /**
      * @method
-     * @name kucoinfutures#fetchPositionsADLRank
+     * @name kucoin#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
      * @param {string[]} [symbols] list of unified market symbols

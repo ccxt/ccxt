@@ -1613,7 +1613,7 @@ class bitso extends Exchange {
         return $this->parse_deposit_withdraw_fees($payload, $codes);
     }
 
-    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
         //
         //    {
         //        "fees" => array(
@@ -1795,7 +1795,7 @@ class bitso extends Exchange {
         $networkId = $this->safe_string_2($transaction, 'network', 'method');
         $status = $this->safe_string($transaction, 'status');
         $withdrawId = $this->safe_string($transaction, 'wid');
-        $networkCode = $this->network_id_to_code($networkId);
+        $networkCode = $this->network_id_to_code($networkId, $currency['code']);
         $networkCodeUpper = ($networkCode !== null) ? strtoupper($networkCode) : null;
         return array(
             'id' => $this->safe_string_2($transaction, 'wid', 'fid'),
@@ -1835,7 +1835,7 @@ class bitso extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET' || $method === 'DELETE') {

@@ -1,8 +1,5 @@
-- [Huobipro Market Buy Sell Fetch Trading Limits](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog'
 
 const log = ololog.configure .unlimited.handleNodeErrors (),
@@ -99,5 +96,5 @@ log.green ('CCXT', ccxt.version)
 
     log[color] ({ min, max, cost })
 
-}) () 
+}) ()
 ```

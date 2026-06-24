@@ -32,7 +32,7 @@ retrieves data on all markets for zaif
 
 
 ```javascript
-zaif.fetchMarkets ([params])
+zaif.fetchMarkets (params?)
 ```
 
 
@@ -52,7 +52,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-zaif.fetchBalance ([params])
+zaif.fetchBalance (params?)
 ```
 
 
@@ -74,7 +74,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-zaif.fetchOrderBook (symbol[, limit, params])
+zaif.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -95,7 +95,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-zaif.fetchTicker (symbol[, params])
+zaif.fetchTicker (symbol, params?)
 ```
 
 
@@ -118,7 +118,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-zaif.fetchTrades (symbol[, since, limit, params])
+zaif.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -143,7 +143,7 @@ create a trade order
 
 
 ```javascript
-zaif.createOrder (symbol, type, side, amount[, price, params])
+zaif.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -165,7 +165,7 @@ cancels an open order
 
 
 ```javascript
-zaif.cancelOrder (id, symbol[, params])
+zaif.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -188,7 +188,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-zaif.fetchOpenOrders (symbol[, since, limit, params])
+zaif.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -211,7 +211,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-zaif.fetchClosedOrders (symbol[, since, limit, params])
+zaif.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -235,6 +235,6 @@ make a withdrawal
 
 
 ```javascript
-zaif.withdraw (code, amount, address, tag[, params])
+zaif.withdraw (code, amount, address, tag, params?)
 ```
 

@@ -18,9 +18,9 @@ class coinbase extends Exchange {
             'pro' => true,
             'certified' => false,
             // rate-limits:
-            // ADVANCED API => https://docs.cloud.coinbase.com/advanced-trade/docs/rest-api-rate-limits
+            // ADVANCED API => https://docs.cdp.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
-            // DATA API    : https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/rate-limiting
+            // DATA API    : https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting
             // - max 10000 req/hour (to prevent userland mistakes we apply ~3 req/second RL per call
             'rateLimit' => 34,
             'version' => 'v2',
@@ -162,8 +162,8 @@ class coinbase extends Exchange {
                 ),
                 'www' => 'https://www.coinbase.com',
                 'doc' => array(
-                    'https://developers.coinbase.com/api/v2',
-                    'https://docs.cloud.coinbase.com/advanced-trade/docs/welcome',
+                    'https://docs.cdp.coinbase.com/coinbase-app/introduction/welcome',
+                    'https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/api-reference',
                 ),
                 'fees' => array(
                     'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
@@ -346,6 +346,7 @@ class coinbase extends Exchange {
                     'jumio_face_match_verification_required' => '\\ccxt\\AuthenticationError', // 400 Document verification including face match is required to complete this request
                     'unverified_email' => '\\ccxt\\AuthenticationError', // 400 User has not verified their email
                     'authentication_error' => '\\ccxt\\AuthenticationError', // 401 Invalid auth (generic)
+                    'unauthorized' => '\\ccxt\\AuthenticationError', // 401 Not authorized to perform this operation
                     'invalid_authentication_method' => '\\ccxt\\AuthenticationError', // 401 API access is blocked for deleted users.
                     'invalid_token' => '\\ccxt\\AuthenticationError', // 401 Invalid Oauth token
                     'revoked_token' => '\\ccxt\\AuthenticationError', // 401 Revoked Oauth token
@@ -353,6 +354,7 @@ class coinbase extends Exchange {
                     'invalid_scope' => '\\ccxt\\AuthenticationError', // 403 User hasn’t authenticated necessary scope
                     'not_found' => '\\ccxt\\ExchangeError', // 404 Resource not found
                     'rate_limit_exceeded' => '\\ccxt\\RateLimitExceeded', // 429 Rate limit exceeded
+                    'resource_exhausted' => '\\ccxt\\RateLimitExceeded', // 429 Resource has been exhausted
                     'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
                     'UNSUPPORTED_ORDER_CONFIGURATION' => '\\ccxt\\BadRequest',
                     'INSUFFICIENT_FUND' => '\\ccxt\\InsufficientFunds',
@@ -504,7 +506,8 @@ class coinbase extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/time
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-server-time
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
@@ -542,8 +545,8 @@ class coinbase extends Exchange {
         /**
          * fetch all the accounts associated with a profile
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -617,7 +620,7 @@ class coinbase extends Exchange {
         $accounts = $this->safe_list($response, 'data', array());
         $length = count($accounts);
         $lastIndex = $length - 1;
-        $last = $this->safe_dict($accounts, $lastIndex);
+        $last = $this->safe_dict($accounts, $lastIndex, array());
         if (($cursor !== null) && ($cursor !== '')) {
             $last['next_starting_after'] = $cursor;
             $accounts[$lastIndex] = $last;
@@ -671,7 +674,7 @@ class coinbase extends Exchange {
         $cursor = $this->safe_string($response, 'cursor');
         if (($accountsLength > 0) && ($cursor !== null) && ($cursor !== '')) {
             $lastIndex = $accountsLength - 1;
-            $last = $this->safe_dict($accounts, $lastIndex);
+            $last = $this->safe_dict($accounts, $lastIndex, array());
             $last['cursor'] = $cursor;
             $accounts[$lastIndex] = $last;
         }
@@ -682,7 +685,7 @@ class coinbase extends Exchange {
         /**
          * fetch all the $portfolios
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/list-$portfolios
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
@@ -777,7 +780,7 @@ class coinbase extends Exchange {
         /**
          * create a currency deposit $address
          *
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-$address
+         * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
          *
          * @param {string} $code unified currency $code of the currency for the deposit $address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -855,7 +858,7 @@ class coinbase extends Exchange {
          * @ignore
          * fetch $sells
          *
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$sells#list-$sells
+         * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
          *
          * @param {string} $symbol not used by coinbase fetchMySells ()
          * @param {int} [$since] timestamp in ms of the earliest sell, default is null
@@ -876,7 +879,7 @@ class coinbase extends Exchange {
          * @ignore
          * fetch $buys
          *
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$buys#list-$buys
+         * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
          *
          * @param {string} $symbol not used by coinbase fetchMyBuys ()
          * @param {int} [$since] timestamp in ms of the earliest buy, default is null
@@ -904,7 +907,8 @@ class coinbase extends Exchange {
         /**
          * Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
          *
-         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
+         * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/withdraw-fiat
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -926,7 +930,8 @@ class coinbase extends Exchange {
         /**
          * Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
          *
-         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
+         * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -948,7 +953,7 @@ class coinbase extends Exchange {
         /**
          * fetch history of deposits and withdrawals
          *
-         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
          *
          * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
@@ -1161,13 +1166,14 @@ class coinbase extends Exchange {
         $toObject = $this->safe_dict($transaction, 'to');
         $addressTo = $this->safe_string($toObject, 'address');
         $networkId = $this->safe_string($network, 'network_name');
+        $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $this->safe_string($network, 'hash', $id),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $addressTo,
             'addressTo' => $addressTo,
             'addressFrom' => null,
@@ -1176,7 +1182,7 @@ class coinbase extends Exchange {
             'tagFrom' => null,
             'type' => $type,
             'amount' => $this->parse_number($amountStringAbs),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $code,
             'status' => $status,
             'updated' => $this->parse8601($this->safe_string($transaction, 'updated_at')),
             'fee' => array(
@@ -1321,9 +1327,10 @@ class coinbase extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
          *
          * retrieves data on all markets for coinbase
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1907,12 +1914,12 @@ class coinbase extends Exchange {
         return $this->safe_dict($this->options, 'fetchCurrencies', array());
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          *
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$currencies#get-fiat-$currencies
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-$rates#get-exchange-$rates
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-$rates
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
@@ -2021,8 +2028,9 @@ class coinbase extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2144,10 +2152,9 @@ class coinbase extends Exchange {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/prices
          *
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2421,9 +2428,9 @@ class coinbase extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
@@ -2527,7 +2534,7 @@ class coinbase extends Exchange {
         /**
          * Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
          *
-         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+         * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
          *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
@@ -2951,7 +2958,7 @@ class coinbase extends Exchange {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -2971,7 +2978,7 @@ class coinbase extends Exchange {
         /**
          * create a trade order
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -3390,7 +3397,7 @@ class coinbase extends Exchange {
         /**
          * cancels an open order
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-$orders
          *
          * @param {string} $id order $id
          * @param {string} $symbol not used by coinbase cancelOrder()
@@ -3406,7 +3413,7 @@ class coinbase extends Exchange {
         /**
          * cancel multiple $orders
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-$orders
          *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol not used by coinbase cancelOrders()
@@ -3447,7 +3454,7 @@ class coinbase extends Exchange {
         /**
          * edit a trade order
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order
          *
          * @param {string} $id cancel order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -3494,7 +3501,7 @@ class coinbase extends Exchange {
         /**
          * fetches information on an $order made by the user
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/get-$order
          *
          * @param {string} $id the $order $id
          * @param {string} $symbol unified $market $symbol that the $order was made in
@@ -3557,7 +3564,7 @@ class coinbase extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-$orders
          *
          * @param {string} $symbol unified $market $symbol that the $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders
@@ -3636,7 +3643,7 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
-        $first = $this->safe_dict($orders, 0);
+        $first = $this->safe_dict($orders, 0, array());
         $cursor = $this->safe_string($response, 'cursor');
         if (($cursor !== null) && ($cursor !== '')) {
             $first['cursor'] = $cursor;
@@ -3683,7 +3690,7 @@ class coinbase extends Exchange {
         //                     }
         //                 ),
         //                 "side" => "BUY",
-        //                 "client_order_id" => "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "client_order_id" => "18eb9947-db49-4874-8e7b-39b8fe5f4314",
         //                 "status" => "FILLED",
         //                 "time_in_force" => "IMMEDIATE_OR_CANCEL",
         //                 "created_time" => "2023-01-18T01:37:37.975552Z",
@@ -3713,7 +3720,7 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
-        $first = $this->safe_dict($orders, 0);
+        $first = $this->safe_dict($orders, 0, array());
         $cursor = $this->safe_string($response, 'cursor');
         if (($cursor !== null) && ($cursor !== '')) {
             $first['cursor'] = $cursor;
@@ -3726,7 +3733,7 @@ class coinbase extends Exchange {
         /**
          * fetches information on all currently open orders
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
          *
          * @param {string} $symbol unified market $symbol of the orders
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -3749,7 +3756,7 @@ class coinbase extends Exchange {
         /**
          * fetches information on multiple closed orders made by the user
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
          *
          * @param {string} $symbol unified market $symbol of the orders
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -3772,7 +3779,7 @@ class coinbase extends Exchange {
         /**
          * fetches information on multiple canceled orders made by the user
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
          *
          * @param {string} $symbol unified market $symbol of the orders
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -3787,7 +3794,8 @@ class coinbase extends Exchange {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-$candles
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-$candles
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -3883,7 +3891,8 @@ class coinbase extends Exchange {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-$market-$trades
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-$market-$trades
          *
          * @param {string} $symbol unified $market $symbol of the $trades
          * @param {int} [$since] not used by coinbase fetchTrades
@@ -3942,7 +3951,7 @@ class coinbase extends Exchange {
         /**
          * fetch all $trades made by the user
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-fills
          *
          * @param {string} $symbol unified $market $symbol of the $trades
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -4002,7 +4011,7 @@ class coinbase extends Exchange {
         //     }
         //
         $trades = $this->safe_list($response, 'fills', array());
-        $first = $this->safe_dict($trades, 0);
+        $first = $this->safe_dict($trades, 0, array());
         $cursor = $this->safe_string($response, 'cursor');
         if (($cursor !== null) && ($cursor !== '')) {
             $first['cursor'] = $cursor;
@@ -4015,7 +4024,8 @@ class coinbase extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-book
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -4069,7 +4079,7 @@ class coinbase extends Exchange {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-best-bid-ask
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4211,7 +4221,7 @@ class coinbase extends Exchange {
         /**
          * fetch the deposit address for a $currency associated with this account
          *
-         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+         * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4365,7 +4375,7 @@ class coinbase extends Exchange {
         /**
          * make a deposit
          *
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+         * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
          *
          * @param {string} $code unified currency $code
          * @param {float} $amount the $amount to deposit
@@ -4439,7 +4449,7 @@ class coinbase extends Exchange {
         /**
          * fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
          *
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+         * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
          *
          * @param {string} $id deposit $id
          * @param {string} [$code] unified currency $code
@@ -4509,7 +4519,7 @@ class coinbase extends Exchange {
         /**
          * fetch the deposit id for a fiat currency associated with this account
          *
-         * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/list-payment-methods
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=deposit-id-structure deposit id structures~
@@ -4543,7 +4553,7 @@ class coinbase extends Exchange {
         /**
          * fetch the deposit $id for a fiat currency associated with this account
          *
-         * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/get-payment-method
          *
          * @param {string} $id the deposit payment method $id
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4598,7 +4608,7 @@ class coinbase extends Exchange {
         /**
          * fetch a quote for converting from one currency to another
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/create-convert-quote
          *
          * @param {string} $fromCode the currency that you want to sell and convert from
          * @param {string} $toCode the currency that you want to buy and convert into
@@ -4624,7 +4634,7 @@ class coinbase extends Exchange {
         /**
          * convert from one currency to another
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/commit-convert-trade
          *
          * @param {string} $id the $id of the trade that you want to make
          * @param {string} $fromCode the currency that you want to sell and convert from
@@ -4648,7 +4658,7 @@ class coinbase extends Exchange {
         /**
          * fetch the $data for a conversion trade
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/get-convert-trade
          *
          * @param {string} $id the $id of the trade that you want to commit
          * @param {string} $code the unified currency $code that was converted from
@@ -4701,7 +4711,7 @@ class coinbase extends Exchange {
         /**
          * *futures only* closes open positions for a $market
          *
-         * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by coinbase
@@ -4730,8 +4740,8 @@ class coinbase extends Exchange {
         /**
          * fetch all open $positions
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-$positions
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-$positions
          *
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4768,8 +4778,8 @@ class coinbase extends Exchange {
         /**
          * fetch data on a single open contract trade $position
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-$position
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-$position
          *
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4945,7 +4955,7 @@ class coinbase extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          *
-         * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/fees/get-transaction-summary
          *
          * fetch the trading fees for multiple markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4986,17 +4996,17 @@ class coinbase extends Exchange {
         //
         $data = $this->safe_dict($response, 'fee_tier', array());
         $taker_fee = $this->safe_number($data, 'taker_fee_rate');
-        $marker_fee = $this->safe_number($data, 'maker_fee_rate');
+        $maker_fee = $this->safe_number($data, 'maker_fee_rate');
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        for ($i = 0; $i < count(($this->symbols)); $i++) {
+            $symbol = ($this->symbols)[$i];
             $market = $this->market($symbol);
             if (($isSpot && $market['spot']) || (!$isSpot && !$market['spot'])) {
                 $result[$symbol] = array(
                     'info' => $response,
                     'symbol' => $symbol,
-                    'maker' => $taker_fee,
-                    'taker' => $marker_fee,
+                    'maker' => $maker_fee,
+                    'taker' => $taker_fee,
                     'percentage' => true,
                 );
             }
@@ -5008,7 +5018,7 @@ class coinbase extends Exchange {
         /**
          * Fetch details for a specific portfolio by UUID
          *
-         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+         * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/get-portfolio-breakdown
          *
          * @param {string} $portfolioUuid The unique identifier of the portfolio to fetch
          * @param {Dict} [$params] Extra parameters specific to the exchange API endpoint
@@ -5117,7 +5127,7 @@ class coinbase extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
         $isV3 = $version === 'v3';
@@ -5155,9 +5165,9 @@ class coinbase extends Exchange {
                     }
                 }
                 // v3 => 'GET' doesn't need $payload in the $signature-> inside $url is enough
-                // https://docs.cloud.coinbase.com/advanced-trade/docs/auth#example-$request
+                // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 // v2 => 'GET' require $payload in the $signature
-                // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
+                // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
                 // using the size might be fragile, so we add an option to force v2 cloud $api key if needed
                 $isV2CloudAPiKey = strlen($this->secret) === 88 || $this->safe_bool($this->options, 'v2CloudAPiKey', false) || str_ends_with($this->secret, '=');
@@ -5293,7 +5303,7 @@ class coinbase extends Exchange {
         /**
          * fetch deposit addresses for multiple currencies (when available)
          *
-         * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+         * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
          *
          * @param {string[]} [$codes] list of unified currency $codes, default is null (all currencies)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

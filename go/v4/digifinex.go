@@ -316,7 +316,7 @@ func (this *DigifinexCore) Describe() any {
 				"OTC":    "3",
 			},
 			"networks": map[string]any{
-				"ARBITRUM":     "Arbitrum",
+				"ARBONE":       "Arbitrum",
 				"AVALANCEC":    "AVAX-CCHAIN",
 				"AVALANCEX":    "AVAX-XCHAIN",
 				"BEP20":        "BEP20",
@@ -333,20 +333,19 @@ func (this *DigifinexCore) Describe() any {
 				"ETHW":         "ETHW",
 				"IOTA":         "MIOTA",
 				"KLAYTN":       "KLAY",
-				"MATIC":        "Polygon",
 				"METIS":        "MetisDAO",
 				"MOONBEAM":     "GLMR",
 				"MOONRIVER":    "Moonriver",
 				"OPTIMISM":     "OPETH",
 				"POLYGON":      "Polygon",
+				"MATIC":        "Polygon",
 				"RIPPLE":       "XRP",
-				"SOLANA":       "SOL",
-				"STELLAR":      "Stella",
+				"SOL":          "SOL",
+				"XLM":          "Stella",
 				"TERRACLASSIC": "TerraClassic",
 				"TERRA":        "Terra",
 				"TON":          "Ton",
 				"TRC20":        "TRC20",
-				"TRON":         "TRC20",
 				"TRX":          "TRC20",
 				"VECHAIN":      "Vechain",
 			},
@@ -430,51 +429,51 @@ func (this *DigifinexCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//
 		var data any = this.SafeList(response, "data", []any{})
 		var groupedById any = this.GroupBy(data, "currency")
-		var keys any = ObjectKeys(groupedById)
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-			var id any = GetValue(keys, i)
-			var networkEntries any = GetValue(groupedById, id)
-			var code any = this.SafeCurrencyCode(id)
-			var networks any = map[string]any{}
-			for j := 0; IsLessThan(j, GetArrayLength(networkEntries)); j++ {
-				var networkEntry any = GetValue(networkEntries, j)
-				var networkId any = this.SafeString2(networkEntry, "chain", "currency")
-				var networkCode any = this.NetworkIdToCode(networkId)
-				AddElementToObject(networks, networkCode, map[string]any{
-					"id":        networkId,
-					"network":   networkCode,
-					"active":    nil,
-					"deposit":   IsEqual(this.SafeInteger(networkEntry, "deposit_status"), 1),
-					"withdraw":  IsEqual(this.SafeInteger(networkEntry, "withdraw_status"), 1),
-					"fee":       this.SafeNumber(networkEntry, "min_withdraw_fee"),
-					"precision": nil,
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(networkEntry, "min_withdraw_amount"),
-							"max": nil,
-						},
-						"deposit": map[string]any{
-							"min": this.SafeNumber(networkEntry, "min_deposit_amount"),
-							"max": nil,
-						},
-					},
-					"info": networkEntry,
-				})
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":       id,
-				"code":     code,
-				"info":     networkEntries,
-				"networks": networks,
-			}))
-		}
+		var values any = ObjectValues(groupedById)
 
-		ch <- result
+		ch <- this.ParseCurrencies(values)
 		return nil
 
 	}()
 	return ch
+}
+func (this *DigifinexCore) ParseCurrency(rawCurrency any) any {
+	var networkEntries any = rawCurrency
+	var firstEntry any = this.SafeDict(networkEntries, 0, map[string]any{}) // it must have at least one entry
+	var id any = this.SafeString(firstEntry, "currency")
+	var code any = this.SafeCurrencyCode(id)
+	var networks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(networkEntries)); j++ {
+		var networkEntry any = GetValue(networkEntries, j)
+		var networkId any = this.SafeString2(networkEntry, "chain", "currency")
+		var networkCode any = this.NetworkIdToCode(networkId, code)
+		AddElementToObject(networks, networkCode, map[string]any{
+			"id":        networkId,
+			"network":   networkCode,
+			"active":    nil,
+			"deposit":   IsEqual(this.SafeInteger(networkEntry, "deposit_status"), 1),
+			"withdraw":  IsEqual(this.SafeInteger(networkEntry, "withdraw_status"), 1),
+			"fee":       this.SafeNumber(networkEntry, "min_withdraw_fee"),
+			"precision": nil,
+			"limits": map[string]any{
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(networkEntry, "min_withdraw_amount"),
+					"max": nil,
+				},
+				"deposit": map[string]any{
+					"min": this.SafeNumber(networkEntry, "min_deposit_amount"),
+					"max": nil,
+				},
+			},
+			"info": networkEntry,
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":       id,
+		"code":     code,
+		"info":     networkEntries,
+		"networks": networks,
+	})
 }
 
 /**
@@ -1604,7 +1603,7 @@ func (this *DigifinexCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(this.SafeBool(market, "swap")) {
 		return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
 	} else {
 		return []any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 5), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 1)}
@@ -2111,7 +2110,7 @@ func (this *DigifinexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 			}
-			AddElementToObject(request, "instrument_id", GetValue(market, "id"))
+			AddElementToObject(request, "instrument_id", this.SafeString(market, "id"))
 		} else {
 			AddElementToObject(request, "market", marketType)
 		}
@@ -2179,8 +2178,8 @@ func (this *DigifinexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 	return ch
 }
 func (this *DigifinexCore) ParseCancelOrders(response any) any {
-	var success any = this.SafeList(response, "success")
-	var error any = this.SafeList(response, "error")
+	var success any = this.SafeList(response, "success", []any{})
+	var error any = this.SafeList(response, "error", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(success)); i++ {
 		var order any = GetValue(success, i)
@@ -2844,7 +2843,7 @@ func (this *DigifinexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		var marketIdRequest any = Ternary(IsTrue((IsEqual(marketType, "swap"))), "instrument_id", "symbol")
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, marketIdRequest, GetValue(market, "id"))
+			AddElementToObject(request, marketIdRequest, this.SafeString(market, "id"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -4869,7 +4868,7 @@ func (this *DigifinexCore) ParseDepositWithdrawFees(response any, optionalArgs .
 				"percentage": nil,
 			}
 			if IsTrue(!IsEqual(networkId, nil)) {
-				var networkCode any = this.NetworkIdToCode(networkId)
+				var networkCode any = this.NetworkIdToCode(networkId, code)
 				AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
 					"withdraw": withdrawResult,
 					"deposit":  depositResult,
@@ -5012,7 +5011,7 @@ func (this *DigifinexCore) ParseMarginModification(data any, optionalArgs ...any
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      nil,
-		"code":       GetValue(market, "settle"),
+		"code":       this.SafeString(market, "settle"),
 		"status":     nil,
 		"timestamp":  nil,
 		"datetime":   nil,

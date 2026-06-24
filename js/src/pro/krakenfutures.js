@@ -5,12 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class krakenfutures extends krakenfuturesRest {
     describe() {
@@ -52,8 +51,8 @@ export default class krakenfutures extends krakenfuturesRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'connectionLimit': 100,
-                'requestLimit': 100,
+                'connectionLimit': 100, // https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-subscriptions-limits
+                'requestLimit': 100, // per second
                 'fetchBalance': {
                     'type': undefined,
                 },
@@ -630,7 +629,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'side': this.safeString(trade, 'side'),
             'takerOrMaker': this.safeString(trade, 'matchRole'),
             'price': this.safeString2(trade, 'price', 'limit_price'),
-            'amount': this.safeString(trade, 'tradeAmount'),
+            'amount': this.safeString(trade, 'tradeAmount'), // ? tradeQty?
             'cost': undefined,
             'fee': {
                 'rate': undefined,
@@ -759,12 +758,12 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['fee'] = {
                         'rate': undefined,
                         'cost': '0',
-                        'currency': this.numberToString(trade['fee']['currency']),
+                        'currency': this.numberToString(this.safeString(trade['fee'], 'currency')),
                     };
                 }
-                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
                     const stringOrderCost = this.numberToString(previousOrder['fee']['cost']);
-                    const stringTradeCost = this.numberToString(trade['fee']['cost']);
+                    const stringTradeCost = this.numberToString(this.safeNumber(trade['fee'], 'cost'));
                     previousOrder['fee']['cost'] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count

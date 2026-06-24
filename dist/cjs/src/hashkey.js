@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var hashkey$1 = require('./abstract/hashkey.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class hashkey extends hashkey$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'hashkey',
             'name': 'HashKey Global',
-            'countries': ['BM'],
+            'countries': ['BM'], // Bermuda
             'rateLimit': 100,
             'version': 'v1',
             'certified': true,
@@ -139,8 +139,8 @@ class hashkey extends hashkey$1["default"] {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
-                'fetchTradingFees': true,
+                'fetchTradingFee': true, // emulated for spot markets
+                'fetchTradingFees': true, // for spot markets only
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchUnderlyingAssets': false,
@@ -197,7 +197,7 @@ class hashkey extends hashkey$1["default"] {
                         'quote/v1/klines': 1,
                         'quote/v1/ticker/24hr': 1,
                         'quote/v1/ticker/price': 1,
-                        'quote/v1/ticker/bookTicker': 1,
+                        'quote/v1/ticker/bookTicker': 1, // not unified
                         'quote/v1/depth/merged': 1,
                         'quote/v1/markPrice': 1,
                         'quote/v1/index': 1,
@@ -398,8 +398,8 @@ class hashkey extends hashkey$1["default"] {
                         'trailing': false,
                         'leverage': false,
                         'marketBuyByCost': true,
-                        'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true,
+                        'marketBuyRequiresPrice': true, // todo fix
+                        'selfTradePrevention': true, // todo implement
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -426,7 +426,7 @@ class hashkey extends hashkey$1["default"] {
                         'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
@@ -459,169 +459,169 @@ class hashkey extends hashkey$1["default"] {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '0001': errors.BadRequest,
-                    '0002': errors.AuthenticationError,
-                    '0003': errors.RateLimitExceeded,
-                    '0102': errors.AuthenticationError,
-                    '0103': errors.AuthenticationError,
-                    '0104': errors.PermissionDenied,
-                    '0201': errors.ExchangeError,
-                    '0202': errors.PermissionDenied,
-                    '0206': errors.BadRequest,
-                    '0207': errors.BadRequest,
-                    '0209': errors.BadRequest,
-                    '0210': errors.BadRequest,
-                    '0211': errors.OrderNotFound,
-                    '0401': errors.InsufficientFunds,
-                    '0402': errors.BadRequest,
-                    '-1000': errors.ExchangeError,
-                    '-1001': errors.ExchangeError,
-                    '-100010': errors.BadSymbol,
-                    '-100012': errors.BadSymbol,
-                    '-1002': errors.AuthenticationError,
-                    '-1004': errors.BadRequest,
-                    '-1005': errors.PermissionDenied,
-                    '-1006': errors.ExchangeError,
-                    '-1007': errors.RequestTimeout,
-                    '-1014': errors.InvalidOrder,
-                    '-1015': errors.InvalidOrder,
-                    '-1020': errors.OperationRejected,
-                    '-1021': errors.InvalidNonce,
-                    '-1024': errors.BadRequest,
-                    '-1101': errors.ExchangeNotAvailable,
-                    '-1115': errors.InvalidOrder,
-                    '-1117': errors.InvalidOrder,
-                    '-1123': errors.InvalidOrder,
-                    '-1124': errors.InvalidOrder,
-                    '-1126': errors.InvalidOrder,
-                    '-1129': errors.BadRequest,
-                    '-1130': errors.BadRequest,
-                    '-1132': errors.BadRequest,
-                    '-1133': errors.BadRequest,
-                    '-1135': errors.BadRequest,
-                    '-1136': errors.BadRequest,
-                    '-1138': errors.InvalidOrder,
-                    '-1137': errors.InvalidOrder,
-                    '-1139': errors.OrderImmediatelyFillable,
-                    '-1140': errors.InvalidOrder,
-                    '-1141': errors.DuplicateOrderId,
-                    '-1142': errors.OrderNotFillable,
-                    '-1143': errors.OrderNotFound,
-                    '-1144': errors.OperationRejected,
-                    '-1145': errors.NotSupported,
-                    '-1146': errors.RequestTimeout,
-                    '-1147': errors.RequestTimeout,
-                    '-1148': errors.InvalidOrder,
-                    '-1149': errors.OperationRejected,
-                    '-1150': errors.OperationFailed,
-                    '-1151': errors.OperationRejected,
-                    '-1152': errors.AccountNotEnabled,
-                    '-1153': errors.InvalidOrder,
-                    '-1154': errors.InvalidOrder,
-                    '-1155': errors.OperationRejected,
-                    '-1156': errors.OperationFailed,
-                    '-1157': errors.OperationFailed,
-                    '-1158': errors.OperationFailed,
-                    '-1159': errors.AccountNotEnabled,
-                    '-1160': errors.AccountNotEnabled,
-                    '-1161': errors.OperationFailed,
-                    '-1162': errors.ContractUnavailable,
-                    '-1163': errors.InvalidAddress,
-                    '-1164': errors.OperationFailed,
-                    '-1165': errors.ArgumentsRequired,
-                    '-1166': errors.OperationRejected,
-                    '-1167': errors.BadRequest,
-                    '-1168': errors.BadRequest,
-                    '-1169': errors.PermissionDenied,
-                    '-1170': errors.PermissionDenied,
-                    '-1171': errors.PermissionDenied,
-                    '-1172': errors.BadRequest,
-                    '-1173': errors.BadRequest,
-                    '-1174': errors.PermissionDenied,
-                    '-1175': errors.BadRequest,
-                    '-1176': errors.BadRequest,
-                    '-1177': errors.InvalidOrder,
-                    '-1178': errors.AccountNotEnabled,
-                    '-1179': errors.AccountSuspended,
-                    '-1181': errors.ExchangeError,
-                    '-1193': errors.OperationRejected,
-                    '-1194': errors.OperationRejected,
-                    '-1195': errors.BadRequest,
-                    '-1196': errors.BadRequest,
-                    '-1200': errors.BadRequest,
-                    '-1201': errors.BadRequest,
-                    '-1202': errors.BadRequest,
-                    '-1203': errors.BadRequest,
-                    '-1204': errors.BadRequest,
-                    '-1205': errors.AccountNotEnabled,
-                    '-1206': errors.BadRequest,
-                    '-1207': errors.BadRequest,
-                    '-1208': errors.BadRequest,
-                    '-1209': errors.BadRequest,
-                    '-2001': errors.ExchangeNotAvailable,
-                    '-2002': errors.OperationFailed,
-                    '-2003': errors.OperationFailed,
-                    '-2004': errors.OperationFailed,
-                    '-2005': errors.RequestTimeout,
-                    '-2010': errors.OperationRejected,
-                    '-2011': errors.OperationRejected,
-                    '-2016': errors.OperationRejected,
-                    '-2017': errors.OperationRejected,
-                    '-2018': errors.OperationRejected,
-                    '-2019': errors.PermissionDenied,
-                    '-2020': errors.PermissionDenied,
-                    '-2021': errors.PermissionDenied,
-                    '-2022': errors.OperationRejected,
-                    '-2023': errors.AuthenticationError,
-                    '-2024': errors.AccountNotEnabled,
-                    '-2025': errors.AccountNotEnabled,
-                    '-2026': errors.BadRequest,
-                    '-2027': errors.OperationRejected,
-                    '-2028': errors.OperationRejected,
-                    '-2029': errors.OperationRejected,
-                    '-2030': errors.InsufficientFunds,
-                    '-2031': errors.NotSupported,
-                    '-2032': errors.OperationRejected,
-                    '-2033': errors.OperationFailed,
-                    '-2034': errors.InsufficientFunds,
-                    '-2035': errors.OperationRejected,
-                    '-2036': errors.NotSupported,
-                    '-2037': errors.ExchangeError,
-                    '-2038': errors.InsufficientFunds,
-                    '-2039': errors.NotSupported,
-                    '-2040': errors.ExchangeNotAvailable,
-                    '-2041': errors.BadRequest,
-                    '-2042': errors.OperationRejected,
-                    '-2043': errors.OperationRejected,
-                    '-2044': errors.BadRequest,
-                    '-2045': errors.BadRequest,
-                    '-2046': errors.BadRequest,
-                    '-2048': errors.BadRequest,
-                    '-2049': errors.BadRequest,
-                    '-2050': errors.BadRequest,
-                    '-2051': errors.OperationRejected,
-                    '-2052': errors.OperationRejected,
-                    '-2053': errors.OperationRejected,
-                    '-2054': errors.BadRequest,
-                    '-2055': errors.BadRequest,
-                    '-2056': errors.BadRequest,
-                    '-2057': errors.BadRequest,
-                    '-3117': errors.PermissionDenied,
-                    '-3143': errors.PermissionDenied,
-                    '-3144': errors.PermissionDenied,
-                    '-3145': errors.DDoSProtection,
-                    '-4001': errors.BadRequest,
-                    '-4002': errors.BadRequest,
-                    '-4003': errors.InsufficientFunds,
-                    '-4004': errors.BadRequest,
-                    '-4005': errors.BadRequest,
-                    '-4006': errors.AccountNotEnabled,
-                    '-4007': errors.NotSupported,
-                    '-4008': errors.AccountNotEnabled,
-                    '-4009': errors.PermissionDenied,
-                    '-4010': errors.PermissionDenied,
-                    '-4011': errors.ExchangeError,
-                    '-4012': errors.ExchangeError,
+                    '0001': errors.BadRequest, // Required field '%s' missing or invalid.
+                    '0002': errors.AuthenticationError, // Incorrect signature
+                    '0003': errors.RateLimitExceeded, // Rate limit exceeded
+                    '0102': errors.AuthenticationError, // Invalid APIKey
+                    '0103': errors.AuthenticationError, // APIKey expired
+                    '0104': errors.PermissionDenied, // The accountId defined is not permissible
+                    '0201': errors.ExchangeError, // Instrument not found
+                    '0202': errors.PermissionDenied, // Invalid IP
+                    '0206': errors.BadRequest, // Unsupported order type
+                    '0207': errors.BadRequest, // Invalid price
+                    '0209': errors.BadRequest, // Invalid price precision
+                    '0210': errors.BadRequest, // Price outside of allowed range
+                    '0211': errors.OrderNotFound, // Order not found
+                    '0401': errors.InsufficientFunds, // Insufficient asset
+                    '0402': errors.BadRequest, // Invalid asset
+                    '-1000': errors.ExchangeError, // An unknown error occurred while processing the request
+                    '-1001': errors.ExchangeError, // Internal error
+                    '-100010': errors.BadSymbol, // Invalid Symbols!
+                    '-100012': errors.BadSymbol, // Parameter symbol [String] missing!
+                    '-1002': errors.AuthenticationError, // Unauthorized operation
+                    '-1004': errors.BadRequest, // Bad request
+                    '-1005': errors.PermissionDenied, // No permission
+                    '-1006': errors.ExchangeError, // Execution status unknown
+                    '-1007': errors.RequestTimeout, // Timeout waiting for response from server
+                    '-1014': errors.InvalidOrder, // Unsupported order combination
+                    '-1015': errors.InvalidOrder, // Too many new orders
+                    '-1020': errors.OperationRejected, // Unsupported operation
+                    '-1021': errors.InvalidNonce, // Timestamp for this request is outside of the recvWindow
+                    '-1024': errors.BadRequest, // Duplicate request
+                    '-1101': errors.ExchangeNotAvailable, // Feature has been offline
+                    '-1115': errors.InvalidOrder, // Invalid timeInForce
+                    '-1117': errors.InvalidOrder, // Invalid order side
+                    '-1123': errors.InvalidOrder, // Invalid client order id
+                    '-1124': errors.InvalidOrder, // Invalid price
+                    '-1126': errors.InvalidOrder, // Invalid quantity
+                    '-1129': errors.BadRequest, // Invalid parameters, quantity and amount are not allowed to be sent at the same time.
+                    '-1130': errors.BadRequest, // Illegal parameter '%s'
+                    '-1132': errors.BadRequest, // Order price greater than the maximum
+                    '-1133': errors.BadRequest, // Order price lower than the minimum
+                    '-1135': errors.BadRequest, // Order quantity greater than the maximum
+                    '-1136': errors.BadRequest, // Order quantity lower than the minimum
+                    '-1138': errors.InvalidOrder, // Order has been partially cancelled
+                    '-1137': errors.InvalidOrder, // Order quantity precision too large
+                    '-1139': errors.OrderImmediatelyFillable, // Order has been filled
+                    '-1140': errors.InvalidOrder, // Order amount lower than the minimum
+                    '-1141': errors.DuplicateOrderId, // Duplicate order
+                    '-1142': errors.OrderNotFillable, // Order has been cancelled
+                    '-1143': errors.OrderNotFound, // Order not found on order book
+                    '-1144': errors.OperationRejected, // Order has been locked
+                    '-1145': errors.NotSupported, // Cancellation on this order type not supported
+                    '-1146': errors.RequestTimeout, // Order creation timeout
+                    '-1147': errors.RequestTimeout, // Order cancellation timeout
+                    '-1148': errors.InvalidOrder, // Order amount precision too large
+                    '-1149': errors.OperationRejected, // Order creation failed
+                    '-1150': errors.OperationFailed, // Order cancellation failed
+                    '-1151': errors.OperationRejected, // The trading pair is not open yet
+                    '-1152': errors.AccountNotEnabled, // User does not exist
+                    '-1153': errors.InvalidOrder, // Invalid price type
+                    '-1154': errors.InvalidOrder, // Invalid position side
+                    '-1155': errors.OperationRejected, // The trading pair is not available for api trading
+                    '-1156': errors.OperationFailed, // Limit maker order creation failed
+                    '-1157': errors.OperationFailed, // Modify futures margin failed
+                    '-1158': errors.OperationFailed, // Reduce margin is forbidden
+                    '-1159': errors.AccountNotEnabled, // Finance account already exists
+                    '-1160': errors.AccountNotEnabled, // Account does not exist
+                    '-1161': errors.OperationFailed, // Balance transfer failed
+                    '-1162': errors.ContractUnavailable, // Unsupport contract address
+                    '-1163': errors.InvalidAddress, // Illegal withdrawal address
+                    '-1164': errors.OperationFailed, // Withdraw failed
+                    '-1165': errors.ArgumentsRequired, // Withdrawal amount cannot be null
+                    '-1166': errors.OperationRejected, // Withdrawal amount exceeds the daily limit
+                    '-1167': errors.BadRequest, // Withdrawal amount less than the minimum
+                    '-1168': errors.BadRequest, // Illegal withdrawal amount
+                    '-1169': errors.PermissionDenied, // Withdraw not allowed
+                    '-1170': errors.PermissionDenied, // Deposit not allowed
+                    '-1171': errors.PermissionDenied, // Withdrawal address not in whitelist
+                    '-1172': errors.BadRequest, // Invalid from account id
+                    '-1173': errors.BadRequest, // Invalid to account i
+                    '-1174': errors.PermissionDenied, // Transfer not allowed between the same account
+                    '-1175': errors.BadRequest, // Invalid fiat deposit status
+                    '-1176': errors.BadRequest, // Invalid fiat withdrawal status
+                    '-1177': errors.InvalidOrder, // Invalid fiat order type
+                    '-1178': errors.AccountNotEnabled, // Brokerage account does not exist
+                    '-1179': errors.AccountSuspended, // Address owner is not true
+                    '-1181': errors.ExchangeError, // System error
+                    '-1193': errors.OperationRejected, // Order creation count exceeds the limit
+                    '-1194': errors.OperationRejected, // Market order creation forbidden
+                    '-1195': errors.BadRequest, // Market order long position cannot exceed %s above the market price
+                    '-1196': errors.BadRequest, // Market order short position cannot be below %s of the market price
+                    '-1200': errors.BadRequest, // Order buy quantity too small
+                    '-1201': errors.BadRequest, // Order buy quantity too large
+                    '-1202': errors.BadRequest, // Order sell quantity too small
+                    '-1203': errors.BadRequest, // Order sell quantity too large
+                    '-1204': errors.BadRequest, // From account must be a main account
+                    '-1205': errors.AccountNotEnabled, // Account not authorized
+                    '-1206': errors.BadRequest, // Order amount greater than the maximum
+                    '-1207': errors.BadRequest, // The status of deposit is invalid
+                    '-1208': errors.BadRequest, // The orderType of fiat is invalid
+                    '-1209': errors.BadRequest, // The status of withdraw is invalid
+                    '-2001': errors.ExchangeNotAvailable, // Platform is yet to open trading
+                    '-2002': errors.OperationFailed, // The number of open orders exceeds the limit 300
+                    '-2003': errors.OperationFailed, // Position size cannot meet target leverage
+                    '-2004': errors.OperationFailed, // Adjust leverage fail
+                    '-2005': errors.RequestTimeout, // Adjust leverage timeout
+                    '-2010': errors.OperationRejected, // New order rejected
+                    '-2011': errors.OperationRejected, // Order cancellation rejected
+                    '-2016': errors.OperationRejected, // API key creation exceeds the limit
+                    '-2017': errors.OperationRejected, // Open orders exceeds the limit of the trading pair
+                    '-2018': errors.OperationRejected, // Trade user creation exceeds the limit
+                    '-2019': errors.PermissionDenied, // Trader and omnibus user not allowed to login app
+                    '-2020': errors.PermissionDenied, // Not allowed to trade this trading pair
+                    '-2021': errors.PermissionDenied, // Not allowed to trade this trading pair
+                    '-2022': errors.OperationRejected, // Order batch size exceeds the limit
+                    '-2023': errors.AuthenticationError, // Need to pass KYC verification
+                    '-2024': errors.AccountNotEnabled, // Fiat account does not exist
+                    '-2025': errors.AccountNotEnabled, // Custody account not exist
+                    '-2026': errors.BadRequest, // Invalid type
+                    '-2027': errors.OperationRejected, // Exceed maximum time range of 30 days
+                    '-2028': errors.OperationRejected, // The search is limited to data within the last one month
+                    '-2029': errors.OperationRejected, // The search is limited to data within the last three months
+                    '-2030': errors.InsufficientFunds, // Insufficient margin
+                    '-2031': errors.NotSupported, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                    '-2032': errors.OperationRejected, // After the transaction, your %s position will account for %s of the total position, which poses concentration risk. Do you want to continue with the transaction?
+                    '-2033': errors.OperationFailed, // Order creation failed. Please verify if the order parameters comply with the trading rules
+                    '-2034': errors.InsufficientFunds, // Trade account holding limit is zero
+                    '-2035': errors.OperationRejected, // The sub account has been frozen and cannot transfer
+                    '-2036': errors.NotSupported, // We do not support queries for records exceeding 30 days
+                    '-2037': errors.ExchangeError, // Position and order data error
+                    '-2038': errors.InsufficientFunds, // Insufficient margin
+                    '-2039': errors.NotSupported, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                    '-2040': errors.ExchangeNotAvailable, // There is a request being processed. Please try again later
+                    '-2041': errors.BadRequest, // Token does not exist
+                    '-2042': errors.OperationRejected, // You have passed the trade limit, please pay attention to the risks
+                    '-2043': errors.OperationRejected, // Maximum allowed leverage reached, please lower your leverage
+                    '-2044': errors.BadRequest, // This order price is unreasonable to exceed (or be lower than) the liquidation price
+                    '-2045': errors.BadRequest, // Price too low, please order again!
+                    '-2046': errors.BadRequest, // Price too high, please order again!
+                    '-2048': errors.BadRequest, // Exceed the maximum number of conditional orders of %s
+                    '-2049': errors.BadRequest, // Create stop order buy price too big
+                    '-2050': errors.BadRequest, // Create stop order sell price too small
+                    '-2051': errors.OperationRejected, // Create order rejected
+                    '-2052': errors.OperationRejected, // Create stop profit-loss plan order reject
+                    '-2053': errors.OperationRejected, // Position not enough
+                    '-2054': errors.BadRequest, // Invalid long stop profit price
+                    '-2055': errors.BadRequest, // Invalid long stop loss price
+                    '-2056': errors.BadRequest, // Invalid short stop profit price
+                    '-2057': errors.BadRequest, // Invalid short stop loss price
+                    '-3117': errors.PermissionDenied, // Invalid permission
+                    '-3143': errors.PermissionDenied, // According to KYC and risk assessment, your trading account has exceeded the limit.
+                    '-3144': errors.PermissionDenied, // Currently, your trading account has exceeded its limit and is temporarily unable to perform transfers
+                    '-3145': errors.DDoSProtection, // Please DO NOT submit request too frequently
+                    '-4001': errors.BadRequest, // Invalid asset
+                    '-4002': errors.BadRequest, // Withdrawal amount less than Minimum Withdrawal Amount
+                    '-4003': errors.InsufficientFunds, // Insufficient Balance
+                    '-4004': errors.BadRequest, // Invalid bank account number
+                    '-4005': errors.BadRequest, // Assets are not listed
+                    '-4006': errors.AccountNotEnabled, // KYC is not certified
+                    '-4007': errors.NotSupported, // Withdrawal channels are not supported
+                    '-4008': errors.AccountNotEnabled, // This currency does not support this customer type
+                    '-4009': errors.PermissionDenied, // No withdrawal permission
+                    '-4010': errors.PermissionDenied, // Withdrawals on the same day exceed the maximum limit for a single day
+                    '-4011': errors.ExchangeError, // System error
+                    '-4012': errors.ExchangeError, // Parameter error
                     '-4013': errors.OperationFailed, // Withdraw repeatly
                 },
                 'broad': {},
@@ -1170,65 +1170,63 @@ class hashkey extends hashkey$1["default"] {
         //         ]
         //     }
         //
-        const result = {};
-        for (let i = 0; i < coins.length; i++) {
-            const currecy = coins[i];
-            const currencyId = this.safeString(currecy, 'coinId');
-            const code = this.safeCurrencyCode(currencyId);
-            const networks = this.safeList(currecy, 'chainTypes');
-            const parsedNetworks = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                const networkId = this.safeString(network, 'chainType');
-                const networkCode = this.networkCodeToId(networkId);
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(network, 'minWithdrawQuantity'),
-                            'max': this.parseNumber(this.omitZero(this.safeString(network, 'maxWithdrawQuantity'))),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(network, 'minDepositQuantity'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeBool(network, 'allowDeposit'),
-                    'withdraw': this.safeBool(network, 'allowWithdraw'),
-                    'fee': this.safeNumber(network, 'withdrawFee'),
-                    'precision': undefined,
-                    'info': network,
-                };
-            }
-            const rawType = this.safeString(currecy, 'tokenType');
-            const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'code': code,
-                'precision': undefined,
-                'type': type,
-                'name': this.safeString(currecy, 'coinFullName'),
-                'active': undefined,
-                'deposit': this.safeBool(currecy, 'allowDeposit'),
-                'withdraw': this.safeBool(currecy, 'allowWithdraw'),
-                'fee': undefined,
+        return this.parseCurrencies(coins);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'coinId');
+        const code = this.safeCurrencyCode(currencyId);
+        const networks = this.safeList(rawCurrency, 'chainTypes');
+        const parsedNetworks = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = networks[j];
+            const networkId = this.safeString(network, 'chainType');
+            const networkCode = this.networkCodeToId(networkId, code);
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber(network, 'minWithdrawQuantity'),
+                        'max': this.parseNumber(this.omitZero(this.safeString(network, 'maxWithdrawQuantity'))),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber(network, 'minDepositQuantity'),
                         'max': undefined,
                     },
                 },
-                'networks': parsedNetworks,
-                'info': currecy,
-            });
+                'active': undefined,
+                'deposit': this.safeBool(network, 'allowDeposit'),
+                'withdraw': this.safeBool(network, 'allowWithdraw'),
+                'fee': this.safeNumber(network, 'withdrawFee'),
+                'precision': undefined,
+                'info': network,
+            };
         }
-        return result;
+        const rawType = this.safeString(rawCurrency, 'tokenType');
+        const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'precision': undefined,
+            'type': type,
+            'name': this.safeString(rawCurrency, 'coinFullName'),
+            'active': undefined,
+            'deposit': this.safeBool(rawCurrency, 'allowDeposit'),
+            'withdraw': this.safeBool(rawCurrency, 'allowWithdraw'),
+            'fee': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': parsedNetworks,
+            'info': rawCurrency,
+        });
     }
     /**
      * @method
@@ -1387,7 +1385,7 @@ class hashkey extends hashkey$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             if (accountId !== undefined) {
                 request['subAccountId'] = accountId;
                 response = await this.privateGetApiV1FuturesSubAccountUserTrades(this.extend(request, params));
@@ -2054,7 +2052,7 @@ class hashkey extends hashkey$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chainType'] = this.networkCodeToId(networkCode);
+            request['chainType'] = this.networkCodeToId(networkCode, currency['code']);
         }
         const response = await this.privatePostApiV1AccountWithdraw(this.extend(request, params));
         //
@@ -2364,8 +2362,8 @@ class hashkey extends hashkey$1["default"] {
     }
     parseLedgerEntryType(type) {
         const types = {
-            '1': 'trade',
-            '2': 'fee',
+            '1': 'trade', // transfer
+            '2': 'fee', // trade
             '51': 'transfer',
             '900': 'deposit',
             '904': 'withdraw',
@@ -3462,7 +3460,7 @@ class hashkey extends hashkey$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             let isTrigger = false;
             [isTrigger, params] = this.handleTriggerOptionAndParams(params, methodName, isTrigger);
             if (isTrigger) {
@@ -4019,7 +4017,7 @@ class hashkey extends hashkey$1["default"] {
         const leverageValue = this.safeNumber(leverage, 'leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -4301,13 +4299,13 @@ class hashkey extends hashkey$1["default"] {
             if ((method === 'POST') && ((path === 'api/v1/spot/batchOrders') || (path === 'api/v1/futures/batchOrders'))) {
                 headers['Content-Type'] = 'application/json';
                 body = this.json(this.safeList(params, 'orders'));
-                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha256.sha256);
+                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha2_js.sha256);
                 query = this.customUrlencode(this.extend(additionalParams, { 'signature': signature }));
                 url += '?' + query;
             }
             else {
                 const totalParams = this.extend(additionalParams, params);
-                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha256.sha256);
+                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha2_js.sha256);
                 totalParams['signature'] = signature;
                 query = this.customUrlencode(totalParams);
                 if (method === 'GET') {

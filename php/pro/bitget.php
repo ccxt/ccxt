@@ -284,7 +284,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function parse_ws_ticker($message, $market = null) {
+    public function parse_ws_ticker($message, ?array $market = null) {
         //
         // spot
         //
@@ -469,7 +469,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($message, $market = null) {
+    public function parse_ws_bid_ask($message, ?array $market = null) {
         $arg = $this->safe_value($message, 'arg', array());
         $data = $this->safe_value($message, 'data', array());
         $ticker = $this->safe_value($data, 0, array());
@@ -686,7 +686,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1701871620000",  // timestamp
@@ -982,7 +982,7 @@ class bitget extends \ccxt\async\bitget {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         // we store the string representations in the orderbook for checksum calculation
         // this simplifies the code for generating checksums do not need to do any complex number transformations
         $bidAsk[] = $delta;
@@ -1156,7 +1156,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         "ts" => "1701910980366",
@@ -1454,7 +1454,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve ($newPositions, $instType . ':positions');
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position($position, ?array $market = null) {
         //
         //     {
         //         "posId" => "926036334386778112",
@@ -1796,7 +1796,7 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         // spot
         //
@@ -2571,7 +2571,7 @@ class bitget extends \ccxt\async\bitget {
         $future->resolve (true);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //    array( $event => "error", $code => 30015, $msg => "Invalid sign" )
         //

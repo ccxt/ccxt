@@ -1183,66 +1183,65 @@ class hashkey extends Exchange {
             //         )
             //     }
             //
-            $result = array();
-            for ($i = 0; $i < count($coins); $i++) {
-                $currecy = $coins[$i];
-                $currencyId = $this->safe_string($currecy, 'coinId');
-                $code = $this->safe_currency_code($currencyId);
-                $networks = $this->safe_list($currecy, 'chainTypes');
-                $parsedNetworks = array();
-                for ($j = 0; $j < count($networks); $j++) {
-                    $network = $networks[$j];
-                    $networkId = $this->safe_string($network, 'chainType');
-                    $networkCode = $this->network_code_to_id($networkId);
-                    $parsedNetworks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($network, 'minWithdrawQuantity'),
-                                'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maxWithdrawQuantity'))),
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($network, 'minDepositQuantity'),
-                                'max' => null,
-                            ),
-                        ),
-                        'active' => null,
-                        'deposit' => $this->safe_bool($network, 'allowDeposit'),
-                        'withdraw' => $this->safe_bool($network, 'allowWithdraw'),
-                        'fee' => $this->safe_number($network, 'withdrawFee'),
-                        'precision' => null,
-                        'info' => $network,
-                    );
-                }
-                $rawType = $this->safe_string($currecy, 'tokenType');
-                $type = ($rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $currencyId,
-                    'code' => $code,
-                    'precision' => null,
-                    'type' => $type,
-                    'name' => $this->safe_string($currecy, 'coinFullName'),
-                    'active' => null,
-                    'deposit' => $this->safe_bool($currecy, 'allowDeposit'),
-                    'withdraw' => $this->safe_bool($currecy, 'allowWithdraw'),
-                    'fee' => null,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $parsedNetworks,
-                    'info' => $currecy,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($coins);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'coinId');
+        $code = $this->safe_currency_code($currencyId);
+        $networks = $this->safe_list($rawCurrency, 'chainTypes');
+        $parsedNetworks = array();
+        for ($j = 0; $j < count($networks); $j++) {
+            $network = $networks[$j];
+            $networkId = $this->safe_string($network, 'chainType');
+            $networkCode = $this->network_code_to_id($networkId, $code);
+            $parsedNetworks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($network, 'minWithdrawQuantity'),
+                        'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maxWithdrawQuantity'))),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($network, 'minDepositQuantity'),
+                        'max' => null,
+                    ),
+                ),
+                'active' => null,
+                'deposit' => $this->safe_bool($network, 'allowDeposit'),
+                'withdraw' => $this->safe_bool($network, 'allowWithdraw'),
+                'fee' => $this->safe_number($network, 'withdrawFee'),
+                'precision' => null,
+                'info' => $network,
+            );
+        }
+        $rawType = $this->safe_string($rawCurrency, 'tokenType');
+        $type = ($rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'code' => $code,
+            'precision' => null,
+            'type' => $type,
+            'name' => $this->safe_string($rawCurrency, 'coinFullName'),
+            'active' => null,
+            'deposit' => $this->safe_bool($rawCurrency, 'allowDeposit'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'allowWithdraw'),
+            'fee' => null,
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $parsedNetworks,
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -1408,7 +1407,7 @@ class hashkey extends Exchange {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for swap markets');
                 }
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
                 if ($accountId !== null) {
                     $request['subAccountId'] = $accountId;
                     $response = Async\await($this->privateGetApiV1FuturesSubAccountUserTrades ($this->extend($request, $params)));
@@ -2105,7 +2104,7 @@ class hashkey extends Exchange {
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             if ($networkCode !== null) {
-                $request['chainType'] = $this->network_code_to_id($networkCode);
+                $request['chainType'] = $this->network_code_to_id($networkCode, $currency['code']);
             }
             $response = Async\await($this->privatePostApiV1AccountWithdraw ($this->extend($request, $params)));
             //
@@ -3542,7 +3541,7 @@ class hashkey extends Exchange {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for swap markets');
                 }
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
                 $isTrigger = false;
                 list($isTrigger, $params) = $this->handle_trigger_option_and_params($params, $methodName, $isTrigger);
                 if ($isTrigger) {
@@ -4121,7 +4120,7 @@ class hashkey extends Exchange {
         $leverageValue = $this->safe_number($leverage, 'leverage');
         return array(
             'info' => $leverage,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $marginMode,
             'longLeverage' => $leverageValue,
             'shortLeverage' => $leverageValue,
@@ -4395,7 +4394,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         $query = null;
         if ($api === 'private') {

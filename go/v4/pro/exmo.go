@@ -670,7 +670,7 @@ func  (this *ExmoCore) HandleOrderBook(client any, message any)  {
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func  (this *ExmoCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta, 0, 1)
+    var bidAsk any = this.ParseOrderBookBidAsk(delta, 0, 1)
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func  (this *ExmoCore) HandleDeltas(bookside any, deltas any)  {

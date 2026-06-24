@@ -772,7 +772,7 @@ public partial class blockchaincom : ccxt.blockchaincom
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bookArray = this.parseBidAsk(delta, "px", "qty", "num");
+        object bookArray = this.parseOrderBookBidAsk(delta, "px", "qty", "num");
         (bookside as IOrderBookSide).storeArray(bookArray);
     }
 

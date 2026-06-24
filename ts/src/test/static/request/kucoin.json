@@ -449,6 +449,22 @@
         ],
         "createOrder": [
             {
+                "description": "uta order",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/place",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"tradeType\":\"SPOT\",\"clientOid\":\"210fd5f5-cccb-4772-9e2a-7f565832ac45\",\"symbol\":\"LTC-USDT\",\"side\":\"BUY\",\"orderType\":\"MARKET\",\"sizeUnit\":\"BASECCY\",\"size\":\"0.1\"}"
+            },
+            {
                 "description": "create unified stop loss order",
                 "method": "createOrder",
                 "url": "https://api.kucoin.com/api/ua/v1/unified/order/place",

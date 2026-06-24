@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bigone.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -23,13 +23,13 @@ export default class bigone extends Exchange {
             'name': 'BigONE',
             'countries': ['CN'],
             'version': 'v3',
-            'rateLimit': 20,
+            'rateLimit': 20, // 500 requests per 10 seconds
             'has': {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': undefined,
+                'future': undefined, // has but unimplemented
                 'option': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
@@ -107,7 +107,7 @@ export default class bigone extends Exchange {
                 '1w': 'week1',
                 '1M': 'month1',
             },
-            'hostname': 'big.one',
+            'hostname': 'big.one', // or 'bigone.com'
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1',
                 'api': {
@@ -216,7 +216,7 @@ export default class bigone extends Exchange {
                 },
                 'exchangeMillisecondsCorrection': -100,
                 'fetchCurrencies': {
-                    'webApiEnable': true,
+                    'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
@@ -329,9 +329,9 @@ export default class bigone extends Exchange {
                         'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': true,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'triggerDirection': true, // todo implement
+                        'stopLossPrice': false, // todo by trigger
+                        'takeProfitPrice': false, // todo by trigger
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -347,7 +347,7 @@ export default class bigone extends Exchange {
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
-                    'createOrders': undefined,
+                    'createOrders': undefined, // todo: implement
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 200,
@@ -429,28 +429,28 @@ export default class bigone extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '10001': BadRequest,
-                    '10005': ExchangeError,
+                    '10001': BadRequest, // syntax error
+                    '10005': ExchangeError, // internal error
                     "Amount's scale must greater than AssetPair's base scale": InvalidOrder,
                     "Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
-                    '10007': BadRequest,
-                    '10011': ExchangeError,
-                    '10013': BadSymbol,
-                    '10014': InsufficientFunds,
-                    '10403': PermissionDenied,
-                    '10429': RateLimitExceeded,
-                    '40004': AuthenticationError,
-                    '40103': AuthenticationError,
-                    '40104': AuthenticationError,
-                    '40301': PermissionDenied,
-                    '40302': ExchangeError,
-                    '40601': ExchangeError,
-                    '40602': ExchangeError,
-                    '40603': InsufficientFunds,
-                    '40604': InvalidOrder,
-                    '40605': InvalidOrder,
-                    '40120': InvalidOrder,
-                    '40121': InvalidOrder,
+                    '10007': BadRequest, // parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
+                    '10011': ExchangeError, // system error
+                    '10013': BadSymbol, // {"code":10013,"message":"Resource not found"}
+                    '10014': InsufficientFunds, // {"code":10014,"message":"Insufficient funds"}
+                    '10403': PermissionDenied, // permission denied
+                    '10429': RateLimitExceeded, // too many requests
+                    '40004': AuthenticationError, // {"code":40004,"message":"invalid jwt"}
+                    '40103': AuthenticationError, // invalid otp code
+                    '40104': AuthenticationError, // invalid asset pin code
+                    '40301': PermissionDenied, // {"code":40301,"message":"Permission denied withdrawal create"}
+                    '40302': ExchangeError, // already requested
+                    '40601': ExchangeError, // resource is locked
+                    '40602': ExchangeError, // resource is depleted
+                    '40603': InsufficientFunds, // insufficient resource
+                    '40604': InvalidOrder, // {"code":40604,"message":"Price exceed the maximum order price"}
+                    '40605': InvalidOrder, // {"code":40605,"message":"Price less than the minimum order price"}
+                    '40120': InvalidOrder, // Order is in trading
+                    '40121': InvalidOrder, // Order is already cancelled or filled
                     '60100': BadSymbol, // {"code":60100,"message":"Asset pair is suspended"}
                 },
                 'broad': {},
@@ -534,7 +534,7 @@ export default class bigone extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'gateway_name');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const deposit = this.safeBool(chain, 'is_deposit_enabled');
             const withdraw = this.safeBool(chain, 'is_withdrawal_enabled');
             const minDepositAmount = this.safeString(chain, 'min_deposit_amount');
@@ -854,11 +854,11 @@ export default class bigone extends Exchange {
             'ask': this.safeString(ask, 'price'),
             'askVolume': this.safeString(ask, 'quantity'),
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
+            'open': this.safeString(ticker, 'open'), // openValue is a broken number, we don't use it
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': this.safeString(ticker, 'daily_change'),
+            'change': this.safeString(ticker, 'daily_change'), // last24hPriceChange is incorrect value, eg see PUMPUSDT contract
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'volume', 'volume24h'),
@@ -1033,7 +1033,7 @@ export default class bigone extends Exchange {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        let response = undefined;
+        let response;
         if (market['contract']) {
             const request = {
                 'symbol': market['id'],
@@ -1208,8 +1208,8 @@ export default class bigone extends Exchange {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode;
-        let takerCurrencyCode;
+        let makerCurrencyCode = undefined;
+        let takerCurrencyCode = undefined;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
@@ -1434,7 +1434,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets();
         const type = this.safeString(params, 'type', '');
         params = this.omit(params, 'type');
-        let response = undefined;
+        let response;
         if (type === 'funding' || type === 'fund') {
             response = await this.privateGetFundAccounts(params);
         }
@@ -1590,8 +1590,8 @@ export default class bigone extends Exchange {
         [postOnly, params] = this.handlePostOnly((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
         const request = {
-            'asset_pair_name': market['id'],
-            'side': requestSide,
+            'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
+            'side': requestSide, // order side one of "ASK"/"BID", required
             'amount': this.amountToPrecision(symbol, amount), // order amount, string, required
             // "price": this.priceToPrecision (symbol, price), // order price, string, required
             // "operator": "GTE", // stop orders only, GTE greater than and equal, LTE less than and equal
@@ -2008,7 +2008,7 @@ export default class bigone extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.networkIdToCode(selectedNetworkId),
+            'network': this.networkIdToCode(selectedNetworkId, code),
             'address': address,
             'tag': tag,
         };
@@ -2016,9 +2016,9 @@ export default class bigone extends Exchange {
     parseTransactionStatus(status) {
         const statuses = {
             // what are other statuses here?
-            'WITHHOLD': 'ok',
+            'WITHHOLD': 'ok', // deposits
             'UNCONFIRMED': 'pending',
-            'CONFIRMED': 'ok',
+            'CONFIRMED': 'ok', // withdrawals
             'COMPLETED': 'ok',
             'PENDING': 'pending',
         };
@@ -2314,7 +2314,7 @@ export default class bigone extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['gateway_name'] = this.networkCodeToId(networkCode);
+            request['gateway_name'] = this.networkCodeToId(networkCode, currency['code']);
         }
         // requires write permission on the wallet
         const response = await this.privatePostWithdrawals(this.extend(request, params));

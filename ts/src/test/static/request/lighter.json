@@ -135,7 +135,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/assetDetails",
                 "input": []

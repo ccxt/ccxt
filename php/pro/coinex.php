@@ -186,7 +186,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve ($newTickers, 'tickers');
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //  spot
         //
@@ -374,7 +374,7 @@ class coinex extends \ccxt\async\coinex {
         }
     }
 
-    public function parse_ws_balance($balance, $accountType = null) {
+    public function parse_ws_balance($balance, ?string $accountType = null) {
         //
         // spot
         //
@@ -567,7 +567,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         // spot watchTrades
         //
@@ -611,7 +611,7 @@ class coinex extends \ccxt\async\coinex {
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
         $fee = array();
-        $feeCost = $this->omit_zero($this->safe_string($trade, 'fee'));
+        $feeCost = $this->omit_zero(($this->safe_string($trade, 'fee')));
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_ccy', $market['quote']);
             $fee = array(
@@ -847,7 +847,7 @@ class coinex extends \ccxt\async\coinex {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray ($bidAsk);
     }
 
@@ -1114,7 +1114,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         // spot
         //
@@ -1210,7 +1210,7 @@ class coinex extends \ccxt\async\coinex {
         $defaultType = $isSpot ? 'spot' : 'swap';
         $market = $this->safe_market($marketId, $market, null, $defaultType);
         $fee = null;
-        $feeCost = $this->omit_zero($this->safe_string_2($order, 'fee', 'quote_ccy_fee'));
+        $feeCost = $this->omit_zero(($this->safe_string_2($order, 'fee', 'quote_ccy_fee')));
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($order, 'fee_ccy', $market['quote']);
             $fee = array(
@@ -1319,7 +1319,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve ($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         //
         //     {
         //         "market" => "BTCUSDT",

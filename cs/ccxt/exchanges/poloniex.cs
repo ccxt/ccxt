@@ -1554,7 +1554,7 @@ public partial class poloniex : Exchange
         }
         if (isTrue(isTrue(isContract) && isTrue(!isEqual(symbol, null))))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         var requestparametersVariable = this.handleUntilOption(endKey, request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
@@ -2975,19 +2975,26 @@ public partial class poloniex : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
-        var request = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[0];
-        var extraParams = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[1];
-        var currency = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[2];
-        var networkEntry = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[3];
-        parameters = extraParams;
-        ((IDictionary<string,object>)request)["amount"] = this.currencyToPrecision(code, amount);
-        ((IDictionary<string,object>)request)["address"] = address;
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "coin", getValue(currency, "id") },
+            { "amount", this.currencyToPrecision(code, amount) },
+            { "address", address },
+        };
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(isEqual(networkCode, null)))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " withdraw requires a network parameter for "), code), ".")) ;
+        }
+        ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, code);
         if (isTrue(!isEqual(tag, null)))
         {
             ((IDictionary<string,object>)request)["paymentId"] = tag;
         }
-        object response = await this.privatePostWalletsWithdraw(this.extend(request, parameters));
+        object response = await this.privatePostV2WalletsWithdraw(this.extend(request, parameters));
         //
         //     {
         //         "response": "Withdrew 1.00000000 USDT.",
@@ -2995,11 +3002,7 @@ public partial class poloniex : Exchange
         //         "withdrawalNumber": 13449869
         //     }
         //
-        object withdrawResponse = new Dictionary<string, object>() {
-            { "response", response },
-            { "withdrawNetworkEntry", networkEntry },
-        };
-        return this.parseTransaction(withdrawResponse, currency);
+        return this.parseTransaction(response, currency);
     }
 
     public async virtual Task<object> fetchTransactionsHelper(object code = null, object since = null, object limit = null, object parameters = null)
@@ -3235,7 +3238,7 @@ public partial class poloniex : Exchange
                     {
                         object networkId = getValue(childChains, j);
                         networkId = ((string)networkId).Replace((string)code, (string)"");
-                        object networkCode = this.networkIdToCode(networkId);
+                        object networkCode = this.networkIdToCode(networkId, getValue(currency, "code"));
                         object networkInfo = this.safeValue(response, networkId);
                         object networkObject = new Dictionary<string, object>() {};
                         object withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
@@ -3273,7 +3276,7 @@ public partial class poloniex : Exchange
         };
         ((IDictionary<string,object>)depositWithdrawFee)["withdraw"] = withdrawResult;
         ((IDictionary<string,object>)depositWithdrawFee)["deposit"] = depositResult;
-        object networkCode = this.networkIdToCode(networkId);
+        object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
         ((IDictionary<string,object>)getValue(depositWithdrawFee, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
             { "withdraw", withdrawResult },
             { "deposit", depositResult },
@@ -3528,7 +3531,7 @@ public partial class poloniex : Exchange
         object longLeverage = null;
         object marketId = null;
         object marginMode = null;
-        object data = this.safeList(leverage, "data");
+        object data = this.safeList(leverage, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);

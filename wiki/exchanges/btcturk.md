@@ -34,7 +34,7 @@ retrieves data on all markets for btcturk
 
 
 ```javascript
-btcturk.fetchMarkets ([params])
+btcturk.fetchMarkets (params?)
 ```
 
 
@@ -54,7 +54,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-btcturk.fetchBalance ([params])
+btcturk.fetchBalance (params?)
 ```
 
 
@@ -76,7 +76,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-btcturk.fetchOrderBook (symbol[, limit, params])
+btcturk.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -97,7 +97,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-btcturk.fetchTickers (symbols[, params])
+btcturk.fetchTickers (symbols, params?)
 ```
 
 
@@ -118,7 +118,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-btcturk.fetchTicker (symbol[, params])
+btcturk.fetchTicker (symbol, params?)
 ```
 
 
@@ -141,7 +141,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-btcturk.fetchTrades (symbol[, since, limit, params])
+btcturk.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -166,7 +166,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-btcturk.fetchOHLCV (symbol, timeframe[, since, limit, params])
+btcturk.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -191,7 +191,7 @@ create a trade order
 
 
 ```javascript
-btcturk.createOrder (symbol, type, side, amount[, price, params])
+btcturk.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -213,7 +213,7 @@ cancels an open order
 
 
 ```javascript
-btcturk.cancelOrder (id, symbol[, params])
+btcturk.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -236,7 +236,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-btcturk.fetchOpenOrders (symbol[, since, limit, params])
+btcturk.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -259,7 +259,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-btcturk.fetchOrders (symbol[, since, limit, params])
+btcturk.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -282,6 +282,6 @@ fetch all trades made by the user
 
 
 ```javascript
-btcturk.fetchMyTrades (symbol[, since, limit, params])
+btcturk.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 

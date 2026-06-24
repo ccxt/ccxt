@@ -70,7 +70,7 @@ public partial class cryptomus : Exchange
                 { "fetchConvertTradeHistory", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
-                { "fetchCurrencies", false },
+                { "fetchCurrencies", true },
                 { "fetchDepositAddress", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", false },
@@ -402,48 +402,54 @@ public partial class cryptomus : Exchange
         //
         object coins = this.safeList(response, "result");
         object groupedById = this.groupBy(coins, "currency_code");
-        object keys = new List<object>(((IDictionary<string,object>)groupedById).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        object groupedArray = new List<object>(((IDictionary<string,object>)groupedById).Values);
+        return this.parseCurrencies(groupedArray);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        // currency here is array of networks
+        object id = null; // all entried have same id, as they were grouped by
+        object code = null;
+        object networks = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))
         {
-            object id = getValue(keys, i);
-            object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
-            object networkEntries = getValue(groupedById, id);
-            for (object j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
+            object networkEntry = getValue(rawCurrency, i);
+            // set ID on first loop
+            if (isTrue(isEqual(id, null)))
             {
-                object networkEntry = getValue(networkEntries, j);
-                object networkId = this.safeString(networkEntry, "network_code");
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEntry, "min_withdraw") },
-                            { "max", this.safeNumber(networkEntry, "max_withdraw") },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEntry, "min_deposit") },
-                            { "max", this.safeNumber(networkEntry, "max_deposit") },
-                        } },
-                    } },
-                    { "active", null },
-                    { "deposit", this.safeBool(networkEntry, "can_withdraw") },
-                    { "withdraw", this.safeBool(networkEntry, "can_deposit") },
-                    { "fee", null },
-                    { "precision", null },
-                    { "info", networkEntry },
-                };
+                id = this.safeString(networkEntry, "currency_code");
+                code = this.safeCurrencyCode(id);
             }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "networks", networks },
-                { "info", networkEntries },
-            });
+            object networkId = this.safeString(networkEntry, "network_code");
+            object networkCode = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(networkEntry, "min_withdraw") },
+                        { "max", this.safeNumber(networkEntry, "max_withdraw") },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(networkEntry, "min_deposit") },
+                        { "max", this.safeNumber(networkEntry, "max_deposit") },
+                    } },
+                } },
+                { "active", null },
+                { "deposit", this.safeBool(networkEntry, "can_deposit") },
+                { "withdraw", this.safeBool(networkEntry, "can_withdraw") },
+                { "fee", null },
+                { "precision", null },
+                { "info", networkEntry },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "networks", networks },
+            { "info", rawCurrency },
+        });
     }
 
     /**
@@ -619,7 +625,7 @@ public partial class cryptomus : Exchange
             { "id", this.safeString(trade, "trade_id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "side", this.safeString(trade, "type") },
             { "price", this.safeString(trade, "price") },
             { "amount", this.safeString(trade, "quote_volume") },
@@ -1062,7 +1068,7 @@ public partial class cryptomus : Exchange
             { "expired", "expired" },
             { "failed", "failed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     /**
@@ -1134,9 +1140,14 @@ public partial class cryptomus : Exchange
         object feeTiers = this.safeList(data, "tariff_steps", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         object tiers = this.parseFeeTiers(feeTiers);
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        if (isTrue(isEqual(symbols, null)))
         {
-            object symbol = getValue(this.symbols, i);
+            return result;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },

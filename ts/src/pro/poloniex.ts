@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -224,7 +224,7 @@ export default class poloniex extends poloniexRest {
             'type': type.toUpperCase (),
         };
         if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
-            let quoteAmount = undefined;
+            let quoteAmount: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
             [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber (params, 'cost');
@@ -876,12 +876,12 @@ export default class poloniex extends poloniexRest {
                         previousOrder['fee'] = {
                             'rate': undefined,
                             'cost': 0,
-                            'currency': trade['fee']['currency'],
+                            'currency': this.safeString (trade['fee'], 'currency'),
                         };
                     }
-                    if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                    if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
                         const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                        const stringTradeCost = this.numberToString (trade['fee']['cost']);
+                        const stringTradeCost = this.numberToString (this.safeNumber (trade['fee'], 'cost'));
                         previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                     }
                     const rawState = this.safeString (order, 'state');
@@ -939,7 +939,7 @@ export default class poloniex extends poloniexRest {
         const timestamp = this.safeString (order, 'ts');
         const filledAmount = this.safeString (order, 'filledAmount');
         const status = this.safeString (order, 'state');
-        let trades = undefined;
+        let trades: NullableList = undefined;
         if (!Precise.stringEq (filledAmount, '0')) {
             trades = [];
             const trade = this.parseWsOrderTrade (order);

@@ -520,40 +520,39 @@ public partial class latoken : Exchange
         //         },
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object currency = getValue(response, i);
-            object id = this.safeString(currency, "id");
-            object tag = this.safeString(currency, "tag");
-            object code = this.safeCurrencyCode(tag);
-            object currencyType = this.safeString(currency, "type");
-            object isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "name", this.safeString(currency, "name") },
-                { "type", ((bool) isTrue(isCrypto)) ? "crypto" : "other" },
-                { "active", isEqual(this.safeString(currency, "status"), "CURRENCY_STATUS_ACTIVE") },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", this.safeNumber(currency, "fee") },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "minTransferAmount") },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object id = this.safeString(currency, "id");
+        object tag = this.safeString(currency, "tag");
+        object code = this.safeCurrencyCode(tag);
+        object currencyType = this.safeString(currency, "type");
+        object isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", currency },
+            { "name", this.safeString(currency, "name") },
+            { "type", ((bool) isTrue(isCrypto)) ? "crypto" : "other" },
+            { "active", isEqual(this.safeString(currency, "status"), "CURRENCY_STATUS_ACTIVE") },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", this.safeNumber(currency, "fee") },
+            { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(currency, "minTransferAmount") },
+                    { "max", null },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-            });
-        }
-        return result;
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+        });
     }
 
     /**
@@ -1867,6 +1866,7 @@ public partial class latoken : Exchange
     {
         api ??= "public";
         method ??= "GET";
+        parameters ??= new Dictionary<string, object>();
         object request = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
         object requestString = request;
         object query = this.omit(parameters, this.extractParams(path));

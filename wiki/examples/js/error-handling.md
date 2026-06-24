@@ -1,8 +1,5 @@
-- [Error Handling](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -90,5 +87,5 @@ const run = async (id) => {
 
     process.exit ()
 
-}) () 
+}) ()
 ```

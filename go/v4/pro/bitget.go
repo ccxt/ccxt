@@ -1160,7 +1160,7 @@ func  (this *BitgetCore) HandleCheckSumError(client any, symbol any, messageHash
             return ch
         }
 func  (this *BitgetCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta, 0, 1)
+    var bidAsk any = this.ParseOrderBookBidAsk(delta, 0, 1)
     // we store the string representations in the orderbook for checksum calculation
     // this simplifies the code for generating checksums as we do not need to do any complex number transformations
     ccxt.AppendToArray(&bidAsk, delta)

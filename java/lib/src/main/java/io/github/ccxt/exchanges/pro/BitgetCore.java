@@ -1140,7 +1140,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta, 0, 1);
+        Object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         // we store the string representations in the orderbook for checksum calculation
         // this simplifies the code for generating checksums as we do not need to do any complex number transformations
         ((java.util.List<Object>)bidAsk).add(delta);

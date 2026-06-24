@@ -1376,6 +1376,9 @@ class binance extends Exchange {
                     'OPTION' => 'option',
                 ),
                 'networks' => array(
+                    'BTC' => 'BTC',
+                    'BTCSEGWIT' => 'SEGWITBTC',
+                    'BTCLIGHTNING' => 'LIGHTNING',
                     'ERC20' => 'ETH',
                     'ETH' => 'ETH',
                     'TRC20' => 'TRX',
@@ -1383,9 +1386,13 @@ class binance extends Exchange {
                     'BEP2' => 'BNB',
                     'BSC' => 'BSC',
                     'BEP20' => 'BSC',
+                    'CHZ2' => 'CHZ2', // Chiliz chain new
+                    'XRP' => 'XRP',
                     'EOS' => 'EOS',
+                    'DOGE' => 'DOGE',
                     'SPL' => 'SOL', // temporarily keep support for SPL (old name)
                     'SOL' => 'SOL', // we shouldn't rename SOL
+                    'SONIC' => 'SONIC',
                     // 'FIAT' => 'FIAT_MONEY', // not unified atm
                     // 'LEVERAGE_TOKEN' => 'ETF', // not unified atm
                     // 'STAKING' => 'STAKING', // not unified atm
@@ -1438,6 +1445,46 @@ class binance extends Exchange {
                     'SCRT' => 'SCRT',
                     // AUR - not supported
                     'ONT' => 'ONT', // ontology
+                    'ZEC' => 'ZEC',
+                    'XMR' => 'XMR',
+                    'BCH' => 'BCH',
+                    'LTC' => 'LTC',
+                    'TAO' => 'TAO',
+                    'WLD' => 'WLD',
+                    'ICP' => 'ICP',
+                    'FLR' => 'FLR',
+                    'COSMOS' => 'ATOM',
+                    'ATOM' => 'ATOM',
+                    'FIL' => 'FIL',
+                    'INJ' => 'INJ',
+                    'DASH' => 'DASH',
+                    'VET' => 'VET',
+                    'FET' => 'FET',
+                    'TIA' => 'TIA',
+                    'KAIA' => 'KAIA',
+                    'DCR' => 'DCR',
+                    'IOTA' => 'IOTA',
+                    'THETA' => 'THETA',
+                    'AR' => 'AR',
+                    'DYDX' => 'DYDX',
+                    'XEC' => 'XEC',
+                    'QTUM' => 'QTUM',
+                    'ENJ' => 'ENJ',
+                    'RVN' => 'RVN',
+                    'ZIL' => 'ZIL',
+                    'BERA' => 'BERA',
+                    '0G' => '0G',
+                    'MINA' => 'MINA',
+                    'AXL' => 'AXL',
+                    'ROSE' => 'ROSE',
+                    'CKB' => 'CKB',
+                    'DGB' => 'DGB',
+                    'MOVE' => 'MOVE',
+                    'XVG' => 'XVG',
+                    'SC' => 'SC',
+                    'LINEA' => 'LINEA',
+                    'WAVES' => 'WAVES',
+                    'MANTA' => 'MANTA',
                 ),
                 'networksById' => array(
                     'TRX' => 'TRC20',
@@ -1639,7 +1686,7 @@ class binance extends Exchange {
                         'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
-                        'limit' => 1500,
+                        'limit' => 500,
                     ),
                 ),
                 'swap' => array(
@@ -2911,7 +2958,7 @@ class binance extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -2953,203 +3000,203 @@ class binance extends Exchange {
             $responseMarginables = $results[1];
             $marginablesById = $this->index_by($responseMarginables, 'assetName');
         }
+        return $this->parse_currencies_custom($responseCurrencies, $marginablesById);
+    }
+
+    public function parse_currencies_custom($responseCurrencies, $marginablesById): array {
         $result = array();
         for ($i = 0; $i < count($responseCurrencies); $i++) {
-            //
-            //    {
-            //        "coin" => "LINK",
-            //        "depositAllEnable" => true,
-            //        "withdrawAllEnable" => true,
-            //        "name" => "ChainLink",
-            //        "free" => "0",
-            //        "locked" => "0",
-            //        "freeze" => "0",
-            //        "withdrawing" => "0",
-            //        "ipoing" => "0",
-            //        "ipoable" => "0",
-            //        "storage" => "0",
-            //        "isLegalMoney" => false,
-            //        "trading" => true,
-            //        "networkList" => [
-            //            array(
-            //                "network" => "BSC",
-            //                "coin" => "LINK",
-            //                "withdrawIntegerMultiple" => "0.00000001",
-            //                "isDefault" => false,
-            //                "depositEnable" => true,
-            //                "withdrawEnable" => true,
-            //                "depositDesc" => "",
-            //                "withdrawDesc" => "",
-            //                "specialTips" => "",
-            //                "specialWithdrawTips" => "The $network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain $network-> You will lose your assets if the chosen platform does not support retrievals.",
-            //                "name" => "BNB Smart Chain (BEP20)",
-            //                "resetAddressStatus" => false,
-            //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
-            //                "addressRule" => "",
-            //                "memoRegex" => "",
-            //                "withdrawFee" => "0.012",
-            //                "withdrawMin" => "0.024",
-            //                "withdrawMax" => "9999999999.99999999",
-            //                "minConfirm" => "15",
-            //                "unLockConfirm" => "0",
-            //                "sameAddress" => false,
-            //                "estimatedArrivalTime" => "5",
-            //                "busy" => false,
-            //                "country" => "AE,BINANCE_BAHRAIN_BSC"
-            //            ),
-            //            array(
-            //                "network" => "BNB",
-            //                "coin" => "LINK",
-            //                "withdrawIntegerMultiple" => "0.00000001",
-            //                "isDefault" => false,
-            //                "depositEnable" => true,
-            //                "withdrawEnable" => true,
-            //                "depositDesc" => "",
-            //                "withdrawDesc" => "",
-            //                "specialTips" => "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
-            //                "specialWithdrawTips" => "",
-            //                "name" => "BNB Beacon Chain (BEP2)",
-            //                "resetAddressStatus" => false,
-            //                "addressRegex" => "^(bnb1)[0-9a-z]{38}$",
-            //                "addressRule" => "",
-            //                "memoRegex" => "^[0-9A-Za-z\\-_]array(1,120)$",
-            //                "withdrawFee" => "0.003",
-            //                "withdrawMin" => "0.01",
-            //                "withdrawMax" => "10000000000",
-            //                "minConfirm" => "1",
-            //                "unLockConfirm" => "0",
-            //                "sameAddress" => true,
-            //                "estimatedArrivalTime" => "5",
-            //                "busy" => false,
-            //                "country" => "AE,BINANCE_BAHRAIN_BSC"
-            //            ),
-            //            {
-            //                "network" => "ETH",
-            //                "coin" => "LINK",
-            //                "withdrawIntegerMultiple" => "0.00000001",
-            //                "isDefault" => true,
-            //                "depositEnable" => true,
-            //                "withdrawEnable" => true,
-            //                "depositDesc" => "",
-            //                "withdrawDesc" => "",
-            //                "name" => "Ethereum (ERC20)",
-            //                "resetAddressStatus" => false,
-            //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
-            //                "addressRule" => "",
-            //                "memoRegex" => "",
-            //                "withdrawFee" => "0.55",
-            //                "withdrawMin" => "1.1",
-            //                "withdrawMax" => "10000000000",
-            //                "minConfirm" => "12",
-            //                "unLockConfirm" => "0",
-            //                "sameAddress" => false,
-            //                "estimatedArrivalTime" => "5",
-            //                "busy" => false,
-            //                "country" => "AE,BINANCE_BAHRAIN_BSC"
-            //            }
-            //        ]
-            //    }
-            //
-            //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under $network $entry
-            //
-            //                "specialTips" => "",
-            //                "specialWithdrawTips" => "",
-            //                "withdrawInternalMin" => "0",
-            //                "contractAddressUrl" => "https://etherscan.io/address/",
-            //                "contractAddress" => "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
-            //
-            $entry = $responseCurrencies[$i];
-            $id = $this->safe_string($entry, 'coin');
-            $name = $this->safe_string($entry, 'name');
-            $code = $this->safe_currency_code($id);
-            $isFiat = $this->safe_bool($entry, 'isLegalMoney');
-            $networkList = $this->safe_list($entry, 'networkList', array());
-            $fees = array();
-            $fee = null;
-            $networks = array();
-            $isETF = false;
-            for ($j = 0; $j < count($networkList); $j++) {
-                $networkItem = $networkList[$j];
-                $network = $this->safe_string($networkItem, 'network');
-                $networkCode = $this->network_id_to_code($network, $code);
-                $isETF = ($network === 'ETF'); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" $entry and are deterministic to set
-                // $name = $this->safe_string($networkItem, 'name');
-                $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
-                $depositEnable = $this->safe_bool($networkItem, 'depositEnable');
-                $withdrawEnable = $this->safe_bool($networkItem, 'withdrawEnable');
-                $fees[$network] = $withdrawFee;
-                $isDefault = $this->safe_bool($networkItem, 'isDefault');
-                if ($isDefault || ($fee === null)) {
-                    $fee = $withdrawFee;
-                }
-                // todo => default $networks in "setMarkets" overload
-                // if ($isDefault) {
-                //     $this->options['defaultNetworkCodesForCurrencies'][$code] = $networkCode;
-                // }
-                $withdrawPrecision = $this->omit_zero($this->safe_string_2($networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
-                // zero values happen only on fiat or leveraged(ETF) tokens => https://t.me/binance_api_english/393075
-                if ($withdrawPrecision === null && $isFiat) {
-                    $withdrawPrecision = $this->safe_string($this->options, 'defaultFiatWithdrawPrecision');
-                }
-                $networks[$networkCode] = array(
-                    'info' => $networkItem,
-                    'id' => $network,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => $depositEnable,
-                    'withdraw' => $withdrawEnable,
-                    'fee' => $withdrawFee,
-                    'precision' => $this->parse_number($withdrawPrecision),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($networkItem, 'withdrawMin'),
-                            'max' => $this->safe_number($networkItem, 'withdrawMax'),
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($networkItem, 'depositDust'),
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $type = null;
-            if ($isETF) {
-                $type = 'other';
-            } elseif ($isFiat) {
-                $type = 'fiat';
-            } else {
-                $type = 'crypto';
-            }
-            $trading = $this->safe_bool($entry, 'trading');
-            $marginEntry = $this->safe_dict($marginablesById, $id, array());
-            //
-            //     {
-            //         assetName => "BTC",
-            //         assetFullName => "Bitcoin",
-            //         isBorrowable => true,
-            //         isMortgageable => true,
-            //         userMinBorrow => "0",
-            //         userMinRepay => "0",
-            //     }
-            //
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'name' => $name,
-                'code' => $code,
-                'type' => $type,
-                'precision' => null,
-                'info' => $entry,
-                'active' => $trading,
-                'deposit' => null,
-                'withdraw' => null,
-                'networks' => $networks,
-                'fee' => null,
-                'fees' => $fees,
-                'limits' => null,
-                'margin' => $this->safe_bool($marginEntry, 'isBorrowable'),
-            ));
+            $parsed = $this->parse_currency($responseCurrencies[$i]);
+            $code = $parsed['code'];
+            $marginEntry = $this->safe_dict($marginablesById, $parsed['id']);
+            $parsed['margin'] = $this->safe_bool($marginEntry, 'isBorrowable');
+            $result[$code] = $parsed;
         }
         return $result;
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        //
+        //    {
+        //        "coin" => "LINK",
+        //        "depositAllEnable" => true,
+        //        "withdrawAllEnable" => true,
+        //        "name" => "ChainLink",
+        //        "free" => "0",
+        //        "locked" => "0",
+        //        "freeze" => "0",
+        //        "withdrawing" => "0",
+        //        "ipoing" => "0",
+        //        "ipoable" => "0",
+        //        "storage" => "0",
+        //        "isLegalMoney" => false,
+        //        "trading" => true,
+        //        "networkList" => [
+        //            array(
+        //                "network" => "BSC",
+        //                "coin" => "LINK",
+        //                "withdrawIntegerMultiple" => "0.00000001",
+        //                "isDefault" => false,
+        //                "depositEnable" => true,
+        //                "withdrawEnable" => true,
+        //                "depositDesc" => "",
+        //                "withdrawDesc" => "",
+        //                "specialTips" => "",
+        //                "specialWithdrawTips" => "The $network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain $network-> You will lose your assets if the chosen platform does not support retrievals.",
+        //                "name" => "BNB Smart Chain (BEP20)",
+        //                "resetAddressStatus" => false,
+        //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
+        //                "addressRule" => "",
+        //                "memoRegex" => "",
+        //                "withdrawFee" => "0.012",
+        //                "withdrawMin" => "0.024",
+        //                "withdrawMax" => "9999999999.99999999",
+        //                "minConfirm" => "15",
+        //                "unLockConfirm" => "0",
+        //                "sameAddress" => false,
+        //                "estimatedArrivalTime" => "5",
+        //                "busy" => false,
+        //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+        //            ),
+        //            array(
+        //                "network" => "BNB",
+        //                "coin" => "LINK",
+        //                "withdrawIntegerMultiple" => "0.00000001",
+        //                "isDefault" => false,
+        //                "depositEnable" => true,
+        //                "withdrawEnable" => true,
+        //                "depositDesc" => "",
+        //                "withdrawDesc" => "",
+        //                "specialTips" => "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
+        //                "specialWithdrawTips" => "",
+        //                "name" => "BNB Beacon Chain (BEP2)",
+        //                "resetAddressStatus" => false,
+        //                "addressRegex" => "^(bnb1)[0-9a-z]{38}$",
+        //                "addressRule" => "",
+        //                "memoRegex" => "^[0-9A-Za-z\\-_]array(1,120)$",
+        //                "withdrawFee" => "0.003",
+        //                "withdrawMin" => "0.01",
+        //                "withdrawMax" => "10000000000",
+        //                "minConfirm" => "1",
+        //                "unLockConfirm" => "0",
+        //                "sameAddress" => true,
+        //                "estimatedArrivalTime" => "5",
+        //                "busy" => false,
+        //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+        //            ),
+        //            {
+        //                "network" => "ETH",
+        //                "coin" => "LINK",
+        //                "withdrawIntegerMultiple" => "0.00000001",
+        //                "isDefault" => true,
+        //                "depositEnable" => true,
+        //                "withdrawEnable" => true,
+        //                "depositDesc" => "",
+        //                "withdrawDesc" => "",
+        //                "name" => "Ethereum (ERC20)",
+        //                "resetAddressStatus" => false,
+        //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
+        //                "addressRule" => "",
+        //                "memoRegex" => "",
+        //                "withdrawFee" => "0.55",
+        //                "withdrawMin" => "1.1",
+        //                "withdrawMax" => "10000000000",
+        //                "minConfirm" => "12",
+        //                "unLockConfirm" => "0",
+        //                "sameAddress" => false,
+        //                "estimatedArrivalTime" => "5",
+        //                "busy" => false,
+        //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+        //            }
+        //        ]
+        //    }
+        //
+        //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under $network $entry
+        //
+        //                "specialTips" => "",
+        //                "specialWithdrawTips" => "",
+        //                "withdrawInternalMin" => "0",
+        //                "contractAddressUrl" => "https://etherscan.io/address/",
+        //                "contractAddress" => "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
+        //
+        $entry = $rawCurrency;
+        $id = $this->safe_string($entry, 'coin');
+        $name = $this->safe_string($entry, 'name');
+        $code = $this->safe_currency_code($id);
+        $isFiat = $this->safe_bool($entry, 'isLegalMoney');
+        $networkList = $this->safe_list($entry, 'networkList', array());
+        $fees = array();
+        $fee = null;
+        $networks = array();
+        $isETF = false;
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkItem = $networkList[$j];
+            $network = $this->safe_string($networkItem, 'network');
+            $networkCode = $this->network_id_to_code($network, $code);
+            $isETF = ($network === 'ETF'); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" $entry and are deterministic to set
+            // $name = $this->safe_string($networkItem, 'name');
+            $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
+            $depositEnable = $this->safe_bool($networkItem, 'depositEnable');
+            $withdrawEnable = $this->safe_bool($networkItem, 'withdrawEnable');
+            $fees[$networkCode] = $withdrawFee;
+            $isDefault = $this->safe_bool($networkItem, 'isDefault');
+            if ($isDefault || ($fee === null)) {
+                $fee = $withdrawFee;
+            }
+            // todo => default $networks in "setMarkets" overload
+            // if ($isDefault) {
+            //     $this->options['defaultNetworkCodesForCurrencies'][$code] = $networkCode;
+            // }
+            $withdrawPrecision = $this->omit_zero($this->safe_string_2($networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
+            // zero values happen only on fiat or leveraged(ETF) tokens => https://t.me/binance_api_english/393075
+            if ($withdrawPrecision === null && $isFiat) {
+                $withdrawPrecision = $this->safe_string($this->options, 'defaultFiatWithdrawPrecision');
+            }
+            $networks[$networkCode] = array(
+                'info' => $networkItem,
+                'id' => $network,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $depositEnable,
+                'withdraw' => $withdrawEnable,
+                'fee' => $withdrawFee,
+                'precision' => $this->parse_number($withdrawPrecision),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkItem, 'withdrawMin'),
+                        'max' => $this->safe_number($networkItem, 'withdrawMax'),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkItem, 'depositDust'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        $type = null;
+        if ($isETF) {
+            $type = 'other';
+        } elseif ($isFiat) {
+            $type = 'fiat';
+        } else {
+            $type = 'crypto';
+        }
+        $trading = $this->safe_bool($entry, 'trading');
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $name,
+            'code' => $code,
+            'type' => $type,
+            'precision' => null,
+            'info' => $entry,
+            'active' => $trading,
+            'deposit' => null,
+            'withdraw' => null,
+            'networks' => $networks,
+            'fee' => null,
+            'fees' => $fees,
+            'limits' => null,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -3705,7 +3752,7 @@ class binance extends Exchange {
                 $result[$code] = $account;
             }
         } elseif ($isolated) {
-            $assets = $this->safe_list($response, 'assets');
+            $assets = $this->safe_list($response, 'assets', array());
             for ($i = 0; $i < count($assets); $i++) {
                 $asset = $assets[$i];
                 $marketId = $this->safe_string($asset, 'symbol');
@@ -4119,7 +4166,7 @@ class binance extends Exchange {
         //
         //     {
         //         "symbol" => "BTCUSDT",
-        //         "markPrice" => "11793.63104562", // mark price
+        //         "markPrice" => "11793.63104563", // mark price
         //         "indexPrice" => "11781.80495970", // index price
         //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts
         //         "lastFundingRate" => "0.00038246",  // This is the lastest estimated funding rate
@@ -8089,7 +8136,7 @@ class binance extends Exchange {
             $currentTimestamp = $this->milliseconds();
             $oneWeek = 7 * 24 * 60 * 60 * 1000;
             if (($currentTimestamp - $startTime) >= $oneWeek) {
-                if (($endTime === null) && $market['linear']) {
+                if (($endTime === null) && $this->safe_bool($market, 'linear')) {
                     $endTime = $this->sum($startTime, $oneWeek);
                     $endTime = min ($endTime, $currentTimestamp);
                 }
@@ -8100,7 +8147,7 @@ class binance extends Exchange {
             $params = $this->omit($params, array( 'endTime', 'until' ));
         }
         if ($limit !== null) {
-            if (($type === 'option') || $market['contract']) {
+            if (($type === 'option') || $this->safe_bool($market, 'contract')) {
                 $limit = min ($limit, 1000); // above 1000, returns error
             }
             $request['limit'] = $limit;
@@ -8126,13 +8173,13 @@ class binance extends Exchange {
                 } else {
                     $response = $this->privateGetMyTrades ($this->extend($request, $params));
                 }
-            } elseif ($market['linear']) {
+            } elseif ($this->safe_bool($market, 'linear')) {
                 if ($isPortfolioMargin) {
                     $response = $this->papiGetUmUserTrades ($this->extend($request, $params));
                 } else {
                     $response = $this->fapiPrivateGetUserTrades ($this->extend($request, $params));
                 }
-            } elseif ($market['inverse']) {
+            } elseif ($this->safe_bool($market, 'inverse')) {
                 if ($isPortfolioMargin) {
                     $response = $this->papiGetCmUserTrades ($this->extend($request, $params));
                 } else {
@@ -10098,7 +10145,7 @@ class binance extends Exchange {
     }
 
     public function parse_account_positions($account, $filterClosed = false) {
-        $positions = $this->safe_list($account, 'positions');
+        $positions = $this->safe_list($account, 'positions', array());
         $assets = $this->safe_list($account, 'assets', array());
         $balances = array();
         for ($i = 0; $i < count($assets); $i++) {
@@ -10349,7 +10396,7 @@ class binance extends Exchange {
             $rounderString = (string) $rounder;
             $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
             $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
-            if ($truncatedLiquidationPrice[0] === '-') {
+            if ($truncatedLiquidationPrice !== null && $truncatedLiquidationPrice[0] === '-') {
                 // user cannot be liquidated
                 // since he has more $collateral than the $size of the $position
                 $truncatedLiquidationPrice = null;
@@ -11633,8 +11680,8 @@ class binance extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $symbol = $market['symbol'];
-            $request['underlying'] = $market['baseId'] . $market['quoteId'];
+            $symbol = $this->safe_string($market, 'symbol');
+            $request['underlying'] = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -11680,8 +11727,8 @@ class binance extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
-            $symbol = $market['symbol'];
+            $request['symbol'] = $this->safe_string($market, 'id');
+            $symbol = $this->safe_string($market, 'symbol');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -12056,7 +12103,7 @@ class binance extends Exchange {
         return $scheme . '//' . $domain . '/';
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $urls = $this->urls;
         if (!(is_array($urls['api']) && array_key_exists($api, $urls['api']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
@@ -12106,7 +12153,7 @@ class binance extends Exchange {
             $query = null;
             // handle $batchOrders
             if (($path === 'batchOrders') && (($method === 'POST') || ($method === 'PUT'))) {
-                $batchOrders = $this->safe_list($params, 'batchOrders');
+                $batchOrders = $this->safe_list($params, 'batchOrders', array());
                 $checkedBatchOrders = $batchOrders;
                 if ($method === 'POST' && $api === 'fapiPrivate') {
                     // check $broker id if $batchOrders are called with fapiPrivatePostBatchOrders
@@ -12502,7 +12549,7 @@ class binance extends Exchange {
         return $this->safe_dict($borrowRates, $symbol);
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()): IsolatedBorrowRates {
+    public function fetch_isolated_borrow_rates($params = array ()): array {
         /**
          * fetch the borrow interest rates of all currencies
          *
@@ -13194,7 +13241,7 @@ class binance extends Exchange {
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($id, $market, null, 'contract'),
-            'baseVolume' => $market['inverse'] ? null : $amount,  // deprecated
+            'baseVolume' => $this->safe_bool($market, 'inverse') ? null : $amount,  // deprecated
             'quoteVolume' => $value,  // deprecated
             'openInterestAmount' => $amount,
             'openInterestValue' => $value,
@@ -13282,7 +13329,7 @@ class binance extends Exchange {
                 $response = $this->dapiPrivateGetForceOrders ($this->extend($request, $params));
             }
         } else {
-            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
+            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $this->safe_string($market, 'type') . ' markets');
         }
         //
         // margin
@@ -13575,7 +13622,7 @@ class binance extends Exchange {
         $tradingLimits = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
             if (($symbols === null) || ($this->in_array($symbol, $symbols))) {
                 $tradingLimits[$symbol] = $market['limits']['amount'];
             }
@@ -13772,12 +13819,12 @@ class binance extends Exchange {
         }
         return array(
             'info' => $marginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $reMarginMode,
         );
     }
 
-    public function fetch_option(string $symbol, $params = array ()): Option {
+    public function fetch_option(string $symbol, $params = array ()): array {
         /**
          * fetches option data that is commonly found in an option $chain
          *
@@ -13821,7 +13868,7 @@ class binance extends Exchange {
         return $this->parse_option($chain, null, $market);
     }
 
-    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC-241227-80000-C",
@@ -13931,7 +13978,7 @@ class binance extends Exchange {
         return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
     }
 
-    public function fetch_convert_currencies($params = array ()): ?array {
+    public function fetch_convert_currencies($params = array ()): array {
         /**
          * fetches all available currencies that can be converted
          *

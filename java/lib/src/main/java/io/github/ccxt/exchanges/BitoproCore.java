@@ -1776,7 +1776,7 @@ final Object finalJ = j;
             put( "txid", BitoproCore.this.safeString(transaction, "txid") );
             put( "type", null );
             put( "currency", code );
-            put( "network", BitoproCore.this.networkIdToCode(finalNetworkId) );
+            put( "network", BitoproCore.this.networkIdToCode(finalNetworkId, code) );
             put( "amount", BitoproCore.this.safeNumber(transaction, "total") );
             put( "status", BitoproCore.this.parseTransactionStatus(status) );
             put( "timestamp", timestamp );

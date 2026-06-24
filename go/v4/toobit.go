@@ -641,11 +641,11 @@ func (this *ToobitCore) ParseCurrency(rawCurrency any) any {
 	var id any = this.SafeString(rawCurrency, "coinId")
 	var code any = this.SafeCurrencyCode(id)
 	var networks any = map[string]any{}
-	var rawNetworks any = this.SafeList(rawCurrency, "chainTypes")
+	var rawNetworks any = this.SafeList(rawCurrency, "chainTypes", []any{})
 	for j := 0; IsLessThan(j, GetArrayLength(rawNetworks)); j++ {
 		var rawNetwork any = GetValue(rawNetworks, j)
 		var networkId any = this.SafeString(rawNetwork, "chainType")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"id":        networkId,
 			"network":   networkCode,
@@ -3009,7 +3009,7 @@ func (this *ToobitCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		if IsTrue(IsEqual(networkCode, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddress() : param[\"network\"] is required")))
 		}
-		AddElementToObject(request, "chainType", this.NetworkCodeToId(networkCode))
+		AddElementToObject(request, "chainType", this.NetworkCodeToId(networkCode, code))
 
 		response := (<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsOmitted)))
 		PanicOnError(response)

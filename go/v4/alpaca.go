@@ -345,7 +345,7 @@ func (this *AlpacaCore) FetchTime(optionalArgs ...any) <-chan any {
 		var jetlagStrStart any = Subtract(GetLength(timestamp), 6)
 		var jetlagStrEnd any = Subtract(GetLength(timestamp), 3)
 		var jetlag any = Slice(timestamp, jetlagStrStart, jetlagStrEnd)
-		var iso any = Subtract(this.Parse8601(localTime), Multiply(Multiply(this.ParseToNumeric(jetlag), 3600), 1000))
+		var iso any = Subtract(this.ParseToInt(this.Parse8601(localTime)), Multiply(Multiply(this.ParseToNumeric(jetlag), 3600), 1000))
 
 		ch <- iso
 		return nil

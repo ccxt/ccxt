@@ -339,6 +339,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
         //    }
         //
         Object channel = this.safeString2(message, "table", "group");
+        if (Helpers.isTrue(Helpers.isEqual(channel, null)))
+        {
+            return;
+        }
         Object data = this.safeValue(message, "data");
         if (Helpers.isTrue(Helpers.isEqual(data, null)))
         {
@@ -436,7 +440,7 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             marketType = ((java.util.List<Object>) symbolsmarketTypeparametersVariable).get(1);
             parameters = ((java.util.List<Object>) symbolsmarketTypeparametersVariable).get(2);
             Object channelName = "trade";
-            Object trades = (this.subscribeMultiple("trade", channelName, marketType, symbols, parameters)).join();
+            Object trades = (this.subscribeMultiple("trade", channelName, ((String)marketType), symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeDict(trades, 0);
@@ -502,7 +506,7 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
-            return (this.subscribeMultiple("trade", channelName, marketType, symbols, parameters)).join();
+            return (this.subscribeMultiple("trade", channelName, ((String)marketType), symbols, parameters)).join();
         });
 
     }
@@ -1740,7 +1744,7 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
         // use a reverse lookup in a static map instead
         Object timeframes = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(interval, timeframes);
-        Object duration = this.parseTimeframe(timeframe);
+        Object duration = this.parseTimeframe(((String)timeframe));
         Object durationInMs = Helpers.multiply(duration, 1000);
         if (Helpers.isTrue(isSpot))
         {
@@ -1751,7 +1755,7 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object rawOHLCV = this.safeList(Helpers.GetValue(data, i), "candle");
                 Object parsed = this.parseOHLCV(rawOHLCV, market);
-                Helpers.addElementToObject(parsed, 0, Helpers.multiply(this.parseToInt(Helpers.divide(Helpers.GetValue(parsed, 0), durationInMs)), durationInMs));
+                Helpers.addElementToObject(parsed, 0, Helpers.multiply(this.parseToInt(Helpers.divide(this.parseToInt(Helpers.GetValue(parsed, 0)), durationInMs)), durationInMs));
                 Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
                 Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
                 if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -2120,7 +2124,7 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             {
                 channel = "depth50";
             }
-            Object orderbook = (this.subscribeMultiple("orderbook", channel, type, symbols, parameters)).join();
+            Object orderbook = (this.subscribeMultiple("orderbook", ((String)channel), type, symbols, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
 
@@ -2159,7 +2163,7 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
-            return (this.subscribeMultiple("orderbook", channel, type, symbols, parameters)).join();
+            return (this.subscribeMultiple("orderbook", ((String)channel), type, symbols, parameters)).join();
         });
 
     }
@@ -2404,7 +2408,7 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
         Object unsubHash = Helpers.add("unsubscribe::", subHash);
         Object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
         // clean up both ways of storing subscription and unsubscription
-        this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
+        this.cleanUnsubscription(client, ((String)subHash), unsubHash, subHashIsPrefix);
         this.cleanUnsubscription(client, messageTopic, unSubMessageTopic, subHashIsPrefix);
         this.cleanCache(subscription);
     }
@@ -2415,7 +2419,7 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
         Object channel = this.safeString(parts, 0);
         Object marketTypeAndTopic = Helpers.split(channel, "/");
         Object rawMarketType = this.safeStringLower(marketTypeAndTopic, 0);
-        Object marketType = this.parseMarketType(rawMarketType);
+        Object marketType = this.parseMarketType(((String)rawMarketType));
         Object topic = this.safeString(marketTypeAndTopic, 1);
         Object thirdPart = this.safeString(marketTypeAndTopic, 2);
         if (Helpers.isTrue(!Helpers.isEqual(thirdPart, null)))
@@ -2596,6 +2600,16 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "fundingRate"), 0)))
             {
                 this.handleFundingRate(client, message);
+                return;
+            }
+            // 'ticker' is a substring of 'bookTicker', so a bookTicker channel could
+            // be wrongly captured by (or double-dispatched with) the 'ticker' key in a
+            // first-match loop (in Go map iteration order is randomized). Check the
+            // bookTicker prefix explicitly, then fall back to a simple first-match.
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "bookTicker"), 0)))
+            {
+                this.handleBidAsk(client, message);
+                return;
             }
             Object keys = Helpers.objectKeys(methods);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -2605,6 +2619,7 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
                 {
                     Object method = this.safeValue(methods, key);
                     Helpers.callDynamically(this, method, new Object[] {client, message});
+                    return;
                 }
             }
         }

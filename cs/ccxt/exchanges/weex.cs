@@ -423,20 +423,17 @@ public partial class weex : Exchange
                     { "ETH", "ERC20" },
                     { "POLYGON", "POLYGON(MATIC)" },
                     { "MATIC", "POLYGON(MATIC)" },
-                    { "ARBITRUM", "ARBITRUM(ARB)" },
-                    { "ARB", "ARBITRUM(ARB)" },
-                    { "SOLANA", "SOLANA(SOL)" },
+                    { "ARBONE", "ARBITRUM(ARB)" },
                     { "SOL", "SOLANA(SOL)" },
                     { "OP", "OPTIMISM(OP)" },
                     { "OPTIMISM", "OPTIMISM(OP)" },
-                    { "AVALANCHEC", "AVALANCHE_C(AVAX_C)" },
                     { "AVAXC", "AVALANCHE_C(AVAX_C)" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "BEP20(BSC)", "BEP20" },
                     { "ERC20", "ERC20" },
                     { "POLYGON(MATIC)", "MATIC" },
-                    { "ARBITRUM(ARB)", "ARB" },
+                    { "ARBITRUM(ARB)", "ARBONE" },
                     { "SOLANA(SOL)", "SOL" },
                     { "OPTIMISM(OP)", "OP" },
                     { "AVALANCHE_C(AVAX_C)", "AVAXC" },
@@ -794,75 +791,74 @@ public partial class weex : Exchange
         //         }
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "coin");
+        object code = this.safeCurrencyCode(currencyId);
+        object name = this.safeString(rawCurrency, "name");
+        object networks = new Dictionary<string, object>() {};
+        object chains = this.safeList(rawCurrency, "networkList", new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = this.safeDict(response, i);
-            object currencyId = this.safeString(currency, "coin");
-            object code = this.safeCurrencyCode(currencyId);
-            object name = this.safeString(currency, "name");
-            object networks = new Dictionary<string, object>() {};
-            object chains = this.safeList(currency, "networkList", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chain = this.safeDict(chains, j);
-                object networkId = this.safeString(chain, "network");
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "deposit", this.safeBool(chain, "depositEnable") },
-                    { "withdraw", this.safeBool(chain, "withdrawEnable") },
-                    { "fee", this.safeNumber(chain, "withdrawFee") },
-                    { "precision", this.safeNumber(chain, "withdrawIntegerMultiple") },
-                    { "isDefault", this.safeBool(chain, "isDefault", false) },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "withdrawMin") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "depositDust") },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-            object networksLength = getArrayLength(networkKeys);
-            object emptyChains = isEqual(networksLength, 0); // non-functional coins
-            object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "code", code },
-                { "id", currencyId },
-                { "type", "crypto" },
-                { "name", name },
+            object chain = this.safeDict(chains, j);
+            object networkId = this.safeString(chain, "network");
+            object networkCode = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", networkCode },
                 { "active", null },
-                { "deposit", valueForEmpty },
-                { "withdraw", valueForEmpty },
-                { "fee", null },
-                { "precision", null },
+                { "deposit", this.safeBool(chain, "depositEnable") },
+                { "withdraw", this.safeBool(chain, "withdrawEnable") },
+                { "fee", this.safeNumber(chain, "withdrawFee") },
+                { "precision", this.safeNumber(chain, "withdrawIntegerMultiple") },
+                { "isDefault", this.safeBool(chain, "isDefault", false) },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(chain, "withdrawMin") },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(chain, "depositDust") },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-            });
+            };
         }
-        return result;
+        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object networksLength = getArrayLength(networkKeys);
+        object emptyChains = isEqual(networksLength, 0); // non-functional coins
+        object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "code", code },
+            { "id", currencyId },
+            { "type", "crypto" },
+            { "name", name },
+            { "active", null },
+            { "deposit", valueForEmpty },
+            { "withdraw", valueForEmpty },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -1076,7 +1072,7 @@ public partial class weex : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(isEqual(symbolsLength, 1)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
@@ -1561,9 +1557,13 @@ public partial class weex : Exchange
         object timestamp = this.safeInteger(trade, "time");
         object isBuyer = this.safeBool(trade, "isBuyer");
         object side = this.safeStringLower(trade, "side");
+        object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         if (isTrue(!isEqual(isBuyer, null)))
         {
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
+        } else if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
         }
         object isSpot = true;
         if (isTrue(isEqual(market, null)))
@@ -1603,6 +1603,9 @@ public partial class weex : Exchange
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        } else if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1688,7 +1691,7 @@ public partial class weex : Exchange
         if (isTrue(isEqual(symbolsLength, 1)))
         {
             object market = this.getMarketFromSymbols(symbols);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = await this.contractGetCapiV3MarketPremiumIndex(this.extend(request, parameters));
         //
@@ -2570,7 +2573,7 @@ public partial class weex : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = null;
         if (isTrue(isSpot))
@@ -2880,7 +2883,7 @@ public partial class weex : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -3197,7 +3200,7 @@ public partial class weex : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -4069,12 +4072,12 @@ public partial class weex : Exchange
         object timestamp = this.safeInteger(data, "requestTime");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
-            { "code", getValue(market, "settle") },
+            { "code", this.safeString(market, "settle") },
             { "status", status },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

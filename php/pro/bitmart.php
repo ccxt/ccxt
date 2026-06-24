@@ -289,6 +289,9 @@ class bitmart extends \ccxt\async\bitmart {
         //    }
         //
         $channel = $this->safe_string_2($message, 'table', 'group');
+        if ($channel === null) {
+            return;
+        }
         $data = $this->safe_value($message, 'data');
         if ($data === null) {
             return;
@@ -417,7 +420,7 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function get_params_for_multiple_sub(string $methodName, array $symbols, ?int $limit = null, $params = array ()) {
+    public function get_params_for_multiple_sub(string $methodName, array $symbols, ?int $limit = null, $params = array ()): array {
         $symbols = $this->market_symbols($symbols, null, false, true);
         $length = count($symbols);
         if ($length > 20) {
@@ -580,7 +583,7 @@ class bitmart extends \ccxt\async\bitmart {
         }
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -622,7 +625,6 @@ class bitmart extends \ccxt\async\bitmart {
             $type = 'spot';
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             Async\await($this->authenticate($type, $params));
-            $request = null;
             if ($type === 'spot') {
                 $argsRequest = 'spot/user/order:';
                 if ($symbol !== null) {
@@ -675,7 +677,6 @@ class bitmart extends \ccxt\async\bitmart {
             $type = 'spot';
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             Async\await($this->authenticate($type, $params));
-            $request = null;
             if ($type === 'spot') {
                 $argsRequest = 'spot/user/order:';
                 if ($symbol !== null) {
@@ -1220,7 +1221,6 @@ class bitmart extends \ccxt\async\bitmart {
         } else {
             $datetime = $this->iso8601($timestamp);
         }
-        $takerOrMaker = null; // true for public trades
         $side = $this->safe_string($trade, 'side');
         $buyerMaker = $this->safe_bool($trade, 'm');
         if ($buyerMaker !== null) {
@@ -1473,7 +1473,7 @@ class bitmart extends \ccxt\async\bitmart {
                 $symbol = $market['symbol'];
                 $rawOHLCV = $this->safe_list($data[$i], 'candle');
                 $parsed = $this->parse_ohlcv($rawOHLCV, $market);
-                $parsed[0] = $this->parse_to_int($parsed[0] / $durationInMs) * $durationInMs;
+                $parsed[0] = $this->parse_to_int($this->parse_to_int($parsed[0]) / $durationInMs) * $durationInMs;
                 $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
                 if ($stored === null) {
@@ -1900,7 +1900,6 @@ class bitmart extends \ccxt\async\bitmart {
                 $path = 'bitmart.WebSocket';
                 $auth = $timestamp . '#' . $memo . '#' . $path;
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-                $request = null;
                 if ($type === 'spot') {
                     $request = array(
                         'op' => 'login',
@@ -1947,7 +1946,7 @@ class bitmart extends \ccxt\async\bitmart {
         $future->resolve (true);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //    array( event => "error", $message => "Invalid sign", $errorCode => 30013 )
         //    array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
@@ -2199,6 +2198,15 @@ class bitmart extends \ccxt\async\bitmart {
             );
             if (mb_strpos($channel, 'fundingRate') !== false) {
                 $this->handle_funding_rate($client, $message);
+                return;
+            }
+            // 'ticker' is a substring of 'bookTicker', so a bookTicker $channel could
+            // be wrongly captured by (or double-dispatched with) the 'ticker' $key in a
+            // first-match loop (in Go map iteration order is randomized). Check the
+            // bookTicker prefix explicitly, then fall back to a simple first-match.
+            if (mb_strpos($channel, 'bookTicker') !== false) {
+                $this->handle_bid_ask($client, $message);
+                return;
             }
             $keys = is_array($methods) ? array_keys($methods) : array();
             for ($i = 0; $i < count($keys); $i++) {
@@ -2206,6 +2214,7 @@ class bitmart extends \ccxt\async\bitmart {
                 if (mb_strpos($channel, $key) !== false) {
                     $method = $this->safe_value($methods, $key);
                     $method($client, $message);
+                    return;
                 }
             }
         }

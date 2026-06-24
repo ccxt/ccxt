@@ -1,15 +1,11 @@
-- [Exchanges By Volume](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
 (async () => {
 
     //     const exchanges = [
-    //         'bittrex',
     //         'poloniex',
     //         'bitfinex'
     //     ]
@@ -61,5 +57,5 @@ import ccxt from '../../js/ccxt.js';
         }))
     )
 
-}) () 
+}) ()
 ```

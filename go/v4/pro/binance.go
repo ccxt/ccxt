@@ -1217,19 +1217,19 @@ func  (this *BinanceCore) HandleOrderBook(client any, message any)  {
                     if ccxt.IsTrue(ccxt.IsEqual(pu, nil)) {
                         // spot
                         // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                        if ccxt.IsTrue(ccxt.IsGreaterThan(u, ccxt.GetValue(orderbook, "nonce"))) {
+                        if ccxt.IsTrue(ccxt.IsGreaterThan(u, nonce)) {
                             var timestamp any = this.SafeInteger(orderbook, "timestamp")
                             var conditional any = nil
                             if ccxt.IsTrue(ccxt.IsEqual(timestamp, nil)) {
                                 // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                                conditional = ccxt.IsTrue((ccxt.IsLessThanOrEqual((ccxt.Subtract(U, 1)), ccxt.GetValue(orderbook, "nonce")))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual((ccxt.Subtract(u, 1)), ccxt.GetValue(orderbook, "nonce"))))
+                                conditional = ccxt.IsTrue((ccxt.IsLessThanOrEqual((ccxt.Subtract(U, 1)), nonce))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual((ccxt.Subtract(u, 1)), nonce)))
                             } else {
                                 // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                                conditional = (ccxt.IsEqual((ccxt.Subtract(U, 1)), ccxt.GetValue(orderbook, "nonce")))
+                                conditional = (ccxt.IsEqual((ccxt.Subtract(U, 1)), nonce))
                             }
                             if ccxt.IsTrue(conditional) {
                                 this.HandleOrderBookMessage(client, message, orderbook)
-                                if ccxt.IsTrue(ccxt.IsLessThan(nonce, ccxt.GetValue(orderbook, "nonce"))) {
+                                if ccxt.IsTrue(ccxt.IsLessThan(nonce, this.SafeInteger(orderbook, "nonce", 0))) {
                                     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
                                 }
                             } else {
@@ -1242,12 +1242,12 @@ func  (this *BinanceCore) HandleOrderBook(client any, message any)  {
                     } else {
                         // future
                         // 4. Drop any event where u is < lastUpdateId in the snapshot
-                        if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(u, ccxt.GetValue(orderbook, "nonce"))) {
+                        if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(u, nonce)) {
                             // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                             // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-                            if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsLessThanOrEqual(U, ccxt.GetValue(orderbook, "nonce")))) || ccxt.IsTrue((ccxt.IsEqual(pu, ccxt.GetValue(orderbook, "nonce"))))) {
+                            if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsLessThanOrEqual(U, nonce))) || ccxt.IsTrue((ccxt.IsEqual(pu, nonce)))) {
                                 this.HandleOrderBookMessage(client, message, orderbook)
-                                if ccxt.IsTrue(ccxt.IsLessThanOrEqual(nonce, ccxt.GetValue(orderbook, "nonce"))) {
+                                if ccxt.IsTrue(ccxt.IsLessThanOrEqual(nonce, this.SafeInteger(orderbook, "nonce", 0))) {
                                     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
                                 }
                             } else {
@@ -1551,7 +1551,7 @@ func  (this *BinanceCore) ParseWsTrade(trade any, optionalArgs ...any) any  {
     //
     //     {
     //         "e": "trade",       // event type
-    //         "E": 1579481530911, // event time
+    //         "E": 1579481530912, // event time
     //         "s": "ETHBTC",      // symbol
     //         "t": 158410082,     // trade id
     //         "p": "0.01914100",  // price
@@ -2806,7 +2806,7 @@ func  (this *BinanceCore) HandleTickerWs(client any, message any)  {
     //        "status":200,
     //        "result":{
     //            "symbol":"BTCUSDT",
-    //            "price":"73178.50",
+    //            "price":"73178.60",
     //            "time":1712527052374
     //        }
     //    }
@@ -4573,8 +4573,8 @@ func  (this *BinanceCore) FetchOpenOrdersWs(optionalArgs ...any) <- chan any {
             ccxt.PanicOnError(retRes37178)
             var market any = this.Market(symbol)
             var typeVar any = this.GetMarketType("fetchOpenOrdersWs", market, params)
-            if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) {
-                panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOpenOrdersWs only supports spot or swap markets")))
+            if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) {
+                panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOpenOrdersWs only supports spot markets")))
             }
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
             var requestId any = this.RequestId(url)

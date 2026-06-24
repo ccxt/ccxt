@@ -1,8 +1,5 @@
-- [Binance Fetch Ohlcv Many Symbols Promise Then Callbacks](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 
 const ccxt = require ('../../js/ccxt.js')
 
@@ -34,5 +31,5 @@ function main () {
     })
 }
 
-main () 
+main ()
 ```

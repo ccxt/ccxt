@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var woo$1 = require('../woo.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -58,7 +58,7 @@ class woo extends woo$1["default"] {
                 'ordersLimit': 1000,
                 'requestId': {},
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -797,7 +797,7 @@ class woo extends woo$1["default"] {
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const timestamp = this.safeInteger(trade, 'timestamp');
-        const maker = this.safeBool(trade, 'marker');
+        const maker = this.safeBool(trade, 'maker');
         let takerOrMaker = undefined;
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';
@@ -849,7 +849,7 @@ class woo extends woo$1["default"] {
         if (authenticated === undefined) {
             const ts = this.nonce().toString();
             const auth = '|' + ts;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             const request = {
                 'event': event,
                 'params': {

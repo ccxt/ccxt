@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coincheck$1 = require('./abstract/coincheck.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -163,7 +163,7 @@ class coincheck extends coincheck$1["default"] {
                 },
             },
             'markets': {
-                'BTC/JPY': this.safeMarketStructure({ 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'type': 'spot', 'spot': true }),
+                'BTC/JPY': this.safeMarketStructure({ 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'type': 'spot', 'spot': true }), // the only real pair
                 // 'ETH/JPY': { 'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
                 'ETC/JPY': this.safeMarketStructure({ 'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY', 'baseId': 'etc', 'quoteId': 'jpy', 'type': 'spot', 'spot': true }),
                 // 'DAO/JPY': { 'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY', 'baseId': 'dao', 'quoteId': 'jpy' },
@@ -194,11 +194,11 @@ class coincheck extends coincheck$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': false,
+                        'triggerPrice': false, // todo
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -254,7 +254,7 @@ class coincheck extends coincheck$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'disabled API Key': errors.AuthenticationError,
+                    'disabled API Key': errors.AuthenticationError, // {"success":false,"error":"disabled API Key"}'
                     'invalid authentication': errors.AuthenticationError, // {"success":false,"error":"invalid authentication"}
                 },
                 'broad': {},
@@ -647,8 +647,12 @@ class coincheck extends coincheck$1["default"] {
         //
         const fees = this.safeValue(response, 'exchange_fees', {});
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             const fee = this.safeValue(fees, market['id'], {});
             result[symbol] = {
@@ -935,7 +939,7 @@ class coincheck extends coincheck$1["default"] {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256),
+                'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

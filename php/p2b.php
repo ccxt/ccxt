@@ -742,7 +742,7 @@ class p2b extends Exchange {
             'amount' => $this->safe_string($trade, 'amount'),
             'cost' => $this->safe_string($trade, 'deal'),
             'fee' => array(
-                'currency' => $market['quote'],
+                'currency' => $this->safe_string($market, 'quote'),
                 'cost' => $this->safe_string_2($trade, 'fee', 'deal_fee'),
             ),
         ), $market);
@@ -1327,7 +1327,7 @@ class p2b extends Exchange {
         ), $market);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {

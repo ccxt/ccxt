@@ -13,6 +13,10 @@ import io.github.ccxt.base.Precise;
 public class TestMarket extends BaseTest {
     public static void testMarket(Exchange exchange, Object skippedProperties, Object method, Object market)
     {
+        if (Helpers.isTrue(Helpers.isEqual(market, null)))
+        {
+            return;
+        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "id", "btcusd" );
             put( "symbol", "BTC/USD" );
@@ -299,7 +303,7 @@ public class TestMarket extends BaseTest {
         // margin modes
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "marginModes"))))
         {
-            Object marginModes = exchange.safeDict(market, "marginModes"); // in future, remove safeDict
+            Object marginModes = exchange.safeDict(market, "marginModes", new java.util.HashMap<String, Object>() {{}}); // in future, remove safeDict
             Assert(Helpers.inOp(marginModes, "cross"), Helpers.add("marginModes should have \"cross\" key", logText));
             Assert(Helpers.inOp(marginModes, "isolated"), Helpers.add("marginModes should have \"isolated\" key", logText));
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, marginModes, "cross", new java.util.ArrayList<Object>(java.util.Arrays.asList(true, false, null)));

@@ -1,14 +1,11 @@
-- [Fetch From Many Exchanges Simultaneously](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
 
 const symbol = 'ETH/BTC'
-const exchanges = [ 'coinbasepro', 'hitbtc2', 'poloniex' ]
+const exchanges = [ 'coinbaseexchange', 'hitbtc', 'poloniex' ]
 
 ;(async () => {
 
@@ -22,5 +19,5 @@ const exchanges = [ 'coinbasepro', 'hitbtc2', 'poloniex' ]
 
     log (result);
 
-}) () 
+}) ()
 ```

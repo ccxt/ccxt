@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/exmo.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class exmo
@@ -20,8 +20,8 @@ export default class exmo extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'exmo',
             'name': 'EXMO',
-            'countries': ['LT'],
-            'rateLimit': 100,
+            'countries': ['LT'], // Lithuania
+            'rateLimit': 100, // 10 requests per 1 second
             'version': 'v1.1',
             'has': {
                 'CORS': undefined,
@@ -41,7 +41,7 @@ export default class exmo extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
-                'editOrder': true,
+                'editOrder': true, // margin only
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -215,8 +215,8 @@ export default class exmo extends Exchange {
                 'spot': {
                     'sandbox': false,
                     'createOrder': {
-                        'marginMode': true,
-                        'triggerPrice': true,
+                        'marginMode': true, // todo revise
+                        'triggerPrice': true, // todo: endpoint lacks other features
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -278,23 +278,23 @@ export default class exmo extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '140333': InvalidOrder,
+                    '140333': InvalidOrder, // {"error":{"code":140333,"msg":"The number of characters after the point in the price exceeds the maximum number '8\u003e6'"}}
                     '140434': BadRequest,
-                    '40005': AuthenticationError,
-                    '40009': InvalidNonce,
-                    '40015': ExchangeError,
-                    '40016': OnMaintenance,
-                    '40017': AuthenticationError,
-                    '40032': PermissionDenied,
-                    '40033': PermissionDenied,
-                    '40034': RateLimitExceeded,
+                    '40005': AuthenticationError, // Authorization error, incorrect signature
+                    '40009': InvalidNonce, //
+                    '40015': ExchangeError, // API function do not exist
+                    '40016': OnMaintenance, // {"result":false,"error":"Error 40016: Maintenance work in progress"}
+                    '40017': AuthenticationError, // Wrong API Key
+                    '40032': PermissionDenied, // {"result":false,"error":"Error 40032: Access is denied for this API key"}
+                    '40033': PermissionDenied, // {"result":false,"error":"Error 40033: Access is denied, this resources are temporarily blocked to user"}
+                    '40034': RateLimitExceeded, // {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
                     '50052': InsufficientFunds,
                     '50054': InsufficientFunds,
-                    '50304': OrderNotFound,
-                    '50173': OrderNotFound,
+                    '50304': OrderNotFound, // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
+                    '50173': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                     '50277': InvalidOrder,
-                    '50319': InvalidOrder,
-                    '50321': InvalidOrder,
+                    '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
+                    '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
                     '50381': InvalidOrder, // {"result":false,"error":"Error 50381: More than 2 decimal places are not permitted for pair BTC_USD"}
                 },
                 'broad': {
@@ -312,7 +312,7 @@ export default class exmo extends Exchange {
             'position_id': market['id'],
             'quantity': amount,
         };
-        let response = undefined;
+        let response = {};
         if (type === 'add') {
             response = await this.privatePostMarginUserPositionMarginAdd(this.extend(request, params));
         }
@@ -632,7 +632,10 @@ export default class exmo extends Exchange {
             const provider = fee[i];
             const type = this.safeString(provider, 'type');
             const networkId = this.safeString(provider, 'name');
-            const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
+            const currencyId = this.safeString(provider, 'currency_name');
+            currency = this.safeCurrency(currencyId, currency);
+            const code = this.safeString(currency, 'code');
+            const networkCode = this.networkIdToCode(networkId, code);
             const commissionDesc = this.safeString(provider, 'commission_desc');
             let splitCommissionDesc = [];
             let percentage = undefined;
@@ -710,97 +713,103 @@ export default class exmo extends Exchange {
         const responses = await Promise.all(promises);
         const currencyList = responses[0];
         const cryptoList = responses[1];
-        const result = {};
+        const newArray = [];
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
             const currencyId = this.safeString(currency, 'name');
-            const code = this.safeCurrencyCode(currencyId);
-            let type = 'crypto';
-            const networks = {};
             const providers = this.safeList(cryptoList, currencyId);
-            if (providers === undefined) {
-                type = 'fiat';
-            }
-            else {
-                for (let j = 0; j < providers.length; j++) {
-                    const provider = providers[j];
-                    const name = this.safeString(provider, 'name');
-                    // get network-id by removing extra things
-                    let networkId = name.replace(currencyId + ' ', '');
-                    networkId = networkId.replace('(', '');
-                    const replaceChar = ')'; // transpiler trick
-                    networkId = networkId.replace(replaceChar, '');
-                    const networkCode = this.networkIdToCode(networkId);
-                    if (!(networkCode in networks)) {
-                        networks[networkCode] = {
-                            'id': networkId,
-                            'network': networkCode,
-                            'active': undefined,
-                            'deposit': undefined,
-                            'withdraw': undefined,
-                            'fee': undefined,
-                            'limits': {
-                                'withdraw': {
-                                    'min': undefined,
-                                    'max': undefined,
-                                },
-                                'deposit': {
-                                    'min': undefined,
-                                    'max': undefined,
-                                },
-                            },
-                            'info': [], // set as array, because of multiple network sub-entries
-                        };
-                    }
-                    const typeInner = this.safeString(provider, 'type');
-                    const minValue = this.safeString(provider, 'min');
-                    const maxValue = this.safeString(provider, 'max');
-                    const activeProvider = this.safeBool(provider, 'enabled');
-                    const networkEntry = networks[networkCode];
-                    if (typeInner === 'deposit') {
-                        networkEntry['deposit'] = activeProvider;
-                        networkEntry['limits']['deposit']['min'] = minValue;
-                        networkEntry['limits']['deposit']['max'] = maxValue;
-                    }
-                    else if (typeInner === 'withdraw') {
-                        networkEntry['withdraw'] = activeProvider;
-                        networkEntry['limits']['withdraw']['min'] = minValue;
-                        networkEntry['limits']['withdraw']['max'] = maxValue;
-                    }
-                    const info = this.safeList(networkEntry, 'info');
-                    info.push(provider);
-                    networkEntry['info'] = info;
-                    networks[networkCode] = networkEntry;
-                }
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString(currency, 'description'),
-                'type': type,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber('1e-8'),
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': {
-                    'currency': currency,
-                    'providers': providers,
-                },
-                'networks': networks,
-            });
+            newArray.push({ 'currency': currency, 'providers': providers });
         }
-        return result;
+        return this.parseCurrencies(newArray);
+    }
+    parseCurrency(rawCurrency) {
+        const currency = this.safeDict(rawCurrency, 'currency', {});
+        const providers = this.safeList(rawCurrency, 'providers', []);
+        const currencyId = this.safeString(currency, 'name');
+        const code = this.safeCurrencyCode(currencyId);
+        let type = 'crypto';
+        const networks = {};
+        if (providers === undefined) {
+            type = 'fiat';
+        }
+        else {
+            for (let j = 0; j < providers.length; j++) {
+                const provider = providers[j];
+                const name = this.safeString(provider, 'name');
+                // get network-id by removing extra things
+                let networkId = name.replace(currencyId + ' ', '');
+                networkId = networkId.replace('(', '');
+                const replaceChar = ')'; // transpiler trick
+                networkId = networkId.replace(replaceChar, '');
+                const networkCode = this.networkIdToCode(networkId, code);
+                if (!(networkCode in networks)) {
+                    networks[networkCode] = {
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': undefined,
+                        'deposit': undefined,
+                        'withdraw': undefined,
+                        'fee': undefined,
+                        'limits': {
+                            'withdraw': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                        'info': [], // set as array, because of multiple network sub-entries
+                    };
+                }
+                const typeInner = this.safeString(provider, 'type');
+                const minValue = this.safeString(provider, 'min');
+                const maxValue = this.safeString(provider, 'max');
+                const activeProvider = this.safeBool(provider, 'enabled');
+                const networkEntry = networks[networkCode];
+                if (typeInner === 'deposit') {
+                    networkEntry['deposit'] = activeProvider;
+                    networkEntry['limits']['deposit']['min'] = minValue;
+                    networkEntry['limits']['deposit']['max'] = maxValue;
+                }
+                else if (typeInner === 'withdraw') {
+                    networkEntry['withdraw'] = activeProvider;
+                    networkEntry['limits']['withdraw']['min'] = minValue;
+                    networkEntry['limits']['withdraw']['max'] = maxValue;
+                }
+                const info = this.safeList(networkEntry, 'info', []);
+                info.push(provider);
+                networkEntry['info'] = info;
+                networks[networkCode] = networkEntry;
+            }
+        }
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'name': this.safeString(currency, 'description'),
+            'type': type,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber('1e-8'),
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': {
+                'currency': currency,
+                'providers': providers,
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -1075,7 +1084,7 @@ export default class exmo extends Exchange {
         if (marginMode === 'cross') {
             throw new BadRequest(this.id + ' does not support cross margin');
         }
-        let response = undefined;
+        let response;
         if (marginMode === 'isolated') {
             response = await this.privatePostMarginUserWalletList(params);
             //
@@ -1145,16 +1154,18 @@ export default class exmo extends Exchange {
         let ids = undefined;
         if (symbols === undefined) {
             const allIds = this.ids;
-            ids = allIds.join(',');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                const numIds = this.ids.length;
-                throw new ExchangeError(this.id + ' fetchOrderBooks() has ' + numIds.toString() + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            if (allIds !== undefined) {
+                ids = allIds.join(',');
+                // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+                if (ids.length > 2048) {
+                    const numIds = allIds.length;
+                    throw new ExchangeError(this.id + ' fetchOrderBooks() has ' + numIds.toString() + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+                }
             }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join(',');
+            const requestedIds = this.marketIds(symbols);
+            ids = requestedIds.join(',');
         }
         const request = {
             'pair': ids,
@@ -1442,7 +1453,7 @@ export default class exmo extends Exchange {
         }
         const offset = this.safeInteger(params, 'offset', 0);
         request['offset'] = offset;
-        let response = undefined;
+        let response;
         if (isSpot) {
             response = await this.privatePostUserTrades(this.extend(request, params));
             //
@@ -1615,7 +1626,7 @@ export default class exmo extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(market['symbol'], price);
         }
-        let response = undefined;
+        let response;
         if (isSpot) {
             if (triggerPrice !== undefined) {
                 if (type === 'limit') {
@@ -1698,7 +1709,7 @@ export default class exmo extends Exchange {
         if (marginMode === 'cross') {
             throw new BadRequest(this.id + ' only supports isolated margin');
         }
-        let response = undefined;
+        let response;
         if ((marginMode === 'isolated')) {
             request['order_id'] = id;
             response = await this.privatePostMarginUserOrderCancel(this.extend(request, params));
@@ -1795,7 +1806,7 @@ export default class exmo extends Exchange {
         const request = {
             'order_id': id.toString(),
         };
-        let response = undefined;
+        let response;
         if (marginMode === 'isolated') {
             response = await this.privatePostMarginUserOrderTrades(this.extend(request, params));
             //
@@ -1869,7 +1880,7 @@ export default class exmo extends Exchange {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
         const isMargin = ((marginMode === 'cross') || (marginMode === 'isolated'));
-        let response = undefined;
+        let response;
         let orders = [];
         if (isMargin) {
             response = await this.privatePostMarginUserOrderList(params);
@@ -2146,7 +2157,7 @@ export default class exmo extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let response = undefined;
+        let response;
         if (isSpot) {
             response = await this.privatePostUserCancelledOrders(this.extend(request, params));
             //

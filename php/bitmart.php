@@ -1194,7 +1194,7 @@ class bitmart extends Exchange {
         return $this->array_concat($spot, $contract);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -1261,7 +1261,7 @@ class bitmart extends Exchange {
                     'type' => $isNtf ? 'other' : 'crypto',
                 );
             }
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $currencyCode);
             $withdraw = $this->safe_bool($currency, 'withdraw_enabled');
             $deposit = $this->safe_bool($currency, 'deposit_enabled');
             $entry['networks'][$networkCode] = array(
@@ -2892,7 +2892,7 @@ class bitmart extends Exchange {
             $ordersRequests[] = $orderRequest;
         }
         $request = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'orderParams' => $ordersRequests,
         );
         $response = $this->privatePostSpotV4BatchOrders ($request);
@@ -2965,8 +2965,10 @@ class bitmart extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'size' => intval($this->amount_to_precision($symbol, $amount)),
         );
+        if ($amount !== null) {
+            $request['size'] = intval($this->amount_to_precision($symbol, $amount));
+        }
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $mode = $this->safe_integer($params, 'mode'); // only for swap
         $isMarketOrder = $type === 'market';
@@ -3024,7 +3026,11 @@ class bitmart extends Exchange {
         if ($isStopLoss || $isTakeProfit) {
             $reduceOnly = true;
             $request['price_type'] = $this->safe_integer($params, 'price_type', 1);
-            $request['executive_price'] = $this->price_to_precision($symbol, $price);
+            if ($price !== null) {
+                $request['executive_price'] = $this->price_to_precision($symbol, $price);
+            }
+            $marketOrLimitStr = $isLimitOrder ? 'limit' : 'market';
+            $request['category'] = $this->safe_string($params, 'category', $marketOrLimitStr);
             if ($isStopLoss) {
                 $request['trigger_price'] = $this->price_to_precision($symbol, $stopLossPrice);
             } else {
@@ -3746,7 +3752,7 @@ class bitmart extends Exchange {
             if ($orderType !== null) {
                 $request['type'] = $orderType;
             }
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
             $request['order_id'] = $id;
             $response = $this->privateGetContractPrivateOrder ($this->extend($request, $params));
         }
@@ -3872,11 +3878,12 @@ class bitmart extends Exchange {
         }
         $address = $this->safe_string($depositAddress, 'address');
         $currency = $this->safe_currency($currencyId, $currency);
+        $code = $this->safe_string($currency, 'code');
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_string($currency, 'code'),
-            'network' => $this->network_id_to_code($network),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($network, $code),
             'address' => $address,
             'tag' => $this->safe_string_2($depositAddress, 'address_memo', 'memo'),
         );
@@ -4175,7 +4182,7 @@ class bitmart extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'addressFrom' => null,
             'addressTo' => null,
@@ -4394,7 +4401,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()): IsolatedBorrowRates {
+    public function fetch_isolated_borrow_rates($params = array ()): array {
         /**
          * fetch the borrow interest rates of all currencies, currently only works for isolated margin
          *
@@ -5042,7 +5049,7 @@ class bitmart extends Exchange {
         $request = array();
         if ($symbolsLength === 1) {
             // only supports $symbols or sending one symbol
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = $this->privateGetContractPrivatePositionV2 ($this->extend($request, $params));
         //
@@ -5692,7 +5699,7 @@ class bitmart extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $parts = explode('/', $path);
         // to do => refactor $api endpoints with spot/swap sections
         $category = $this->safe_string($parts, 0, 'spot');

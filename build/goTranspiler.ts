@@ -2,13 +2,14 @@ import Transpiler from "ast-transpiler";
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
-import { createFolderRecursively, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js';
+import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
+// import { writeFile } from 'fs/promises';
 import { platform } from 'process';
 import fs from 'fs';
 import log from 'ololog';
 import ansi from 'ansicolor';
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
-import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
@@ -16,7 +17,6 @@ import { isMainEntry } from "./transpile.js";
 type dict = { [key: string]: string };
 
 ansi.nice;
-const promisedWriteFile = promisify (fs.writeFile);
 
 // const allExchanges: {ids: string[], ws: string[]} = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
@@ -34,7 +34,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         checkCreateFolder (path);
     }
     overwriteFile (path, content);
-    writeFile (path, content);
+    fs.writeFileSync (path, content);
 }
 
 function capitalize(s: string) {
@@ -127,7 +127,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchWithdrawals": true,
     "parseAccount": false,
     "parseBalance": false,
-    "parseBidsAsks": false,
+    "parseOrderBookBidsAsks": false,
     "parseBorrowInterest": false,
     "parseBorrowRate": false,
     "parseCurrency": false,
@@ -873,6 +873,13 @@ class NewTranspiler {
             return addTaskIfNeeded('any'); // default if type is unknown;
         }
 
+        // `List` is an alias for `Array<any>` (see ts/src/base/types.ts) — normalize it
+        // to `any[]` so it flows through the array branch below instead of leaking the
+        // bare `List` / `NewList` identifiers that don't exist in the Go runtime.
+        if (wrappedType === 'List') {
+            wrappedType = 'any[]';
+        }
+
         if (wrappedType === 'string[][]') {
             return addTaskIfNeeded('[][]string');
         }
@@ -1027,6 +1034,8 @@ class NewTranspiler {
             'loadOrderBook',
             'setPositionCache',
             'setPositionsCache',
+            'setLastRequest',
+            'setLastRestRequestTimestamp',
             'setProperty',
             'setProxyAgents',
             'setSandBoxMode',
@@ -1609,7 +1618,9 @@ ${constStatements.join('\n')}
         const baseMethods = VIRTUAL_BASE_METHODS;
         const allVirtual = Object.keys(baseMethods);
         this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
-        const baseFile = this.transpiler.transpileGoByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile = this.transpiler.transpileGoByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         this.transpiler.goTranspiler.wrapCallMethods = [];
         let baseClass = baseFile.content as any; // remove this later
 
@@ -2363,7 +2374,7 @@ func (this *${className}) Init(userConfig map[string]any) {
     //     const inputFiles = fs.readdirSync('./ts/src/test/exchange');
     //     const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
     //     const transpiledFiles = files.map(file => this.transpileExchangeTest(file, `${inputDir}/${file}`));
-    //     await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (`${outDir}/${file[0]}.go`, file[1])));
+    //     await Promise.all (transpiledFiles.map ((file, idx) => writeFile (`${outDir}/${file[0]}.go`, file[1])));
     // }
 
     transpileBaseTestsToGo () {

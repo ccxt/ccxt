@@ -38,7 +38,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-yobit.fetchBalance ([params])
+yobit.fetchBalance (params?)
 ```
 
 
@@ -58,7 +58,7 @@ retrieves data on all markets for yobit
 
 
 ```javascript
-yobit.fetchMarkets ([params])
+yobit.fetchMarkets (params?)
 ```
 
 
@@ -80,7 +80,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-yobit.fetchOrderBook (symbol[, limit, params])
+yobit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -102,7 +102,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-yobit.fetchOrderBooks (symbols[, limit, params])
+yobit.fetchOrderBooks (symbols, limit?, params?)
 ```
 
 
@@ -124,7 +124,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-yobit.fetchTickers (symbols[, params])
+yobit.fetchTickers (symbols, params?)
 ```
 
 
@@ -145,7 +145,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-yobit.fetchTicker (symbol[, params])
+yobit.fetchTicker (symbol, params?)
 ```
 
 
@@ -168,7 +168,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-yobit.fetchTrades (symbol[, since, limit, params])
+yobit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -188,7 +188,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-yobit.fetchTradingFees ([params])
+yobit.fetchTradingFees (params?)
 ```
 
 
@@ -213,7 +213,7 @@ create a trade order
 
 
 ```javascript
-yobit.createOrder (symbol, type, side, amount[, price, params])
+yobit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -235,7 +235,7 @@ cancels an open order
 
 
 ```javascript
-yobit.cancelOrder (id, symbol[, params])
+yobit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -257,7 +257,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-yobit.fetchOrder (id, symbol[, params])
+yobit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -280,7 +280,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-yobit.fetchOpenOrders (symbol[, since, limit, params])
+yobit.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -303,7 +303,7 @@ fetch all trades made by the user
 
 
 ```javascript
-yobit.fetchMyTrades (symbol[, since, limit, params])
+yobit.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -324,7 +324,7 @@ create a currency deposit address
 
 
 ```javascript
-yobit.createDepositAddress (code[, params])
+yobit.createDepositAddress (code, params?)
 ```
 
 
@@ -345,7 +345,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-yobit.fetchDepositAddress (code[, params])
+yobit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -369,6 +369,6 @@ make a withdrawal
 
 
 ```javascript
-yobit.withdraw (code, amount, address, tag[, params])
+yobit.withdraw (code, amount, address, tag, params?)
 ```
 

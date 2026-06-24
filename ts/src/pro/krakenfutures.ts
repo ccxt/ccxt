@@ -1,11 +1,10 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -376,7 +375,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const marketId = this.safeString (position, 'instrument');
         const hedged = 'both';
         const balanceString = this.safeString (position, 'balance');
-        let side = undefined;
+        let side: Str = undefined;
         if (Precise.stringGt (balanceString, '0')) {
             side = 'long';
         } else if (Precise.stringLt (balanceString, '0')) {
@@ -475,7 +474,7 @@ export default class krakenfutures extends krakenfuturesRest {
         await this.loadMarkets ();
         const name = 'balances';
         let messageHash = name;
-        let account = undefined;
+        let account: Str = undefined;
         [ account, params ] = this.handleOptionAndParams (params, 'watchBalance', 'account');
         if (account !== undefined) {
             if (account !== 'futures' && account !== 'flex_futures') {
@@ -775,12 +774,12 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['fee'] = {
                         'rate': undefined,
                         'cost': '0',
-                        'currency': this.numberToString (trade['fee']['currency']),
+                        'currency': this.numberToString (this.safeString (trade['fee'], 'currency')),
                     };
                 }
-                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
                     const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                    const stringTradeCost = this.numberToString (trade['fee']['cost']);
+                    const stringTradeCost = this.numberToString (this.safeNumber (trade['fee'], 'cost'));
                     previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
@@ -921,7 +920,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //
         const isCancelled = this.safeValue (order, 'is_cancel');
         let unparsedOrder = order;
-        let status = undefined;
+        let status: Str = undefined;
         if (isCancelled !== undefined) {
             unparsedOrder = this.safeValue (order, 'order');
             if (isCancelled === true) {

@@ -1,8 +1,5 @@
-- [Gateio Watch Order Book](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 const orderbooks = {};
@@ -41,7 +38,7 @@ async function watchOrderBook(exchange, symbol) {
     }
 }
 async function main() {
-    const exchange = new ccxt.pro.gateio({
+    const exchange = new ccxt.pro.gate({
         'options': {
             'defaultType': 'swap',
         },
@@ -68,5 +65,5 @@ async function main() {
     ]);
 }
 main();
- 
+
 ```

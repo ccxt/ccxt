@@ -372,7 +372,6 @@ public class BittradeCore extends BittradeApi
                     put( "HECO", "hrc20" );
                     put( "HT", "hrc20" );
                     put( "ALGO", "algo" );
-                    put( "OMNI", "" );
                 }} );
                 put( "fetchOrdersByStatesMethod", "private_get_order_orders" );
                 put( "fetchOpenOrdersMethod", "fetch_open_orders_v1" );

@@ -543,7 +543,7 @@ func (this *AscendexCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var networkEtnry any = GetValue(chains, j)
 		var networkId any = this.SafeString(networkEtnry, "chainName")
-		var networkCode any = this.NetworkCodeToId(networkId)
+		var networkCode any = this.NetworkCodeToId(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"fee":       this.SafeNumber(networkEtnry, "withdrawFee"),
 			"active":    nil,
@@ -2851,7 +2851,7 @@ func (this *AscendexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			"time":             this.Milliseconds(),
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		var response any = nil
 		if IsTrue(IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))) {
@@ -2963,7 +2963,7 @@ func (this *AscendexCore) FetchDepositAddress(code any, optionalArgs ...any) <-c
 		PanicOnError(retRes26028)
 		var currency any = this.Currency(code)
 		var networkCode any = this.SafeString2(params, "network", "chainName")
-		var networkId any = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
 		params = this.Omit(params, []any{"chainName"})
 		var request any = map[string]any{
 			"asset":      GetValue(currency, "id"),
@@ -3555,12 +3555,12 @@ func (this *AscendexCore) ParseMarginModification(data any, optionalArgs ...any)
 	var status any = Ternary(IsTrue((IsEqual(errorCode, "0"))), "ok", "failed")
 	return map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
 		"marginMode": "isolated",
 		"amount":     nil,
 		"total":      nil,
-		"code":       GetValue(market, "quote"),
+		"code":       this.SafeString(market, "quote"),
 		"status":     status,
 		"timestamp":  nil,
 		"datetime":   nil,
@@ -4323,9 +4323,8 @@ func (this *AscendexCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		retRes36478 := (<-this.LoadMarkets())
 		PanicOnError(retRes36478)
 		var request any = map[string]any{}
-		var response any = nil
 
-		response = (<-this.V2PublicGetFuturesPricingData(this.Extend(request, params)))
+		response := (<-this.V2PublicGetFuturesPricingData(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//    {

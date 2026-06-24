@@ -1332,7 +1332,10 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         }
         client.resolve(this.balance, messageHash);
         Object messageHashRequest = this.safeString(message, "id");
-        client.resolve(this.balance, messageHashRequest);
+        if (Helpers.isTrue(!Helpers.isEqual(messageHashRequest, null)))
+        {
+            client.resolve(this.balance, messageHashRequest);
+        }
     }
 
     /**

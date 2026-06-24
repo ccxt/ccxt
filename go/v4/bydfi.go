@@ -3530,7 +3530,7 @@ func (this *BydfiCore) ParseTransaction(transaction any, optionalArgs ...any) an
 		"txid":        this.SafeString(transaction, "txId"),
 		"type":        nil,
 		"currency":    code,
-		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network")),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network"), code),
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"status":      this.ParseTransactionStatus(rawStatus),
 		"timestamp":   timestamp,

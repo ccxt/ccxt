@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import bithumbRest from '../bithumb.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { jwt } from '../base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 export default class bithumb extends bithumbRest {
@@ -27,8 +27,8 @@ export default class bithumb extends bithumbRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://pubwss.bithumb.com/pub/ws',
-                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1',
+                        'public': 'wss://pubwss.bithumb.com/pub/ws', // v1.2.0
+                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1', // v2.1.5
                         'privateV2': 'wss://ws-api.bithumb.com/websocket/v1/private', // v2.1.5
                     },
                 },
@@ -253,7 +253,7 @@ export default class bithumb extends bithumbRest {
         //
         const sideId = this.safeString(delta, 'orderType');
         const side = (sideId === 'bid') ? 'bids' : 'asks';
-        const bidAsk = this.parseBidAsk(delta, 'price', 'quantity');
+        const bidAsk = this.parseOrderBookBidAsk(delta, 'price', 'quantity');
         const orderbookSide = orderbook[side];
         orderbookSide.storeArray(bidAsk);
     }
@@ -341,7 +341,7 @@ export default class bithumb extends bithumbRest {
         const marketId = this.safeString(trade, 'symbol');
         const datetime = this.safeString(trade, 'contDtm');
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        const timestamp = this.parse8601(datetime) - 32400000;
+        const timestamp = this.parseToInt(this.parse8601(datetime)) - 32400000;
         const sideId = this.safeString(trade, 'buySellGb');
         return this.safeTrade({
             'id': undefined,

@@ -495,58 +495,57 @@ func (this *HyperliquidCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		var tokens any = this.SafeList(response, "tokens", []any{})
 		// const meta = this.safeList (response, 'universe', []);
 		AddElementToObject(this.Options, "cachedCurrenciesById", map[string]any{}) // used to map hip3 markets
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(tokens)); i++ {
-			var data any = this.SafeDict(tokens, i, map[string]any{})
-			// const id = i;
-			var id any = this.SafeString(data, "index")
-			var name any = this.SafeString(data, "name")
-			var code any = this.SafeCurrencyCode(name)
-			AddElementToObject(GetValue(this.Options, "cachedCurrenciesById"), id, name)
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"name":      name,
-				"code":      code,
-				"precision": this.ParsePrecision(this.SafeString(data, "weiDecimals")),
-				"info":      data,
-				"active":    nil,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"networks":  nil,
-				"fee":       nil,
-				"type":      "crypto",
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-			}))
-			// add in wrapped map
-			var fullName any = this.SafeString(data, "fullName")
-			if IsTrue(IsTrue(!IsEqual(fullName, nil)) && IsTrue(!IsEqual(name, nil))) {
-				var isWrapped any = IsTrue(StartsWith(fullName, "Unit ")) && IsTrue(StartsWith(name, "U"))
-				if IsTrue(isWrapped) {
-					var parts any = Split(name, "U")
-					var nameWithoutU any = ""
-					for j := 0; IsLessThan(j, GetArrayLength(parts)); j++ {
-						nameWithoutU = Add(nameWithoutU, GetValue(parts, j))
-					}
-					var baseCode any = this.SafeCurrencyCode(nameWithoutU)
-					AddElementToObject(GetValue(this.Options, "spotCurrencyMapping"), code, baseCode)
-				}
-			}
-		}
 
-		ch <- result
+		ch <- this.ParseCurrencies(tokens)
 		return nil
 
 	}()
 	return ch
+}
+func (this *HyperliquidCore) ParseCurrency(rawCurrency any) any {
+	// const id = i;
+	var id any = this.SafeString(rawCurrency, "index")
+	var name any = this.SafeString(rawCurrency, "name")
+	var code any = this.SafeCurrencyCode(name)
+	AddElementToObject(GetValue(this.Options, "cachedCurrenciesById"), id, name)
+	var result any = this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"name":      name,
+		"code":      code,
+		"precision": this.ParsePrecision(this.SafeString(rawCurrency, "weiDecimals")),
+		"info":      rawCurrency,
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"networks":  nil,
+		"fee":       nil,
+		"type":      "crypto",
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+	})
+	// add in wrapped map
+	var fullName any = this.SafeString(rawCurrency, "fullName")
+	if IsTrue(IsTrue(!IsEqual(fullName, nil)) && IsTrue(!IsEqual(name, nil))) {
+		var isWrapped any = IsTrue(StartsWith(fullName, "Unit ")) && IsTrue(StartsWith(name, "U"))
+		if IsTrue(isWrapped) {
+			var parts any = Split(name, "U")
+			var nameWithoutU any = ""
+			for j := 0; IsLessThan(j, GetArrayLength(parts)); j++ {
+				nameWithoutU = Add(nameWithoutU, GetValue(parts, j))
+			}
+			var baseCode any = this.SafeCurrencyCode(nameWithoutU)
+			AddElementToObject(GetValue(this.Options, "spotCurrencyMapping"), code, baseCode)
+		}
+	}
+	return result
 }
 
 /**
@@ -566,7 +565,7 @@ func (this *HyperliquidCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var options any = this.SafeDict(this.Options, "fetchMarkets", map[string]any{})
-		var types any = this.SafeList(options, "types")
+		var types any = this.SafeList(options, "types", []any{})
 		var rawPromises any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(types)); i++ {
 			var marketType any = GetValue(types, i)
@@ -2939,7 +2938,7 @@ func (this *HyperliquidCore) CancelOrders(ids any, optionalArgs ...any) <-chan a
 		//
 		var innerResponse any = this.SafeDict(response, "response")
 		var data any = this.SafeDict(innerResponse, "data")
-		var statuses any = this.SafeList(data, "statuses")
+		var statuses any = this.SafeList(data, "statuses", []any{})
 		var orders any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(statuses)); i++ {
 			var status any = GetValue(statuses, i)
@@ -5502,7 +5501,7 @@ func (this *HyperliquidCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			for i := 0; IsLessThan(i, GetArrayLength(records)); i++ {
 				var record any = GetValue(records, i)
 				if IsTrue(IsEqual(GetValue(record, "type"), "vaultDeposit")) {
-					var delta any = this.SafeDict(record, "delta")
+					var delta any = this.SafeDict(record, "delta", map[string]any{})
 					if IsTrue(IsEqual(GetValue(delta, "vault"), Add("0x", vaultAddress))) {
 						AppendToArray(&deposits, record)
 					}
@@ -5591,7 +5590,7 @@ func (this *HyperliquidCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			for i := 0; IsLessThan(i, GetArrayLength(records)); i++ {
 				var record any = GetValue(records, i)
 				if IsTrue(IsEqual(GetValue(record, "type"), "vaultWithdraw")) {
-					var delta any = this.SafeDict(record, "delta")
+					var delta any = this.SafeDict(record, "delta", map[string]any{})
 					if IsTrue(IsEqual(GetValue(delta, "vault"), Add("0x", vaultAddress))) {
 						AppendToArray(&withdrawals, record)
 					}

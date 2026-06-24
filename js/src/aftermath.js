@@ -4,10 +4,10 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
 export default class aftermath extends Exchange {
     describe() {
@@ -16,7 +16,7 @@ export default class aftermath extends Exchange {
             'name': 'AftermathFinance',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': false,
             'pro': true,
             'dex': true,
@@ -309,7 +309,7 @@ export default class aftermath extends Exchange {
         //     }
         //
         const precision = this.safeDict(market, 'precision');
-        const limits = this.safeDict(market, 'limits');
+        const limits = this.safeDict(market, 'limits', {});
         return this.safeMarketStructure({
             'id': this.safeString(market, 'id'),
             'symbol': this.safeString(market, 'symbol'),

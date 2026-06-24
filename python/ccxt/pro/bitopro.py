@@ -344,7 +344,7 @@ class bitopro(ccxt.async_support.bitopro):
         #
         marketId = self.safe_string(message, 'pair')
         # market-ids are lowercase in REST API and uppercase in WS API
-        market = self.safe_market(marketId.lower(), None, '_')
+        market = self.safe_market(marketId is not marketId.lower() if None else None, None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
         messageHash = event + ':' + symbol
@@ -367,7 +367,7 @@ class bitopro(ccxt.async_support.bitopro):
         })
         payload = self.string_to_base64(rawData)
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
-        defaultOptions: dict = {
+        defaultOptions = {
             'ws': {
                 'options': {
                     'headers': {},
@@ -377,7 +377,7 @@ class bitopro(ccxt.async_support.bitopro):
         # self.options = self.extend(defaultOptions, self.options)
         self.extend_exchange_options(defaultOptions)
         originalHeaders = self.options['ws']['options']['headers']
-        headers: dict = {
+        headers = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': self.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
@@ -426,7 +426,7 @@ class bitopro(ccxt.async_support.bitopro):
         timestamp = self.safe_integer(message, 'timestamp')
         datetime = self.safe_string(message, 'datetime')
         currencies = list(data.keys())
-        result: dict = {
+        result = {
             'info': data,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -444,7 +444,7 @@ class bitopro(ccxt.async_support.bitopro):
         client.resolve(self.balance, event)
 
     def handle_message(self, client: Client, message):
-        methods: dict = {
+        methods = {
             'TRADE': self.handle_trade,
             'TICKER': self.handle_ticker,
             'ORDER_BOOK': self.handle_order_book,

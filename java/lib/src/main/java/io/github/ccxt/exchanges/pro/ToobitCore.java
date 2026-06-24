@@ -722,7 +722,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta);
+        Object bidAsk = this.parseOrderBookBidAsk(delta);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 

@@ -1,17 +1,24 @@
 /*  ------------------------------------------------------------------------ */
 
-import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
-import { base16,  base64, base58 } from '../../static_dependencies/scure-base/index.js';
-import { CHash, Input } from '../../static_dependencies/noble-hashes/utils.js';
-import { CurveFn } from '../../static_dependencies/noble-curves/abstract/weierstrass.js';
-import { CurveFn as CurveFnEDDSA } from '../../static_dependencies/noble-curves/abstract/edwards.js';
-import { Hex } from '../../static_dependencies/noble-curves/abstract/utils.js';
+import { hmac as _hmac } from '@noble/hashes/hmac.js';
+import { hex as base16,  base64 } from '@scure/base';
+import { type CHash, utf8ToBytes } from '@noble/hashes/utils.js';
+import type { ECDSA as CurveFn } from '@noble/curves/abstract/weierstrass.js';
+import type { EdDSA as CurveFnEDDSA } from '@noble/curves/abstract/edwards.js';
 import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
 import { ASN1 } from "../../static_dependencies/jsencrypt/lib/asn1js/asn1.js";
-import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
-import { P256 } from '../../static_dependencies/noble-curves/p256.js';
-import { numberToBytesLE } from '../../static_dependencies/noble-curves/abstract/utils.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { p256 as P256 } from '@noble/curves/nist.js';
+import { numberToBytesLE, hexToBytes } from '@noble/curves/utils.js';
 /*  ------------------------------------------------------------------------ */
+
+type Input = string | Uint8Array;
+type Hex = string | Uint8Array;
+
+// @noble/hashes v2 and @noble/curves v2 accept Uint8Array only
+// strings were treated as utf8 by noble-hashes v1 and as hex by noble-curves v1
+const utf8Bytes = (data: Input): Uint8Array => ((typeof data === 'string') ? utf8ToBytes (data) : data);
+const hexBytes = (data: Hex): Uint8Array => ((typeof data === 'string') ? hexToBytes (data) : data);
 
 const encoders = {
     binary: x => x,
@@ -29,14 +36,14 @@ const supportedCurve = {
 /*  .............................................   */
 
 const hash = (request: Input, hash: CHash, digest: Digest = 'hex') => {
-    const binary = hash (request)
+    const binary = hash (utf8Bytes (request))
     return encoders[digest] (binary)
 };
 
 /*  .............................................   */
 
 const hmac = (request: Input, secret: Input, hash: CHash, digest: Digest = 'hex') => {
-    const binary = _hmac (hash, secret, request)
+    const binary = _hmac (hash, utf8Bytes (secret), utf8Bytes (request))
     return encoders[digest] (binary)
 };
 
@@ -60,8 +67,8 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
                 // }
                 if (typeof asn1.sub[2].sub !== null && asn1.sub[2].sub.length > 0) {
                     const oid = asn1.sub[2].sub[0].content (undefined);
-                    if (supportedCurve[oid] === undefined) throw new Error('Unsupported curve');
-                    curve = supportedCurve[oid];
+                    if (supportedCurve[oid as string] === undefined) throw new Error('Unsupported curve');
+                    curve = supportedCurve[oid as string];
                 }
                 secret = asn1.sub[1].getHexStringValue()
             } else {
@@ -73,17 +80,25 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
             throw new Error('Unsupported key format');
         }
     }
-    let signature = curve.sign(request, secret, {
+    // @noble/curves v2 sign () accepts bytes only, returns encoded signature bytes
+    // and expects an unhashed message by default (prehash: true), so prehash is disabled explicitly
+    const messageBytes = hexBytes (request);
+    const secretBytes = hexBytes (secret);
+    let signature = curve.Signature.fromBytes (curve.sign (messageBytes, secretBytes, {
       lowS: true,
-    });
+      prehash: false,
+      format: 'recovered',
+    }), 'recovered');
     const minimumSize = (BigInt(1) << (BigInt(8) * BigInt(31))) - BigInt(1);
-    const halfOrder = curve.CURVE.n / BigInt(2);
+    const halfOrder = ((curve.Point as any).Fn.ORDER as bigint) / BigInt(2);
     let counter = 0;
     while (fixedLength && (signature.r > halfOrder || signature.r <= minimumSize || signature.s <= minimumSize)) {
-      signature = curve.sign(request, secret, {
+      signature = curve.Signature.fromBytes (curve.sign (messageBytes, secretBytes, {
         lowS: true,
+        prehash: false,
+        format: 'recovered',
         extraEntropy: numberToBytesLE(BigInt(counter), 32)
-      });
+      }), 'recovered');
       counter += 1;
     }
     return {
@@ -93,23 +108,17 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
     }
 }
 
-function axolotl (request: Hex, secret: Hex, curve: CurveFnEDDSA) {
-    // used for waves.exchange (that's why the output is base58)
-    const signature = curve.signModified (request, secret)
-    return base58.encode (signature)
-}
-
 function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
     let privateKey = undefined;
     if (secret.length === 32) {
       // ed25519 secret is 32 bytes
-      privateKey = secret
+      privateKey = utf8Bytes (secret)
     } else if (typeof secret === 'string') {
       // secret is the base64 pem encoded key
       // we get the last 32 bytes
       privateKey = new Uint8Array (Base64.unarmor (secret).slice (16))
     }
-    const signature = curve.sign (request, privateKey)
+    const signature = curve.sign (hexBytes (request), privateKey)
     return base64.encode (signature)
 }
 
@@ -144,7 +153,6 @@ export {
     crc32,
     ecdsa,
     eddsa,
-    axolotl,
 };
 
 /*  ------------------------------------------------------------------------ */

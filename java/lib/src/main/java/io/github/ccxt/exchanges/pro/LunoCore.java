@@ -270,8 +270,8 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object priceKey = Helpers.getArg(optionalArgs, 3, "price");
         Object amountKey = Helpers.getArg(optionalArgs, 4, "volume");
         Object countOrIdKey = Helpers.getArg(optionalArgs, 5, 2);
-        Object bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
-        Object asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        Object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        Object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", LunoCore.this.sortBy(bids, 0, true) );
@@ -282,7 +282,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         }};
     }
 
-    public Object parseBidsAsks(Object bidasks, Object... optionalArgs)
+    public Object parseOrderBookBidsAsks(Object bidasks, Object... optionalArgs)
     {
         Object priceKey = Helpers.getArg(optionalArgs, 0, "price");
         Object amountKey = Helpers.getArg(optionalArgs, 1, "volume");

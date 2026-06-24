@@ -777,7 +777,7 @@ public partial class bullish : Exchange
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        object id = this.safeString(market, "symbol");
+        object id = ((string)this.safeString(market, "symbol"));
         object baseId = this.safeString(market, "baseSymbol");
         object quoteId = this.safeString(market, "quoteSymbol");
         object bs = this.safeCurrencyCode(baseId);
@@ -827,7 +827,7 @@ public partial class bullish : Exchange
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
                 object idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                object datePart = this.safeString(idParts, 2);
+                object datePart = ((string)this.safeString(idParts, 2));
                 object dateYmd = slice(datePart, 2, null);
                 symbol = add(symbol, add("-", dateYmd));
                 if (isTrue(isEqual(type, "future")))
@@ -898,7 +898,7 @@ public partial class bullish : Exchange
         });
     }
 
-    public virtual object parseMarketType(object type, object defaultType = null)
+    public virtual object parseMarketType(object type = null, object defaultType = null)
     {
         object types = new Dictionary<string, object>() {
             { "SPOT", "spot" },
@@ -2270,7 +2270,7 @@ public partial class bullish : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, code);
         } else
         {
             throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a network parameter")) ;
@@ -2347,7 +2347,7 @@ public partial class bullish : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(network) },
+            { "network", this.networkIdToCode(network, code) },
             { "addressFrom", sourceAddress },
             { "address", address },
             { "addressTo", address },
@@ -2571,7 +2571,7 @@ public partial class bullish : Exchange
                 {
                     object entry = this.safeDict(safeResponse, i, new Dictionary<string, object>() {});
                     object networkId = this.safeString(entry, "network");
-                    object networkCode = this.networkIdToCode(networkId);
+                    object networkCode = this.networkIdToCode(networkId, code);
                     if (isTrue(isEqual(network, networkCode)))
                     {
                         data = entry;
@@ -2591,10 +2591,11 @@ public partial class bullish : Exchange
     {
         object id = this.safeString(depositAddress, "symbol");
         object network = this.safeString(depositAddress, "network");
+        object code = this.safeCurrencyCode(id, currency);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeCurrencyCode(id, currency) },
-            { "network", this.networkIdToCode(network) },
+            { "currency", code },
+            { "network", this.networkIdToCode(network, code) },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", null },
         };
@@ -3200,6 +3201,7 @@ public partial class bullish : Exchange
             }
             if (isTrue(isEqual(path, "v1/users/hmac/login")))
             {
+                headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["BX-PUBLIC-KEY"] = this.apiKey;
             } else
             {
@@ -3208,6 +3210,7 @@ public partial class bullish : Exchange
                 {
                     throw new AuthenticationError ((string)add(this.id, " requires a token, please call signIn() first")) ;
                 }
+                headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
             }
         }

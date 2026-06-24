@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
 var backpack$1 = require('../backpack.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var crypto = require('../base/functions/crypto.js');
-var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ class backpack extends backpack$1["default"] {
         const payload = 'instruction=' + instruction + '&' + 'timestamp=' + ts + '&window=' + recvWindow;
         const secretBytes = this.base64ToBinary(this.secret);
         const seed = this.arraySlice(secretBytes, 0, 32);
-        const signature = crypto.eddsa(this.encode(payload), seed, ed25519.ed25519);
+        const signature = crypto.eddsa(this.encode(payload), seed, ed25519_js.ed25519);
         const request = {
             'method': method,
             'params': topics,
@@ -881,7 +881,7 @@ class backpack extends backpack$1["default"] {
         client.resolve(storedOrderBook, messageHash);
     }
     handleDelta(orderbook, delta) {
-        const timestamp = this.parseToInt(this.safeInteger(delta, 'T') / 1000);
+        const timestamp = this.parseToInt(this.safeInteger(delta, 'T', 0) / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
         orderbook['nonce'] = this.safeInteger(delta, 'u');
@@ -894,7 +894,7 @@ class backpack extends backpack$1["default"] {
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk(bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk(bidAsks[i]);
             bookSide.storeArray(bidAsk);
         }
     }

@@ -1036,6 +1036,68 @@
         ],
         "createOrder": [
             {
+                "description": "tpsl",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "stopLossPrice": 2111,
+                        "takeProfitPrice": 2222,
+                        "tpsl": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Order placed",
+                    "data": {
+                        "tpslId": "10010751351",
+                        "clientOrderId": null,
+                        "code": "0",
+                        "msg": null
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tpslId": "10010751351",
+                        "clientOrderId": null,
+                        "code": "0",
+                        "msg": null
+                    },
+                    "id": "10010751351",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopLossTriggerPrice": null,
+                    "takeProfitTriggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null,
+                    "triggerPrice": null
+                }
+            },
+            {
                 "description": "takeProfitPrice",
                 "method": "createOrder",
                 "input": [

@@ -74,7 +74,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-deribit.fetchTime ([params])
+deribit.fetchTime (params?)
 ```
 
 
@@ -94,7 +94,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-deribit.fetchCurrencies ([params])
+deribit.fetchCurrencies (params?)
 ```
 
 
@@ -114,7 +114,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-deribit.fetchStatus ([params])
+deribit.fetchStatus (params?)
 ```
 
 
@@ -134,7 +134,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-deribit.fetchAccounts ([params])
+deribit.fetchAccounts (params?)
 ```
 
 
@@ -158,7 +158,7 @@ retrieves data on all markets for deribit
 
 
 ```javascript
-deribit.fetchMarkets ([params])
+deribit.fetchMarkets (params?)
 ```
 
 
@@ -183,7 +183,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-deribit.fetchBalance ([params])
+deribit.fetchBalance (params?)
 ```
 
 
@@ -204,7 +204,7 @@ create a currency deposit address
 
 
 ```javascript
-deribit.createDepositAddress (code[, params])
+deribit.createDepositAddress (code, params?)
 ```
 
 
@@ -225,7 +225,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-deribit.fetchDepositAddress (code[, params])
+deribit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -246,7 +246,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-deribit.fetchTicker (symbol[, params])
+deribit.fetchTicker (symbol, params?)
 ```
 
 
@@ -268,7 +268,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-deribit.fetchTickers ([symbols, params])
+deribit.fetchTickers (symbols?, params?)
 ```
 
 
@@ -294,7 +294,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-deribit.fetchOHLCV (symbol, timeframe[, since, limit, params])
+deribit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -322,7 +322,7 @@ get the list of most recent trades for a particular symbol.
 
 
 ```javascript
-deribit.fetchTrades (symbol[, since, limit, params])
+deribit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -342,7 +342,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-deribit.fetchTradingFees ([params])
+deribit.fetchTradingFees (params?)
 ```
 
 
@@ -364,7 +364,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-deribit.fetchOrderBook (symbol[, limit, params])
+deribit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -386,7 +386,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-deribit.fetchOrder (id, symbol[, params])
+deribit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -417,7 +417,7 @@ create a trade order
 
 
 ```javascript
-deribit.createOrder (symbol, type, side, amount[, price, params])
+deribit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -444,7 +444,7 @@ edit a trade order
 
 
 ```javascript
-deribit.editOrder (id[, symbol, type, side, amount, price, params])
+deribit.editOrder (id, symbol?, type?, side?, amount, price?, params?)
 ```
 
 
@@ -466,7 +466,7 @@ cancels an open order
 
 
 ```javascript
-deribit.cancelOrder (id, symbol[, params])
+deribit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -491,7 +491,7 @@ cancel all open orders
 
 
 ```javascript
-deribit.cancelAllOrders (symbol[, params])
+deribit.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -518,7 +518,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-deribit.fetchOpenOrders (symbol[, since, limit, params])
+deribit.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -545,7 +545,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-deribit.fetchClosedOrders (symbol[, since, limit, params])
+deribit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -569,7 +569,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-deribit.fetchOrderTrades (id, symbol[, since, limit, params])
+deribit.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -598,7 +598,7 @@ fetch all trades made by the user
 
 
 ```javascript
-deribit.fetchMyTrades (symbol[, since, limit, params])
+deribit.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -621,7 +621,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-deribit.fetchDeposits (code[, since, limit, params])
+deribit.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -644,7 +644,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-deribit.fetchWithdrawals (code[, since, limit, params])
+deribit.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -665,7 +665,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-deribit.fetchPosition (symbol[, params])
+deribit.fetchPosition (symbol, params?)
 ```
 
 
@@ -689,7 +689,7 @@ fetch all open positions
 
 
 ```javascript
-deribit.fetchPositions (symbols[, params])
+deribit.fetchPositions (symbols, params?)
 ```
 
 
@@ -710,7 +710,7 @@ fetch the historical volatility of an option market based on an underlying asset
 
 
 ```javascript
-deribit.fetchVolatilityHistory (code[, params])
+deribit.fetchVolatilityHistory (code, params?)
 ```
 
 
@@ -733,7 +733,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-deribit.fetchTransfers (code[, since, limit, params])
+deribit.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -761,7 +761,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-deribit.transfer (code, amount, fromAccount, toAccount[, params])
+deribit.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -785,7 +785,7 @@ make a withdrawal
 
 
 ```javascript
-deribit.withdraw (code, amount, address, tag[, params])
+deribit.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -806,7 +806,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-deribit.fetchDepositWithdrawFees (codes[, params])
+deribit.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -829,7 +829,7 @@ fetch the current funding rate
 
 
 ```javascript
-deribit.fetchFundingRate (symbol[, params])
+deribit.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -854,7 +854,7 @@ fetch the current funding rate
 
 
 ```javascript
-deribit.fetchFundingRateHistory (symbol[, since, limit, params])
+deribit.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -878,7 +878,7 @@ retrieves the public liquidations of a trading pair
 
 
 ```javascript
-deribit.fetchLiquidations (symbol[, since, limit, params])
+deribit.fetchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -901,7 +901,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-deribit.fetchMyLiquidations (symbol[, since, limit, params])
+deribit.fetchMyLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -922,7 +922,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 
 ```javascript
-deribit.fetchGreeks (symbol[, params])
+deribit.fetchGreeks (symbol, params?)
 ```
 
 
@@ -943,7 +943,7 @@ fetches option data that is commonly found in an option chain
 
 
 ```javascript
-deribit.fetchOption (symbol[, params])
+deribit.fetchOption (symbol, params?)
 ```
 
 
@@ -964,7 +964,7 @@ fetches data for an underlying asset that is commonly found in an option chain
 
 
 ```javascript
-deribit.fetchOptionChain (code[, params])
+deribit.fetchOptionChain (code, params?)
 ```
 
 
@@ -985,7 +985,7 @@ Retrieves the open interest of a symbol
 
 
 ```javascript
-deribit.fetchOpenInterest (symbol[, params])
+deribit.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -1005,7 +1005,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-deribit.watchBalance ([params])
+deribit.watchBalance (params?)
 ```
 
 
@@ -1027,7 +1027,7 @@ watches a price ticker, a statistical calculation with the information for a spe
 
 
 ```javascript
-deribit.watchTicker (symbol[, params])
+deribit.watchTicker (symbol, params?)
 ```
 
 
@@ -1049,7 +1049,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-deribit.watchTickers ([symbols, params])
+deribit.watchTickers (symbols?, params?)
 ```
 
 
@@ -1070,7 +1070,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-deribit.watchBidsAsks ([symbols, params])
+deribit.watchBidsAsks (symbols?, params?)
 ```
 
 
@@ -1094,7 +1094,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-deribit.watchTrades (symbol[, since, limit, params])
+deribit.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1117,7 +1117,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-deribit.watchTradesForSymbols (symbols[, since, limit, params])
+deribit.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1141,7 +1141,7 @@ get the list of trades associated with the user
 
 
 ```javascript
-deribit.watchMyTrades (symbol[, since, limit, params])
+deribit.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1164,7 +1164,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-deribit.watchOrderBook (symbol[, limit, params])
+deribit.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1186,7 +1186,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-deribit.watchOrderBookForSymbols (symbols[, limit, params])
+deribit.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1209,7 +1209,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-deribit.watchOrders (symbol[, since, limit, params])
+deribit.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1233,7 +1233,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-deribit.watchOHLCV (symbol, timeframe[, since, limit, params])
+deribit.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1256,6 +1256,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-deribit.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+deribit.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 

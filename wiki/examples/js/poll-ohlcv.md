@@ -1,8 +1,5 @@
-- [Poll Ohlcv](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -44,5 +41,5 @@ async function main () {
     await Promise.all (firstOneHundredSymbols.map (symbol => pollOHLCV (exchange, symbol, timeframe)))
 }
 
-main () 
+main ()
 ```

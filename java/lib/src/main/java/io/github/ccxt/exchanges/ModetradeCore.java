@@ -665,7 +665,6 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object result = new java.util.HashMap<String, Object>() {{}};
             Object response = (this.v1PublicGetPublicToken(parameters)).join();
             //
             // {
@@ -691,73 +690,73 @@ public class ModetradeCore extends ModetradeApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object tokenRows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tokenRows)); i++)
-            {
-                Object token = Helpers.GetValue(tokenRows, i);
-                Object currencyId = this.safeString(token, "token");
-                Object networks = this.safeList(token, "chain_details");
-                Object code = this.safeCurrencyCode(currencyId);
-                Object minPrecision = null;
-                Object resultingNetworks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
-                {
-                    Object network = Helpers.GetValue(networks, j);
-                    // TODO: transform chain id to human readable name
-                    Object networkId = this.safeString(network, "chain_id");
-                    Object precision = this.parsePrecision(this.safeString(network, "decimals"));
-                    if (Helpers.isTrue(!Helpers.isEqual(precision, null)))
-                    {
-                        minPrecision = ((Helpers.isTrue((Helpers.isEqual(minPrecision, null))))) ? precision : Precise.stringMin(precision, minPrecision);
-                    }
-                    final Object finalPrecision = precision;
-                    Helpers.addElementToObject(resultingNetworks, networkId, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "network", networkId );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", ModetradeCore.this.safeNumber(network, "withdrawal_fee") );
-        put( "precision", ModetradeCore.this.parseNumber(finalPrecision) );
-        put( "info", network );
-    }});
-                }
-                final Object finalMinPrecision = minPrecision;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", currencyId );
-        put( "name", currencyId );
-        put( "code", code );
-        put( "precision", ModetradeCore.this.parseNumber(finalMinPrecision) );
-        put( "active", null );
-        put( "fee", null );
-        put( "networks", resultingNetworks );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", ModetradeCore.this.safeNumber(token, "minimum_withdraw_amount") );
-                put( "max", null );
-            }} );
-        }} );
-        put( "info", token );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(tokenRows);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object currencyId = this.safeString(rawCurrency, "token");
+        Object networks = this.safeList(rawCurrency, "chain_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object code = this.safeCurrencyCode(currencyId);
+        Object minPrecision = null;
+        Object resultingNetworks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
+        {
+            Object network = Helpers.GetValue(networks, j);
+            // TODO: transform chain id to human readable name
+            Object networkId = this.safeString(network, "chain_id");
+            Object precision = this.parsePrecision(this.safeString(network, "decimals"));
+            if (Helpers.isTrue(!Helpers.isEqual(precision, null)))
+            {
+                minPrecision = ((Helpers.isTrue((Helpers.isEqual(minPrecision, null))))) ? precision : Precise.stringMin(precision, minPrecision);
+            }
+            final Object finalPrecision = precision;
+            Helpers.addElementToObject(resultingNetworks, networkId, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "network", networkId );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+    }} );
+    put( "active", null );
+    put( "deposit", null );
+    put( "withdraw", null );
+    put( "fee", ModetradeCore.this.safeNumber(network, "withdrawal_fee") );
+    put( "precision", ModetradeCore.this.parseNumber(finalPrecision) );
+    put( "info", network );
+}});
+        }
+        final Object finalMinPrecision = minPrecision;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", currencyId );
+            put( "name", currencyId );
+            put( "code", code );
+            put( "precision", ModetradeCore.this.parseNumber(finalMinPrecision) );
+            put( "active", null );
+            put( "fee", null );
+            put( "networks", resultingNetworks );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", ModetradeCore.this.safeNumber(rawCurrency, "minimum_withdraw_amount") );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "info", rawCurrency );
+        }});
     }
 
     public Object parseTokenAndFeeTemp(Object item, Object feeTokenKey, Object feeAmountKey)
@@ -1773,7 +1772,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 response = (this.v1PrivatePostOrder(request)).join();
             }
-            Object data = this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             Object order = this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
@@ -1982,7 +1981,7 @@ public class ModetradeCore extends ModetradeApi
             }
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(finalMarket, "id") );
+                put( "symbol", ModetradeCore.this.safeString(finalMarket, "id") );
             }};
             Object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
             Object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
@@ -3058,7 +3057,7 @@ public class ModetradeCore extends ModetradeApi
         Object leverageValue = this.safeInteger(leverage, "max_leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", ModetradeCore.this.safeString(market, "symbol") );
             put( "marginMode", null );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );

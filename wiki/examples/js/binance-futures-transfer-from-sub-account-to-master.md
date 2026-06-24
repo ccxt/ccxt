@@ -1,8 +1,5 @@
-- [Binance Futures Transfer From Sub Account To Master](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -43,5 +40,5 @@ async function main () {
 
 main ()
 
- 
+
 ```

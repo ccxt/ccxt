@@ -27,6 +27,22 @@ public partial class zebpay
         var res = await this.fetchStatus(parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// fetches the current integer timestamp in milliseconds from the poloniexfutures server
+    /// </summary>
+    /// <remarks>
+    /// See <see href="[Spot]"/>  <br/>
+    /// See <see href="[Swap]"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the poloniexfutures server.</returns>
     public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTime(parameters);
@@ -80,6 +96,21 @@ public partial class zebpay
         var res = await this.fetchTradingFee(symbol, parameters);
         return new TradingFeeInterface(res);
     }
+    /// <summary>
+    /// fetch the trading fees for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="[Swap]"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
     public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);

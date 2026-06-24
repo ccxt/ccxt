@@ -6,7 +6,7 @@ import asTable from 'as-table';
 const { noLocate } = ololog;
 const log = noLocate;
 
-const exchange = new ccxt.bittrex ({
+const exchange = new ccxt.binance ({
         'enableRateLimit': true,
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_API_SECRET',

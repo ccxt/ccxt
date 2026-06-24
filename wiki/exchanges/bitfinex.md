@@ -69,7 +69,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-bitfinex.fetchStatus ([params])
+bitfinex.fetchStatus (params?)
 ```
 
 
@@ -89,7 +89,7 @@ retrieves data on all markets for bitfinex
 
 
 ```javascript
-bitfinex.fetchMarkets ([params])
+bitfinex.fetchMarkets (params?)
 ```
 
 
@@ -109,7 +109,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitfinex.fetchCurrencies ([params])
+bitfinex.fetchCurrencies (params?)
 ```
 
 
@@ -129,7 +129,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitfinex.fetchBalance ([params])
+bitfinex.fetchBalance (params?)
 ```
 
 
@@ -153,7 +153,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bitfinex.transfer (code, amount, fromAccount, toAccount[, params])
+bitfinex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -175,7 +175,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitfinex.fetchOrderBook (symbol[, limit, params])
+bitfinex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -196,7 +196,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitfinex.fetchTickers (symbols[, params])
+bitfinex.fetchTickers (symbols, params?)
 ```
 
 
@@ -217,7 +217,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitfinex.fetchTicker (symbol[, params])
+bitfinex.fetchTicker (symbol, params?)
 ```
 
 
@@ -242,7 +242,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitfinex.fetchTrades (symbol[, since, limit, params])
+bitfinex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -268,7 +268,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitfinex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitfinex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -302,7 +302,7 @@ create an order on the exchange
 
 
 ```javascript
-bitfinex.createOrder (symbol, type, side, amount[, price, params])
+bitfinex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -323,7 +323,7 @@ create a list of trade orders
 
 
 ```javascript
-bitfinex.createOrders (orders[, params])
+bitfinex.createOrders (orders, params?)
 ```
 
 
@@ -344,7 +344,7 @@ cancel all open orders
 
 
 ```javascript
-bitfinex.cancelAllOrders (symbol[, params])
+bitfinex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -366,7 +366,7 @@ cancels an open order
 
 
 ```javascript
-bitfinex.cancelOrder (id, symbol[, params])
+bitfinex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -388,7 +388,7 @@ cancel multiple orders at the same time
 
 
 ```javascript
-bitfinex.cancelOrders (ids, symbol[, params])
+bitfinex.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -414,7 +414,7 @@ fetch an open order by it's id
 
 
 ```javascript
-bitfinex.fetchOpenOrder (id, symbol[, params])
+bitfinex.fetchOpenOrder (id, symbol, params?)
 ```
 
 
@@ -440,7 +440,7 @@ fetch an open order by it's id
 
 
 ```javascript
-bitfinex.fetchClosedOrder (id, symbol[, params])
+bitfinex.fetchClosedOrder (id, symbol, params?)
 ```
 
 
@@ -467,7 +467,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitfinex.fetchOpenOrders (symbol[, since, limit, params])
+bitfinex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -496,7 +496,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitfinex.fetchClosedOrders (symbol[, since, limit, params])
+bitfinex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -520,7 +520,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-bitfinex.fetchOrderTrades (id, symbol[, since, limit, params])
+bitfinex.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -547,7 +547,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitfinex.fetchMyTrades (symbol[, since, limit, params])
+bitfinex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -568,7 +568,7 @@ create a currency deposit address
 
 
 ```javascript
-bitfinex.createDepositAddress (code[, params])
+bitfinex.createDepositAddress (code, params?)
 ```
 
 
@@ -589,7 +589,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitfinex.fetchDepositAddress (code[, params])
+bitfinex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -609,7 +609,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitfinex.fetchTradingFees ([params])
+bitfinex.fetchTradingFees (params?)
 ```
 
 
@@ -636,7 +636,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-bitfinex.fetchDepositsWithdrawals ([code, since, limit, params])
+bitfinex.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -660,7 +660,7 @@ make a withdrawal
 
 
 ```javascript
-bitfinex.withdraw (code, amount, address, tag[, params])
+bitfinex.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -681,7 +681,7 @@ fetch all open positions
 
 
 ```javascript
-bitfinex.fetchPositions (symbols[, params])
+bitfinex.fetchPositions (symbols, params?)
 ```
 
 
@@ -706,7 +706,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitfinex.fetchLedger ([code, since, limit, params])
+bitfinex.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -727,7 +727,7 @@ fetch the current funding rate for multiple symbols
 
 
 ```javascript
-bitfinex.fetchFundingRates (symbols[, params])
+bitfinex.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -752,7 +752,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-bitfinex.fetchFundingRateHistory (symbol[, since, limit, params])
+bitfinex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -773,7 +773,7 @@ Retrieves the open interest for a list of symbols
 
 
 ```javascript
-bitfinex.fetchOpenInterests ([symbols, params])
+bitfinex.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -794,7 +794,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-bitfinex.fetchOpenInterest (symbol[, params])
+bitfinex.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -820,7 +820,7 @@ retrieves the open interest history of a currency
 
 
 ```javascript
-bitfinex.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
+bitfinex.fetchOpenInterestHistory (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -845,7 +845,7 @@ retrieves the public liquidations of a trading pair
 
 
 ```javascript
-bitfinex.fetchLiquidations (symbol[, since, limit, params])
+bitfinex.fetchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -867,7 +867,7 @@ either adds or reduces margin in a swap position in order to set the margin to a
 
 
 ```javascript
-bitfinex.setMargin (symbol, amount[, params])
+bitfinex.setMargin (symbol, amount, params?)
 ```
 
 
@@ -893,7 +893,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitfinex.fetchOrder (id[, symbol, params])
+bitfinex.fetchOrder (id, symbol?, params?)
 ```
 
 
@@ -926,7 +926,7 @@ edit a trade order
 
 
 ```javascript
-bitfinex.editOrder (id, symbol, type, side, amount[, price, params])
+bitfinex.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -949,7 +949,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitfinex.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitfinex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -970,7 +970,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-bitfinex.unWatchOHLCV (symbol, timeframe[, params])
+bitfinex.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -992,7 +992,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitfinex.watchTrades (symbol[, since, limit, params])
+bitfinex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1012,7 +1012,7 @@ unWatches the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitfinex.unWatchTrades (symbol[, params])
+bitfinex.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1034,7 +1034,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bitfinex.watchMyTrades (symbol[, since, limit, params])
+bitfinex.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1054,7 +1054,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitfinex.watchTicker (symbol[, params])
+bitfinex.watchTicker (symbol, params?)
 ```
 
 
@@ -1074,7 +1074,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-bitfinex.unWatchTicker (symbol[, params])
+bitfinex.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1095,7 +1095,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitfinex.watchOrderBook (symbol[, limit, params])
+bitfinex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1115,7 +1115,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitfinex.watchBalance ([params])
+bitfinex.watchBalance (params?)
 ```
 
 
@@ -1137,6 +1137,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitfinex.watchOrders (symbol[, since, limit, params])
+bitfinex.watchOrders (symbol, since?, limit?, params?)
 ```
 

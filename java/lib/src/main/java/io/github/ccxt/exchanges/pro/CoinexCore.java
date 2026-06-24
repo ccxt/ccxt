@@ -674,7 +674,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
         Object fee = new java.util.HashMap<String, Object>() {{}};
-        Object feeCost = this.omitZero(this.safeString(trade, "fee"));
+        Object feeCost = this.omitZero(((String)this.safeString(trade, "fee")));
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             Object feeCurrencyId = this.safeString(trade, "fee_ccy", Helpers.GetValue(market, "quote"));
@@ -983,7 +983,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta, 0, 1);
+        Object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -1266,7 +1266,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object order = this.safeDict2(data, "order", "stop", new java.util.HashMap<String, Object>() {{}});
         Object parsedOrder = this.parseWsOrder(order);
         Object symbol = Helpers.GetValue(parsedOrder, "symbol");
-        Object market = this.market(symbol);
+        Object market = this.market(((String)symbol));
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1379,7 +1379,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
         Object fee = null;
-        Object feeCost = this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee"));
+        Object feeCost = this.omitZero(((String)this.safeString2(order, "fee", "quote_ccy_fee")));
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             Object feeCurrencyId = this.safeString(order, "fee_ccy", Helpers.GetValue(market, "quote"));
@@ -1503,7 +1503,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object parsedTicker = this.parseWsBidAsk(data);
         Object symbol = Helpers.GetValue(parsedTicker, "symbol");
-        Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
+        Helpers.addElementToObject(this.bidsasks, ((String)symbol), parsedTicker);
         Object messageHash = Helpers.add("bidsasks:", symbol);
         client.resolve(parsedTicker, messageHash);
     }
@@ -1544,7 +1544,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object error = this.safeString(message, "message");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
-            this.handleErrors(1, "", client.url, method, new java.util.HashMap<String, Object>() {{}}, this.json(error), message, new java.util.HashMap<String, Object>() {{}}, new java.util.HashMap<String, Object>() {{}});
+            this.handleErrors(1, "", client.url, ((String)method), new java.util.HashMap<String, Object>() {{}}, this.json(error), message, new java.util.HashMap<String, Object>() {{}}, new java.util.HashMap<String, Object>() {{}});
         }
         Object handlers = new java.util.HashMap<String, Object>() {{
             put( "state.update", "handleTicker");
@@ -1556,7 +1556,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             put( "stop.update", "handleOrders");
             put( "bbo.update", "handleBidAsk");
         }};
-        Object handler = this.safeValue(handlers, method);
+        Object handler = this.safeValue(handlers, ((String)method));
         if (Helpers.isTrue(!Helpers.isEqual(handler, null)))
         {
             Helpers.callDynamically(this, handler, new Object[] {client, message});
@@ -1634,7 +1634,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
             Object futureIndex = this.safeString(subscription, "future");
-            Object future = this.safeValue(client.futures, futureIndex);
+            Object future = this.safeValue(client.futures, ((String)futureIndex));
             if (Helpers.isTrue(!Helpers.isEqual(future, null)))
             {
                 ((io.github.ccxt.ws.Future)future).resolve(true);

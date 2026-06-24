@@ -346,7 +346,7 @@
                         "precision": null,
                         "type": "crypto",
                         "name": "Tether",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0.1,
@@ -365,7 +365,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.7,
@@ -396,7 +396,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 3.1,
@@ -427,7 +427,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.6,
@@ -458,7 +458,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.6,
@@ -489,7 +489,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.2,
@@ -520,7 +520,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.1,
@@ -551,7 +551,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.6,
@@ -582,7 +582,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.2,
@@ -613,7 +613,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.2,
@@ -644,7 +644,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.2,
@@ -675,7 +675,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.6,
@@ -706,7 +706,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.6,
@@ -737,7 +737,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.6,
@@ -2106,44 +2106,180 @@
         ],
         "fetchTrades": [
             {
-                "description": "fetch trades with since and limit parameters",
+                "description": "+since +limit",
                 "method": "fetchTrades",
                 "input": [
                     "ETH/USDC",
-                    1757604778000,
-                    1
+                    1770000000000,
+                    5
                 ],
                 "httpResponse": [
                     {
-                        "id": "3530359",
+                        "id": "7558558",
                         "isBuyerMaker": true,
-                        "price": "4423.77",
-                        "quantity": "0.2212",
-                        "quoteQuantity": "978.537924",
-                        "timestamp": "1757619706067"
+                        "price": "1626.15",
+                        "quantity": "0.0333",
+                        "quoteQuantity": "54.150795",
+                        "timestamp": "1781067801978"
+                    },
+                    {
+                        "id": "7558557",
+                        "isBuyerMaker": true,
+                        "price": "1626.24",
+                        "quantity": "0.1311",
+                        "quoteQuantity": "213.200064",
+                        "timestamp": "1781067801927"
+                    },
+                    {
+                        "id": "7558556",
+                        "isBuyerMaker": true,
+                        "price": "1626.3",
+                        "quantity": "0.0005",
+                        "quoteQuantity": "0.81315",
+                        "timestamp": "1781067801813"
+                    },
+                    {
+                        "id": "7558555",
+                        "isBuyerMaker": false,
+                        "price": "1624",
+                        "quantity": "0.0376",
+                        "quoteQuantity": "61.0624",
+                        "timestamp": "1781067762954"
+                    },
+                    {
+                        "id": "7558554",
+                        "isBuyerMaker": false,
+                        "price": "1624",
+                        "quantity": "0.1684",
+                        "quoteQuantity": "273.4816",
+                        "timestamp": "1781067762954"
                     }
                 ],
                 "parsedResponse": [
                     {
                         "info": {
-                            "id": "3530359",
-                            "isBuyerMaker": true,
-                            "price": "4423.77",
-                            "quantity": "0.2212",
-                            "quoteQuantity": "978.537924",
-                            "timestamp": "1757619706067"
+                            "id": "7558554",
+                            "isBuyerMaker": false,
+                            "price": "1624",
+                            "quantity": "0.1684",
+                            "quoteQuantity": "273.4816",
+                            "timestamp": "1781067762954"
                         },
-                        "timestamp": 1757619706067,
-                        "datetime": "2025-09-11T19:41:46.067Z",
+                        "timestamp": 1781067762954,
+                        "datetime": "2026-06-10T05:02:42.954Z",
                         "symbol": "ETH/USDC",
-                        "id": "3530359",
+                        "id": "7558554",
                         "order": null,
                         "type": null,
-                        "side": null,
+                        "side": "buy",
                         "takerOrMaker": "taker",
-                        "price": 4423.77,
-                        "amount": 0.2212,
-                        "cost": 978.537924,
+                        "price": 1624,
+                        "amount": 0.1684,
+                        "cost": 273.4816,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558555",
+                            "isBuyerMaker": false,
+                            "price": "1624",
+                            "quantity": "0.0376",
+                            "quoteQuantity": "61.0624",
+                            "timestamp": "1781067762954"
+                        },
+                        "timestamp": 1781067762954,
+                        "datetime": "2026-06-10T05:02:42.954Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558555",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 1624,
+                        "amount": 0.0376,
+                        "cost": 61.0624,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558556",
+                            "isBuyerMaker": true,
+                            "price": "1626.3",
+                            "quantity": "0.0005",
+                            "quoteQuantity": "0.81315",
+                            "timestamp": "1781067801813"
+                        },
+                        "timestamp": 1781067801813,
+                        "datetime": "2026-06-10T05:03:21.813Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558556",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1626.3,
+                        "amount": 0.0005,
+                        "cost": 0.81315,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558557",
+                            "isBuyerMaker": true,
+                            "price": "1626.24",
+                            "quantity": "0.1311",
+                            "quoteQuantity": "213.200064",
+                            "timestamp": "1781067801927"
+                        },
+                        "timestamp": 1781067801927,
+                        "datetime": "2026-06-10T05:03:21.927Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558557",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1626.24,
+                        "amount": 0.1311,
+                        "cost": 213.200064,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558558",
+                            "isBuyerMaker": true,
+                            "price": "1626.15",
+                            "quantity": "0.0333",
+                            "quoteQuantity": "54.150795",
+                            "timestamp": "1781067801978"
+                        },
+                        "timestamp": 1781067801978,
+                        "datetime": "2026-06-10T05:03:21.978Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558558",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1626.15,
+                        "amount": 0.0333,
+                        "cost": 54.150795,
                         "fee": {
                             "cost": null,
                             "currency": null

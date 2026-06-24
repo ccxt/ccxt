@@ -524,40 +524,39 @@ class latoken extends Exchange {
             //         ),
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $id = $this->safe_string($currency, 'id');
-                $tag = $this->safe_string($currency, 'tag');
-                $code = $this->safe_currency_code($tag);
-                $currencyType = $this->safe_string($currency, 'type');
-                $isCrypto = ($currencyType === 'CURRENCY_TYPE_CRYPTO' || $currencyType === 'CURRENCY_TYPE_IEO');
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => $currency,
-                    'name' => $this->safe_string($currency, 'name'),
-                    'type' => $isCrypto ? 'crypto' : 'other',
-                    'active' => $this->safe_string($currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => $this->safe_number($currency, 'fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $this->safe_number($currency, 'minTransferAmount'),
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => array(),
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($response);
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $id = $this->safe_string($currency, 'id');
+        $tag = $this->safe_string($currency, 'tag');
+        $code = $this->safe_currency_code($tag);
+        $currencyType = $this->safe_string($currency, 'type');
+        $isCrypto = ($currencyType === 'CURRENCY_TYPE_CRYPTO' || $currencyType === 'CURRENCY_TYPE_IEO');
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $currency,
+            'name' => $this->safe_string($currency, 'name'),
+            'type' => $isCrypto ? 'crypto' : 'other',
+            'active' => $this->safe_string($currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => $this->safe_number($currency, 'fee'),
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
+            'limits' => array(
+                'amount' => array(
+                    'min' => $this->safe_number($currency, 'minTransferAmount'),
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => array(),
+        ));
     }
 
     public function fetch_balance($params = array ()): PromiseInterface {
@@ -1029,7 +1028,6 @@ class latoken extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100
             }
-            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['currency'] = $market['baseId'];
@@ -1210,7 +1208,6 @@ class latoken extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $response = null;
             $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
             $params = $this->omit($params, 'stop');
             // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1280,7 +1277,6 @@ class latoken extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100
             }
-            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['currency'] = $market['baseId'];
@@ -1343,7 +1339,6 @@ class latoken extends Exchange {
             );
             $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
-            $response = null;
             if ($isTrigger) {
                 $response = Async\await($this->privateGetAuthStopOrderGetOrderId ($this->extend($request, $params)));
             } else {
@@ -1414,7 +1409,6 @@ class latoken extends Exchange {
             }
             $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
             $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-            $response = null;
             if ($triggerPrice !== null) {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 $response = Async\await($this->privatePostAuthStopOrderPlace ($this->extend($request, $params)));
@@ -1457,7 +1451,6 @@ class latoken extends Exchange {
             );
             $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
-            $response = null;
             if ($isTrigger) {
                 $response = Async\await($this->privatePostAuthStopOrderCancel ($this->extend($request, $params)));
             } else {
@@ -1497,7 +1490,6 @@ class latoken extends Exchange {
             $market = null;
             $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
-            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['currency'] = $market['baseId'];
@@ -1742,7 +1734,6 @@ class latoken extends Exchange {
                 'recipient' => $toAccount,
                 'value' => $this->currency_to_precision($code, $amount),
             );
-            $response = null;
             if (mb_strpos($toAccount, '@') !== false) {
                 $response = Async\await($this->privatePostAuthTransferEmail ($this->extend($request, $params)));
             } elseif (strlen($toAccount) === 36) {
@@ -1826,7 +1817,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = null, $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $requestString = $request;
         $query = $this->omit($params, $this->extract_params($path));
@@ -1850,7 +1841,7 @@ class latoken extends Exchange {
                 $body = $this->json($query);
             }
         }
-        $url = $this->urls['api']['rest'] . $requestString;
+        $url = ($this->urls['api'])['rest'] . $requestString;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

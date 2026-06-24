@@ -1465,7 +1465,6 @@ public class AsterCore extends AsterApi
         Object last = this.safeString(ticker, "lastPrice");
         Object open = this.safeString(ticker, "openPrice");
         Object percentage = this.safeString(ticker, "priceChangePercent");
-        percentage = Precise.stringMul(percentage, "100");
         Object quoteVolume = this.safeString(ticker, "quoteVolume");
         Object baseVolume = this.safeString(ticker, "volume");
         Object high = this.safeString(ticker, "highPrice");
@@ -1482,7 +1481,6 @@ public class AsterCore extends AsterApi
         Object marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
         final Object finalMarket = market;
-        final Object finalPercentage = percentage;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
@@ -1499,7 +1497,7 @@ public class AsterCore extends AsterApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", finalPercentage );
+            put( "percentage", percentage );
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
@@ -1711,7 +1709,7 @@ public class AsterCore extends AsterApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(entry, "time");
         return new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", AsterCore.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", AsterCore.this.iso8601(timestamp) );
             put( "price", AsterCore.this.safeNumberOmitZero(entry, "price") );
@@ -2259,7 +2257,7 @@ public class AsterCore extends AsterApi
             put( "REJECTED", "canceled" );
             put( "EXPIRED", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrderType(Object type)
@@ -2273,7 +2271,7 @@ public class AsterCore extends AsterApi
             put( "TAKE_PROFIT_MARKET", "market" );
             put( "TRAILING_STOP_MARKET", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -2332,14 +2330,16 @@ public class AsterCore extends AsterApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object info = order;
+        Object positionSide = this.safeString(order, "positionSide");
+        Object defaultType = ((Helpers.isTrue((!Helpers.isEqual(positionSide, null))))) ? "swap" : "spot";
         Object marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, defaultType);
         Object side = this.safeStringLower(order, "side");
         Object timestamp = this.safeInteger(order, "time");
         Object statusId = this.safeStringUpper(order, "status");
         Object rawType = this.safeStringUpper(order, "type");
         Object stopPriceString = this.safeString(order, "stopPrice");
-        Object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
+        Object triggerPrice = this.parseNumber(this.omitZero(((String)stopPriceString)));
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", info );
@@ -2805,14 +2805,14 @@ public class AsterCore extends AsterApi
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
                 Object marketId = this.safeString(rawOrder, "symbol");
-                Object currentMarket = this.market(marketId);
+                Object currentMarket = this.market(((String)marketId));
                 ((java.util.List<Object>)orderSymbols).add(Helpers.GetValue(currentMarket, "symbol"));
                 Object type = this.safeString(rawOrder, "type");
                 Object side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+                Object orderRequest = this.createOrderRequest(((String)marketId), ((String)type), side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -2883,7 +2883,7 @@ public class AsterCore extends AsterApi
         Object isLimitOrder = Helpers.isEqual(initialUppercaseType, "LIMIT");
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
-            put( "side", ((String)side).toUpperCase() );
+            put( "side", ((String)((String)side)).toUpperCase() );
         }};
         Object clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -2975,7 +2975,7 @@ public class AsterCore extends AsterApi
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
                         Object quoteOrderQuantity = Precise.stringMul(amountString, priceString);
-                        Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode));
+                        Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(((String)quoteOrderQuantity), TRUNCATE, precision, this.precisionMode));
                     } else
                     {
                         quantityIsRequired = true;
@@ -3424,11 +3424,11 @@ public class AsterCore extends AsterApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(marginMode, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", AsterCore.this.safeString(finalMarket, "symbol") );
             put( "marginMode", AsterCore.this.safeStringLower(marginMode, "marginType") );
         }};
     }
@@ -3851,7 +3851,7 @@ public class AsterCore extends AsterApi
         Object symbol = this.safeString(market, "symbol");
         Object isolatedMarginString = this.safeString(position, "isolatedMargin");
         Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new java.util.HashMap<String, Object>() {{}});
-        Object leverageBracket = this.safeList(leverageBrackets, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object leverageBracket = this.safeList(leverageBrackets, ((String)symbol), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object notionalString = this.safeString2(position, "notional", "notionalValue");
         Object notionalStringAbs = Precise.stringAbs(notionalString);
         Object maintenanceMarginPercentageString = null;
@@ -3869,7 +3869,7 @@ public class AsterCore extends AsterApi
         Object contracts = this.parseNumber(contractsAbs);
         Object unrealizedPnlString = this.safeString(position, "unRealizedProfit");
         Object unrealizedPnl = this.parseNumber(unrealizedPnlString);
-        Object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
+        Object liquidationPriceString = this.omitZero(((String)this.safeString(position, "liquidationPrice")));
         Object liquidationPrice = this.parseNumber(liquidationPriceString);
         Object collateralString = null;
         Object marginMode = this.safeString(position, "marginType");
@@ -3915,7 +3915,7 @@ public class AsterCore extends AsterApi
                     }
                     Object inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     Object leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    Object quotePrecision = this.precisionFromString(((String)this.safeString2(precision, "quote", "price")));
                     if (Helpers.isTrue(!Helpers.isEqual(quotePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
@@ -3935,7 +3935,7 @@ public class AsterCore extends AsterApi
                     }
                     Object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     Object rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    Object basePrecision = this.precisionFromString(((String)this.safeString(precision, "base")));
                     if (Helpers.isTrue(!Helpers.isEqual(basePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
@@ -3948,7 +3948,7 @@ public class AsterCore extends AsterApi
         }
         collateralString = ((Helpers.isTrue((Helpers.isEqual(collateralString, null))))) ? "0" : collateralString;
         Object collateral = this.parseNumber(collateralString);
-        Object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
+        Object markPrice = this.parseNumber(this.omitZero(((String)this.safeString(position, "markPrice"))));
         Object timestamp = this.safeInteger(position, "updateTime");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, 0)))
         {
@@ -4139,7 +4139,7 @@ public class AsterCore extends AsterApi
     public Object parseAccountPositions(Object account, Object... optionalArgs)
     {
         Object filterClosed = Helpers.getArg(optionalArgs, 0, false);
-        Object positions = this.safeList(account, "positions");
+        Object positions = this.safeList(account, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object assets = this.safeList(account, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object balances = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
@@ -4221,7 +4221,7 @@ public class AsterCore extends AsterApi
         }
         Object contracts = this.parseNumber(contractsStringAbs);
         Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new java.util.HashMap<String, Object>() {{}});
-        Object leverageBracket = this.safeList(leverageBrackets, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object leverageBracket = this.safeList(leverageBrackets, ((String)symbol), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object maintenanceMarginPercentageString = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageBracket)); i++)
         {
@@ -4319,7 +4319,7 @@ public class AsterCore extends AsterApi
                 Object rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            Object pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
+            Object pricePrecision = this.precisionFromString(((String)this.safeString(Helpers.GetValue(market, "precision"), "price")));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
             Object pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
@@ -4569,7 +4569,7 @@ public class AsterCore extends AsterApi
             // TODO: check how ARBI signature would work
             Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             Object network = this.safeStringUpper(parameters, "network");
-            network = this.safeString(networks, network, network);
+            network = this.safeString(networks, ((String)network), network);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(chainId, null))) && Helpers.isTrue((!Helpers.isEqual(network, null)))))
             {
                 Object chainIds = this.safeDict(this.options, "networksToChainId", new java.util.HashMap<String, Object>() {{}});
@@ -4677,12 +4677,11 @@ public class AsterCore extends AsterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
             }
-            Object response = null;
             Object defaultClientTranId = this.numberToString(this.milliseconds());
             Object clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
             Helpers.addElementToObject(request, "kindType", type);
             Helpers.addElementToObject(request, "clientTranId", clientTranId);
-            response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
+            Object response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
             return this.parseTransfer(response, currency);
         });
 
@@ -4710,7 +4709,7 @@ public class AsterCore extends AsterApi
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object hashMessage(Object binaryMessage)
@@ -4719,7 +4718,7 @@ public class AsterCore extends AsterApi
         Object binaryMessageLength = this.binaryLength(binaryMessage);
         Object x19 = this.base16ToBinary("19");
         Object newline = this.base16ToBinary("0a");
-        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((String)this.numberToString(binaryMessageLength))));
         return Helpers.add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
@@ -4754,7 +4753,8 @@ public class AsterCore extends AsterApi
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             Object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            Object signerAddress = this.safeString(this.options, "signerAddress");
+            Object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            Object signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (Helpers.isTrue(Helpers.isEqual(signerAddress, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " requires signerAddress in options when use v3 api")) ;
@@ -4776,7 +4776,7 @@ public class AsterCore extends AsterApi
             final Object finalSignerAddress = signerAddress;
             Object finalParams = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "nonce", String.valueOf(nonce) );
-                put( "user", AsterCore.this.walletAddress );
+                put( "user", walletAddress );
                 put( "signer", finalSignerAddress );
             }}, parameters);
             Object paramString = null;

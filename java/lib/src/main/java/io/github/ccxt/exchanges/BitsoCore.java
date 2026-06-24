@@ -2029,7 +2029,7 @@ public class BitsoCore extends BitsoApi
         Object networkId = this.safeString2(transaction, "network", "method");
         Object status = this.safeString(transaction, "status");
         Object withdrawId = this.safeString(transaction, "wid");
-        Object networkCode = this.networkIdToCode(networkId);
+        Object networkCode = this.networkIdToCode(networkId, Helpers.GetValue(currency, "code"));
         Object networkCodeUpper = ((Helpers.isTrue((!Helpers.isEqual(networkCode, null))))) ? ((String)networkCode).toUpperCase() : null;
         final Object finalWithdrawalAddress = withdrawalAddress;
         final Object finalWithdrawId = withdrawId;

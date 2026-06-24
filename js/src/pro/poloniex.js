@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class poloniex extends poloniexRest {
     describe() {
@@ -52,8 +52,8 @@ export default class poloniex extends poloniexRest {
                 'watchOrderBook': {
                     'name': 'book_lv2', // can also be 'book'
                 },
-                'connectionsLimit': 2000,
-                'requestsLimit': 500,
+                'connectionsLimit': 2000, // 2000 public, 2000 private, 4000 total, only for subscribe events, unsubscribe not restricted
+                'requestsLimit': 500, // per second, only for subscribe events, unsubscribe not restricted
                 'timeframes': {
                     '1m': 'candles_minute_1',
                     '5m': 'candles_minute_5',
@@ -102,7 +102,7 @@ export default class poloniex extends poloniexRest {
                     'key': this.apiKey,
                     'signTimestamp': timestamp,
                     'signature': signature,
-                    'signatureMethod': 'HmacSHA256',
+                    'signatureMethod': 'HmacSHA256', // optional
                     'signatureVersion': '2', // optional
                 },
             };
@@ -859,12 +859,12 @@ export default class poloniex extends poloniexRest {
                         previousOrder['fee'] = {
                             'rate': undefined,
                             'cost': 0,
-                            'currency': trade['fee']['currency'],
+                            'currency': this.safeString(trade['fee'], 'currency'),
                         };
                     }
-                    if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                    if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
                         const stringOrderCost = this.numberToString(previousOrder['fee']['cost']);
-                        const stringTradeCost = this.numberToString(trade['fee']['cost']);
+                        const stringTradeCost = this.numberToString(this.safeNumber(trade['fee'], 'cost'));
                         previousOrder['fee']['cost'] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }
                     const rawState = this.safeString(order, 'state');

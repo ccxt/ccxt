@@ -38,7 +38,7 @@ fetches the current integer timestamp in milliseconds from the bingx server
 
 
 ```javascript
-coinmate.fetchTime ([params])
+coinmate.fetchTime (params?)
 ```
 
 
@@ -58,7 +58,7 @@ retrieves data on all markets for coinmate
 
 
 ```javascript
-coinmate.fetchMarkets ([params])
+coinmate.fetchMarkets (params?)
 ```
 
 
@@ -78,7 +78,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinmate.fetchBalance ([params])
+coinmate.fetchBalance (params?)
 ```
 
 
@@ -100,7 +100,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinmate.fetchOrderBook (symbol[, limit, params])
+coinmate.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -121,7 +121,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinmate.fetchTicker (symbol[, params])
+coinmate.fetchTicker (symbol, params?)
 ```
 
 
@@ -142,7 +142,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinmate.fetchTickers (symbols[, params])
+coinmate.fetchTickers (symbols, params?)
 ```
 
 
@@ -165,7 +165,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-coinmate.fetchDepositsWithdrawals ([code, since, limit, params])
+coinmate.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -197,7 +197,7 @@ make a withdrawal
 
 
 ```javascript
-coinmate.withdraw (code, amount, address, tag[, params])
+coinmate.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -220,7 +220,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinmate.fetchMyTrades (symbol[, since, limit, params])
+coinmate.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -243,7 +243,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coinmate.fetchTrades (symbol[, since, limit, params])
+coinmate.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -264,7 +264,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-coinmate.fetchTradingFee (symbol[, params])
+coinmate.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -287,7 +287,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-coinmate.fetchOpenOrders (symbol[, since, limit, params])
+coinmate.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -310,7 +310,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-coinmate.fetchOrders (symbol[, since, limit, params])
+coinmate.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -341,7 +341,7 @@ create a trade order
 
 
 ```javascript
-coinmate.createOrder (symbol, type, side, amount[, price, params])
+coinmate.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -367,7 +367,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-coinmate.fetchOrder (id, symbol[, params])
+coinmate.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -389,6 +389,6 @@ cancels an open order
 
 
 ```javascript
-coinmate.cancelOrder (id, symbol[, params])
+coinmate.cancelOrder (id, symbol, params?)
 ```
 

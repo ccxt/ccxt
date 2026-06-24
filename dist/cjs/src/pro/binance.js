@@ -2,14 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
+var ed25519_js = require('@noble/curves/ed25519.js');
 var binance$1 = require('../binance.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var rsa = require('../base/functions/rsa.js');
 var crypto = require('../base/functions/crypto.js');
-var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -126,9 +126,9 @@ class binance extends binance$1["default"] {
             'options': {
                 'returnRateLimits': false,
                 'streamLimits': {
-                    'spot': 50,
-                    'margin': 50,
-                    'future': 50,
+                    'spot': 50, // max 1024
+                    'margin': 50, // max 1024
+                    'future': 50, // max 200
                     'delivery': 50, // max 200
                 },
                 'subscriptionLimitByStream': {
@@ -148,7 +148,7 @@ class binance extends binance$1["default"] {
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'requestId': this.createSafeDictionary(),
-                'watchOrderBookLimit': 1000,
+                'watchOrderBookLimit': 1000, // default limit
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
                 },
@@ -166,18 +166,18 @@ class binance extends binance$1["default"] {
                     'checksum': true,
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': false,
+                    'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchLiquidationsForSymbols': {
                     'defaultType': 'swap',
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
-                'wallet': 'wb',
-                'listenKeyRefreshRate': 1200000,
+                'wallet': 'wb', // wb = wallet balance, cw = cross balance
+                'listenKeyRefreshRate': 1200000, // 20 mins
                 'ws': {
                     'cost': 5,
                 },
@@ -1009,20 +1009,20 @@ class binance extends binance$1["default"] {
                 if (pu === undefined) {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (u > orderbook['nonce']) {
+                    if (u > nonce) {
                         const timestamp = this.safeInteger(orderbook, 'timestamp');
                         let conditional = undefined;
                         if (timestamp === undefined) {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = ((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce']);
+                            conditional = ((U - 1) <= nonce) && ((u - 1) >= nonce);
                         }
                         else {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = ((U - 1) === orderbook['nonce']);
+                            conditional = ((U - 1) === nonce);
                         }
                         if (conditional) {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (nonce < orderbook['nonce']) {
+                            if (nonce < this.safeInteger(orderbook, 'nonce', 0)) {
                                 client.resolve(orderbook, messageHash);
                             }
                         }
@@ -1038,12 +1038,12 @@ class binance extends binance$1["default"] {
                 else {
                     // future
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (u >= orderbook['nonce']) {
+                    if (u >= nonce) {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-                        if ((U <= orderbook['nonce']) || (pu === orderbook['nonce'])) {
+                        if ((U <= nonce) || (pu === nonce)) {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (nonce <= orderbook['nonce']) {
+                            if (nonce <= this.safeInteger(orderbook, 'nonce', 0)) {
                                 client.resolve(orderbook, messageHash);
                             }
                         }
@@ -1279,7 +1279,7 @@ class binance extends binance$1["default"] {
         //
         //     {
         //         "e": "trade",       // event type
-        //         "E": 1579481530911, // event time
+        //         "E": 1579481530912, // event time
         //         "s": "ETHBTC",      // symbol
         //         "t": 158410082,     // trade id
         //         "p": "0.01914100",  // price
@@ -2227,7 +2227,7 @@ class binance extends binance$1["default"] {
             'open': this.safeString(message, 'o'),
             'close': last,
             'last': last,
-            'previousClose': this.safeString(message, 'x'),
+            'previousClose': this.safeString(message, 'x'), // previous day close
             'change': this.safeString(message, 'p'),
             'percentage': this.safeString(message, 'P'),
             'average': undefined,
@@ -2244,7 +2244,7 @@ class binance extends binance$1["default"] {
         //        "status":200,
         //        "result":{
         //            "symbol":"BTCUSDT",
-        //            "price":"73178.50",
+        //            "price":"73178.60",
         //            "time":1712527052374
         //        }
         //    }
@@ -2392,14 +2392,14 @@ class binance extends binance$1["default"] {
         let signature = undefined;
         if (this.secret.indexOf('PRIVATE KEY') > -1) {
             if (this.secret.length > 120) {
-                signature = rsa.rsa(query, this.secret, sha256.sha256);
+                signature = rsa.rsa(query, this.secret, sha2_js.sha256);
             }
             else {
-                signature = crypto.eddsa(this.encode(query), this.secret, ed25519.ed25519);
+                signature = crypto.eddsa(this.encode(query), this.secret, ed25519_js.ed25519);
             }
         }
         else {
-            signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+            signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
         }
         extendedParams['signature'] = signature;
         return extendedParams;
@@ -2586,7 +2586,7 @@ class binance extends binance$1["default"] {
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum(listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            let response = undefined;
+            let response;
             if (isPortfolioMargin) {
                 response = await this.papiPostListenKey(params);
                 params = this.extend(params, { 'portfolioMargin': true });
@@ -3438,7 +3438,7 @@ class binance extends binance$1["default"] {
         const messageHash = this.safeString(message, 'id');
         const result = this.safeDict(message, 'result', {});
         const newSpotOrder = this.safeDict(result, 'newOrderResponse');
-        let order = undefined;
+        let order;
         if (newSpotOrder !== undefined) {
             order = this.parseOrder(newSpotOrder);
         }
@@ -3679,8 +3679,8 @@ class binance extends binance$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const type = this.getMarketType('fetchOpenOrdersWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
-            throw new errors.BadRequest(this.id + ' fetchOpenOrdersWs only supports spot or swap markets');
+        if (type !== 'spot') {
+            throw new errors.BadRequest(this.id + ' fetchOpenOrdersWs only supports spot markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId(url);
@@ -4712,7 +4712,7 @@ class binance extends binance$1["default"] {
             '24hrMiniTicker': this.handleTickers,
             'markPriceUpdate': this.handleMarkPrices,
             'markPriceUpdate@arr': this.handleMarkPrices,
-            'bookTicker': this.handleBidsAsks,
+            'bookTicker': this.handleBidsAsks, // there is no "bookTicker@arr" endpoint
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
             'ACCOUNT_UPDATE': this.handleAcountUpdate,

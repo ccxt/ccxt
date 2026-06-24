@@ -3,7 +3,7 @@
 
 import coinoneRest from '../coinone.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Ticker, Trade, Dict, Bool } from '../base/types.js';
+import type { Bool, Dict, Int, Market, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 
@@ -129,7 +129,7 @@ export default class coinone extends coinoneRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 'price', 'qty');
+        const bidAsk = this.parseOrderBookBidAsk (delta, 'price', 'qty');
         bookside.storeArray (bidAsk);
     }
 
@@ -192,9 +192,9 @@ export default class coinone extends coinoneRest {
         const data = this.safeValue (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        this.tickers[(symbol as string)] = ticker;
         const messageHash = 'ticker:' + symbol;
-        client.resolve (this.tickers[symbol], messageHash);
+        client.resolve (this.tickers[(symbol as string)], messageHash);
     }
 
     parseWsTicker (ticker, market: Market = undefined): Ticker {
@@ -305,11 +305,11 @@ export default class coinone extends coinoneRest {
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
+        let stored = this.safeValue (this.trades, (symbol as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+            this.trades[(symbol as string)] = stored;
         }
         stored.append (trade);
         const messageHash = 'trade:' + symbol;
@@ -336,7 +336,7 @@ export default class coinone extends coinoneRest {
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (symbol, market);
         const isSellerMaker = this.safeValue (trade, 'is_seller_maker');
-        let side = undefined;
+        let side: Str = undefined;
         if (isSellerMaker !== undefined) {
             side = isSellerMaker ? 'sell' : 'buy';
         }
@@ -384,7 +384,7 @@ export default class coinone extends coinoneRest {
             return;
         }
         if (type === 'DATA') {
-            const topic = this.safeString (message, 'channel', '');
+            const topic = this.safeString (message, 'channel', '') as string;
             const methods: Dict = {
                 'ORDERBOOK': this.handleOrderBook,
                 'TICKER': this.handleTicker,

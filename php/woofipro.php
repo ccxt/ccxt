@@ -644,7 +644,7 @@ class woofipro extends Exchange {
         return $this->parse_markets($rows);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -687,61 +687,68 @@ class woofipro extends Exchange {
         $indexedChains = $this->index_by($chainRows, 'chain_id');
         for ($i = 0; $i < count($tokenRows); $i++) {
             $token = $tokenRows[$i];
-            $currencyId = $this->safe_string($token, 'token');
-            $networks = $this->safe_list($token, 'chain_details');
-            $code = $this->safe_currency_code($currencyId);
-            $resultingNetworks = array();
-            for ($j = 0; $j < count($networks); $j++) {
-                $networkEntry = $networks[$j];
-                $networkId = $this->safe_string($networkEntry, 'chain_id');
-                $networkRow = $this->safe_dict($indexedChains, $networkId);
-                $networkName = $this->safe_string($networkRow, 'name');
-                $networkCode = $this->network_id_to_code($networkName, $code);
-                $resultingNetworks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'decimals'))),
-                    'info' => array( $networkEntry, $networkRow ),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $currencyId,
-                'name' => null,
-                'code' => $code,
-                'precision' => null,
-                'active' => null,
-                'fee' => null,
-                'networks' => $resultingNetworks,
-                'deposit' => null,
-                'withdraw' => null,
+            $parsed = $this->parse_currency(array( '_token' => $token, '_indexedChains' => $indexedChains ));
+            $result[$parsed['code']] = $parsed;
+        }
+        return $result;
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $token = $this->safe_dict($rawCurrency, '_token', array());
+        $currencyId = $this->safe_string($token, 'token');
+        $networks = $this->safe_list($token, 'chain_details', array());
+        $code = $this->safe_currency_code($currencyId);
+        $indexedChains = $this->safe_dict($rawCurrency, '_indexedChains', array());
+        $resultingNetworks = array();
+        for ($j = 0; $j < count($networks); $j++) {
+            $networkEntry = $networks[$j];
+            $networkId = $this->safe_string($networkEntry, 'chain_id');
+            $networkRow = $this->safe_dict($indexedChains, $networkId);
+            $networkName = $this->safe_string($networkRow, 'name');
+            $networkCode = $this->network_id_to_code($networkName, $code);
+            $resultingNetworks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
                 'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'deposit' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($token, 'minimum_withdraw_amount'),
-                        'max' => null,
-                    ),
                 ),
-                'info' => $token,
-            ));
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'decimals'))),
+                'info' => array( 'network' => $networkEntry, 'networkRow' => $networkRow ),
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'name' => null,
+            'code' => $code,
+            'precision' => null,
+            'active' => null,
+            'fee' => null,
+            'networks' => $resultingNetworks,
+            'deposit' => null,
+            'withdraw' => null,
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($token, 'minimum_withdraw_amount'),
+                    'max' => null,
+                ),
+            ),
+            'info' => $token,
+        ));
     }
 
     public function parse_token_and_fee_temp($item, $feeTokenKey, $feeAmountKey) {
@@ -1640,7 +1647,7 @@ class woofipro extends Exchange {
             // }
             //
         }
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         $data['timestamp'] = $this->safe_integer($response, 'timestamp');
         $order = $this->parse_order($data, $market);
         $order['type'] = $type;
@@ -1810,7 +1817,7 @@ class woofipro extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
         );
         $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
@@ -2652,7 +2659,7 @@ class woofipro extends Exchange {
         $leverageValue = $this->safe_integer($leverage, 'max_leverage');
         return array(
             'info' => $leverage,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => null,
             'longLeverage' => $leverageValue,
             'shortLeverage' => $leverageValue,
@@ -2900,7 +2907,7 @@ class woofipro extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $section = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);

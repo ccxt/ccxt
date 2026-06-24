@@ -1,8 +1,5 @@
-- [Coinex Fetch All Deposit Addresses Using Fetchdepositaddress](./examples/js/)
-
-
- ```javascript
- "use strict";
+```javascript
+"use strict";
 
 const ccxt = require ('../../ccxt')
 
@@ -49,5 +46,5 @@ async function main () {
 };
 
 main ();
- 
+
 ```

@@ -50,7 +50,7 @@ class bitrue extends bitrue$1["default"] {
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 1800000,
+                'listenKeyRefreshRate': 1800000, // 30 mins
                 'ws': {
                     'gunzip': true,
                 },
@@ -322,7 +322,7 @@ class bitrue extends bitrue$1["default"] {
             url = this.urls['api']['ws']['futurePublic'];
         }
         else {
-            const marketIdLowercase = market['id'].toLowerCase();
+            const marketIdLowercase = this.safeStringLower(market, 'id');
             channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
             cbId = marketIdLowercase;
             url = this.urls['api']['ws']['public'];
@@ -450,7 +450,7 @@ class bitrue extends bitrue$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -660,7 +660,7 @@ class bitrue extends bitrue$1["default"] {
      * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -762,11 +762,11 @@ class bitrue extends bitrue$1["default"] {
     }
     parseWsOrderStatus(status) {
         const statuses = {
-            '0': 'open',
-            '1': 'open',
-            '2': 'closed',
-            '3': 'open',
-            '4': 'canceled',
+            '0': 'open', // The order has not been accepted by the engine.
+            '1': 'open', // The order has been accepted by the engine.
+            '2': 'closed', // The order has been completed.
+            '3': 'open', // A part of the order has been filled.
+            '4': 'canceled', // The order has been canceled.
             '7': 'open', // Stop order placed.
         };
         return this.safeString(statuses, status, status);

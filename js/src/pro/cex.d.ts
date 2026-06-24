@@ -1,5 +1,5 @@
 import cexRest from '../cex.js';
-import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Bool } from '../base/types.js';
+import type { Balances, Bool, Int, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cex extends cexRest {
     describe(): any;

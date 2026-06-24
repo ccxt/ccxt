@@ -1192,7 +1192,7 @@ func  (this *WeexCore) HandleOrderBook(client any, message any)  {
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func  (this *WeexCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta)
+    var bidAsk any = this.ParseOrderBookBidAsk(delta)
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 /**

@@ -51,7 +51,7 @@ retrieves data on all markets for probit
 
 
 ```javascript
-probit.fetchMarkets ([params])
+probit.fetchMarkets (params?)
 ```
 
 
@@ -71,7 +71,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-probit.fetchCurrencies ([params])
+probit.fetchCurrencies (params?)
 ```
 
 
@@ -91,7 +91,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-probit.fetchBalance ([params])
+probit.fetchBalance (params?)
 ```
 
 
@@ -113,7 +113,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-probit.fetchOrderBook (symbol[, limit, params])
+probit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -134,7 +134,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-probit.fetchTickers (symbols[, params])
+probit.fetchTickers (symbols, params?)
 ```
 
 
@@ -155,7 +155,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-probit.fetchTicker (symbol[, params])
+probit.fetchTicker (symbol, params?)
 ```
 
 
@@ -178,7 +178,7 @@ fetch all trades made by the user
 
 
 ```javascript
-probit.fetchMyTrades (symbol[, since, limit, params])
+probit.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -201,7 +201,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-probit.fetchTrades (symbol[, since, limit, params])
+probit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -221,7 +221,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-probit.fetchTime ([params])
+probit.fetchTime (params?)
 ```
 
 
@@ -246,7 +246,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-probit.fetchOHLCV (symbol, timeframe[, since, limit, params])
+probit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -269,7 +269,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-probit.fetchOpenOrders (symbol[, since, limit, params])
+probit.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -292,7 +292,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-probit.fetchClosedOrders (symbol[, since, limit, params])
+probit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -314,7 +314,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-probit.fetchOrder (id, symbol[, params])
+probit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -340,7 +340,7 @@ create a trade order
 
 
 ```javascript
-probit.createOrder (symbol, type, side, amount[, price, params])
+probit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -362,7 +362,7 @@ cancels an open order
 
 
 ```javascript
-probit.cancelOrder (id, symbol[, params])
+probit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -383,7 +383,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-probit.fetchDepositAddress (code[, params])
+probit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -404,7 +404,7 @@ fetch deposit addresses for multiple currencies and chain types
 
 
 ```javascript
-probit.fetchDepositAddresses (codes[, params])
+probit.fetchDepositAddresses (codes, params?)
 ```
 
 
@@ -428,7 +428,7 @@ make a withdrawal
 
 
 ```javascript
-probit.withdraw (code, amount, address, tag[, params])
+probit.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -450,7 +450,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-probit.fetchDeposits (code[, since, limit, params])
+probit.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -472,7 +472,7 @@ fetch all withdrawals made to an account
 
 
 ```javascript
-probit.fetchWithdrawals (code[, since, limit, params])
+probit.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -496,7 +496,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-probit.fetchDepositsWithdrawals (code[, since, limit, params])
+probit.fetchDepositsWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -517,7 +517,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-probit.fetchDepositWithdrawFees (codes[, params])
+probit.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -537,7 +537,7 @@ sign in, must be called prior to using other authenticated methods
 
 
 ```javascript
-probit.signIn ([params])
+probit.signIn (params?)
 ```
 
 
@@ -557,7 +557,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-probit.watchBalance ([params])
+probit.watchBalance (params?)
 ```
 
 
@@ -579,7 +579,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-probit.watchTicker (symbol[, params])
+probit.watchTicker (symbol, params?)
 ```
 
 
@@ -603,7 +603,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-probit.watchTrades (symbol[, since, limit, params])
+probit.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -626,7 +626,7 @@ get the list of trades associated with the user
 
 
 ```javascript
-probit.watchMyTrades (symbol[, since, limit, params])
+probit.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -650,7 +650,7 @@ watches information on an order made by the user
 
 
 ```javascript
-probit.watchOrders (symbol[, since, limit, params])
+probit.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -672,6 +672,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-probit.watchOrderBook (symbol[, limit, params])
+probit.watchOrderBook (symbol, limit?, params?)
 ```
 

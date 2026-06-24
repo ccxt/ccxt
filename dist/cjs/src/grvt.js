@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha3_js = require('@noble/hashes/sha3.js');
+var secp256k1_js = require('@noble/curves/secp256k1.js');
 var grvt$1 = require('./abstract/grvt.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
-var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 var number = require('./base/functions/number.js');
 
@@ -23,7 +23,7 @@ class grvt extends grvt$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'grvt',
             'name': 'GRVT',
-            'countries': ['SG'],
+            'countries': ['SG'], // Singapore
             'rateLimit': 10,
             'certified': false,
             'version': 'v1',
@@ -148,9 +148,9 @@ class grvt extends grvt$1["default"] {
                         'full/v1/transfer_history': 100,
                         'full/v1/withdrawal': 100,
                         'full/v1/withdrawal_history': 100,
-                        'full/v1/add_position_margin': rlOthers,
+                        'full/v1/add_position_margin': rlOthers, // addMargin
                         'full/v1/get_position_margin_limits': rlOthers,
-                        'full/v1/set_position_config': rlOthers,
+                        'full/v1/set_position_config': rlOthers, // setPositionMode/setMarginMode
                         'full/v1/set_initial_leverage': rlOthers,
                         'full/v1/get_all_initial_leverage': rlOthers,
                         'full/v1/set_derisk_mm_ratio': rlOthers,
@@ -161,7 +161,7 @@ class grvt extends grvt$1["default"] {
                         'full/v1/vault_redeem_cancel': rlOthers,
                         'full/v1/vault_view_redemption_queue': rlOthers,
                         'full/v1/vault_manager_investor_history': rlOthers,
-                        'full/v1/authorize_builder': rlOthers,
+                        'full/v1/authorize_builder': rlOthers, // https://pastebin(dot)com/0Mb8cFhN
                         'full/v1/get_authorized_builders': rlOthers,
                         'full/v1/builder_fill_history': rlOthers,
                     },
@@ -169,7 +169,7 @@ class grvt extends grvt$1["default"] {
             },
             // exchange-specific options
             'options': {
-                'accountId': undefined,
+                'accountId': undefined, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks': {
                     'ARBONE': '42161',
@@ -274,115 +274,115 @@ class grvt extends grvt$1["default"] {
                 'apiKey': false,
                 'secret': false,
             },
-            'quoteJsonNumbers': false,
+            'quoteJsonNumbers': false, // needed for some endpoints (todo: specify in implementations)
             'exceptions': {
                 'exact': {
-                    '1000': errors.AuthenticationError,
-                    '1001': errors.PermissionDenied,
-                    '1002': errors.OperationFailed,
-                    '1003': errors.BadRequest,
-                    '1004': errors.OperationRejected,
-                    '1005': errors.OperationFailed,
-                    '1006': errors.RateLimitExceeded,
-                    '1008': errors.PermissionDenied,
-                    '1009': errors.OperationRejected,
-                    '1012': errors.BadRequest,
-                    '1400': errors.PermissionDenied,
-                    '2000': errors.PermissionDenied,
-                    '2001': errors.InvalidNonce,
-                    '2002': errors.BadRequest,
-                    '2003': errors.PermissionDenied,
-                    '2004': errors.InvalidNonce,
-                    '2005': errors.BadRequest,
-                    '2006': errors.BadRequest,
-                    '2007': errors.BadRequest,
-                    '2008': errors.BadRequest,
-                    '2010': errors.InvalidOrder,
-                    '2011': errors.InvalidOrder,
-                    '2012': errors.InvalidOrder,
-                    '2020': errors.InvalidOrder,
-                    '2021': errors.InvalidOrder,
-                    '2030': errors.InvalidOrder,
-                    '2031': errors.InvalidOrder,
-                    '2032': errors.InvalidOrder,
-                    '2040': errors.InvalidOrder,
-                    '2041': errors.InvalidOrder,
-                    '2042': errors.InvalidOrder,
-                    '2050': errors.InvalidOrder,
-                    '2051': errors.InvalidOrder,
-                    '2060': errors.BadSymbol,
-                    '2061': errors.BadSymbol,
-                    '2062': errors.InvalidOrder,
-                    '2063': errors.InvalidOrder,
-                    '2064': errors.InvalidOrder,
-                    '2065': errors.InvalidOrder,
-                    '2070': errors.InvalidOrder,
-                    '2080': errors.InsufficientFunds,
-                    '2081': errors.OperationRejected,
-                    '2082': errors.InvalidOrder,
-                    '2083': errors.OperationRejected,
-                    '2090': errors.RateLimitExceeded,
-                    '2100': errors.BadRequest,
-                    '2101': errors.BadRequest,
-                    '2102': errors.OperationRejected,
-                    '2103': errors.OperationRejected,
-                    '2104': errors.BadRequest,
-                    '2105': errors.BadRequest,
-                    '2107': errors.BadRequest,
-                    '2108': errors.BadRequest,
-                    '2110': errors.InvalidOrder,
-                    '2111': errors.InvalidOrder,
-                    '2112': errors.InvalidOrder,
-                    '2113': errors.InvalidOrder,
-                    '2114': errors.InvalidOrder,
-                    '2115': errors.InvalidOrder,
-                    '2116': errors.InvalidOrder,
-                    '2117': errors.InvalidOrder,
-                    '2300': errors.OperationRejected,
-                    '2301': errors.OperationRejected,
-                    '2400': errors.OperationRejected,
-                    '2401': errors.OperationRejected,
-                    '2402': errors.OperationRejected,
-                    '3000': errors.BadSymbol,
-                    '3004': errors.OperationRejected,
-                    '3005': errors.OperationRejected,
-                    '3006': errors.OperationRejected,
-                    '3021': errors.BadRequest,
-                    '3031': errors.BadRequest,
-                    '4000': errors.InsufficientFunds,
-                    '4002': errors.OperationFailed,
-                    '4010': errors.OperationRejected,
-                    '5000': errors.OperationRejected,
-                    '5001': errors.OperationRejected,
-                    '5002': errors.OperationRejected,
-                    '5003': errors.OperationRejected,
-                    '5004': errors.OperationRejected,
-                    '5005': errors.OperationRejected,
-                    '6000': errors.OperationRejected,
-                    '6100': errors.OperationRejected,
-                    '7000': errors.OperationRejected,
-                    '7001': errors.InsufficientFunds,
-                    '7002': errors.OperationFailed,
-                    '7003': errors.OperationRejected,
-                    '7004': errors.OperationRejected,
-                    '7005': errors.InsufficientFunds,
-                    '7006': errors.OperationFailed,
-                    '7007': errors.PermissionDenied,
-                    '7100': errors.OperationFailed,
-                    '7101': errors.OperationRejected,
-                    '7102': errors.OperationRejected,
-                    '7103': errors.OperationRejected,
-                    '7201': errors.OperationRejected,
-                    '7450': errors.OperationRejected,
-                    '7451': errors.OperationRejected,
-                    '7452': errors.OperationRejected,
-                    '7453': errors.OperationRejected,
-                    '7454': errors.OperationRejected,
-                    '7455': errors.OperationRejected,
-                    '7500': errors.OperationRejected,
-                    '7501': errors.BadRequest,
-                    '7502': errors.OperationRejected,
-                    '7503': errors.OperationRejected,
+                    '1000': errors.AuthenticationError, // "You need to authenticate prior to using this functionality"
+                    '1001': errors.PermissionDenied, // "You are not authorized to access this functionality"
+                    '1002': errors.OperationFailed, // "Internal Server Error"
+                    '1003': errors.BadRequest, // "Request could not be processed due to malformed syntax"
+                    '1004': errors.OperationRejected, // "Data Not Found"
+                    '1005': errors.OperationFailed, // "Unknown Error"
+                    '1006': errors.RateLimitExceeded, // "You have surpassed the allocated rate limit for your tier"
+                    '1008': errors.PermissionDenied, // "Your IP has not been whitelisted for access"
+                    '1009': errors.OperationRejected, // "We are temporarily deactivating this API endpoint, please try again later"
+                    '1012': errors.BadRequest, // "Invalid signature chain ID"
+                    '1400': errors.PermissionDenied, // "Signer does not have trade permission"
+                    '2000': errors.PermissionDenied, // "Signature is from an unauthorized signer"
+                    '2001': errors.InvalidNonce, // "Signature has expired"
+                    '2002': errors.BadRequest, // "Signature does not match payload"
+                    '2003': errors.PermissionDenied, // "Order sub account does not match logged in user"
+                    '2004': errors.InvalidNonce, // "Signature is from an expired session key"
+                    '2005': errors.BadRequest, // "Signature V must be 27/28"
+                    '2006': errors.BadRequest, // "Signature R/S must have exactly 64 characters long without 0x prefix"
+                    '2007': errors.BadRequest, // "Signature S must be in the lower half of the curve"
+                    '2008': errors.BadRequest, // "Signature exceeds maximum allowed duration."
+                    '2010': errors.InvalidOrder, // "Order ID should be empty when creating an order"
+                    '2011': errors.InvalidOrder, // "Client Order ID should be supplied when creating an order"
+                    '2012': errors.InvalidOrder, // "Client Order ID overlaps with existing active order"
+                    '2020': errors.InvalidOrder, // "Market Order must always be supplied without a limit price"
+                    '2021': errors.InvalidOrder, // "Limit Order must always be supplied with a limit price"
+                    '2030': errors.InvalidOrder, // "Orderbook Orders must have a TimeInForce of GTT/IOC/FOK"
+                    '2031': errors.InvalidOrder, // "RFQ Orders must have a TimeInForce of GTT/AON/IOC/FOK"
+                    '2032': errors.InvalidOrder, // "Post Only can only be set to true for GTT/AON orders"
+                    '2040': errors.InvalidOrder, // "Order must contain at least one leg"
+                    '2041': errors.InvalidOrder, // "Order Legs must be sorted by Derivative.Instrument/Underlying/BaseCurrency/Expiration/StrikePrice"
+                    '2042': errors.InvalidOrder, // "Orderbook Orders must contain only one leg"
+                    '2050': errors.InvalidOrder, // "Order state must be empty upon creation"
+                    '2051': errors.InvalidOrder, // "Order execution metadata must be empty upon creation"
+                    '2060': errors.BadSymbol, // "Order Legs contain one or more inactive derivative"
+                    '2061': errors.BadSymbol, // "Unsupported Instrument Requested"
+                    '2062': errors.InvalidOrder, // "Order size smaller than min size"
+                    '2063': errors.InvalidOrder, // "Order size smaller than min block size in block trade venue"
+                    '2064': errors.InvalidOrder, // "Invalid limit price tick"
+                    '2065': errors.InvalidOrder, // "Order size too granular"
+                    '2070': errors.InvalidOrder, // "Liquidation Order is not supported"
+                    '2080': errors.InsufficientFunds, // "Insufficient margin to create order"
+                    '2081': errors.OperationRejected, // "Order Fill would result in exceeding maximum position size"
+                    '2082': errors.InvalidOrder, // "Pre-order check failed"
+                    '2083': errors.OperationRejected, // "Order Fill would result in exceeding maximum position size under current configurable leverage tier"
+                    '2090': errors.RateLimitExceeded, // "Max open orders exceeded"
+                    '2100': errors.BadRequest, // "Invalid initial leverage"
+                    '2101': errors.BadRequest, // "Vaults cannot configure leverage"
+                    '2102': errors.OperationRejected, // "Margin type change failed, has open position for this instrument"
+                    '2103': errors.OperationRejected, // "Margin type change failed, has open orders for this instrument"
+                    '2104': errors.BadRequest, // "Margin type not supported"
+                    '2105': errors.BadRequest, // "Margin type change failed"
+                    '2107': errors.BadRequest, // "Attempted to set leverage below minimum"
+                    '2108': errors.BadRequest, // "Attempted to set leverage above maximum"
+                    '2110': errors.InvalidOrder, // "Invalid trigger by"
+                    '2111': errors.InvalidOrder, // "Unsupported trigger by"
+                    '2112': errors.InvalidOrder, // "Invalid trigger order"
+                    '2113': errors.InvalidOrder, // "Trigger price must be non-zero"
+                    '2114': errors.InvalidOrder, // "Invalid position linked TPSL orders, position linked TPSL must be a reduce-only order"
+                    '2115': errors.InvalidOrder, // "Invalid position linked TPSL orders, position linked TPSL must not have smaller size than the position"
+                    '2116': errors.InvalidOrder, // "Position linked TPSL order for this asset already exists"
+                    '2117': errors.InvalidOrder, // "Position linked TPSL orders must be created from web or mobile clients"
+                    '2300': errors.OperationRejected, // "Order cancel time-to-live settings currently disabled."
+                    '2301': errors.OperationRejected, // "Order cancel time-to-live exceeds maximum allowed value."
+                    '2400': errors.OperationRejected, // "Reduce only order with no position"
+                    '2401': errors.OperationRejected, // "Reduce only order must not increase position size"
+                    '2402': errors.OperationRejected, // "Reduce only order size exceeds maximum allowed value"
+                    '3000': errors.BadSymbol, // "Instrument is invalid"
+                    '3004': errors.OperationRejected, // "Instrument does not have a valid maintenance margin configuration"
+                    '3005': errors.OperationRejected, // "Instrument's underlying currency does not have a valid balance decimal configuration"
+                    '3006': errors.OperationRejected, // "Instrument's quote currency does not have a valid balance decimal configuration"
+                    '3021': errors.BadRequest, // "Either order ID or client order ID must be supplied"
+                    '3031': errors.BadRequest, // "Depth is invalid"
+                    '4000': errors.InsufficientFunds, // "Insufficient balance to complete transfer"
+                    '4002': errors.OperationFailed, // "Transfer failed with an unrefined failure reason, please report to GRVT"
+                    '4010': errors.OperationRejected, // "This wallet is not supported. Please try another wallet."
+                    '5000': errors.OperationRejected, // "Transfer Metadata does not match the expected structure."
+                    '5001': errors.OperationRejected, // "Transfer Provider does not match the expected provider."
+                    '5002': errors.OperationRejected, // "Direction of the transfer does not match the expected direction."
+                    '5003': errors.OperationRejected, // "Endpoint account ID is invalid."
+                    '5004': errors.OperationRejected, // "Funding account does not exist in our system."
+                    '5005': errors.OperationRejected, // "Invalid ChainID for the transfer request."
+                    '6000': errors.OperationRejected, // "Countdown time is bigger than 300s supported"
+                    '6100': errors.OperationRejected, // "Derisk MM Ratio is out of range"
+                    '7000': errors.OperationRejected, // "Vault ID provided is invalid and does not belong to any vault"
+                    '7001': errors.InsufficientFunds, // "Vault does not have sufficient LP token balance"
+                    '7002': errors.OperationFailed, // "User has an ongoing redemption"
+                    '7003': errors.OperationRejected, // "This vault has been delisted/closed."
+                    '7004': errors.OperationRejected, // "This investment would cause the vault to exceed its valuation cap."
+                    '7005': errors.InsufficientFunds, // "You are attempting to burn more vault tokens than you own."
+                    '7006': errors.OperationFailed, // "You are attempting to burn vault tokens whilst having an active redemption request."
+                    '7007': errors.PermissionDenied, // "The investor is not an LP for this vault."
+                    '7100': errors.OperationFailed, // "Unknown transaction type"
+                    '7101': errors.OperationRejected, // "Transfer account not found"
+                    '7102': errors.OperationRejected, // "Transfer sub-account not found"
+                    '7103': errors.OperationRejected, // "Charged trading fee below the config minimum"
+                    '7201': errors.OperationRejected, // "Attempted to create a limit order at a price outside of asset's price protection band."
+                    '7450': errors.OperationRejected, // "Add margin failed"
+                    '7451': errors.OperationRejected, // "Add margin to empty position"
+                    '7452': errors.OperationRejected, // "Add margin to non isolated position"
+                    '7453': errors.OperationRejected, // "Max addable amount exceeded"
+                    '7454': errors.OperationRejected, // "Max removable amount exceeded"
+                    '7455': errors.OperationRejected, // "Not isolated margin position"
+                    '7500': errors.OperationRejected, // "Builder Fee exceeds the allowed program limit."
+                    '7501': errors.BadRequest, // "Builder Fee can't be negative."
+                    '7502': errors.OperationRejected, // "Builder Account does not exist."
+                    '7503': errors.OperationRejected, // "Builder is already authorized for this account with the given fee."
                     '7504': errors.OperationRejected, // "Builder is not authorized for the specified user.","status":400
                 },
                 'broad': {},
@@ -716,17 +716,17 @@ class grvt extends grvt$1["default"] {
             'swap': isSwap,
             'future': isFuture,
             'option': false,
-            'active': undefined,
+            'active': undefined, // todo: ask support to add
             'contract': isContract,
             'linear': isSwap ? true : undefined,
             'inverse': isSwap ? false : undefined,
-            'contractSize': this.parseNumber('1'),
+            'contractSize': this.parseNumber('1'), // tbd, vague response from support
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeNumber(market, 'min_size'),
+                'amount': this.safeNumber(market, 'min_size'), // confirmed, not 'base_decimals'
                 'price': this.safeNumber(market, 'tick_size'),
                 'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'base_decimals'))),
                 'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quote_decimals'))),
@@ -813,7 +813,7 @@ class grvt extends grvt$1["default"] {
                     'max': undefined,
                 },
             },
-            'type': 'crypto',
+            'type': 'crypto', // only crypto for now
             'networks': undefined,
             'numericId': this.safeInteger(rawCurrency, 'id'),
         });
@@ -1419,7 +1419,7 @@ class grvt extends grvt$1["default"] {
     }
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
      * @param {string} [code] unified currency code of the currency transferred
@@ -1593,13 +1593,15 @@ class grvt extends grvt$1["default"] {
         let networkCode = undefined;
         let addressFrom = this.safeString(transaction, 'from_account_id');
         let addressTo = this.safeString(transaction, 'to_account_id');
+        const currencyId = this.safeString(transaction, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
         if ('transfer_metadata' in transaction) {
             const metaData = this.omitZero(this.safeString(transaction, 'transfer_metadata'));
             if (metaData !== undefined) {
                 const parsedMeta = this.parseJson(metaData);
                 direction = this.safeStringLower(parsedMeta, 'direction');
                 txId = this.safeString(parsedMeta, 'provider_tx_id');
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'));
+                networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'), code);
                 if (direction === 'withdrawal') {
                     addressTo = this.safeString(parsedMeta, 'endpoint');
                 }
@@ -1609,8 +1611,6 @@ class grvt extends grvt$1["default"] {
             }
         }
         const timestamp = this.safeIntegerProduct2(transaction, 'event_time', 'initiated_time', 0.000001);
-        const currencyId = this.safeString(transaction, 'currency');
-        const code = this.safeCurrencyCode(currencyId, currency);
         return {
             'info': transaction,
             'id': undefined,
@@ -1912,7 +1912,7 @@ class grvt extends grvt$1["default"] {
             'signature': this.defaultSignature(),
         };
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() requires a network parameter');
         }
@@ -2004,7 +2004,7 @@ class grvt extends grvt$1["default"] {
         else {
             const tifMap = {
                 'GTC': 'GOOD_TILL_TIME',
-                'FOK': 'FILL_OR_KILL',
+                'FOK': 'FILL_OR_KILL', // tbd: why not 'ALL_OR_NONE'
                 'IOC': 'IMMEDIATE_OR_CANCEL',
             };
             timeInForce = this.safeString(tifMap, timeInForce, timeInForce);
@@ -2958,7 +2958,7 @@ class grvt extends grvt$1["default"] {
         let price = undefined;
         let filled = undefined;
         let avgPrice = undefined;
-        const legs = this.safeList(order, 'legs');
+        const legs = this.safeList(order, 'legs', []);
         const metadata = this.safeDict(order, 'metadata', {});
         const stateObj = this.safeDict(order, 'state', {});
         const filledAmounts = this.safeList(stateObj, 'traded_size', []);
@@ -2986,7 +2986,7 @@ class grvt extends grvt$1["default"] {
             'lastTradeTimeStamp': undefined,
             'lastUpdateTimestamp': this.safeIntegerProduct(stateObj, 'update_time', 0.000001),
             'status': this.parseOrderStatus(this.safeString(stateObj, 'status')),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': isPostOnly,
@@ -3006,7 +3006,7 @@ class grvt extends grvt$1["default"] {
     }
     parseTimeInForce(type) {
         const types = {
-            'GOOD_TILL_TIME': 'GTC',
+            'GOOD_TILL_TIME': 'GTC', // yeah, not GTD
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
             // exchange specific types
@@ -3168,11 +3168,11 @@ class grvt extends grvt$1["default"] {
         const domainData = this.eipDomainData();
         const definitions = this.eipDefinitions();
         const ethEncodedMessage = this.ethEncodeStructuredData(domainData, definitions[structureType], messageData);
-        const ethEncodedMessageHashed = '0x' + this.hash(ethEncodedMessage, sha3.keccak_256, 'hex');
+        const ethEncodedMessageHashed = '0x' + this.hash(ethEncodedMessage, sha3_js.keccak_256, 'hex');
         const usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
-        const signature = crypto.ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1.secp256k1, undefined);
+        const signature = crypto.ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1_js.secp256k1, undefined);
         request['signature']['r'] = this.formatSignatureRS(signature['r']);
         request['signature']['s'] = this.formatSignatureRS(signature['s']);
         request['signature']['v'] = this.sum(27, signature['v']);

@@ -656,43 +656,42 @@ public class DeribitCore extends DeribitApi
             //    }
             //
             Object data = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
-            {
-                Object currency = Helpers.GetValue(data, i);
-                Object currencyId = this.safeString(currency, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
-        put( "code", code );
-        put( "id", currencyId );
-        put( "name", DeribitCore.this.safeString(currency, "currency_long") );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "type", "crypto" );
-        put( "fee", DeribitCore.this.safeNumber(currency, "withdrawal_fee") );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", null );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(data);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object currencyId = this.safeString(rawCurrency, "currency");
+        Object code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "info", rawCurrency );
+            put( "code", code );
+            put( "id", currencyId );
+            put( "name", DeribitCore.this.safeString(rawCurrency, "currency_long") );
+            put( "active", null );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "type", "crypto" );
+            put( "fee", DeribitCore.this.safeNumber(rawCurrency, "withdrawal_fee") );
+            put( "precision", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", null );
+        }});
     }
 
     public Object codeFromOptions(Object methodName, Object... optionalArgs)
@@ -1431,7 +1430,7 @@ public class DeribitCore extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
         });
 
@@ -2228,7 +2227,7 @@ public class DeribitCore extends DeribitApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         });
 
@@ -3141,7 +3140,7 @@ public class DeribitCore extends DeribitApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parsePosition(result);
         });
 

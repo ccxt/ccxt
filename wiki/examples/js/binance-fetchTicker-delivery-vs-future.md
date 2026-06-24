@@ -1,8 +1,5 @@
-- [Binance Fetchticker Delivery Vs Future](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -32,5 +29,5 @@ async function fetchTickers (exchange) {
     const deliveryTickers = await fetchTickers (delivery);
     console.log (deliveryTickers)
 
-}) () 
+}) ()
 ```

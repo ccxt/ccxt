@@ -39,18 +39,23 @@ public class BitvavoCore extends BitvavoApi
                 put( "borrowIsolatedMargin", false );
                 put( "borrowMargin", false );
                 put( "cancelAllOrders", true );
+                put( "cancelAllOrdersAfter", true );
                 put( "cancelOrder", true );
                 put( "closeAllPositions", false );
                 put( "closePosition", false );
+                put( "createLimitOrder", true );
+                put( "createMarketOrder", true );
+                put( "createMarketOrderWithCost", true );
                 put( "createOrder", true );
                 put( "createOrderWithTakeProfitAndStopLoss", false );
                 put( "createOrderWithTakeProfitAndStopLossWs", false );
-                put( "createPostOnlyOrder", false );
+                put( "createPostOnlyOrder", true );
                 put( "createReduceOnlyOrder", false );
                 put( "createStopLimitOrder", true );
                 put( "createStopMarketOrder", true );
                 put( "createStopOrder", true );
                 put( "editOrder", true );
+                put( "fetchAccounts", true );
                 put( "fetchBalance", true );
                 put( "fetchBorrowInterest", false );
                 put( "fetchBorrowRate", false );
@@ -78,6 +83,8 @@ public class BitvavoCore extends BitvavoApi
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchIsolatedPositions", false );
+                put( "fetchLedger", true );
+                put( "fetchLedgerEntry", false );
                 put( "fetchLeverage", false );
                 put( "fetchLeverages", false );
                 put( "fetchLeverageTiers", false );
@@ -117,10 +124,11 @@ public class BitvavoCore extends BitvavoApi
                 put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
-                put( "fetchTradingFee", false );
+                put( "fetchTradingFee", true );
                 put( "fetchTradingFees", true );
-                put( "fetchTransfer", false );
-                put( "fetchTransfers", false );
+                put( "fetchTransactions", false );
+                put( "fetchTransfer", true );
+                put( "fetchTransfers", true );
                 put( "fetchVolatilityHistory", false );
                 put( "fetchWithdrawals", true );
                 put( "reduceMargin", false );
@@ -131,7 +139,7 @@ public class BitvavoCore extends BitvavoApi
                 put( "setMargin", false );
                 put( "setMarginMode", false );
                 put( "setPositionMode", false );
-                put( "transfer", false );
+                put( "transfer", true );
                 put( "withdraw", true );
             }} );
             put( "timeframes", new java.util.HashMap<String, Object>() {{
@@ -161,47 +169,54 @@ public class BitvavoCore extends BitvavoApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "time", 1 );
-                        put( "markets", 1 );
-                        put( "assets", 1 );
                         put( "{market}/book", 1 );
+                        put( "report/{market}/book", 1 );
                         put( "{market}/trades", 5 );
-                        put( "{market}/candles", 1 );
+                        put( "report/{market}/trades", 5 );
                         put( "ticker/price", 1 );
                         put( "ticker/book", 1 );
+                        put( "{market}/candles", 1 );
                         put( "ticker/24h", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                             put( "noMarket", 25 );
                         }} );
+                        put( "time", 1 );
+                        put( "markets", 1 );
+                        put( "assets", 1 );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "account", 1 );
                         put( "order", 1 );
-                        put( "orders", 5 );
                         put( "ordersOpen", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                             put( "noMarket", 100 );
                         }} );
                         put( "trades", 5 );
-                        put( "balance", 5 );
+                        put( "orders", 5 );
                         put( "deposit", 1 );
                         put( "depositHistory", 5 );
                         put( "withdrawalHistory", 5 );
+                        put( "account", 1 );
+                        put( "balance", 5 );
+                        put( "stakingBalance", 1 );
+                        put( "account/fees", 1 );
+                        put( "account/history", 1 );
                         put( "subaccounts", 5 );
                         put( "subaccounts/transfers", 5 );
                         put( "subaccounts/transfers/{transferId}", 5 );
                         put( "institutional/subaccounts/balance", 5 );
                         put( "institutional/subaccounts/history", 5 );
                         put( "institutional/subaccounts/orders/open", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                            put( "noMarket", 25 );
+                            put( "cost", 5 );
+                            put( "noMarket", 100 );
                         }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "order", 1 );
+                        put( "cancelOrdersAfter", 5 );
                         put( "withdrawal", 1 );
+                        put( "crypto/withdrawal", 25 );
                         put( "subaccounts", 5 );
                         put( "subaccounts/transfers", 5 );
                     }} );
@@ -214,6 +229,7 @@ public class BitvavoCore extends BitvavoApi
                             put( "cost", 25 );
                             put( "noMarket", 100 );
                         }} );
+                        put( "atomic/orders", 100 );
                         put( "institutional/subaccounts/order", 1 );
                         put( "institutional/subaccounts/orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 25 );
@@ -405,6 +421,7 @@ public class BitvavoCore extends BitvavoApi
     /**
      * @method
      * @name bitvavo#fetchTime
+     * @see https://docs.bitvavo.com/docs/rest-api/get-server-time/
      * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -427,7 +444,7 @@ public class BitvavoCore extends BitvavoApi
     /**
      * @method
      * @name bitvavo#fetchMarkets
-     * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-markets/
      * @description retrieves data on all markets for bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -537,7 +554,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchCurrencies
-     * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
      * @description fetches all available currencies on an exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
@@ -638,7 +655,7 @@ final Object finalBase = base;
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networksArray)); j++)
         {
             Object networkId = Helpers.GetValue(networksArray, j);
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             final Object finalDeposit = deposit;
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", rawCurrency );
@@ -690,7 +707,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchTicker
-     * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -784,6 +801,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchTickers
+     * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -824,7 +842,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchTrades
-     * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-trades/
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -990,7 +1008,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchTradingFees
-     * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-account-fees/
      * @description fetch the trading fees for multiple markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
@@ -1033,9 +1051,9 @@ final Object finalBase = base;
         Object maker = this.safeNumber(feesValue, "maker");
         Object taker = this.safeNumber(feesValue, "taker");
         Object result = new java.util.HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
         {
-            Object symbol = Helpers.GetValue(this.symbols, i);
+            Object symbol = Helpers.GetValue(((Object)this.symbols), i);
             Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
     put( "info", fees );
     put( "symbol", symbol );
@@ -1050,8 +1068,55 @@ final Object finalBase = base;
 
     /**
      * @method
+     * @name bitvavo#fetchTradingFee
+     * @see https://docs.bitvavo.com/docs/rest-api/get-market-fees/
+     * @description fetch the trading fees for a market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object market = this.market(symbol);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "market", Helpers.GetValue(market, "id") );
+            }};
+            Object response = (this.privateGetAccountFees(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "tier": "0",
+            //         "volume": "10000.00",
+            //         "taker": "0.0025",
+            //         "maker": "0.0015"
+            //     }
+            //
+            return this.parseTradingFee(response, market);
+        });
+
+    }
+
+    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    {
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", fee );
+            put( "symbol", BitvavoCore.this.safeSymbol(null, market) );
+            put( "maker", BitvavoCore.this.safeNumber(fee, "maker") );
+            put( "taker", BitvavoCore.this.safeNumber(fee, "taker") );
+            put( "percentage", true );
+            put( "tierBased", true );
+        }};
+    }
+
+    /**
+     * @method
      * @name bitvavo#fetchOrderBook
-     * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-order-book/
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -1120,7 +1185,7 @@ final Object finalBase = base;
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object market = this.market(symbol);
+        Object market = this.market(((String)symbol));
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
             put( "interval", BitvavoCore.this.safeString(BitvavoCore.this.timeframes, timeframe, timeframe) );
@@ -1152,7 +1217,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchOHLCV
-     * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1173,7 +1238,7 @@ final Object finalBase = base;
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1219,7 +1284,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchBalance
-     * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-account-balance/
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1248,7 +1313,298 @@ final Object finalBase = base;
 
     /**
      * @method
+     * @name bitvavo#fetchAccounts
+     * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
+     * @description fetch all the accounts associated with a profile
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchAccounts(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object response = (this.privateGetSubaccounts(parameters)).join();
+            //
+            //     {
+            //         "items": [
+            //             {
+            //                 "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //                 "type": "spot",
+            //                 "status": "open",
+            //                 "label": "string"
+            //             }
+            //         ],
+            //         "currentPage": 0,
+            //         "totalPages": 0,
+            //         "maxItems": 0
+            //     }
+            //
+            Object accounts = this.safeList(response, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseAccounts(accounts);
+        });
+
+    }
+
+    public Object parseAccount(Object account)
+    {
+        return new java.util.HashMap<String, Object>() {{
+            put( "id", BitvavoCore.this.safeString(account, "id") );
+            put( "type", BitvavoCore.this.safeString(account, "type") );
+            put( "code", null );
+            put( "info", account );
+        }};
+    }
+
+    /**
+     * @method
+     * @name bitvavo#transfer
+     * @see https://docs.bitvavo.com/docs/institutional-api/create-transfer/
+     * @description transfer currency internally between the master account and a subaccount
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
+     * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {string} [params.subaccountId] the unique identifier for the subaccount
+     * @param {string} [params.clientRequestId] client defined unique id
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    {
+        final Object fromAccount3 = fromAccount2;
+        final Object toAccount3 = toAccount2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object fromAccount = fromAccount3;
+            Object toAccount = toAccount3;
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object currency = this.currency(code);
+            Object subaccountId = this.safeString(parameters, "subaccountId");
+            parameters = this.omit(parameters, "subaccountId");
+            Object direction = null;
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fromAccount, "master"))) && Helpers.isTrue((Helpers.isEqual(toAccount, "master")))))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
+            } else if (Helpers.isTrue(Helpers.isEqual(fromAccount, "master")))
+            {
+                direction = "masterToSub";
+                if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+                {
+                    subaccountId = toAccount;
+                }
+            } else if (Helpers.isTrue(Helpers.isEqual(toAccount, "master")))
+            {
+                direction = "subToMaster";
+                if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+                {
+                    subaccountId = fromAccount;
+                }
+            } else
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires either fromAccount or toAccount to be master")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
+            }
+            final Object finalSubaccountId = subaccountId;
+            final Object finalDirection = direction;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "subaccountId", finalSubaccountId );
+                put( "direction", finalDirection );
+                put( "symbol", Helpers.GetValue(currency, "id") );
+                put( "amount", BitvavoCore.this.currencyToPrecision(code, amount) );
+            }};
+            Object response = (this.privatePostSubaccountsTransfers(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "direction": "masterToSub",
+            //         "symbol": "BTC",
+            //         "amount": "0.1",
+            //         "status": "completed",
+            //         "createdAt": "1700000000000"
+            //     }
+            //
+            return this.parseTransfer(response, currency);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTransfers
+     * @see https://docs.bitvavo.com/docs/institutional-api/get-transfers/
+     * @description fetch a history of internal transfers made on an account
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {string} [params.subaccountId] the unique identifier for the subaccount
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTransfers(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object currency = null;
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                currency = this.currency(code);
+                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(currency, "id"));
+            }
+            Object subaccountId = this.safeString(parameters, "subaccountId");
+            if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a subaccountId parameter")) ;
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "start", since);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "limit", limit);
+            }
+            var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+            Object response = (this.privateGetSubaccountsTransfers(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "items": [
+            //             {
+            //                 "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //                 "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //                 "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //                 "direction": "masterToSub",
+            //                 "symbol": "BTC",
+            //                 "amount": "0.1",
+            //                 "status": "completed",
+            //                 "createdAt": "1700000000000"
+            //             }
+            //         ],
+            //         "start": 0,
+            //         "end": 0,
+            //         "limit": 25
+            //     }
+            //
+            Object items = this.safeList(response, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseTransfers(items, currency, since, limit);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTransfer
+     * @see https://docs.bitvavo.com/docs/institutional-api/get-transfer/
+     * @description fetches a transfer
+     * @param {string} id transfer id
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTransfer(Object id, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object currency = null;
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                currency = this.currency(code);
+            }
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "transferId", id );
+            }};
+            Object response = (this.privateGetSubaccountsTransfersTransferId(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "direction": "masterToSub",
+            //         "symbol": "BTC",
+            //         "amount": "0.1",
+            //         "status": "completed",
+            //         "createdAt": "1700000000000"
+            //     }
+            //
+            return this.parseTransfer(response, currency);
+        });
+
+    }
+
+    public Object parseTransferStatus(Object status)
+    {
+        Object statuses = new java.util.HashMap<String, Object>() {{
+            put( "completed", "ok" );
+            put( "pending", "pending" );
+            put( "failed", "failed" );
+        }};
+        return this.safeString(statuses, ((String)status), status);
+    }
+
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currencyId = this.safeString(transfer, "symbol");
+        Object code = this.safeCurrencyCode(currencyId, currency);
+        Object subaccountId = this.safeString(transfer, "subaccountId");
+        Object direction = this.safeString(transfer, "direction");
+        Object fromAccount = null;
+        Object toAccount = null;
+        if (Helpers.isTrue(Helpers.isEqual(direction, "masterToSub")))
+        {
+            fromAccount = "master";
+            toAccount = subaccountId;
+        } else if (Helpers.isTrue(Helpers.isEqual(direction, "subToMaster")))
+        {
+            fromAccount = subaccountId;
+            toAccount = "master";
+        }
+        Object timestamp = this.safeInteger(transfer, "createdAt");
+        if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+        {
+            timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
+        }
+        final Object finalTimestamp = timestamp;
+        final Object finalFromAccount = fromAccount;
+        final Object finalToAccount = toAccount;
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", transfer );
+            put( "id", BitvavoCore.this.safeString(transfer, "transferId") );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", BitvavoCore.this.iso8601(finalTimestamp) );
+            put( "currency", code );
+            put( "amount", BitvavoCore.this.safeNumber(transfer, "amount") );
+            put( "fromAccount", finalFromAccount );
+            put( "toAccount", finalToAccount );
+            put( "status", BitvavoCore.this.parseTransferStatus(BitvavoCore.this.safeString(transfer, "status")) );
+        }};
+    }
+
+    /**
+     * @method
      * @name bitvavo#fetchDepositAddress
+     * @see https://docs.bitvavo.com/docs/rest-api/get-deposit-data/
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1290,7 +1646,7 @@ final Object finalBase = base;
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object market = this.market(symbol);
+        Object market = this.market(((String)symbol));
         final Object finalType = type;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
@@ -1324,13 +1680,13 @@ final Object finalBase = base;
                 Helpers.addElementToObject(request, "amountQuote", this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode));
             } else
             {
-                Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
+                Helpers.addElementToObject(request, "amount", this.amountToPrecision(((String)symbol), amount));
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cost")));
         } else if (Helpers.isTrue(isLimitOrder))
         {
-            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
-            Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
+            Helpers.addElementToObject(request, "price", this.priceToPrecision(((String)symbol), price));
+            Helpers.addElementToObject(request, "amount", this.amountToPrecision(((String)symbol), amount));
         }
         Object isTakeProfit = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfit")))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfitLimit")));
         Object isStopLoss = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isTrue(isTakeProfit))))) || Helpers.isTrue((Helpers.isEqual(type, "stopLoss")))) || Helpers.isTrue((Helpers.isEqual(type, "stopLossLimit")));
@@ -1351,7 +1707,7 @@ final Object finalBase = base;
         }
         if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
         {
-            Helpers.addElementToObject(request, "triggerAmount", this.priceToPrecision(symbol, triggerPrice));
+            Helpers.addElementToObject(request, "triggerAmount", this.priceToPrecision(((String)symbol), triggerPrice));
             Helpers.addElementToObject(request, "triggerType", "price");
             Helpers.addElementToObject(request, "triggerReference", "lastTrade"); // 'bestBid', 'bestAsk', 'midPrice'
         }
@@ -1395,7 +1751,7 @@ final Object finalBase = base;
      * @method
      * @name bitvavo#createOrder
      * @description create a trade order
-     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
+     * @see https://docs.bitvavo.com/docs/rest-api/create-order/
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1423,7 +1779,7 @@ final Object finalBase = base;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = (this.privatePostOrder(request)).join();
             //
@@ -1526,7 +1882,7 @@ final Object finalBase = base;
      * @method
      * @name bitvavo#editOrder
      * @description edit a trade order
-     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+     * @see https://docs.bitvavo.com/docs/rest-api/update-order/
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1587,9 +1943,8 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#cancelOrder
-     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
      * @description cancels an open order
-     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
+     * @see https://docs.bitvavo.com/docs/rest-api/cancel-order/
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1603,7 +1958,7 @@ final Object finalBase = base;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             Object response = (this.privateDeleteOrder(request)).join();
             //
@@ -1619,7 +1974,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#cancelAllOrders
-     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+     * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1666,9 +2021,55 @@ final Object finalBase = base;
 
     /**
      * @method
+     * @name bitvavo#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders-after/
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
+     * @returns {object} the api result
+     */
+    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isGreaterThan(timeout, 300000)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")) ;
+            }
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))) && Helpers.isTrue((Helpers.isLessThan(timeout, 10000)))))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
+            }
+            (this.loadMarkets()).join();
+            Object codGroupId = null;
+            var codGroupIdparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
+            codGroupId = ((java.util.List<Object>) codGroupIdparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) codGroupIdparametersVariable).get(1);
+            final Object finalCodGroupId = codGroupId;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "codGroupId", finalCodGroupId );
+                put( "expiryAfterSeconds", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? BitvavoCore.this.parseToInt(Helpers.divide(timeout, 1000)) : 0 );
+            }};
+            Object response = (this.privatePostCancelOrdersAfter(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "codGroupId": 1,
+            //         "timeOfExpirySeconds": 17202139111
+            //     }
+            //
+            return response;
+        });
+
+    }
+
+    /**
+     * @method
      * @name bitvavo#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-order/
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1741,7 +2142,7 @@ final Object finalBase = base;
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object market = this.market(symbol);
+        Object market = this.market(((String)symbol));
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
         }};
@@ -1762,7 +2163,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchOrders
-     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-orders/
      * @description fetches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1841,7 +2242,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchOpenOrders
-     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-open-orders/
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -1925,7 +2326,7 @@ final Object finalBase = base;
             put( "rejected", "canceled" );
             put( "awaitingTrigger", "open" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -2044,7 +2445,7 @@ final Object finalBase = base;
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object market = this.market(symbol);
+        Object market = this.market(((String)symbol));
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
         }};
@@ -2065,7 +2466,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchMyTrades
-     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-trade-history/
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2122,14 +2523,149 @@ final Object finalBase = base;
 
     }
 
+    /**
+     * @method
+     * @name bitvavo#fetchLedger
+     * @see https://docs.bitvavo.com/docs/rest-api/get-transaction-history/
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {int} [params.page] the page number for the transaction history
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchLedger(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object currency = null;
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                currency = this.currency(code);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "fromDate", since);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "maxItems", Helpers.mathMin(limit, 100));
+            }
+            var requestparametersVariable = this.handleUntilOption("toDate", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+            Object response = (this.privateGetAccountHistory(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "items": [
+            //             {
+            //                 "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+            //                 "executedAt": "2021-01-01T00:00:00.000Z",
+            //                 "type": "sell",
+            //                 "priceCurrency": "EUR",
+            //                 "priceAmount": "1000.00",
+            //                 "sentCurrency": "EUR",
+            //                 "sentAmount": "0.1",
+            //                 "receivedCurrency": "BTC",
+            //                 "receivedAmount": "0.0001",
+            //                 "feesCurrency": "EUR",
+            //                 "feesAmount": "0.01",
+            //                 "address": "string"
+            //             }
+            //         ],
+            //         "currentPage": 1,
+            //         "totalPages": 1,
+            //         "maxItems": 100
+            //     }
+            //
+            Object items = this.safeList(response, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseLedger(items, currency, since, limit);
+        });
+
+    }
+
+    public Object parseLedgerEntryType(Object type)
+    {
+        Object types = new java.util.HashMap<String, Object>() {{
+            put( "buy", "trade" );
+            put( "sell", "trade" );
+            put( "deposit", "transaction" );
+            put( "withdrawal", "transaction" );
+            put( "withdrawal_cancelled", "transaction" );
+            put( "internal_transfer", "transaction" );
+            put( "external_transferred_funds", "transaction" );
+        }};
+        return this.safeString(types, ((String)type), type);
+    }
+
+    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    {
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object rawType = this.safeString(item, "type");
+        Object type = this.parseLedgerEntryType(rawType);
+        Object currencyId = this.safeString(item, "receivedCurrency");
+        Object amount = this.safeString(item, "receivedAmount");
+        Object direction = "in";
+        if (Helpers.isTrue(Helpers.isEqual(amount, null)))
+        {
+            currencyId = this.safeString(item, "sentCurrency");
+            amount = this.safeString(item, "sentAmount");
+            direction = "out";
+        }
+        Object code = this.safeCurrencyCode(currencyId);
+        currency = this.safeCurrency(currencyId, currency);
+        Object timestamp = this.parse8601(this.safeString(item, "executedAt"));
+        Object fee = null;
+        Object feeCost = this.safeString(item, "feesAmount");
+        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        {
+            Object feeCurrencyId = this.safeString(item, "feesCurrency");
+            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            final Object finalFeeCost = feeCost;
+            fee = new java.util.HashMap<String, Object>() {{
+                put( "cost", finalFeeCost );
+                put( "currency", feeCurrencyCode );
+            }};
+        }
+        final Object finalDirection = direction;
+        final Object finalAmount = amount;
+        final Object finalFee = fee;
+        return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
+            put( "info", item );
+            put( "id", BitvavoCore.this.safeString(item, "transactionId") );
+            put( "direction", finalDirection );
+            put( "account", null );
+            put( "referenceId", BitvavoCore.this.safeString(item, "transactionId") );
+            put( "referenceAccount", BitvavoCore.this.safeString(item, "address") );
+            put( "type", type );
+            put( "currency", code );
+            put( "amount", finalAmount );
+            put( "timestamp", timestamp );
+            put( "datetime", BitvavoCore.this.iso8601(timestamp) );
+            put( "before", null );
+            put( "after", null );
+            put( "status", "ok" );
+            put( "fee", finalFee );
+        }}, currency);
+    }
+
     public Object withdrawRequest(Object code, Object amount, Object address, Object... optionalArgs)
     {
         Object tag = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object currency = this.currency(code);
+        Object currency = this.currency(((String)code));
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(currency, "id") );
-            put( "amount", BitvavoCore.this.currencyToPrecision(code, amount) );
+            put( "amount", BitvavoCore.this.currencyToPrecision(((String)code), amount) );
             put( "address", address );
         }};
         if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -2142,6 +2678,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#withdraw
+     * @see https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
      * @description make a withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
@@ -2204,7 +2741,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchWithdrawals
-     * @see https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-withdrawal-history/
      * @description fetch all withdrawals made from an account
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
@@ -2277,7 +2814,7 @@ final Object finalBase = base;
     /**
      * @method
      * @name bitvavo#fetchDeposits
-     * @see https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-deposit-history/
      * @description fetch all deposits made to an account
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -2334,7 +2871,7 @@ final Object finalBase = base;
             put( "completed", "ok" );
             put( "canceled", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)
@@ -2477,7 +3014,7 @@ final Object finalBase = base;
      * @method
      * @name bitvavo#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees
-     * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+     * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}

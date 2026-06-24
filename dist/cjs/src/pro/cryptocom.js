@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var cryptocom$1 = require('../cryptocom.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -45,7 +45,7 @@ class cryptocom extends cryptocom$1["default"] {
             },
             'options': {
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'watchOrderBook': {
@@ -1039,7 +1039,9 @@ class cryptocom extends cryptocom$1["default"] {
         }
         client.resolve(this.balance, messageHash);
         const messageHashRequest = this.safeString(message, 'id');
-        client.resolve(this.balance, messageHashRequest);
+        if (messageHashRequest !== undefined) {
+            client.resolve(this.balance, messageHashRequest);
+        }
     }
     /**
      * @method
@@ -1363,7 +1365,7 @@ class cryptocom extends cryptocom$1["default"] {
             const method = 'public/auth';
             const nonce = this.nonce().toString();
             const auth = method + nonce + this.apiKey + nonce;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             const request = {
                 'id': nonce,
                 'nonce': nonce,

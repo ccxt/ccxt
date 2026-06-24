@@ -1,8 +1,5 @@
-- [Async Okx Positional Orders](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 from pprint import pprint
@@ -60,5 +57,5 @@ async def main():
 
 
 asyncio.run(main())
- 
+
 ```

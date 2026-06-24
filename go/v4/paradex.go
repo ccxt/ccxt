@@ -3508,7 +3508,7 @@ func (this *ParadexCore) ParseMarginMode(rawMarginMode any, optionalArgs ...any)
 	var marginMode any = this.SafeStringLower(rawMarginMode, "margin_type")
 	return map[string]any{
 		"info":       rawMarginMode,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"marginMode": marginMode,
 	}
 }

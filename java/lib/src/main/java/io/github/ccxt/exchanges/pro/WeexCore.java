@@ -1118,7 +1118,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta);
+        Object bidAsk = this.parseOrderBookBidAsk(delta);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 

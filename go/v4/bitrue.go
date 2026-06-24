@@ -395,7 +395,6 @@ func (this *BitrueCore) Describe() any {
 				"XML":              "Stellar Lumens",
 				"XYM":              "Symbol",
 				"XTZ":              "Tezos",
-				"theta":            "theta",
 				"THETA":            "THETA",
 				"VECHAIN":          "VeChain",
 				"WANCHAIN":         "Wanchain",
@@ -546,61 +545,62 @@ func (this *BitrueCore) Describe() any {
 				"You don\\'t have permission.":                           PermissionDenied,
 				"Market is closed.":                                      ExchangeNotAvailable,
 				"Too many requests. Please try again later.":             DDoSProtection,
-				"-1000":  ExchangeNotAvailable,
-				"-1001":  ExchangeNotAvailable,
-				"-1002":  AuthenticationError,
-				"-1003":  RateLimitExceeded,
-				"-1013":  InvalidOrder,
-				"-1015":  RateLimitExceeded,
-				"-1016":  ExchangeNotAvailable,
-				"-1020":  BadRequest,
-				"-1021":  InvalidNonce,
-				"-1022":  AuthenticationError,
-				"-1100":  BadRequest,
-				"-1101":  BadRequest,
-				"-1102":  BadRequest,
-				"-1103":  BadRequest,
-				"-1104":  BadRequest,
-				"-1105":  BadRequest,
-				"-1106":  BadRequest,
-				"-1111":  BadRequest,
-				"-1112":  InvalidOrder,
-				"-1114":  BadRequest,
-				"-1115":  BadRequest,
-				"-1116":  BadRequest,
-				"-1117":  BadRequest,
-				"-1166":  InvalidOrder,
-				"-1118":  BadRequest,
-				"-1119":  BadRequest,
-				"-1120":  BadRequest,
-				"-1121":  BadSymbol,
-				"-1125":  AuthenticationError,
-				"-1127":  BadRequest,
-				"-1128":  BadRequest,
-				"-1130":  BadRequest,
-				"-1131":  BadRequest,
-				"-1160":  InvalidOrder,
-				"-1156":  InvalidOrder,
-				"-2008":  AuthenticationError,
-				"-2010":  ExchangeError,
-				"-2011":  OrderNotFound,
-				"-2013":  OrderNotFound,
-				"-2014":  AuthenticationError,
-				"-2015":  AuthenticationError,
-				"-2017":  InsufficientFunds,
-				"-2019":  InsufficientFunds,
-				"-3005":  InsufficientFunds,
-				"-3006":  InsufficientFunds,
-				"-3008":  InsufficientFunds,
-				"-3010":  ExchangeError,
-				"-3015":  ExchangeError,
-				"-3022":  AccountSuspended,
-				"-4028":  BadRequest,
-				"-3020":  InsufficientFunds,
-				"-3041":  InsufficientFunds,
-				"-5013":  InsufficientFunds,
-				"-11008": InsufficientFunds,
-				"-4051":  InsufficientFunds,
+				"quantity less then minQty":                              InvalidOrder,
+				"-1000":                                                  ExchangeNotAvailable,
+				"-1001":                                                  ExchangeNotAvailable,
+				"-1002":                                                  AuthenticationError,
+				"-1003":                                                  RateLimitExceeded,
+				"-1013":                                                  InvalidOrder,
+				"-1015":                                                  RateLimitExceeded,
+				"-1016":                                                  ExchangeNotAvailable,
+				"-1020":                                                  BadRequest,
+				"-1021":                                                  InvalidNonce,
+				"-1022":                                                  AuthenticationError,
+				"-1100":                                                  BadRequest,
+				"-1101":                                                  BadRequest,
+				"-1102":                                                  BadRequest,
+				"-1103":                                                  BadRequest,
+				"-1104":                                                  BadRequest,
+				"-1105":                                                  BadRequest,
+				"-1106":                                                  BadRequest,
+				"-1111":                                                  BadRequest,
+				"-1112":                                                  InvalidOrder,
+				"-1114":                                                  BadRequest,
+				"-1115":                                                  BadRequest,
+				"-1116":                                                  BadRequest,
+				"-1117":                                                  BadRequest,
+				"-1166":                                                  InvalidOrder,
+				"-1118":                                                  BadRequest,
+				"-1119":                                                  BadRequest,
+				"-1120":                                                  BadRequest,
+				"-1121":                                                  BadSymbol,
+				"-1125":                                                  AuthenticationError,
+				"-1127":                                                  BadRequest,
+				"-1128":                                                  BadRequest,
+				"-1130":                                                  BadRequest,
+				"-1131":                                                  BadRequest,
+				"-1160":                                                  InvalidOrder,
+				"-1156":                                                  InvalidOrder,
+				"-2008":                                                  AuthenticationError,
+				"-2010":                                                  ExchangeError,
+				"-2011":                                                  OrderNotFound,
+				"-2013":                                                  OrderNotFound,
+				"-2014":                                                  AuthenticationError,
+				"-2015":                                                  AuthenticationError,
+				"-2017":                                                  InsufficientFunds,
+				"-2019":                                                  InsufficientFunds,
+				"-3005":                                                  InsufficientFunds,
+				"-3006":                                                  InsufficientFunds,
+				"-3008":                                                  InsufficientFunds,
+				"-3010":                                                  ExchangeError,
+				"-3015":                                                  ExchangeError,
+				"-3022":                                                  AccountSuspended,
+				"-4028":                                                  BadRequest,
+				"-3020":                                                  InsufficientFunds,
+				"-3041":                                                  InsufficientFunds,
+				"-5013":                                                  InsufficientFunds,
+				"-11008":                                                 InsufficientFunds,
+				"-4051":                                                  InsufficientFunds,
 			},
 			"broad": map[string]any{
 				"Insufficient account balance": InsufficientFunds,
@@ -930,10 +930,10 @@ func (this *BitrueCore) FetchMarkets(optionalArgs ...any) <-chan any {
 	return ch
 }
 func (this *BitrueCore) ParseMarket(market any) any {
-	var id any = this.SafeString(market, "symbol")
+	var id any = this.SafeString(market, "symbol", "")
 	var lowercaseId any = this.SafeStringLower(market, "symbol")
 	var side any = this.SafeInteger(market, "side") // 1 linear, 0 inverse, undefined spot
-	var typeVar any = nil
+	var typeVar any = "spot"
 	var isLinear any = nil
 	var isInverse any = nil
 	if IsTrue(IsEqual(side, nil)) {
@@ -1184,7 +1184,7 @@ func (this *BitrueCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		retRes12308 := (<-this.LoadMarkets())
 		PanicOnError(retRes12308)
 		var market any = this.Market(symbol)
-		var response any = nil
+		var response any = map[string]any{}
 		if IsTrue(GetValue(market, "swap")) {
 			var request any = map[string]any{
 				"contractName": GetValue(market, "id"),
@@ -1297,7 +1297,7 @@ func (this *BitrueCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var last any = this.SafeString2(ticker, "lastPrice", "last")
 	var timestamp any = this.SafeInteger(ticker, "time")
 	var percentage any = nil
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(this.SafeBool(market, "swap")) {
 		percentage = Precise.StringMul(this.SafeString(ticker, "rose"), "100")
 	} else {
 		percentage = this.SafeString(ticker, "priceChangePercent")
@@ -1349,7 +1349,7 @@ func (this *BitrueCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		PanicOnError(retRes13748)
 		var market any = this.Market(symbol)
 		var response any = nil
-		var data any = nil
+		var data any = map[string]any{}
 		if IsTrue(GetValue(market, "swap")) {
 			var request any = map[string]any{
 				"contractName": GetValue(market, "id"),
@@ -1454,7 +1454,7 @@ func (this *BitrueCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		var market any = this.Market(symbol)
 		var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 		var response any = nil
-		var data any = nil
+		var data any = []any{}
 		if IsTrue(GetValue(market, "swap")) {
 			var timeframesFuture any = this.SafeDict(timeframes, "future", map[string]any{})
 			var request any = map[string]any{
@@ -1677,7 +1677,7 @@ func (this *BitrueCore) FetchTickers(optionalArgs ...any) <-chan any {
 		PanicOnError(retRes16438)
 		symbols = this.MarketSymbols(symbols)
 		var response any = nil
-		var data any = nil
+		var data any = []any{}
 		var request any = map[string]any{}
 		var typeVar any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -1881,7 +1881,7 @@ func (this *BitrueCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		retRes18248 := (<-this.LoadMarkets())
 		PanicOnError(retRes18248)
 		var market any = this.Market(symbol)
-		var response any = nil
+		var response any = []any{}
 		if IsTrue(GetValue(market, "spot")) {
 			var request any = map[string]any{
 				"symbol": GetValue(market, "id"),
@@ -2123,7 +2123,7 @@ func (this *BitrueCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		PanicOnError(retRes20348)
 		var market any = this.Market(symbol)
 		var response any = nil
-		var data any = nil
+		var data any = map[string]any{}
 		var uppercaseType any = ToUpper(typeVar)
 		var request any = map[string]any{
 			"side": ToUpper(side),
@@ -2267,7 +2267,7 @@ func (this *BitrueCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		var origClientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
 		params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
 		var response any = nil
-		var data any = nil
+		var data any = map[string]any{}
 		var request any = map[string]any{}
 		if IsTrue(IsEqual(origClientOrderId, nil)) {
 			AddElementToObject(request, "orderId", id)
@@ -2460,7 +2460,7 @@ func (this *BitrueCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		PanicOnError(retRes23118)
 		var market any = this.Market(symbol)
 		var response any = nil
-		var data any = nil
+		var data any = []any{}
 		var request any = map[string]any{}
 		if IsTrue(GetValue(market, "swap")) {
 			AddElementToObject(request, "contractName", GetValue(market, "id"))
@@ -2568,7 +2568,7 @@ func (this *BitrueCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		var origClientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
 		params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
 		var response any = nil
-		var data any = nil
+		var data any = map[string]any{}
 		var request any = map[string]any{}
 		if IsTrue(IsEqual(origClientOrderId, nil)) {
 			AddElementToObject(request, "orderId", id)
@@ -2653,7 +2653,7 @@ func (this *BitrueCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		PanicOnError(retRes24628)
 		var market any = this.Market(symbol)
 		var response any = nil
-		var data any = nil
+		var data any = []any{}
 		if IsTrue(GetValue(market, "swap")) {
 			var request any = map[string]any{
 				"contractName": GetValue(market, "id"),
@@ -2721,7 +2721,7 @@ func (this *BitrueCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		var market any = this.Market(symbol)
 		var response any = nil
-		var data any = nil
+		var data any = []any{}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
@@ -3158,7 +3158,7 @@ func (this *BitrueCore) Withdraw(code any, amount any, address any, optionalArgs
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			AddElementToObject(request, "chainName", this.NetworkCodeToId(networkCode))
+			AddElementToObject(request, "chainName", this.NetworkCodeToId(networkCode, GetValue(currency, "code")))
 		}
 		if IsTrue(!IsEqual(tag, nil)) {
 			AddElementToObject(request, "tag", tag)
@@ -3470,7 +3470,7 @@ func (this *BitrueCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 		retRes31218 := (<-this.LoadMarkets())
 		PanicOnError(retRes31218)
 		var market any = this.Market(symbol)
-		var response any = nil
+		var response any = map[string]any{}
 		var request any = map[string]any{
 			"contractName": GetValue(market, "id"),
 			"leverage":     leverage,
@@ -3508,7 +3508,7 @@ func (this *BitrueCore) ParseMarginModification(data any, optionalArgs ...any) a
 	_ = market
 	return map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
 		"marginMode": "isolated",
 		"amount":     nil,

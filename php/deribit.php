@@ -604,7 +604,7 @@ class deribit extends Exchange {
         return $this->safe_integer($response, 'result');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -639,40 +639,39 @@ class deribit extends Exchange {
         //    }
         //
         $data = $this->safe_list($response, 'result', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $currency = $data[$i];
-            $currencyId = $this->safe_string($currency, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'code' => $code,
-                'id' => $currencyId,
-                'name' => $this->safe_string($currency, 'currency_long'),
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'type' => 'crypto',
-                'fee' => $this->safe_number($currency, 'withdrawal_fee'),
-                'precision' => null,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
+        return $this->parse_currencies($data);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $this->safe_string($rawCurrency, 'currency_long'),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'type' => 'crypto',
+            'fee' => $this->safe_number($rawCurrency, 'withdrawal_fee'),
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'networks' => null,
-            ));
-        }
-        return $result;
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => null,
+        ));
     }
 
     public function code_from_options($methodName, $params = array ()) {
@@ -1327,7 +1326,7 @@ class deribit extends Exchange {
         //         "testnet" => false
         //     }
         //
-        $result = $this->safe_dict($response, 'result');
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_ticker($result, $market);
     }
 
@@ -2010,7 +2009,7 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_dict($response, 'result');
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_order($result, $market);
     }
 
@@ -2785,7 +2784,7 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_dict($response, 'result');
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_position($result);
     }
 
@@ -3613,7 +3612,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_option(string $symbol, $params = array ()): Option {
+    public function fetch_option(string $symbol, $params = array ()): array {
         /**
          * fetches option data that is commonly found in an option $chain
          *
@@ -3666,7 +3665,7 @@ class deribit extends Exchange {
         return $this->parse_option($chain, null, $market);
     }
 
-    public function fetch_option_chain(string $code, $params = array ()): OptionChain {
+    public function fetch_option_chain(string $code, $params = array ()): array {
         /**
          * fetches data for an underlying asset that is commonly found in an option chain
          *
@@ -3719,7 +3718,7 @@ class deribit extends Exchange {
         return $this->parse_option_chain($result, 'base_currency', 'instrument_name');
     }
 
-    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
         //         "mid_price" => 0.04025,
@@ -3874,7 +3873,7 @@ class deribit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $request = '/' . 'api/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {

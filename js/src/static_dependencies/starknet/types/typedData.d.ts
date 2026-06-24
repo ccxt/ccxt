@@ -2,13 +2,13 @@ export declare const TypedDataRevision: {
     readonly Active: "1";
     readonly Legacy: "0";
 };
-export declare type TypedDataRevision = (typeof TypedDataRevision)[keyof typeof TypedDataRevision];
-export declare type StarknetEnumType = {
+export type TypedDataRevision = (typeof TypedDataRevision)[keyof typeof TypedDataRevision];
+export type StarknetEnumType = {
     name: string;
     type: 'enum';
     contains: string;
 };
-export declare type StarknetMerkleType = {
+export type StarknetMerkleType = {
     name: string;
     type: 'merkletree';
     contains: string;
@@ -19,7 +19,7 @@ export declare type StarknetMerkleType = {
  * Note that the `uint` and `int` aliases like in Solidity, and fixed point numbers are not supported by the EIP-712
  * standard.
  */
-export declare type StarknetType = {
+export type StarknetType = {
     name: string;
     type: string;
 } | StarknetEnumType | StarknetMerkleType;

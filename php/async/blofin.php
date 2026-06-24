@@ -991,7 +991,6 @@ class blofin extends Exchange {
                 $request['after'] = $until;
                 $params = $this->omit($params, 'until');
             }
-            $response = null;
             $response = Async\await($this->publicGetMarketCandles ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
@@ -1256,7 +1255,6 @@ class blofin extends Exchange {
             list($accountType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'accountType', 'type');
             $request = array(
             );
-            $response = null;
             if ($accountType !== null && $accountType !== 'swap') {
                 $options = $this->safe_dict($this->options, 'accountsByType', array());
                 $parsedAccountType = $this->safe_string($options, $accountType, $accountType);
@@ -1500,6 +1498,7 @@ class blofin extends Exchange {
              * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
              * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
              * @param {float} [$params->stopLoss.price] stop loss $order $price (if not provided the $order will be a $market $order)
+             * @param {float} [$params->tpsl] whether to force to send the $order to the combined TPSL oco $order endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -1507,9 +1506,10 @@ class blofin extends Exchange {
             $isStopLossPriceDefined = $this->safe_string($params, 'stopLossPrice') !== null;
             $isTakeProfitPriceDefined = $this->safe_string($params, 'takeProfitPrice') !== null;
             $isTriggerOrder = $this->safe_string($params, 'triggerPrice') !== null;
-            $isCombinedSlTp = ($isStopLossPriceDefined && $isTakeProfitPriceDefined);
+            $isTpslEndpoint = false;
+            list($isTpslEndpoint, $params) = $this->handle_option_and_params($params, 'createOrder', 'tpsl', false);
+            $isCombinedSlTp = ($isStopLossPriceDefined && $isTakeProfitPriceDefined) || $isTpslEndpoint;
             $isSlOrTp = $isStopLossPriceDefined || $isTakeProfitPriceDefined;
-            $response = null;
             $reduceOnly = $this->safe_bool($params, 'reduceOnly');
             if ($reduceOnly !== null) {
                 $params['reduceOnly'] = $reduceOnly ? 'true' : 'false';
@@ -1562,11 +1562,29 @@ class blofin extends Exchange {
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         if ($stopLossPrice !== null) {
             $request['slTriggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
-            $request['slOrderPrice'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $price);
+            if ($type === 'market') {
+                $request['slOrderPrice'] = '-1';
+            } else {
+                $slLimitPrice = $this->safe_string($params, 'stopLossLimitPrice');
+                if ($slLimitPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order $type is not market');
+                }
+                $request['slOrderPrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                $params = $this->omit($params, 'stopLossLimitPrice');
+            }
         }
         if ($takeProfitPrice !== null) {
             $request['tpTriggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
-            $request['tpOrderPrice'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $price);
+            if ($type === 'market') {
+                $request['tpOrderPrice'] = '-1';
+            } else {
+                $tpLimitPrice = $this->safe_string($params, 'takeProfitLimitPrice');
+                if ($tpLimitPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order $type is not market');
+                }
+                $request['tpOrderPrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                $params = $this->omit($params, 'takeProfitLimitPrice');
+            }
         }
         $request['marginMode'] = $marginMode;
         $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ));
@@ -1696,7 +1714,6 @@ class blofin extends Exchange {
             $method = null;
             list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
             $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
-            $response = null;
             if ($isTpSl || ($method === 'privateGetTradeOrdersTpslPending')) {
                 $response = Async\await($this->privateGetTradeOrdersTpslPending ($this->extend($request, $query)));
             } elseif ($isTrigger || ($method === 'privateGetTradeOrdersAlgoPending')) {
@@ -1746,7 +1763,6 @@ class blofin extends Exchange {
             }
             $type = 'swap';
             list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params, $type);
-            $response = null;
             if ($type === 'spot') {
                 $request['instType'] = 'SPOT';
                 //
@@ -1894,7 +1910,6 @@ class blofin extends Exchange {
                 $request['currency'] = $currency['id'];
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = null;
             $response = Async\await($this->privateGetAssetBills ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ledger($data, $currency, $since, $limit);
@@ -2125,7 +2140,6 @@ class blofin extends Exchange {
                     );
                 }
             }
-            $response = null;
             if ($method === 'privatePostTradeCancelTpsl') {
                 $response = Async\await($this->privatePostTradeCancelTpsl ($request)); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
             } else {
@@ -2461,9 +2475,10 @@ class blofin extends Exchange {
                 throw new BadRequest($this->id . ' fetchLeverages() requires a $marginMode parameter that must be either cross or isolated');
             }
             $symbols = $this->market_symbols($symbols);
+            $symbolsList = $symbols;
             $instIds = '';
-            for ($i = 0; $i < count($symbols); $i++) {
-                $entry = $symbols[$i];
+            for ($i = 0; $i < count($symbolsList); $i++) {
+                $entry = $symbolsList[$i];
                 $entryMarket = $this->market($entry);
                 if ($i > 0) {
                     $instIds = $instIds . ',' . $entryMarket['id'];
@@ -2663,7 +2678,6 @@ class blofin extends Exchange {
             $method = null;
             list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
             $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
-            $response = null;
             if (($isTrigger) || ($method === 'privateGetTradeOrdersTpslHistory')) {
                 $response = Async\await($this->privateGetTradeOrdersTpslHistory ($this->extend($request, $query)));
             } else {
@@ -2742,7 +2756,7 @@ class blofin extends Exchange {
             //     }
             //
             $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_margin_mode($data, $market);
+            return $this->parse_margin_mode($data, $market); // keep untyped to match the base setMarginMode return (array()) — narrowing it breaks the Go IExchange interface
         }) ();
     }
 
@@ -2927,10 +2941,10 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->implode_hostname($this->urls['api']['rest']) . $request;
+        $url = $this->implode_hostname(($this->urls['api'])['rest']) . $request;
         // $type = $this->getPathAuthenticationType ($path);
         if ($api === 'public') {
             if (!$this->is_empty($query)) {

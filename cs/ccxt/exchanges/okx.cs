@@ -1066,9 +1066,11 @@ public partial class okx : Exchange
                     { "TRX", "TRC20" },
                     { "TRC20", "TRC20" },
                     { "CRC20", "Crypto" },
+                    { "CRONOS", "Crypto" },
                     { "ACA", "Acala" },
                     { "ALGO", "Algorand" },
                     { "APT", "Aptos" },
+                    { "SONIC", "Sonic" },
                     { "SCROLL", "Scroll" },
                     { "ARBONE", "Arbitrum One" },
                     { "AVAXC", "Avalanche C-Chain" },
@@ -1077,14 +1079,17 @@ public partial class okx : Exchange
                     { "SUI", "SUI" },
                     { "ZKSYNCERA", "zkSync Era" },
                     { "LINEA", "Linea" },
+                    { "VAULTA", "Vaulta" },
                     { "AR", "Arweave" },
                     { "ASTR", "Astar" },
                     { "BCH", "BitcoinCash" },
                     { "BSV", "Bitcoin SV" },
                     { "ADA", "Cardano" },
                     { "CSPR", "Casper" },
+                    { "CANTON", "Canton Network" },
                     { "CELO", "CELO" },
                     { "XCH", "Chia" },
+                    { "BABY", "Babylon" },
                     { "ATOM", "Cosmos" },
                     { "DGB", "Digibyte" },
                     { "DOGE", "Dogecoin" },
@@ -1095,11 +1100,10 @@ public partial class okx : Exchange
                     { "ETC", "Ethereum Classic" },
                     { "ETHW", "EthereumPow" },
                     { "FIL", "Filecoin" },
-                    { "ONE", "Harmony" },
                     { "HBAR", "Hedera" },
-                    { "ICX", "ICON" },
+                    { "HYPER", "HyperEVM" },
                     { "ICP", "Dfinity" },
-                    { "IOST", "IOST" },
+                    { "PI", "PI" },
                     { "IOTA", "MIOTA" },
                     { "KLAY", "Klaytn" },
                     { "KSM", "Kusama" },
@@ -1114,8 +1118,7 @@ public partial class okx : Exchange
                     { "NULS", "NULS" },
                     { "OASYS", "OASYS" },
                     { "ONT", "Ontology" },
-                    { "OPTIMISM", "Optimism" },
-                    { "LAT", "PlatON" },
+                    { "OP", "Optimism" },
                     { "DOT", "Polkadot" },
                     { "MATIC", "Polygon" },
                     { "RVN", "Ravencoin" },
@@ -1129,6 +1132,24 @@ public partial class okx : Exchange
                     { "THETA", "Theta" },
                     { "WAX", "Wax" },
                     { "ZIL", "Zilliqa" },
+                    { "ZEC", "Zcash" },
+                    { "ZETA", "ZetaChain" },
+                    { "TIA", "Celestia" },
+                    { "SEI", "SEI" },
+                    { "QUANTUM", "Quantum" },
+                    { "PHAROS", "Pharos" },
+                    { "RONIN", "Ronin" },
+                    { "MEGAETH", "MegaETH" },
+                    { "INJ", "INJ" },
+                    { "FOGO", "Fogo" },
+                    { "FLR", "Flare" },
+                    { "FLOW", "FLOW" },
+                    { "DYDX", "DYDX" },
+                    { "AELF", "AELF" },
+                    { "BERA", "Berachain" },
+                    { "TEMPO", "Tempo" },
+                    { "MONAD", "Monad" },
+                    { "PLASMA", "Plasma" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "ERC20", "ERC20" },
@@ -1440,7 +1461,19 @@ public partial class okx : Exchange
 
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((isGreaterThan(getIndexOf(marketId, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(marketId, "-P"), -1)))));
+        object isOption = false;
+        if (isTrue(!isEqual(marketId, null)))
+        {
+            object parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            object partsLength = getArrayLength(parts);
+            // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
+            // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
+            // BTC/USD:USD-260611-54000-C (4 parts). Requiring more than 3 dash-separated parts avoids
+            // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
+            // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
+            // on the missing expiry.
+            isOption = isTrue((isGreaterThan(partsLength, 3))) && isTrue((isTrue(((string)marketId).EndsWith(((string)"-C"))) || isTrue(((string)marketId).EndsWith(((string)"-P")))));
+        }
         if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
         {
             // handle expired option contracts
@@ -1901,6 +1934,11 @@ public partial class okx : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(dataResponse)); postFixIncrement(ref i))
         {
             object data = getValue(dataResponse, i);
+            object instId = this.safeString(data, "instId", "");
+            if (isTrue(isEqual(instId, "")))
+            {
+                continue;
+            }
             if (isTrue(this.isSandboxModeEnabled))
             {
                 object instFamily = this.safeString(data, "instFamily", "");
@@ -7883,7 +7921,7 @@ public partial class okx : Exchange
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "tier") },
                 { "symbol", this.safeSymbol(marketId, market) },
-                { "currency", getValue(market, "quote") },
+                { "currency", this.safeString(market, "quote") },
                 { "minNotional", this.safeNumber(tier, "minSz") },
                 { "maxNotional", this.safeNumber(tier, "maxSz") },
                 { "maintenanceMarginRate", this.safeNumber(tier, "mmr") },
@@ -9733,7 +9771,7 @@ public partial class okx : Exchange
         }
         if (isTrue(!isEqual(timeframe, null)))
         {
-            ((IDictionary<string,object>)request)["period"] = timeframe;
+            ((IDictionary<string,object>)request)["period"] = this.safeString(this.timeframes, timeframe, timeframe);
         }
         if (isTrue(!isEqual(since, null)))
         {

@@ -415,7 +415,7 @@ class onetrading extends \ccxt\async\onetrading {
         //
         //   array( 'BUY', "0.053595", "0" )
         //
-        $bidAsk = $this->parse_bid_ask($delta, 1, 2);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 1, 2);
         $type = $this->safe_string($delta, 0);
         if ($type === 'BUY') {
             $bids = $orderbook['bids'];
@@ -1241,7 +1241,7 @@ class onetrading extends \ccxt\async\onetrading {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     {
         //         "error" => "MALFORMED_JSON",

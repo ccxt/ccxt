@@ -141,7 +141,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         limitString = self.number_to_string(limit)
         url = self.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote']
         messageHash = 'orderbook:' + symbol + ':' + limitString
-        subscription: dict = {
+        subscription = {
             'receivedSnapshot': False,
         }
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
@@ -232,7 +232,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         return result
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 'Price', 'Volume')
+        bidAsk = self.parse_order_book_bid_ask(delta, 'Price', 'Volume')
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):
@@ -260,7 +260,7 @@ class independentreserve(ccxt.async_support.independentreserve):
 
     def handle_message(self, client: Client, message):
         event = self.safe_string(message, 'Event')
-        handlers: dict = {
+        handlers = {
             'Subscriptions': self.handle_subscriptions,
             'Heartbeat': self.handle_heartbeat,
             'Trade': self.handle_trades,

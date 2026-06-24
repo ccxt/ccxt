@@ -481,7 +481,7 @@ public class BitmexCore extends BitmexApi
         {
             Object chain = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(chain, "asset");
-            Object network = this.networkIdToCode(networkId);
+            Object network = this.networkIdToCode(networkId, code);
             Object withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
             Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
             Object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
@@ -741,7 +741,75 @@ public class BitmexCore extends BitmexApi
             //        "settledPriceAdjustmentRate": null,
             //        "settledPrice": null,
             //        "timestamp": "2022-01-14T17:49:55.000Z"
-            //    }
+            //    },
+            //
+            //    other kind of markets have extra fields
+            //
+            //    {
+            //     "symbol": "XBTUSD-XBTU26",
+            //     "rootSymbol": "XBT",
+            //     "instrumentID": "3059",
+            //     "state": "Open",
+            //     "typ": "FFMCSX",
+            //     "listing": "2026-06-10T08:00:00.000Z",
+            //     "front": "2026-06-10T08:00:00.000Z",
+            //     "expiry": "2026-09-25T12:00:00.000Z",
+            //     "settle": "2026-09-25T12:00:00.000Z",
+            //     "positionCurrency": "USD",
+            //     "underlying": "XBT",
+            //     "quoteCurrency": "USD",
+            //     "underlyingSymbol": "XBT=",
+            //     "referenceSymbol": "XBTUSD",
+            //     "maxOrderQty": "10000000",
+            //     "minPrice": "-1000000",
+            //     "maxPrice": "1000000",
+            //     "lotSize": "100",
+            //     "tickSize": "0.5",
+            //     "multiplier": "1",
+            //     "settlCurrency": "XBt",
+            //     "underlyingToSettleMultiplier": "-100000000",
+            //     "isQuanto": false,
+            //     "isInverse": false,
+            //     "taxed": true,
+            //     "deleverage": true,
+            //     "makerFee": "0.0005",
+            //     "takerFee": "0.0005",
+            //     "limitDownPrice": null,
+            //     "limitUpPrice": null,
+            //     "prevTotalVolume": "300",
+            //     "totalVolume": "300",
+            //     "volume": "0",
+            //     "volume24h": "200",
+            //     "prevTotalTurnover": "460833",
+            //     "totalTurnover": "460833",
+            //     "turnover": "0",
+            //     "turnover24h": "298516",
+            //     "homeNotional24h": "0",
+            //     "foreignNotional24h": "0",
+            //     "prevPrice24h": "0",
+            //     "vwap": "577.5",
+            //     "highPrice": "577.5",
+            //     "lowPrice": "0",
+            //     "lastPrice": "577.5",
+            //     "lastPriceProtected": "577.5",
+            //     "lastTickDirection": "ZeroPlusTick",
+            //     "lastChangePcnt": "0",
+            //     "bidPrice": "566.5",
+            //     "midPrice": "567.25",
+            //     "askPrice": "568",
+            //     "hasLiquidity": false,
+            //     "openInterest": "0",
+            //     "openValue": "0",
+            //     "instantPnl": false,
+            //     "timestamp": "2026-06-17T05:22:50.000Z",
+            //     "capped": false,
+            //     "closingTimestamp": "2026-06-17T06:00:00.000Z",
+            //     "farLegSymbol": "XBTU26",
+            //     "nearLegSymbol": "XBTUSD",
+            //     "openingTimestamp": "2026-06-17T05:00:00.000Z",
+            //     "pool": "Primary",
+            //     "referencePrice": "65728"
+            //     }
             //  ]
             //
             return this.parseMarkets(response);
@@ -771,7 +839,7 @@ public class BitmexCore extends BitmexApi
         {
             type = "spot";
             spot = true;
-        } else if (Helpers.isTrue(Helpers.isEqual(typ, "FFCCSX")))
+        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(typ, "FFCCSX")) || Helpers.isTrue(Helpers.isEqual(typ, "FFMCSX"))))
         {
             type = "future";
             future = true;
@@ -808,13 +876,12 @@ public class BitmexCore extends BitmexApi
             if (Helpers.isTrue(linear))
             {
                 Object multiplierString = this.safeString2(market, "underlyingToPositionMultiplier", "underlyingToSettleMultiplier");
-                contractSize = this.parseNumber(Precise.stringDiv("1", multiplierString));
+                contractSize = Precise.stringAbs(Precise.stringDiv("1", multiplierString));
             } else
             {
-                Object multiplierString = Precise.stringAbs(this.safeString(market, "multiplier"));
-                contractSize = this.parseNumber(multiplierString);
+                contractSize = Precise.stringAbs(this.safeString(market, "multiplier"));
             }
-            expiryDatetime = this.safeString(market, "expiry");
+            expiryDatetime = this.safeString2(market, "expiry", "closingTimestamp");
             expiry = this.parse8601(expiryDatetime);
             if (Helpers.isTrue(!Helpers.isEqual(expiry, null)))
             {
@@ -874,7 +941,7 @@ public class BitmexCore extends BitmexApi
             put( "quanto", finalIsQuanto );
             put( "taker", BitmexCore.this.safeNumber(market, "takerFee") );
             put( "maker", BitmexCore.this.safeNumber(market, "makerFee") );
-            put( "contractSize", finalContractSize );
+            put( "contractSize", BitmexCore.this.parseNumber(finalContractSize) );
             put( "expiry", finalExpiry );
             put( "expiryDatetime", finalExpiryDatetime );
             put( "strike", BitmexCore.this.safeNumber(market, "optionStrikePrice") );
@@ -1921,7 +1988,7 @@ public class BitmexCore extends BitmexApi
                 // so the previous close becomes the current open, and we drop the first candle
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(result, i), 0, Helpers.subtract(Helpers.GetValue(Helpers.GetValue(result, i), 0), duration));
+                    Helpers.addElementToObject(Helpers.GetValue(result, i), 0, Helpers.subtract(this.parseToInt(Helpers.GetValue(Helpers.GetValue(result, i), 0)), duration));
                 }
             }
             return result;

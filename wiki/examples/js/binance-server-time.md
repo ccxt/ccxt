@@ -1,8 +1,5 @@
-- [Binance Server Time](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog'
 
@@ -36,5 +33,5 @@ async function test () {
 }
 
 test ();
- 
+
 ```

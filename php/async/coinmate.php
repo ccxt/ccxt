@@ -605,7 +605,7 @@ class coinmate extends Exchange {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $last = $this->safe_number($ticker, 'last');
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),
@@ -1246,8 +1246,8 @@ class coinmate extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api']['rest'] . '/' . $path;
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
+        $url = ($this->urls['api'])['rest'] . '/' . $path;
         if ($api === 'public') {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);

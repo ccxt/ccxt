@@ -1048,19 +1048,19 @@ class binance extends \ccxt\async\binance {
                 if ($pu === null) {
                     // spot
                     // 4. Drop any event where $u is <= lastUpdateId in the snapshot
-                    if ($u > $orderbook['nonce']) {
+                    if ($u > $nonce) {
                         $timestamp = $this->safe_integer($orderbook, 'timestamp');
                         $conditional = null;
                         if ($timestamp === null) {
                             // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
-                            $conditional = (($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce']);
+                            $conditional = (($U - 1) <= $nonce) && (($u - 1) >= $nonce);
                         } else {
                             // 6. While listening to the stream, each new event's $U should be equal to the previous event's $u+1.
-                            $conditional = (($U - 1) === $orderbook['nonce']);
+                            $conditional = (($U - 1) === $nonce);
                         }
                         if ($conditional) {
                             $this->handle_order_book_message($client, $message, $orderbook);
-                            if ($nonce < $orderbook['nonce']) {
+                            if ($nonce < $this->safe_integer($orderbook, 'nonce', 0)) {
                                 $client->resolve ($orderbook, $messageHash);
                             }
                         } else {
@@ -1074,12 +1074,12 @@ class binance extends \ccxt\async\binance {
                 } else {
                     // future
                     // 4. Drop any event where $u is < lastUpdateId in the snapshot
-                    if ($u >= $orderbook['nonce']) {
+                    if ($u >= $nonce) {
                         // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
                         // 6. While listening to the stream, each new event's $pu should be equal to the previous event's $u, otherwise initialize the process from step 3
-                        if (($U <= $orderbook['nonce']) || ($pu === $orderbook['nonce'])) {
+                        if (($U <= $nonce) || ($pu === $nonce)) {
                             $this->handle_order_book_message($client, $message, $orderbook);
-                            if ($nonce <= $orderbook['nonce']) {
+                            if ($nonce <= $this->safe_integer($orderbook, 'nonce', 0)) {
                                 $client->resolve ($orderbook, $messageHash);
                             }
                         } else {
@@ -1329,7 +1329,7 @@ class binance extends \ccxt\async\binance {
         //
         //     {
         //         "e" => "trade",       // event $type
-        //         "E" => 1579481530911, // event time
+        //         "E" => 1579481530912, // event time
         //         "s" => "ETHBTC",      // $symbol
         //         "t" => 158410082,     // $trade $id
         //         "p" => "0.01914100",  // $price
@@ -2335,7 +2335,7 @@ class binance extends \ccxt\async\binance {
         //        "status":200,
         //        "result":{
         //            "symbol":"BTCUSDT",
-        //            "price":"73178.50",
+        //            "price":"73178.60",
         //            "time":1712527052374
         //        }
         //    }
@@ -2689,7 +2689,6 @@ class binance extends \ccxt\async\binance {
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
             $delay = $this->sum($listenKeyRefreshRate, 10000);
             if ($time - $lastAuthenticatedTime > $delay) {
-                $response = null;
                 if ($isPortfolioMargin) {
                     $response = Async\await($this->papiPostListenKey ($params));
                     $params = $this->extend($params, array( 'portfolioMargin' => true ));
@@ -3557,7 +3556,6 @@ class binance extends \ccxt\async\binance {
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_dict($message, 'result', array());
         $newSpotOrder = $this->safe_dict($result, 'newOrderResponse');
-        $order = null;
         if ($newSpotOrder !== null) {
             $order = $this->parse_order($newSpotOrder);
         } else {
@@ -3810,8 +3808,8 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $type = $this->get_market_type('fetchOpenOrdersWs', $market, $params);
-            if ($type !== 'spot' && $type !== 'future') {
-                throw new BadRequest($this->id . ' fetchOpenOrdersWs only supports spot or swap markets');
+            if ($type !== 'spot') {
+                throw new BadRequest($this->id . ' fetchOpenOrdersWs only supports spot markets');
             }
             $url = $this->urls['api']['ws']['ws-api'][$type];
             $requestId = $this->request_id($url);

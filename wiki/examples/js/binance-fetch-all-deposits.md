@@ -1,8 +1,5 @@
-- [Binance Fetch All Deposits](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -46,5 +43,5 @@ import ccxt from '../../js/ccxt.js';
         console.log (i, transaction['datetime'], transaction['txid'], transaction['currency'], transaction['amount'])
     }
 
-}) () 
+}) ()
 ```

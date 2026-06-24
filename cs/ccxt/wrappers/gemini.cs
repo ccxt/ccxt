@@ -20,10 +20,10 @@ public partial class gemini
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
-    public async Task<Dictionary<string, object>> FetchCurrenciesFromWeb(Dictionary<string, object> parameters = null)
+    public async Task<Currencies> FetchCurrenciesFromWeb(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrenciesFromWeb(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Currencies(res);
     }
     /// <summary>
     /// retrieves data on all markets for gemini

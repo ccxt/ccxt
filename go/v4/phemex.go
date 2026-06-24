@@ -1138,55 +1138,53 @@ func (this *PhemexCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//     }
 		var data any = this.SafeValue(response, "data", map[string]any{})
 		var currencies any = this.SafeValue(data, "currencies", []any{})
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
-			var currency any = GetValue(currencies, i)
-			var id any = this.SafeString(currency, "currency")
-			var code any = this.SafeCurrencyCode(id)
-			var valueScaleString any = this.SafeString(currency, "valueScale")
-			var valueScale any = ParseInt(valueScaleString)
-			var minValueEv any = this.SafeString(currency, "minValueEv")
-			var maxValueEv any = this.SafeString(currency, "maxValueEv")
-			var minAmount any = nil
-			var maxAmount any = nil
-			var precision any = nil
-			if IsTrue(!IsEqual(valueScale, nil)) {
-				var precisionString any = this.ParsePrecision(valueScaleString)
-				precision = this.ParseNumber(precisionString)
-				minAmount = this.ParseNumber(Precise.StringMul(minValueEv, precisionString))
-				maxAmount = this.ParseNumber(Precise.StringMul(maxValueEv, precisionString))
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"info":      currency,
-				"code":      code,
-				"name":      this.SafeString(currency, "name"),
-				"active":    IsEqual(this.SafeString(currency, "status"), "Listed"),
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"precision": precision,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": minAmount,
-						"max": maxAmount,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"valueScale": valueScale,
-				"networks":   nil,
-				"type":       "crypto",
-			}))
-		}
 
-		ch <- result
+		ch <- this.ParseCurrencies(currencies)
 		return nil
 
 	}()
 	return ch
+}
+func (this *PhemexCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(rawCurrency, "currency")
+	var code any = this.SafeCurrencyCode(id)
+	var valueScaleString any = this.SafeString(rawCurrency, "valueScale")
+	var valueScale any = ParseInt(valueScaleString)
+	var minValueEv any = this.SafeString(rawCurrency, "minValueEv")
+	var maxValueEv any = this.SafeString(rawCurrency, "maxValueEv")
+	var minAmount any = nil
+	var maxAmount any = nil
+	var precision any = nil
+	if IsTrue(!IsEqual(valueScale, nil)) {
+		var precisionString any = this.ParsePrecision(valueScaleString)
+		precision = this.ParseNumber(precisionString)
+		minAmount = this.ParseNumber(Precise.StringMul(minValueEv, precisionString))
+		maxAmount = this.ParseNumber(Precise.StringMul(maxValueEv, precisionString))
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"info":      rawCurrency,
+		"code":      code,
+		"name":      this.SafeString(rawCurrency, "name"),
+		"active":    IsEqual(this.SafeString(rawCurrency, "status"), "Listed"),
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"precision": precision,
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": minAmount,
+				"max": maxAmount,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"valueScale": valueScale,
+		"networks":   nil,
+		"type":       "crypto",
+	})
 }
 func (this *PhemexCore) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
@@ -1258,8 +1256,8 @@ func (this *PhemexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes12418 := (<-this.LoadMarkets())
-		PanicOnError(retRes12418)
+		retRes12408 := (<-this.LoadMarkets())
+		PanicOnError(retRes12408)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1428,8 +1426,8 @@ func (this *PhemexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes13908 := (<-this.LoadMarkets())
-		PanicOnError(retRes13908)
+		retRes13898 := (<-this.LoadMarkets())
+		PanicOnError(retRes13898)
 		var market any = this.Market(symbol)
 		var userLimit any = limit
 		var request any = map[string]any{
@@ -1621,8 +1619,8 @@ func (this *PhemexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes15638 := (<-this.LoadMarkets())
-		PanicOnError(retRes15638)
+		retRes15628 := (<-this.LoadMarkets())
+		PanicOnError(retRes15628)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1717,8 +1715,8 @@ func (this *PhemexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16398 := (<-this.LoadMarkets())
-		PanicOnError(retRes16398)
+		retRes16388 := (<-this.LoadMarkets())
+		PanicOnError(retRes16388)
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var first any = this.SafeValue(symbols, 0)
@@ -1779,8 +1777,8 @@ func (this *PhemexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes16748 := (<-this.LoadMarkets())
-		PanicOnError(retRes16748)
+		retRes16738 := (<-this.LoadMarkets())
+		PanicOnError(retRes16738)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2245,8 +2243,8 @@ func (this *PhemexCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes21218 := (<-this.LoadMarkets())
-		PanicOnError(retRes21218)
+		retRes21208 := (<-this.LoadMarkets())
+		PanicOnError(retRes21208)
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
@@ -2816,8 +2814,8 @@ func (this *PhemexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes26648 := (<-this.LoadMarkets())
-		PanicOnError(retRes26648)
+		retRes26638 := (<-this.LoadMarkets())
+		PanicOnError(retRes26638)
 		var market any = this.Market(symbol)
 		var requestSide any = this.Capitalize(side)
 		typeVar = this.Capitalize(typeVar)
@@ -3128,8 +3126,8 @@ func (this *PhemexCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes29748 := (<-this.LoadMarkets())
-		PanicOnError(retRes29748)
+		retRes29738 := (<-this.LoadMarkets())
+		PanicOnError(retRes29738)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3221,8 +3219,8 @@ func (this *PhemexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes30468 := (<-this.LoadMarkets())
-		PanicOnError(retRes30468)
+		retRes30458 := (<-this.LoadMarkets())
+		PanicOnError(retRes30458)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3283,8 +3281,8 @@ func (this *PhemexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
 
-		retRes30878 := (<-this.LoadMarkets())
-		PanicOnError(retRes30878)
+		retRes30868 := (<-this.LoadMarkets())
+		PanicOnError(retRes30868)
 		var market any = this.Market(symbol)
 		var trigger any = this.SafeValue2(params, "stop", "trigger", false)
 		params = this.Omit(params, []any{"stop", "trigger"})
@@ -3341,8 +3339,8 @@ func (this *PhemexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes31518 := (<-this.LoadMarkets())
-		PanicOnError(retRes31518)
+		retRes31508 := (<-this.LoadMarkets())
+		PanicOnError(retRes31508)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3420,8 +3418,8 @@ func (this *PhemexCore) FetchOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
 
-		retRes32058 := (<-this.LoadMarkets())
-		PanicOnError(retRes32058)
+		retRes32048 := (<-this.LoadMarkets())
+		PanicOnError(retRes32048)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3484,14 +3482,14 @@ func (this *PhemexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes32448 := (<-this.LoadMarkets())
-		PanicOnError(retRes32448)
+		retRes32438 := (<-this.LoadMarkets())
+		PanicOnError(retRes32438)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
 		}
 
-		retRes32488 := (<-this.LoadMarkets())
-		PanicOnError(retRes32488)
+		retRes32478 := (<-this.LoadMarkets())
+		PanicOnError(retRes32478)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3580,8 +3578,8 @@ func (this *PhemexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes32938 := (<-this.LoadMarkets())
-		PanicOnError(retRes32938)
+		retRes32928 := (<-this.LoadMarkets())
+		PanicOnError(retRes32928)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3602,7 +3600,7 @@ func (this *PhemexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 
 			response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if IsTrue(GetValue(market, "swap")) {
+		} else if IsTrue(IsTrue(!IsEqual(market, nil)) && IsTrue(GetValue(market, "swap"))) {
 
 			response = (<-this.PrivateGetExchangeOrderList(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3690,8 +3688,8 @@ func (this *PhemexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes33778 := (<-this.LoadMarkets())
-		PanicOnError(retRes33778)
+		retRes33768 := (<-this.LoadMarkets())
+		PanicOnError(retRes33768)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3712,7 +3710,7 @@ func (this *PhemexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(limit, nil)) {
 				AddElementToObject(request, "limit", 200)
 			}
-		} else if IsTrue(!IsEqual(symbol, nil)) {
+		} else if IsTrue(IsTrue(!IsEqual(symbol, nil)) && IsTrue(!IsEqual(market, nil))) {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -3869,8 +3867,8 @@ func (this *PhemexCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes35358 := (<-this.LoadMarkets())
-		PanicOnError(retRes35358)
+		retRes35348 := (<-this.LoadMarkets())
+		PanicOnError(retRes35348)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -3946,8 +3944,8 @@ func (this *PhemexCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes35918 := (<-this.LoadMarkets())
-		PanicOnError(retRes35918)
+		retRes35908 := (<-this.LoadMarkets())
+		PanicOnError(retRes35908)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -4008,8 +4006,8 @@ func (this *PhemexCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes36328 := (<-this.LoadMarkets())
-		PanicOnError(retRes36328)
+		retRes36318 := (<-this.LoadMarkets())
+		PanicOnError(retRes36318)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -4168,7 +4166,7 @@ func (this *PhemexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		"txid":        txid,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"address":     address,
 		"addressTo":   address,
 		"addressFrom": nil,
@@ -4209,8 +4207,8 @@ func (this *PhemexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes38168 := (<-this.LoadMarkets())
-		PanicOnError(retRes38168)
+		retRes38158 := (<-this.LoadMarkets())
+		PanicOnError(retRes38158)
 		symbols = this.MarketSymbols(symbols)
 		var subType any = nil
 		var code any = this.SafeString2(params, "currency", "code", "USDT")
@@ -4377,8 +4375,8 @@ func (this *PhemexCore) FetchPositionHistory(symbol any, optionalArgs ...any) <-
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes39558 := (<-this.LoadMarkets())
-		PanicOnError(retRes39558)
+		retRes39548 := (<-this.LoadMarkets())
+		PanicOnError(retRes39548)
 		var market any = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
 		var request any = map[string]any{
@@ -4632,8 +4630,8 @@ func (this *PhemexCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires a symbol argument")))
 		}
 
-		retRes41888 := (<-this.LoadMarkets())
-		PanicOnError(retRes41888)
+		retRes41878 := (<-this.LoadMarkets())
+		PanicOnError(retRes41878)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4707,7 +4705,7 @@ func (this *PhemexCore) ParseFundingFeeToPrecision(value any, optionalArgs ...an
 	_ = market
 	currencyCode := GetArg(optionalArgs, 1, nil)
 	_ = currencyCode
-	if IsTrue(IsTrue(IsEqual(value, nil)) || IsTrue(IsEqual(currencyCode, nil))) {
+	if IsTrue(IsTrue(IsTrue(IsEqual(value, nil)) || IsTrue(IsEqual(currencyCode, nil))) || IsTrue(IsEqual(market, nil))) {
 		return value
 	}
 	// it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
@@ -4737,8 +4735,8 @@ func (this *PhemexCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes42758 := (<-this.LoadMarkets())
-		PanicOnError(retRes42758)
+		retRes42748 := (<-this.LoadMarkets())
+		PanicOnError(retRes42748)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -4874,8 +4872,8 @@ func (this *PhemexCore) SetMargin(symbol any, amount any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes43948 := (<-this.LoadMarkets())
-		PanicOnError(retRes43948)
+		retRes43938 := (<-this.LoadMarkets())
+		PanicOnError(retRes43938)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":       GetValue(market, "id"),
@@ -4956,8 +4954,8 @@ func (this *PhemexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
 
-		retRes44598 := (<-this.LoadMarkets())
-		PanicOnError(retRes44598)
+		retRes44588 := (<-this.LoadMarkets())
+		PanicOnError(retRes44588)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
@@ -4977,9 +4975,9 @@ func (this *PhemexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 			}
 			AddElementToObject(request, "leverageRr", Ternary(IsTrue(isCross), Precise.StringNeg(Precise.StringAbs(currentLeverage)), Precise.StringAbs(currentLeverage)))
 
-			retRes447819 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
-			PanicOnError(retRes447819)
-			ch <- retRes447819
+			retRes447719 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
+			PanicOnError(retRes447719)
+			ch <- retRes447719
 			return nil
 		}
 		var leverage any = this.SafeInteger(params, "leverage")
@@ -4991,9 +4989,9 @@ func (this *PhemexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		}
 		AddElementToObject(request, "leverage", leverage)
 
-		retRes448815 := (<-this.PrivatePutPositionsLeverage(this.Extend(request, params)))
-		PanicOnError(retRes448815)
-		ch <- retRes448815
+		retRes448715 := (<-this.PrivatePutPositionsLeverage(this.Extend(request, params)))
+		PanicOnError(retRes448715)
+		ch <- retRes448715
 		return nil
 
 	}()
@@ -5021,8 +5019,8 @@ func (this *PhemexCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan 
 		_ = params
 		this.CheckRequiredArgument("setPositionMode", symbol, "symbol")
 
-		retRes45038 := (<-this.LoadMarkets())
-		PanicOnError(retRes45038)
+		retRes45028 := (<-this.LoadMarkets())
+		PanicOnError(retRes45028)
 		var market any = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "settle"), "USDT")) {
 			panic(BadSymbol(Add(this.Id, " setPositionMode() supports USDT settled markets only")))
@@ -5036,9 +5034,9 @@ func (this *PhemexCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan 
 			AddElementToObject(request, "targetPosMode", "OneWay")
 		}
 
-		retRes451615 := (<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params)))
-		PanicOnError(retRes451615)
-		ch <- retRes451615
+		retRes451515 := (<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params)))
+		PanicOnError(retRes451515)
+		ch <- retRes451515
 		return nil
 
 	}()
@@ -5063,8 +5061,8 @@ func (this *PhemexCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes45288 := (<-this.LoadMarkets())
-		PanicOnError(retRes45288)
+		retRes45278 := (<-this.LoadMarkets())
+		PanicOnError(retRes45278)
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var first any = this.SafeValue(symbols, 0)
 			var market any = this.Market(first)
@@ -5290,8 +5288,8 @@ func (this *PhemexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between -100 and 100")))
 		}
 
-		retRes47238 := (<-this.LoadMarkets())
-		PanicOnError(retRes47238)
+		retRes47228 := (<-this.LoadMarkets())
+		PanicOnError(retRes47228)
 		var isHedged any = this.SafeBool(params, "hedged", false)
 		var longLeverageRr any = this.SafeInteger(params, "longLeverageRr")
 		var shortLeverageRr any = this.SafeInteger(params, "shortLeverageRr")
@@ -5348,8 +5346,8 @@ func (this *PhemexCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes47648 := (<-this.LoadMarkets())
-		PanicOnError(retRes47648)
+		retRes47638 := (<-this.LoadMarkets())
+		PanicOnError(retRes47638)
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 		var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -5456,8 +5454,8 @@ func (this *PhemexCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes48498 := (<-this.LoadMarkets())
-		PanicOnError(retRes48498)
+		retRes48488 := (<-this.LoadMarkets())
+		PanicOnError(retRes48488)
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
 		}
@@ -5600,8 +5598,8 @@ func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes49728 := (<-this.LoadMarkets())
-		PanicOnError(retRes49728)
+		retRes49718 := (<-this.LoadMarkets())
+		PanicOnError(retRes49718)
 		var market any = this.Market(symbol)
 		var isUsdtSettled any = IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) || IsTrue(IsEqual(GetValue(market, "settle"), "USDC"))
 		if !IsTrue(GetValue(market, "swap")) {
@@ -5613,9 +5611,9 @@ func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes498119 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-			PanicOnError(retRes498119)
-			ch <- retRes498119
+			retRes498019 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+			PanicOnError(retRes498019)
+			ch <- retRes498019
 			return nil
 		}
 		var customSymbol any = nil
@@ -5711,8 +5709,8 @@ func (this *PhemexCore) Withdraw(code any, amount any, address any, optionalArgs
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes50548 := (<-this.LoadMarkets())
-		PanicOnError(retRes50548)
+		retRes50538 := (<-this.LoadMarkets())
+		PanicOnError(retRes50538)
 		this.CheckAddress(address)
 		var currency any = this.Currency(code)
 		var networkCode any = nil
@@ -5721,7 +5719,7 @@ func (this *PhemexCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(networkCodeparamsVariable, 1)
 		var networkId any = nil
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			networkId = this.NetworkCodeToId(networkCode)
+			networkId = this.NetworkCodeToId(networkCode, code)
 		}
 		var stableCoins any = this.SafeValue(this.Options, "stableCoins")
 		if IsTrue(IsEqual(networkId, nil)) {
@@ -5796,8 +5794,8 @@ func (this *PhemexCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes51228 := (<-this.LoadMarkets())
-		PanicOnError(retRes51228)
+		retRes51218 := (<-this.LoadMarkets())
+		PanicOnError(retRes51218)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest is only supported for contract markets.")))
@@ -5892,8 +5890,8 @@ func (this *PhemexCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes52008 := (<-this.LoadMarkets())
-		PanicOnError(retRes52008)
+		retRes51998 := (<-this.LoadMarkets())
+		PanicOnError(retRes51998)
 		var fromCurrency any = this.Currency(fromCode)
 		var toCurrency any = this.Currency(toCode)
 		var valueScale any = this.SafeInteger(fromCurrency, "valueScale")
@@ -5954,8 +5952,8 @@ func (this *PhemexCore) CreateConvertTrade(id any, fromCode any, toCode any, opt
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes52458 := (<-this.LoadMarkets())
-		PanicOnError(retRes52458)
+		retRes52448 := (<-this.LoadMarkets())
+		PanicOnError(retRes52448)
 		var fromCurrency any = this.Currency(fromCode)
 		var toCurrency any = this.Currency(toCode)
 		var valueScale any = this.SafeInteger(fromCurrency, "valueScale")
@@ -6026,8 +6024,8 @@ func (this *PhemexCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes52968 := (<-this.LoadMarkets())
-		PanicOnError(retRes52968)
+		retRes52958 := (<-this.LoadMarkets())
+		PanicOnError(retRes52958)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(request, "fromCurrency", code)
@@ -6176,8 +6174,8 @@ func (this *PhemexCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes54248 := (<-this.LoadMarkets())
-		PanicOnError(retRes54248)
+		retRes54238 := (<-this.LoadMarkets())
+		PanicOnError(retRes54238)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var subType any = nil
 		var code any = this.SafeString2(params, "currency", "code", "USDT")

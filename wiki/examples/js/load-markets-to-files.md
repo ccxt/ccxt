@@ -1,8 +1,5 @@
-- [Load Markets To Files](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import path from 'path';
@@ -59,5 +56,5 @@ async function main () {
 }
 
 main ()
- 
+
 ```

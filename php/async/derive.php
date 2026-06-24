@@ -459,7 +459,6 @@ class derive extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
-            $result = array();
             $tokenResponse = Async\await($this->publicGetGetAllCurrencies ($params));
             //
             //    {
@@ -510,35 +509,35 @@ class derive extends Exchange {
             // }
             //
             $currencies = $this->safe_list($tokenResponse, 'result', array());
-            for ($i = 0; $i < count($currencies); $i++) {
-                $currency = $currencies[$i];
-                $currencyId = $this->safe_string($currency, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $currencyId,
-                    'name' => null,
-                    'code' => $code,
-                    'precision' => null,
-                    'active' => null,
-                    'fee' => null,
-                    'networks' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $currency,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($currencies);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'name' => null,
+            'code' => $code,
+            'precision' => null,
+            'active' => null,
+            'fee' => null,
+            'networks' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -647,6 +646,7 @@ class derive extends Exchange {
 
     public function parse_market(array $market): array {
         $type = $this->safe_string($market, 'instrument_type');
+        $marketType = null;
         $spot = false;
         $margin = true;
         $swap = false;
@@ -1179,7 +1179,7 @@ class derive extends Exchange {
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
         $newline = $this->base16_to_binary('0a');
-        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode($this->number_to_string($binaryMessageLength)));
+        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode(($this->number_to_string($binaryMessageLength))));
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
@@ -1254,9 +1254,9 @@ class derive extends Exchange {
             ), [
                 $market['info']['base_asset_address'],
                 $this->parse_to_numeric($market['info']['base_asset_sub_id']),
-                $this->convert_to_big_int($this->parse_units($priceString)),
-                $this->convert_to_big_int($this->parse_units($this->amount_to_precision($symbol, $amountString))),
-                $this->convert_to_big_int($this->parse_units($maxFeeString)),
+                $this->convert_to_big_int(($this->parse_units($priceString))),
+                $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
+                $this->convert_to_big_int(($this->parse_units($maxFeeString))),
                 $subaccountId,
                 $orderSide === 'buy',
             ]), 'keccak', 'binary');
@@ -1316,7 +1316,6 @@ class derive extends Exchange {
             }
             $request['signature'] = $signature;
             $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ));
-            $response = null;
             if ($test) {
                 $response = Async\await($this->privatePostOrderDebug ($this->extend($request, $params)));
             } else {
@@ -1392,7 +1391,7 @@ class derive extends Exchange {
             $result = $this->safe_dict($response, 'result');
             $rawOrder = $this->safe_dict($result, 'raw_data');
             if ($rawOrder === null) {
-                $rawOrder = $this->safe_dict($result, 'order');
+                $rawOrder = $this->safe_dict($result, 'order', array());
             }
             $order = $this->parse_order($rawOrder, $market);
             $order['type'] = $type;
@@ -1440,9 +1439,9 @@ class derive extends Exchange {
             ), [
                 $market['info']['base_asset_address'],
                 $this->parse_to_numeric($market['info']['base_asset_sub_id']),
-                $this->convert_to_big_int($this->parse_units($priceString)),
-                $this->convert_to_big_int($this->parse_units($this->amount_to_precision($symbol, $amountString))),
-                $this->convert_to_big_int($this->parse_units($maxFeeString)),
+                $this->convert_to_big_int(($this->parse_units($priceString))),
+                $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
+                $this->convert_to_big_int(($this->parse_units($maxFeeString))),
                 $subaccountId,
                 $orderSide === 'buy',
             ]), 'keccak', 'binary');
@@ -1564,7 +1563,7 @@ class derive extends Exchange {
             //   }
             //
             $result = $this->safe_dict($response, 'result');
-            $rawOrder = $this->safe_dict($result, 'order');
+            $rawOrder = $this->safe_dict($result, 'order', array());
             $order = $this->parse_order($rawOrder, $market);
             return $order;
         }) ();
@@ -1600,7 +1599,6 @@ class derive extends Exchange {
             $clientOrderIdUnified = $this->safe_string($params, 'clientOrderId');
             $clientOrderIdExchangeSpecific = $this->safe_string($params, 'label', $clientOrderIdUnified);
             $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-            $response = null;
             if ($isByClientOrder) {
                 $request['label'] = $clientOrderIdExchangeSpecific;
                 $params = $this->omit($params, array( 'clientOrderId', 'label' ));
@@ -1657,7 +1655,7 @@ class derive extends Exchange {
             // }
             //
             $extendParams = array( 'symbol' => $symbol );
-            $order = $this->safe_dict($response, 'result');
+            $order = $this->safe_dict($response, 'result', array());
             if ($isByClientOrder) {
                 $extendParams['client_order_id'] = $clientOrderIdExchangeSpecific;
             }
@@ -1688,7 +1686,6 @@ class derive extends Exchange {
             $request = array(
                 'subaccount_id' => $subaccountId,
             );
-            $response = null;
             if ($market !== null) {
                 $request['instrument_name'] = $market['id'];
                 $response = Async\await($this->privatePostCancelByInstrument ($this->extend($request, $params)));
@@ -1804,12 +1801,12 @@ class derive extends Exchange {
             $page = $this->safe_integer($params, 'page');
             if ($page !== null) {
                 $pagination = $this->safe_dict($data, 'pagination');
-                $currentPage = $this->safe_integer($pagination, 'num_pages');
+                $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
                 if ($page > $currentPage) {
                     return array();
                 }
             }
-            $orders = $this->safe_list($data, 'orders');
+            $orders = $this->safe_list($data, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -1960,7 +1957,7 @@ class derive extends Exchange {
         if ($marketId !== null) {
             $market = $this->safe_market($marketId, $market);
         }
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $price = $this->safe_string($order, 'limit_price');
         $average = $this->safe_string($order, 'average_price');
         $amount = $this->safe_string($order, 'desired_amount');
@@ -2177,7 +2174,7 @@ class derive extends Exchange {
             $page = $this->safe_integer($params, 'page');
             if ($page !== null) {
                 $pagination = $this->safe_dict($result, 'pagination');
-                $currentPage = $this->safe_integer($pagination, 'num_pages');
+                $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
                 if ($page > $currentPage) {
                     return array();
                 }
@@ -2400,7 +2397,7 @@ class derive extends Exchange {
             $page = $this->safe_integer($params, 'page');
             if ($page !== null) {
                 $pagination = $this->safe_dict($result, 'pagination');
-                $currentPage = $this->safe_integer($pagination, 'num_pages');
+                $currentPage = $this->safe_integer($pagination, 'num_pages', 0);
                 if ($page > $currentPage) {
                     return array();
                 }
@@ -2574,7 +2571,7 @@ class derive extends Exchange {
             //
             $currency = $this->safe_currency($code);
             $result = $this->safe_dict($response, 'result', array());
-            $events = $this->safe_list($result, 'events');
+            $events = $this->safe_list($result, 'events', array());
             return $this->parse_transactions($events, $currency, $since, $limit, $params);
         }) ();
     }
@@ -2623,7 +2620,7 @@ class derive extends Exchange {
             //
             $currency = $this->safe_currency($code);
             $result = $this->safe_dict($response, 'result', array());
-            $events = $this->safe_list($result, 'events');
+            $events = $this->safe_list($result, 'events', array());
             return $this->parse_transactions($events, $currency, $since, $limit, $params);
         }) ();
     }
@@ -2721,7 +2718,7 @@ class derive extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($method === 'POST') {
             $headers = array(

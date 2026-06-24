@@ -788,7 +788,7 @@ public partial class hitbtc : Exchange
         {
             object rawNetwork = getValue(rawNetworks, j);
             object networkId = this.safeString2(rawNetwork, "protocol", "network");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "info", rawNetwork },
@@ -826,20 +826,6 @@ public partial class hitbtc : Exchange
             } },
             { "type", null },
         });
-    }
-
-    public virtual object addKeyInArrayItems(object obj, object keyName)
-    {
-        object result = new List<object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-        {
-            object key = getValue(keys, i);
-            object item = getValue(obj, key);
-            ((IDictionary<string,object>)item)[(string)keyName] = key;
-            ((IList<object>)result).Add(item);
-        }
-        return result;
     }
 
     /**
@@ -3564,7 +3550,7 @@ public partial class hitbtc : Exchange
         object datetime = this.safeString(data, "updated_at");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },
@@ -3823,7 +3809,8 @@ public partial class hitbtc : Exchange
         {
             object networkEntry = getValue(networks, j);
             object networkId = this.safeString(networkEntry, "network");
-            object networkCode = this.networkIdToCode(networkId);
+            object code = this.safeString(currency, "code");
+            object networkCode = this.networkIdToCode(networkId, code);
             networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
             object withdrawFee = this.safeNumber(networkEntry, "payout_fee");
             object isDefault = this.safeValue(networkEntry, "default");

@@ -546,7 +546,7 @@ class backpack extends Exchange {
             $network = $networks[$j];
             $networkId = $this->safe_string($network, 'blockchain');
             $networkIdLowerCase = $this->safe_string_lower($network, 'blockchain');
-            $networkCode = $this->network_id_to_code($networkIdLowerCase);
+            $networkCode = $this->network_id_to_code($networkIdLowerCase, $code);
             $parsedNetworks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -723,6 +723,7 @@ class backpack extends Exchange {
         $maxQuantity = $this->safe_number($quantityFilter, 'maxQuantity');
         $minQuantity = $this->safe_number($quantityFilter, 'minQuantity');
         $amountPrecision = $this->safe_number($quantityFilter, 'stepSize');
+        $type = null;
         $typeOfMarket = $this->parse_market_type($this->safe_string($market, 'marketType'));
         $linear = null;
         $inverse = null;
@@ -1115,7 +1116,7 @@ class backpack extends Exchange {
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $openInterest = $this->safe_number($interest, 'openInterest');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'openInterestAmount' => null,
             'openInterestValue' => $openInterest,
             'timestamp' => $timestamp,
@@ -1285,10 +1286,17 @@ class backpack extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
-        $isMaker = $this->safe_bool($trade, 'isMaker');
-        $takerOrMaker = $isMaker ? 'maker' : 'taker';
-        $orderId = $this->safe_string($trade, 'orderId');
+        $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
         $side = $this->parse_order_side($this->safe_string($trade, 'side'));
+        $isMaker = $this->safe_bool($trade, 'isMaker');
+        $takerOrMaker = null;
+        if ($isMaker !== null) {
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        } elseif ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+        }
+        $orderId = $this->safe_string($trade, 'orderId');
         $fee = null;
         $feeAmount = $this->safe_string($trade, 'fee');
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -1510,7 +1518,7 @@ class backpack extends Exchange {
                 $request['clientId'] = $tag; // memo or $tag
             }
             list($networkCode, $query) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $currency['code']);
             if ($networkId === null) {
                 throw new BadRequest($this->id . ' withdraw() requires a network parameter');
             }
@@ -1601,7 +1609,7 @@ class backpack extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'createdAt'));
         $amount = $this->safe_number($transaction, 'quantity');
         $networkId = $this->safe_string_lower_2($transaction, 'source', 'blockchain');
-        $network = $this->network_id_to_code($networkId);
+        $network = $this->network_id_to_code($networkId, $code);
         $addressTo = $this->safe_string($transaction, 'toAddress');
         $addressFrom = $this->safe_string($transaction, 'fromAddress');
         $tag = $this->safe_string($transaction, 'platformMemo');
@@ -1672,7 +1680,7 @@ class backpack extends Exchange {
             }
             $currency = $this->currency($code);
             $request = array(
-                'blockchain' => $this->network_code_to_id($networkCode),
+                'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
             );
             $response = Async\await($this->privateGetWapiV1CapitalDepositAddress ($this->extend($request, $params)));
             return $this->parse_deposit_address($response, $currency);
@@ -2313,7 +2321,7 @@ class backpack extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $path;
         $url = $this->urls['api'][$api];
         $sortedParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->keysort($params);

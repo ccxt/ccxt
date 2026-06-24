@@ -310,12 +310,12 @@ export default class alpaca extends Exchange {
             'options': {
                 'defaultExchange': 'CBSE',
                 'exchanges': [
-                    'CBSE',
-                    'FTX',
-                    'GNSS',
+                    'CBSE', // Coinbase
+                    'FTX', // FTXUS
+                    'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
-                'defaultTimeInForce': 'gtc',
+                'defaultTimeInForce': 'gtc', // fok, gtc, ioc
                 'clientOrderId': 'ccxt_{id}',
             },
             'features': {
@@ -326,8 +326,8 @@ export default class alpaca extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': {
                                 'last': true,
@@ -343,7 +343,7 @@ export default class alpaca extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true,
+                        'trailing': true, // todo: implementation
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,
@@ -405,15 +405,15 @@ export default class alpaca extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'forbidden.': PermissionDenied,
-                    '40410000': InvalidOrder,
-                    '40010001': BadRequest,
-                    '40110000': PermissionDenied,
-                    '40310000': InsufficientFunds,
+                    'forbidden.': PermissionDenied, // {"message": "forbidden."}
+                    '40410000': InvalidOrder, // { "code": 40410000, "message": "order is not found."}
+                    '40010001': BadRequest, // {"code":40010001,"message":"invalid order type for crypto order"}
+                    '40110000': PermissionDenied, // { "code": 40110000, "message": "request is not authorized"}
+                    '40310000': InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
                     '42910000': RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
-                    'Invalid format for parameter': BadRequest,
+                    'Invalid format for parameter': BadRequest, // {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': BadSymbol, // {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
                 },
             },
@@ -441,7 +441,7 @@ export default class alpaca extends Exchange {
         const jetlagStrStart = timestamp.length - 6;
         const jetlagStrEnd = timestamp.length - 3;
         const jetlag = timestamp.slice(jetlagStrStart, jetlagStrEnd);
-        const iso = this.parse8601(localTime) - this.parseToNumeric(jetlag) * 3600 * 1000;
+        const iso = this.parseToInt(this.parse8601(localTime)) - this.parseToNumeric(jetlag) * 3600 * 1000;
         return iso;
     }
     /**
@@ -822,11 +822,11 @@ export default class alpaca extends Exchange {
         const datetime = this.safeString(ohlcv, 't');
         const timestamp = this.parse8601(datetime);
         return [
-            timestamp,
-            this.safeNumber(ohlcv, 'o'),
-            this.safeNumber(ohlcv, 'h'),
-            this.safeNumber(ohlcv, 'l'),
-            this.safeNumber(ohlcv, 'c'),
+            timestamp, // timestamp
+            this.safeNumber(ohlcv, 'o'), // open
+            this.safeNumber(ohlcv, 'h'), // high
+            this.safeNumber(ohlcv, 'l'), // low
+            this.safeNumber(ohlcv, 'c'), // close
             this.safeNumber(ohlcv, 'v'), // volume
         ];
     }

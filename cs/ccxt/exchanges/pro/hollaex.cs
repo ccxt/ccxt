@@ -524,7 +524,7 @@ public partial class hollaex : ccxt.hollaex
                 return false;
             }
         }
-        return message;
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, object message)

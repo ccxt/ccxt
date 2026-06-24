@@ -771,7 +771,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -835,65 +835,65 @@ class kraken extends Exchange {
         //         ),
         //     }
         //
-        $currencies = $this->safe_value($response, 'result', array());
-        $ids = is_array($currencies) ? array_keys($currencies) : array();
-        $result = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $currency = $currencies[$id];
-            // todo => will need to rethink the fees
-            // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
+        $currencies = $this->safe_dict($response, 'result', array());
+        $enhancedArray = $this->add_key_in_array_items($currencies, '_coin_id');
+        return $this->parse_currencies($enhancedArray);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        // todo => will need to rethink the fees
+        // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        // to add support for multiple withdrawal/deposit methods and
+        // differentiated fees for each particular method
+        //
+        // Notes about abbreviations:
+        // Z and X prefixes => https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-$code-XBT-vs-BTC
+        // S and M suffixes => https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        //
+        $id = $this->safe_string($rawCurrency, '_coin_id');
+        $code = $this->safe_currency_code($id);
+        // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (mb_strpos($id, '.') === false) {
+            $altName = $this->safe_string($rawCurrency, 'altname');
+            // handle cases like below:
             //
-            // Notes about abbreviations:
-            // Z and X prefixes => https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-$currency-$code-XBT-vs-BTC
-            // S and M suffixes => https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-            //
-            $code = $this->safe_currency_code($id);
-            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-            if (mb_strpos($id, '.') === false) {
-                $altName = $this->safe_string($currency, 'altname');
-                // handle cases like below:
-                //
-                //  $id   | altname
-                // ---------------
-                // XXBT  |  XBT
-                // ZUSD  |  USD
-                if ($id !== $altName && (str_starts_with($id, 'X') || str_starts_with($id, 'Z'))) {
-                    $code = $this->safe_currency_code($altName);
-                    // also, add map in commonCurrencies:
-                    $this->commonCurrencies[$id] = $code;
-                } else {
-                    $code = $this->safe_currency_code($id);
-                }
+            //  $id   | altname
+            // ---------------
+            // XXBT  |  XBT
+            // ZUSD  |  USD
+            if ($id !== $altName && (str_starts_with($id, 'X') || str_starts_with($id, 'Z'))) {
+                $code = $this->safe_currency_code($altName);
+                // also, add map in commonCurrencies:
+                $this->commonCurrencies[$id] = $code;
+            } else {
+                $code = $this->safe_currency_code($id);
             }
-            $isFiat = mb_strpos($code, '.HOLD') !== false;
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency,
-                'name' => $this->safe_string($currency, 'altname'),
-                'active' => $this->safe_string($currency, 'status') === 'enabled',
-                'type' => $isFiat ? 'fiat' : 'crypto',
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'networks' => array(),
-            ));
         }
-        return $result;
+        $isFiat = mb_strpos($code, '.HOLD') !== false;
+        $rawCurrency = $this->omit($rawCurrency, '_coin_id');
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'name' => $this->safe_string($rawCurrency, 'altname'),
+            'active' => $this->safe_string($rawCurrency, 'status') === 'enabled',
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'decimals'))),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => array(),
+        ));
     }
 
     public function safe_currency_code(?string $currencyId, ?array $currency = null): ?string {
@@ -975,7 +975,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $timestamp = $this->safe_integer($bidask, 2);
@@ -1704,7 +1704,7 @@ class kraken extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_dict($response, 'result');
+        $result = $this->safe_dict($response, 'result', array());
         $result['usingCost'] = $isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
@@ -1757,7 +1757,7 @@ class kraken extends Exchange {
         $response = null;
         $request = array(
             'orders' => $ordersRequests,
-            'pair' => $market['id'],
+            'pair' => $this->safe_string($market, 'id'),
         );
         $request = $this->extend($request, $params);
         $response = $this->privatePostAddOrderBatch ($request);
@@ -2211,6 +2211,7 @@ class kraken extends Exchange {
         $close = $this->safe_dict($params, 'close');
         if ($close !== null) {
             $close = $this->extend(array(), $close);
+            $close = ($close === null) ? array() : $close;
             $closePrice = $this->safe_value($close, 'price');
             if ($closePrice !== null) {
                 $close['price'] = $this->price_to_precision($symbol, $closePrice);
@@ -3572,7 +3573,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {

@@ -1,8 +1,5 @@
-- [Binance Create Order Stop Loss Take Profit](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -51,5 +48,5 @@ try {
     echo get_class($e) . ': ' . $e->getMessage() . "\n";
 }
 
- 
+
 ```

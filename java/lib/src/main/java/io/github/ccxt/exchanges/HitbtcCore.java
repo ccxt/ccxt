@@ -822,7 +822,7 @@ public class HitbtcCore extends HitbtcApi
         {
             Object rawNetwork = Helpers.GetValue(rawNetworks, j);
             Object networkId = this.safeString2(rawNetwork, "protocol", "network");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             networkCode = ((Helpers.isTrue((!Helpers.isEqual(networkCode, null))))) ? ((String)networkCode).toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             final Object finalNetworkCode = networkCode;
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
@@ -861,20 +861,6 @@ public class HitbtcCore extends HitbtcApi
             }} );
             put( "type", null );
         }});
-    }
-
-    public Object addKeyInArrayItems(Object obj, Object keyName)
-    {
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object keys = Helpers.objectKeys(obj);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-        {
-            Object key = Helpers.GetValue(keys, i);
-            Object item = Helpers.GetValue(obj, key);
-            Helpers.addElementToObject(item, keyName, key);
-            ((java.util.List<Object>)result).add(item);
-        }
-        return result;
     }
 
     /**
@@ -3869,7 +3855,7 @@ public class HitbtcCore extends HitbtcApi
         Object datetime = this.safeString(data, "updated_at");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", HitbtcCore.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
@@ -4159,7 +4145,8 @@ public class HitbtcCore extends HitbtcApi
         {
             Object networkEntry = Helpers.GetValue(networks, j);
             Object networkId = this.safeString(networkEntry, "network");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object code = this.safeString(currency, "code");
+            Object networkCode = this.networkIdToCode(networkId, code);
             networkCode = ((Helpers.isTrue((!Helpers.isEqual(networkCode, null))))) ? ((String)networkCode).toUpperCase() : null;
             Object withdrawFee = this.safeNumber(networkEntry, "payout_fee");
             Object isDefault = this.safeValue(networkEntry, "default");

@@ -1001,7 +1001,7 @@ public partial class backpack : ccxt.backpack
 
     public override void handleDelta(object orderbook, object delta)
     {
-        object timestamp = this.parseToInt(divide(this.safeInteger(delta, "T"), 1000));
+        object timestamp = this.parseToInt(divide(this.safeInteger(delta, "T", 0), 1000));
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
@@ -1017,7 +1017,7 @@ public partial class backpack : ccxt.backpack
     {
         for (object i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
-            object bidAsk = this.parseBidAsk(getValue(bidAsks, i));
+            object bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }

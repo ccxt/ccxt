@@ -1631,7 +1631,7 @@ public partial class bitopro : Exchange
             { "txid", this.safeString(transaction, "txid") },
             { "type", null },
             { "currency", code },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "amount", this.safeNumber(transaction, "total") },
             { "status", this.parseTransactionStatus(status) },
             { "timestamp", timestamp },

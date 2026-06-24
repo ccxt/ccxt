@@ -407,38 +407,37 @@ public class OnetradingCore extends OnetradingApi
             //         },
             //     ]
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
-            {
-                Object currency = Helpers.GetValue(response, i);
-                Object id = this.safeString(currency, "code");
-                Object code = this.safeCurrencyCode(id);
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "code", code );
-        put( "name", OnetradingCore.this.safeString(currency, "name") );
-        put( "info", currency );
-        put( "active", null );
-        put( "fee", null );
-        put( "precision", OnetradingCore.this.parseNumber(OnetradingCore.this.parsePrecision(OnetradingCore.this.safeString(currency, "precision"))) );
-        put( "withdraw", null );
-        put( "deposit", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", new java.util.HashMap<String, Object>() {{}} );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(response);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object id = this.safeString(rawCurrency, "code");
+        Object code = this.safeCurrencyCode(id);
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "code", code );
+            put( "name", OnetradingCore.this.safeString(rawCurrency, "name") );
+            put( "info", rawCurrency );
+            put( "active", null );
+            put( "fee", null );
+            put( "precision", OnetradingCore.this.parseNumber(OnetradingCore.this.parsePrecision(OnetradingCore.this.safeString(rawCurrency, "precision"))) );
+            put( "withdraw", null );
+            put( "deposit", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", new java.util.HashMap<String, Object>() {{}} );
+        }});
     }
 
     /**

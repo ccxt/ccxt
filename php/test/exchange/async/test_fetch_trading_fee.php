@@ -15,7 +15,7 @@ function test_fetch_trading_fee($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchTradingFee';
         $fee = \React\Async\await($exchange->fetch_trading_fee($symbol));
-        assert(is_array($fee), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($fee));
+        assert($exchange->is_dictionary($fee), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return a dict. ' . $exchange->json($fee));
         test_trading_fee($exchange, $skipped_properties, $method, $symbol, $fee);
         return true;
     }) ();

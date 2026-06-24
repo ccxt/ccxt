@@ -4,7 +4,7 @@
 import onetradingRest from '../onetrading.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -402,7 +402,7 @@ export default class onetrading extends onetradingRest {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        const bidAsk = this.parseBidAsk (delta, 1, 2);
+        const bidAsk = this.parseOrderBookBidAsk (delta, 1, 2);
         const type = this.safeString (delta, 0);
         if (type === 'BUY') {
             const bids = orderbook['bids'];
@@ -972,7 +972,7 @@ export default class onetrading extends onetradingRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const orders = this.orders;
         const update = this.safeValue (message, 'update', {});
         const updateType = this.safeString (update, 'type');
@@ -1095,7 +1095,7 @@ export default class onetrading extends onetradingRest {
             subscription[marketId] = {};
         }
         subscription[marketId][timeframe] = true;
-        const properties = [];
+        const properties: List = [];
         const marketIds = Object.keys (subscription);
         for (let i = 0; i < marketIds.length; i++) {
             const marketIdtimeframes = Object.keys (subscription[marketIds[i]]);
@@ -1313,7 +1313,7 @@ export default class onetrading extends onetradingRest {
     }
 
     async watchMany (messageHash, request, subscriptionHash, symbols: Strings = [], params = {}) {
-        let marketIds = [];
+        let marketIds: string[] = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {
             marketIds = Object.keys (this.markets_by_id);

@@ -363,7 +363,7 @@ public partial class cex : Exchange
         {
             object networkId = getValue(keys, j);
             object rawNetwork = getValue(rawNetworks, networkId);
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object deposit = isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
             object withdraw = isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -1854,7 +1854,7 @@ public partial class cex : Exchange
         object request = new Dictionary<string, object>() {
             { "accountId", accountId },
             { "currency", getValue(currency, "id") },
-            { "blockchain", this.networkCodeToId(networkCode) },
+            { "blockchain", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
         object response = await this.privatePostGetDepositAddress(this.extend(request, parameters));
         //
@@ -1881,7 +1881,7 @@ public partial class cex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", getValue(currency, "code") },
-            { "network", this.networkIdToCode(this.safeString(depositAddress, "blockchain")) },
+            { "network", this.networkIdToCode(this.safeString(depositAddress, "blockchain"), getValue(currency, "code")) },
             { "address", address },
             { "tag", null },
         };

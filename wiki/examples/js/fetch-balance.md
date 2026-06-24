@@ -1,13 +1,10 @@
-- [Fetch Balance](./examples/js/)
-
-
- ```javascript
- "use strict";
+```javascript
+"use strict";
 
 const ccxt      = require ('../../ccxt.js');
 
 // instantiate the exchange
-let exchange = new ccxt.coinbasepro  ({
+let exchange = new ccxt.coinbaseexchange  ({
     'apiKey': 'XXXXXXXXXXXXXX',
     'secret': 'YYYYYYYYYYYYYY',
     'password': 'ZZZZZZ', // if exchange requires password
@@ -29,5 +26,5 @@ async function checkMyBalance() {
     }
 }
 
-checkMyBalance(); 
+checkMyBalance();
 ```

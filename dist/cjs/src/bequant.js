@@ -12,7 +12,7 @@ class bequant extends hitbtc["default"] {
             'id': 'bequant',
             'name': 'Bequant',
             'pro': true,
-            'countries': ['MT'],
+            'countries': ['MT'], // Malta
             'has': {
                 'CORS': undefined,
                 'spot': true,

@@ -5,12 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, RateLimitExceeded, InvalidProxySettings } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -24,7 +24,7 @@ export default class hyperliquid extends Exchange {
             'name': 'Hyperliquid',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': true,
             'pro': true,
             'dex': true,
@@ -244,7 +244,7 @@ export default class hyperliquid extends Exchange {
                     'UXPL': 'XPL',
                 },
                 'fetchMarkets': {
-                    'types': ['spot', 'swap', 'hip3'],
+                    'types': ['spot', 'swap', 'hip3'], // 'spot', 'swap', 'hip3'
                     'hip3': {
                         'limit': 10,
                         'dexes': [], // list of dexes eg flx, xyz, etc
@@ -463,50 +463,49 @@ export default class hyperliquid extends Exchange {
         const tokens = this.safeList(response, 'tokens', []);
         // const meta = this.safeList (response, 'universe', []);
         this.options['cachedCurrenciesById'] = {}; // used to map hip3 markets
-        const result = {};
-        for (let i = 0; i < tokens.length; i++) {
-            const data = this.safeDict(tokens, i, {});
-            // const id = i;
-            const id = this.safeString(data, 'index');
-            const name = this.safeString(data, 'name');
-            const code = this.safeCurrencyCode(name);
-            this.options['cachedCurrenciesById'][id] = name;
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': this.parsePrecision(this.safeString(data, 'weiDecimals')),
-                'info': data,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'networks': undefined,
-                'fee': undefined,
-                'type': 'crypto',
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(tokens);
+    }
+    parseCurrency(rawCurrency) {
+        // const id = i;
+        const id = this.safeString(rawCurrency, 'index');
+        const name = this.safeString(rawCurrency, 'name');
+        const code = this.safeCurrencyCode(name);
+        this.options['cachedCurrenciesById'][id] = name;
+        const result = this.safeCurrencyStructure({
+            'id': id,
+            'name': name,
+            'code': code,
+            'precision': this.parsePrecision(this.safeString(rawCurrency, 'weiDecimals')),
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'networks': undefined,
+            'fee': undefined,
+            'type': 'crypto',
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-            });
-            // add in wrapped map
-            const fullName = this.safeString(data, 'fullName');
-            if (fullName !== undefined && name !== undefined) {
-                const isWrapped = fullName.startsWith('Unit ') && name.startsWith('U');
-                if (isWrapped) {
-                    const parts = name.split('U');
-                    let nameWithoutU = '';
-                    for (let j = 0; j < parts.length; j++) {
-                        nameWithoutU = nameWithoutU + parts[j];
-                    }
-                    const baseCode = this.safeCurrencyCode(nameWithoutU);
-                    this.options['spotCurrencyMapping'][code] = baseCode;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        });
+        // add in wrapped map
+        const fullName = this.safeString(rawCurrency, 'fullName');
+        if (fullName !== undefined && name !== undefined) {
+            const isWrapped = fullName.startsWith('Unit ') && name.startsWith('U');
+            if (isWrapped) {
+                const parts = name.split('U');
+                let nameWithoutU = '';
+                for (let j = 0; j < parts.length; j++) {
+                    nameWithoutU = nameWithoutU + parts[j];
                 }
+                const baseCode = this.safeCurrencyCode(nameWithoutU);
+                this.options['spotCurrencyMapping'][code] = baseCode;
             }
         }
         return result;
@@ -522,7 +521,7 @@ export default class hyperliquid extends Exchange {
      */
     async fetchMarkets(params = {}) {
         const options = this.safeDict(this.options, 'fetchMarkets', {});
-        const types = this.safeList(options, 'types');
+        const types = this.safeList(options, 'types', []);
         const rawPromises = [];
         for (let i = 0; i < types.length; i++) {
             const marketType = types[i];
@@ -2407,7 +2406,7 @@ export default class hyperliquid extends Exchange {
         //
         const innerResponse = this.safeDict(response, 'response');
         const data = this.safeDict(innerResponse, 'data');
-        const statuses = this.safeList(data, 'statuses');
+        const statuses = this.safeList(data, 'statuses', []);
         const orders = [];
         for (let i = 0; i < statuses.length; i++) {
             const status = statuses[i];
@@ -4089,7 +4088,7 @@ export default class hyperliquid extends Exchange {
         params = this.omit(params, 'vaultAddress');
         const nonce = this.milliseconds();
         let action = {};
-        let sig = undefined;
+        let sig;
         if (vaultAddress !== undefined) {
             action = {
                 'type': 'vaultTransfer',
@@ -4110,7 +4109,7 @@ export default class hyperliquid extends Exchange {
             sig = this.buildWithdrawSig(payload);
             action = {
                 'hyperliquidChain': payload['hyperliquidChain'],
-                'signatureChainId': '0x66eee',
+                'signatureChainId': '0x66eee', // check this out
                 'destination': address,
                 'amount': amount.toString(),
                 'time': nonce,
@@ -4433,7 +4432,7 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < records.length; i++) {
                 const record = records[i];
                 if (record['type'] === 'vaultDeposit') {
-                    const delta = this.safeDict(record, 'delta');
+                    const delta = this.safeDict(record, 'delta', {});
                     if (delta['vault'] === '0x' + vaultAddress) {
                         deposits.push(record);
                     }
@@ -4497,7 +4496,7 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < records.length; i++) {
                 const record = records[i];
                 if (record['type'] === 'vaultWithdraw') {
-                    const delta = this.safeDict(record, 'delta');
+                    const delta = this.safeDict(record, 'delta', {});
                     if (delta['vault'] === '0x' + vaultAddress) {
                         withdrawals.push(record);
                     }

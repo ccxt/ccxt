@@ -5,13 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class lighter
@@ -24,7 +24,7 @@ export default class lighter extends Exchange {
             'name': 'Lighter',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 1000,
+            'rateLimit': 1000, // 60 requests per minute - normal account
             'certified': false,
             'pro': true,
             'dex': true,
@@ -147,7 +147,7 @@ export default class lighter extends Exchange {
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0',
+                'logo': 'https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0',
                 'api': {
                     'root': 'https://mainnet.{hostname}',
                     'public': 'https://mainnet.{hostname}',
@@ -162,7 +162,7 @@ export default class lighter extends Exchange {
                 'doc': 'https://apidocs.lighter.xyz/',
                 'fees': 'https://docs.lighter.xyz/perpetual-futures/fees',
                 'referral': {
-                    'url': 'app.lighter.xyz/?referral=715955W9',
+                    'url': 'https://app.lighter.xyz/?referral=715955W9',
                     'discount': 0.1, // user gets 10% of the points
                 },
             },
@@ -170,7 +170,7 @@ export default class lighter extends Exchange {
                 'root': {
                     'get': {
                         // root
-                        '': 1,
+                        '': 1, // status
                         'info': 1,
                     },
                 },
@@ -251,81 +251,81 @@ export default class lighter extends Exchange {
             'httpExceptions': {},
             'exceptions': {
                 'exact': {
-                    '21146': ExchangeError,
-                    '21500': ExchangeError,
-                    '21501': ExchangeError,
-                    '21502': ExchangeError,
-                    '21503': ExchangeError,
-                    '21504': ExchangeError,
-                    '21505': ExchangeError,
-                    '21506': ExchangeError,
-                    '21507': ExchangeError,
-                    '21508': ExchangeError,
-                    '21511': ExchangeError,
-                    '21512': ExchangeError,
-                    '21600': InvalidOrder,
-                    '21601': InvalidOrder,
-                    '21602': InvalidOrder,
-                    '21603': InvalidOrder,
-                    '21604': InvalidOrder,
-                    '21605': InvalidOrder,
-                    '21606': InvalidOrder,
-                    '21607': InvalidOrder,
-                    '21608': InvalidOrder,
-                    '21611': InvalidOrder,
-                    '21612': InvalidOrder,
-                    '21613': InvalidOrder,
-                    '21614': InvalidOrder,
-                    '21700': InvalidOrder,
-                    '21701': InvalidOrder,
-                    '21702': InvalidOrder,
-                    '21703': InvalidOrder,
-                    '21704': InvalidOrder,
-                    '21705': InvalidOrder,
-                    '21706': InvalidOrder,
-                    '21707': InvalidOrder,
-                    '21708': InvalidOrder,
-                    '21709': InvalidOrder,
-                    '21710': InvalidOrder,
-                    '21711': InvalidOrder,
-                    '21712': InvalidOrder,
-                    '21713': InvalidOrder,
-                    '21714': InvalidOrder,
-                    '21715': InvalidOrder,
-                    '21716': InvalidOrder,
-                    '21717': InvalidOrder,
-                    '21718': InvalidOrder,
-                    '21719': InvalidOrder,
-                    '21720': InvalidOrder,
-                    '21721': InvalidOrder,
-                    '21722': InvalidOrder,
-                    '21723': InvalidOrder,
-                    '21724': InvalidOrder,
-                    '21725': InvalidOrder,
-                    '21726': InvalidOrder,
-                    '21727': InvalidOrder,
-                    '21728': InvalidOrder,
-                    '21729': InvalidOrder,
-                    '21730': InvalidOrder,
-                    '21731': InvalidOrder,
-                    '21732': InvalidOrder,
-                    '21733': InvalidOrder,
-                    '21734': InvalidOrder,
-                    '21735': InvalidOrder,
-                    '21736': InvalidOrder,
-                    '21737': InvalidOrder,
-                    '21738': InvalidOrder,
-                    '21739': InvalidOrder,
-                    '21740': InvalidOrder,
-                    '21901': InvalidOrder,
-                    '21902': InvalidOrder,
-                    '21903': InvalidOrder,
-                    '21904': InvalidOrder,
-                    '21905': InvalidOrder,
-                    '21906': InvalidOrder,
-                    '23000': RateLimitExceeded,
-                    '23001': RateLimitExceeded,
-                    '23002': RateLimitExceeded,
+                    '21146': ExchangeError, // system account cannot be an integrator
+                    '21500': ExchangeError, // transaction not found
+                    '21501': ExchangeError, // invalid tx info
+                    '21502': ExchangeError, // marshal tx failed
+                    '21503': ExchangeError, // marshal event failed
+                    '21504': ExchangeError, // fail to l1 signature
+                    '21505': ExchangeError, // unsupported tx type
+                    '21506': ExchangeError, // too many pending txs. Please try again later
+                    '21507': ExchangeError, // account is below maintenance margin, can't execute transaction
+                    '21508': ExchangeError, // account is below initial margin, can't execute transaction
+                    '21511': ExchangeError, // invalid tx type for account
+                    '21512': ExchangeError, // invalid l1 request id
+                    '21600': InvalidOrder, // given order is not an active limit order
+                    '21601': InvalidOrder, // order book is full
+                    '21602': InvalidOrder, // invalid market index
+                    '21603': InvalidOrder, // invalid min amounts for market
+                    '21604': InvalidOrder, // invalid margin fractions for market
+                    '21605': InvalidOrder, // invalid market status
+                    '21606': InvalidOrder, // market already exist for given index
+                    '21607': InvalidOrder, // invalid market fees
+                    '21608': InvalidOrder, // invalid quote multiplier
+                    '21611': InvalidOrder, // invalid interest rate
+                    '21612': InvalidOrder, // invalid open interest
+                    '21613': InvalidOrder, // invalid margin mode
+                    '21614': InvalidOrder, // no position found
+                    '21700': InvalidOrder, // invalid order index
+                    '21701': InvalidOrder, // invalid base amount
+                    '21702': InvalidOrder, // invalid price
+                    '21703': InvalidOrder, // invalid isAsk
+                    '21704': InvalidOrder, // invalid OrderType
+                    '21705': InvalidOrder, // invalid OrderTimeInForce
+                    '21706': InvalidOrder, // invalid order base or quote amount
+                    '21707': InvalidOrder, // account is not owner of the order
+                    '21708': InvalidOrder, // order is empty
+                    '21709': InvalidOrder, // order is inactive
+                    '21710': InvalidOrder, // unsupported order type
+                    '21711': InvalidOrder, // invalid expiry
+                    '21712': InvalidOrder, // account has a queued cancel all orders request
+                    '21713': InvalidOrder, // invalid cancel all time in force
+                    '21714': InvalidOrder, // invalid cancel all time
+                    '21715': InvalidOrder, // given order is not an active order
+                    '21716': InvalidOrder, // order is not expired
+                    '21717': InvalidOrder, // maximum active limit order count reached
+                    '21718': InvalidOrder, // maximum active limit order count per market reached
+                    '21719': InvalidOrder, // maximum pending order count reached
+                    '21720': InvalidOrder, // maximum pending order count per market reached
+                    '21721': InvalidOrder, // maximum twap order count reached
+                    '21722': InvalidOrder, // maximum conditional order count reached
+                    '21723': InvalidOrder, // invalid account health
+                    '21724': InvalidOrder, // invalid liquidation size
+                    '21725': InvalidOrder, // invalid liquidation price
+                    '21726': InvalidOrder, // insurance fund cannot be partially liquidated
+                    '21727': InvalidOrder, // invalid client order index
+                    '21728': InvalidOrder, // client order index already exists
+                    '21729': InvalidOrder, // invalid order trigger price
+                    '21730': InvalidOrder, // order status is not pending
+                    '21731': InvalidOrder, // order can not be triggered
+                    '21732': InvalidOrder, // reduce only increases position
+                    '21733': InvalidOrder, // order price flagged as an accidental price
+                    '21734': InvalidOrder, // limit order price is too far from the mark price
+                    '21735': InvalidOrder, // SL/TP order price is too far from the trigger price
+                    '21736': InvalidOrder, // invalid order trigger status
+                    '21737': InvalidOrder, // invalid order status
+                    '21738': InvalidOrder, // invalid reduce only direction
+                    '21739': InvalidOrder, // not enough margin to create the order
+                    '21740': InvalidOrder, // invalid reduce only mode
+                    '21901': InvalidOrder, // deleverage against itself
+                    '21902': InvalidOrder, // deleverage does not match liquidation status
+                    '21903': InvalidOrder, // deleverage with open orders
+                    '21904': InvalidOrder, // invalid deleverage size
+                    '21905': InvalidOrder, // invalid deleverage price
+                    '21906': InvalidOrder, // invalid deleverage side
+                    '23000': RateLimitExceeded, // Too Many Requests!
+                    '23001': RateLimitExceeded, // Too Many Subscriptions!
+                    '23002': RateLimitExceeded, // Too Many Different Accounts!
                     '23003': RateLimitExceeded, // Too Many Connections!
                 },
                 'broad': {},
@@ -350,12 +350,12 @@ export default class lighter extends Exchange {
                 'accountIndex': undefined,
                 'apiKeyIndex': undefined,
                 'lighterPrivateKey': undefined,
-                'wasmExecPath': undefined,
-                'libraryPath': undefined,
+                'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
+                'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
                 'integratorAccountIndex': 718718,
                 'integratorMakerFee': 1000,
                 'integratorTakerFee': 1000,
-                'authDeadlineExpiry': 28800,
+                'authDeadlineExpiry': 28800, // 8h validity for auth tokens
                 'authDeadlineMinimumRemaining': 60,
             },
             'features': {
@@ -564,12 +564,12 @@ export default class lighter extends Exchange {
         const cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         const cachedDeadline = this.safeInteger(cachedAuth, 'deadline');
         if (cachedDeadline !== undefined) {
-            const minimumDeadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineMinimumRemaining');
+            const minimumDeadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineMinimumRemaining', 60);
             if (cachedDeadline >= minimumDeadline) {
                 return this.safeString(cachedAuth, 'token');
             }
         }
-        const deadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineExpiry');
+        const deadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineExpiry', 28800);
         const request = {
             'deadline': deadline,
             'api_key_index': this.parseToInt(apiKeyIndex),
@@ -783,7 +783,7 @@ export default class lighter extends Exchange {
                 }
             }
         }
-        const marketInfo = this.safeDict(market, 'info');
+        const marketInfo = this.safeDict(market, 'info', {});
         let amountStr = undefined;
         const priceStr = this.priceToPrecision(symbol, price);
         const amountScale = this.pow('10', marketInfo['size_decimals']);
@@ -932,7 +932,7 @@ export default class lighter extends Exchange {
             order['nonce'] = await this.fetchNonce(accountIndex, apiKeyIndex);
         }
         let txType = undefined;
-        let txInfo = undefined;
+        let txInfo;
         if (totalOrderRequests < 2) {
             [txType, txInfo] = this.lighterSignCreateOrder(signer, order);
         }
@@ -991,7 +991,7 @@ export default class lighter extends Exchange {
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
         const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         const market = this.market(symbol);
-        const marketInfo = this.safeDict(market, 'info');
+        const marketInfo = this.safeDict(market, 'info', {});
         const amountScale = this.pow('10', marketInfo['size_decimals']);
         const priceScale = this.pow('10', marketInfo['price_decimals']);
         const triggerPrice = this.safeStringN(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
@@ -1047,7 +1047,7 @@ export default class lighter extends Exchange {
         //
         const status = this.safeString(response, 'status');
         return {
-            'status': (status === '200') ? 'ok' : 'error',
+            'status': (status === '200') ? 'ok' : 'error', // if there's no Errors, status = 'ok'
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -1276,44 +1276,42 @@ export default class lighter extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'asset_details', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const id = this.safeString(entry, 'asset_id');
-            const code = this.safeCurrencyCode(this.safeString(entry, 'symbol'));
-            const decimals = this.safeString(entry, 'decimals');
-            const isUSDC = (code === 'USDC');
-            let depositMin = undefined;
-            let withdrawMin = undefined;
-            if (isUSDC) {
-                depositMin = this.safeNumber(entry, 'min_transfer_amount');
-                withdrawMin = this.safeNumber(entry, 'min_withdrawal_amount');
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': code,
-                'code': code,
-                'precision': this.parseNumber('1e-' + decimals),
-                'active': true,
-                'fee': undefined,
-                'networks': {},
-                'deposit': isUSDC,
-                'withdraw': isUSDC,
-                'type': 'crypto',
-                'limits': {
-                    'deposit': {
-                        'min': depositMin,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': withdrawMin,
-                        'max': undefined,
-                    },
-                },
-                'info': entry,
-            });
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'asset_id');
+        const code = this.safeCurrencyCode(this.safeString(rawCurrency, 'symbol'));
+        const decimals = this.safeString(rawCurrency, 'decimals');
+        const isUSDC = (code === 'USDC');
+        let depositMin = undefined;
+        let withdrawMin = undefined;
+        if (isUSDC) {
+            depositMin = this.safeNumber(rawCurrency, 'min_transfer_amount');
+            withdrawMin = this.safeNumber(rawCurrency, 'min_withdrawal_amount');
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'name': code,
+            'code': code,
+            'precision': this.parseNumber('1e-' + decimals),
+            'active': true,
+            'fee': undefined,
+            'networks': {},
+            'deposit': isUSDC,
+            'withdraw': isUSDC,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': depositMin,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': withdrawMin,
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
     /**
      * @method
@@ -1811,10 +1809,12 @@ export default class lighter extends Exchange {
             }
             else {
                 const perpBalance = this.safeDict(result, 'USDC', this.account());
-                const perpUSDCTotal = this.safeString(account, 'collateral');
-                const perpUSDCFree = this.safeString(account, 'available_balance');
-                perpBalance['total'] = Precise.stringAdd(perpBalance['total'], perpUSDCTotal);
-                perpBalance['free'] = Precise.stringAdd(perpBalance['free'], perpUSDCFree);
+                const perpTotal = this.safeString(perpBalance, 'total', '0');
+                const perpFree = this.safeString(perpBalance, 'free', '0');
+                const perpUSDCTotal = this.safeString(account, 'collateral', '0');
+                const perpUSDCFree = this.safeString(account, 'available_balance', '0');
+                perpBalance['total'] = Precise.stringAdd(perpTotal, perpUSDCTotal);
+                perpBalance['free'] = Precise.stringAdd(perpFree, perpUSDCFree);
                 result['USDC'] = perpBalance;
             }
         }
@@ -3031,7 +3031,7 @@ export default class lighter extends Exchange {
         const signRaw = {
             'market_index': this.parseToInt(market['id']),
             'initial_margin_fraction': this.parseToInt(10000 / leverage),
-            'margin_mode': (marginMode === 'cross') ? 0 : 1,
+            'margin_mode': (marginMode === 'cross') ? 0 : 1, // 0: CROSS, 1: ISOLATED
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
@@ -3114,8 +3114,8 @@ export default class lighter extends Exchange {
         const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, params);
         const signRaw = {
-            'time_in_force': 0,
-            'time': 0,
+            'time_in_force': 0, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            'time': 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
@@ -3150,8 +3150,8 @@ export default class lighter extends Exchange {
         const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, params);
         const signRaw = {
-            'time_in_force': 1,
-            'time': this.milliseconds() + timeout,
+            'time_in_force': 1, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            'time': this.milliseconds() + timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,

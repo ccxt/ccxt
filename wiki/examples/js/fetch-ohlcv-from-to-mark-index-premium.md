@@ -1,8 +1,5 @@
-- [Fetch Ohlcv From To Mark Index Premium](./examples/js/)
-
-
- ```javascript
- "use strict";
+```javascript
+"use strict";
 
 const ccxt = require ('../../ccxt')
 
@@ -74,5 +71,5 @@ async function checkAllSymbols() {
     //    const data = await myDataFetch (symbol);
 }
 checkAllSymbols();
- 
+
 ```

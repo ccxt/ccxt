@@ -3,7 +3,7 @@
  * not conform to HTTP grammar productions.
  * @param {import('http').IncomingMessage['rawHeaders']} headers
  */
-export function fromRawHeaders(headers?: import('http').IncomingMessage['rawHeaders']): Headers;
+export function fromRawHeaders(headers?: import("http").IncomingMessage["rawHeaders"]): Headers;
 /**
  * @typedef {Headers | Record<string, string> | Iterable<readonly [string, string]> | Iterable<Iterable<string>>} HeadersInit
  */
@@ -26,9 +26,6 @@ export default class Headers extends URLSearchParams {
     get(name: any): string;
     forEach(callback: any, thisArg?: any): void;
     values(): Generator<string, void, unknown>;
-    /**
-     * @type {() => IterableIterator<[string, string]>}
-     */
     entries(): IterableIterator<[string, string]>;
     /**
      * Node-fetch non-spec method

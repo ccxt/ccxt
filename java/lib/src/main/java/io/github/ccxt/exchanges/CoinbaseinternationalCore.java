@@ -1035,7 +1035,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
     /**
      * @method
-     * @name exchange#fetchDepositsWithdrawals
+     * @name coinbaseinternational#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -1381,13 +1381,14 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Object addressFrom = this.safeStringN(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("from_address", "from_cb_account", this.safeStringN(fromPorfolio, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "uuid", "name"))), "from_counterparty_id")));
         Object toPorfolio = this.safeDict(transaction, "from_portfolio", new java.util.HashMap<String, Object>() {{}});
         Object addressTo = this.safeStringN(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("to_address", "to_cb_account", this.safeStringN(toPorfolio, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "uuid", "name"))), "to_counterparty_id")));
+        Object code = this.safeString(currency, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", CoinbaseinternationalCore.this.safeString(transaction, "transfer_uuid") );
             put( "txid", CoinbaseinternationalCore.this.safeString(transaction, "transaction_uuid") );
             put( "timestamp", CoinbaseinternationalCore.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "network", CoinbaseinternationalCore.this.networkIdToCode(CoinbaseinternationalCore.this.safeString(transaction, "network_name")) );
+            put( "network", CoinbaseinternationalCore.this.networkIdToCode(CoinbaseinternationalCore.this.safeString(transaction, "network_name"), code) );
             put( "address", null );
             put( "addressTo", addressTo );
             put( "addressFrom", addressFrom );

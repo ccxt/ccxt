@@ -18,7 +18,7 @@ export default class luno extends lunoRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchMyTrades': false,
-                'watchOrders': undefined,
+                'watchOrders': undefined, // is in beta
                 'watchOrderBook': true,
                 'watchOHLCV': false,
             },
@@ -215,8 +215,8 @@ export default class luno extends lunoRest {
         client.resolve(orderbook, messageHash);
     }
     customParseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', countOrIdKey = 2) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -226,7 +226,7 @@ export default class luno extends lunoRest {
             'nonce': undefined,
         };
     }
-    parseBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
+    parseOrderBookBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {

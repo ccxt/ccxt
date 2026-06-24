@@ -912,12 +912,12 @@ class poloniex extends \ccxt\async\poloniex {
                         $previousOrder['fee'] = array(
                             'rate' => null,
                             'cost' => 0,
-                            'currency' => $trade['fee']['currency'],
+                            'currency' => $this->safe_string($trade['fee'], 'currency'),
                         );
                     }
-                    if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
+                    if (($previousOrder['fee']['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
                         $stringOrderCost = $this->number_to_string($previousOrder['fee']['cost']);
-                        $stringTradeCost = $this->number_to_string($trade['fee']['cost']);
+                        $stringTradeCost = $this->number_to_string($this->safe_number($trade['fee'], 'cost'));
                         $previousOrder['fee']['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);
                     }
                     $rawState = $this->safe_string($order, 'state');
@@ -1286,7 +1286,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //    {
         //        $message => 'Invalid channel value ["ordersss"]',

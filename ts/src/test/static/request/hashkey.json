@@ -31,14 +31,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
-                "method": "fetchCurrencies",
-                "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo",
-                "input": [],
-                "output": null
-            },
-            {
-                "description": "Fetch all currencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo",
                 "input": []

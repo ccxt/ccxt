@@ -53,7 +53,7 @@ export default class hashkey extends hashkeyRest {
 
     async wathPublic (market: Market, topic: string, messageHash: string, params = {}) {
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': (market as Dict)['id'],
             'topic': topic,
             'event': 'sub',
         };
@@ -134,12 +134,12 @@ export default class hashkey extends hashkeyRest {
         const params = this.safeDict (message, 'params');
         const klineType = this.safeString (params, 'klineType');
         const timeframe = this.findTimeframe (klineType);
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
         const data = this.safeList (message, 'data', []);
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][(timeframe as string)];
         for (let i = 0; i < data.length; i++) {
             const candle = this.safeDict (data, i, {});
             const parsed = this.parseWsOHLCV (candle, market);
@@ -224,8 +224,8 @@ export default class hashkey extends hashkeyRest {
         const ticker = this.parseTicker (this.safeDict (data, 0));
         const symbol = ticker['symbol'];
         const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = ticker;
-        client.resolve (this.tickers[symbol], messageHash);
+        this.tickers[(symbol as string)] = ticker;
+        client.resolve (this.tickers[(symbol as string)], messageHash);
     }
 
     /**
@@ -359,7 +359,7 @@ export default class hashkey extends hashkeyRest {
         const data = this.safeList (message, 'data', []);
         const dataEntry = this.safeDict (data, 0);
         const timestamp = this.safeInteger (dataEntry, 't');
-        const snapshot = this.parseOrderBook (dataEntry, symbol, timestamp, 'b', 'a');
+        const snapshot = this.parseOrderBook ((dataEntry as Dict), symbol, timestamp, 'b', 'a');
         orderbook.reset (snapshot);
         orderbook['nonce'] = this.safeInteger (message, 'id');
         this.orderbooks[symbol] = orderbook;
@@ -448,7 +448,7 @@ export default class hashkey extends hashkeyRest {
         let side = this.safeStringLower (order, 'S');
         let reduceOnly: Bool = undefined;
         [ side, reduceOnly ] = this.parseOrderSideAndReduceOnly (side);
-        let type = this.parseOrderType (this.safeString (order, 'o'));
+        let type: Str = this.parseOrderType (this.safeString (order, 'o'));
         let timeInForce = this.safeString (order, 'f');
         let postOnly: Bool = undefined;
         [ type, timeInForce, postOnly ] = this.parseOrderTypeTimeInForceAndPostOnly (type, timeInForce);
@@ -469,18 +469,18 @@ export default class hashkey extends hashkeyRest {
             'side': side,
             'price': this.safeString (order, 'p'),
             'average': this.safeString (order, 'V'),
-            'amount': this.omitZero (this.safeString (order, 'q')),
+            'amount': this.omitZero ((this.safeString (order, 'q') as string)),
             'filled': this.safeString (order, 'z'),
             'remaining': this.safeString (order, 'r'),
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
-            'cost': this.omitZero (this.safeString (order, 'Z')),
+            'cost': this.omitZero ((this.safeString (order, 'Z') as string)),
             'trades': undefined,
             'fee': {
                 'currency': this.safeCurrencyCode (this.safeString (order, 'N')),
-                'amount': this.omitZero (this.safeString (order, 'n')),
+                'amount': this.omitZero ((this.safeString (order, 'n') as string)),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
@@ -545,7 +545,7 @@ export default class hashkey extends hashkeyRest {
         client.resolve (tradesArray, symbolSpecificMessageHash);
     }
 
-    parseWsTrade (trade, market = undefined): Trade {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         // watchTrades
         //     {
@@ -576,23 +576,24 @@ export default class hashkey extends hashkeyRest {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 't');
         const isBuyerMaker = this.safeBool (trade, 'm');
+        const isPublicTrade = this.safeString (trade, 'e') === undefined;
         let side: Str = undefined;
         let takerOrMaker: Str = undefined;
         if (isBuyerMaker !== undefined) {
-            if (isBuyerMaker) {
-                side = 'sell';
-                takerOrMaker = 'maker';
-            } else {
-                side = 'buy';
+            if (isPublicTrade) {
                 takerOrMaker = 'taker';
+                side = isBuyerMaker ? 'sell' : 'buy';
+            } else {
+                takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
+                side = this.safeStringLower (trade, 'S');
             }
         }
         return this.safeTrade ({
             'id': this.safeString2 (trade, 'v', 'T'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'side': this.safeStringLower (trade, 'S', side),
+            'symbol': (market as Dict)['symbol'],
+            'side': side,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
             'cost': undefined,
@@ -620,7 +621,7 @@ export default class hashkey extends hashkeyRest {
         const listenKey = await this.authenticate ();
         symbols = this.marketSymbols (symbols);
         const messageHash = 'positions';
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         if (symbols === undefined) {
             messageHashes.push (messageHash);
         } else {
@@ -725,8 +726,8 @@ export default class hashkey extends hashkeyRest {
         const url = this.getPrivateUrl (listenKey);
         const client = this.client (url);
         this.setBalanceCache (client, type, messageHash);
-        let fetchBalanceSnapshot = undefined;
-        let awaitBalanceSnapshot = undefined;
+        let fetchBalanceSnapshot: Bool = undefined;
+        let awaitBalanceSnapshot: Bool = undefined;
         [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
         [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {

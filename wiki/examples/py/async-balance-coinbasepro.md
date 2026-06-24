@@ -1,8 +1,5 @@
-- [Async Balance Coinbasepro](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -13,7 +10,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def test():
-    exchange = ccxt.coinbasepro({
+    exchange = ccxt.coinbaseexchange({
         'apiKey': "YOUR_API_KEY",
         'secret': "YOUR_SECRET",
         'password': "YOUR_PASSWORD",
@@ -25,5 +22,5 @@ async def test():
 
 
 asyncio.run(test())
- 
+
 ```

@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 
 // This example uses Node-only libraries (ololog, as-table, ansicolor)
 // and ansi-color property chains (str.red.dim, str.green) that can't

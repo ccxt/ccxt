@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var weex$1 = require('../weex.js');
 var errors = require('../base/errors.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
@@ -128,7 +128,7 @@ class weex extends weex$1["default"] {
         }
         const timestamp = this.nonce();
         const payload = timestamp.toString() + '/v3/ws/private';
-        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
+        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
         const originalHeaders = this.options['ws']['options']['headers'];
         const userAgent = this.safeString(originalHeaders, 'User-Agent', 'ccxt');
         const extendedOptions = {
@@ -882,7 +882,7 @@ class weex extends weex$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta);
+        const bidAsk = this.parseOrderBookBidAsk(delta);
         bookside.storeArray(bidAsk);
     }
     /**

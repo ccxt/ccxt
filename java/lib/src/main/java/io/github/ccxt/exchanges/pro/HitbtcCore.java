@@ -20,7 +20,12 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        return this.deepExtend(super.describe(), this.describeData());
+    }
+
+    public Object describeData()
+    {
+        return new java.util.HashMap<String, Object>() {{
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "watchTicker", true );
@@ -82,7 +87,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             put( "streaming", new java.util.HashMap<String, Object>() {{
                 put( "keepAlive", 4000 );
             }} );
-        }});
+        }};
     }
 
     /**

@@ -47,7 +47,7 @@ Retrieves data on all markets for foxbit.
 
 
 ```javascript
-foxbit.fetchMarkets ([params])
+foxbit.fetchMarkets (params?)
 ```
 
 
@@ -68,7 +68,7 @@ Get last 24 hours ticker information, in real-time, for given market.
 
 
 ```javascript
-foxbit.fetchTicker (symbol[, params])
+foxbit.fetchTicker (symbol, params?)
 ```
 
 
@@ -89,7 +89,7 @@ Retrieve the ticker data of all markets.
 
 
 ```javascript
-foxbit.fetchTickers (symbols[, params])
+foxbit.fetchTickers (symbols, params?)
 ```
 
 
@@ -109,7 +109,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-foxbit.fetchTradingFees ([params])
+foxbit.fetchTradingFees (params?)
 ```
 
 
@@ -131,7 +131,7 @@ Exports a copy of the order book of a specific market.
 
 
 ```javascript
-foxbit.fetchOrderBook (symbol[, limit, params])
+foxbit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -154,7 +154,7 @@ Retrieve the trades of a specific market.
 
 
 ```javascript
-foxbit.fetchTrades (symbol[, since, limit, params])
+foxbit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -178,7 +178,7 @@ Fetch historical candlestick data containing the open, high, low, and close pric
 
 
 ```javascript
-foxbit.fetchOHLCV (symbol, timeframe[, since, limit, params])
+foxbit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -198,7 +198,7 @@ Query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-foxbit.fetchBalance ([params])
+foxbit.fetchBalance (params?)
 ```
 
 
@@ -221,7 +221,7 @@ Fetch all unfilled currently open orders.
 
 
 ```javascript
-foxbit.fetchOpenOrders (symbol[, since, limit, params])
+foxbit.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -244,7 +244,7 @@ Fetch all currently closed orders.
 
 
 ```javascript
-foxbit.fetchClosedOrders (symbol[, since, limit, params])
+foxbit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -273,7 +273,7 @@ Create an order with the specified characteristics
 
 
 ```javascript
-foxbit.createOrder (symbol, type, side, amount[, price, params])
+foxbit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -294,7 +294,7 @@ create a list of trade orders
 
 
 ```javascript
-foxbit.createOrders (orders[, params])
+foxbit.createOrders (orders, params?)
 ```
 
 
@@ -316,7 +316,7 @@ Cancel open orders.
 
 
 ```javascript
-foxbit.cancelOrder (id, symbol[, params])
+foxbit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -337,7 +337,7 @@ Cancel all open orders or all open orders for a specific market.
 
 
 ```javascript
-foxbit.cancelAllOrders (symbol[, params])
+foxbit.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -359,7 +359,7 @@ Get an order by ID.
 
 
 ```javascript
-foxbit.fetchOrder (id, symbol[, params])
+foxbit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -384,7 +384,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-foxbit.fetchOrders (symbol[, since, limit, params])
+foxbit.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -407,7 +407,7 @@ Trade history queries will only have data available for the last 3 months, in de
 
 
 ```javascript
-foxbit.fetchMyTrades (symbol[, since, limit, params])
+foxbit.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -429,7 +429,7 @@ Fetch the deposit address for a currency associated with this account.
 
 
 ```javascript
-foxbit.fetchDepositAddress (code[, params])
+foxbit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -452,7 +452,7 @@ Fetch all deposits made to an account.
 
 
 ```javascript
-foxbit.fetchDeposits ([code, since, limit, params])
+foxbit.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -475,7 +475,7 @@ Fetch all withdrawals made from an account.
 
 
 ```javascript
-foxbit.fetchWithdrawals ([code, since, limit, params])
+foxbit.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -502,7 +502,7 @@ Fetch all transactions (deposits and withdrawals) made from an account.
 
 
 ```javascript
-foxbit.fetchTransactions ([code, since, limit, params])
+foxbit.fetchTransactions (code?, since?, limit?, params?)
 ```
 
 
@@ -522,7 +522,7 @@ The latest known information on the availability of the exchange API.
 
 
 ```javascript
-foxbit.fetchStatus ([params])
+foxbit.fetchStatus (params?)
 ```
 
 
@@ -548,7 +548,7 @@ Simultaneously cancel an existing order and create a new one.
 
 
 ```javascript
-foxbit.editOrder (id, symbol, type, side, amount[, price, params])
+foxbit.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -572,7 +572,7 @@ Make a withdrawal.
 
 
 ```javascript
-foxbit.withdraw (code, amount, address, tag[, params])
+foxbit.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -595,6 +595,6 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-foxbit.fetchLedger (code[, since, limit, params])
+foxbit.fetchLedger (code, since?, limit?, params?)
 ```
 

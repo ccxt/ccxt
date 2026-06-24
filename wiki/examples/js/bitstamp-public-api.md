@@ -1,8 +1,5 @@
-- [Bitstamp Public Api](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
 import asTable from 'as-table';
@@ -40,5 +37,5 @@ const table = asTable.configure ({ delimiter: ' | ' }), id = 'bitstamp', exchang
         'to', exchange.iso8601 (last[0])
     )
 
-}) () 
+}) ()
 ```

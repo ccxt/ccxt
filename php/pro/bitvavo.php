@@ -1438,7 +1438,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //    {
         //        $action => 'privateCreateOrder',

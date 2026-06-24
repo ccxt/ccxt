@@ -1,5 +1,5 @@
 import wooRest from '../woo.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Bool, FundingRate } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Bool, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class woo extends wooRest {
     describe(): any;
@@ -54,7 +54,7 @@ export default class woo extends wooRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
-    parseWsTicker(ticker: any, market?: any): Ticker;
+    parseWsTicker(ticker: any, market?: Market): Ticker;
     handleTicker(client: Client, message: any): any;
     /**
      * @method
@@ -98,7 +98,7 @@ export default class woo extends wooRest {
      */
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name woo#watchOHLCV
@@ -148,7 +148,7 @@ export default class woo extends wooRest {
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     checkRequiredUid(error?: boolean): boolean;
     authenticate(params?: {}): Promise<any>;
     watchPrivate(messageHash: any, message: any, params?: {}): Promise<any>;
@@ -181,7 +181,7 @@ export default class woo extends wooRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     handleOrderUpdate(client: Client, message: any): void;
     handleOrder(client: Client, message: any, topic: any): void;
     handleMyTrade(client: Client, message: any): void;

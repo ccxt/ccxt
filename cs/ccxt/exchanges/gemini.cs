@@ -420,53 +420,31 @@ public partial class gemini : Exchange
         //        ]
         //    }
         //
-        object result = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)this.options)["tradingPairs"] = this.safeList(data, "tradingPairs");
         object currenciesArray = this.safeValue(data, "currencies", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesArray)); postFixIncrement(ref i))
+        return this.parseCurrencies(currenciesArray);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, 0);
+        object code = this.safeCurrencyCode(id);
+        object type = ((bool) isTrue(this.safeString(rawCurrency, 7))) ? "fiat" : "crypto";
+        object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
+        object networks = new Dictionary<string, object>() {};
+        object networkId = this.safeString(rawCurrency, 9);
+        object networkCode = null;
+        if (isTrue(!isEqual(networkId, null)))
         {
-            object currency = getValue(currenciesArray, i);
-            object id = this.safeString(currency, 0);
-            object code = this.safeCurrencyCode(id);
-            object type = ((bool) isTrue(this.safeString(currency, 7))) ? "fiat" : "crypto";
-            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
-            object networks = new Dictionary<string, object>() {};
-            object networkId = this.safeString(currency, 9);
-            object networkCode = null;
-            if (isTrue(!isEqual(networkId, null)))
-            {
-                networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", currency },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", null },
-                    { "precision", precision },
-                    { "limits", new Dictionary<string, object>() {
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", id },
-                { "code", code },
-                { "name", this.safeString(currency, 1) },
+            networkCode = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", rawCurrency },
+                { "id", networkId },
+                { "network", networkCode },
                 { "active", null },
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", null },
-                { "type", type },
                 { "precision", precision },
                 { "limits", new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
@@ -478,10 +456,31 @@ public partial class gemini : Exchange
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "id", id },
+            { "code", code },
+            { "name", this.safeString(rawCurrency, 1) },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "type", type },
+            { "precision", precision },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -2036,7 +2035,7 @@ public partial class gemini : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
         }
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
         object request = new Dictionary<string, object>() {
             { "network", networkId },
         };

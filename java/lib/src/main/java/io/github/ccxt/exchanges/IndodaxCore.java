@@ -556,8 +556,8 @@ public class IndodaxCore extends IndodaxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "server_time");
-        Object baseVolume = Helpers.add("vol_", ((String)Helpers.GetValue(market, "baseId")).toLowerCase());
-        Object quoteVolume = Helpers.add("vol_", ((String)Helpers.GetValue(market, "quoteId")).toLowerCase());
+        Object baseVolume = Helpers.add("vol_", this.safeStringLower(market, "baseId"));
+        Object quoteVolume = Helpers.add("vol_", this.safeStringLower(market, "quoteId"));
         Object last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1272,9 +1272,9 @@ public class IndodaxCore extends IndodaxApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object startTime = Helpers.slice(this.iso8601(since), 0, 10);
+                Object startTime = this.yyyymmdd(since);
                 Helpers.addElementToObject(request, "start", startTime);
-                Helpers.addElementToObject(request, "end", Helpers.slice(this.iso8601(this.milliseconds()), 0, 10));
+                Helpers.addElementToObject(request, "end", this.yyyymmdd(this.milliseconds()));
             }
             Object response = (this.privatePostTransHistory(this.extend(request, parameters))).join();
             //
@@ -1598,11 +1598,11 @@ public class IndodaxCore extends IndodaxApi
                             Object networkIds = Helpers.split(networkId, ",");
                             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
                             {
-                                ((java.util.List<Object>)network).add(((String)this.networkIdToCode(Helpers.GetValue(networkIds, j))).toUpperCase());
+                                ((java.util.List<Object>)network).add(((String)this.networkIdToCode(Helpers.GetValue(networkIds, j), code)).toUpperCase());
                             }
                         } else
                         {
-                            network = ((String)this.networkIdToCode(networkId)).toUpperCase();
+                            network = ((String)this.networkIdToCode(networkId, code)).toUpperCase();
                         }
                     }
                     Object finalNetwork = network; // java req

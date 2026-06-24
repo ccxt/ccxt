@@ -1,8 +1,5 @@
-- [Binance Margin Stop Order](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -41,5 +38,5 @@ async function main () {
 }
 
 main ()
- 
+
 ```

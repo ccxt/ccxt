@@ -1,8 +1,5 @@
-- [Validate Paginated Data](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog'
@@ -47,7 +44,7 @@ async function main () {
         'bitget': 'BTC/USDT',
         'kucoin': 'BTC/USDT',
         'kucoinfutures': 'BTC/USDT:USDT',
-        'okex': 'BTC/USDT',
+        'okx': 'BTC/USDT',
         'bybit': 'BTC/USDT'
     }
     const timeframe = '1m';
@@ -62,5 +59,5 @@ async function main () {
     await Promise.all(promises)
 }
 
-main() 
+main()
 ```

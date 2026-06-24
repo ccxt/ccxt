@@ -1187,11 +1187,11 @@ public class GateCore extends GateApi
         } else
         {
             base = this.safeString(marketIdBase, 0);
-            expiry = Helpers.slice(expiry, 2, 8); // convert 20230728 to 230728
+            expiry = Helpers.slice(((String)expiry), 2, 8); // convert 20230728 to 230728
         }
         Object strike = this.safeString(optionParts, 2);
         Object optionType = this.safeString(optionParts, 3);
-        Object datetime = this.convertExpireDate(expiry);
+        Object datetime = this.convertExpireDate(((String)expiry));
         Object timestamp = this.parse8601(datetime);
         final Object finalBase = base;
         final Object finalExpiry = expiry;
@@ -1367,7 +1367,7 @@ public class GateCore extends GateApi
                 Object id = this.safeString(spotMarket, "id");
                 Object marginMarket = this.safeValue(marginMarkets, id);
                 Object market = this.deepExtend(marginMarket, spotMarket);
-                var baseIdquoteIdVariable = Helpers.split(id, "_");
+                var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 Object base = this.safeCurrencyCode(baseId);
@@ -1591,7 +1591,7 @@ public class GateCore extends GateApi
         //    }
         //
         Object id = this.safeString(market, "name");
-        Object parts = Helpers.split(id, "_");
+        Object parts = Helpers.split(((String)id), "_");
         Object baseId = this.safeString(parts, 0);
         Object quoteId = this.safeString(parts, 1);
         Object date = this.safeString(parts, 2);
@@ -1736,7 +1736,7 @@ public class GateCore extends GateApi
                 {
                     Object market = Helpers.GetValue(response, j);
                     Object id = this.safeString(market, "name");
-                    Object parts = Helpers.split(underlying, "_");
+                    Object parts = Helpers.split(((String)underlying), "_");
                     Object baseId = this.safeString(parts, 0);
                     Object quoteId = this.safeString(parts, 1);
                     Object base = this.safeCurrencyCode(baseId);
@@ -2075,60 +2075,58 @@ public class GateCore extends GateApi
             //       },
             //    ]
             //
-            Object indexedCurrencies = this.indexBy(response, "currency");
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
-            {
-                Object entry = Helpers.GetValue(response, i);
-                Object currencyId = this.safeString(entry, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
-                // check leveraged tokens (e.g. BTC3S, ETH5L)
-                Object type = ((Helpers.isTrue(this.isLeveragedCurrency(currencyId, true, indexedCurrencies)))) ? "leveraged" : "crypto";
-                Object chains = this.safeList(entry, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chain = Helpers.GetValue(chains, j);
-                    Object networkId = this.safeString(chain, "name");
-                    Object networkCode = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "info", chain );
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "active", null );
-        put( "deposit", !Helpers.isTrue(GateCore.this.safeBool(chain, "deposit_disabled")) );
-        put( "withdraw", !Helpers.isTrue(GateCore.this.safeBool(chain, "withdraw_disabled")) );
-        put( "fee", null );
-        put( "precision", GateCore.this.parseNumber("0.0001") );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", currencyId );
-        put( "code", code );
-        put( "name", GateCore.this.safeString(entry, "name") );
-        put( "type", type );
-        put( "active", !Helpers.isTrue(GateCore.this.safeBool(entry, "delisted")) );
-        put( "deposit", !Helpers.isTrue(GateCore.this.safeBool(entry, "deposit_disabled")) );
-        put( "withdraw", !Helpers.isTrue(GateCore.this.safeBool(entry, "withdraw_disabled")) );
-        put( "fee", null );
-        put( "networks", networks );
-        put( "precision", GateCore.this.parseNumber("0.0001") );
-        put( "info", entry );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(response);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object currencyId = this.safeString(rawCurrency, "currency");
+        Object code = this.safeCurrencyCode(currencyId);
+        // check leveraged tokens (e.g. BTC3S, ETH5L)
+        Object type = ((Helpers.isTrue(this.isLeveragedCurrency(currencyId)))) ? "leveraged" : "crypto";
+        Object chains = this.safeList(rawCurrency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chain = Helpers.GetValue(chains, j);
+            Object networkId = this.safeString(chain, "name");
+            Object networkCode = this.networkIdToCode(networkId, code);
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "info", chain );
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "active", null );
+    put( "deposit", !Helpers.isTrue(GateCore.this.safeBool(chain, "deposit_disabled")) );
+    put( "withdraw", !Helpers.isTrue(GateCore.this.safeBool(chain, "withdraw_disabled")) );
+    put( "fee", null );
+    put( "precision", GateCore.this.parseNumber("0.0001") );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", currencyId );
+            put( "code", code );
+            put( "name", GateCore.this.safeString(rawCurrency, "name") );
+            put( "type", type );
+            put( "active", !Helpers.isTrue(GateCore.this.safeBool(rawCurrency, "delisted")) );
+            put( "deposit", !Helpers.isTrue(GateCore.this.safeBool(rawCurrency, "deposit_disabled")) );
+            put( "withdraw", !Helpers.isTrue(GateCore.this.safeBool(rawCurrency, "withdraw_disabled")) );
+            put( "fee", null );
+            put( "networks", networks );
+            put( "precision", GateCore.this.parseNumber("0.0001") );
+            put( "info", rawCurrency );
+        }});
     }
 
     /**
@@ -2227,7 +2225,7 @@ public class GateCore extends GateApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object firstSymbol = this.safeString(symbols, 0);
-                market = this.market(firstSymbol);
+                market = this.market(((String)firstSymbol));
             }
             var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
             var request = ((java.util.List<Object>) requestqueryVariable).get(0);
@@ -2384,7 +2382,7 @@ public class GateCore extends GateApi
             Object response = (this.privateWalletGetDepositAddress(this.extend(request, parameters))).join();
             Object addresses = this.safeValue(response, "multichain_addresses");
             Object currencyId = this.safeString(response, "currency");
-            code = this.safeCurrencyCode(currencyId);
+            code = ((String)this.safeCurrencyCode(currencyId));
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addresses)); i++)
             {
@@ -2407,7 +2405,7 @@ public class GateCore extends GateApi
                 Object address = this.safeString(entry, "address");
                 Object tag = this.safeString(entry, "payment_id");
                 final Object finalCode = code;
-                Helpers.addElementToObject(result, network, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(result, ((String)network), new java.util.HashMap<String, Object>() {{
         put( "info", entry );
         put( "code", finalCode );
         put( "currency", finalCode );
@@ -2474,7 +2472,7 @@ public class GateCore extends GateApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             Object chainsIndexedById = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
-            return Helpers.GetValue(chainsIndexedById, selectedNetworkIdOrCode);
+            return Helpers.GetValue(chainsIndexedById, ((String)selectedNetworkIdOrCode));
         });
 
     }
@@ -2493,12 +2491,13 @@ public class GateCore extends GateApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
+        Object code = this.safeString(currency, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", GateCore.this.safeString(currency, "code") );
-            put( "address", address );
+            put( "currency", ((String)code) );
+            put( "address", ((String)address) );
             put( "tag", GateCore.this.safeString(depositAddress, "payment_id") );
-            put( "network", GateCore.this.networkIdToCode(GateCore.this.safeString(depositAddress, "chain")) );
+            put( "network", GateCore.this.networkIdToCode(GateCore.this.safeString(depositAddress, "chain"), code) );
         }};
     }
 
@@ -2681,12 +2680,12 @@ public class GateCore extends GateApi
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
                     {
                         Object networkId = Helpers.GetValue(networkIds, j);
-                        Object networkCode = this.networkIdToCode(networkId);
+                        Object networkCode = this.networkIdToCode(networkId, code);
                         Helpers.addElementToObject(withdrawFees, networkCode, this.parseNumber(Helpers.GetValue(withdrawFixOnChains, networkId)));
                     }
                 }
                 final Object finalWithdrawFees = withdrawFees;
-                Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(result, ((String)code), new java.util.HashMap<String, Object>() {{
         put( "withdraw", finalWithdrawFees );
         put( "deposit", null );
         put( "info", entry );
@@ -2778,7 +2777,9 @@ public class GateCore extends GateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chainKeys)); i++)
             {
                 Object chainKey = Helpers.GetValue(chainKeys, i);
-                Object networkCode = this.networkIdToCode(chainKey, this.safeString(fee, "currency"));
+                Object currencyId = this.safeString(fee, "currency");
+                Object code = this.safeCurrencyCode(currencyId, currency);
+                Object networkCode = this.networkIdToCode(chainKey, code);
                 final Object finalWithdrawFixOnChains = withdrawFixOnChains;
                 Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -3085,7 +3086,7 @@ public class GateCore extends GateApi
             } else if (Helpers.isTrue(Helpers.GetValue(market, "option")))
             {
                 Object marketId = Helpers.GetValue(market, "id");
-                Object optionParts = Helpers.split(marketId, "-");
+                Object optionParts = Helpers.split(((String)marketId), "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, query))).join();
             } else
@@ -3281,8 +3282,8 @@ public class GateCore extends GateApi
             } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
                 this.checkRequiredArgument("fetchTickers", symbols, "symbols");
-                Object marketId = Helpers.GetValue(market, "id");
-                Object optionParts = Helpers.split(marketId, "-");
+                Object marketId = this.safeString(market, "id");
+                Object optionParts = Helpers.split(((String)marketId), "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, requestParams))).join();
             } else
@@ -3619,13 +3620,13 @@ public class GateCore extends GateApi
                     Object baseCode = this.safeCurrencyCode(this.safeString(base, "currency"));
                     Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
                     Object subResult = new java.util.HashMap<String, Object>() {{}};
-                    Helpers.addElementToObject(subResult, baseCode, this.parseBalanceHelper(base));
-                    Helpers.addElementToObject(subResult, quoteCode, this.parseBalanceHelper(quote));
+                    Helpers.addElementToObject(subResult, ((String)baseCode), this.parseBalanceHelper(base));
+                    Helpers.addElementToObject(subResult, ((String)quoteCode), this.parseBalanceHelper(quote));
                     Helpers.addElementToObject(result, symbolInner, this.safeBalance(subResult));
                 } else
                 {
                     Object code = this.safeCurrencyCode(this.safeString(entry, "currency"));
-                    Helpers.addElementToObject(result, code, this.parseBalanceHelper(entry));
+                    Helpers.addElementToObject(result, ((String)code), this.parseBalanceHelper(entry));
                 }
             }
             Object returnResult = ((Helpers.isTrue(isolated))) ? result : this.safeBalance(result);
@@ -3636,7 +3637,7 @@ public class GateCore extends GateApi
 
     /**
      * @method
-     * @name gateio#fetchOHLCV
+     * @name gate#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
@@ -4355,7 +4356,7 @@ public class GateCore extends GateApi
         if (Helpers.isTrue(!Helpers.isEqual(msString, null)))
         {
             msString = Precise.stringMul(msString, "1000");
-            msString = Helpers.slice(msString, 0, 13);
+            msString = Helpers.slice(((String)msString), 0, 13);
             timestamp = this.parseToInt(msString);
         } else
         {
@@ -4371,8 +4372,8 @@ public class GateCore extends GateApi
         Object side = this.safeString2(trade, "side", "type", contractSide);
         Object orderId = this.safeString(trade, "order_id");
         Object feeAmount = this.safeString(trade, "fee");
-        Object gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
-        Object pointFee = this.omitZero(this.safeString(trade, "point_fee"));
+        Object gtFee = this.omitZero(((String)this.safeString(trade, "gt_fee")));
+        Object pointFee = this.omitZero(((String)this.safeString(trade, "point_fee")));
         Object fees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
@@ -4581,7 +4582,7 @@ final Object finalPointFee = pointFee;
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, code));
             }
             Object response = (this.privateWithdrawalsPostWithdrawals(this.extend(request, parameters))).join();
             //
@@ -4615,7 +4616,7 @@ final Object finalPointFee = pointFee;
             put( "DONE", "ok" );
             put( "BCODE", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, status, ((String)status));
     }
 
     public Object parseTransactionType(Object type)
@@ -4728,7 +4729,7 @@ final Object finalPointFee = pointFee;
             put( "txid", txid );
             put( "currency", code );
             put( "amount", GateCore.this.parseNumber(finalAmountString) );
-            put( "network", GateCore.this.networkIdToCode(networkId) );
+            put( "network", GateCore.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "addressTo", null );
             put( "addressFrom", null );
@@ -4936,7 +4937,7 @@ final Object finalPointFee = pointFee;
                 throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")) ;
             }
             Helpers.addElementToObject(extendedParams, "textIsRequired", true); // the exchange requires a text parameter for each order here
-            Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
+            Object orderRequest = this.createOrderRequest(((String)marketId), type, side, amount, price, extendedParams);
             ((java.util.List<Object>)ordersRequests).add(orderRequest);
         }
         Object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -5049,7 +5050,7 @@ final Object finalPointFee = pointFee;
             {
                 Object amountToPrecision = this.amountToPrecision(symbol, amount);
                 Object signedAmount = ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? Precise.stringNeg(amountToPrecision) : amountToPrecision;
-                amount = Helpers.parseInt(signedAmount);
+                amount = Helpers.parseInt(((String)signedAmount));
             }
         }
         Object request = null;
@@ -5474,7 +5475,7 @@ final Object finalPointFee = pointFee;
             put( "finish", "closed" );
             put( "succeeded", "closed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, status, ((String)status));
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -6577,7 +6578,7 @@ final Object finalRebate = rebate;
                     final Object finalSymbol = symbol;
                     Object orderItem = new java.util.HashMap<String, Object>() {{
                         put( "id", id );
-                        put( "symbol", finalSymbol );
+                        put( "symbol", ((String)finalSymbol) );
                     }};
                     ((java.util.List<Object>)ordersRequests).add(orderItem);
                 }
@@ -6621,7 +6622,7 @@ final Object finalRebate = rebate;
             {
                 Object order = Helpers.GetValue(orders, i);
                 Object symbol = this.safeString(order, "symbol");
-                Object market = this.market(symbol);
+                Object market = this.market(((String)symbol));
                 if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " cancelOrdersForSymbols() supports only spot markets")) ;
@@ -7244,8 +7245,8 @@ final Object finalRebate = rebate;
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Object marketId = Helpers.GetValue(market, "id");
-                    Object optionParts = Helpers.split(marketId, "-");
+                    Object marketId = this.safeString(market, "id");
+                    Object optionParts = Helpers.split(((String)marketId), "-");
                     Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 }
             } else
@@ -7549,7 +7550,7 @@ final Object finalFloor = floor;
             }});
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, maintenanceMarginUnit);
             initialMarginRatio = Precise.stringAdd(initialMarginRatio, initialMarginUnit);
-            floor = cap;
+            floor = ((String)cap);
         }
         return tiers;
     }
@@ -7582,8 +7583,8 @@ final Object finalI = i;
             final Object finalMinNotional = minNotional;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
                 put( "tier", GateCore.this.sum(finalI, 1) );
-                put( "symbol", Helpers.GetValue(market, "symbol") );
-                put( "currency", Helpers.GetValue(market, "base") );
+                put( "symbol", GateCore.this.safeString(market, "symbol") );
+                put( "currency", GateCore.this.safeString(market, "base") );
                 put( "minNotional", finalMinNotional );
                 put( "maxNotional", maxNotional );
                 put( "maintenanceMarginRate", GateCore.this.safeNumber(item, "maintenance_rate") );
@@ -7702,11 +7703,10 @@ final Object finalI = i;
                 put( "currency", ((String)Helpers.GetValue(currency, "id")).toUpperCase() );
                 put( "amount", GateCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = null;
             Object market = this.market(symbol);
             Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             Helpers.addElementToObject(request, "type", "borrow");
-            response = (this.privateMarginPostUniLoans(this.extend(request, parameters))).join();
+            Object response = (this.privateMarginPostUniLoans(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": "34267567",
@@ -8004,7 +8004,7 @@ final Object finalI = i;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "futures"))) || Helpers.isTrue((Helpers.isEqual(type, "delivery"))))) && Helpers.isTrue(Helpers.isEqual(method, "POST"))))
             {
                 Object pathParts = Helpers.split(path, "/");
-                Object secondPart = this.safeString(pathParts, 1, "");
+                Object secondPart = ((String)this.safeString(pathParts, 1, ""));
                 requiresURLEncoding = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "dual"), 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "positions"), 0)));
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))) || Helpers.isTrue(requiresURLEncoding)) || Helpers.isTrue((Helpers.isEqual(method, "PATCH")))))
@@ -8284,7 +8284,7 @@ final Object finalI = i;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(interest, "time");
         return new java.util.HashMap<String, Object>() {{
-            put( "symbol", GateCore.this.safeString(market, "symbol") );
+            put( "symbol", ((String)GateCore.this.safeString(market, "symbol")) );
             put( "openInterestAmount", GateCore.this.safeNumber(interest, "open_interest") );
             put( "openInterestValue", GateCore.this.safeNumber(interest, "open_interest_usd") );
             put( "timestamp", timestamp );
@@ -8328,7 +8328,7 @@ final Object finalI = i;
                 throw new NotSupported((String)Helpers.add(this.id, " fetchSettlementHistory() supports option markets only")) ;
             }
             Object marketId = Helpers.GetValue(market, "id");
-            Object optionParts = Helpers.split(marketId, "-");
+            Object optionParts = Helpers.split(((String)marketId), "-");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "underlying", GateCore.this.safeString(optionParts, 0) );
             }};
@@ -8440,7 +8440,7 @@ final Object finalI = i;
                 } else
                 {
                     Object marketId = Helpers.GetValue(market, "id");
-                    Object optionParts = Helpers.split(marketId, "-");
+                    Object optionParts = Helpers.split(((String)marketId), "-");
                     Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 }
                 //
@@ -8764,12 +8764,12 @@ final Object finalI = i;
         Object type = this.safeString(item, "type");
         Object rawTimestamp = this.safeString(item, "time");
         Object timestamp = null;
-        if (Helpers.isTrue(Helpers.isGreaterThan(((String)rawTimestamp).length(), 10)))
+        if (Helpers.isTrue(Helpers.isGreaterThan(((String)((String)rawTimestamp)).length(), 10)))
         {
-            timestamp = Helpers.parseInt(rawTimestamp);
+            timestamp = Helpers.parseInt(((String)rawTimestamp));
         } else
         {
-            timestamp = Helpers.multiply(Helpers.parseInt(rawTimestamp), 1000);
+            timestamp = Helpers.multiply(Helpers.parseInt(((String)rawTimestamp)), 1000);
         }
         Object balanceString = this.safeString(item, "balance");
         Object changeString = this.safeString(item, "change");
@@ -9024,7 +9024,7 @@ final Object finalI = i;
             } else if (Helpers.isTrue(Helpers.GetValue(market, "option")))
             {
                 Object marketId = Helpers.GetValue(market, "id");
-                Object optionParts = Helpers.split(marketId, "-");
+                Object optionParts = Helpers.split(((String)marketId), "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
             }
             if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
@@ -9260,20 +9260,20 @@ final Object finalI = i;
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "delta", GateCore.this.safeNumber(greeks, "delta") );
-            put( "gamma", GateCore.this.safeNumber(greeks, "gamma") );
-            put( "theta", GateCore.this.safeNumber(greeks, "theta") );
-            put( "vega", GateCore.this.safeNumber(greeks, "vega") );
+            put( "delta", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "delta")) );
+            put( "gamma", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "gamma")) );
+            put( "theta", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "theta")) );
+            put( "vega", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "vega")) );
             put( "rho", null );
-            put( "bidSize", GateCore.this.safeNumber(greeks, "bid1_size") );
-            put( "askSize", GateCore.this.safeNumber(greeks, "ask1_size") );
-            put( "bidImpliedVolatility", GateCore.this.safeNumber(greeks, "bid_iv") );
-            put( "askImpliedVolatility", GateCore.this.safeNumber(greeks, "ask_iv") );
-            put( "markImpliedVolatility", GateCore.this.safeNumber(greeks, "mark_iv") );
-            put( "bidPrice", GateCore.this.safeNumber(greeks, "bid1_price") );
-            put( "askPrice", GateCore.this.safeNumber(greeks, "ask1_price") );
-            put( "markPrice", GateCore.this.safeNumber(greeks, "mark_price") );
-            put( "lastPrice", GateCore.this.safeNumber(greeks, "last_price") );
+            put( "bidSize", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "bid1_size")) );
+            put( "askSize", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "ask1_size")) );
+            put( "bidImpliedVolatility", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "bid_iv")) );
+            put( "askImpliedVolatility", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "ask_iv")) );
+            put( "markImpliedVolatility", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "mark_iv")) );
+            put( "bidPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "bid1_price")) );
+            put( "askPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "ask1_price")) );
+            put( "markPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "mark_price")) );
+            put( "lastPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "last_price")) );
             put( "underlyingPrice", GateCore.this.parseNumber(Helpers.GetValue(Helpers.GetValue(market, "info"), "underlying_price")) );
             put( "info", greeks );
         }};
@@ -9339,9 +9339,9 @@ final Object finalI = i;
             Object response = null;
             Object isUnified = this.safeBool(parameters, "unified");
             parameters = this.omit(parameters, "unified");
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(this.safeBool(market, "spot")))
             {
-                Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "currency_pair", this.safeString(market, "id"));
                 if (Helpers.isTrue(isUnified))
                 {
                     response = (this.publicMarginGetUniCurrencyPairsCurrencyPair(this.extend(request, parameters))).join();
@@ -9354,7 +9354,7 @@ final Object finalI = i;
                 response = (this.privateUnifiedGetAccounts(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() does not support "), Helpers.GetValue(market, "type")), " markets")) ;
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() does not support "), this.safeString(market, "type")), " markets")) ;
             }
             return this.parseLeverage(response, market);
         });
@@ -9603,12 +9603,12 @@ final Object finalI = i;
             put( "datetime", GateCore.this.iso8601(timestamp) );
             put( "impliedVolatility", null );
             put( "openInterest", null );
-            put( "bidPrice", GateCore.this.safeNumber(chain, "bid1_price") );
-            put( "askPrice", GateCore.this.safeNumber(chain, "ask1_price") );
+            put( "bidPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(chain, "bid1_price")) );
+            put( "askPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(chain, "ask1_price")) );
             put( "midPrice", null );
-            put( "markPrice", GateCore.this.safeNumber(chain, "mark_price") );
-            put( "lastPrice", GateCore.this.safeNumber(chain, "last_price") );
-            put( "underlyingPrice", GateCore.this.safeNumber(chain, "underlying_price") );
+            put( "markPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(chain, "mark_price")) );
+            put( "lastPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(chain, "last_price")) );
+            put( "underlyingPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(chain, "underlying_price")) );
             put( "change", null );
             put( "percentage", null );
             put( "baseVolume", null );

@@ -17,7 +17,10 @@ from ccxt.base.errors import NotSupported
 class hitbtc(ccxt.async_support.hitbtc):
 
     def describe(self) -> Any:
-        return self.deep_extend(super(hitbtc, self).describe(), {
+        return self.deep_extend(super(hitbtc, self).describe(), self.describe_data())
+
+    def describe_data(self) -> Any:
+        return {
             'has': {
                 'ws': True,
                 'watchTicker': True,
@@ -79,7 +82,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'streaming': {
                 'keepAlive': 4000,
             },
-        })
+        }
 
     async def authenticate(self):
         """
@@ -99,7 +102,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         if authenticated is None:
             timestamp = self.milliseconds()
             signature = self.hmac(self.encode(self.number_to_string(timestamp)), self.encode(self.secret), hashlib.sha256, 'hex')
-            request: dict = {
+            request = {
                 'method': 'login',
                 'params': {
                     'type': 'HS256',
@@ -146,7 +149,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 messageHashes.append(messageHashPrefix + '::' + symbols[i])
         else:
             messageHashes.append(messageHashPrefix)
-        subscribe: dict = {
+        subscribe = {
             'method': 'subscribe',
             'id': self.nonce(),
             'ch': name,
@@ -168,7 +171,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         messageHash = self.safe_string(splitName, 0)
         if symbol is not None:
             messageHash = messageHash + '::' + symbol
-        subscribe: dict = {
+        subscribe = {
             'method': name,
             'params': params,
             'id': self.nonce(),
@@ -185,7 +188,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         messageHash = str(self.nonce())
-        subscribe: dict = {
+        subscribe = {
             'method': name,
             'params': params,
             'id': messageHash,
@@ -220,7 +223,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         elif name == 'orderbook/{depth}/{speed}/batch':
             name = 'orderbook/D' + depth + '/' + speed + 'ms/batch'
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -336,7 +339,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             for i in range(0, len(symbols)):
                 marketId = self.market_id(symbols[i])
                 marketIds.append(marketId)
-        request: dict = {
+        request = {
             'params': {
                 'symbols': marketIds,
             },
@@ -344,7 +347,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         newTickers = await self.subscribe_public(name, 'tickers', symbols, self.deep_extend(request, params))
         if self.newUpdates:
             if not isinstance(newTickers, list):
-                tickers: dict = {}
+                tickers = {}
                 tickers[newTickers['symbol']] = newTickers
                 return tickers
         return self.filter_by_array(newTickers, 'symbol', symbols)
@@ -479,7 +482,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         name = self.implode_params(method, {'speed': speed})
         params = self.omit(params, ['method', 'speed'])
         marketIds = self.market_ids(symbols)
-        request: dict = {
+        request = {
             'params': {
                 'symbols': marketIds,
             },
@@ -487,7 +490,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         newTickers = await self.subscribe_public(name, 'bidask', symbols, self.deep_extend(request, params))
         if self.newUpdates:
             if not isinstance(newTickers, list):
-                tickers: dict = {}
+                tickers = {}
                 tickers[newTickers['symbol']] = newTickers
                 return tickers
         return self.filter_by_array(newTickers, 'symbol', symbols)
@@ -549,7 +552,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -673,7 +676,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candles/' + period
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -1019,7 +1022,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         })
         mode = self.safe_string(params, 'mode', 'batches')
         params = self.omit(params, 'mode')
-        request: dict = {
+        request = {
             'mode': mode,
         }
         return await self.subscribe_private(name, None, self.extend(request, params))
@@ -1140,7 +1143,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         await self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1235,7 +1238,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 channel2 = self.safe_string(splitChannel, 1)
                 if channel2 is not None and channel2 == 'top':
                     channel = 'orderbook/top'
-            methods: dict = {
+            methods = {
                 'candles': self.handle_ohlcv,
                 'ticker': self.handle_ticker,
                 'trades': self.handle_trades,

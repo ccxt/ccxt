@@ -46,7 +46,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitso.fetchLedger ([code, since, limit, params])
+bitso.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -66,7 +66,7 @@ retrieves data on all markets for bitso
 
 
 ```javascript
-bitso.fetchMarkets ([params])
+bitso.fetchMarkets (params?)
 ```
 
 
@@ -86,7 +86,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitso.fetchBalance ([params])
+bitso.fetchBalance (params?)
 ```
 
 
@@ -108,7 +108,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitso.fetchOrderBook (symbol[, limit, params])
+bitso.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -129,7 +129,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitso.fetchTicker (symbol[, params])
+bitso.fetchTicker (symbol, params?)
 ```
 
 
@@ -152,7 +152,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitso.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitso.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -175,7 +175,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitso.fetchTrades (symbol[, since, limit, params])
+bitso.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -195,7 +195,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitso.fetchTradingFees ([params])
+bitso.fetchTradingFees (params?)
 ```
 
 
@@ -218,7 +218,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitso.fetchMyTrades (symbol[, since, limit, params])
+bitso.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -243,7 +243,7 @@ create a trade order
 
 
 ```javascript
-bitso.createOrder (symbol, type, side, amount[, price, params])
+bitso.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -265,7 +265,7 @@ cancels an open order
 
 
 ```javascript
-bitso.cancelOrder (id, symbol[, params])
+bitso.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -287,7 +287,7 @@ cancel multiple orders
 
 
 ```javascript
-bitso.cancelOrders (ids, symbol[, params])
+bitso.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -308,7 +308,7 @@ cancel all open orders
 
 
 ```javascript
-bitso.cancelAllOrders (symbol[, params])
+bitso.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -331,7 +331,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitso.fetchOpenOrders (symbol[, since, limit, params])
+bitso.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -353,7 +353,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitso.fetchOrder (id, symbol[, params])
+bitso.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -377,7 +377,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-bitso.fetchOrderTrades (id, symbol[, since, limit, params])
+bitso.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -399,7 +399,7 @@ fetch information on a deposit
 
 
 ```javascript
-bitso.fetchDeposit (id, code[, params])
+bitso.fetchDeposit (id, code, params?)
 ```
 
 
@@ -422,7 +422,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitso.fetchDeposits (code[, since, limit, params])
+bitso.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -442,7 +442,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitso.fetchDepositAddress (code[, params])
+bitso.fetchDepositAddress (code, params?)
 ```
 
 
@@ -465,7 +465,7 @@ please use fetchDepositWithdrawFees instead
 
 
 ```javascript
-bitso.fetchTransactionFees (codes[, params])
+bitso.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -486,7 +486,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitso.fetchDepositWithdrawFees (codes[, params])
+bitso.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -509,6 +509,6 @@ make a withdrawal
 
 
 ```javascript
-bitso.withdraw (code, amount, address, tag[, params])
+bitso.withdraw (code, amount, address, tag, params?)
 ```
 

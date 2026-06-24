@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bit2c$1 = require('./abstract/bit2c.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class bit2c extends bit2c$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
-            'countries': ['IL'],
+            'countries': ['IL'], // Israel
             'rateLimit': 3000,
             'pro': false,
             'has': {
@@ -256,7 +256,7 @@ class bit2c extends bit2c$1["default"] {
                         'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined,
                 },
                 'swap': {
@@ -271,7 +271,7 @@ class bit2c extends bit2c$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Please provide valid APIkey': errors.AuthenticationError,
+                    'Please provide valid APIkey': errors.AuthenticationError, // { "error" : "Please provide valid APIkey" }
                     'No order found.': errors.OrderNotFound, // { "Error" : "No order found." }
                 },
                 'broad': {
@@ -674,7 +674,7 @@ class bit2c extends bit2c$1["default"] {
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        let status;
+        let status = undefined;
         if (isNewOrder) {
             const tempStatus = this.safeInteger(orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {
@@ -995,7 +995,7 @@ class bit2c extends bit2c$1["default"] {
             else {
                 body = auth;
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha512, 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512, 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,

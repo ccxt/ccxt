@@ -389,6 +389,12 @@ public partial class blofin
     /// object : *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.tpsl</term>
+    /// <description>
+    /// float : whether to force to send the order to the combined TPSL oco order endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>

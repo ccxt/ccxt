@@ -448,71 +448,70 @@ func (this *LbankCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//
 		var currenciesData any = this.SafeList(response, "data", []any{})
 		var grouped any = this.GroupBy(currenciesData, "assetCode")
-		var groupedKeys any = ObjectKeys(grouped)
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(groupedKeys)); i++ {
-			var id any = ToString((GetValue(groupedKeys, i))) // some currencies are numeric
-			var code any = this.SafeCurrencyCode(id)
-			var networksRaw any = GetValue(grouped, id)
-			var networks any = map[string]any{}
-			for j := 0; IsLessThan(j, GetArrayLength(networksRaw)); j++ {
-				var networkEntry any = GetValue(networksRaw, j)
-				var networkId any = this.SafeString(networkEntry, "chain")
-				if IsTrue(IsEqual(networkId, nil)) {
-					networkId = this.SafeString(networkEntry, "assetCode") // use type as fallback if networkId is not present
-				}
-				var networkCode any = this.NetworkIdToCode(networkId)
-				AddElementToObject(networks, networkCode, map[string]any{
-					"id":      networkId,
-					"network": networkCode,
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(networkEntry, "min"),
-							"max": nil,
-						},
-						"deposit": map[string]any{
-							"min": this.SafeNumber(networkEntry, "minTransfer"),
-							"max": nil,
-						},
-					},
-					"active":    nil,
-					"deposit":   nil,
-					"withdraw":  this.SafeBool(networkEntry, "canWithDraw"),
-					"fee":       this.SafeNumber(networkEntry, "fee"),
-					"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(networkEntry, "transferAmtScale"))),
-					"info":      networkEntry,
-				})
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"code":      code,
-				"precision": nil,
-				"type":      nil,
-				"name":      nil,
-				"active":    nil,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"limits": map[string]any{
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"networks": networks,
-				"info":     networksRaw,
-			}))
-		}
+		var values any = ObjectValues(grouped)
 
-		ch <- result
+		ch <- this.ParseCurrencies(values)
 		return nil
 
 	}()
 	return ch
+}
+func (this *LbankCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(GetValue(rawCurrency, 0), "assetCode") // first member is guaranteed
+	var code any = this.SafeCurrencyCode(id)
+	var networksRaw any = rawCurrency
+	var networks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(networksRaw)); j++ {
+		var networkEntry any = GetValue(networksRaw, j)
+		var networkId any = this.SafeString(networkEntry, "chain")
+		if IsTrue(IsEqual(networkId, nil)) {
+			networkId = this.SafeString(networkEntry, "assetCode") // use type as fallback if networkId is not present
+		}
+		var networkCode any = this.NetworkIdToCode(networkId, code)
+		AddElementToObject(networks, networkCode, map[string]any{
+			"id":      networkId,
+			"network": networkCode,
+			"limits": map[string]any{
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(networkEntry, "min"),
+					"max": nil,
+				},
+				"deposit": map[string]any{
+					"min": this.SafeNumber(networkEntry, "minTransfer"),
+					"max": nil,
+				},
+			},
+			"active":    nil,
+			"deposit":   nil,
+			"withdraw":  this.SafeBool(networkEntry, "canWithDraw"),
+			"fee":       this.SafeNumber(networkEntry, "fee"),
+			"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(networkEntry, "transferAmtScale"))),
+			"info":      networkEntry,
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"code":      code,
+		"precision": nil,
+		"type":      nil,
+		"name":      nil,
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"limits": map[string]any{
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"networks": networks,
+		"info":     networksRaw,
+	})
 }
 
 /**
@@ -1164,7 +1163,7 @@ func (this *LbankCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCost any = this.SafeString(trade, "tradeFee")
 	if IsTrue(!IsEqual(feeCost, nil)) {
-		var feeCurr any = Ternary(IsTrue((IsEqual(side, "buy"))), GetValue(market, "base"), GetValue(market, "quote"))
+		var feeCurr any = Ternary(IsTrue((IsEqual(side, "buy"))), this.SafeString(market, "base"), this.SafeString(market, "quote"))
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurr,
@@ -2707,7 +2706,7 @@ func (this *LbankCore) FetchDepositAddressDefault(code any, optionalArgs ...any)
 		ch <- map[string]any{
 			"info":     response,
 			"currency": code,
-			"network":  this.NetworkIdToCode(this.SafeString(result, "netWork")),
+			"network":  this.NetworkIdToCode(this.SafeString(result, "netWork"), code),
 			"address":  address,
 			"tag":      tag,
 		}
@@ -2929,7 +2928,7 @@ func (this *LbankCore) ParseTransaction(transaction any, optionalArgs ...any) an
 		"txid":        txid,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(this.SafeString(transaction, "networkName")),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "networkName"), code),
 		"address":     address,
 		"addressTo":   addressTo,
 		"addressFrom": addressFrom,
@@ -3201,7 +3200,7 @@ func (this *LbankCore) FetchPrivateTransactionFees(optionalArgs ...any) <-chan a
 				var networkEntry any = GetValue(networkList, j)
 				var fee any = this.SafeNumber(networkEntry, "withdrawFee")
 				if IsTrue(!IsEqual(fee, nil)) {
-					var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"))
+					var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
 					AddElementToObject(GetValue(withdrawFees, code), networkCode, fee)
 				}
 			}
@@ -3268,7 +3267,7 @@ func (this *LbankCore) FetchPublicTransactionFees(optionalArgs ...any) <-chan an
 			if IsTrue(IsEqual(canWithdraw, "true")) {
 				var currencyId any = this.SafeString(item, "assetCode")
 				var codeInner any = this.SafeCurrencyCode(currencyId)
-				var network any = this.NetworkIdToCode(this.SafeString(item, "chain"))
+				var network any = this.NetworkIdToCode(this.SafeString(item, "chain"), codeInner)
 				if IsTrue(IsEqual(network, nil)) {
 					network = codeInner
 				}
@@ -3479,7 +3478,7 @@ func (this *LbankCore) ParsePublicDepositWithdrawFees(response any, optionalArgs
 						var resultCodeInfo any = GetValue(GetValue(result, code), "info")
 						AppendToArray(&resultCodeInfo, fee)
 					}
-					var networkCode any = this.NetworkIdToCode(this.SafeString(fee, "chain"))
+					var networkCode any = this.NetworkIdToCode(this.SafeString(fee, "chain"), code)
 					if IsTrue(!IsEqual(networkCode, nil)) {
 						AddElementToObject(GetValue(GetValue(result, code), "networks"), networkCode, map[string]any{
 							"withdraw": map[string]any{
@@ -3533,10 +3532,11 @@ func (this *LbankCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var result any = this.DepositWithdrawFee(fee)
+	var code any = this.SafeString(currency, "code")
 	var networkList any = this.SafeValue(fee, "networkList", []any{})
 	for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
 		var networkEntry any = GetValue(networkList, j)
-		var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"))
+		var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
 		var withdrawFee any = this.SafeNumber(networkEntry, "withdrawFee")
 		var isDefault any = this.SafeValue(networkEntry, "isDefault")
 		if IsTrue(!IsEqual(withdrawFee, nil)) {

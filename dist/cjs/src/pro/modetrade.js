@@ -2,12 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
 var modetrade$1 = require('../modetrade.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
 var crypto = require('../base/functions/crypto.js');
-var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -52,7 +52,7 @@ class modetrade extends modetrade$1["default"] {
                 'ordersLimit': 1000,
                 'requestId': {},
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -604,7 +604,7 @@ class modetrade extends modetrade$1["default"] {
                 const parts = secret.split('ed25519:');
                 secret = parts[1];
             }
-            const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519.ed25519);
+            const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519_js.ed25519);
             const request = {
                 'event': event,
                 'params': {

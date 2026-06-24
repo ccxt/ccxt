@@ -2,12 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var kraken$1 = require('./abstract/kraken.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -95,7 +94,7 @@ class kraken extends kraken$1["default"] {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginMode': false, // Kraken only supports cross margin
                 'transfer': true,
                 'withdraw': true,
             },
@@ -159,7 +158,7 @@ class kraken extends kraken$1["default"] {
                     'get': [
                         // we should really refrain from putting fixed fee numbers and stop hardcoding
                         // we will be using their web APIs to scrape all numbers from these articles
-                        '360000292886',
+                        '360000292886', // -What-are-the-deposit-fees-
                         '201893608', // -What-are-the-withdrawal-fees-
                     ],
                 },
@@ -171,7 +170,7 @@ class kraken extends kraken$1["default"] {
                         'Assets': 1,
                         'AssetPairs': 1,
                         'Ticker': 1,
-                        'OHLC': 1.2,
+                        'OHLC': 1.2, // 1.2 because 1 triggers too many requests immediately
                         'Depth': 1.2,
                         'Level3': 1.2,
                         'GroupedBook': 1.2,
@@ -266,8 +265,8 @@ class kraken extends kraken$1["default"] {
                 'ZUSD': 'USD',
             },
             'options': {
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
@@ -328,7 +327,7 @@ class kraken extends kraken$1["default"] {
                     'LTC': 'Litecoin',
                     'MANA': 'MANA',
                     'MATIC': 'Polygon' + ' ' + '(MATIC)',
-                    'MINA': 'Mina',
+                    'MINA': 'Mina', // inspected from webui
                     'MIR': 'Mirror Protocol' + ' ' + '(MIR)',
                     'MKR': 'Maker' + ' ' + '(MKR)',
                     'MLN': 'MLN',
@@ -351,9 +350,9 @@ class kraken extends kraken$1["default"] {
                     'SAND': 'The Sandbox' + ' ' + '(SAND)',
                     'SC': 'Siacoin',
                     'SDN': 'Shiden' + ' ' + '(SDN)',
-                    'SOL': 'Solana',
+                    'SOL': 'Solana', // their deposit method api doesn't work for SOL - was guessed
                     'SNX': 'Synthetix  Network' + ' ' + '(SNX)',
-                    'SRM': 'Serum',
+                    'SRM': 'Serum', // inspected from webui
                     'STORJ': 'Storj' + ' ' + '(STORJ)',
                     'SUSHI': 'Sushiswap' + ' ' + '(SUSHI)',
                     'TBTC': 'tBTC',
@@ -464,7 +463,7 @@ class kraken extends kraken$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': false,
+                        'triggerPrice': false, // todo
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': true,
@@ -481,7 +480,7 @@ class kraken extends kraken$1["default"] {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo implement
                         'iceberg': true, // todo implement
                     },
                     'createOrders': {
@@ -534,17 +533,17 @@ class kraken extends kraken$1["default"] {
                 },
             },
             'precisionMode': number.TICK_SIZE,
-            'rollingWindowSize': 10000.0,
+            'rollingWindowSize': 10000.0, // https://docs.kraken.com/api/docs/guides/custody-rest-ratelimits
             'exceptions': {
                 'exact': {
-                    'EQuery:Invalid asset pair': errors.BadSymbol,
+                    'EQuery:Invalid asset pair': errors.BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
                     'EAPI:Invalid key': errors.AuthenticationError,
-                    'EFunding:Unknown withdraw key': errors.InvalidAddress,
+                    'EFunding:Unknown withdraw key': errors.InvalidAddress, // {"error":["EFunding:Unknown withdraw key"]}
                     'EFunding:Invalid amount': errors.InsufficientFunds,
                     'EService:Unavailable': errors.ExchangeNotAvailable,
                     'EDatabase:Internal error': errors.ExchangeNotAvailable,
                     'EService:Busy': errors.ExchangeNotAvailable,
-                    'EQuery:Unknown asset': errors.BadSymbol,
+                    'EQuery:Unknown asset': errors.BadSymbol, // {"error":["EQuery:Unknown asset"]}
                     'EAPI:Rate limit exceeded': errors.DDoSProtection,
                     'EOrder:Rate limit exceeded': errors.DDoSProtection,
                     'EGeneral:Internal error': errors.ExchangeNotAvailable,
@@ -558,11 +557,11 @@ class kraken extends kraken$1["default"] {
                     'EGeneral:Invalid arguments': errors.BadRequest,
                     'ESession:Invalid session': errors.AuthenticationError,
                     'EAPI:Invalid nonce': errors.InvalidNonce,
-                    'EFunding:No funding method': errors.BadRequest,
-                    'EFunding:Unknown asset': errors.BadSymbol,
-                    'EService:Market in post_only mode': errors.OnMaintenance,
-                    'EService:Market in cancel_only mode': errors.OnMaintenance,
-                    'EGeneral:Too many requests': errors.DDoSProtection,
+                    'EFunding:No funding method': errors.BadRequest, // {"error":"EFunding:No funding method"}
+                    'EFunding:Unknown asset': errors.BadSymbol, // {"error":["EFunding:Unknown asset"]}
+                    'EService:Market in post_only mode': errors.OnMaintenance, // {"error":["EService:Market in post_only mode"]}
+                    'EService:Market in cancel_only mode': errors.OnMaintenance, // {"error":["EService:Market in cancel_only mode"]}
+                    'EGeneral:Too many requests': errors.DDoSProtection, // {"error":["EGeneral:Too many requests"]}
                     'ETrade:User Locked': errors.AccountSuspended, // {"error":["ETrade:User Locked"]}
                 },
                 'broad': {
@@ -838,66 +837,65 @@ class kraken extends kraken$1["default"] {
         //         },
         //     }
         //
-        const currencies = this.safeValue(response, 'result', {});
-        const ids = Object.keys(currencies);
-        const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currency = currencies[id];
-            // todo: will need to rethink the fees
-            // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
+        const currencies = this.safeDict(response, 'result', {});
+        const enhancedArray = this.addKeyInArrayItems(currencies, '_coin_id');
+        return this.parseCurrencies(enhancedArray);
+    }
+    parseCurrency(rawCurrency) {
+        // todo: will need to rethink the fees
+        // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        // to add support for multiple withdrawal/deposit methods and
+        // differentiated fees for each particular method
+        //
+        // Notes about abbreviations:
+        // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+        // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        //
+        const id = this.safeString(rawCurrency, '_coin_id');
+        let code = this.safeCurrencyCode(id);
+        // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (id.indexOf('.') < 0) {
+            const altName = this.safeString(rawCurrency, 'altname');
+            // handle cases like below:
             //
-            // Notes about abbreviations:
-            // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
-            // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-            //
-            let code = this.safeCurrencyCode(id);
-            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-            if (id.indexOf('.') < 0) {
-                const altName = this.safeString(currency, 'altname');
-                // handle cases like below:
-                //
-                //  id   | altname
-                // ---------------
-                // XXBT  |  XBT
-                // ZUSD  |  USD
-                if (id !== altName && (id.startsWith('X') || id.startsWith('Z'))) {
-                    code = this.safeCurrencyCode(altName);
-                    // also, add map in commonCurrencies:
-                    this.commonCurrencies[id] = code;
-                }
-                else {
-                    code = this.safeCurrencyCode(id);
-                }
+            //  id   | altname
+            // ---------------
+            // XXBT  |  XBT
+            // ZUSD  |  USD
+            if (id !== altName && (id.startsWith('X') || id.startsWith('Z'))) {
+                code = this.safeCurrencyCode(altName);
+                // also, add map in commonCurrencies:
+                this.commonCurrencies[id] = code;
             }
-            const isFiat = code.indexOf('.HOLD') >= 0;
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': this.safeString(currency, 'altname'),
-                'active': this.safeString(currency, 'status') === 'enabled',
-                'type': isFiat ? 'fiat' : 'crypto',
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-            });
+            else {
+                code = this.safeCurrencyCode(id);
+            }
         }
-        return result;
+        const isFiat = code.indexOf('.HOLD') >= 0;
+        rawCurrency = this.omit(rawCurrency, '_coin_id');
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': this.safeString(rawCurrency, 'altname'),
+            'active': this.safeString(rawCurrency, 'status') === 'enabled',
+            'type': isFiat ? 'fiat' : 'crypto',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'decimals'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+        });
     }
     safeCurrencyCode(currencyId, currency = undefined) {
         if (currencyId === undefined) {
@@ -975,7 +973,7 @@ class kraken extends kraken$1["default"] {
             'tierBased': true,
         };
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const timestamp = this.safeInteger(bidask, 2);
@@ -1693,7 +1691,7 @@ class kraken extends kraken$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         result['usingCost'] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
@@ -1746,7 +1744,7 @@ class kraken extends kraken$1["default"] {
         let response = undefined;
         let request = {
             'orders': ordersRequests,
-            'pair': market['id'],
+            'pair': this.safeString(market, 'id'),
         };
         request = this.extend(request, params);
         response = await this.privatePostAddOrderBatch(request);
@@ -1822,7 +1820,7 @@ class kraken extends kraken$1["default"] {
     }
     parseOrderStatus(status) {
         const statuses = {
-            'pending': 'open',
+            'pending': 'open', // order pending book entry
             'open': 'open',
             'pending_new': 'open',
             'new': 'open',
@@ -2216,6 +2214,7 @@ class kraken extends kraken$1["default"] {
         let close = this.safeDict(params, 'close');
         if (close !== undefined) {
             close = this.extend({}, close);
+            close = (close === undefined) ? {} : close;
             const closePrice = this.safeValue(close, 'price');
             if (closePrice !== undefined) {
                 close['price'] = this.priceToPrecision(symbol, closePrice);
@@ -2331,7 +2330,7 @@ class kraken extends kraken$1["default"] {
         await this.loadMarkets();
         const clientOrderId = this.safeValue2(params, 'userref', 'clientOrderId');
         const request = {
-            'trades': true,
+            'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': id, // do not comma separate a list of ids - use fetchOrdersByIds instead
             // 'userref': 'optional', // restrict results to given user reference id (optional)
         };
@@ -2480,7 +2479,7 @@ class kraken extends kraken$1["default"] {
     async fetchOrdersByIds(ids, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const response = await this.privatePostQueryOrders(this.extend({
-            'trades': true,
+            'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join(','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
         const result = this.safeValue(response, 'result', {});
@@ -3359,7 +3358,7 @@ class kraken extends kraken$1["default"] {
         await this.loadMarkets();
         const request = {
             // 'txid': 'comma delimited list of transaction ids to restrict output to',
-            'docalcs': 'true',
+            'docalcs': 'true', // whether or not to include profit/loss calculations
             'consolidation': 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
         };
         const response = await this.privatePostOpenPositions(this.extend(request, params));
@@ -3577,11 +3576,11 @@ class kraken extends kraken$1["default"] {
                 body = this.urlencodeNested(this.extend({ 'nonce': nonce }, params));
             }
             const auth = this.encode(nonce + body);
-            const hash = this.hash(auth, sha256.sha256, 'binary');
+            const hash = this.hash(auth, sha2_js.sha256, 'binary');
             const binary = this.encode(url);
             const binhash = this.binaryConcat(binary, hash);
             const secret = this.base64ToBinary(this.secret);
-            const signature = this.hmac(binhash, secret, sha512.sha512, 'base64');
+            const signature = this.hmac(binhash, secret, sha2_js.sha512, 'base64');
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,

@@ -2,7 +2,7 @@
 
 import assert from 'assert';
 import { Exchange } from '../../ccxt.js';
-import { Str } from '../base/types.js';
+import type { Bool, Dict, Str, Strings } from '../base/types.js';
 
 import {
     // errors
@@ -133,7 +133,8 @@ class testMainClass {
             exitScript (0);
         }
         await this.importFiles (exchange);
-        assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
+        // ensure test files are found & filled
+        assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded');
         this.expandSettings (exchange);
         this.checkIfSpecificTestIsChosen (methodArgv);
         await this.startTest (exchange, symbolArgv);
@@ -163,6 +164,7 @@ class testMainClass {
     async importFiles (exchange: Exchange) {
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
+        properties.push ('afterConstruct');
         if (isSync ()) {
             this.testFiles = getTestFilesSync (properties, this.wsTests);
         } else {
@@ -212,7 +214,7 @@ class testMainClass {
                 const key = settingKeys[i];
                 if (exchangeSettings[key]) {
                     let finalValue = undefined;
-                    if (typeof exchangeSettings[key] === 'object') {
+                    if (exchange.isDictionary (exchangeSettings[key])) {
                         const existing = getExchangeProp (exchange, key, {});
                         finalValue = exchange.deepExtend (existing, exchangeSettings[key]);
                     } else {
@@ -272,16 +274,17 @@ class testMainClass {
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
+        const isConstructorTest = (methodName === 'afterConstruct');
         const isFeatureTest = (methodName === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
             return true;
         }
-        let skipMessage = undefined;
+        let skipMessage: Str = undefined;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
-        } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest) {
+        } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         } else if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
@@ -396,8 +399,8 @@ class testMainClass {
                     if (i === maxRetries - 1) {
                         const isOnMaintenance = (e instanceof OnMaintenance);
                         const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
-                        let shouldFail = undefined;
-                        let retSuccess = undefined;
+                        let shouldFail: Bool = undefined;
+                        let retSuccess: Bool = undefined;
                         if (isLoadMarkets) {
                             // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
                             retSuccess = false;
@@ -471,6 +474,7 @@ class testMainClass {
         const primarySymbol = symbols[0];
         let tests = {
             'features': [],
+            'afterConstruct': [],
             'fetchCurrencies': [],
             'fetchTicker': [ primarySymbol ],
             'fetchTickers': [ primarySymbol ],
@@ -559,7 +563,7 @@ class testMainClass {
     }
 
     getTestSymbol (exchange, isSpot, symbols) {
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const preferredSpotSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSpotSymbol');
         const preferredSwapSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSwapSymbol');
         if (isSpot && preferredSpotSymbol) {
@@ -707,7 +711,7 @@ class testMainClass {
             const valuesLength = values.length;
             if (valuesLength > 0) {
                 const first = values[0];
-                if (first !== undefined) {
+                if (first) {
                     symbol = first['symbol'];
                 }
             }
@@ -716,8 +720,8 @@ class testMainClass {
     }
 
     async testExchange (exchange, providedSymbol = undefined) {
-        let spotSymbols = undefined;
-        let swapSymbols = undefined;
+        let spotSymbols: Strings = undefined;
+        let swapSymbols: Strings = undefined;
         if (providedSymbol !== undefined) {
             const market = exchange.market (providedSymbol);
             if (market['spot']) {
@@ -942,6 +946,7 @@ class testMainClass {
         if (this.sandbox || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
+        this.testHasProps (exchange);
         // because of python-async, we need proper `.close()` handling
         try {
             const result = await this.loadExchange (exchange);
@@ -966,6 +971,19 @@ class testMainClass {
             throw e;
         }
         return true; // required in c#
+    }
+
+    testHasProps (exchange: Exchange) {
+        const watchOrderBookSkips = this.getSkips (exchange, 'watchOrderBook');
+        const fetchOrderBookSkips = this.getSkips (exchange, 'fetchOrderBook');
+        // ensure with hardcoded list of required methods
+        if (this.wsTests && !exchange.safeBool (exchange.has, 'watchOrderBook', false) && typeof watchOrderBookSkips !== 'string') {
+            dump ('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exitScript (1);
+        } else if (!this.wsTests && !exchange.safeBool (exchange.has, 'fetchOrderBook', false) && typeof fetchOrderBookSkips !== 'string') {
+            dump ('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exitScript (1);
+        }
     }
 
     assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput, key = undefined) {
@@ -1080,7 +1098,7 @@ class testMainClass {
             newOutput = jsonParse (newOutput);
         }
 
-        if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
+        if (exchange.isDictionary (storedOutput) && exchange.isDictionary (newOutput)) {
             const storedOutputKeys = Object.keys (storedOutput);
             const newOutputKeys = Object.keys (newOutput);
             const storedKeysLength = storedOutputKeys.length;
@@ -1184,7 +1202,7 @@ class testMainClass {
     }
 
     varToString (obj:any = undefined) {
-        let newString = undefined;
+        let newString: Str = undefined;
         if (obj === undefined) {
             newString = 'undefined';
         } else if (isNullValue (obj)) {
@@ -1268,8 +1286,8 @@ class testMainClass {
     }
 
     async testRequestStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
-        let output = undefined;
-        let requestUrl = undefined;
+        let output: Str = undefined;
+        let requestUrl: Str = undefined;
         if (this.info) {
             dump ('[INFO] STATIC REQUEST TEST:', method, ':', data['description']);
         }
@@ -1327,17 +1345,16 @@ class testMainClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        let wasmExecPath = undefined;
-        let libraryPath = undefined;
+        let wasmExecPath: Str = undefined;
+        let libraryPath: Str = undefined;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         const basePath = getRootDir () + 'ts/src/test/static/binaries/';
         if (exchangeName === 'lighter') {
             if (this.lang === 'JS') {
-                wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+                wasmExecPath = basePath + 'wasm_exec.js';
                 libraryPath = basePath + 'lighter.wasm';
             } else {
                 if (isWindows ()) {
@@ -1362,6 +1379,7 @@ class testMainClass {
             "currencies":currencies,
             "enableRateLimit":false,
             "rateLimit":1,
+            // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
             "httpProxy":"http://fake:8080",
             "httpsProxy":"http://fake:8080",
             "apiKey":"key",
@@ -1695,7 +1713,6 @@ class testMainClass {
             this.testCoinbaseinternational (),
             this.testCoinbaseAdvanced (),
             this.testWoofiPro (),
-            this.testOxfun (),
             this.testXT (),
             this.testParadex (),
             this.testHashkey (),
@@ -2195,24 +2212,6 @@ class testMainClass {
         if (!isSync ()) {
             await close (exchange);
         }
-        return true;
-    }
-
-    async testOxfun () {
-        const exchange = this.initOfflineExchange ('oxfun');
-        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
-        const id = 1000;
-        await exchange.loadMarkets ();
-        let request = undefined;
-        try {
-            await exchange.createOrder ('BTC/USD:OX', 'limit', 'buy', 1, 20000);
-        } catch (e) {
-            request = jsonParse (exchange.last_request_body);
-        }
-        const orders = request['orders'];
-        const first = orders[0];
-        const brokerId = first['source'];
-        assert (brokerId === id, 'oxfun - id: ' + id.toString () + ' different from  broker_id: ' + brokerId.toString ());
         return true;
     }
 

@@ -367,7 +367,7 @@ class apex extends \ccxt\async\apex {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray ($bidAsk);
     }
 
@@ -414,7 +414,7 @@ class apex extends \ccxt\async\apex {
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $url = $this->get_ws_public_url();
-            $topics = [ ];
+            $topics = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
@@ -939,7 +939,7 @@ class apex extends \ccxt\async\apex {
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //   {
         //       "success" => false,

@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
 /**
  * @class coinbaseinternational
@@ -23,7 +23,7 @@ export default class coinbaseinternational extends Exchange {
             'countries': ['US'],
             'certified': false,
             'pro': true,
-            'rateLimit': 100,
+            'rateLimit': 100, // 10 requests per second
             'version': 'v1',
             'userAgent': this.userAgents['chrome'],
             'headers': {
@@ -245,7 +245,7 @@ export default class coinbaseinternational extends Exchange {
             },
             'options': {
                 'brokerId': 'nfqkvdjp',
-                'portfolio': '',
+                'portfolio': '', // default portfolio id
                 'withdraw': {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
@@ -267,8 +267,8 @@ export default class coinbaseinternational extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': true,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo implementation
+                        'takeProfitPrice': false, // todo implementation
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -282,7 +282,7 @@ export default class coinbaseinternational extends Exchange {
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'iceberg': false,
                     },
                     'createOrders': undefined,
@@ -926,7 +926,7 @@ export default class coinbaseinternational extends Exchange {
     }
     /**
      * @method
-     * @name exchange#fetchDepositsWithdrawals
+     * @name coinbaseinternational#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -1190,14 +1190,15 @@ export default class coinbaseinternational extends Exchange {
         const addressFrom = this.safeStringN(transaction, ['from_address', 'from_cb_account', this.safeStringN(fromPorfolio, ['id', 'uuid', 'name']), 'from_counterparty_id']);
         const toPorfolio = this.safeDict(transaction, 'from_portfolio', {});
         const addressTo = this.safeStringN(transaction, ['to_address', 'to_cb_account', this.safeStringN(toPorfolio, ['id', 'uuid', 'name']), 'to_counterparty_id']);
+        const code = this.safeString(currency, 'code');
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'transfer_uuid'),
             'txid': this.safeString(transaction, 'transaction_uuid'),
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network_name')),
-            'address': undefined,
+            'network': this.networkIdToCode(this.safeString(transaction, 'network_name'), code),
+            'address': undefined, // TODO check if withdraw or deposit and populate
             'addressTo': addressTo,
             'addressFrom': addressFrom,
             'tag': undefined,

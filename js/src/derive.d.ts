@@ -1,5 +1,5 @@
 import Exchange from './abstract/derive.js';
-import type { Dict, Currencies, Transaction, Currency, FundingHistory, Market, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position } from './base/types.js';
+import type { Dict, Currencies, Transaction, Currency, FundingHistory, Market, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict } from './base/types.js';
 /**
  * @class derive
  * @augments Exchange
@@ -25,6 +25,7 @@ export default class derive extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name derive#fetchMarkets
@@ -315,10 +316,10 @@ export default class derive extends Exchange {
     handleDeriveSubaccountId(methodName: string, params: Dict): any[];
     handleDeriveWalletAddress(methodName: string, params: Dict): any[];
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
 }

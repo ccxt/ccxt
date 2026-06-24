@@ -1,8 +1,5 @@
-- [Okx Poll Fetch My Trades](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js'
+```javascript
+import ccxt from '../../js/ccxt.js'
 
 console.log ('CCXT Version:', ccxt.version)
 
@@ -38,5 +35,5 @@ async function main () {
     }
 }
 
-main () 
+main ()
 ```

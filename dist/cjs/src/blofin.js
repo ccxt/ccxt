@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var blofin$1 = require('./abstract/blofin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -213,7 +213,7 @@ class blofin extends blofin$1["default"] {
                         'trade/orders-algo-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
-                        'trade/orders-algo-history': 1,
+                        'trade/orders-algo-history': 1, // todo new
                         'trade/fills-history': 1,
                         'trade/order/price-range': 1,
                         // affiliate
@@ -351,7 +351,7 @@ class blofin extends blofin$1["default"] {
                     'extends': 'default',
                     'createOrder': {
                         'marginMode': true,
-                        'triggerPrice': false,
+                        'triggerPrice': false, // todo
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': true,
@@ -376,51 +376,51 @@ class blofin extends blofin$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    '400': errors.BadRequest,
-                    '401': errors.AuthenticationError,
-                    '500': errors.ExchangeError,
-                    '404': errors.BadRequest,
-                    '405': errors.BadRequest,
-                    '406': errors.BadRequest,
-                    '429': errors.RateLimitExceeded,
-                    '152001': errors.BadRequest,
-                    '152002': errors.BadRequest,
-                    '152003': errors.BadRequest,
-                    '152004': errors.BadRequest,
-                    '152005': errors.BadRequest,
-                    '152006': errors.InvalidOrder,
-                    '152007': errors.InvalidOrder,
-                    '152008': errors.InvalidOrder,
-                    '152009': errors.InvalidOrder,
-                    '150003': errors.InvalidOrder,
-                    '150004': errors.InvalidOrder,
-                    '542': errors.InvalidOrder,
-                    '102002': errors.InvalidOrder,
-                    '102005': errors.InvalidOrder,
-                    '102014': errors.InvalidOrder,
-                    '102015': errors.InvalidOrder,
-                    '102022': errors.InvalidOrder,
-                    '102037': errors.InvalidOrder,
-                    '102038': errors.InvalidOrder,
-                    '102039': errors.InvalidOrder,
-                    '102040': errors.InvalidOrder,
-                    '102047': errors.InvalidOrder,
-                    '102048': errors.InvalidOrder,
-                    '102049': errors.InvalidOrder,
-                    '102050': errors.InvalidOrder,
-                    '102051': errors.InvalidOrder,
-                    '102052': errors.InvalidOrder,
-                    '102053': errors.InvalidOrder,
-                    '102054': errors.InvalidOrder,
-                    '102055': errors.InvalidOrder,
-                    '102064': errors.BadRequest,
-                    '102065': errors.BadRequest,
-                    '102068': errors.BadRequest,
-                    '103013': errors.ExchangeError,
+                    '400': errors.BadRequest, // Body can not be empty
+                    '401': errors.AuthenticationError, // Invalid signature
+                    '500': errors.ExchangeError, // Internal Server Error
+                    '404': errors.BadRequest, // not found
+                    '405': errors.BadRequest, // Method Not Allowed
+                    '406': errors.BadRequest, // Not Acceptable
+                    '429': errors.RateLimitExceeded, // Too Many Requests
+                    '152001': errors.BadRequest, // Parameter {} cannot be empty
+                    '152002': errors.BadRequest, // Parameter {} error
+                    '152003': errors.BadRequest, // Either parameter {} or {} is required
+                    '152004': errors.BadRequest, // JSON syntax error
+                    '152005': errors.BadRequest, // Parameter error: wrong or empty
+                    '152006': errors.InvalidOrder, // Batch orders can be placed for up to 20 at once
+                    '152007': errors.InvalidOrder, // Batch orders can only be placed with the same instId and marginMode
+                    '152008': errors.InvalidOrder, // Only the same field is allowed for bulk cancellation of orders, orderId is preferred
+                    '152009': errors.InvalidOrder, // {} must be a combination of numbers, letters, or underscores, and the maximum length of characters is 32
+                    '150003': errors.InvalidOrder, // clientId already exist
+                    '150004': errors.InvalidOrder, // Insufficient balance. please adjust the amount and try again
+                    '542': errors.InvalidOrder, // Exceeded the maximum order size limit
+                    '102002': errors.InvalidOrder, // Duplicate customized order ID
+                    '102005': errors.InvalidOrder, // Position had been closed
+                    '102014': errors.InvalidOrder, // Limit order exceeds maximum order size limit
+                    '102015': errors.InvalidOrder, // Market order exceeds maximum order size limit
+                    '102022': errors.InvalidOrder, // Failed to place order. You don’t have any positions of this contract. Turn off Reduce-only to continue.
+                    '102037': errors.InvalidOrder, // TP trigger price should be higher than the latest trading price
+                    '102038': errors.InvalidOrder, // SL trigger price should be lower than the latest trading price
+                    '102039': errors.InvalidOrder, // TP trigger price should be lower than the latest trading price
+                    '102040': errors.InvalidOrder, // SL trigger price should be higher than the latest trading price
+                    '102047': errors.InvalidOrder, // Stop loss trigger price should be higher than the order price
+                    '102048': errors.InvalidOrder, // stop loss trigger price must be higher than the best bid price
+                    '102049': errors.InvalidOrder, // Take profit trigger price should be lower than the order price
+                    '102050': errors.InvalidOrder, // stop loss trigger price must be lower than the best ask price
+                    '102051': errors.InvalidOrder, // stop loss trigger price should be lower than the order price
+                    '102052': errors.InvalidOrder, // take profit trigger price should be higher than the order price
+                    '102053': errors.InvalidOrder, // take profit trigger price should be lower than the best bid price
+                    '102054': errors.InvalidOrder, // take profit trigger price should be higher than the best ask price
+                    '102055': errors.InvalidOrder, // stop loss trigger price should be lower than the best ask price
+                    '102064': errors.BadRequest, // Buy price is not within the price limit (Minimum: 310.40; Maximum:1,629.40)
+                    '102065': errors.BadRequest, // Sell price is not within the price limit
+                    '102068': errors.BadRequest, // Cancel failed as the order has been filled, triggered, canceled or does not exist
+                    '103013': errors.ExchangeError, // Internal error; unable to process your request. Please try again.
                     'Order failed. Insufficient USDT margin in account': errors.InsufficientFunds, // Insufficient USDT margin in account
                 },
                 'broad': {
-                    'Internal Server Error': errors.ExchangeNotAvailable,
+                    'Internal Server Error': errors.ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
                     'server error': errors.ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
@@ -476,7 +476,7 @@ class blofin extends blofin$1["default"] {
                 'fetchPositions': {
                     'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
-                'createOrder': 'privatePostTradeOrder',
+                'createOrder': 'privatePostTradeOrder', // or 'privatePostTradeOrderTpsl'
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': ['swap'],
                 'defaultType': 'swap',
@@ -969,8 +969,7 @@ class blofin extends blofin$1["default"] {
             request['after'] = until;
             params = this.omit(params, 'until');
         }
-        let response = undefined;
-        response = await this.publicGetMarketCandles(this.extend(request, params));
+        const response = await this.publicGetMarketCandles(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
@@ -1221,7 +1220,7 @@ class blofin extends blofin$1["default"] {
         let accountType = undefined;
         [accountType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'accountType', 'type');
         const request = {};
-        let response = undefined;
+        let response;
         if (accountType !== undefined && accountType !== 'swap') {
             const options = this.safeDict(this.options, 'accountsByType', {});
             const parsedAccountType = this.safeString(options, accountType, accountType);
@@ -1464,6 +1463,7 @@ class blofin extends blofin$1["default"] {
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
+     * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1472,9 +1472,11 @@ class blofin extends blofin$1["default"] {
         const isStopLossPriceDefined = this.safeString(params, 'stopLossPrice') !== undefined;
         const isTakeProfitPriceDefined = this.safeString(params, 'takeProfitPrice') !== undefined;
         const isTriggerOrder = this.safeString(params, 'triggerPrice') !== undefined;
-        const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined);
+        let isTpslEndpoint = false;
+        [isTpslEndpoint, params] = this.handleOptionAndParams(params, 'createOrder', 'tpsl', false);
+        const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint;
         const isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
-        let response = undefined;
+        let response;
         const reduceOnly = this.safeBool(params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
@@ -1527,11 +1529,31 @@ class blofin extends blofin$1["default"] {
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         if (stopLossPrice !== undefined) {
             request['slTriggerPrice'] = this.priceToPrecision(symbol, stopLossPrice);
-            request['slOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, price);
+            if (type === 'market') {
+                request['slOrderPrice'] = '-1';
+            }
+            else {
+                const slLimitPrice = this.safeString(params, 'stopLossLimitPrice');
+                if (slLimitPrice === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market');
+                }
+                request['slOrderPrice'] = this.priceToPrecision(symbol, slLimitPrice);
+                params = this.omit(params, 'stopLossLimitPrice');
+            }
         }
         if (takeProfitPrice !== undefined) {
             request['tpTriggerPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
-            request['tpOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, price);
+            if (type === 'market') {
+                request['tpOrderPrice'] = '-1';
+            }
+            else {
+                const tpLimitPrice = this.safeString(params, 'takeProfitLimitPrice');
+                if (tpLimitPrice === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market');
+                }
+                request['tpOrderPrice'] = this.priceToPrecision(symbol, tpLimitPrice);
+                params = this.omit(params, 'takeProfitLimitPrice');
+            }
         }
         request['marginMode'] = marginMode;
         params = this.omit(params, ['stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged']);
@@ -1656,7 +1678,7 @@ class blofin extends blofin$1["default"] {
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
-        let response = undefined;
+        let response;
         if (isTpSl || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
         }
@@ -1704,7 +1726,7 @@ class blofin extends blofin$1["default"] {
         }
         let type = 'swap';
         [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params, type);
-        let response = undefined;
+        let response;
         if (type === 'spot') {
             request['instType'] = 'SPOT';
             //
@@ -1841,8 +1863,7 @@ class blofin extends blofin$1["default"] {
             request['currency'] = currency['id'];
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        let response = undefined;
-        response = await this.privateGetAssetBills(this.extend(request, params));
+        const response = await this.privateGetAssetBills(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         return this.parseLedger(data, currency, since, limit);
     }
@@ -1956,16 +1977,16 @@ class blofin extends blofin$1["default"] {
     }
     parseLedgerEntryType(type) {
         const types = {
-            '1': 'transfer',
-            '2': 'trade',
-            '3': 'trade',
-            '4': 'rebate',
-            '5': 'trade',
-            '6': 'transfer',
-            '7': 'trade',
-            '8': 'fee',
-            '9': 'trade',
-            '10': 'trade',
+            '1': 'transfer', // transfer
+            '2': 'trade', // trade
+            '3': 'trade', // delivery
+            '4': 'rebate', // auto token conversion
+            '5': 'trade', // liquidation
+            '6': 'transfer', // margin transfer
+            '7': 'trade', // interest deduction
+            '8': 'fee', // funding rate
+            '9': 'trade', // adl
+            '10': 'trade', // clawback
             '11': 'trade', // system token conversion
         };
         return this.safeString(types, type, type);
@@ -2069,7 +2090,7 @@ class blofin extends blofin$1["default"] {
                 });
             }
         }
-        let response = undefined;
+        let response;
         if (method === 'privatePostTradeCancelTpsl') {
             response = await this.privatePostTradeCancelTpsl(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
@@ -2393,9 +2414,10 @@ class blofin extends blofin$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         symbols = this.marketSymbols(symbols);
+        const symbolsList = symbols;
         let instIds = '';
-        for (let i = 0; i < symbols.length; i++) {
-            const entry = symbols[i];
+        for (let i = 0; i < symbolsList.length; i++) {
+            const entry = symbolsList[i];
             const entryMarket = this.market(entry);
             if (i > 0) {
                 instIds = instIds + ',' + entryMarket['id'];
@@ -2582,7 +2604,7 @@ class blofin extends blofin$1["default"] {
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
-        let response = undefined;
+        let response;
         if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         }
@@ -2655,7 +2677,7 @@ class blofin extends blofin$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseMarginMode(data, market);
+        return this.parseMarginMode(data, market); // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
     }
     /**
      * @method
@@ -2862,7 +2884,7 @@ class blofin extends blofin$1["default"] {
                 headers['Content-Type'] = 'application/json';
             }
             const auth = request + method + timestamp + timestamp + sign_body;
-            const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256));
+            const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256));
             headers['ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

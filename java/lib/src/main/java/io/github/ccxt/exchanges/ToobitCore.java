@@ -631,12 +631,12 @@ public class ToobitCore extends ToobitApi
         Object id = this.safeString(rawCurrency, "coinId");
         Object code = this.safeCurrencyCode(id);
         Object networks = new java.util.HashMap<String, Object>() {{}};
-        Object rawNetworks = this.safeList(rawCurrency, "chainTypes");
+        Object rawNetworks = this.safeList(rawCurrency, "chainTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rawNetworks)); j++)
         {
             Object rawNetwork = Helpers.GetValue(rawNetworks, j);
             Object networkId = this.safeString(rawNetwork, "chainType");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkCode );
@@ -2902,7 +2902,7 @@ public class ToobitCore extends ToobitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() : param[\"network\"] is required")) ;
             }
-            Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode));
+            Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode, code));
             Object response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
