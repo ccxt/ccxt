@@ -5,6 +5,7 @@
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
 import ololog from 'ololog'
+// @ts-ignore
 import config from '../../keys.json';
 import ansicolor from 'ansicolor';
 
