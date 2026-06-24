@@ -50,24 +50,9 @@ const JS_ONLY_ASYNC_METHODS_CAMEL = [ 'sign', 'signParams', 'createWSAuth', 'cre
 const JS_ONLY_ASYNC_METHODS_SNAKE = [ 'sign', 'sign_params', 'create_ws_auth', 'create_auth_token' ];
 // regex fragment matching a call to one of the JS-only-async methods (camelCase body form)
 const JS_ONLY_ASYNC_CALL_RE = '(?:' + JS_ONLY_ASYNC_METHODS_CAMEL.join ('|') + ')';
-
-// Strip `async`/`await` for `sign` (and its crypto helpers) from TS source so the
-// AST transpilers (C#/Go/Java) emit them as synchronous. They are async only in
-// JS because crypto.subtle is async; rsa/jwt are synchronous in every other lang.
-// Used by the AST transpilers, which compile each file in isolation, so removing
-// the keywords here makes the generated method + its call-sites fully sync.
-export function stripSignAsyncForAst (tsContent: string): string {
-    return tsContent
-        // free-function declarations in base/functions/rsa.ts: drop `async` AND unwrap the
-        // `: Promise<string>` return type so the type checker sees rsa/jwt returning string.
-        .replace (/\basync function (rsa|jwt) (\([^)]*\)): Promise<([^>]+)>/g, 'function $1 $2: $3')
-        // method declarations: `async sign (` -> `sign (` (also createAuthToken/createWSAuth/signParams)
-        .replace (/\basync (sign|createAuthToken|createWSAuth|signParams) \(/g, '$1 (')
-        // awaited call-sites of those methods: `await this.sign (` -> `this.sign (`
-        .replace (/\bawait (this\.(?:sign|createAuthToken|createWSAuth|signParams)\s*\()/g, '$1')
-        // awaited rsa/jwt (imported free functions or this.rsa/this.jwt)
-        .replace (/\bawait ((?:this\.)?(?:rsa|jwt)\s*\()/g, '$1');
-}
+// NOTE: the AST-transpiler-side helper `stripSignAsyncForAst` lives in build/stripOverloads.ts
+// (single source of truth, imported by the C#/Go/Java transpilers + their workers). The
+// Python/PHP regex transpiler handles `sign` sync inline via getCommonRegexes below.
 
 
 // let buildPython = true;

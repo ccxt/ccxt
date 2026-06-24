@@ -15,8 +15,7 @@
 
 import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
-import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
-import { stripSignAsyncForAst } from './transpile.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, stripSignAsyncForAst } from './stripOverloads.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';

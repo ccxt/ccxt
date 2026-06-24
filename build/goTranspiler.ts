@@ -3,7 +3,7 @@ import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
-import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, stripSignAsyncForAst } from './stripOverloads.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
 import fs from 'fs';
@@ -12,7 +12,7 @@ import ansi from 'ansicolor';
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
-import { isMainEntry, stripSignAsyncForAst } from "./transpile.js";
+import { isMainEntry } from "./transpile.js";
 
 type dict = { [key: string]: string };
 

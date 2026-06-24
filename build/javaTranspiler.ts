@@ -4,7 +4,7 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
-import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, stripSignAsyncForAst } from './stripOverloads.js';
 import { writeFile } from 'fs/promises';
 import { platform } from 'process'
 import fs from 'fs'
@@ -13,7 +13,7 @@ import ansi from 'ansicolor'
 import { Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
-import { isMainEntry, stripSignAsyncForAst } from "./transpile.js";
+import { isMainEntry } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 

@@ -15,14 +15,18 @@ const overloadLineRegex = /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{
 // strip the `async` keyword from these method declarations and the `await` from
 // their call-sites (including the internal rsa/jwt calls) BEFORE handing the source
 // to the ast-transpiler, so they transpile to plain synchronous methods.
-const SIGN_SYNC_METHODS = 'sign|createAuthToken|createWSAuth|signParams';
-function makeSignSync (content: string): string {
-    return content
-        // method declarations: `async sign (` -> `sign (`
-        .replace (new RegExp ('\\basync (' + SIGN_SYNC_METHODS + ')( ?\\()', 'g'), '$1$2')
-        // call-sites of those methods: drop the leading `await`
-        .replace (new RegExp ('\\bawait (this\\.(?:' + SIGN_SYNC_METHODS + ')\\s*\\()', 'g'), '$1')
-        // internal rsa/jwt calls (free functions): drop the leading `await`
+// This is the single source of truth: imported by the C#/Go/Java transpilers,
+// their Piscina workers, and generateJavaWrappers.
+function stripSignAsyncForAst (tsContent: string): string {
+    return tsContent
+        // free-function declarations in base/functions/rsa.ts: drop `async` AND unwrap the
+        // `: Promise<string>` return type so the type checker sees rsa/jwt returning string.
+        .replace (/\basync function (rsa|jwt) (\([^)]*\)): Promise<([^>]+)>/g, 'function $1 $2: $3')
+        // method declarations: `async sign (` -> `sign (` (also createAuthToken/createWSAuth/signParams)
+        .replace (/\basync (sign|createAuthToken|createWSAuth|signParams) \(/g, '$1 (')
+        // awaited call-sites of those methods: `await this.sign (` -> `this.sign (`
+        .replace (/\bawait (this\.(?:sign|createAuthToken|createWSAuth|signParams)\s*\()/g, '$1')
+        // awaited rsa/jwt (imported free functions or this.rsa/this.jwt)
         .replace (/\bawait ((?:this\.)?(?:rsa|jwt)\s*\()/g, '$1');
 }
 
@@ -32,7 +36,7 @@ function makeSignSync (content: string): string {
 function writeOverloadStrippedFile (srcPath: string): string {
     const content = fs.readFileSync (srcPath, 'utf8');
     const noOverloads = content.split ('\n').filter ((line) => !overloadLineRegex.test (line)).join ('\n');
-    const filtered = makeSignSync (noOverloads);
+    const filtered = stripSignAsyncForAst (noOverloads);
     if (filtered === content) {
         return srcPath; // nothing to strip, transpile the original file directly
     }
@@ -51,6 +55,7 @@ function removeOverloadStrippedFile (tmpPath: string, srcPath: string): void {
 }
 
 export {
+    stripSignAsyncForAst,
     writeOverloadStrippedFile,
     removeOverloadStrippedFile,
 };
