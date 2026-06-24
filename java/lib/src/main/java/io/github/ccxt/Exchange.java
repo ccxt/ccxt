@@ -3959,6 +3959,38 @@ public Object describe()
         }};
     }
 
+    public java.util.concurrent.CompletableFuture<Object> loadMarketsHelper(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object reload = Helpers.getArg(optionalArgs, 0, false);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(!Helpers.isTrue(reload) && Helpers.isTrue(this.valueIsDefined(this.markets))))
+            {
+                if (!Helpers.isTrue(this.valueIsDefined(this.markets_by_id)))
+                {
+                    return this.setMarkets(this.markets);
+                }
+                return this.markets;
+            }
+            Object currencies = null;
+            // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchCurrencies"), true)))
+            {
+                currencies = (this.fetchCurrencies()).join();
+                Helpers.addElementToObject(this.options, "cachedCurrencies", currencies);
+            }
+            Object markets = (this.fetchMarkets(parameters)).join();
+            if (Helpers.isTrue(Helpers.inOp(this.options, "cachedCurrencies")))
+            {
+                ((java.util.Map<String,Object>)this.options).remove((String)"cachedCurrencies");
+            }
+            return this.setMarkets(markets, currencies);
+        });
+
+    }
+
     public Object safeBoolN(Object dictionaryOrList, Object keys, Object... optionalArgs)
     {
         /**
@@ -6168,6 +6200,7 @@ public Object describe()
     public Object setMarkets(Object markets, Object... optionalArgs)
     {
         Object currencies = Helpers.getArg(optionalArgs, 0, null);
+        this.marketsMutexLocker(true);
         Object values = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         this.markets_by_id = this.createSafeDictionary();
         // handle marketId conflicts
@@ -6278,6 +6311,7 @@ public Object describe()
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         Object currenciesSortedByCode = this.keysort(this.currencies);
         this.codes = Helpers.objectKeys(currenciesSortedByCode);
+        this.marketsMutexLocker(false);
         return this.markets;
     }
 
