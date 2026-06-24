@@ -2,7 +2,7 @@
 
 'use strict';
 
-const ccxt = require ('../../ccxt');
+import ccxt from '../../js/ccxt.js'
 
 console.log ('CCXT Version:', ccxt.version)
 
@@ -56,7 +56,7 @@ async function example2 () {
     console.log ('Created order id:', createOrder['id'])
 
     // check if the order was filled and the position opened
-    const position = await exchange.fetchPositions (symbol);
+    const position = await exchange.fetchPositions ([symbol]);
     console.log (position)
 
     // close position (assuming it was already opened) by issuing an order in the opposite direction
