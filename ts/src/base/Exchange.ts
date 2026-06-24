@@ -5454,7 +5454,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
     }
 
-    parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
+    parseLeverageTiers (response: any, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         // marketIdKey should only be undefined when response is a dictionary.
         symbols = this.marketSymbols (symbols);
         const tiers = {};
@@ -5466,7 +5466,7 @@ export default class Exchange {
         if (Array.isArray (response)) {
             for (let i = 0; i < response.length; i++) {
                 const item = response[i];
-                const id = this.safeString (item, marketIdKey);
+                const id = (marketIdKey === undefined) ? undefined : this.safeString (item, marketIdKey);
                 const market = this.safeMarket (id, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
@@ -7281,7 +7281,7 @@ export default class Exchange {
                 return this.safeDict (addressStructures, network) as DepositAddress;
             } else {
                 const keys = Object.keys (addressStructures);
-                const key = this.safeString (keys, 0);
+                const key = keys[0];
                 return this.safeDict (addressStructures, key) as DepositAddress;
             }
         } else {
@@ -8242,7 +8242,7 @@ export default class Exchange {
         }
     }
 
-    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey = undefined): any {
+    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey: Str = undefined): any {
         /**
          * @ignore
          * @method
@@ -8260,7 +8260,7 @@ export default class Exchange {
         for (let i = 0; i < responseKeys.length; i++) {
             const entry = responseKeys[i];
             const dictionary = isArray ? entry : response[entry];
-            const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
+            const currencyId = isArray ? ((currencyIdKey === undefined) ? undefined : this.safeString (dictionary, currencyIdKey)) : entry;
             const currency = this.safeCurrency (currencyId);
             const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
@@ -8625,7 +8625,7 @@ export default class Exchange {
                     const index = responseLength - j - 1;
                     const entry = this.safeDict (response, index);
                     const info = this.safeDict (entry, 'info');
-                    const cursor = this.safeValue (info, cursorReceived);
+                    const cursor = (cursorReceived === undefined) ? undefined : this.safeValue (info, cursorReceived);
                     if (cursor !== undefined) {
                         cursorValue = cursor;
                         break;
@@ -8841,9 +8841,9 @@ export default class Exchange {
         const optionStructures = {};
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const currencyId = this.safeString (info, currencyKey);
+            const currencyId = (currencyKey === undefined) ? undefined : this.safeString (info, currencyKey);
             const currency = this.safeCurrency (currencyId);
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, 'option');
             optionStructures[market['symbol']] = this.parseOption (info, currency, market);
         }
@@ -8857,7 +8857,7 @@ export default class Exchange {
         }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 marginModeStructures[market['symbol']] = this.parseMarginMode (info, market);
@@ -8877,7 +8877,7 @@ export default class Exchange {
         }
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 leverageStructures[market['symbol']] = this.parseLeverage (info, market);
@@ -8897,8 +8897,8 @@ export default class Exchange {
         let toCurrency = undefined;
         for (let i = 0; i < conversions.length; i++) {
             const entry = conversions[i];
-            const fromId = this.safeString (entry, fromCurrencyKey);
-            const toId = this.safeString (entry, toCurrencyKey);
+            const fromId = (fromCurrencyKey === undefined) ? undefined : this.safeString (entry, fromCurrencyKey);
+            const toId = (toCurrencyKey === undefined) ? undefined : this.safeString (entry, toCurrencyKey);
             if (fromId !== undefined) {
                 fromCurrency = this.safeCurrency (fromId);
             }
@@ -9044,7 +9044,7 @@ export default class Exchange {
         const marginModifications = [];
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
-            const marketId = this.safeString (info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 marginModifications.push (this.parseMarginModification (info, market));
