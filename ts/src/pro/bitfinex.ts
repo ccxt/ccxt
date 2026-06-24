@@ -994,7 +994,7 @@ export default class bitfinex extends bitfinexRest {
             'ticker': 'ticker',
             'trades': 'trades',
         };
-        const unifiedChannel = this.safeString (mappings, (this.safeString (message, 'channel') as string));
+        const unifiedChannel = this.safeString (mappings, this.safeString (message, 'channel'));
         if ('key' in message) {
             // handle ohlcv differently because the message is different
             const key = this.safeString (message, 'key');

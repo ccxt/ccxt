@@ -98,7 +98,7 @@ class weex(ccxt.async_support.weex):
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
         if unsubscribe:
             method = 'UNSUBSCRIBE'
-        message: dict = {
+        message = {
             'id': id,
             'method': method,
             'params': channels,
@@ -117,7 +117,7 @@ class weex(ccxt.async_support.weex):
         if unsubscribe:
             method = 'UNSUBSCRIBE'
         id = self.request_id()
-        message: dict = {
+        message = {
             'id': id,
             'method': method,
             'params': [channel],
@@ -134,7 +134,7 @@ class weex(ccxt.async_support.weex):
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
         originalHeaders = self.options['ws']['options']['headers']
         userAgent = self.safe_string(originalHeaders, 'User-Agent', 'ccxt')
-        extendedOptions: dict = {
+        extendedOptions = {
             'ws': {
                 'options': {
                     'headers': {
@@ -151,7 +151,7 @@ class weex(ccxt.async_support.weex):
         # instantiate client
         self.client(url)
         # return headers to original state
-        defaultOptions: dict = {
+        defaultOptions = {
             'ws': {
                 'options': {
                     'headers': {
@@ -206,7 +206,7 @@ class weex(ccxt.async_support.weex):
             channels.append(channelName)
         newTicker = await self.subscribe_public(messageHashes, channels, isContract, params)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -754,7 +754,7 @@ class weex(ccxt.async_support.weex):
             channel = market['id'] + '@depth' + depth
             messageHashes.append(messageHash)
             channels.append(channel)
-        subscription: dict = {
+        subscription = {
             'limit': limit,
         }
         orderbook = await self.subscribe_public(messageHashes, channels, isContract, params, subscription)
@@ -977,8 +977,8 @@ class weex(ccxt.async_support.weex):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        marketType: Str = None
-        market: Market = None
+        marketType = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -1008,7 +1008,7 @@ class weex(ccxt.async_support.weex):
         """
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.')
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('unWatchMyTrades', None, params)
         isContract = (marketType != 'spot')
         subHash = 'myContractTrades' if isContract else 'myTrades'
@@ -1075,7 +1075,7 @@ class weex(ccxt.async_support.weex):
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
         data = self.safe_list(message, 'd', [])
-        symbols: dict = {}
+        symbols = {}
         for i in range(0, len(data)):
             trade = self.safe_dict(data, i, {})
             parsed = self.parse_ws_my_trade(trade)
@@ -1164,11 +1164,11 @@ class weex(ccxt.async_support.weex):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('watchOrders', market, params)
         isContract = (marketType != 'spot')
         messageHash = 'contractOrders' if isContract else 'orders'
@@ -1194,7 +1194,7 @@ class weex(ccxt.async_support.weex):
         """
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.')
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('unWatchOrders', None, params)
         isContract = (marketType != 'spot')
         subHash = 'contractOrders' if isContract else 'orders'
@@ -1258,7 +1258,7 @@ class weex(ccxt.async_support.weex):
         #     }
         #
         data = self.safe_list(message, 'd', [])
-        symbols: dict = {}
+        symbols = {}
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -1391,8 +1391,8 @@ class weex(ccxt.async_support.weex):
         rawStatus = self.safe_string_lower(order, 'status')
         rawType = self.safe_string(order, 'type')
         triggerPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
-        stopLossPrice: Str = None
-        takeProfitPrice: Str = None
+        stopLossPrice = None
+        takeProfitPrice = None
         if rawType == 'TAKE_PROFIT_MARKET' or rawType == 'TAKE_PROFIT':
             takeProfitPrice = triggerPrice
         elif rawType == 'STOP_LOSS' or rawType == 'STOP' or rawType == 'STOP_MARKET':
@@ -1437,7 +1437,7 @@ class weex(ccxt.async_support.weex):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         isContract = (type != 'spot')
         urlType = 'contract' if isContract else 'spot'
@@ -1467,7 +1467,7 @@ class weex(ccxt.async_support.weex):
             self.balance[type] = {}
 
     async def load_balance_snapshot(self, client, messageHash, type):
-        params: dict = {
+        params = {
             'type': type,
         }
         response = await self.fetch_balance(params)
@@ -1719,7 +1719,7 @@ class weex(ccxt.async_support.weex):
         #
         #     {"type": "ping", "time": "1776172740000"} - private
         #
-        response: dict = {
+        response = {
             'id': self.request_id(),
             'method': 'PONG',
         }

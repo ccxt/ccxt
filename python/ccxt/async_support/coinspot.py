@@ -301,7 +301,7 @@ class coinspot(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
             for i in range(0, len(balances)):
@@ -367,7 +367,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'cointype': market['id'],
         }
         orderbook = await self.privatePostOrders(self.extend(request, params))
@@ -468,7 +468,7 @@ class coinspot(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result: dict = {}
+        result = {}
         prices = self.safe_dict(response, 'prices', {})
         ids = list(prices.keys())
         for i in range(0, len(ids)):
@@ -494,7 +494,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'cointype': market['id'],
         }
         response = await self.privatePostOrdersHistory(self.extend(request, params))
@@ -522,8 +522,8 @@ class coinspot(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        request: dict = {}
-        market: Market = None
+        request = {}
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         if since is not None:
@@ -590,9 +590,9 @@ class coinspot(Exchange, ImplicitAPI):
         #       "side": "buy",
         #       "price": 0.5168600000125209
         #     }
-        timestamp: Int = None
-        priceString: Str = None
-        fee: Fee = None
+        timestamp = None
+        priceString = None
+        fee = None
         audTotal = self.safe_string(trade, 'audtotal')
         costString = self.safe_string(trade, 'total', audTotal)
         side = self.safe_string(trade, 'side')
@@ -651,7 +651,7 @@ class coinspot(Exchange, ImplicitAPI):
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'cointype': market['id'],
             'amount': amount,
             'rate': price,
@@ -686,7 +686,7 @@ class coinspot(Exchange, ImplicitAPI):
         if side != 'buy' and side != 'sell':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
         params = self.omit(params, 'side')
-        request: dict = {
+        request = {
             'id': id,
         }
         response: dict

@@ -847,7 +847,7 @@ export default class bybit extends bybitRest {
         //         "timestamp": 1670363219614
         //     }
         //
-        const volumeIndex = (this.safeBool (market, 'inverse')) ? 'turnover' : 'volume';
+        const volumeIndex = this.safeBool (market, 'inverse') ? 'turnover' : 'volume';
         return [
             this.safeInteger (ohlcv, 'start'),
             this.safeNumber (ohlcv, 'open'),

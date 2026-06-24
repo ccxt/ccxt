@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Any, Balances, Bool, Currency, FundingHistory, Greeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, FundingHistory, Greeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -729,7 +729,7 @@ class paradex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchTradingFee() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = await self.publicGetMarkets(self.extend(request, params))
@@ -787,7 +787,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         fees = self.safe_list(response, 'results', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
             symbol = fee['symbol']
@@ -811,7 +811,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         }
@@ -884,7 +884,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             'market': 'ALL',
         }
         response = await self.publicGetMarketsSummary(self.extend(request, params))
@@ -924,7 +924,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = await self.publicGetMarketsSummary(self.extend(request, params))
@@ -1016,7 +1016,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {'market': market['id']}
+        request = {'market': market['id']}
         response = await self.publicGetOrderbookMarket(self.extend(request, params))
         #
         #     {
@@ -1064,7 +1064,7 @@ class paradex(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, params, 'next', 'cursor', None, 100)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -1173,7 +1173,7 @@ class paradex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = await self.publicGetMarketsSummary(self.extend(request, params))
@@ -1247,7 +1247,7 @@ class paradex(Exchange, ImplicitAPI):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     async def get_system_config(self):
-        cachedConfig: dict = self.safe_dict(self.options, 'systemConfig')
+        cachedConfig = self.safe_dict(self.options, 'systemConfig')
         if cachedConfig is not None:
             return cachedConfig
         response = await self.publicGetSystemConfig()
@@ -1299,7 +1299,7 @@ class paradex(Exchange, ImplicitAPI):
         return domain
 
     async def retrieve_account(self):
-        cachedAccount: dict = self.safe_dict(self.options, 'paradexAccount')
+        cachedAccount = self.safe_dict(self.options, 'paradexAccount')
         if cachedAccount is not None:
             return cachedAccount
         self.check_required_credentials()
@@ -1417,7 +1417,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'created_at')
         orderId = self.safe_string(order, 'id')
-        clientOrderId = self.omit_zero(self.safe_string(order, 'client_id'))
+        clientOrderId = self.omit_zero((self.safe_string(order, 'client_id')))
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1432,11 +1432,11 @@ class paradex(Exchange, ImplicitAPI):
             else:
                 status = 'canceled'
         side = self.safe_string_lower(order, 'side')
-        average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
-        remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
+        average = self.omit_zero((self.safe_string(order, 'avg_fill_price')))
+        remaining = self.omit_zero((self.safe_string(order, 'remaining_size')))
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
         flags = self.safe_list(order, 'flags', [])
-        reduceOnly: Bool = None
+        reduceOnly = None
         if 'REDUCE_ONLY' in flags:
             reduceOnly = True
         return self.safe_order({
@@ -1471,7 +1471,7 @@ class paradex(Exchange, ImplicitAPI):
         }, market)
 
     def parse_time_in_force(self, timeInForce: Str):
-        timeInForces: dict = {
+        timeInForces = {
             'IOC': 'IOC',
             'GTC': 'GTC',
             'POST_ONLY': 'PO',
@@ -1480,7 +1480,7 @@ class paradex(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         if status is not None:
-            statuses: dict = {
+            statuses = {
                 'NEW': 'open',
                 'UNTRIGGERED': 'open',
                 'OPEN': 'open',
@@ -1490,7 +1490,7 @@ class paradex(Exchange, ImplicitAPI):
         return status
 
     def parse_order_type(self, type: Str):
-        types: dict = {
+        types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
             'STOP_LIMIT': 'limit',
@@ -1506,7 +1506,7 @@ class paradex(Exchange, ImplicitAPI):
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         orderType = type.upper()
         orderSide = side.upper()
-        request: dict = {
+        request = {
             'market': market['id'],
             'side': orderSide,
             'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
@@ -1532,7 +1532,7 @@ class paradex(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
         sizeString = '0'
-        stopPrice: Str = None
+        stopPrice = None
         if isStopOrder:
             # flags: Reduce_Only must be provided for TPSL orders.
             if isMarket:
@@ -1578,7 +1578,7 @@ class paradex(Exchange, ImplicitAPI):
         now = self.nonce()
         orderType = self.safe_string(request, 'type')
         isMarket = (orderType.find('MARKET') >= 0)
-        orderReq: dict = {
+        orderReq = {
             'timestamp': now * 1000,
             'market': self.string_to_base16(request['market']),
             'side': '1' if (request['side'] == 'BUY') else '2',
@@ -1749,7 +1749,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.authenticate_rest()
         await self.load_markets()
-        ordersRequests: List = []
+        ordersRequests = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             symbol = self.safe_string(rawOrder, 'symbol')
@@ -1810,7 +1810,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.authenticate_rest()
         await self.load_markets()
-        request: dict = {}
+        request = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         response: dict
         if clientOrderId is not None:
@@ -1844,7 +1844,7 @@ class paradex(Exchange, ImplicitAPI):
         hasClientOrderIds = (clientOrderIds is not None) and (isinstance(clientOrderIds, list))
         if not hasOrderIds and not hasClientOrderIds:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter')
-        request: dict = {}
+        request = {}
         if hasOrderIds:
             request['order_ids'] = ids
         if hasClientOrderIds:
@@ -1875,13 +1875,13 @@ class paradex(Exchange, ImplicitAPI):
         # }
         #
         results = self.safe_list(response, 'results', [])
-        orders: List = []
+        orders = []
         for i in range(0, len(results)):
             result = results[i]
             marketId = self.safe_string(result, 'market')
             market = self.safe_market(marketId, None)
             status = self.safe_string(result, 'status')
-            orderStatus: Str = None
+            orderStatus = None
             if status == 'QUEUED_FOR_CANCELLATION':
                 orderStatus = 'canceled'
             elif status == 'ALREADY_CLOSED':
@@ -1912,7 +1912,7 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = await self.privateDeleteOrders(self.extend(request, params))
@@ -1936,7 +1936,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.authenticate_rest()
         await self.load_markets()
-        request: dict = {}
+        request = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         response: dict
@@ -1995,8 +1995,8 @@ class paradex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'next', 'cursor', None, 50)
-        request: dict = {}
-        market: Market = None
+        request = {}
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -2063,8 +2063,8 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.authenticate_rest()
         await self.load_markets()
-        request: dict = {}
-        market: Market = None
+        request = {}
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -2131,7 +2131,7 @@ class paradex(Exchange, ImplicitAPI):
         return self.parse_balance(data)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         for i in range(0, len(response)):
             balance = self.safe_dict(response, i, {})
             currencyId = self.safe_string(balance, 'token')
@@ -2161,8 +2161,8 @@ class paradex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'next', 'cursor', None, 100)
-        request: dict = {}
-        market: Market = None
+        request = {}
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -2329,12 +2329,12 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.authenticate_rest()
         await self.load_markets()
-        request: dict = {}
+        request = {}
         if since is not None:
             request['from'] = since
         else:
             request['from'] = 1
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         request, params = self.handle_until_option('to', request, params)
@@ -2393,7 +2393,7 @@ class paradex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'next', 'cursor', None, 100)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['page_size'] = limit
         if since is not None:
@@ -2422,7 +2422,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'results', [])
-        deposits: List = []
+        deposits = []
         for i in range(0, len(rows)):
             row = rows[i]
             if row['kind'] == 'DEPOSIT':
@@ -2449,7 +2449,7 @@ class paradex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'next', 'cursor', None, 100)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['page_size'] = limit
         if since is not None:
@@ -2478,7 +2478,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'results', [])
-        deposits: List = []
+        deposits = []
         for i in range(0, len(rows)):
             row = rows[i]
             if row['kind'] == 'WITHDRAWAL':
@@ -2505,8 +2505,8 @@ class paradex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'next', 'cursor', None, 100)
-        request: dict = {}
-        currency: Currency = None
+        request = {}
+        currency = None
         if code is not None:
             currency = self.safe_currency(code)
         if limit is not None:
@@ -2559,8 +2559,8 @@ class paradex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_integer(transfer, 'created_at')
         kind = self.safe_string(transfer, 'kind')
-        fromAccount: Str = None
-        toAccount: Str = None
+        fromAccount = None
+        toAccount = None
         if kind == 'DEPOSIT':
             fromAccount = 'external'
             toAccount = 'account'
@@ -2632,7 +2632,7 @@ class paradex(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'PENDING': 'pending',
             'AVAILABLE': 'pending',
             'COMPLETED': 'ok',
@@ -2653,7 +2653,7 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = await self.privateGetAccountMargin(self.extend(request, params))
@@ -2697,10 +2697,10 @@ class paradex(Exchange, ImplicitAPI):
         self.check_required_argument('setMarginMode', symbol, 'symbol')
         await self.authenticate_rest()
         await self.load_markets()
-        market: Market = self.market(symbol)
-        leverage: Str = None
+        market = self.market(symbol)
+        leverage = None
         leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage', 1)
-        request: dict = {
+        request = {
             'market': market['id'],
             'leverage': leverage,
             'margin_type': self.encode_margin_mode(marginMode),
@@ -2720,7 +2720,7 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = await self.privateGetAccountMargin(self.extend(request, params))
@@ -2773,10 +2773,10 @@ class paradex(Exchange, ImplicitAPI):
         self.check_required_argument('setLeverage', symbol, 'symbol')
         await self.authenticate_rest()
         await self.load_markets()
-        market: Market = self.market(symbol)
-        marginMode: Str = None
+        market = self.market(symbol)
+        marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
-        request: dict = {
+        request = {
             'market': market['id'],
             'leverage': leverage,
             'margin_type': self.encode_margin_mode(marginMode),
@@ -2795,7 +2795,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = await self.publicGetMarketsSummary(self.extend(request, params))
@@ -2849,7 +2849,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
-        request: dict = {
+        request = {
             'market': 'ALL',
         }
         response = await self.publicGetMarketsSummary(self.extend(request, params))
@@ -2974,7 +2974,7 @@ class paradex(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'next', 'cursor', None, 100)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -3047,7 +3047,7 @@ class paradex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -3079,7 +3079,7 @@ class paradex(Exchange, ImplicitAPI):
         # }
         #
         results = self.safe_list(response, 'results', [])
-        rates: List = []
+        rates = []
         for i in range(0, len(results)):
             rate = results[i]
             timestamp = self.safe_integer(rate, 'created_at')

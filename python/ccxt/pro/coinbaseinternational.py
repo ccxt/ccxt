@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -89,13 +89,13 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         """
         await self.load_markets()
         self.check_required_credentials()
-        market: Market = None
+        market = None
         messageHash = name
-        productIds: Strings = None
+        productIds = None
         if symbols is None:
             symbols = self.get_active_symbols()
         symbolsLength = len(symbols)
-        messageHashes: List[Any] = []
+        messageHashes = []
         if symbolsLength > 1:
             parsedSymbols = self.market_symbols(symbols)
             marketIds = self.market_ids(parsedSymbols)
@@ -113,7 +113,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         timestamp = str(self.nonce())
         auth = timestamp + self.apiKey + 'CBINTLMD' + self.password
         signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
-        subscribe: dict = {
+        subscribe = {
             'type': 'SUBSCRIBE',
             # 'product_ids': productIds,
             'channels': [name],
@@ -146,8 +146,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             symbols = self.symbols
         else:
             symbols = self.market_symbols(symbols)
-        messageHashes: List[Any] = []
-        productIds: List[Any] = []
+        messageHashes = []
+        productIds = []
         for i in range(0, len((symbols))):
             marketId = self.market_id((symbols)[i])
             symbol = self.symbol(marketId)
@@ -159,7 +159,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         timestamp = self.number_to_string(self.seconds())
         auth = timestamp + self.apiKey + 'CBINTLMD' + self.password
         signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
-        subscribe: dict = {
+        subscribe = {
             'type': 'SUBSCRIBE',
             'time': timestamp,
             'product_ids': productIds,
@@ -199,7 +199,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         fundingRate = await self.subscribe_multiple('RISK', symbols, params)
         symbol = self.safe_string(fundingRate, 'symbol')
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[symbol] = fundingRate
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbols)
@@ -216,13 +216,13 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        channel: Str = None
+        channel = None
         channel, params = self.handle_option_and_params(params, 'watchTicker', 'channel', 'LEVEL1')
         return await self.subscribe(channel, [symbol], params)
 
     def get_active_symbols(self):
         symbols = self.symbols
-        output: List[Any] = []
+        output = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.markets[symbol]
@@ -242,11 +242,11 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        channel: Str = None
+        channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'LEVEL1')
         ticker = await self.subscribe(channel, symbols, params)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -759,7 +759,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if self.handle_error_message(client, message):
             return
         channel = self.safe_string(message, 'channel', '')
-        methods: dict = {
+        methods = {
             'SUBSCRIPTIONS': self.handle_subscription_status,
             'INSTRUMENTS': self.handle_instrument,
             'LEVEL1': self.handle_ticker,

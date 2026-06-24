@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -184,7 +184,7 @@ class hollaex(ccxt.async_support.hollaex):
         """
         await self.load_markets()
         messageHash = 'usertrade'
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -228,7 +228,7 @@ class hollaex(ccxt.async_support.hollaex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCache(limit)
         stored = self.myTrades
-        marketIds: dict = {}
+        marketIds = {}
         for i in range(0, len(rawTrades)):
             trade = rawTrades[i]
             parsed = self.parse_trade(trade)
@@ -259,7 +259,7 @@ class hollaex(ccxt.async_support.hollaex):
         """
         await self.load_markets()
         messageHash = 'order'
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -337,12 +337,12 @@ class hollaex(ccxt.async_support.hollaex):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        rawOrders: NullableList = None
+        rawOrders = None
         if not isinstance(data, list):
             rawOrders = [data]
         else:
             rawOrders = data
-        marketIds: dict = {}
+        marketIds = {}
         for i in range(0, len(rawOrders)):
             order = rawOrders[i]
             parsed = self.parse_order(order)
@@ -410,7 +410,7 @@ class hollaex(ccxt.async_support.hollaex):
 
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [messageHash],
         }
@@ -430,13 +430,13 @@ class hollaex(ccxt.async_support.hollaex):
         url = self.urls['api']['ws']
         auth = 'CONNECT' + '/stream' + expires
         signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-        authParams: dict = {
+        authParams = {
             'api-key': self.apiKey,
             'api-signature': signature,
             'api-expires': expires,
         }
         signedUrl = url + '?' + self.urlencode(authParams)
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [messageHash],
         }
@@ -550,7 +550,7 @@ class hollaex(ccxt.async_support.hollaex):
         if content == 'pong':
             self.handle_pong(client, message)
             return
-        methods: dict = {
+        methods = {
             'trade': self.handle_trades,
             'orderbook': self.handle_order_book,
             'order': self.handle_order,

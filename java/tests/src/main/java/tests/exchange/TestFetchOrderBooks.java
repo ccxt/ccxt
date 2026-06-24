@@ -16,7 +16,9 @@ public class TestFetchOrderBooks extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchOrderBooks";
-        Object symbol = Helpers.GetValue(exchange.symbols, 0);
+        Object symbols = exchange.symbols;
+        Assert(!Helpers.isEqual(symbols, null), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " requires exchange.symbols to be loaded"));
+        Object symbol = Helpers.GetValue(symbols, 0);
         Object orderBooks = (exchange.fetchOrderBooks(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
         Assert(exchange.isDictionary(orderBooks), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return a dict. "), exchange.json(orderBooks)));
         Object orderBookKeys = Helpers.objectKeys(orderBooks);

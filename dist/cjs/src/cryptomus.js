@@ -1081,8 +1081,12 @@ class cryptomus extends cryptomus$1["default"] {
         const feeTiers = this.safeList(data, 'tariff_steps', []);
         const result = {};
         const tiers = this.parseFeeTiers(feeTiers);
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
