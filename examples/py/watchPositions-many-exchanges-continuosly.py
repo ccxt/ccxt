@@ -12,7 +12,6 @@ sys.path.append(root + '/python')
 # ----------------------------------------------------------------------------
 
 
-# AUTO-TRANSPILE #
 # watch and handle constinuosly
 async def watch_positions_continuously(exchange):
     while True:

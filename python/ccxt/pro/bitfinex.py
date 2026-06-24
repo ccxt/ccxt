@@ -60,7 +60,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         url = self.urls['api']['ws']['public']
         client = self.client(url)
         messageHash = channel + ':' + marketId
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
@@ -87,7 +87,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         messageHash = 'unsubscribe:' + channel + ':' + marketId
         unSubTopic = 'unsubscribe' + ':' + topic + ':' + symbol
         channelId = self.safe_string(client.subscriptions, unSubTopic)
-        request: dict = {
+        request = {
             'event': 'unsubscribe',
             'chanId': channelId,
         }
@@ -125,7 +125,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         channel = 'candles'
         key = 'trade:' + interval + ':' + market['id']
         messageHash = channel + ':' + interval + ':' + market['id']
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'channel': channel,
             'key': key,
@@ -156,7 +156,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         client = self.client(url)
         subId = 'unsubscribe:trade:' + interval + ':' + market['id']  # trade here because we use the key
         channelId = self.safe_string(client.subscriptions, subId)
-        request: dict = {
+        request = {
             'event': 'unsubscribe',
             'chanId': channelId,
         }
@@ -218,7 +218,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #   ]
         #
         data = self.safe_value(message, 1, [])
-        ohlcvs: NullableList = None
+        ohlcvs = []
         first = self.safe_value(data, 0)
         if isinstance(first, list):
             # snapshot
@@ -227,7 +227,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             # update
             ohlcvs = [data]
         channel = self.safe_value(subscription, 'channel')
-        key = self.safe_string(subscription, 'key')
+        key = self.safe_string(subscription, 'key', '')
         keyParts = key.split(':')
         interval = self.safe_string(keyParts, 1)
         marketId = key
@@ -475,12 +475,12 @@ class bitfinex(ccxt.async_support.bitfinex):
         price = self.safe_string(trade, priceKey)
         amountString = self.safe_string(trade, amountKey)
         amount = self.parse_number(Precise.string_abs(amountString))
-        side: Str = None
+        side = None
         if amount is not None:
             side = 'buy' if Precise.string_gt(amountString, '0') else 'sell'
         symbol = self.safe_symbol(marketId, market)
         feeValue = self.safe_string(trade, 9)
-        fee: NullableDict = None
+        fee = None
         if feeValue is not None:
             currencyId = self.safe_string(trade, 10)
             code = self.safe_currency_code(currencyId)
@@ -489,7 +489,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                 'currency': code,
             }
         maker = self.safe_integer(trade, 8)
-        takerOrMaker: Str = None
+        takerOrMaker = None
         if maker is not None:
             takerOrMaker = 'taker' if (maker == -1) else 'maker'
         return self.safe_trade({
@@ -592,7 +592,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         options = self.safe_value(self.options, 'watchOrderBook', {})
         prec = self.safe_string(options, 'prec', 'P0')
         freq = self.safe_string(options, 'freq', 'F0')
-        request: dict = {
+        request = {
             'prec': prec,  # string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq,  # string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
         }
@@ -660,6 +660,8 @@ class bitfinex(ccxt.async_support.bitfinex):
                 for i in range(0, len(deltas)):
                     delta = deltas[i]
                     amount = self.safe_number(delta, 2)
+                    if amount is None:
+                        continue
                     counter = self.safe_number(delta, 1)
                     price = self.safe_number(delta, 0)
                     size = -amount if (amount < 0) else amount
@@ -809,12 +811,12 @@ class bitfinex(ccxt.async_support.bitfinex):
         #   ]
         #
         updateType = self.safe_value(message, 1)
-        data: NullableList = None
+        data = []
         if updateType == 'ws':
             data = self.safe_value(message, 2)
         else:
             data = [self.safe_value(message, 2)]
-        updatedTypes: dict = {}
+        updatedTypes = {}
         for i in range(0, len(data)):
             rawBalance = data[i]
             currencyId = self.safe_string(rawBalance, 1)
@@ -908,7 +910,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         channelId = self.safe_string(message, 'chanId')
         client.subscriptions[channelId] = message
         # store the opposite direction too for unWatch
-        mappings: dict = {
+        mappings = {
             'book': 'orderbook',
             'candles': 'ohlcv',
             'ticker': 'ticker',
@@ -939,7 +941,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             payload = 'AUTH' + str(nonce)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384, 'hex')
             event = 'auth'
-            request: dict = {
+            request = {
                 'apiKey': self.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
@@ -1030,7 +1032,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        symbolIds: dict = {}
+        symbolIds = {}
         if messageType == 'os':
             snapshotLength = len(data)
             if snapshotLength == 0:
@@ -1056,7 +1058,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             client.resolve(self.orders, messageHash)
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
@@ -1112,19 +1114,19 @@ class bitfinex(ccxt.async_support.bitfinex):
             amount = Precise.string_abs(amount)
             side = 'sell'
         remaining = Precise.string_abs(self.safe_string(order, 6))
-        type = self.safe_string(order, 8)
+        type = self.safe_string(order, 8, '')
         if type.find('LIMIT') > -1:
             type = 'limit'
         elif type.find('MARKET') > -1:
             type = 'market'
-        rawState = self.safe_string(order, 13)
+        rawState = self.safe_string(order, 13, '')
         stateParts = rawState.split(' ')
         trimmedStatus = self.safe_string(stateParts, 0)
         status = self.parse_ws_order_status(trimmedStatus)
         price = self.safe_string(order, 16)
         timestamp = self.safe_integer_2(order, 5, 4)
         average = self.safe_string(order, 17)
-        stopPrice = self.omit_zero(self.safe_string(order, 18))
+        stopPrice = self.omit_zero((self.safe_string(order, 18)))
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1181,14 +1183,14 @@ class bitfinex(ccxt.async_support.bitfinex):
             subscription = self.safe_value(client.subscriptions, channelId, {})
             channel = self.safe_string(subscription, 'channel')
             name = self.safe_string(message, 1)
-            publicMethods: dict = {
+            publicMethods = {
                 'book': self.handle_order_book,
                 'cs': self.handle_checksum,
                 'candles': self.handle_ohlcv,
                 'ticker': self.handle_ticker,
                 'trades': self.handle_trades,
             }
-            privateMethods: dict = {
+            privateMethods = {
                 'os': self.handle_orders,
                 'ou': self.handle_orders,
                 'on': self.handle_orders,
@@ -1207,7 +1209,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         else:
             event = self.safe_string(message, 'event')
             if event is not None:
-                methods: dict = {
+                methods = {
                     'info': self.handle_system_status,
                     'subscribed': self.handle_subscription_status,
                     'unsubscribed': self.handle_unsubscription_status,

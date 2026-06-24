@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -83,7 +83,7 @@ class bitrue(ccxt.async_support.bitrue):
         """
         url = await self.authenticate()
         messageHash = 'balance'
-        message: dict = {
+        message = {
             'event': 'sub',
             'params': {
                 'channel': 'user_balance_update',
@@ -198,7 +198,7 @@ class bitrue(ccxt.async_support.bitrue):
             symbol = market['symbol']
         url = await self.authenticate()
         messageHash = 'orders'
-        message: dict = {
+        message = {
             'event': 'sub',
             'params': {
                 'channel': 'user_order_update',
@@ -307,9 +307,9 @@ class bitrue(ccxt.async_support.bitrue):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        url: Str = None
-        channel: Str = None
-        cbId: Str = None
+        url = None
+        channel = None
+        cbId = None
         if market['swap']:
             baseIdLower = self.safe_string_lower(market, 'baseId')
             quoteIdLower = self.safe_string_lower(market, 'quoteId')
@@ -322,7 +322,7 @@ class bitrue(ccxt.async_support.bitrue):
             channel = 'market_' + marketIdLowercase + '_simple_depth_step0'
             cbId = marketIdLowercase
             url = self.urls['api']['ws']['public']
-        message: dict = {
+        message = {
             'event': 'sub',
             'params': {
                 'cb_id': cbId,
@@ -369,7 +369,7 @@ class bitrue(ccxt.async_support.bitrue):
         parts = channel.split('_')
         channelKind = self.safe_string(parts, 1)
         isFutures = (channelKind == 'e')
-        market: Market = None
+        market = None
         if isFutures:
             wsBaseQuote = self.safe_string_lower(parts, 2)
             market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
@@ -449,7 +449,7 @@ class bitrue(ccxt.async_support.bitrue):
         channel = 'market_' + wsId + '_trade_ticker'
         messageHash = 'trades:' + symbol
         url = self.urls['api']['ws']['futurePublic']
-        message: dict = {
+        message = {
             'event': 'sub',
             'params': {
                 'cb_id': wsId,
@@ -557,7 +557,7 @@ class bitrue(ccxt.async_support.bitrue):
         channel = 'market_' + wsId + '_kline_' + interval
         messageHash = 'ohlcv:' + symbol + ':' + timeframe
         url = self.urls['api']['ws']['futurePublic']
-        message: dict = {
+        message = {
             'event': 'sub',
             'params': {
                 'cb_id': wsId,
@@ -646,7 +646,7 @@ class bitrue(ccxt.async_support.bitrue):
         channel = 'market_' + wsId + '_ticker'
         messageHash = 'ticker:' + symbol
         url = self.urls['api']['ws']['futurePublic']
-        message: dict = {
+        message = {
             'event': 'sub',
             'params': {
                 'cb_id': wsId,
@@ -722,7 +722,7 @@ class bitrue(ccxt.async_support.bitrue):
         }, market)
 
     def parse_ws_order_type(self, typeId):
-        types: dict = {
+        types = {
             '1': 'limit',
             '2': 'market',
             '3': 'limit',
@@ -730,7 +730,7 @@ class bitrue(ccxt.async_support.bitrue):
         return self.safe_string(types, typeId, typeId)
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             '0': 'open',  # The order has not been accepted by the engine.
             '1': 'open',  # The order has been accepted by the engine.
             '2': 'closed',  # The order has been completed.
@@ -750,7 +750,7 @@ class bitrue(ccxt.async_support.bitrue):
         #     }
         #
         time = self.safe_integer(message, 'ping')
-        pong: dict = {
+        pong = {
             'pong': time,
         }
         await client.send(pong)
@@ -770,7 +770,7 @@ class bitrue(ccxt.async_support.bitrue):
             self.handle_ping(client, message)
         else:
             event = self.safe_string(message, 'e')
-            handlers: dict = {
+            handlers = {
                 'BALANCE': self.handle_balance,
                 'ORDER': self.handle_order,
             }
@@ -801,7 +801,7 @@ class bitrue(ccxt.async_support.bitrue):
 
     async def keep_alive_listen_key(self, params={}):
         listenKey = self.safe_string(self.options, 'listenKey')
-        request: dict = {
+        request = {
             'listenKey': listenKey,
         }
         try:
