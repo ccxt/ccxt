@@ -23,7 +23,7 @@ ansicolor.nice
     const ohlcv = await new ccxt.cex ().fetchOHLCV ('BTC/USD', '1m')
     const lastPrice = ohlcv[ohlcv.length - 1][indexOfClose] // closing price
     const plotSeriesData = ohlcv.slice (-80).map (x => x[indexOfClose]) // closing price
-    const bitcoinRate = ('₿ = $' + lastPrice).green
+    const bitcoinRate = (('₿ = $' + lastPrice) as any).green
     const chart = asciichart.plot (plotSeriesData, { height: 15, padding: '            ' })
     log.yellow ("\n" + chart, bitcoinRate, "\n")
     process.exit ()

@@ -17,11 +17,11 @@ const table = asTable.configure ({ delimiter: ' | ' }), verbose   = process.argv
 //-----------------------------------------------------------------------------
 
 let printSupportedExchanges = function () {
-    log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
+    log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green)
 }
 
 let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'id'.green)
+    log ('Usage: node', process.argv[1], ('id' as any ).green)
     printSupportedExchanges ()
 }
 
@@ -65,8 +65,8 @@ let printSymbols = async (id) => {
                 .map (market =>
                     ccxt.omit (market, [ 'info', 'limits', 'precision', 'fees' ]))
 
-        let table = table (marketsList)
-        log (table)
+        let tableOutput = table (marketsList)
+        log (tableOutput)
 
         log ("\n---------------------------------------------------------------")
 
@@ -86,7 +86,7 @@ let printSymbols = async (id) => {
 
         // output a summary
         log (id.green, 'has', exchange.symbols.length.toString ().yellow, 'symbols and',
-            Object.keys (exchange.currencies).length.toString ().yellow, "currencies\n")
+            (Object.keys (exchange.currencies).length.toString () as any).yellow, "currencies\n")
 
     } else {
 
