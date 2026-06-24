@@ -16,7 +16,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     // eslint-disable-next-line import/no-named-as-default-member
     return Async\async(function () {

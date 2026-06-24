@@ -21,7 +21,7 @@ export default class ndax extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'ndax',
             'name': 'NDAX',
-            'countries': ['CA'],
+            'countries': ['CA'], // Canada
             'rateLimit': 1000,
             'pro': true,
             'has': {
@@ -180,8 +180,8 @@ export default class ndax extends Exchange {
                         'GetInstrument': 1,
                         'GetInstruments': 1,
                         'Ping': 1,
-                        'trades': 1,
-                        'GetLastTrades': 1,
+                        'trades': 1, // undocumented
+                        'GetLastTrades': 1, // undocumented
                         'SubscribeLevel1': 1,
                         'SubscribeLevel2': 1,
                         'SubscribeTicker': 1,
@@ -282,8 +282,8 @@ export default class ndax extends Exchange {
                             'index': false,
                             // bid & ask
                         },
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         // todo
                         'timeInForce': {
@@ -303,9 +303,9 @@ export default class ndax extends Exchange {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'limit': 100, // todo
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -364,12 +364,12 @@ export default class ndax extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Not_Enough_Funds': InsufficientFunds,
-                    'Server Error': ExchangeError,
+                    'Not_Enough_Funds': InsufficientFunds, // {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
+                    'Server Error': ExchangeError, // {"result":false,"errormsg":"Server Error","errorcode":102,"detail":null}
                     'Resource Not Found': OrderNotFound, // {"result":false,"errormsg":"Resource Not Found","errorcode":104,"detail":null}
                 },
                 'broad': {
-                    'Invalid InstrumentId': BadSymbol,
+                    'Invalid InstrumentId': BadSymbol, // {"result":false,"errormsg":"Invalid InstrumentId: 10000","errorcode":100,"detail":null}
                     'This endpoint requires 2FACode along with the payload': AuthenticationError,
                 },
             },
@@ -773,9 +773,9 @@ export default class ndax extends Exchange {
             'high': this.safeString(ticker, 'SessionHigh'),
             'low': this.safeString(ticker, 'SessionLow'),
             'bid': this.safeString(ticker, 'BestBid'),
-            'bidVolume': undefined,
+            'bidVolume': undefined, // this.safeNumber (ticker, 'BidQty'), always shows 0
             'ask': this.safeString(ticker, 'BestOffer'),
-            'askVolume': undefined,
+            'askVolume': undefined, // this.safeNumber (ticker, 'AskQty'), always shows 0
             'vwap': undefined,
             'open': open,
             'close': last,
@@ -1489,7 +1489,7 @@ export default class ndax extends Exchange {
             'InstrumentId': parseInt(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
-            'TimeInForce': 1,
+            'TimeInForce': 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
             // 'ClientOrderId': clientOrderId, // defaults to 0
             // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
             // If order B executes, then order A created by this call is canceled.
@@ -1497,7 +1497,7 @@ export default class ndax extends Exchange {
             // See CancelReplaceOrder and ModifyOrder.
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
-            'Side': orderSide,
+            'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
             'Quantity': parseFloat(this.amountToPrecision(symbol, amount)),
             'OrderType': orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
@@ -1538,7 +1538,7 @@ export default class ndax extends Exchange {
             'InstrumentId': parseInt(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
-            'TimeInForce': 1,
+            'TimeInForce': 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
             // 'ClientOrderId': clientOrderId, // defaults to 0
             // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
             // If order B executes, then order A created by this call is canceled.
@@ -1546,7 +1546,7 @@ export default class ndax extends Exchange {
             // See CancelReplaceOrder and ModifyOrder.
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
-            'Side': orderSide,
+            'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
             'Quantity': parseFloat(this.amountToPrecision(symbol, amount)),
             'OrderType': this.safeInteger(this.options['orderTypes'], this.capitalize(type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
@@ -2274,45 +2274,45 @@ export default class ndax extends Exchange {
     parseTransactionStatusByType(status, type = undefined) {
         const statusesByType = {
             'deposit': {
-                'New': 'pending',
-                'AdminProcessing': 'pending',
-                'Accepted': 'pending',
-                'Rejected': 'rejected',
-                'SystemProcessing': 'pending',
-                'FullyProcessed': 'ok',
-                'Failed': 'failed',
-                'Pending': 'pending',
-                'Confirmed': 'pending',
-                'AmlProcessing': 'pending',
-                'AmlAccepted': 'pending',
-                'AmlRejected': 'rejected',
-                'AmlFailed': 'failed',
-                'LimitsAccepted': 'pending',
+                'New': 'pending', // new ticket awaiting operator review
+                'AdminProcessing': 'pending', // an admin is looking at the ticket
+                'Accepted': 'pending', // an admin accepts the ticket
+                'Rejected': 'rejected', // admin rejects the ticket
+                'SystemProcessing': 'pending', // automatic processing; an unlikely status for a deposit
+                'FullyProcessed': 'ok', // the deposit has concluded
+                'Failed': 'failed', // the deposit has failed for some reason
+                'Pending': 'pending', // Account Provider has set status to pending
+                'Confirmed': 'pending', // Account Provider confirms the deposit
+                'AmlProcessing': 'pending', // anti-money-laundering process underway
+                'AmlAccepted': 'pending', // anti-money-laundering process successful
+                'AmlRejected': 'rejected', // deposit did not stand up to anti-money-laundering process
+                'AmlFailed': 'failed', // anti-money-laundering process failed/did not complete
+                'LimitsAccepted': 'pending', // deposit meets limits for fiat or crypto asset
                 'LimitsRejected': 'rejected', // deposit does not meet limits for fiat or crypto asset
             },
             'withdrawal': {
-                'New': 'pending',
-                'AdminProcessing': 'pending',
-                'Accepted': 'pending',
-                'Rejected': 'rejected',
-                'SystemProcessing': 'pending',
-                'FullyProcessed': 'ok',
-                'Failed': 'failed',
-                'Pending': 'pending',
-                'Pending2Fa': 'pending',
-                'AutoAccepted': 'pending',
-                'Delayed': 'pending',
-                'UserCanceled': 'canceled',
-                'AdminCanceled': 'canceled',
-                'AmlProcessing': 'pending',
-                'AmlAccepted': 'pending',
-                'AmlRejected': 'rejected',
-                'AmlFailed': 'failed',
-                'LimitsAccepted': 'pending',
-                'LimitsRejected': 'rejected',
-                'Submitted': 'pending',
-                'Confirmed': 'pending',
-                'ManuallyConfirmed': 'pending',
+                'New': 'pending', // awaiting operator review
+                'AdminProcessing': 'pending', // An admin is looking at the ticket
+                'Accepted': 'pending', // withdrawal will proceed
+                'Rejected': 'rejected', // admin or automatic rejection
+                'SystemProcessing': 'pending', // automatic processing underway
+                'FullyProcessed': 'ok', // the withdrawal has concluded
+                'Failed': 'failed', // the withdrawal failed for some reason
+                'Pending': 'pending', // the admin has placed the withdrawal in pending status
+                'Pending2Fa': 'pending', // user must click 2-factor authentication confirmation link
+                'AutoAccepted': 'pending', // withdrawal will be automatically processed
+                'Delayed': 'pending', // waiting for funds to be allocated for the withdrawal
+                'UserCanceled': 'canceled', // withdraw canceled by user or Superuser
+                'AdminCanceled': 'canceled', // withdraw canceled by Superuser
+                'AmlProcessing': 'pending', // anti-money-laundering process underway
+                'AmlAccepted': 'pending', // anti-money-laundering process complete
+                'AmlRejected': 'rejected', // withdrawal did not stand up to anti-money-laundering process
+                'AmlFailed': 'failed', // withdrawal did not complete anti-money-laundering process
+                'LimitsAccepted': 'pending', // withdrawal meets limits for fiat or crypto asset
+                'LimitsRejected': 'rejected', // withdrawal does not meet limits for fiat or crypto asset
+                'Submitted': 'pending', // withdrawal sent to Account Provider; awaiting blockchain confirmation
+                'Confirmed': 'pending', // Account Provider confirms that withdrawal is on the blockchain
+                'ManuallyConfirmed': 'pending', // admin has sent withdrawal via wallet or admin function directly; marks ticket as FullyProcessed; debits account
                 'Confirmed2Fa': 'pending', // user has confirmed withdraw via 2-factor authentication.
             },
         };

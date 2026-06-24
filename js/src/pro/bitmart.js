@@ -37,7 +37,7 @@ export default class bitmart extends bitmartRest {
                 'watchOHLCV': true,
                 'watchPosition': 'emulated',
                 'watchPositions': true,
-                'unWatchBidsAsks': false,
+                'unWatchBidsAsks': false, // the same channel as watchTickers
                 'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
@@ -65,7 +65,7 @@ export default class bitmart extends bitmartRest {
             'options': {
                 'defaultType': 'spot',
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // or false
                     'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
                 //
@@ -274,6 +274,9 @@ export default class bitmart extends bitmartRest {
         //    }
         //
         const channel = this.safeString2(message, 'table', 'group');
+        if (channel === undefined) {
+            return;
+        }
         const data = this.safeValue(message, 'data');
         if (data === undefined) {
             return;
@@ -577,7 +580,7 @@ export default class bitmart extends bitmartRest {
         let type = 'spot';
         [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
         await this.authenticate(type, params);
-        let request = undefined;
+        let request;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
             if (symbol !== undefined) {
@@ -629,7 +632,7 @@ export default class bitmart extends bitmartRest {
         let type = 'spot';
         [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
         await this.authenticate(type, params);
-        let request = undefined;
+        let request;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
             if (symbol !== undefined) {
@@ -870,23 +873,23 @@ export default class bitmart extends bitmartRest {
     }
     parseWsOrderStatus(statusId) {
         const statuses = {
-            '1': 'closed',
-            '2': 'open',
-            '3': 'canceled',
-            '4': 'closed',
-            '5': 'canceled',
-            '6': 'open',
-            '7': 'open',
-            '8': 'closed',
+            '1': 'closed', // match deal
+            '2': 'open', // submit order
+            '3': 'canceled', // cancel order
+            '4': 'closed', // liquidate cancel order
+            '5': 'canceled', // adl cancel order
+            '6': 'open', // part liquidate
+            '7': 'open', // bankrupty order
+            '8': 'closed', // passive adl match deal
             '9': 'closed', // active adl match deal
         };
         return this.safeString(statuses, statusId, statusId);
     }
     parseWsOrderSide(sideId) {
         const sides = {
-            '1': 'buy',
-            '2': 'buy',
-            '3': 'sell',
+            '1': 'buy', // buy_open_long
+            '2': 'buy', // buy_close_short
+            '3': 'sell', // sell_close_long
             '4': 'sell', // sell_open_short
         };
         return this.safeString(sides, sideId, sideId);
@@ -1163,7 +1166,7 @@ export default class bitmart extends bitmartRest {
         else {
             datetime = this.iso8601(timestamp);
         }
-        let takerOrMaker = undefined; // true for public trades
+        let takerOrMaker; // true for public trades
         let side = this.safeString(trade, 'side');
         const buyerMaker = this.safeBool(trade, 'm');
         if (buyerMaker !== undefined) {
@@ -1411,7 +1414,7 @@ export default class bitmart extends bitmartRest {
                 const symbol = market['symbol'];
                 const rawOHLCV = this.safeList(data[i], 'candle');
                 const parsed = this.parseOHLCV(rawOHLCV, market);
-                parsed[0] = this.parseToInt(parsed[0] / durationInMs) * durationInMs;
+                parsed[0] = this.parseToInt(this.parseToInt(parsed[0]) / durationInMs) * durationInMs;
                 this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
                 let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
                 if (stored === undefined) {
@@ -1817,7 +1820,7 @@ export default class bitmart extends bitmartRest {
             const path = 'bitmart.WebSocket';
             const auth = timestamp + '#' + memo + '#' + path;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            let request = undefined;
+            let request;
             if (type === 'spot') {
                 request = {
                     'op': 'login',
@@ -2110,6 +2113,15 @@ export default class bitmart extends bitmartRest {
             };
             if (channel.indexOf('fundingRate') >= 0) {
                 this.handleFundingRate(client, message);
+                return;
+            }
+            // 'ticker' is a substring of 'bookTicker', so a bookTicker channel could
+            // be wrongly captured by (or double-dispatched with) the 'ticker' key in a
+            // first-match loop (in Go map iteration order is randomized). Check the
+            // bookTicker prefix explicitly, then fall back to a simple first-match.
+            if (channel.indexOf('bookTicker') >= 0) {
+                this.handleBidAsk(client, message);
+                return;
             }
             const keys = Object.keys(methods);
             for (let i = 0; i < keys.length; i++) {
@@ -2117,6 +2129,7 @@ export default class bitmart extends bitmartRest {
                 if (channel.indexOf(key) >= 0) {
                     const method = this.safeValue(methods, key);
                     method.call(this, client, message);
+                    return;
                 }
             }
         }

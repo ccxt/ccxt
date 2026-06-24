@@ -12,7 +12,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 async def test():
 
-    exchange = ccxt.okex({
+    exchange = ccxt.okx({
         # 'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'origin': 'foobar',  # when using CORS proxies, set this to some random string
     })

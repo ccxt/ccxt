@@ -767,7 +767,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, Bool $tail = false) {
+    public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
         $results = array();
         $timestamp = $this->safe_list($ohlcvs, 't', array());
         $high = $this->safe_list($ohlcvs, 'h', array());
@@ -1061,7 +1061,7 @@ class btcturk extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         if ($this->id === 'btctrader') {
             throw new ExchangeError($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         }

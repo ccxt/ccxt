@@ -527,8 +527,8 @@ class indodax extends Exchange {
         //
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'server_time');
-        $baseVolume = 'vol_' . strtolower($market['baseId']);
-        $quoteVolume = 'vol_' . strtolower($market['quoteId']);
+        $baseVolume = 'vol_' . $this->safe_string_lower($market, 'baseId');
+        $quoteVolume = 'vol_' . $this->safe_string_lower($market, 'quoteId');
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1107,9 +1107,9 @@ class indodax extends Exchange {
         $this->load_markets();
         $request = array();
         if ($since !== null) {
-            $startTime = $this->iso8601(mb_substr($since), 0, 10 - 0);
+            $startTime = $this->yyyymmdd($since);
             $request['start'] = $startTime;
-            $request['end'] = $this->iso8601($this->milliseconds(mb_substr()), 0, 10 - 0);
+            $request['end'] = $this->yyyymmdd($this->milliseconds());
         }
         $response = $this->privatePostTransHistory ($this->extend($request, $params));
         //
@@ -1417,7 +1417,7 @@ class indodax extends Exchange {
         return $result;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));

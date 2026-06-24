@@ -1,5 +1,5 @@
 import modetradeRest from '../modetrade.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Bool } from '../base/types.js';
+import type { Balances, Bool, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class modetrade extends modetradeRest {
     describe(): any;

@@ -1,5 +1,5 @@
 import bullishRest from '../bullish.js';
-import type { Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bullish extends bullishRest {
     describe(): any;
@@ -50,7 +50,7 @@ export default class bullish extends bullishRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
-    separateBidsOrAsks(entry: any): any[];
+    separateBidsOrAsks(entry: any): List;
     /**
      * @method
      * @name bullish#watchOrders

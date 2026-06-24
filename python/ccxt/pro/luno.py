@@ -56,10 +56,10 @@ class luno(ccxt.async_support.luno):
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
-        subscription: dict = {'symbol': symbol}
+        subscription = {'symbol': symbol}
         url = self.urls['api']['ws'] + subscriptionHash
         messageHash = 'trades:' + symbol
-        subscribe: dict = {
+        subscribe = {
             'api_key_id': self.apiKey,
             'api_key_secret': self.secret,
         }
@@ -147,10 +147,10 @@ class luno(ccxt.async_support.luno):
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
-        subscription: dict = {'symbol': symbol}
+        subscription = {'symbol': symbol}
         url = self.urls['api']['ws'] + subscriptionHash
         messageHash = 'orderbook:' + symbol
-        subscribe: dict = {
+        subscribe = {
             'api_key_id': self.apiKey,
             'api_key_secret': self.secret,
         }

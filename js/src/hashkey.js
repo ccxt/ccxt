@@ -20,7 +20,7 @@ export default class hashkey extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'hashkey',
             'name': 'HashKey Global',
-            'countries': ['BM'],
+            'countries': ['BM'], // Bermuda
             'rateLimit': 100,
             'version': 'v1',
             'certified': true,
@@ -140,8 +140,8 @@ export default class hashkey extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
-                'fetchTradingFees': true,
+                'fetchTradingFee': true, // emulated for spot markets
+                'fetchTradingFees': true, // for spot markets only
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchUnderlyingAssets': false,
@@ -198,7 +198,7 @@ export default class hashkey extends Exchange {
                         'quote/v1/klines': 1,
                         'quote/v1/ticker/24hr': 1,
                         'quote/v1/ticker/price': 1,
-                        'quote/v1/ticker/bookTicker': 1,
+                        'quote/v1/ticker/bookTicker': 1, // not unified
                         'quote/v1/depth/merged': 1,
                         'quote/v1/markPrice': 1,
                         'quote/v1/index': 1,
@@ -399,8 +399,8 @@ export default class hashkey extends Exchange {
                         'trailing': false,
                         'leverage': false,
                         'marketBuyByCost': true,
-                        'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true,
+                        'marketBuyRequiresPrice': true, // todo fix
+                        'selfTradePrevention': true, // todo implement
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -427,7 +427,7 @@ export default class hashkey extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
@@ -460,169 +460,169 @@ export default class hashkey extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '0001': BadRequest,
-                    '0002': AuthenticationError,
-                    '0003': RateLimitExceeded,
-                    '0102': AuthenticationError,
-                    '0103': AuthenticationError,
-                    '0104': PermissionDenied,
-                    '0201': ExchangeError,
-                    '0202': PermissionDenied,
-                    '0206': BadRequest,
-                    '0207': BadRequest,
-                    '0209': BadRequest,
-                    '0210': BadRequest,
-                    '0211': OrderNotFound,
-                    '0401': InsufficientFunds,
-                    '0402': BadRequest,
-                    '-1000': ExchangeError,
-                    '-1001': ExchangeError,
-                    '-100010': BadSymbol,
-                    '-100012': BadSymbol,
-                    '-1002': AuthenticationError,
-                    '-1004': BadRequest,
-                    '-1005': PermissionDenied,
-                    '-1006': ExchangeError,
-                    '-1007': RequestTimeout,
-                    '-1014': InvalidOrder,
-                    '-1015': InvalidOrder,
-                    '-1020': OperationRejected,
-                    '-1021': InvalidNonce,
-                    '-1024': BadRequest,
-                    '-1101': ExchangeNotAvailable,
-                    '-1115': InvalidOrder,
-                    '-1117': InvalidOrder,
-                    '-1123': InvalidOrder,
-                    '-1124': InvalidOrder,
-                    '-1126': InvalidOrder,
-                    '-1129': BadRequest,
-                    '-1130': BadRequest,
-                    '-1132': BadRequest,
-                    '-1133': BadRequest,
-                    '-1135': BadRequest,
-                    '-1136': BadRequest,
-                    '-1138': InvalidOrder,
-                    '-1137': InvalidOrder,
-                    '-1139': OrderImmediatelyFillable,
-                    '-1140': InvalidOrder,
-                    '-1141': DuplicateOrderId,
-                    '-1142': OrderNotFillable,
-                    '-1143': OrderNotFound,
-                    '-1144': OperationRejected,
-                    '-1145': NotSupported,
-                    '-1146': RequestTimeout,
-                    '-1147': RequestTimeout,
-                    '-1148': InvalidOrder,
-                    '-1149': OperationRejected,
-                    '-1150': OperationFailed,
-                    '-1151': OperationRejected,
-                    '-1152': AccountNotEnabled,
-                    '-1153': InvalidOrder,
-                    '-1154': InvalidOrder,
-                    '-1155': OperationRejected,
-                    '-1156': OperationFailed,
-                    '-1157': OperationFailed,
-                    '-1158': OperationFailed,
-                    '-1159': AccountNotEnabled,
-                    '-1160': AccountNotEnabled,
-                    '-1161': OperationFailed,
-                    '-1162': ContractUnavailable,
-                    '-1163': InvalidAddress,
-                    '-1164': OperationFailed,
-                    '-1165': ArgumentsRequired,
-                    '-1166': OperationRejected,
-                    '-1167': BadRequest,
-                    '-1168': BadRequest,
-                    '-1169': PermissionDenied,
-                    '-1170': PermissionDenied,
-                    '-1171': PermissionDenied,
-                    '-1172': BadRequest,
-                    '-1173': BadRequest,
-                    '-1174': PermissionDenied,
-                    '-1175': BadRequest,
-                    '-1176': BadRequest,
-                    '-1177': InvalidOrder,
-                    '-1178': AccountNotEnabled,
-                    '-1179': AccountSuspended,
-                    '-1181': ExchangeError,
-                    '-1193': OperationRejected,
-                    '-1194': OperationRejected,
-                    '-1195': BadRequest,
-                    '-1196': BadRequest,
-                    '-1200': BadRequest,
-                    '-1201': BadRequest,
-                    '-1202': BadRequest,
-                    '-1203': BadRequest,
-                    '-1204': BadRequest,
-                    '-1205': AccountNotEnabled,
-                    '-1206': BadRequest,
-                    '-1207': BadRequest,
-                    '-1208': BadRequest,
-                    '-1209': BadRequest,
-                    '-2001': ExchangeNotAvailable,
-                    '-2002': OperationFailed,
-                    '-2003': OperationFailed,
-                    '-2004': OperationFailed,
-                    '-2005': RequestTimeout,
-                    '-2010': OperationRejected,
-                    '-2011': OperationRejected,
-                    '-2016': OperationRejected,
-                    '-2017': OperationRejected,
-                    '-2018': OperationRejected,
-                    '-2019': PermissionDenied,
-                    '-2020': PermissionDenied,
-                    '-2021': PermissionDenied,
-                    '-2022': OperationRejected,
-                    '-2023': AuthenticationError,
-                    '-2024': AccountNotEnabled,
-                    '-2025': AccountNotEnabled,
-                    '-2026': BadRequest,
-                    '-2027': OperationRejected,
-                    '-2028': OperationRejected,
-                    '-2029': OperationRejected,
-                    '-2030': InsufficientFunds,
-                    '-2031': NotSupported,
-                    '-2032': OperationRejected,
-                    '-2033': OperationFailed,
-                    '-2034': InsufficientFunds,
-                    '-2035': OperationRejected,
-                    '-2036': NotSupported,
-                    '-2037': ExchangeError,
-                    '-2038': InsufficientFunds,
-                    '-2039': NotSupported,
-                    '-2040': ExchangeNotAvailable,
-                    '-2041': BadRequest,
-                    '-2042': OperationRejected,
-                    '-2043': OperationRejected,
-                    '-2044': BadRequest,
-                    '-2045': BadRequest,
-                    '-2046': BadRequest,
-                    '-2048': BadRequest,
-                    '-2049': BadRequest,
-                    '-2050': BadRequest,
-                    '-2051': OperationRejected,
-                    '-2052': OperationRejected,
-                    '-2053': OperationRejected,
-                    '-2054': BadRequest,
-                    '-2055': BadRequest,
-                    '-2056': BadRequest,
-                    '-2057': BadRequest,
-                    '-3117': PermissionDenied,
-                    '-3143': PermissionDenied,
-                    '-3144': PermissionDenied,
-                    '-3145': DDoSProtection,
-                    '-4001': BadRequest,
-                    '-4002': BadRequest,
-                    '-4003': InsufficientFunds,
-                    '-4004': BadRequest,
-                    '-4005': BadRequest,
-                    '-4006': AccountNotEnabled,
-                    '-4007': NotSupported,
-                    '-4008': AccountNotEnabled,
-                    '-4009': PermissionDenied,
-                    '-4010': PermissionDenied,
-                    '-4011': ExchangeError,
-                    '-4012': ExchangeError,
+                    '0001': BadRequest, // Required field '%s' missing or invalid.
+                    '0002': AuthenticationError, // Incorrect signature
+                    '0003': RateLimitExceeded, // Rate limit exceeded
+                    '0102': AuthenticationError, // Invalid APIKey
+                    '0103': AuthenticationError, // APIKey expired
+                    '0104': PermissionDenied, // The accountId defined is not permissible
+                    '0201': ExchangeError, // Instrument not found
+                    '0202': PermissionDenied, // Invalid IP
+                    '0206': BadRequest, // Unsupported order type
+                    '0207': BadRequest, // Invalid price
+                    '0209': BadRequest, // Invalid price precision
+                    '0210': BadRequest, // Price outside of allowed range
+                    '0211': OrderNotFound, // Order not found
+                    '0401': InsufficientFunds, // Insufficient asset
+                    '0402': BadRequest, // Invalid asset
+                    '-1000': ExchangeError, // An unknown error occurred while processing the request
+                    '-1001': ExchangeError, // Internal error
+                    '-100010': BadSymbol, // Invalid Symbols!
+                    '-100012': BadSymbol, // Parameter symbol [String] missing!
+                    '-1002': AuthenticationError, // Unauthorized operation
+                    '-1004': BadRequest, // Bad request
+                    '-1005': PermissionDenied, // No permission
+                    '-1006': ExchangeError, // Execution status unknown
+                    '-1007': RequestTimeout, // Timeout waiting for response from server
+                    '-1014': InvalidOrder, // Unsupported order combination
+                    '-1015': InvalidOrder, // Too many new orders
+                    '-1020': OperationRejected, // Unsupported operation
+                    '-1021': InvalidNonce, // Timestamp for this request is outside of the recvWindow
+                    '-1024': BadRequest, // Duplicate request
+                    '-1101': ExchangeNotAvailable, // Feature has been offline
+                    '-1115': InvalidOrder, // Invalid timeInForce
+                    '-1117': InvalidOrder, // Invalid order side
+                    '-1123': InvalidOrder, // Invalid client order id
+                    '-1124': InvalidOrder, // Invalid price
+                    '-1126': InvalidOrder, // Invalid quantity
+                    '-1129': BadRequest, // Invalid parameters, quantity and amount are not allowed to be sent at the same time.
+                    '-1130': BadRequest, // Illegal parameter '%s'
+                    '-1132': BadRequest, // Order price greater than the maximum
+                    '-1133': BadRequest, // Order price lower than the minimum
+                    '-1135': BadRequest, // Order quantity greater than the maximum
+                    '-1136': BadRequest, // Order quantity lower than the minimum
+                    '-1138': InvalidOrder, // Order has been partially cancelled
+                    '-1137': InvalidOrder, // Order quantity precision too large
+                    '-1139': OrderImmediatelyFillable, // Order has been filled
+                    '-1140': InvalidOrder, // Order amount lower than the minimum
+                    '-1141': DuplicateOrderId, // Duplicate order
+                    '-1142': OrderNotFillable, // Order has been cancelled
+                    '-1143': OrderNotFound, // Order not found on order book
+                    '-1144': OperationRejected, // Order has been locked
+                    '-1145': NotSupported, // Cancellation on this order type not supported
+                    '-1146': RequestTimeout, // Order creation timeout
+                    '-1147': RequestTimeout, // Order cancellation timeout
+                    '-1148': InvalidOrder, // Order amount precision too large
+                    '-1149': OperationRejected, // Order creation failed
+                    '-1150': OperationFailed, // Order cancellation failed
+                    '-1151': OperationRejected, // The trading pair is not open yet
+                    '-1152': AccountNotEnabled, // User does not exist
+                    '-1153': InvalidOrder, // Invalid price type
+                    '-1154': InvalidOrder, // Invalid position side
+                    '-1155': OperationRejected, // The trading pair is not available for api trading
+                    '-1156': OperationFailed, // Limit maker order creation failed
+                    '-1157': OperationFailed, // Modify futures margin failed
+                    '-1158': OperationFailed, // Reduce margin is forbidden
+                    '-1159': AccountNotEnabled, // Finance account already exists
+                    '-1160': AccountNotEnabled, // Account does not exist
+                    '-1161': OperationFailed, // Balance transfer failed
+                    '-1162': ContractUnavailable, // Unsupport contract address
+                    '-1163': InvalidAddress, // Illegal withdrawal address
+                    '-1164': OperationFailed, // Withdraw failed
+                    '-1165': ArgumentsRequired, // Withdrawal amount cannot be null
+                    '-1166': OperationRejected, // Withdrawal amount exceeds the daily limit
+                    '-1167': BadRequest, // Withdrawal amount less than the minimum
+                    '-1168': BadRequest, // Illegal withdrawal amount
+                    '-1169': PermissionDenied, // Withdraw not allowed
+                    '-1170': PermissionDenied, // Deposit not allowed
+                    '-1171': PermissionDenied, // Withdrawal address not in whitelist
+                    '-1172': BadRequest, // Invalid from account id
+                    '-1173': BadRequest, // Invalid to account i
+                    '-1174': PermissionDenied, // Transfer not allowed between the same account
+                    '-1175': BadRequest, // Invalid fiat deposit status
+                    '-1176': BadRequest, // Invalid fiat withdrawal status
+                    '-1177': InvalidOrder, // Invalid fiat order type
+                    '-1178': AccountNotEnabled, // Brokerage account does not exist
+                    '-1179': AccountSuspended, // Address owner is not true
+                    '-1181': ExchangeError, // System error
+                    '-1193': OperationRejected, // Order creation count exceeds the limit
+                    '-1194': OperationRejected, // Market order creation forbidden
+                    '-1195': BadRequest, // Market order long position cannot exceed %s above the market price
+                    '-1196': BadRequest, // Market order short position cannot be below %s of the market price
+                    '-1200': BadRequest, // Order buy quantity too small
+                    '-1201': BadRequest, // Order buy quantity too large
+                    '-1202': BadRequest, // Order sell quantity too small
+                    '-1203': BadRequest, // Order sell quantity too large
+                    '-1204': BadRequest, // From account must be a main account
+                    '-1205': AccountNotEnabled, // Account not authorized
+                    '-1206': BadRequest, // Order amount greater than the maximum
+                    '-1207': BadRequest, // The status of deposit is invalid
+                    '-1208': BadRequest, // The orderType of fiat is invalid
+                    '-1209': BadRequest, // The status of withdraw is invalid
+                    '-2001': ExchangeNotAvailable, // Platform is yet to open trading
+                    '-2002': OperationFailed, // The number of open orders exceeds the limit 300
+                    '-2003': OperationFailed, // Position size cannot meet target leverage
+                    '-2004': OperationFailed, // Adjust leverage fail
+                    '-2005': RequestTimeout, // Adjust leverage timeout
+                    '-2010': OperationRejected, // New order rejected
+                    '-2011': OperationRejected, // Order cancellation rejected
+                    '-2016': OperationRejected, // API key creation exceeds the limit
+                    '-2017': OperationRejected, // Open orders exceeds the limit of the trading pair
+                    '-2018': OperationRejected, // Trade user creation exceeds the limit
+                    '-2019': PermissionDenied, // Trader and omnibus user not allowed to login app
+                    '-2020': PermissionDenied, // Not allowed to trade this trading pair
+                    '-2021': PermissionDenied, // Not allowed to trade this trading pair
+                    '-2022': OperationRejected, // Order batch size exceeds the limit
+                    '-2023': AuthenticationError, // Need to pass KYC verification
+                    '-2024': AccountNotEnabled, // Fiat account does not exist
+                    '-2025': AccountNotEnabled, // Custody account not exist
+                    '-2026': BadRequest, // Invalid type
+                    '-2027': OperationRejected, // Exceed maximum time range of 30 days
+                    '-2028': OperationRejected, // The search is limited to data within the last one month
+                    '-2029': OperationRejected, // The search is limited to data within the last three months
+                    '-2030': InsufficientFunds, // Insufficient margin
+                    '-2031': NotSupported, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                    '-2032': OperationRejected, // After the transaction, your %s position will account for %s of the total position, which poses concentration risk. Do you want to continue with the transaction?
+                    '-2033': OperationFailed, // Order creation failed. Please verify if the order parameters comply with the trading rules
+                    '-2034': InsufficientFunds, // Trade account holding limit is zero
+                    '-2035': OperationRejected, // The sub account has been frozen and cannot transfer
+                    '-2036': NotSupported, // We do not support queries for records exceeding 30 days
+                    '-2037': ExchangeError, // Position and order data error
+                    '-2038': InsufficientFunds, // Insufficient margin
+                    '-2039': NotSupported, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                    '-2040': ExchangeNotAvailable, // There is a request being processed. Please try again later
+                    '-2041': BadRequest, // Token does not exist
+                    '-2042': OperationRejected, // You have passed the trade limit, please pay attention to the risks
+                    '-2043': OperationRejected, // Maximum allowed leverage reached, please lower your leverage
+                    '-2044': BadRequest, // This order price is unreasonable to exceed (or be lower than) the liquidation price
+                    '-2045': BadRequest, // Price too low, please order again!
+                    '-2046': BadRequest, // Price too high, please order again!
+                    '-2048': BadRequest, // Exceed the maximum number of conditional orders of %s
+                    '-2049': BadRequest, // Create stop order buy price too big
+                    '-2050': BadRequest, // Create stop order sell price too small
+                    '-2051': OperationRejected, // Create order rejected
+                    '-2052': OperationRejected, // Create stop profit-loss plan order reject
+                    '-2053': OperationRejected, // Position not enough
+                    '-2054': BadRequest, // Invalid long stop profit price
+                    '-2055': BadRequest, // Invalid long stop loss price
+                    '-2056': BadRequest, // Invalid short stop profit price
+                    '-2057': BadRequest, // Invalid short stop loss price
+                    '-3117': PermissionDenied, // Invalid permission
+                    '-3143': PermissionDenied, // According to KYC and risk assessment, your trading account has exceeded the limit.
+                    '-3144': PermissionDenied, // Currently, your trading account has exceeded its limit and is temporarily unable to perform transfers
+                    '-3145': DDoSProtection, // Please DO NOT submit request too frequently
+                    '-4001': BadRequest, // Invalid asset
+                    '-4002': BadRequest, // Withdrawal amount less than Minimum Withdrawal Amount
+                    '-4003': InsufficientFunds, // Insufficient Balance
+                    '-4004': BadRequest, // Invalid bank account number
+                    '-4005': BadRequest, // Assets are not listed
+                    '-4006': AccountNotEnabled, // KYC is not certified
+                    '-4007': NotSupported, // Withdrawal channels are not supported
+                    '-4008': AccountNotEnabled, // This currency does not support this customer type
+                    '-4009': PermissionDenied, // No withdrawal permission
+                    '-4010': PermissionDenied, // Withdrawals on the same day exceed the maximum limit for a single day
+                    '-4011': ExchangeError, // System error
+                    '-4012': ExchangeError, // Parameter error
                     '-4013': OperationFailed, // Withdraw repeatly
                 },
                 'broad': {},
@@ -1386,7 +1386,7 @@ export default class hashkey extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             if (accountId !== undefined) {
                 request['subAccountId'] = accountId;
                 response = await this.privateGetApiV1FuturesSubAccountUserTrades(this.extend(request, params));
@@ -2363,8 +2363,8 @@ export default class hashkey extends Exchange {
     }
     parseLedgerEntryType(type) {
         const types = {
-            '1': 'trade',
-            '2': 'fee',
+            '1': 'trade', // transfer
+            '2': 'fee', // trade
             '51': 'transfer',
             '900': 'deposit',
             '904': 'withdraw',
@@ -3461,7 +3461,7 @@ export default class hashkey extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             let isTrigger = false;
             [isTrigger, params] = this.handleTriggerOptionAndParams(params, methodName, isTrigger);
             if (isTrigger) {
@@ -4018,7 +4018,7 @@ export default class hashkey extends Exchange {
         const leverageValue = this.safeNumber(leverage, 'leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,

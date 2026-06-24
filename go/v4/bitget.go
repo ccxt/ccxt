@@ -2822,7 +2822,7 @@ func (this *BitgetCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) 
 		}
 		var maxNotional any = this.SafeNumberN(item, []any{"endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount", "maxTierValue"})
 		var marginCurrency any = this.SafeString2(item, "coin", "baseCoin")
-		var currencyId any = Ternary(IsTrue((!IsEqual(marginCurrency, nil))), marginCurrency, GetValue(market, "base"))
+		var currencyId any = Ternary(IsTrue((!IsEqual(marginCurrency, nil))), marginCurrency, this.SafeString(market, "base"))
 		var marketId any = this.SafeString(item, "symbol")
 		AppendToArray(&tiers, map[string]any{
 			"tier":                  this.SafeInteger2(item, "level", "tier"),
@@ -3810,7 +3810,7 @@ func (this *BitgetCore) FetchTickers(optionalArgs ...any) <-chan any {
 			if IsTrue(!IsEqual(symbols, nil)) {
 				var symbolsLength any = GetArrayLength(symbols)
 				if IsTrue(IsEqual(symbolsLength, 1)) {
-					AddElementToObject(request, "symbol", GetValue(market, "id"))
+					AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 				}
 			}
 			AddElementToObject(request, "category", productType)
@@ -8279,7 +8279,7 @@ func (this *BitgetCore) FetchLedger(optionalArgs ...any) <-chan any {
 			PanicOnError(response)
 		} else {
 			if IsTrue(!IsEqual(symbol, nil)) {
-				AddElementToObject(request, "symbol", GetValue(market, "id"))
+				AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			}
 			var productType any = nil
 			productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
@@ -9968,12 +9968,12 @@ func (this *BitgetCore) ParseMarginModification(data any, optionalArgs ...any) a
 	var status any = Ternary(IsTrue((IsEqual(errorCode, "00000"))), "ok", "failed")
 	return map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
 		"marginMode": "isolated",
 		"amount":     nil,
 		"total":      nil,
-		"code":       GetValue(market, "settle"),
+		"code":       this.SafeString(market, "settle"),
 		"status":     status,
 		"timestamp":  nil,
 		"datetime":   nil,
@@ -10121,7 +10121,7 @@ func (this *BitgetCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var shortLevKey any = Ternary(IsTrue(isCrossMarginMode), "crossedMarginLeverage", "isolatedShortLever")
 	return map[string]any{
 		"info":          leverage,
-		"symbol":        GetValue(market, "symbol"),
+		"symbol":        this.SafeString(market, "symbol"),
 		"marginMode":    Ternary(IsTrue(isCrossMarginMode), "cross", "isolated"),
 		"longLeverage":  this.SafeInteger(leverage, longLevKey),
 		"shortLeverage": this.SafeInteger(leverage, shortLevKey),
@@ -11091,7 +11091,7 @@ func (this *BitgetCore) FetchMyLiquidations(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " fetchMyLiquidations() requires a symbol argument")))
 			}
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 
 			response = (<-this.PrivateMarginGetV2MarginIsolatedLiquidationHistory(this.Extend(request, params)))
 			PanicOnError(response)
@@ -11549,7 +11549,7 @@ func (this *BitgetCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " fetchBorrowInterest() requires a symbol argument")))
 			}
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 
 			response = (<-this.PrivateMarginGetV2MarginIsolatedInterestHistory(this.Extend(request, params)))
 			PanicOnError(response)
@@ -11857,7 +11857,7 @@ func (this *BitgetCore) ParseMarginMode(marginMode any, optionalArgs ...any) any
 	marginType = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", marginType)
 	return map[string]any{
 		"info":       marginMode,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"marginMode": marginType,
 	}
 }
@@ -12496,13 +12496,16 @@ func (this *BitgetCore) Sign(path any, optionalArgs ...any) any {
 			auth = Add(auth, body)
 		} else {
 			if IsTrue(GetArrayLength(ObjectKeys(params))) {
-				var queryInner any = Add("?", this.Urlencode(this.Keysort(params)))
+				var sortedParams any = this.Keysort(params)
+				var queryInner any = Add("?", this.Urlencode(sortedParams, true))
 				// check #21169 pr
 				if IsTrue(IsGreaterThan(GetIndexOf(queryInner, "%24"), OpNeg(1))) {
 					queryInner = Replace(queryInner, "%24", "$")
 				}
 				url = Add(url, queryInner)
-				auth = Add(auth, queryInner)
+				// bitget signs the raw (non-percent-encoded) query string, so the
+				// signature must use the decoded values (e.g. non-ascii market ids)
+				auth = Add(auth, Add("?", this.Rawencode(sortedParams)))
 			}
 		}
 		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")

@@ -311,7 +311,7 @@ export default class coinbase extends Exchange {
             'fees': {
                 'trading': {
                     'taker': this.parseNumber('0.012'),
-                    'maker': this.parseNumber('0.006'),
+                    'maker': this.parseNumber('0.006'), // {"pricing_tier":"Advanced 1","usd_from":"0","usd_to":"1000","taker_fee_rate":"0.012","maker_fee_rate":"0.006","aop_from":"","aop_to":""}
                     'tierBased': true,
                     'percentage': true,
                     'tiers': {
@@ -343,26 +343,26 @@ export default class coinbase extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'two_factor_required': AuthenticationError,
-                    'param_required': ExchangeError,
-                    'validation_error': ExchangeError,
-                    'invalid_request': ExchangeError,
-                    'personal_details_required': AuthenticationError,
-                    'identity_verification_required': AuthenticationError,
-                    'jumio_verification_required': AuthenticationError,
-                    'jumio_face_match_verification_required': AuthenticationError,
-                    'unverified_email': AuthenticationError,
-                    'authentication_error': AuthenticationError,
-                    'unauthorized': AuthenticationError,
-                    'invalid_authentication_method': AuthenticationError,
-                    'invalid_token': AuthenticationError,
-                    'revoked_token': AuthenticationError,
-                    'expired_token': AuthenticationError,
-                    'invalid_scope': AuthenticationError,
-                    'not_found': ExchangeError,
-                    'rate_limit_exceeded': RateLimitExceeded,
-                    'resource_exhausted': RateLimitExceeded,
-                    'internal_server_error': ExchangeError,
+                    'two_factor_required': AuthenticationError, // 402 When sending money over 2fa limit
+                    'param_required': ExchangeError, // 400 Missing parameter
+                    'validation_error': ExchangeError, // 400 Unable to validate POST/PUT
+                    'invalid_request': ExchangeError, // 400 Invalid request
+                    'personal_details_required': AuthenticationError, // 400 User’s personal detail required to complete this request
+                    'identity_verification_required': AuthenticationError, // 400 Identity verification is required to complete this request
+                    'jumio_verification_required': AuthenticationError, // 400 Document verification is required to complete this request
+                    'jumio_face_match_verification_required': AuthenticationError, // 400 Document verification including face match is required to complete this request
+                    'unverified_email': AuthenticationError, // 400 User has not verified their email
+                    'authentication_error': AuthenticationError, // 401 Invalid auth (generic)
+                    'unauthorized': AuthenticationError, // 401 Not authorized to perform this operation
+                    'invalid_authentication_method': AuthenticationError, // 401 API access is blocked for deleted users.
+                    'invalid_token': AuthenticationError, // 401 Invalid Oauth token
+                    'revoked_token': AuthenticationError, // 401 Revoked Oauth token
+                    'expired_token': AuthenticationError, // 401 Expired Oauth token
+                    'invalid_scope': AuthenticationError, // 403 User hasn’t authenticated necessary scope
+                    'not_found': ExchangeError, // 404 Resource not found
+                    'rate_limit_exceeded': RateLimitExceeded, // 429 Rate limit exceeded
+                    'resource_exhausted': RateLimitExceeded, // 429 Resource has been exhausted
+                    'internal_server_error': ExchangeError, // 500 Internal server error
                     'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
                     'INSUFFICIENT_FUND': InsufficientFunds,
                     'PERMISSION_DENIED': PermissionDenied,
@@ -372,7 +372,7 @@ export default class coinbase extends Exchange {
                 },
                 'broad': {
                     'Insufficient balance in source account': InsufficientFunds,
-                    'request timestamp expired': InvalidNonce,
+                    'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
                     'order with this orderID was not found': OrderNotFound, // {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
                 },
             },
@@ -410,15 +410,15 @@ export default class coinbase extends Exchange {
                     'XLM': 'stellar',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
-                'advanced': true,
-                'fetchMarkets': 'fetchMarketsV3',
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
-                'fetchTicker': 'fetchTickerV3',
-                'fetchTickers': 'fetchTickersV3',
-                'fetchAccounts': 'fetchAccountsV3',
-                'fetchBalance': 'v2PrivateGetAccounts',
-                'fetchTime': 'v2PublicGetTime',
+                'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
+                'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
+                'timeDifference': 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
+                'fetchTickers': 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
+                'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
+                'fetchBalance': 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
+                'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD', // needed to get fees for v3
             },
             'features': {
@@ -440,7 +440,7 @@ export default class coinbase extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        'leverage': true,
+                        'leverage': true, // todo implement
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': true,
                         'selfTradePrevention': false,
@@ -625,7 +625,7 @@ export default class coinbase extends Exchange {
         const accounts = this.safeList(response, 'data', []);
         const length = accounts.length;
         const lastIndex = length - 1;
-        const last = this.safeDict(accounts, lastIndex);
+        const last = this.safeDict(accounts, lastIndex, {});
         if ((cursor !== undefined) && (cursor !== '')) {
             last['next_starting_after'] = cursor;
             accounts[lastIndex] = last;
@@ -678,7 +678,7 @@ export default class coinbase extends Exchange {
         const cursor = this.safeString(response, 'cursor');
         if ((accountsLength > 0) && (cursor !== undefined) && (cursor !== '')) {
             const lastIndex = accountsLength - 1;
-            const last = this.safeDict(accounts, lastIndex);
+            const last = this.safeDict(accounts, lastIndex, {});
             last['cursor'] = cursor;
             accounts[lastIndex] = last;
         }
@@ -1982,7 +1982,7 @@ export default class coinbase extends Exchange {
                 'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
-                'networks': {},
+                'networks': {}, // todo
                 'limits': {
                     'amount': {
                         'min': this.safeNumber(currency, 'min_size'),
@@ -2578,10 +2578,10 @@ export default class coinbase extends Exchange {
             'sell': 'trade',
             'fiat_deposit': 'transaction',
             'fiat_withdrawal': 'transaction',
-            'exchange_deposit': 'transaction',
-            'exchange_withdrawal': 'transaction',
-            'send': 'transaction',
-            'pro_deposit': 'transaction',
+            'exchange_deposit': 'transaction', // fiat withdrawal (from coinbase to coinbasepro)
+            'exchange_withdrawal': 'transaction', // fiat deposit (to coinbase from coinbasepro)
+            'send': 'transaction', // crypto deposit OR withdrawal
+            'pro_deposit': 'transaction', // crypto withdrawal (from coinbase to coinbasepro)
             'pro_withdrawal': 'transaction', // crypto deposit (to coinbase from coinbasepro)
         };
         return this.safeString(types, type, type);
@@ -3638,7 +3638,7 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeList(response, 'orders', []);
-        const first = this.safeDict(orders, 0);
+        const first = this.safeDict(orders, 0, {});
         const cursor = this.safeString(response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
             first['cursor'] = cursor;
@@ -3714,7 +3714,7 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeList(response, 'orders', []);
-        const first = this.safeDict(orders, 0);
+        const first = this.safeDict(orders, 0, {});
         const cursor = this.safeString(response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
             first['cursor'] = cursor;
@@ -4003,7 +4003,7 @@ export default class coinbase extends Exchange {
         //     }
         //
         const trades = this.safeList(response, 'fills', []);
-        const first = this.safeDict(trades, 0);
+        const first = this.safeDict(trades, 0, {});
         const cursor = this.safeString(response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
             first['cursor'] = cursor;
@@ -4388,7 +4388,7 @@ export default class coinbase extends Exchange {
         const request = {
             'account_id': accountId,
             'amount': this.numberToString(amount),
-            'currency': code.toUpperCase(),
+            'currency': code.toUpperCase(), // need to use code in case depositing USD etc.
             'payment_method': id,
             'commit': true, // otheriwse the deposit does not go through
         };
@@ -4973,7 +4973,7 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeDict(response, 'fee_tier', {});
         const taker_fee = this.safeNumber(data, 'taker_fee_rate');
-        const marker_fee = this.safeNumber(data, 'maker_fee_rate');
+        const maker_fee = this.safeNumber(data, 'maker_fee_rate');
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -4982,8 +4982,8 @@ export default class coinbase extends Exchange {
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
-                    'maker': taker_fee,
-                    'taker': marker_fee,
+                    'maker': maker_fee,
+                    'taker': taker_fee,
                     'percentage': true,
                 };
             }

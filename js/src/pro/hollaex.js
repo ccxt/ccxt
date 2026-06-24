@@ -21,7 +21,7 @@ export default class hollaex extends hollaexRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
             },
@@ -47,7 +47,7 @@ export default class hollaex extends hollaexRest {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': BadSymbol,
+                        'Bearer or HMAC authentication required': BadSymbol, // { error: 'Bearer or HMAC authentication required' }
                         'Error: wrong input': BadRequest, // { error: 'Error: wrong input' }
                     },
                 },

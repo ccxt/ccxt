@@ -1117,23 +1117,23 @@ public partial class binance : ccxt.binance
                 {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (isTrue(isGreaterThan(u, getValue(orderbook, "nonce"))))
+                    if (isTrue(isGreaterThan(u, nonce)))
                     {
                         object timestamp = this.safeInteger(orderbook, "timestamp");
                         object conditional = null;
                         if (isTrue(isEqual(timestamp, null)))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = isTrue((isLessThanOrEqual((subtract(U, 1)), getValue(orderbook, "nonce")))) && isTrue((isGreaterThanOrEqual((subtract(u, 1)), getValue(orderbook, "nonce"))));
+                            conditional = isTrue((isLessThanOrEqual((subtract(U, 1)), nonce))) && isTrue((isGreaterThanOrEqual((subtract(u, 1)), nonce)));
                         } else
                         {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = (isEqual((subtract(U, 1)), getValue(orderbook, "nonce")));
+                            conditional = (isEqual((subtract(U, 1)), nonce));
                         }
                         if (isTrue(conditional))
                         {
                             this.handleOrderBookMessage(client as WebSocketClient, message, orderbook);
-                            if (isTrue(isLessThan(nonce, getValue(orderbook, "nonce"))))
+                            if (isTrue(isLessThan(nonce, this.safeInteger(orderbook, "nonce", 0))))
                             {
                                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
                             }
@@ -1150,14 +1150,14 @@ public partial class binance : ccxt.binance
                 {
                     // future
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (isTrue(isGreaterThanOrEqual(u, getValue(orderbook, "nonce"))))
+                    if (isTrue(isGreaterThanOrEqual(u, nonce)))
                     {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-                        if (isTrue(isTrue((isLessThanOrEqual(U, getValue(orderbook, "nonce")))) || isTrue((isEqual(pu, getValue(orderbook, "nonce"))))))
+                        if (isTrue(isTrue((isLessThanOrEqual(U, nonce))) || isTrue((isEqual(pu, nonce)))))
                         {
                             this.handleOrderBookMessage(client as WebSocketClient, message, orderbook);
-                            if (isTrue(isLessThanOrEqual(nonce, getValue(orderbook, "nonce"))))
+                            if (isTrue(isLessThanOrEqual(nonce, this.safeInteger(orderbook, "nonce", 0))))
                             {
                                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
                             }
@@ -1434,7 +1434,7 @@ public partial class binance : ccxt.binance
         //
         //     {
         //         "e": "trade",       // event type
-        //         "E": 1579481530911, // event time
+        //         "E": 1579481530912, // event time
         //         "s": "ETHBTC",      // symbol
         //         "t": 158410082,     // trade id
         //         "p": "0.01914100",  // price

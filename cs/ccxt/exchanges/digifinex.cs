@@ -1491,7 +1491,7 @@ public partial class digifinex : Exchange
         //         0.029927
         //     ]
         //
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(this.safeBool(market, "swap")))
         {
             return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
         } else
@@ -1981,7 +1981,7 @@ public partial class digifinex : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            ((IDictionary<string,object>)request)["instrument_id"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_id"] = this.safeString(market, "id");
         } else
         {
             ((IDictionary<string,object>)request)["market"] = marketType;
@@ -2046,8 +2046,8 @@ public partial class digifinex : Exchange
 
     public virtual object parseCancelOrders(object response)
     {
-        object success = this.safeList(response, "success");
-        object error = this.safeList(response, "error");
+        object success = this.safeList(response, "success", new List<object>() {});
+        object error = this.safeList(response, "error", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
         {
@@ -2674,7 +2674,7 @@ public partial class digifinex : Exchange
         object marketIdRequest = ((bool) isTrue((isEqual(marketType, "swap")))) ? "instrument_id" : "symbol";
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)[(string)marketIdRequest] = getValue(market, "id");
+            ((IDictionary<string,object>)request)[(string)marketIdRequest] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -4554,7 +4554,7 @@ public partial class digifinex : Exchange
             { "marginMode", "isolated" },
             { "amount", this.safeNumber(data, "amount") },
             { "total", null },
-            { "code", getValue(market, "settle") },
+            { "code", this.safeString(market, "settle") },
             { "status", null },
             { "timestamp", null },
             { "datetime", null },

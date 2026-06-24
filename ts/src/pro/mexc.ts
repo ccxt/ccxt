@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import mexcRest from '../mexc.js';
 import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings, FundingRate } from '../base/types.js';
+import type { Int, List, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings, FundingRate, Fee, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -184,7 +184,7 @@ export default class mexc extends mexcRest {
         const timestamp = this.safeInteger2 (message, 't', 'sendTime');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let ticker = undefined;
+        let ticker: Ticker;
         if (market['spot']) {
             ticker = this.parseWsTicker (rawTicker, market);
             ticker['timestamp'] = timestamp;
@@ -212,13 +212,13 @@ export default class mexc extends mexcRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined);
-        const messageHashes = [];
+        const messageHashes: List = [];
         const firstSymbol = this.safeString (symbols, 0);
-        let market = undefined;
+        let market: Market = undefined;
         if (firstSymbol !== undefined) {
             market = this.market (firstSymbol);
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const isSpot = (type === 'spot');
         const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
@@ -336,10 +336,10 @@ export default class mexc extends mexcRest {
         const spotPrefix = 'spot:';
         const messageHashPrefix = isSpot ? spotPrefix : '';
         const topic = messageHashPrefix + 'ticker';
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            let ticker = undefined;
+            let ticker: Ticker;
             if (isSpot) {
                 ticker = this.parseWsTicker (entry, market);
             } else {
@@ -354,7 +354,7 @@ export default class mexc extends mexcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         // protobuf ticker
         // "bidprice": "93387.28",  // Best bid price
         // "bidquantity": "3.73485", // Best bid quantity
@@ -426,7 +426,7 @@ export default class mexc extends mexcRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
         }
@@ -436,8 +436,8 @@ export default class mexc extends mexcRest {
         if (!isSpot) {
             throw new NotSupported (this.id + ' watchBidsAsks only support spot market');
         }
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: List = [];
+        const topics: List = [];
         for (let i = 0; i < symbols.length; i++) {
             if (isSpot) {
                 const market = this.market (symbols[i]);
@@ -483,7 +483,7 @@ export default class mexc extends mexcRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         const data = this.safeDict (ticker, 'd');
         const marketId = this.safeString (ticker, 's');
         market = this.safeMarket (marketId, market);
@@ -655,7 +655,7 @@ export default class mexc extends mexcRest {
         //    }
         // }
         //
-        let parsed: Dict = undefined;
+        let parsed: Dict;
         let symbol: Str = undefined;
         let timeframe: Str = undefined;
         if ('publicSpotKline' in message) {
@@ -687,7 +687,7 @@ export default class mexc extends mexcRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         // spot
         //
@@ -766,7 +766,7 @@ export default class mexc extends mexcRest {
         const messageHash = 'orderbook:' + symbol;
         let orderbook = undefined;
         if (market['spot']) {
-            let frequency = undefined;
+            let frequency: Str = undefined;
             [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
@@ -1051,7 +1051,7 @@ export default class mexc extends mexcRest {
             trades = this.safeList (message, 'data', []);
         }
         for (let j = 0; j < trades.length; j++) {
-            let parsedTrade = undefined;
+            let parsedTrade: Trade;
             if (market['spot']) {
                 parsedTrade = this.parseWsTrade (trades[j], market);
             } else {
@@ -1077,13 +1077,13 @@ export default class mexc extends mexcRest {
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let messageHash = 'myTrades';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let trades = undefined;
         if (type === 'spot') {
@@ -1139,7 +1139,7 @@ export default class mexc extends mexcRest {
         const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let trade = undefined;
+        let trade: Trade;
         if (market['spot']) {
             trade = this.parseWsTrade (data, market);
         } else {
@@ -1157,7 +1157,7 @@ export default class mexc extends mexcRest {
         client.resolve (trades, symbolSpecificMessageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // public trade (protobuf)
         //    {
@@ -1256,13 +1256,13 @@ export default class mexc extends mexcRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let messageHash = 'orders';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let orders = undefined;
         if (type === 'spot') {
@@ -1356,7 +1356,7 @@ export default class mexc extends mexcRest {
         const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let parsed = undefined;
+        let parsed: Order;
         if (market['spot']) {
             parsed = this.parseWsOrder (data, market);
         } else {
@@ -1374,7 +1374,7 @@ export default class mexc extends mexcRest {
         client.resolve (orders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         // spot
         //     {
@@ -1446,7 +1446,7 @@ export default class mexc extends mexcRest {
         const side = this.safeString (order, 'tradeType');
         const status = this.safeString2 (order, 'status', 'state');
         const type = this.safeString (order, 'orderType');
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeCurrency = this.safeString (order, 'N');
         if (feeCurrency !== undefined) {
             fee = {
@@ -1479,7 +1479,7 @@ export default class mexc extends mexcRest {
         }, market);
     }
 
-    parseWsOrderStatus (status, market = undefined) {
+    parseWsOrderStatus (status, market: Market = undefined) {
         const statuses: Dict = {
             '0': 'open',     // new/pending (OCO orders)
             '1': 'open',     // new order
@@ -1533,7 +1533,7 @@ export default class mexc extends mexcRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
         if (type === 'spot') {
@@ -1634,7 +1634,7 @@ export default class mexc extends mexcRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'unsubscribe:fundingRate:' + market['symbol'];
-        let url = undefined;
+        let url: Str = undefined;
         const channel = 'unsub.funding.rate';
         const requestParams: Dict = {
             'symbol': market['id'],
@@ -1679,8 +1679,8 @@ export default class mexc extends mexcRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'unsubscribe:ticker:' + market['symbol'];
-        let url = undefined;
-        let channel = undefined;
+        let url: Str = undefined;
+        let channel: Str = undefined;
         if (market['spot']) {
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'];
             url = this.urls['api']['ws']['spot'];
@@ -1710,13 +1710,13 @@ export default class mexc extends mexcRest {
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined);
-        const messageHashes = [];
+        const messageHashes: List = [];
         const firstSymbol = this.safeString (symbols, 0);
-        let market = undefined;
+        let market: Market = undefined;
         if (firstSymbol !== undefined) {
             market = this.market (firstSymbol);
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const isSpot = (type === 'spot');
         const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
@@ -1771,7 +1771,7 @@ export default class mexc extends mexcRest {
     async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
         }
@@ -1781,8 +1781,8 @@ export default class mexc extends mexcRest {
         if (!isSpot) {
             throw new NotSupported (this.id + ' watchBidsAsks only support spot market');
         }
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: List = [];
+        const topics: List = [];
         for (let i = 0; i < symbols.length; i++) {
             if (isSpot) {
                 const market = this.market (symbols[i]);
@@ -1818,7 +1818,7 @@ export default class mexc extends mexcRest {
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe);
         const messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe;
-        let url = undefined;
+        let url: Str = undefined;
         if (market['spot']) {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId;
@@ -1852,10 +1852,10 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'unsubscribe:orderbook:' + symbol;
-        let url = undefined;
+        let url: Str = undefined;
         if (market['spot']) {
             url = this.urls['api']['ws']['spot'];
-            let frequency = undefined;
+            let frequency: Str = undefined;
             [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
             params['unsubscribed'] = true;
@@ -1887,7 +1887,7 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'unsubscribe:trades:' + symbol;
-        let url = undefined;
+        let url: Str = undefined;
         if (market['spot']) {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id'];
@@ -2082,7 +2082,7 @@ export default class mexc extends mexcRest {
             return;
         }
         const c = this.safeString (message, 'c');
-        let channel = undefined;
+        let channel: Str = undefined;
         if (c === undefined) {
             channel = this.safeString (message, 'channel');
         } else {

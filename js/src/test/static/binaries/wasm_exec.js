@@ -17,7 +17,7 @@
     if (!globalThis.fs) {
         let outputBuf = "";
         globalThis.fs = {
-            constants: { O_WRONLY: -1, O_RDWR: -1, O_CREAT: -1, O_TRUNC: -1, O_APPEND: -1, O_EXCL: -1, O_DIRECTORY: -1 },
+            constants: { O_WRONLY: -1, O_RDWR: -1, O_CREAT: -1, O_TRUNC: -1, O_APPEND: -1, O_EXCL: -1, O_DIRECTORY: -1 }, // unused
             writeSync(fd, buf) {
                 outputBuf += decoder.decode(buf);
                 const nl = outputBuf.lastIndexOf("\n");
@@ -518,3 +518,4 @@
         }
     };
 })();
+export {};

@@ -6,7 +6,7 @@ import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position } from './base/types.js';
+import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1088,7 +1088,7 @@ export default class poloniex extends Exchange {
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols, undefined, true, true, false);
@@ -1100,7 +1100,7 @@ export default class poloniex extends Exchange {
                 }
             }
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (marketType === 'swap') {
             const responseRaw = await this.swapPublicGetV3MarketTickers (this.extend (request, params));
@@ -1403,7 +1403,7 @@ export default class poloniex extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const side = this.safeStringLower2 (trade, 'side', 'takerSide');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const priceString = this.safeString2 (trade, 'price', 'px');
         const amountString = this.safeString2 (trade, 'quantity', 'qty');
         const costString = this.safeString2 (trade, 'amount', 'amt');
@@ -1515,7 +1515,7 @@ export default class poloniex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const isContract = this.inArray (marketType, [ 'swap', 'future' ]);
         let request: Dict = {
@@ -1531,7 +1531,7 @@ export default class poloniex extends Exchange {
             request['limit'] = limit;
         }
         if (isContract && symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         [ request, params ] = this.handleUntilOption (endKey, request, params);
         if (isContract) {
@@ -1729,7 +1729,7 @@ export default class poloniex extends Exchange {
         const rawType = this.safeString (order, 'type');
         const type = this.parseOrderType (rawType);
         const id = this.safeStringN (order, [ 'orderNumber', 'id', 'orderId', 'ordId' ]);
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCurrency = this.safeString2 (order, 'tokenFeeCurrency', 'feeCcy');
         let feeCost: Str = undefined;
         let feeCurrencyCode: Str = undefined;
@@ -1829,7 +1829,7 @@ export default class poloniex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (limit !== undefined) {
             const max = (marketType === 'spot') ? 2000 : 100;
@@ -1837,7 +1837,7 @@ export default class poloniex extends Exchange {
         }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (marketType !== 'spot') {
             const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, params));
             //
@@ -1926,13 +1926,13 @@ export default class poloniex extends Exchange {
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         let request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params, 'swap');
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchClosedOrders() is not supported for spot markets yet');
@@ -2017,7 +2017,7 @@ export default class poloniex extends Exchange {
         };
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         [ request, params ] = this.orderRequest (symbol, type, side, amount, request, price, params);
-        let response = undefined;
+        let response: Dict = undefined;
         if (market['swap'] || market['future']) {
             const responseInitial = await this.swapPrivatePostV3TradeOrder (this.extend (request, params));
             //
@@ -2042,13 +2042,13 @@ export default class poloniex extends Exchange {
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         const market = this.market (symbol);
         if (market['contract']) {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleParamString (params, 'marginMode');
             if (marginMode !== undefined) {
                 this.checkRequiredArgument ('createOrder', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
                 request['mgnMode'] = marginMode.toUpperCase ();
             }
-            let hedged = undefined;
+            let hedged: Str = undefined;
             [ hedged, params ] = this.handleParamString (params, 'hedged');
             if (hedged) {
                 if (marginMode === undefined) {
@@ -2075,7 +2075,7 @@ export default class poloniex extends Exchange {
         request['type'] = upperCaseType;
         if (isMarket) {
             if (side === 'buy') {
-                let quoteAmount = undefined;
+                let quoteAmount: Str = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber (params, 'cost');
@@ -2143,7 +2143,7 @@ export default class poloniex extends Exchange {
         };
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         [ request, params ] = this.orderRequest (symbol, type, side, amount, request, price, params);
-        let response = undefined;
+        let response: Dict = undefined;
         if (triggerPrice !== undefined) {
             response = await this.privatePutSmartordersId (this.extend (request, params));
         } else {
@@ -2204,7 +2204,7 @@ export default class poloniex extends Exchange {
         request['id'] = id;
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'clientOrderId', 'trigger', 'stop' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isTrigger) {
             response = await this.privateDeleteSmartordersId (this.extend (request, params));
         } else {
@@ -2247,8 +2247,8 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        let response = undefined;
-        let marketType = undefined;
+        let response: Dict = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
             const raw = await this.swapPrivateDeleteV3TradeAllOrders (this.extend (request, params));
@@ -2314,19 +2314,19 @@ export default class poloniex extends Exchange {
         const request: Dict = {
             'id': id,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         if (marketType !== 'spot') {
             throw new NotSupported (this.id + ' fetchOrder() is not supported for ' + marketType + ' markets yet');
         }
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isTrigger) {
             response = await this.privateGetSmartordersId (this.extend (request, params));
             response = this.safeValue (response, 0);
@@ -2459,7 +2459,7 @@ export default class poloniex extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         if (marketType !== 'spot') {
             const responseRaw = await this.swapPrivateGetV3AccountBalance (params);
@@ -2694,13 +2694,13 @@ export default class poloniex extends Exchange {
             throw new BadSymbol (this.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", { "network": "TRC20" })');
         }
         const currency = this.currency (code);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
         }
-        let exchangeNetworkId = undefined;
+        let exchangeNetworkId: Str = undefined;
         networkCode = this.networkIdToCode (networkCode, code);
         const networkEntry = this.safeDict (currency['networks'], networkCode);
         if (networkEntry !== undefined) {
@@ -2810,7 +2810,7 @@ export default class poloniex extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
         };
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             // we need to know the network to find out the currency-junction
@@ -3104,7 +3104,7 @@ export default class poloniex extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -3227,7 +3227,7 @@ export default class poloniex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a marginMode parameter "cross" or "isolated"');
@@ -3263,7 +3263,7 @@ export default class poloniex extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a marginMode parameter "cross" or "isolated"');
@@ -3315,7 +3315,7 @@ export default class poloniex extends Exchange {
         let longLeverage: Int = undefined;
         let marketId: Str = undefined;
         let marginMode: Str = undefined;
-        const data = this.safeList (leverage, 'data');
+        const data = this.safeList (leverage, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             marketId = this.safeString (entry, 'symbol');
@@ -3603,7 +3603,7 @@ export default class poloniex extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api']['spot'];
         if (this.inArray (api, [ 'swapPublic', 'swapPrivate' ])) {
             url = this.urls['api']['swap'];

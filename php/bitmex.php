@@ -417,7 +417,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -610,7 +610,7 @@ class bitmex extends Exchange {
         $response = $this->publicGetInstrumentActive ($params);
         //
         //  array(
-        //    {
+        //    array(
         //        "symbol" => "LTCUSDT",
         //        "rootSymbol" => "LTC",
         //        "state" => "Open",
@@ -716,7 +716,75 @@ class bitmex extends Exchange {
         //        "settledPriceAdjustmentRate" => null,
         //        "settledPrice" => null,
         //        "timestamp" => "2022-01-14T17:49:55.000Z"
-        //    }
+        //    ),
+        //
+        //    other kind of markets have extra fields
+        //
+        //    {
+        //     "symbol" => "XBTUSD-XBTU26",
+        //     "rootSymbol" => "XBT",
+        //     "instrumentID" => "3059",
+        //     "state" => "Open",
+        //     "typ" => "FFMCSX",
+        //     "listing" => "2026-06-10T08:00:00.000Z",
+        //     "front" => "2026-06-10T08:00:00.000Z",
+        //     "expiry" => "2026-09-25T12:00:00.000Z",
+        //     "settle" => "2026-09-25T12:00:00.000Z",
+        //     "positionCurrency" => "USD",
+        //     "underlying" => "XBT",
+        //     "quoteCurrency" => "USD",
+        //     "underlyingSymbol" => "XBT=",
+        //     "referenceSymbol" => "XBTUSD",
+        //     "maxOrderQty" => "10000000",
+        //     "minPrice" => "-1000000",
+        //     "maxPrice" => "1000000",
+        //     "lotSize" => "100",
+        //     "tickSize" => "0.5",
+        //     "multiplier" => "1",
+        //     "settlCurrency" => "XBt",
+        //     "underlyingToSettleMultiplier" => "-100000000",
+        //     "isQuanto" => false,
+        //     "isInverse" => false,
+        //     "taxed" => true,
+        //     "deleverage" => true,
+        //     "makerFee" => "0.0005",
+        //     "takerFee" => "0.0005",
+        //     "limitDownPrice" => null,
+        //     "limitUpPrice" => null,
+        //     "prevTotalVolume" => "300",
+        //     "totalVolume" => "300",
+        //     "volume" => "0",
+        //     "volume24h" => "200",
+        //     "prevTotalTurnover" => "460833",
+        //     "totalTurnover" => "460833",
+        //     "turnover" => "0",
+        //     "turnover24h" => "298516",
+        //     "homeNotional24h" => "0",
+        //     "foreignNotional24h" => "0",
+        //     "prevPrice24h" => "0",
+        //     "vwap" => "577.5",
+        //     "highPrice" => "577.5",
+        //     "lowPrice" => "0",
+        //     "lastPrice" => "577.5",
+        //     "lastPriceProtected" => "577.5",
+        //     "lastTickDirection" => "ZeroPlusTick",
+        //     "lastChangePcnt" => "0",
+        //     "bidPrice" => "566.5",
+        //     "midPrice" => "567.25",
+        //     "askPrice" => "568",
+        //     "hasLiquidity" => false,
+        //     "openInterest" => "0",
+        //     "openValue" => "0",
+        //     "instantPnl" => false,
+        //     "timestamp" => "2026-06-17T05:22:50.000Z",
+        //     "capped" => false,
+        //     "closingTimestamp" => "2026-06-17T06:00:00.000Z",
+        //     "farLegSymbol" => "XBTU26",
+        //     "nearLegSymbol" => "XBTUSD",
+        //     "openingTimestamp" => "2026-06-17T05:00:00.000Z",
+        //     "pool" => "Primary",
+        //     "referencePrice" => "65728"
+        //     }
         //  )
         //
         return $this->parse_markets($response);
@@ -741,7 +809,7 @@ class bitmex extends Exchange {
         } elseif ($typ === 'IFXXXP') {
             $type = 'spot';
             $spot = true;
-        } elseif ($typ === 'FFCCSX') {
+        } elseif ($typ === 'FFCCSX' || $typ === 'FFMCSX') {
             $type = 'future';
             $future = true;
         } elseif ($typ === 'FFICSX') {
@@ -772,12 +840,11 @@ class bitmex extends Exchange {
             $symbol = $base . '/' . $quote . ':' . $settle;
             if ($linear) {
                 $multiplierString = $this->safe_string_2($market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
-                $contractSize = $this->parse_number(Precise::string_div('1', $multiplierString));
+                $contractSize = Precise::string_abs(Precise::string_div('1', $multiplierString));
             } else {
-                $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
-                $contractSize = $this->parse_number($multiplierString);
+                $contractSize = Precise::string_abs($this->safe_string($market, 'multiplier'));
             }
-            $expiryDatetime = $this->safe_string($market, 'expiry');
+            $expiryDatetime = $this->safe_string_2($market, 'expiry', 'closingTimestamp');
             $expiry = $this->parse8601($expiryDatetime);
             if ($expiry !== null) {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
@@ -820,7 +887,7 @@ class bitmex extends Exchange {
             'quanto' => $isQuanto,
             'taker' => $this->safe_number($market, 'takerFee'),
             'maker' => $this->safe_number($market, 'makerFee'),
-            'contractSize' => $contractSize,
+            'contractSize' => $this->parse_number($contractSize),
             'expiry' => $expiry,
             'expiryDatetime' => $expiryDatetime,
             'strike' => $this->safe_number($market, 'optionStrikePrice'),
@@ -1705,7 +1772,7 @@ class bitmex extends Exchange {
             // we can emulate the open $timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
             for ($i = 0; $i < count($result); $i++) {
-                $result[$i][0] = $result[$i][0] - $duration;
+                $result[$i][0] = $this->parse_to_int($result[$i][0]) - $duration;
             }
         }
         return $result;
@@ -3581,7 +3648,7 @@ class bitmex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $query = '/api/' . $this->version . '/' . $path;
         if ($method === 'GET') {
             if ($params) {

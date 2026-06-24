@@ -11,7 +11,7 @@ async function testFetchLastPrices(exchange, skippedProperties, symbol) {
     const method = 'fetchLastprices';
     // log ('fetching all tickers at once...')
     let response = undefined;
-    let checkedSymbol = undefined;
+    let checkedSymbol;
     try {
         response = await exchange.fetchLastPrices();
     }

@@ -17,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
         $exchange = new \ccxt\async\hyperliquid(array(

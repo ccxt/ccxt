@@ -30,7 +30,7 @@ async def exchange_loop(exchange_id, symbols):
 
 async def main():
     exchanges = {
-        'okex': ['BTC/USDT', 'ETH/BTC', 'ETH/USDT'],
+        'okx': ['BTC/USDT', 'ETH/BTC', 'ETH/USDT'],
         'binance': ['BTC/USDT', 'ETH/BTC'],
     }
     loops = [exchange_loop(exchange_id, symbols) for exchange_id, symbols in exchanges.items()]

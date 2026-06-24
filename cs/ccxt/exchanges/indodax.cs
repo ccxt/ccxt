@@ -521,8 +521,8 @@ public partial class indodax : Exchange
         //
         object symbol = this.safeSymbol(null, market);
         object timestamp = this.safeTimestamp(ticker, "server_time");
-        object baseVolume = add("vol_", ((string)getValue(market, "baseId")).ToLower());
-        object quoteVolume = add("vol_", ((string)getValue(market, "quoteId")).ToLower());
+        object baseVolume = add("vol_", this.safeStringLower(market, "baseId"));
+        object quoteVolume = add("vol_", this.safeStringLower(market, "quoteId"));
         object last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1154,9 +1154,9 @@ public partial class indodax : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
-            object startTime = slice(this.iso8601(since), 0, 10);
+            object startTime = this.yyyymmdd(since);
             ((IDictionary<string,object>)request)["start"] = startTime;
-            ((IDictionary<string,object>)request)["end"] = slice(this.iso8601(this.milliseconds()), 0, 10);
+            ((IDictionary<string,object>)request)["end"] = this.yyyymmdd(this.milliseconds());
         }
         object response = await this.privatePostTransHistory(this.extend(request, parameters));
         //

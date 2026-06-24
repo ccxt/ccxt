@@ -20,8 +20,8 @@ export default class bitso extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bitso',
             'name': 'Bitso',
-            'countries': ['MX'],
-            'rateLimit': 2000,
+            'countries': ['MX'], // Mexico
+            'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
             'has': {
                 'CORS': undefined,
@@ -229,11 +229,11 @@ export default class bitso extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo implementation
                         'triggerPriceType': undefined,
                         'triggerDirection': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         // todo: implementation for TIF
                         'timeInForce': {
@@ -287,8 +287,8 @@ export default class bitso extends Exchange {
                 },
             },
             'exceptions': {
-                '0201': AuthenticationError,
-                '104': InvalidNonce,
+                '0201': AuthenticationError, // Invalid Nonce or Invalid Credentials
+                '104': InvalidNonce, // Cannot perform request - nonce must be higher than 1520307203724237
                 '0304': BadRequest, // {"success":false,"error":{"code":"0304","message":"The field time_bucket () is either invalid or missing"}}
             },
         });
@@ -1194,7 +1194,7 @@ export default class bitso extends Exchange {
     }
     parseOrderStatus(status) {
         const statuses = {
-            'partial-fill': 'open',
+            'partial-fill': 'open', // this is a common substitution in ccxt
             'partially filled': 'open',
             'queued': 'open',
             'completed': 'closed',

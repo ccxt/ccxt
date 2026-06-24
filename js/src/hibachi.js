@@ -259,8 +259,8 @@ export default class hibachi extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '2': BadRequest,
-                    '3': OrderNotFound,
+                    '2': BadRequest, // {"errorCode":2,"message":"Invalid signature: Failed to verify signature"}
+                    '3': OrderNotFound, // {"errorCode":3,"message":"Not found: order ID 33","status":"failed"}
                     '4': BadRequest, // {"errorCode":4,"message":"Missing accountId","status":"failed"}
                 },
                 'broad': {},
@@ -312,7 +312,7 @@ export default class hibachi extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'underlyingDecimals'))),
-                'price': this.parseNumber(this.safeList(market, 'orderbookGranularities')[0]) / 10000.0,
+                'price': this.parseNumber(this.safeValue(this.safeList(market, 'orderbookGranularities', []), 0)) / 10000.0,
             },
             'limits': {
                 'leverage': {
@@ -823,6 +823,7 @@ export default class hibachi extends Exchange {
             const priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             const price16 = this.intToBase16(this.parseToInt(priceInternal));
             const pricePadded = price16.padStart(16, '0');
+            // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
         const message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
@@ -936,7 +937,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList(response, 'orders');
+        const responseOrders = this.safeList(response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push(this.safeOrder({
@@ -1026,7 +1027,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList(response, 'orders');
+        const responseOrders = this.safeList(response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push(this.safeOrder({
@@ -1098,7 +1099,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList(response, 'orders');
+        const responseOrders = this.safeList(response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push(this.safeOrder({
@@ -1850,7 +1851,7 @@ export default class hibachi extends Exchange {
             'txid': this.safeString(transaction, 'transactionHash'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': 'ARBITRUM',
+            'network': 'ARBITRUM', // Currently the exchange only exists on Arbitrum,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -1915,7 +1916,7 @@ export default class hibachi extends Exchange {
         //         },
         //     ]
         // }
-        const transactions = this.safeList(response, 'transactions');
+        const transactions = this.safeList(response, 'transactions', []);
         const deposits = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
@@ -1973,7 +1974,7 @@ export default class hibachi extends Exchange {
         //         },
         //     ]
         // }
-        const transactions = this.safeList(response, 'transactions');
+        const transactions = this.safeList(response, 'transactions', []);
         const withdrawals = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
@@ -2111,7 +2112,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

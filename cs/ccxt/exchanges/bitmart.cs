@@ -2842,7 +2842,7 @@ public partial class bitmart : Exchange
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", this.safeString(market, "id") },
             { "orderParams", ordersRequests },
         };
         object response = await this.privatePostSpotV4BatchOrders(request);
@@ -3900,7 +3900,7 @@ public partial class bitmart : Exchange
             {
                 ((IDictionary<string,object>)request)["type"] = orderType;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             ((IDictionary<string,object>)request)["order_id"] = id;
             response = await this.privateGetContractPrivateOrder(this.extend(request, parameters));
         }
@@ -5295,7 +5295,7 @@ public partial class bitmart : Exchange
         if (isTrue(isEqual(symbolsLength, 1)))
         {
             // only supports symbols as undefined or sending one symbol
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = await this.privateGetContractPrivatePositionV2(this.extend(request, parameters));
         //

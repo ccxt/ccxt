@@ -21,7 +21,7 @@ export default class extended extends Exchange {
             'name': 'Extended',
             'countries': ['SG'],
             'version': 'v2',
-            'rateLimit': 600,
+            'rateLimit': 600, // Default Tier 1,000 requests/minute ≈ 1.67 request per second
             'precisionMode': TICK_SIZE,
             'certified': false,
             'pro': true,
@@ -258,69 +258,69 @@ export default class extended extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '1000': InvalidOrder,
-                    '1001': InvalidOrder,
-                    '1002': InvalidOrder,
-                    '1003': InvalidOrder,
-                    '1004': InvalidOrder,
-                    '1005': InvalidOrder,
-                    '1006': ExchangeError,
-                    '1008': InvalidOrder,
-                    '1009': InvalidOrder,
-                    '1010': ExchangeError,
-                    '1011': InvalidOrder,
-                    '1012': InvalidOrder,
-                    '1013': InvalidOrder,
-                    '1014': InvalidOrder,
-                    '1049': InvalidOrder,
-                    '1050': InvalidOrder,
-                    '10501': InvalidOrder,
-                    '1052': InvalidOrder,
-                    '1053': InvalidOrder,
-                    '1100': InvalidOrder,
-                    '1101': InvalidOrder,
-                    '1102': InvalidOrder,
-                    '1120': InvalidOrder,
-                    '1121': InvalidOrder,
-                    '1122': InvalidOrder,
-                    '1123': InvalidOrder,
-                    '1124': InvalidOrder,
-                    '1125': InvalidOrder,
-                    '1126': InvalidOrder,
-                    '1127': InvalidOrder,
-                    '1128': InvalidOrder,
-                    '1129': InvalidOrder,
-                    '1130': InvalidOrder,
-                    '1131': InvalidOrder,
-                    '1132': InvalidOrder,
-                    '1133': InvalidOrder,
-                    '1134': InvalidOrder,
-                    '1135': InvalidOrder,
-                    '1136': InvalidOrder,
-                    '1137': InvalidOrder,
-                    '1138': InvalidOrder,
-                    '1139': InvalidOrder,
-                    '1140': InsufficientFunds,
-                    '1141': InvalidOrder,
-                    '1142': InvalidOrder,
-                    '1143': InvalidOrder,
-                    '1144': InvalidOrder,
-                    '1145': InvalidOrder,
-                    '1146': InvalidOrder,
-                    '1147': InvalidOrder,
-                    '1148': InvalidOrder,
-                    '1500': InvalidOrder,
-                    '1600': BadRequest,
-                    '1601': BadRequest,
-                    '1602': BadRequest,
-                    '1604': BadRequest,
-                    '1605': BadRequest,
-                    '1607': BadRequest,
-                    '1608': BadRequest,
-                    '1650': BadRequest,
-                    '1700': BadRequest,
-                    '1701': BadRequest,
-                    '1703': BadRequest,
+                    '1000': InvalidOrder, // Asset not found.
+                    '1001': InvalidOrder, // Market not found.
+                    '1002': InvalidOrder, // Market is disabled.
+                    '1003': InvalidOrder, // Market group not found.
+                    '1004': InvalidOrder, // Account not found.
+                    '1005': InvalidOrder, // Not supported interval.
+                    '1006': ExchangeError, // Application error.
+                    '1008': InvalidOrder, // Client not found.
+                    '1009': InvalidOrder, // Action is not allowed.
+                    '1010': ExchangeError, // Maintenance mode.
+                    '1011': InvalidOrder, // Post only mode.
+                    '1012': InvalidOrder, // Reduce only mode.
+                    '1013': InvalidOrder, // Percentage should be between 0 and 1.
+                    '1014': InvalidOrder, // Market is in reduce only mode, non-reduce only orders are not allowed.
+                    '1049': InvalidOrder, // Leverage below min leverage.
+                    '1050': InvalidOrder, // Leverage exceeds max leverage.
+                    '10501': InvalidOrder, // Max position value exceeded for new leverage.
+                    '1052': InvalidOrder, // Insufficient margin for new leverage.
+                    '1053': InvalidOrder, // Leverage has invalid precision.
+                    '1100': InvalidOrder, // Invalid Starknet public key.
+                    '1101': InvalidOrder, // Invalid Starknet signature.
+                    '1102': InvalidOrder, // Invalid Starknet vault.
+                    '1120': InvalidOrder, // Order quantity less than min trade size, based on market-specific trading rules.
+                    '1121': InvalidOrder, // Invalid quantity due to the wrong size increment, based on market-specific Minimum Change in Trade Size trading rule.
+                    '1122': InvalidOrder, // Order value exceeds max order value, based on market-specific trading rules.
+                    '1123': InvalidOrder, // Invalid quantity precision, currently equals to market-specific Minimum Change in Trade Size.
+                    '1124': InvalidOrder, // Invalid price due to wrong price movement, based on market-specific Minimum Price Change trading rule.
+                    '1125': InvalidOrder, // Invalid price precision, currently equals to market-specific Minimum Price Change.
+                    '1126': InvalidOrder, // Max open orders number exceeded, currently 200 orders per market.
+                    '1127': InvalidOrder, // Max position value exceeded, based on the Margin schedule.
+                    '1128': InvalidOrder, // Trading fees are invalid. Refer to Order management section for details.
+                    '1129': InvalidOrder, // Invalid quantity for position TP/SL.
+                    '1130': InvalidOrder, // Order price is missing.
+                    '1131': InvalidOrder, // TP/SL order trigger is missing.
+                    '1132': InvalidOrder, // Order type is not allowed.
+                    '1133': InvalidOrder, // Invalid order parameters.
+                    '1134': InvalidOrder, // Duplicate Order.
+                    '1135': InvalidOrder, // Order expiration date must be within 90 days for the Mainnet, 28 days for the Testnet.
+                    '1136': InvalidOrder, // Reduce-only order size exceeds open position size.
+                    '1137': InvalidOrder, // Position is missing for a reduce-only order.
+                    '1138': InvalidOrder, // Position is the same side as a reduce-only order.
+                    '1139': InvalidOrder, // Market order must have time in force IOC.
+                    '1140': InsufficientFunds, // New order cost exceeds available balance.
+                    '1141': InvalidOrder, // Invalid price value.
+                    '1142': InvalidOrder, // Edit order not found.
+                    '1143': InvalidOrder, // Conditional order trigger is missing.
+                    '1144': InvalidOrder, // Conditional market order can't be Post-only.
+                    '1145': InvalidOrder, // Non reduce-only orders are not allowed.
+                    '1146': InvalidOrder, // Twap order must have time in force GTT.
+                    '1147': InvalidOrder, // Open loss exceeds equity.
+                    '1148': InvalidOrder, // TP/SL open loss exceeds equity.
+                    '1500': InvalidOrder, // Account not selected.
+                    '1600': BadRequest, // Withdrawal amount must be positive.
+                    '1601': BadRequest, // Withdrawal description is too long.
+                    '1602': BadRequest, // Withdrawal request does not match settlement.
+                    '1604': BadRequest, // Withdrawal expiration time is below the 14 days minimum.
+                    '1605': BadRequest, // Withdrawal asset is not valid.
+                    '1607': BadRequest, // Withdrawals blocked for the account. Please contact the team on Discord to unblock the withdrawals.
+                    '1608': BadRequest, // The withdrawal address does not match the account address.
+                    '1650': BadRequest, // Vault transfer amount is incorrect.
+                    '1700': BadRequest, // Referral code already exist.
+                    '1701': BadRequest, // Referral code is not valid.
+                    '1703': BadRequest, // Referral program is not enabled.
                     '1704': BadRequest, // Referral code already applied.
                 },
                 'broad': {},
@@ -1423,7 +1423,7 @@ export default class extended extends Exchange {
         //
         const timestamp = this.safeInteger(interest, 't');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': this.safeNumber(interest, 'I'),
             'openInterestValue': this.safeNumber(interest, 'i'),
             'baseVolume': this.safeNumber(interest, 'I'),
@@ -2953,7 +2953,7 @@ export default class extended extends Exchange {
             clientOrderIds = [clientOrderId];
         }
         const hasClientOrderIds = clientOrderIds !== undefined;
-        if (hasClientOrderIds) {
+        if (clientOrderIds !== undefined) {
             const clientOrderIdsLength = clientOrderIds.length;
             if (clientOrderIdsLength > 0) {
                 request['externalOrderIds'] = clientOrderIds;

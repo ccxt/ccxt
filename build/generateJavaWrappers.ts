@@ -15,6 +15,7 @@
 
 import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
@@ -89,6 +90,7 @@ const ALLOWED_PREFIXES = ['fetch', 'create', 'edit', 'cancel', 'close', 'setP', 
 const BLACKLIST = new Set([
     'fetch', 'fetchCurrenciesWs', 'fetchMarketsWs', 'setSandBoxMode', 'loadOrderBook',
     'loadMarketsHelper', 'createNetworksByIdObject', 'setMarketsFromExchange',
+    'setLastRequest', 'setLastRestRequestTimestamp',
     'setProperty', 'setProxyAgents', 'watch', 'watchMultiple', 'watchMultipleSubscription',
     'watchPrivate', 'watchPublic', 'setPositionsCache', 'setPositionCache',
     'watchMany', 'watchMultiHelper', 'watchMultipleWrapper', 'watchMultiRequest',
@@ -187,7 +189,9 @@ const WATCH_ZERO_ARG_WHITELIST = new Set([
 
 function parseMethodsFromTS(): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
-    const baseFile: any = transpiler.transpileJavaByPath(TS_BASE_FILE);
+    const strippedBaseFile = writeOverloadStrippedFile (TS_BASE_FILE);
+    const baseFile: any = transpiler.transpileJavaByPath(strippedBaseFile);
+    removeOverloadStrippedFile (strippedBaseFile, TS_BASE_FILE);
     const methodsTypes = baseFile.methodsTypes || [];
 
     const methods: MethodInfo[] = [];

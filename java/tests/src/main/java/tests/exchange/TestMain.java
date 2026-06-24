@@ -115,7 +115,8 @@ public class TestMain extends BaseTest
                 exitScript(0);
             }
             (this.importFiles(exchange)).join();
-            Assert(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(this.testFiles)), 0), "Test files were not loaded"); // ensure test files are found & filled
+            // ensure test files are found & filled
+            Assert(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(this.testFiles)), 0), "Test files were not loaded");
             this.expandSettings(exchange);
             this.checkIfSpecificTestIsChosen(methodArgv);
             (this.startTest(exchange, symbolArgv)).join();
@@ -765,7 +766,7 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(Helpers.isGreaterThan(valuesLength, 0)))
             {
                 Object first = Helpers.GetValue(values, 0);
-                if (Helpers.isTrue(!Helpers.isEqual(first, null)))
+                if (Helpers.isTrue(first))
                 {
                     symbol = Helpers.GetValue(first, "symbol");
                 }
@@ -1047,6 +1048,7 @@ public class TestMain extends BaseTest
             {
                 exchange.setSandboxMode(true);
             }
+            this.testHasProps(exchange);
             try
             {
                 Object result = (this.loadExchange(exchange)).join();
@@ -1078,6 +1080,22 @@ public class TestMain extends BaseTest
             return true;  // required in c#
         });
 
+    }
+
+    public void testHasProps(Exchange exchange)
+    {
+        Object watchOrderBookSkips = this.getSkips(exchange, "watchOrderBook");
+        Object fetchOrderBookSkips = this.getSkips(exchange, "fetchOrderBook");
+        // ensure with hardcoded list of required methods
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(this.wsTests) && !Helpers.isTrue(exchange.safeBool(exchange.has, "watchOrderBook", false))) && Helpers.isTrue(!(watchOrderBookSkips instanceof String))))
+        {
+            dump("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange");
+            exitScript(1);
+        } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(this.wsTests) && !Helpers.isTrue(exchange.safeBool(exchange.has, "fetchOrderBook", false))) && Helpers.isTrue(!(fetchOrderBookSkips instanceof String))))
+        {
+            dump("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange");
+            exitScript(1);
+        }
     }
 
     public void AssertStaticError(Object cond, Object message, Object calculatedOutput, Object storedOutput, Object... optionalArgs)

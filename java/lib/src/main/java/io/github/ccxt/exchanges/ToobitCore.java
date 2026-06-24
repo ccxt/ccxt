@@ -631,7 +631,7 @@ public class ToobitCore extends ToobitApi
         Object id = this.safeString(rawCurrency, "coinId");
         Object code = this.safeCurrencyCode(id);
         Object networks = new java.util.HashMap<String, Object>() {{}};
-        Object rawNetworks = this.safeList(rawCurrency, "chainTypes");
+        Object rawNetworks = this.safeList(rawCurrency, "chainTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rawNetworks)); j++)
         {
             Object rawNetwork = Helpers.GetValue(rawNetworks, j);

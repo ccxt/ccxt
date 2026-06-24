@@ -32,7 +32,7 @@ async def multi_tickers(exchanges):
 if __name__ == '__main__':
 
     # Consider review request rate limit in the methods you call
-    exchanges = ["coinex", "bittrex", "bitfinex", "poloniex", "hitbtc"]
+    exchanges = ["coinex", "bitfinex", "poloniex", "hitbtc"]
 
     tic = time.time()
     a = asyncio.run(multi_tickers(exchanges))

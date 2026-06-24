@@ -2,6 +2,8 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
+import type { Str } from '../../base/types.js';
+
 
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = fetchTickersHelperTest (exchange, skippedProperties, undefined);
@@ -16,7 +18,7 @@ async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: ob
     const response =  await exchange.fetchTickers (argSymbols, argParams);
     assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dict. ' + exchange.json (response));
     const values = Object.values (response);
-    let checkedSymbol = undefined;
+    let checkedSymbol: Str = undefined;
     if (argSymbols !== undefined && argSymbols.length === 1) {
         checkedSymbol = argSymbols[0];
     }

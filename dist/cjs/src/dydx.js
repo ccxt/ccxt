@@ -235,7 +235,7 @@ class dydx extends dydx$1["default"] {
                 'privateKey': false,
             },
             'options': {
-                'mnemonic': undefined,
+                'mnemonic': undefined, // specify mnemonic, copy secret phrase from UI
                 'chainName': 'dydx-mainnet-1',
                 'chainId': 1,
                 'sandboxMode': false,
@@ -263,8 +263,8 @@ class dydx extends dydx$1["default"] {
                             'index': false,
                         },
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo by triggerPrice
+                        'takeProfitPrice': false, // todo by triggerPrice
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -347,106 +347,106 @@ class dydx extends dydx$1["default"] {
                     // error collision for clob and sending modules from 2 - 8
                     // https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
                     // https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
-                    '9': errors.InvalidOrder,
-                    '10': errors.InvalidOrder,
-                    '11': errors.InvalidOrder,
-                    '12': errors.InvalidOrder,
-                    '13': errors.InvalidOrder,
-                    '14': errors.InvalidOrder,
-                    '15': errors.InvalidOrder,
-                    '16': errors.InvalidOrder,
-                    '17': errors.InvalidOrder,
-                    '18': errors.InvalidOrder,
-                    '19': errors.InvalidOrder,
-                    '20': errors.InvalidOrder,
-                    '21': errors.InvalidOrder,
-                    '22': errors.InvalidOrder,
-                    '23': errors.InvalidOrder,
-                    '24': errors.InvalidOrder,
-                    '25': errors.InvalidOrder,
-                    '26': errors.InvalidOrder,
-                    '27': errors.InvalidOrder,
-                    '28': errors.InvalidOrder,
-                    '29': errors.InvalidOrder,
-                    '30': errors.InvalidOrder,
-                    '31': errors.InvalidOrder,
-                    '32': errors.InvalidOrder,
-                    '33': errors.InvalidOrder,
-                    '34': errors.InvalidOrder,
-                    '35': errors.InvalidOrder,
-                    '36': errors.InvalidOrder,
-                    '37': errors.InvalidOrder,
-                    '39': errors.InvalidOrder,
-                    '40': errors.InvalidOrder,
-                    '41': errors.InvalidOrder,
-                    '42': errors.InvalidOrder,
-                    '43': errors.InvalidOrder,
-                    '44': errors.InvalidOrder,
-                    '45': errors.InvalidOrder,
-                    '46': errors.InvalidOrder,
-                    '47': errors.InvalidOrder,
-                    '48': errors.InvalidOrder,
-                    '49': errors.InvalidOrder,
-                    '50': errors.InvalidOrder,
-                    '1000': errors.BadRequest,
-                    '1001': errors.BadRequest,
-                    '1002': errors.BadRequest,
-                    '1003': errors.InvalidOrder,
-                    '1004': errors.InvalidOrder,
-                    '1005': errors.InvalidOrder,
-                    '1006': errors.InvalidOrder,
-                    '1007': errors.InvalidOrder,
-                    '1008': errors.InvalidOrder,
-                    '1009': errors.InvalidOrder,
-                    '1010': errors.InvalidOrder,
-                    '1011': errors.InvalidOrder,
-                    '1012': errors.InvalidOrder,
-                    '1013': errors.InvalidOrder,
-                    '1014': errors.InvalidOrder,
-                    '1015': errors.InvalidOrder,
-                    '1017': errors.InvalidOrder,
-                    '1018': errors.InvalidOrder,
-                    '1019': errors.InvalidOrder,
-                    '1020': errors.InvalidOrder,
-                    '1021': errors.InvalidOrder,
-                    '1022': errors.InvalidOrder,
-                    '2000': errors.InvalidOrder,
-                    '2001': errors.InvalidOrder,
-                    '2002': errors.InvalidOrder,
-                    '2003': errors.InvalidOrder,
-                    '2004': errors.InvalidOrder,
-                    '2005': errors.InvalidOrder,
-                    '3000': errors.InvalidOrder,
-                    '3001': errors.InvalidOrder,
-                    '3002': errors.InvalidOrder,
-                    '3003': errors.InvalidOrder,
-                    '3004': errors.InvalidOrder,
-                    '3005': errors.InvalidOrder,
-                    '3006': errors.InvalidOrder,
-                    '3007': errors.InvalidOrder,
-                    '3008': errors.InvalidOrder,
-                    '3009': errors.InvalidOrder,
-                    '3010': errors.InvalidOrder,
-                    '4000': errors.InvalidOrder,
-                    '4001': errors.InvalidOrder,
-                    '4002': errors.InvalidOrder,
-                    '4003': errors.InvalidOrder,
-                    '4004': errors.InvalidOrder,
-                    '4005': errors.InvalidOrder,
-                    '4006': errors.InvalidOrder,
-                    '4007': errors.InvalidOrder,
-                    '4008': errors.InvalidOrder,
-                    '5000': errors.InvalidOrder,
-                    '5001': errors.InvalidOrder,
-                    '6000': errors.InvalidOrder,
-                    '6001': errors.InvalidOrder,
-                    '6002': errors.InvalidOrder,
-                    '9000': errors.InvalidOrder,
-                    '9001': errors.InvalidOrder,
-                    '9002': errors.InvalidOrder,
-                    '9003': errors.InvalidOrder,
-                    '10000': errors.InvalidOrder,
-                    '10001': errors.InvalidOrder,
+                    '9': errors.InvalidOrder, // A cancel already exists in the memclob for this order with a greater than or equal GoodTilBlock
+                    '10': errors.InvalidOrder, // The next block height is greater than the GoodTilBlock of the message
+                    '11': errors.InvalidOrder, // The GoodTilBlock of the message is further than ShortBlockWindow blocks into the future
+                    '12': errors.InvalidOrder, // MsgPlaceOrder is invalid
+                    '13': errors.InvalidOrder, // MsgProposedMatchOrders is invalid
+                    '14': errors.InvalidOrder, // State filled amount cannot be unchanged
+                    '15': errors.InvalidOrder, // State filled amount cannot decrease
+                    '16': errors.InvalidOrder, // Cannot prune state fill amount that does not exist
+                    '17': errors.InvalidOrder, // Subaccount cannot open more than 20 orders on a given CLOB and side
+                    '18': errors.InvalidOrder, // `FillAmount` is not divisible by `StepBaseQuantums` of the specified `ClobPairId`
+                    '19': errors.InvalidOrder, // The provided perpetual ID does not have any associated CLOB pairs
+                    '20': errors.InvalidOrder, // Replacing an existing order failed
+                    '21': errors.InvalidOrder, // Clob pair and perpetual ids do not match
+                    '22': errors.InvalidOrder, // Matched order has negative fee
+                    '23': errors.InvalidOrder, // Subaccounts updated for a matched order, but fee transfer to fee-collector failed
+                    '24': errors.InvalidOrder, // Order is fully filled
+                    '25': errors.InvalidOrder, // Attempting to get price premium with a non-perpetual CLOB pair
+                    '26': errors.InvalidOrder, // Index price is zero when calculating price premium
+                    '27': errors.InvalidOrder, // Invalid ClobPair parameter
+                    '28': errors.InvalidOrder, // Oracle price must be > 0.
+                    '29': errors.InvalidOrder, // Invalid stateful order cancellation
+                    '30': errors.InvalidOrder, // An order with the same `OrderId` and `OrderHash` has already been processed for this CLOB
+                    '31': errors.InvalidOrder, // Missing mid price for ClobPair
+                    '32': errors.InvalidOrder, // Existing stateful order cancellation has higher-or-equal priority than the new one
+                    '33': errors.InvalidOrder, // ClobPair with id already exists
+                    '34': errors.InvalidOrder, // Order conflicts with ClobPair status
+                    '35': errors.InvalidOrder, // Invalid ClobPair status transition
+                    '36': errors.InvalidOrder, // Operation conflicts with ClobPair status
+                    '37': errors.InvalidOrder, // Perpetual does not exist in state
+                    '39': errors.InvalidOrder, // ClobPair update is invalid
+                    '40': errors.InvalidOrder, // Authority is invalid
+                    '41': errors.InvalidOrder, // perpetual ID is already associated with an existing CLOB pair
+                    '42': errors.InvalidOrder, // Unexpected time in force
+                    '43': errors.InvalidOrder, // Order has remaining size
+                    '44': errors.InvalidOrder, // invalid time in force
+                    '45': errors.InvalidOrder, // Invalid batch cancel message
+                    '46': errors.InvalidOrder, // Batch cancel has failed
+                    '47': errors.InvalidOrder, // CLOB has not been initialized
+                    '48': errors.InvalidOrder, // This field has been deprecated
+                    '49': errors.InvalidOrder, // Invalid TWAP order placement
+                    '50': errors.InvalidOrder, // Invalid builder code
+                    '1000': errors.BadRequest, // Proposed LiquidationsConfig is invalid
+                    '1001': errors.BadRequest, // Subaccount has no perpetual positions to liquidate
+                    '1002': errors.BadRequest, // Subaccount is not liquidatable
+                    '1003': errors.InvalidOrder, // Subaccount does not have an open position for perpetual
+                    '1004': errors.InvalidOrder, // Liquidation order has invalid size
+                    '1005': errors.InvalidOrder, // Liquidation order is on the wrong side
+                    '1006': errors.InvalidOrder, // Total fills amount exceeds size of liquidation order
+                    '1007': errors.InvalidOrder, // Liquidation order does not contain any fills
+                    '1008': errors.InvalidOrder, // Subaccount has previously liquidated this perpetual in the current block
+                    '1009': errors.InvalidOrder, // Liquidation order has size smaller than min position notional specified in the liquidation config
+                    '1010': errors.InvalidOrder, // Liquidation order has size greater than max position notional specified in the liquidation config
+                    '1011': errors.InvalidOrder, // Liquidation exceeds the maximum notional amount that a single subaccount can have liquidated per block
+                    '1012': errors.InvalidOrder, // Liquidation exceeds the maximum insurance fund payout amount for a given subaccount per block
+                    '1013': errors.InvalidOrder, // Insurance fund does not have sufficient funds to cover liquidation losses
+                    '1014': errors.InvalidOrder, // Invalid perpetual position size delta
+                    '1015': errors.InvalidOrder, // Invalid delta base and/or quote quantums for insurance fund delta calculation
+                    '1017': errors.InvalidOrder, // Cannot deleverage subaccount against itself
+                    '1018': errors.InvalidOrder, // Deleveraging match cannot have fills with same id
+                    '1019': errors.InvalidOrder, // Deleveraging match cannot have fills with zero amount
+                    '1020': errors.InvalidOrder, // Position cannot be fully offset
+                    '1021': errors.InvalidOrder, // Deleveraging match has incorrect value for isFinalSettlement flag
+                    '1022': errors.InvalidOrder, // Liquidation conflicts with ClobPair status
+                    '2000': errors.InvalidOrder, // FillOrKill order could not be fully filled
+                    '2001': errors.InvalidOrder, // Reduce-only orders cannot increase the position size
+                    '2002': errors.InvalidOrder, // Reduce-only orders cannot change the position side
+                    '2003': errors.InvalidOrder, // Post-only order would cross one or more maker orders
+                    '2004': errors.InvalidOrder, // IOC order is already filled, remaining size is cancelled.
+                    '2005': errors.InvalidOrder, // Order would violate isolated subaccount constraints.
+                    '3000': errors.InvalidOrder, // Invalid order flags
+                    '3001': errors.InvalidOrder, // Invalid order goodTilBlockTime
+                    '3002': errors.InvalidOrder, // Stateful orders cannot require immediate execution
+                    '3003': errors.InvalidOrder, // The block time is greater than the GoodTilBlockTime of the message
+                    '3004': errors.InvalidOrder, // The GoodTilBlockTime of the message is further than StatefulOrderTimeWindow into the future
+                    '3005': errors.InvalidOrder, // Existing stateful order has higher-or-equal priority than the new one
+                    '3006': errors.InvalidOrder, // Stateful order does not exist
+                    '3007': errors.InvalidOrder, // Stateful order collateralization check failed
+                    '3008': errors.InvalidOrder, // Stateful order was previously cancelled and therefore cannot be placed
+                    '3009': errors.InvalidOrder, // Stateful order was previously removed and therefore cannot be placed
+                    '3010': errors.InvalidOrder, // Stateful order cancellation failed because the order was already removed from state
+                    '4000': errors.InvalidOrder, // MsgProposedOperations is invalid
+                    '4001': errors.InvalidOrder, // Match Order is invalid
+                    '4002': errors.InvalidOrder, // Order was not previously placed in operations queue
+                    '4003': errors.InvalidOrder, // Fill amount cannot be zero
+                    '4004': errors.InvalidOrder, // Deleveraging fill is invalid
+                    '4005': errors.InvalidOrder, // Deleveraged subaccount in proposed deleveraged operation failed deleveraging validation
+                    '4006': errors.InvalidOrder, // Order Removal is invalid
+                    '4007': errors.InvalidOrder, // Order Removal reason is invalid
+                    '4008': errors.InvalidOrder, // Zero-fill deleveraging operation included in block for non-negative TNC subaccount
+                    '5000': errors.InvalidOrder, // Proposed BlockRateLimitConfig is invalid
+                    '5001': errors.InvalidOrder, // Block rate limit exceeded
+                    '6000': errors.InvalidOrder, // Conditional type is invalid
+                    '6001': errors.InvalidOrder, // Conditional order trigger subticks is invalid
+                    '6002': errors.InvalidOrder, // Conditional order is untriggered
+                    '9000': errors.InvalidOrder, // Asset orders are not implemented
+                    '9001': errors.InvalidOrder, // Updates for assets other than USDC are not implemented
+                    '9002': errors.InvalidOrder, // This function is not implemented
+                    '9003': errors.InvalidOrder, // Reduce-only is currently disabled for non-IOC orders
+                    '10000': errors.InvalidOrder, // Proposed EquityTierLimitConfig is invalid
+                    '10001': errors.InvalidOrder, // Subaccount cannot open more orders due to equity tier limit.
                     '11000': errors.InvalidOrder, // Invalid order router address
                 },
                 'broad': {
@@ -538,7 +538,7 @@ class dydx extends dydx$1["default"] {
             'option': false,
             'active': active,
             'contract': contract,
-            'contractSize': this.parseNumber('1'),
+            'contractSize': this.parseNumber('1'), // trades seem in absolute size
             'linear': true,
             'inverse': false,
             'taker': undefined,
@@ -633,7 +633,7 @@ class dydx extends dydx$1["default"] {
         // }
         //
         const timestamp = this.parse8601(this.safeString(trade, 'createdAt'));
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'size');
         const side = this.safeStringLower(trade, 'side');
@@ -1256,7 +1256,7 @@ class dydx extends dydx$1["default"] {
         // }
         //
         const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request);
-        const account = this.safeDict(response, 'info');
+        const account = this.safeDict(response, 'info', {});
         account['pub_key'] = {
             // encode with binary key would fail in python
             'key': account['pub_key']['key'],
@@ -1289,7 +1289,7 @@ class dydx extends dydx$1["default"] {
         const postOnly = this.isPostOnly(isMarket, undefined, params);
         const amountStr = this.amountToPrecision(symbol, amount);
         const priceStr = this.priceToPrecision(symbol, price);
-        const marketInfo = this.safeDict(market, 'info');
+        const marketInfo = this.safeDict(market, 'info', {});
         const atomicResolution = marketInfo['atomicResolution'];
         const quantumScale = this.pow('10', Precise["default"].stringNeg(atomicResolution));
         const quantums = Precise["default"].stringMul(amountStr, quantumScale);
@@ -1802,7 +1802,7 @@ class dydx extends dydx$1["default"] {
         }
         const defaultFeeDenom = this.safeString(this.options, 'defaultFeeDenom');
         const defaultFeeMultiplier = this.safeString(this.options, 'defaultFeeMultiplier');
-        const feeDenom = this.safeDict(this.options, 'feeDenom');
+        const feeDenom = this.safeDict(this.options, 'feeDenom', {});
         let gasPrice = undefined;
         let denom = undefined;
         if (defaultFeeDenom === 'uusdc') {
@@ -2032,7 +2032,7 @@ class dydx extends dydx$1["default"] {
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': this.safeStringLower(transaction, 'type'),
+            'type': this.safeStringLower(transaction, 'type'), // 'deposit', 'withdrawal'
             'amount': amount,
             'currency': code,
             'status': undefined,

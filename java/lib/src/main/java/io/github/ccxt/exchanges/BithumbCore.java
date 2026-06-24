@@ -299,7 +299,7 @@ public class BithumbCore extends BithumbApi
                 Object quote = Helpers.GetValue(quotes, i);
                 Object quoteId = quote;
                 Object response = Helpers.GetValue(results, i);
-                Object data = this.safeDict(response, "data");
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 Object extension = this.safeDict(quoteCurrencies, quote, new java.util.HashMap<String, Object>() {{}});
                 Object currencyIds = Helpers.objectKeys(data);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
@@ -787,7 +787,7 @@ public class BithumbCore extends BithumbApi
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             Object feeCurrencyId = this.safeString(trade, "fee_currency");
-            Object feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
+            Object feeCurrencyCode = this.commonCurrencyCode(((String)feeCurrencyId));
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -903,7 +903,7 @@ public class BithumbCore extends BithumbApi
                 Helpers.addElementToObject(request, "type", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "bid" : "ask");
             } else
             {
-                method = Helpers.add("privatePostTradeMarket", this.capitalize(side));
+                method = Helpers.add("privatePostTradeMarket", this.capitalize(((String)side)));
             }
             Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             Object id = this.safeString(response, "order_id");
@@ -997,7 +997,7 @@ public class BithumbCore extends BithumbApi
             put( "Completed", "closed" );
             put( "Cancel", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -1232,7 +1232,7 @@ public class BithumbCore extends BithumbApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "side", Helpers.GetValue(order, "side") );
             }};
-            return (this.cancelOrder(Helpers.GetValue(order, "id"), Helpers.GetValue(order, "symbol"), this.extend(request, parameters))).join();
+            return (this.cancelOrder(((String)Helpers.GetValue(order, "id")), Helpers.GetValue(order, "symbol"), this.extend(request, parameters))).join();
         });
 
     }

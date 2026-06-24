@@ -799,7 +799,7 @@ public partial class paradex : Exchange
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = fee;
+            ((IDictionary<string,object>)result)[(string)((string)symbol)] = fee;
         }
         return result;
     }
@@ -1515,7 +1515,7 @@ public partial class paradex : Exchange
         //
         object timestamp = this.safeInteger(order, "created_at");
         object orderId = this.safeString(order, "id");
-        object clientOrderId = this.omitZero(this.safeString(order, "client_id"));
+        object clientOrderId = this.omitZero(((string)this.safeString(order, "client_id")));
         object marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
@@ -1535,8 +1535,8 @@ public partial class paradex : Exchange
             }
         }
         object side = this.safeStringLower(order, "side");
-        object average = this.omitZero(this.safeString(order, "avg_fill_price"));
-        object remaining = this.omitZero(this.safeString(order, "remaining_size"));
+        object average = this.omitZero(((string)this.safeString(order, "avg_fill_price")));
+        object remaining = this.omitZero(((string)this.safeString(order, "remaining_size")));
         object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         object flags = this.safeList(order, "flags", new List<object>() {});
         object reduceOnly = null;
@@ -1583,7 +1583,7 @@ public partial class paradex : Exchange
             { "GTC", "GTC" },
             { "POST_ONLY", "PO" },
         };
-        return this.safeString(timeInForces, timeInForce);
+        return this.safeString(timeInForces, ((string)timeInForce));
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1609,7 +1609,7 @@ public partial class paradex : Exchange
             { "STOP_LIMIT", "limit" },
             { "STOP_MARKET", "market" },
         };
-        return this.safeStringLower(types, type, type);
+        return this.safeStringLower(types, ((string)type), type);
     }
 
     public virtual object scaleNumber(object num)
@@ -1623,7 +1623,7 @@ public partial class paradex : Exchange
         object market = this.market(symbol);
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         object orderType = ((string)type).ToUpper();
-        object orderSide = ((string)side).ToUpper();
+        object orderSide = ((string)((string)side)).ToUpper();
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "side", orderSide },
@@ -1936,7 +1936,7 @@ public partial class paradex : Exchange
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object extendedParams = this.extend(parameters, orderParams);
-            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
+            object orderRequest = this.createOrderRequest(((string)symbol), ((string)type), side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest(orderRequest);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -2980,7 +2980,7 @@ public partial class paradex : Exchange
             { "COMPLETED", "ok" },
             { "FAILED", "failed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     /**
@@ -3025,7 +3025,7 @@ public partial class paradex : Exchange
         object marginMode = this.safeStringLower(rawMarginMode, "margin_type");
         return new Dictionary<string, object>() {
             { "info", rawMarginMode },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginMode },
         };
     }
@@ -3047,7 +3047,7 @@ public partial class paradex : Exchange
         this.checkRequiredArgument("setMarginMode", symbol, "symbol");
         await this.authenticateRest();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object leverage = null;
         var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", 1);
         leverage = ((IList<object>)leverageparametersVariable)[0];
@@ -3135,7 +3135,7 @@ public partial class paradex : Exchange
         this.checkRequiredArgument("setLeverage", symbol, "symbol");
         await this.authenticateRest();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -3510,7 +3510,7 @@ public partial class paradex : Exchange
             version = "v2";
             path = ((string)path).Replace((string)"v2/", (string)"");
         }
-        object url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), version)), "/"), this.implodeParams(path, parameters));
+        object url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), ((string)version))), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {

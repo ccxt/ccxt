@@ -220,7 +220,7 @@ export default class bitfinex extends bitfinexRest {
         //   ]
         //
         const data = this.safeValue(message, 1, []);
-        let ohlcvs = undefined;
+        let ohlcvs = [];
         const first = this.safeValue(data, 0);
         if (Array.isArray(first)) {
             // snapshot
@@ -231,7 +231,7 @@ export default class bitfinex extends bitfinexRest {
             ohlcvs = [data];
         }
         const channel = this.safeValue(subscription, 'channel');
-        const key = this.safeString(subscription, 'key');
+        const key = this.safeString(subscription, 'key', '');
         const keyParts = key.split(':');
         const interval = this.safeString(keyParts, 1);
         let marketId = key;
@@ -628,7 +628,7 @@ export default class bitfinex extends bitfinexRest {
         const prec = this.safeString(options, 'prec', 'P0');
         const freq = this.safeString(options, 'freq', 'F0');
         const request = {
-            'prec': prec,
+            'prec': prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
         };
         if (limit !== undefined) {
@@ -700,6 +700,9 @@ export default class bitfinex extends bitfinexRest {
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
                     const amount = this.safeNumber(delta, 2);
+                    if (amount === undefined) {
+                        continue;
+                    }
                     const counter = this.safeNumber(delta, 1);
                     const price = this.safeNumber(delta, 0);
                     const size = (amount < 0) ? -amount : amount;
@@ -863,7 +866,7 @@ export default class bitfinex extends bitfinexRest {
         //   ]
         //
         const updateType = this.safeValue(message, 1);
-        let data = undefined;
+        let data = [];
         if (updateType === 'ws') {
             data = this.safeValue(message, 2);
         }
@@ -1190,14 +1193,14 @@ export default class bitfinex extends bitfinexRest {
             side = 'sell';
         }
         const remaining = Precise.stringAbs(this.safeString(order, 6));
-        let type = this.safeString(order, 8);
+        let type = this.safeString(order, 8, '');
         if (type.indexOf('LIMIT') > -1) {
             type = 'limit';
         }
         else if (type.indexOf('MARKET') > -1) {
             type = 'market';
         }
-        const rawState = this.safeString(order, 13);
+        const rawState = this.safeString(order, 13, '');
         const stateParts = rawState.split(' ');
         const trimmedStatus = this.safeString(stateParts, 0);
         const status = this.parseWsOrderStatus(trimmedStatus);

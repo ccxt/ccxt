@@ -261,8 +261,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/, '$1List[$2]' ],  // typed variable with list type
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/, '$1List[List[$2]]' ],  // typed variables with double list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1List[List[$2]]' ],  // typed variables with double list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -416,8 +416,8 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any(?:\[\])*);\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any(?:\[\])*)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+[^;=\n]+;[^\n]*\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+[^=;\n]+?(\s+=\s+\S)/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -576,9 +576,9 @@ class Transpiler {
 
     getTypescriptRemovalRegexes() {
         return [
-            [ /\((\w+)\sas\s\w+\)/g, '$1'], // remove (this as any) or (x as number) paren included
+            [ /(?<![a-zA-Z0-9_]\s)(?<![a-zA-Z0-9_])\((\w+)\sas\s\w+\)/g, '$1'], // remove parens around a cast like "(x as any)" -> "x"; but NOT when it's a call arg, in either the spaced "foo (x as string)" or unspaced "foo(x as string)" form (the latter is produced by trimmedUnCamelCase collapsing base-method calls, e.g. capitalize(side as string)) — both keep their parens and let the next rule drop just the " as T"
             [ /\sas (Dictionary<)?\w+(\[])?(>)?/g, ''], // remove any "as any" or "as number" or "as trade[]"
-            [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
+            [ /(^|[^a-zA-Z0-9_])((?:let|const)\s+\w+):[^=\n]+(\s+=.*$)/gm, '$1$2$3'], // remove variable type
         ]
     }
 
@@ -1549,6 +1549,12 @@ class Transpiler {
             let part = this.moveJsDocInside(methods[i].trim());
             // let part = methods[i].trim ()
             let lines = part.split ("\n")
+            // strip TypeScript overload signature lines (body-less declarations ending with ';')
+            // they carry no runtime code and the implementation signature below handles all cases
+            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+                lines.shift ()
+            }
+            part = lines.join ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
 
@@ -1562,7 +1568,7 @@ class Transpiler {
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
-            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(\S+))?\s*{/ // signature line
+            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(.+?))?\s*{/ // signature line, return type captured non-greedily to allow tuples like [Str, Dict]
             let matches = methodSignatureRegex.exec (signature)
 
             if (!matches) {
@@ -1606,17 +1612,22 @@ class Transpiler {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
             }
+            // tuple return types like [Str, Dict] map to array/list (no single-token equivalent)
+            const isTupleReturnType = (syncReturnType !== '') && (syncReturnType[0] === '[')
 
             // python helpers
             const pythonTypes: dict = {
                 'string': 'str',
                 'number': 'float',
                 'any': 'Any',
+                'unknown': 'Any',
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
-                'Dict': 'dict'
+                'Dict': 'dict',
+                'NullableDict': 'dict',
+                'NullableList': 'List[Any]'
             }
             const unwrapLists = (type: string) => {
                 let count = 0
@@ -1631,11 +1642,13 @@ class Transpiler {
                 // add $ to each argument name in PHP method signature
                 const phpTypes: dict = {
                     'any': 'mixed',
+                    'unknown': 'mixed',
                     'string': 'string',
                     'MarketType': 'string',
                     'SubType': 'string',
                     'Str': '?string',
                     'Num': '?float',
+                    'Bool': '?bool',
                     'Strings': '?array',
                     'number': 'float',
                     'boolean': 'bool',
@@ -1645,8 +1658,10 @@ class Transpiler {
                     'OrderSide': 'string',
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
+                    'NullableDict': '?array',
+                    'NullableList': '?array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|OpenInterests?|Options?|OptionChain|Liquidations?)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -1664,7 +1679,7 @@ class Transpiler {
                         }
                         nullable = nullable || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
-                        const type = secondPart[0].trim ()
+                        let type = secondPart[0].trim ()
                         const phpType = phpTypes[type] ?? type
                         let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
                         if (resolveType === 'object[]') {
@@ -1683,8 +1698,8 @@ class Transpiler {
                 if (returnType) {
                     // promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                     // syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
-                    if (syncReturnType === 'Currencies') {
-                        syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
+                    if (isTupleReturnType) {
+                        syncPhpReturnType = ': array'; // tuples are returned as arrays in PHP
                     } else if (syncReturnType.match (phpArrayRegex)) {
                         syncPhpReturnType = ': array'
                     } else {
@@ -1735,7 +1750,9 @@ class Transpiler {
             if (this.buildPython) {
                 // compile the final Python code for the method signature
                 let pythonReturnType = ''
-                if (syncReturnType) {
+                if (isTupleReturnType) {
+                    pythonReturnType = ' -> list'; // tuples are returned as lists in Python
+                } else if (syncReturnType) {
                     pythonReturnType = ' -> ' + unwrapLists (syncReturnType)
                 }
                 let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
@@ -2708,7 +2725,7 @@ class Transpiler {
             py: examplesBaseFolder +'py/',
             php: examplesBaseFolder +'php/',
         }
-        const transpileFlagPhrase = '// AUTO-TRANSPILE //'
+        const noTranspileFlagPhrase = '// @NO_AUTO_TRANSPILE'
 
         const pythonPreamble = this.getPythonPreamble ().replace ('sys.path.append(root)', 'sys.path.append(root + \'/python\')'); // as main preamble is meant for derived exchange classes, the path needs to be changed
         const phpPreamble = this.getPHPPreamble ();
@@ -2754,7 +2771,7 @@ class Transpiler {
         for (const filenameWithExtenstion of allTsExamplesFiles) {
             const tsFile = path.join (examplesFolders.ts, filenameWithExtenstion)
             let tsContent = fs.readFileSync (tsFile).toString ()
-            if (tsContent.indexOf (transpileFlagPhrase) > -1) {
+            if (!tsContent.includes (noTranspileFlagPhrase)) {
                 const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
                 log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')

@@ -336,7 +336,7 @@ class bitrue extends \ccxt\async\bitrue {
                 $cbId = $wsId;
                 $url = $this->urls['api']['ws']['futurePublic'];
             } else {
-                $marketIdLowercase = strtolower($market['id']);
+                $marketIdLowercase = $this->safe_string_lower($market, 'id');
                 $channel = 'market_' . $marketIdLowercase . '_simple_depth_step0';
                 $cbId = $marketIdLowercase;
                 $url = $this->urls['api']['ws']['public'];

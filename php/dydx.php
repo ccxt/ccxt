@@ -630,7 +630,7 @@ class dydx extends Exchange {
         // }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'createdAt'));
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'size');
         $side = $this->safe_string_lower($trade, 'side');
@@ -1275,7 +1275,7 @@ class dydx extends Exchange {
         // }
         //
         $response = $this->nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress ($request);
-        $account = $this->safe_dict($response, 'info');
+        $account = $this->safe_dict($response, 'info', array());
         $account['pub_key'] = array(
             // encode with binary key would fail in python
             'key' => $account['pub_key']['key'],
@@ -1310,7 +1310,7 @@ class dydx extends Exchange {
         $postOnly = $this->is_post_only($isMarket, null, $params);
         $amountStr = $this->amount_to_precision($symbol, $amount);
         $priceStr = $this->price_to_precision($symbol, $price);
-        $marketInfo = $this->safe_dict($market, 'info');
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $atomicResolution = $marketInfo['atomicResolution'];
         $quantumScale = $this->pow('10', Precise::string_neg($atomicResolution));
         $quantums = Precise::string_mul($amountStr, $quantumScale);
@@ -1823,7 +1823,7 @@ class dydx extends Exchange {
         }
         $defaultFeeDenom = $this->safe_string($this->options, 'defaultFeeDenom');
         $defaultFeeMultiplier = $this->safe_string($this->options, 'defaultFeeMultiplier');
-        $feeDenom = $this->safe_dict($this->options, 'feeDenom');
+        $feeDenom = $this->safe_dict($this->options, 'feeDenom', array());
         $gasPrice = null;
         $denom = null;
         if ($defaultFeeDenom === 'uusdc') {
@@ -2426,7 +2426,7 @@ class dydx extends Exchange {
         throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a $wallet address. Set `walletAddress` or `$dydxAccount` in exchange options.');
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $section = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $pathWithParams = $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$section]);
         $params = $this->omit($params, $this->extract_params($path));

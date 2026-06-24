@@ -6,7 +6,7 @@ import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type{ Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -454,7 +454,7 @@ export default class gemini extends Exchange {
         const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 5)));
         const networks: Dict = {};
         const networkId = this.safeString (rawCurrency, 9);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         if (networkId !== undefined) {
             networkCode = this.networkIdToCode (networkId, code);
             networks[networkCode] = {
@@ -754,18 +754,18 @@ export default class gemini extends Exchange {
         //         "contract_price_currency": "GUSD"
         //     }
         //
-        let marketId = undefined;
-        let baseId = undefined;
-        let quoteId = undefined;
-        let settleId = undefined;
-        let tickSize = undefined;
-        let amountPrecision = undefined;
-        let minSize = undefined;
-        let status = undefined;
+        let marketId: Str = undefined;
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
+        let settleId: Str = undefined;
+        let tickSize: Num = undefined;
+        let amountPrecision: Num = undefined;
+        let minSize: Num = undefined;
+        let status: Bool = undefined;
         let swap = false;
-        let contractSize = undefined;
-        let linear = undefined;
-        let inverse = undefined;
+        let contractSize: Num = undefined;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         const isString = (typeof response === 'string');
         const isArray = (Array.isArray (response));
         if (!isString && !isArray) {
@@ -1024,13 +1024,13 @@ export default class gemini extends Exchange {
         //
         const volume = this.safeValue (ticker, 'volume', {});
         const timestamp = this.safeInteger (volume, 'timestamp');
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const marketId = this.safeStringLower (ticker, 'pair');
         market = this.safeMarket (marketId, market);
-        let baseId = undefined;
-        let quoteId = undefined;
-        let base = undefined;
-        let quote = undefined;
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
+        let base: Str = undefined;
+        let quote: Str = undefined;
         if ((marketId !== undefined) && (market === undefined)) {
             const idLength = marketId.length - 0;
             if (idLength === 7) {
@@ -1548,7 +1548,7 @@ export default class gemini extends Exchange {
         //          }
         //      ]
         //
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol); // throws on non-existent symbol
         }
@@ -1835,7 +1835,7 @@ export default class gemini extends Exchange {
         const type = this.safeStringLower (transaction, 'type');
         // if status field is available, then it's complete
         const statusRaw = this.safeString (transaction, 'status');
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeAmount = this.safeNumber (transaction, 'feeAmount');
         if (feeAmount !== undefined) {
             fee = {
@@ -1907,7 +1907,7 @@ export default class gemini extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode), 'currency');
         return this.safeValue (networkGroup, code) as DepositAddress;
@@ -1927,7 +1927,7 @@ export default class gemini extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         code = currency['code'];
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires a network parameter');
@@ -1941,7 +1941,7 @@ export default class gemini extends Exchange {
         return this.groupBy (results, 'network') as DepositAddress[];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {

@@ -20,7 +20,7 @@ class extended extends extended$1["default"] {
             'name': 'Extended',
             'countries': ['SG'],
             'version': 'v2',
-            'rateLimit': 600,
+            'rateLimit': 600, // Default Tier 1,000 requests/minute ≈ 1.67 request per second
             'precisionMode': number.TICK_SIZE,
             'certified': false,
             'pro': true,
@@ -257,69 +257,69 @@ class extended extends extended$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    '1000': errors.InvalidOrder,
-                    '1001': errors.InvalidOrder,
-                    '1002': errors.InvalidOrder,
-                    '1003': errors.InvalidOrder,
-                    '1004': errors.InvalidOrder,
-                    '1005': errors.InvalidOrder,
-                    '1006': errors.ExchangeError,
-                    '1008': errors.InvalidOrder,
-                    '1009': errors.InvalidOrder,
-                    '1010': errors.ExchangeError,
-                    '1011': errors.InvalidOrder,
-                    '1012': errors.InvalidOrder,
-                    '1013': errors.InvalidOrder,
-                    '1014': errors.InvalidOrder,
-                    '1049': errors.InvalidOrder,
-                    '1050': errors.InvalidOrder,
-                    '10501': errors.InvalidOrder,
-                    '1052': errors.InvalidOrder,
-                    '1053': errors.InvalidOrder,
-                    '1100': errors.InvalidOrder,
-                    '1101': errors.InvalidOrder,
-                    '1102': errors.InvalidOrder,
-                    '1120': errors.InvalidOrder,
-                    '1121': errors.InvalidOrder,
-                    '1122': errors.InvalidOrder,
-                    '1123': errors.InvalidOrder,
-                    '1124': errors.InvalidOrder,
-                    '1125': errors.InvalidOrder,
-                    '1126': errors.InvalidOrder,
-                    '1127': errors.InvalidOrder,
-                    '1128': errors.InvalidOrder,
-                    '1129': errors.InvalidOrder,
-                    '1130': errors.InvalidOrder,
-                    '1131': errors.InvalidOrder,
-                    '1132': errors.InvalidOrder,
-                    '1133': errors.InvalidOrder,
-                    '1134': errors.InvalidOrder,
-                    '1135': errors.InvalidOrder,
-                    '1136': errors.InvalidOrder,
-                    '1137': errors.InvalidOrder,
-                    '1138': errors.InvalidOrder,
-                    '1139': errors.InvalidOrder,
-                    '1140': errors.InsufficientFunds,
-                    '1141': errors.InvalidOrder,
-                    '1142': errors.InvalidOrder,
-                    '1143': errors.InvalidOrder,
-                    '1144': errors.InvalidOrder,
-                    '1145': errors.InvalidOrder,
-                    '1146': errors.InvalidOrder,
-                    '1147': errors.InvalidOrder,
-                    '1148': errors.InvalidOrder,
-                    '1500': errors.InvalidOrder,
-                    '1600': errors.BadRequest,
-                    '1601': errors.BadRequest,
-                    '1602': errors.BadRequest,
-                    '1604': errors.BadRequest,
-                    '1605': errors.BadRequest,
-                    '1607': errors.BadRequest,
-                    '1608': errors.BadRequest,
-                    '1650': errors.BadRequest,
-                    '1700': errors.BadRequest,
-                    '1701': errors.BadRequest,
-                    '1703': errors.BadRequest,
+                    '1000': errors.InvalidOrder, // Asset not found.
+                    '1001': errors.InvalidOrder, // Market not found.
+                    '1002': errors.InvalidOrder, // Market is disabled.
+                    '1003': errors.InvalidOrder, // Market group not found.
+                    '1004': errors.InvalidOrder, // Account not found.
+                    '1005': errors.InvalidOrder, // Not supported interval.
+                    '1006': errors.ExchangeError, // Application error.
+                    '1008': errors.InvalidOrder, // Client not found.
+                    '1009': errors.InvalidOrder, // Action is not allowed.
+                    '1010': errors.ExchangeError, // Maintenance mode.
+                    '1011': errors.InvalidOrder, // Post only mode.
+                    '1012': errors.InvalidOrder, // Reduce only mode.
+                    '1013': errors.InvalidOrder, // Percentage should be between 0 and 1.
+                    '1014': errors.InvalidOrder, // Market is in reduce only mode, non-reduce only orders are not allowed.
+                    '1049': errors.InvalidOrder, // Leverage below min leverage.
+                    '1050': errors.InvalidOrder, // Leverage exceeds max leverage.
+                    '10501': errors.InvalidOrder, // Max position value exceeded for new leverage.
+                    '1052': errors.InvalidOrder, // Insufficient margin for new leverage.
+                    '1053': errors.InvalidOrder, // Leverage has invalid precision.
+                    '1100': errors.InvalidOrder, // Invalid Starknet public key.
+                    '1101': errors.InvalidOrder, // Invalid Starknet signature.
+                    '1102': errors.InvalidOrder, // Invalid Starknet vault.
+                    '1120': errors.InvalidOrder, // Order quantity less than min trade size, based on market-specific trading rules.
+                    '1121': errors.InvalidOrder, // Invalid quantity due to the wrong size increment, based on market-specific Minimum Change in Trade Size trading rule.
+                    '1122': errors.InvalidOrder, // Order value exceeds max order value, based on market-specific trading rules.
+                    '1123': errors.InvalidOrder, // Invalid quantity precision, currently equals to market-specific Minimum Change in Trade Size.
+                    '1124': errors.InvalidOrder, // Invalid price due to wrong price movement, based on market-specific Minimum Price Change trading rule.
+                    '1125': errors.InvalidOrder, // Invalid price precision, currently equals to market-specific Minimum Price Change.
+                    '1126': errors.InvalidOrder, // Max open orders number exceeded, currently 200 orders per market.
+                    '1127': errors.InvalidOrder, // Max position value exceeded, based on the Margin schedule.
+                    '1128': errors.InvalidOrder, // Trading fees are invalid. Refer to Order management section for details.
+                    '1129': errors.InvalidOrder, // Invalid quantity for position TP/SL.
+                    '1130': errors.InvalidOrder, // Order price is missing.
+                    '1131': errors.InvalidOrder, // TP/SL order trigger is missing.
+                    '1132': errors.InvalidOrder, // Order type is not allowed.
+                    '1133': errors.InvalidOrder, // Invalid order parameters.
+                    '1134': errors.InvalidOrder, // Duplicate Order.
+                    '1135': errors.InvalidOrder, // Order expiration date must be within 90 days for the Mainnet, 28 days for the Testnet.
+                    '1136': errors.InvalidOrder, // Reduce-only order size exceeds open position size.
+                    '1137': errors.InvalidOrder, // Position is missing for a reduce-only order.
+                    '1138': errors.InvalidOrder, // Position is the same side as a reduce-only order.
+                    '1139': errors.InvalidOrder, // Market order must have time in force IOC.
+                    '1140': errors.InsufficientFunds, // New order cost exceeds available balance.
+                    '1141': errors.InvalidOrder, // Invalid price value.
+                    '1142': errors.InvalidOrder, // Edit order not found.
+                    '1143': errors.InvalidOrder, // Conditional order trigger is missing.
+                    '1144': errors.InvalidOrder, // Conditional market order can't be Post-only.
+                    '1145': errors.InvalidOrder, // Non reduce-only orders are not allowed.
+                    '1146': errors.InvalidOrder, // Twap order must have time in force GTT.
+                    '1147': errors.InvalidOrder, // Open loss exceeds equity.
+                    '1148': errors.InvalidOrder, // TP/SL open loss exceeds equity.
+                    '1500': errors.InvalidOrder, // Account not selected.
+                    '1600': errors.BadRequest, // Withdrawal amount must be positive.
+                    '1601': errors.BadRequest, // Withdrawal description is too long.
+                    '1602': errors.BadRequest, // Withdrawal request does not match settlement.
+                    '1604': errors.BadRequest, // Withdrawal expiration time is below the 14 days minimum.
+                    '1605': errors.BadRequest, // Withdrawal asset is not valid.
+                    '1607': errors.BadRequest, // Withdrawals blocked for the account. Please contact the team on Discord to unblock the withdrawals.
+                    '1608': errors.BadRequest, // The withdrawal address does not match the account address.
+                    '1650': errors.BadRequest, // Vault transfer amount is incorrect.
+                    '1700': errors.BadRequest, // Referral code already exist.
+                    '1701': errors.BadRequest, // Referral code is not valid.
+                    '1703': errors.BadRequest, // Referral program is not enabled.
                     '1704': errors.BadRequest, // Referral code already applied.
                 },
                 'broad': {},
@@ -1422,7 +1422,7 @@ class extended extends extended$1["default"] {
         //
         const timestamp = this.safeInteger(interest, 't');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': this.safeNumber(interest, 'I'),
             'openInterestValue': this.safeNumber(interest, 'i'),
             'baseVolume': this.safeNumber(interest, 'I'),
@@ -2952,7 +2952,7 @@ class extended extends extended$1["default"] {
             clientOrderIds = [clientOrderId];
         }
         const hasClientOrderIds = clientOrderIds !== undefined;
-        if (hasClientOrderIds) {
+        if (clientOrderIds !== undefined) {
             const clientOrderIdsLength = clientOrderIds.length;
             if (clientOrderIdsLength > 0) {
                 request['externalOrderIds'] = clientOrderIds;

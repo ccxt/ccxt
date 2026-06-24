@@ -45,7 +45,7 @@ class cryptocom extends cryptocom$1["default"] {
             },
             'options': {
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'watchOrderBook': {

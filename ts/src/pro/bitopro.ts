@@ -5,7 +5,7 @@ import { sha384 } from '@noble/hashes/sha2.js';
 import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -74,7 +74,7 @@ export default class bitopro extends bitoproRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ORDER_BOOK' + ':' + symbol;
-        let endPart = undefined;
+        let endPart: Str = undefined;
         if (limit === undefined) {
             endPart = market['id'];
         } else {
@@ -292,7 +292,7 @@ export default class bitopro extends bitoproRest {
             }
         }
         const amount = this.safeString (trade, 'volume');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
         if (feeAmount !== undefined) {
@@ -303,7 +303,7 @@ export default class bitopro extends bitoproRest {
             };
         }
         const isMaker = this.safeValue (trade, 'isMaker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (isMaker !== undefined) {
             if (isMaker) {
                 takerOrMaker = 'maker';
@@ -366,7 +366,7 @@ export default class bitopro extends bitoproRest {
         //
         const marketId = this.safeString (message, 'pair');
         // market-ids are lowercase in REST API and uppercase in WS API
-        const market = this.safeMarket (marketId.toLowerCase (), undefined, '_');
+        const market = this.safeMarket (marketId !== undefined ? marketId.toLowerCase () : undefined, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = event + ':' + symbol;

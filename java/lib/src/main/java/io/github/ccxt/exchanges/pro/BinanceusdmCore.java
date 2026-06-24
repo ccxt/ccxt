@@ -23,7 +23,8 @@ public class BinanceusdmCore extends io.github.ccxt.exchanges.Binanceusdm
         // eslint-disable-next-line new-cap
         var restInstance = new io.github.ccxt.exchanges.Binanceusdm();
         Object restDescribe = restInstance.describe();
-        Object extended = this.deepExtend(super.describe(), restDescribe);
+        Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
+        Object extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new java.util.HashMap<String, Object>() {{
             put( "id", "binanceusdm" );
             put( "name", "Binance USDⓈ-M" );

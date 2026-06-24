@@ -20,11 +20,11 @@ class bybit extends bybit$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bybit',
             'name': 'Bybit',
-            'countries': ['VG'],
+            'countries': ['VG'], // British Virgin Islands
             'version': 'v5',
             'userAgent': undefined,
             'rateLimit': 20,
-            'hostname': 'bybit.com',
+            'hostname': 'bybit.com', // bybit.com, bytick.com, bybit.nl, bybit.com.hk
             'pro': true,
             'certified': true,
             'has': {
@@ -62,7 +62,7 @@ class bybit extends bybit$1["default"] {
                 'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': 'emulated',
-                'fetchBorrowInterest': false,
+                'fetchBorrowInterest': false, // temporarily disabled, as it doesn't work
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledAndClosedOrders': true,
@@ -84,7 +84,7 @@ class bybit extends bybit$1["default"] {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchGreeks': true,
@@ -222,7 +222,7 @@ class bybit extends bybit$1["default"] {
                         'derivatives/v3/public/open-interest': 1,
                         'derivatives/v3/public/insurance': 1,
                         // v5
-                        'v5/announcements/index': 5,
+                        'v5/announcements/index': 5, // 10/s = 1000 / (20 * 5)
                         // market
                         'v5/market/time': 5,
                         'v5/market/kline': 5,
@@ -268,7 +268,7 @@ class bybit extends bybit$1["default"] {
                     'get': {
                         'v5/market/instruments-info': 5,
                         // Legacy inverse swap
-                        'v2/private/wallet/fund/records': 25,
+                        'v2/private/wallet/fund/records': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         // spot
                         'spot/v3/private/order': 2.5,
                         'spot/v3/private/open-orders': 2.5,
@@ -285,16 +285,16 @@ class bybit extends bybit$1["default"] {
                         'spot/v3/private/margin-repaid-infos': 10,
                         'spot/v3/private/margin-ltv': 10,
                         // account
-                        'asset/v3/private/transfer/inter-transfer/list/query': 50,
+                        'asset/v3/private/transfer/inter-transfer/list/query': 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v3/private/transfer/sub-member/list/query': 50,
                         'asset/v3/private/transfer/sub-member-transfer/list/query': 50,
                         'asset/v3/private/transfer/universal-transfer/list/query': 25,
-                        'asset/v3/private/coin-info/query': 25,
+                        'asset/v3/private/coin-info/query': 25, // 2/s
                         'asset/v3/private/deposit/address/query': 10,
-                        'contract/v3/private/copytrading/order/list': 30,
-                        'contract/v3/private/copytrading/position/list': 40,
-                        'contract/v3/private/copytrading/wallet/balance': 25,
-                        'contract/v3/private/position/limit-info': 25,
+                        'contract/v3/private/copytrading/order/list': 30, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
+                        'contract/v3/private/copytrading/position/list': 40, // 75 req/min = 1000 / (20 * 40) = 1.25/s
+                        'contract/v3/private/copytrading/wallet/balance': 25, // 120 req/min = 1000 / (20 * 25) = 2/s
+                        'contract/v3/private/position/limit-info': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         'contract/v3/private/order/unfilled-orders': 1,
                         'contract/v3/private/order/list': 1,
                         'contract/v3/private/position/list': 1,
@@ -315,27 +315,27 @@ class bybit extends bybit$1["default"] {
                         'unified/v3/private/account/borrow-history': 1,
                         'unified/v3/private/account/borrow-rate': 1,
                         'unified/v3/private/account/info': 1,
-                        'user/v3/private/frozen-sub-member': 10,
-                        'user/v3/private/query-sub-members': 5,
-                        'user/v3/private/query-api': 5,
+                        'user/v3/private/frozen-sub-member': 10, // 5/s
+                        'user/v3/private/query-sub-members': 5, // 10/s
+                        'user/v3/private/query-api': 5, // 10/s
                         'user/v3/private/get-member-type': 1,
                         'asset/v3/private/transfer/transfer-coin/list/query': 50,
                         'asset/v3/private/transfer/account-coin/balance/query': 50,
                         'asset/v3/private/transfer/account-coins/balance/query': 25,
                         'asset/v3/private/transfer/asset-info/query': 50,
-                        'asset/v3/public/deposit/allowed-deposit-list/query': 0.17,
+                        'asset/v3/public/deposit/allowed-deposit-list/query': 0.17, // 300/s
                         'asset/v3/private/deposit/record/query': 10,
                         'asset/v3/private/withdraw/record/query': 10,
                         // v5
                         // trade
-                        'v5/order/realtime': 5,
-                        'v5/order/history': 5,
-                        'v5/order/spot-borrow-check': 1,
+                        'v5/order/realtime': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/history': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/spot-borrow-check': 1, // 50/s = 1000 / (20 * 1)
                         // position
-                        'v5/position/list': 5,
-                        'v5/execution/list': 5,
-                        'v5/position/closed-pnl': 5,
-                        'v5/position/move-history': 5,
+                        'v5/position/list': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/execution/list': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/closed-pnl': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/move-history': 5, // 10/s => cost = 50 / 10 = 5
                         // pre-upgrade
                         'v5/pre-upgrade/order/history': 5,
                         'v5/pre-upgrade/execution/list': 5,
@@ -349,48 +349,48 @@ class bybit extends bybit$1["default"] {
                         'v5/account/instruments-info': 1,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
-                        'v5/account/fee-rate': 10,
+                        'v5/account/fee-rate': 10, // 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
-                        'v5/account/transaction-log': 1.66,
+                        'v5/account/transaction-log': 1.66, // 30/s = 50 / 30
                         'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
                         'v5/account/withdrawal': 5,
                         // asset
-                        'v5/asset/exchange/query-coin-list': 0.5,
-                        'v5/asset/exchange/convert-result-query': 0.5,
-                        'v5/asset/exchange/query-convert-history': 0.5,
-                        'v5/asset/exchange/order-record': 5,
+                        'v5/asset/exchange/query-coin-list': 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/convert-result-query': 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/query-convert-history': 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/order-record': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/asset/delivery-record': 5,
                         'v5/asset/settlement-record': 5,
-                        'v5/asset/transfer/query-asset-info': 50,
-                        'v5/asset/transfer/query-account-coins-balance': 25,
-                        'v5/asset/transfer/query-account-coin-balance': 50,
-                        'v5/asset/transfer/query-transfer-coin-list': 50,
-                        'v5/asset/transfer/query-inter-transfer-list': 50,
-                        'v5/asset/transfer/query-sub-member-list': 50,
-                        'v5/asset/transfer/query-universal-transfer-list': 25,
+                        'v5/asset/transfer/query-asset-info': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-account-coins-balance': 25, // 2/s => cost = 50 / 2 = 25
+                        'v5/asset/transfer/query-account-coin-balance': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-transfer-coin-list': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-inter-transfer-list': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-sub-member-list': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-universal-transfer-list': 25, // 2/s => cost = 50 / 2 = 25
                         'v5/asset/deposit/query-allowed-list': 5,
-                        'v5/asset/deposit/query-record': 10,
-                        'v5/asset/deposit/query-sub-member-record': 10,
+                        'v5/asset/deposit/query-record': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-sub-member-record': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-internal-record': 5,
-                        'v5/asset/deposit/query-address': 10,
-                        'v5/asset/deposit/query-sub-member-address': 10,
-                        'v5/asset/coin/query-info': 28,
+                        'v5/asset/deposit/query-address': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-sub-member-address': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/coin/query-info': 28, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
                         'v5/asset/withdraw/query-address': 10,
-                        'v5/asset/withdraw/query-record': 10,
+                        'v5/asset/withdraw/query-record': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
-                        'v5/asset/convert/small-balance-list': 5,
-                        'v5/asset/convert/small-balance-history': 5,
+                        'v5/asset/convert/small-balance-list': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/convert/small-balance-history': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/fiat/query-coin-list': 5,
                         'v5/fiat/reference-price': 5,
                         'v5/fiat/trade-query': 5,
                         'v5/fiat/query-trade-history': 5,
                         'v5/fiat/balance-query': 5,
                         // user
-                        'v5/user/query-sub-members': 5,
-                        'v5/user/query-api': 5,
+                        'v5/user/query-sub-members': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/user/query-api': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/user/sub-apikeys': 5,
                         'v5/user/get-member-type': 5,
                         'v5/user/aff-customer-info': 5,
@@ -399,7 +399,7 @@ class bybit extends bybit$1["default"] {
                         // affilate
                         'v5/affiliate/aff-user-list': 5,
                         // spot leverage token
-                        'v5/spot-lever-token/order-record': 1,
+                        'v5/spot-lever-token/order-record': 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
                         'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
@@ -408,10 +408,10 @@ class bybit extends bybit$1["default"] {
                         'v5/spot-margin-trade/coinstate': 5,
                         'v5/spot-margin-trade/repayment-available-amount': 5,
                         'v5/spot-margin-trade/get-auto-repay-mode': 5,
-                        'v5/spot-cross-margin-trade/loan-info': 1,
-                        'v5/spot-cross-margin-trade/account': 1,
-                        'v5/spot-cross-margin-trade/orders': 1,
-                        'v5/spot-cross-margin-trade/repay-history': 1,
+                        'v5/spot-cross-margin-trade/loan-info': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/orders': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history': 1, // 50/s => cost = 50 / 50 = 1
                         // crypto loan
                         'v5/crypto-loan/borrowable-collateralisable-number': 5,
                         'v5/crypto-loan/ongoing-orders': 5,
@@ -420,18 +420,18 @@ class bybit extends bybit$1["default"] {
                         'v5/crypto-loan/max-collateral-amount': 5,
                         'v5/crypto-loan/adjustment-history': 5,
                         // crypto loan (new)
-                        'v5/crypto-loan-common/max-collateral-amount': 10,
-                        'v5/crypto-loan-common/adjustment-history': 10,
-                        'v5/crypto-loan-common/position': 10,
-                        'v5/crypto-loan-flexible/ongoing-coin': 10,
-                        'v5/crypto-loan-flexible/borrow-history': 10,
-                        'v5/crypto-loan-flexible/repayment-history': 10,
-                        'v5/crypto-loan-fixed/borrow-contract-info': 10,
-                        'v5/crypto-loan-fixed/supply-contract-info': 10,
-                        'v5/crypto-loan-fixed/borrow-order-info': 10,
-                        'v5/crypto-loan-fixed/renew-info': 10,
-                        'v5/crypto-loan-fixed/supply-order-info': 10,
-                        'v5/crypto-loan-fixed/repayment-history': 10,
+                        'v5/crypto-loan-common/max-collateral-amount': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-common/adjustment-history': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-common/position': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/ongoing-coin': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/borrow-history': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/repayment-history': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/borrow-contract-info': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/supply-contract-info': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/borrow-order-info': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/renew-info': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/supply-order-info': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/repayment-history': 10, // 5/s => cost = 50 / 5 = 10
                         // institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
@@ -443,7 +443,7 @@ class bybit extends bybit$1["default"] {
                         'v5/lending/history-order': 5,
                         'v5/lending/account': 5,
                         // broker
-                        'v5/broker/earning-record': 5,
+                        'v5/broker/earning-record': 5, // deprecated
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
@@ -465,25 +465,25 @@ class bybit extends bybit$1["default"] {
                         'spot/v3/private/cross-margin-loan': 10,
                         'spot/v3/private/cross-margin-repay': 10,
                         // account
-                        'asset/v3/private/transfer/inter-transfer': 150,
+                        'asset/v3/private/transfer/inter-transfer': 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v3/private/withdraw/create': 300,
                         'asset/v3/private/withdraw/cancel': 50,
                         'asset/v3/private/transfer/sub-member-transfer': 150,
                         'asset/v3/private/transfer/transfer-sub-member-save': 150,
-                        'asset/v3/private/transfer/universal-transfer': 10,
-                        'user/v3/private/create-sub-member': 10,
-                        'user/v3/private/create-sub-api': 10,
-                        'user/v3/private/update-api': 10,
-                        'user/v3/private/delete-api': 10,
-                        'user/v3/private/update-sub-api': 10,
-                        'user/v3/private/delete-sub-api': 10,
+                        'asset/v3/private/transfer/universal-transfer': 10, // 5/s
+                        'user/v3/private/create-sub-member': 10, // 5/s
+                        'user/v3/private/create-sub-api': 10, // 5/s
+                        'user/v3/private/update-api': 10, // 5/s
+                        'user/v3/private/delete-api': 10, // 5/s
+                        'user/v3/private/update-sub-api': 10, // 5/s
+                        'user/v3/private/delete-sub-api': 10, // 5/s
                         // contract
-                        'contract/v3/private/copytrading/order/create': 30,
+                        'contract/v3/private/copytrading/order/create': 30, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
                         'contract/v3/private/copytrading/order/cancel': 30,
                         'contract/v3/private/copytrading/order/close': 30,
-                        'contract/v3/private/copytrading/position/close': 40,
+                        'contract/v3/private/copytrading/position/close': 40, // 75 req/min = 1000 / (20 * 40) = 1.25/s
                         'contract/v3/private/copytrading/position/set-leverage': 40,
-                        'contract/v3/private/copytrading/wallet/transfer': 25,
+                        'contract/v3/private/copytrading/wallet/transfer': 25, // 120 req/min = 1000 / (20 * 25) = 2/s
                         'contract/v3/private/copytrading/order/trading-stop': 2.5,
                         'contract/v3/private/order/create': 1,
                         'contract/v3/private/order/cancel': 1,
@@ -498,7 +498,7 @@ class bybit extends bybit$1["default"] {
                         'contract/v3/private/position/set-risk-limit': 1,
                         'contract/v3/private/account/setMarginMode': 1,
                         // derivative
-                        'unified/v3/private/order/create': 30,
+                        'unified/v3/private/order/create': 30, // 100 req/min (shared) = 1000 / (20 * 30) = 1.66666666667/s
                         'unified/v3/private/order/replace': 30,
                         'unified/v3/private/order/cancel': 30,
                         'unified/v3/private/order/create-batch': 30,
@@ -518,21 +518,21 @@ class bybit extends bybit$1["default"] {
                         'fht/compliance/tax/v3/private/url': 50,
                         // v5
                         // trade
-                        'v5/order/create': 2.5,
-                        'v5/order/amend': 5,
+                        'v5/order/create': 2.5, // 20/s = 1000 / (20 * 2.5)
+                        'v5/order/amend': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/cancel': 2.5,
-                        'v5/order/cancel-all': 50,
-                        'v5/order/create-batch': 5,
-                        'v5/order/amend-batch': 5,
-                        'v5/order/cancel-batch': 5,
+                        'v5/order/cancel-all': 50, // 1/s = 1000 / (20 * 50)
+                        'v5/order/create-batch': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/amend-batch': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/cancel-batch': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/disconnected-cancel-all': 5,
                         // position
-                        'v5/position/set-leverage': 5,
+                        'v5/position/set-leverage': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/switch-isolated': 5,
-                        'v5/position/set-tpsl-mode': 5,
+                        'v5/position/set-tpsl-mode': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/switch-mode': 5,
-                        'v5/position/set-risk-limit': 5,
-                        'v5/position/trading-stop': 5,
+                        'v5/position/set-risk-limit': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/trading-stop': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin': 5,
                         'v5/position/add-margin': 5,
                         'v5/position/move-positions': 5,
@@ -549,53 +549,53 @@ class bybit extends bybit$1["default"] {
                         'v5/account/no-convert-repay': 5,
                         'v5/account/set-limit-px-action': 5,
                         // asset
-                        'v5/asset/exchange/quote-apply': 1,
-                        'v5/asset/exchange/convert-execute': 1,
-                        'v5/asset/transfer/inter-transfer': 50,
-                        'v5/asset/transfer/save-transfer-sub-member': 150,
-                        'v5/asset/transfer/universal-transfer': 10,
+                        'v5/asset/exchange/quote-apply': 1, // 50/s
+                        'v5/asset/exchange/convert-execute': 1, // 50/s
+                        'v5/asset/transfer/inter-transfer': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/save-transfer-sub-member': 150, // 1/3/s => cost = 50 / 1/3 = 150
+                        'v5/asset/transfer/universal-transfer': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account': 5,
-                        'v5/asset/withdraw/create': 50,
-                        'v5/asset/withdraw/cancel': 50,
-                        'v5/asset/covert/get-quote': 10,
-                        'v5/asset/covert/small-balance-execute': 10,
+                        'v5/asset/withdraw/create': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/withdraw/cancel': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/covert/get-quote': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/covert/small-balance-execute': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/fiat/quote-apply': 10,
                         'v5/fiat/trade-execute': 10,
                         // user
-                        'v5/user/create-sub-member': 10,
-                        'v5/user/create-sub-api': 10,
-                        'v5/user/frozen-sub-member': 10,
-                        'v5/user/update-api': 10,
-                        'v5/user/update-sub-api': 10,
-                        'v5/user/delete-api': 10,
-                        'v5/user/delete-sub-api': 10,
+                        'v5/user/create-sub-member': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-sub-api': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/frozen-sub-member': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/update-api': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/update-sub-api': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/delete-api': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/delete-sub-api': 10, // 5/s => cost = 50 / 5 = 10
                         // spot leverage token
-                        'v5/spot-lever-token/purchase': 2.5,
-                        'v5/spot-lever-token/redeem': 2.5,
+                        'v5/spot-lever-token/purchase': 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-lever-token/redeem': 2.5, // 20/s => cost = 50 / 20 = 2.5
                         // spot margin trade
                         'v5/spot-margin-trade/switch-mode': 5,
                         'v5/spot-margin-trade/set-leverage': 5,
                         'v5/spot-margin-trade/set-auto-repay-mode': 5,
-                        'v5/spot-cross-margin-trade/loan': 2.5,
-                        'v5/spot-cross-margin-trade/repay': 2.5,
-                        'v5/spot-cross-margin-trade/switch': 2.5,
+                        'v5/spot-cross-margin-trade/loan': 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/repay': 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/switch': 2.5, // 20/s => cost = 50 / 20 = 2.5
                         // crypto loan
                         'v5/crypto-loan/borrow': 5,
                         'v5/crypto-loan/repay': 5,
                         'v5/crypto-loan/adjust-ltv': 5,
                         // crypto loan (new)
-                        'v5/crypto-loan-common/adjust-ltv': 50,
-                        'v5/crypto-loan-common/max-loan': 10,
-                        'v5/crypto-loan-flexible/borrow': 50,
-                        'v5/crypto-loan-flexible/repay': 50,
-                        'v5/crypto-loan-flexible/repay-collateral': 50,
-                        'v5/crypto-loan-fixed/borrow': 50,
-                        'v5/crypto-loan-fixed/renew': 50,
-                        'v5/crypto-loan-fixed/supply': 50,
-                        'v5/crypto-loan-fixed/borrow-order-cancel': 50,
-                        'v5/crypto-loan-fixed/supply-order-cancel': 50,
-                        'v5/crypto-loan-fixed/fully-repay': 50,
-                        'v5/crypto-loan-fixed/repay-collateral': 50,
+                        'v5/crypto-loan-common/adjust-ltv': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-common/max-loan': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/borrow': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-flexible/repay': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-flexible/repay-collateral': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/borrow': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/renew': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/supply': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/borrow-order-cancel': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/supply-order-cancel': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/fully-repay': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/repay-collateral': 50, // 1/s => cost = 50 / 1 = 50
                         // institutional lending
                         'v5/ins-loan/association-uid': 5,
                         'v5/ins-loan/repay-loan': 5,
@@ -626,459 +626,459 @@ class bybit extends bybit$1["default"] {
                 // - ob: order balance - the total cost of current open orders
                 // - ab: available balance
                 'exact': {
-                    '-10009': errors.BadRequest,
-                    '-1004': errors.BadRequest,
-                    '-1021': errors.BadRequest,
-                    '-1103': errors.BadRequest,
-                    '-1140': errors.InvalidOrder,
-                    '-1197': errors.InvalidOrder,
-                    '-2013': errors.InvalidOrder,
-                    '-2015': errors.AuthenticationError,
-                    '-6017': errors.BadRequest,
-                    '-6025': errors.BadRequest,
-                    '-6029': errors.BadRequest,
-                    '5004': errors.ExchangeError,
-                    '7001': errors.BadRequest,
-                    '10001': errors.BadRequest,
-                    '10002': errors.InvalidNonce,
-                    '10003': errors.AuthenticationError,
-                    '10004': errors.AuthenticationError,
-                    '10005': errors.PermissionDenied,
-                    '10006': errors.RateLimitExceeded,
-                    '10007': errors.AuthenticationError,
-                    '10008': errors.AccountSuspended,
-                    '10009': errors.AuthenticationError,
-                    '10010': errors.PermissionDenied,
-                    '10014': errors.BadRequest,
-                    '10016': errors.ExchangeError,
-                    '10017': errors.BadRequest,
-                    '10018': errors.RateLimitExceeded,
-                    '10020': errors.PermissionDenied,
-                    '10024': errors.PermissionDenied,
-                    '10027': errors.PermissionDenied,
-                    '10028': errors.PermissionDenied,
-                    '10029': errors.PermissionDenied,
-                    '12137': errors.InvalidOrder,
-                    '12201': errors.BadRequest,
-                    '12141': errors.BadRequest,
-                    '100028': errors.PermissionDenied,
-                    '110001': errors.OrderNotFound,
-                    '110003': errors.InvalidOrder,
-                    '110004': errors.InsufficientFunds,
-                    '110005': errors.InvalidOrder,
-                    '110006': errors.InsufficientFunds,
-                    '110007': errors.InsufficientFunds,
-                    '110008': errors.InvalidOrder,
-                    '110009': errors.InvalidOrder,
-                    '110010': errors.InvalidOrder,
-                    '110011': errors.InvalidOrder,
-                    '110012': errors.InsufficientFunds,
-                    '110013': errors.BadRequest,
-                    '110014': errors.InsufficientFunds,
-                    '110015': errors.BadRequest,
-                    '110016': errors.InvalidOrder,
-                    '110017': errors.InvalidOrder,
-                    '110018': errors.BadRequest,
-                    '110019': errors.InvalidOrder,
-                    '110020': errors.InvalidOrder,
-                    '110021': errors.InvalidOrder,
-                    '110022': errors.InvalidOrder,
-                    '110023': errors.InvalidOrder,
-                    '110024': errors.BadRequest,
-                    '110025': errors.NoChange,
-                    '110026': errors.MarginModeAlreadySet,
-                    '110027': errors.NoChange,
-                    '110028': errors.BadRequest,
-                    '110029': errors.BadRequest,
-                    '110030': errors.InvalidOrder,
-                    '110031': errors.InvalidOrder,
-                    '110032': errors.InvalidOrder,
-                    '110033': errors.InvalidOrder,
-                    '110034': errors.InvalidOrder,
-                    '110035': errors.InvalidOrder,
-                    '110036': errors.InvalidOrder,
-                    '110037': errors.InvalidOrder,
-                    '110038': errors.InvalidOrder,
-                    '110039': errors.InvalidOrder,
-                    '110040': errors.InvalidOrder,
-                    '110041': errors.InvalidOrder,
-                    '110042': errors.InvalidOrder,
-                    '110043': errors.BadRequest,
-                    '110044': errors.InsufficientFunds,
-                    '110045': errors.InsufficientFunds,
-                    '110046': errors.BadRequest,
-                    '110047': errors.BadRequest,
-                    '110048': errors.BadRequest,
-                    '110049': errors.BadRequest,
-                    '110050': errors.BadRequest,
-                    '110051': errors.InsufficientFunds,
-                    '110052': errors.InsufficientFunds,
-                    '110053': errors.InsufficientFunds,
-                    '110054': errors.InvalidOrder,
-                    '110055': errors.InvalidOrder,
-                    '110056': errors.InvalidOrder,
-                    '110057': errors.InvalidOrder,
-                    '110058': errors.InvalidOrder,
-                    '110059': errors.InvalidOrder,
-                    '110060': errors.BadRequest,
-                    '110061': errors.BadRequest,
-                    '110062': errors.BadRequest,
-                    '110063': errors.ExchangeError,
-                    '110064': errors.InvalidOrder,
-                    '110065': errors.PermissionDenied,
-                    '110066': errors.ExchangeError,
-                    '110067': errors.PermissionDenied,
-                    '110068': errors.PermissionDenied,
-                    '110069': errors.PermissionDenied,
-                    '110070': errors.InvalidOrder,
-                    '110071': errors.ExchangeError,
-                    '110072': errors.InvalidOrder,
-                    '110073': errors.ExchangeError,
-                    '110092': errors.InvalidOrder,
-                    '110093': errors.InvalidOrder,
-                    '110094': errors.InvalidOrder,
-                    '130006': errors.InvalidOrder,
-                    '130021': errors.InsufficientFunds,
-                    '130074': errors.InvalidOrder,
-                    '131001': errors.InsufficientFunds,
-                    '131084': errors.ExchangeError,
-                    '131200': errors.ExchangeError,
-                    '131201': errors.ExchangeError,
-                    '131202': errors.BadRequest,
-                    '131203': errors.BadRequest,
-                    '131204': errors.BadRequest,
-                    '131205': errors.BadRequest,
-                    '131206': errors.ExchangeError,
-                    '131207': errors.BadRequest,
-                    '131208': errors.ExchangeError,
-                    '131209': errors.BadRequest,
-                    '131210': errors.BadRequest,
-                    '131211': errors.BadRequest,
-                    '131212': errors.InsufficientFunds,
-                    '131213': errors.BadRequest,
-                    '131214': errors.BadRequest,
-                    '131215': errors.BadRequest,
-                    '131216': errors.ExchangeError,
-                    '131217': errors.ExchangeError,
-                    '131231': errors.NotSupported,
-                    '131232': errors.NotSupported,
-                    '131002': errors.BadRequest,
-                    '131003': errors.ExchangeError,
-                    '131004': errors.AuthenticationError,
-                    '131085': errors.InsufficientFunds,
-                    '131086': errors.BadRequest,
-                    '131088': errors.BadRequest,
-                    '131089': errors.BadRequest,
-                    '131090': errors.ExchangeError,
-                    '131091': errors.ExchangeError,
-                    '131092': errors.ExchangeError,
-                    '131093': errors.ExchangeError,
-                    '131094': errors.BadRequest,
-                    '131095': errors.BadRequest,
-                    '131096': errors.BadRequest,
-                    '131097': errors.ExchangeError,
-                    '131098': errors.ExchangeError,
-                    '131099': errors.ExchangeError,
-                    '140001': errors.OrderNotFound,
-                    '140003': errors.InvalidOrder,
-                    '140004': errors.InsufficientFunds,
-                    '140005': errors.InvalidOrder,
-                    '140006': errors.InsufficientFunds,
-                    '140007': errors.InsufficientFunds,
-                    '140008': errors.InvalidOrder,
-                    '140009': errors.InvalidOrder,
-                    '140010': errors.InvalidOrder,
-                    '140011': errors.InvalidOrder,
-                    '140012': errors.InsufficientFunds,
-                    '140013': errors.BadRequest,
-                    '140014': errors.InsufficientFunds,
-                    '140015': errors.InvalidOrder,
-                    '140016': errors.InvalidOrder,
-                    '140017': errors.InvalidOrder,
-                    '140018': errors.BadRequest,
-                    '140019': errors.InvalidOrder,
-                    '140020': errors.InvalidOrder,
-                    '140021': errors.InvalidOrder,
-                    '140022': errors.InvalidOrder,
-                    '140023': errors.InvalidOrder,
-                    '140024': errors.BadRequest,
-                    '140025': errors.BadRequest,
-                    '140026': errors.BadRequest,
-                    '140027': errors.BadRequest,
-                    '140028': errors.InvalidOrder,
-                    '140029': errors.BadRequest,
-                    '140030': errors.InvalidOrder,
-                    '140031': errors.BadRequest,
-                    '140032': errors.InvalidOrder,
-                    '140033': errors.InvalidOrder,
-                    '140034': errors.InvalidOrder,
-                    '140035': errors.InvalidOrder,
-                    '140036': errors.BadRequest,
-                    '140037': errors.InvalidOrder,
-                    '140038': errors.BadRequest,
-                    '140039': errors.BadRequest,
-                    '140040': errors.InvalidOrder,
-                    '140041': errors.InvalidOrder,
-                    '140042': errors.InvalidOrder,
-                    '140043': errors.BadRequest,
-                    '140044': errors.InsufficientFunds,
-                    '140045': errors.InsufficientFunds,
-                    '140046': errors.BadRequest,
-                    '140047': errors.BadRequest,
-                    '140048': errors.BadRequest,
-                    '140049': errors.BadRequest,
-                    '140050': errors.InvalidOrder,
-                    '140051': errors.InsufficientFunds,
-                    '140052': errors.InsufficientFunds,
-                    '140053': errors.InsufficientFunds,
-                    '140054': errors.InvalidOrder,
-                    '140055': errors.InvalidOrder,
-                    '140056': errors.InvalidOrder,
-                    '140057': errors.InvalidOrder,
-                    '140058': errors.InvalidOrder,
-                    '140059': errors.InvalidOrder,
-                    '140060': errors.BadRequest,
-                    '140061': errors.BadRequest,
-                    '140062': errors.BadRequest,
-                    '140063': errors.ExchangeError,
-                    '140064': errors.InvalidOrder,
-                    '140065': errors.PermissionDenied,
-                    '140066': errors.ExchangeError,
-                    '140067': errors.PermissionDenied,
-                    '140068': errors.PermissionDenied,
-                    '140069': errors.PermissionDenied,
-                    '140070': errors.InvalidOrder,
-                    '170001': errors.ExchangeError,
-                    '170005': errors.InvalidOrder,
-                    '170007': errors.RequestTimeout,
-                    '170010': errors.InvalidOrder,
-                    '170011': errors.InvalidOrder,
-                    '170019': errors.InvalidOrder,
-                    '170031': errors.ExchangeError,
-                    '170032': errors.ExchangeError,
-                    '170033': errors.InsufficientFunds,
-                    '170034': errors.InsufficientFunds,
-                    '170035': errors.BadRequest,
-                    '170036': errors.BadRequest,
-                    '170037': errors.BadRequest,
-                    '170105': errors.BadRequest,
-                    '170115': errors.InvalidOrder,
-                    '170116': errors.InvalidOrder,
-                    '170117': errors.InvalidOrder,
-                    '170121': errors.InvalidOrder,
-                    '170124': errors.InvalidOrder,
-                    '170130': errors.BadRequest,
-                    '170131': errors.InsufficientFunds,
-                    '170132': errors.InvalidOrder,
-                    '170133': errors.InvalidOrder,
-                    '170134': errors.InvalidOrder,
-                    '170135': errors.InvalidOrder,
-                    '170136': errors.InvalidOrder,
-                    '170137': errors.InvalidOrder,
-                    '170139': errors.InvalidOrder,
-                    '170140': errors.InvalidOrder,
-                    '170141': errors.InvalidOrder,
-                    '170142': errors.InvalidOrder,
-                    '170143': errors.InvalidOrder,
-                    '170144': errors.InvalidOrder,
-                    '170145': errors.InvalidOrder,
-                    '170146': errors.InvalidOrder,
-                    '170147': errors.InvalidOrder,
-                    '170148': errors.InvalidOrder,
-                    '170149': errors.ExchangeError,
-                    '170150': errors.ExchangeError,
-                    '170151': errors.InvalidOrder,
-                    '170157': errors.InvalidOrder,
-                    '170159': errors.InvalidOrder,
-                    '170190': errors.InvalidOrder,
-                    '170191': errors.InvalidOrder,
-                    '170192': errors.InvalidOrder,
-                    '170193': errors.InvalidOrder,
-                    '170194': errors.InvalidOrder,
-                    '170195': errors.InvalidOrder,
-                    '170196': errors.InvalidOrder,
-                    '170197': errors.InvalidOrder,
-                    '170198': errors.InvalidOrder,
-                    '170199': errors.InvalidOrder,
-                    '170200': errors.InvalidOrder,
-                    '170201': errors.PermissionDenied,
-                    '170202': errors.InvalidOrder,
-                    '170203': errors.InvalidOrder,
-                    '170204': errors.InvalidOrder,
-                    '170206': errors.InvalidOrder,
-                    '170209': errors.RestrictedLocation,
-                    '170210': errors.InvalidOrder,
-                    '170213': errors.OrderNotFound,
-                    '170217': errors.InvalidOrder,
-                    '170218': errors.InvalidOrder,
-                    '170221': errors.BadRequest,
-                    '170222': errors.RateLimitExceeded,
-                    '170223': errors.InsufficientFunds,
-                    '170224': errors.PermissionDenied,
-                    '170226': errors.InsufficientFunds,
-                    '170227': errors.ExchangeError,
-                    '170228': errors.InvalidOrder,
-                    '170229': errors.InvalidOrder,
-                    '170234': errors.ExchangeError,
-                    '170241': errors.ManualInteractionNeeded,
-                    '170371': errors.InvalidOrder,
-                    '170372': errors.InvalidOrder,
-                    '175000': errors.InvalidOrder,
-                    '175001': errors.InvalidOrder,
-                    '175002': errors.InvalidOrder,
-                    '175003': errors.InsufficientFunds,
-                    '175004': errors.InvalidOrder,
-                    '175005': errors.InvalidOrder,
-                    '175006': errors.InsufficientFunds,
-                    '175007': errors.InvalidOrder,
-                    '175008': errors.InvalidOrder,
-                    '175009': errors.InvalidOrder,
-                    '175010': errors.PermissionDenied,
-                    '175012': errors.InvalidOrder,
-                    '175013': errors.InvalidOrder,
-                    '175014': errors.InvalidOrder,
-                    '175015': errors.InvalidOrder,
-                    '175016': errors.InvalidOrder,
-                    '175017': errors.InvalidOrder,
-                    '175027': errors.ExchangeError,
-                    '176002': errors.BadRequest,
-                    '176004': errors.BadRequest,
-                    '176003': errors.BadRequest,
-                    '176006': errors.BadRequest,
-                    '176005': errors.BadRequest,
-                    '176008': errors.BadRequest,
-                    '176007': errors.BadRequest,
-                    '176010': errors.BadRequest,
-                    '176009': errors.BadRequest,
-                    '176012': errors.BadRequest,
-                    '176011': errors.BadRequest,
-                    '176014': errors.BadRequest,
-                    '176013': errors.BadRequest,
-                    '176015': errors.InsufficientFunds,
-                    '176016': errors.BadRequest,
-                    '176017': errors.BadRequest,
-                    '176018': errors.BadRequest,
-                    '176019': errors.BadRequest,
-                    '176020': errors.BadRequest,
-                    '176021': errors.BadRequest,
-                    '176022': errors.BadRequest,
-                    '176023': errors.BadRequest,
-                    '176024': errors.BadRequest,
-                    '176025': errors.BadRequest,
-                    '176026': errors.BadRequest,
-                    '176027': errors.BadRequest,
-                    '176028': errors.BadRequest,
-                    '176029': errors.BadRequest,
-                    '176030': errors.BadRequest,
-                    '176031': errors.BadRequest,
-                    '176034': errors.BadRequest,
-                    '176035': errors.PermissionDenied,
-                    '176036': errors.PermissionDenied,
-                    '176037': errors.PermissionDenied,
-                    '176038': errors.BadRequest,
-                    '176039': errors.BadRequest,
-                    '176040': errors.BadRequest,
-                    '181000': errors.BadRequest,
-                    '181001': errors.BadRequest,
-                    '181002': errors.InvalidOrder,
-                    '181003': errors.InvalidOrder,
-                    '181004': errors.InvalidOrder,
-                    '182000': errors.InvalidOrder,
-                    '181017': errors.BadRequest,
-                    '20001': errors.OrderNotFound,
-                    '20003': errors.InvalidOrder,
-                    '20004': errors.InvalidOrder,
-                    '20005': errors.InvalidOrder,
-                    '20006': errors.InvalidOrder,
-                    '20007': errors.InvalidOrder,
-                    '20008': errors.InvalidOrder,
-                    '20009': errors.InvalidOrder,
-                    '20010': errors.InvalidOrder,
-                    '20011': errors.InvalidOrder,
-                    '20012': errors.InvalidOrder,
-                    '20013': errors.InvalidOrder,
-                    '20014': errors.InvalidOrder,
-                    '20015': errors.InvalidOrder,
-                    '20016': errors.InvalidOrder,
-                    '20017': errors.InvalidOrder,
-                    '20018': errors.InvalidOrder,
-                    '20019': errors.InvalidOrder,
-                    '20020': errors.InvalidOrder,
-                    '20021': errors.InvalidOrder,
-                    '20022': errors.BadRequest,
-                    '20023': errors.BadRequest,
-                    '20031': errors.BadRequest,
-                    '20070': errors.BadRequest,
-                    '20071': errors.BadRequest,
-                    '20084': errors.BadRequest,
-                    '30001': errors.BadRequest,
-                    '30003': errors.InvalidOrder,
-                    '30004': errors.InvalidOrder,
-                    '30005': errors.InvalidOrder,
-                    '30007': errors.InvalidOrder,
-                    '30008': errors.InvalidOrder,
-                    '30009': errors.ExchangeError,
-                    '30010': errors.InsufficientFunds,
-                    '30011': errors.PermissionDenied,
-                    '30012': errors.PermissionDenied,
-                    '30013': errors.PermissionDenied,
-                    '30014': errors.InvalidOrder,
-                    '30015': errors.InvalidOrder,
-                    '30016': errors.ExchangeError,
-                    '30017': errors.InvalidOrder,
-                    '30018': errors.InvalidOrder,
-                    '30019': errors.InvalidOrder,
-                    '30020': errors.InvalidOrder,
-                    '30021': errors.InvalidOrder,
-                    '30022': errors.InvalidOrder,
-                    '30023': errors.InvalidOrder,
-                    '30024': errors.InvalidOrder,
-                    '30025': errors.InvalidOrder,
-                    '30026': errors.InvalidOrder,
-                    '30027': errors.InvalidOrder,
-                    '30028': errors.InvalidOrder,
-                    '30029': errors.InvalidOrder,
-                    '30030': errors.InvalidOrder,
-                    '30031': errors.InsufficientFunds,
-                    '30032': errors.InvalidOrder,
-                    '30033': errors.RateLimitExceeded,
-                    '30034': errors.OrderNotFound,
-                    '30035': errors.RateLimitExceeded,
-                    '30036': errors.ExchangeError,
-                    '30037': errors.InvalidOrder,
-                    '30041': errors.ExchangeError,
-                    '30042': errors.InsufficientFunds,
-                    '30043': errors.InvalidOrder,
-                    '30044': errors.InvalidOrder,
-                    '30045': errors.InvalidOrder,
-                    '30049': errors.InsufficientFunds,
-                    '30050': errors.ExchangeError,
-                    '30051': errors.ExchangeError,
-                    '30052': errors.ExchangeError,
-                    '30054': errors.ExchangeError,
-                    '30057': errors.ExchangeError,
-                    '30063': errors.ExchangeError,
-                    '30067': errors.InsufficientFunds,
-                    '30068': errors.ExchangeError,
-                    '30074': errors.InvalidOrder,
-                    '30075': errors.InvalidOrder,
-                    '30078': errors.ExchangeError,
+                    '-10009': errors.BadRequest, // {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
+                    '-1004': errors.BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
+                    '-1021': errors.BadRequest, // {"ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
+                    '-1103': errors.BadRequest, // An unknown parameter was sent.
+                    '-1140': errors.InvalidOrder, // {"ret_code":-1140,"ret_msg":"Transaction amount lower than the minimum.","result":{},"ext_code":"","ext_info":null,"time_now":"1659204910.248576"}
+                    '-1197': errors.InvalidOrder, // {"ret_code":-1197,"ret_msg":"Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again","result":{},"ext_code":"","ext_info":null,"time_now":"1659204531.979680"}
+                    '-2013': errors.InvalidOrder, // {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
+                    '-2015': errors.AuthenticationError, // Invalid API-key, IP, or permissions for action.
+                    '-6017': errors.BadRequest, // Repayment amount has exceeded the total liability
+                    '-6025': errors.BadRequest, // Amount to borrow cannot be lower than the min. amount to borrow (per transaction)
+                    '-6029': errors.BadRequest, // Amount to borrow has exceeded the user's estimated max amount to borrow
+                    '5004': errors.ExchangeError, // {"retCode":5004,"retMsg":"Server Timeout","result":null,"retExtInfo":{},"time":1667577060106}
+                    '7001': errors.BadRequest, // {"retCode":7001,"retMsg":"request params type error"}
+                    '10001': errors.BadRequest, // parameter error
+                    '10002': errors.InvalidNonce, // request expired, check your timestamp and recv_window
+                    '10003': errors.AuthenticationError, // Invalid apikey
+                    '10004': errors.AuthenticationError, // invalid sign
+                    '10005': errors.PermissionDenied, // permission denied for current apikey
+                    '10006': errors.RateLimitExceeded, // too many requests
+                    '10007': errors.AuthenticationError, // api_key not found in your request parameters
+                    '10008': errors.AccountSuspended, // User had been banned
+                    '10009': errors.AuthenticationError, // IP had been banned
+                    '10010': errors.PermissionDenied, // request ip mismatch
+                    '10014': errors.BadRequest, // Request is duplicate
+                    '10016': errors.ExchangeError, // {"retCode":10016,"retMsg":"System error. Please try again later."}
+                    '10017': errors.BadRequest, // request path not found or request method is invalid
+                    '10018': errors.RateLimitExceeded, // exceed ip rate limit
+                    '10020': errors.PermissionDenied, // {"retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123}
+                    '10024': errors.PermissionDenied, // Compliance rules triggered
+                    '10027': errors.PermissionDenied, // Trading Banned
+                    '10028': errors.PermissionDenied, // The API can only be accessed by unified account users.
+                    '10029': errors.PermissionDenied, // The requested symbol is invalid, please check symbol whitelist
+                    '12137': errors.InvalidOrder, // {"retCode":12137,"retMsg":"Order quantity has too many decimals.","result":{},"retExtInfo":{},"time":1695900943033}
+                    '12201': errors.BadRequest, // {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
+                    '12141': errors.BadRequest, // "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":{},"retExtInfo":{},"time":1686134298989}
+                    '100028': errors.PermissionDenied, // The API cannot be accessed by unified account users.
+                    '110001': errors.OrderNotFound, // Order does not exist
+                    '110003': errors.InvalidOrder, // Order price is out of permissible range
+                    '110004': errors.InsufficientFunds, // Insufficient wallet balance
+                    '110005': errors.InvalidOrder, // position status
+                    '110006': errors.InsufficientFunds, // cannot afford estimated position_margin
+                    '110007': errors.InsufficientFunds, // {"retCode":110007,"retMsg":"ab not enough for new order","result":{},"retExtInfo":{},"time":1668838414793}
+                    '110008': errors.InvalidOrder, // Order has been finished or canceled
+                    '110009': errors.InvalidOrder, // The number of stop orders exceeds maximum limit allowed
+                    '110010': errors.InvalidOrder, // Order already cancelled
+                    '110011': errors.InvalidOrder, // Any adjustments made will trigger immediate liquidation
+                    '110012': errors.InsufficientFunds, // Available balance not enough
+                    '110013': errors.BadRequest, // Due to risk limit, cannot set leverage
+                    '110014': errors.InsufficientFunds, // Available balance not enough to add margin
+                    '110015': errors.BadRequest, // the position is in cross_margin
+                    '110016': errors.InvalidOrder, // Requested quantity of contracts exceeds risk limit, please adjust your risk limit level before trying again
+                    '110017': errors.InvalidOrder, // Reduce-only rule not satisfied
+                    '110018': errors.BadRequest, // userId illegal
+                    '110019': errors.InvalidOrder, // orderId illegal
+                    '110020': errors.InvalidOrder, // number of active orders greater than 500
+                    '110021': errors.InvalidOrder, // Open Interest exceeded
+                    '110022': errors.InvalidOrder, // qty has been limited, cannot modify the order to add qty
+                    '110023': errors.InvalidOrder, // This contract only supports position reduction operation, please contact customer service for details
+                    '110024': errors.BadRequest, // You have an existing position, so position mode cannot be switched
+                    '110025': errors.NoChange, // Position mode is not modified
+                    '110026': errors.MarginModeAlreadySet, // Cross/isolated margin mode is not modified
+                    '110027': errors.NoChange, // Margin is not modified
+                    '110028': errors.BadRequest, // Open orders exist, so you cannot change position mode
+                    '110029': errors.BadRequest, // Hedge mode is not available for this symbol
+                    '110030': errors.InvalidOrder, // Duplicate orderId
+                    '110031': errors.InvalidOrder, // risk limit info does not exists
+                    '110032': errors.InvalidOrder, // Illegal order
+                    '110033': errors.InvalidOrder, // Margin cannot be set without open position
+                    '110034': errors.InvalidOrder, // There is no net position
+                    '110035': errors.InvalidOrder, // Cancel order is not completed before liquidation
+                    '110036': errors.InvalidOrder, // Cross margin mode is not allowed to change leverage
+                    '110037': errors.InvalidOrder, // User setting list does not have this symbol
+                    '110038': errors.InvalidOrder, // Portfolio margin mode is not allowed to change leverage
+                    '110039': errors.InvalidOrder, // Maintain margin rate is too high, which may trigger liquidation
+                    '110040': errors.InvalidOrder, // Order will trigger forced liquidation, please resubmit the order
+                    '110041': errors.InvalidOrder, // Skip liquidation is not allowed when a position or maker order exists
+                    '110042': errors.InvalidOrder, // Pre-delivery status can only reduce positions
+                    '110043': errors.BadRequest, // Set leverage not modified
+                    '110044': errors.InsufficientFunds, // Insufficient available margin
+                    '110045': errors.InsufficientFunds, // Insufficient wallet balance
+                    '110046': errors.BadRequest, // Any adjustments made will trigger immediate liquidation
+                    '110047': errors.BadRequest, // Risk limit cannot be adjusted due to insufficient available margin
+                    '110048': errors.BadRequest, // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
+                    '110049': errors.BadRequest, // Tick notes can only be numbers
+                    '110050': errors.BadRequest, // Coin is not in the range of selected
+                    '110051': errors.InsufficientFunds, // The user's available balance cannot cover the lowest price of the current market
+                    '110052': errors.InsufficientFunds, // User's available balance is insufficient to set a price
+                    '110053': errors.InsufficientFunds, // The user's available balance cannot cover the current market price and upper limit price
+                    '110054': errors.InvalidOrder, // This position has at least one take profit link order, so the take profit and stop loss mode cannot be switched
+                    '110055': errors.InvalidOrder, // This position has at least one stop loss link order, so the take profit and stop loss mode cannot be switched
+                    '110056': errors.InvalidOrder, // This position has at least one trailing stop link order, so the take profit and stop loss mode cannot be switched
+                    '110057': errors.InvalidOrder, // Conditional order or limit order contains TP/SL related params
+                    '110058': errors.InvalidOrder, // Insufficient number of remaining position size to set take profit and stop loss
+                    '110059': errors.InvalidOrder, // In the case of partial filled of the open order, it is not allowed to modify the take profit and stop loss settings of the open order
+                    '110060': errors.BadRequest, // Under full TP/SL mode, it is not allowed to modify TP/SL
+                    '110061': errors.BadRequest, // Under partial TP/SL mode, TP/SL set more than 20
+                    '110062': errors.BadRequest, // Institution MMP profile not found.
+                    '110063': errors.ExchangeError, // Settlement in progress! xxx not available for trades.
+                    '110064': errors.InvalidOrder, // The number of contracts modified cannot be less than or equal to the filled quantity
+                    '110065': errors.PermissionDenied, // MMP hasn't yet been enabled for your account. Please contact your BD manager.
+                    '110066': errors.ExchangeError, // No trading is allowed at the current time
+                    '110067': errors.PermissionDenied, // unified account is not support
+                    '110068': errors.PermissionDenied, // Leveraged user trading is not allowed
+                    '110069': errors.PermissionDenied, // Do not allow OTC lending users to trade
+                    '110070': errors.InvalidOrder, // ETP symbols are not allowed to be traded
+                    '110071': errors.ExchangeError, // Sorry, we're revamping the Unified Margin Account! Currently, new upgrades are not supported. If you have any questions, please contact our 24/7 customer support.
+                    '110072': errors.InvalidOrder, // OrderLinkedID is duplicate
+                    '110073': errors.ExchangeError, // Set margin mode failed
+                    '110092': errors.InvalidOrder, // expect Rising, but trigger_price[XXXXX] <= current[XXXXX]
+                    '110093': errors.InvalidOrder, // expect Falling, but trigger_price[XXXXX] >= current[XXXXX]
+                    '110094': errors.InvalidOrder, // Order notional value below the lower limit
+                    '130006': errors.InvalidOrder, // {"ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed: too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100}
+                    '130021': errors.InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100} |  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100} caused issues/9149#issuecomment-1146559498
+                    '130074': errors.InvalidOrder, // {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
+                    '131001': errors.InsufficientFunds, // {"retCode":131001,"retMsg":"the available balance is not sufficient to cover the handling fee","result":{},"retExtInfo":{},"time":1666892821245}
+                    '131084': errors.ExchangeError, // Withdraw failed because of Uta Upgrading
+                    '131200': errors.ExchangeError, // Service error
+                    '131201': errors.ExchangeError, // Internal error
+                    '131202': errors.BadRequest, // Invalid memberId
+                    '131203': errors.BadRequest, // Request parameter error
+                    '131204': errors.BadRequest, // Account info error
+                    '131205': errors.BadRequest, // Query transfer error
+                    '131206': errors.ExchangeError, // Fail to transfer
+                    '131207': errors.BadRequest, // Account not exist
+                    '131208': errors.ExchangeError, // Forbid transfer
+                    '131209': errors.BadRequest, // Get subMember relation error
+                    '131210': errors.BadRequest, // Amount accuracy error
+                    '131211': errors.BadRequest, // fromAccountType can't be the same as toAccountType
+                    '131212': errors.InsufficientFunds, // Insufficient balance
+                    '131213': errors.BadRequest, // TransferLTV check error
+                    '131214': errors.BadRequest, // TransferId exist
+                    '131215': errors.BadRequest, // Amount error
+                    '131216': errors.ExchangeError, // Query balance error
+                    '131217': errors.ExchangeError, // Risk check error
+                    '131231': errors.NotSupported, // Transfers into this account are not supported
+                    '131232': errors.NotSupported, // Transfers out this account are not supported
+                    '131002': errors.BadRequest, // Parameter error
+                    '131003': errors.ExchangeError, // Interal error
+                    '131004': errors.AuthenticationError, // KYC needed
+                    '131085': errors.InsufficientFunds, // Withdrawal amount is greater than your availale balance (the deplayed withdrawal is triggered)
+                    '131086': errors.BadRequest, // Withdrawal amount exceeds risk limit (the risk limit of margin trade is triggered)
+                    '131088': errors.BadRequest, // The withdrawal amount exceeds the remaining withdrawal limit of your identity verification level. The current available amount for withdrawal : %s
+                    '131089': errors.BadRequest, // User sensitive operation, withdrawal is prohibited within 24 hours
+                    '131090': errors.ExchangeError, // User withdraw has been banned
+                    '131091': errors.ExchangeError, // Blocked login status does not allow withdrawals
+                    '131092': errors.ExchangeError, // User status is abnormal
+                    '131093': errors.ExchangeError, // The withdrawal address is not in the whitelist
+                    '131094': errors.BadRequest, // UserId is not in the whitelist
+                    '131095': errors.BadRequest, // Withdrawl amount exceeds the 24 hour platform limit
+                    '131096': errors.BadRequest, // Withdraw amount does not satify the lower limit or upper limit
+                    '131097': errors.ExchangeError, // Withdrawal of this currency has been closed
+                    '131098': errors.ExchangeError, // Withdrawal currently is not availble from new address
+                    '131099': errors.ExchangeError, // Hot wallet status can cancel the withdraw
+                    '140001': errors.OrderNotFound, // Order does not exist
+                    '140003': errors.InvalidOrder, // Order price is out of permissible range
+                    '140004': errors.InsufficientFunds, // Insufficient wallet balance
+                    '140005': errors.InvalidOrder, // position status
+                    '140006': errors.InsufficientFunds, // cannot afford estimated position_margin
+                    '140007': errors.InsufficientFunds, // Insufficient available balance
+                    '140008': errors.InvalidOrder, // Order has been finished or canceled
+                    '140009': errors.InvalidOrder, // The number of stop orders exceeds maximum limit allowed
+                    '140010': errors.InvalidOrder, // Order already cancelled
+                    '140011': errors.InvalidOrder, // Any adjustments made will trigger immediate liquidation
+                    '140012': errors.InsufficientFunds, // Available balance not enough
+                    '140013': errors.BadRequest, // Due to risk limit, cannot set leverage
+                    '140014': errors.InsufficientFunds, // Available balance not enough to add margin
+                    '140015': errors.InvalidOrder, // the position is in cross_margin
+                    '140016': errors.InvalidOrder, // Requested quantity of contracts exceeds risk limit, please adjust your risk limit level before trying again
+                    '140017': errors.InvalidOrder, // Reduce-only rule not satisfied
+                    '140018': errors.BadRequest, // userId illegal
+                    '140019': errors.InvalidOrder, // orderId illegal
+                    '140020': errors.InvalidOrder, // number of active orders greater than 500
+                    '140021': errors.InvalidOrder, // Open Interest exceeded
+                    '140022': errors.InvalidOrder, // qty has been limited, cannot modify the order to add qty
+                    '140023': errors.InvalidOrder, // This contract only supports position reduction operation, please contact customer service for details
+                    '140024': errors.BadRequest, // You have an existing position, so position mode cannot be switched
+                    '140025': errors.BadRequest, // Position mode is not modified
+                    '140026': errors.BadRequest, // Cross/isolated margin mode is not modified
+                    '140027': errors.BadRequest, // Margin is not modified
+                    '140028': errors.InvalidOrder, // Open orders exist, so you cannot change position mode
+                    '140029': errors.BadRequest, // Hedge mode is not available for this symbol
+                    '140030': errors.InvalidOrder, // Duplicate orderId
+                    '140031': errors.BadRequest, // risk limit info does not exists
+                    '140032': errors.InvalidOrder, // Illegal order
+                    '140033': errors.InvalidOrder, // Margin cannot be set without open position
+                    '140034': errors.InvalidOrder, // There is no net position
+                    '140035': errors.InvalidOrder, // Cancel order is not completed before liquidation
+                    '140036': errors.BadRequest, // Cross margin mode is not allowed to change leverage
+                    '140037': errors.InvalidOrder, // User setting list does not have this symbol
+                    '140038': errors.BadRequest, // Portfolio margin mode is not allowed to change leverage
+                    '140039': errors.BadRequest, // Maintain margin rate is too high, which may trigger liquidation
+                    '140040': errors.InvalidOrder, // Order will trigger forced liquidation, please resubmit the order
+                    '140041': errors.InvalidOrder, // Skip liquidation is not allowed when a position or maker order exists
+                    '140042': errors.InvalidOrder, // Pre-delivery status can only reduce positions
+                    '140043': errors.BadRequest, // Set leverage not modified
+                    '140044': errors.InsufficientFunds, // Insufficient available margin
+                    '140045': errors.InsufficientFunds, // Insufficient wallet balance
+                    '140046': errors.BadRequest, // Any adjustments made will trigger immediate liquidation
+                    '140047': errors.BadRequest, // Risk limit cannot be adjusted due to insufficient available margin
+                    '140048': errors.BadRequest, // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
+                    '140049': errors.BadRequest, // Tick notes can only be numbers
+                    '140050': errors.InvalidOrder, // Coin is not in the range of selected
+                    '140051': errors.InsufficientFunds, // The user's available balance cannot cover the lowest price of the current market
+                    '140052': errors.InsufficientFunds, // User's available balance is insufficient to set a price
+                    '140053': errors.InsufficientFunds, // The user's available balance cannot cover the current market price and upper limit price
+                    '140054': errors.InvalidOrder, // This position has at least one take profit link order, so the take profit and stop loss mode cannot be switched
+                    '140055': errors.InvalidOrder, // This position has at least one stop loss link order, so the take profit and stop loss mode cannot be switched
+                    '140056': errors.InvalidOrder, // This position has at least one trailing stop link order, so the take profit and stop loss mode cannot be switched
+                    '140057': errors.InvalidOrder, // Conditional order or limit order contains TP/SL related params
+                    '140058': errors.InvalidOrder, // Insufficient number of remaining position size to set take profit and stop loss
+                    '140059': errors.InvalidOrder, // In the case of partial filled of the open order, it is not allowed to modify the take profit and stop loss settings of the open order
+                    '140060': errors.BadRequest, // Under full TP/SL mode, it is not allowed to modify TP/SL
+                    '140061': errors.BadRequest, // Under partial TP/SL mode, TP/SL set more than 20
+                    '140062': errors.BadRequest, // Institution MMP profile not found.
+                    '140063': errors.ExchangeError, // Settlement in progress! xxx not available for trades.
+                    '140064': errors.InvalidOrder, // The number of contracts modified cannot be less than or equal to the filled quantity
+                    '140065': errors.PermissionDenied, // MMP hasn't yet been enabled for your account. Please contact your BD manager.
+                    '140066': errors.ExchangeError, // No trading is allowed at the current time
+                    '140067': errors.PermissionDenied, // unified account is not support
+                    '140068': errors.PermissionDenied, // Leveraged user trading is not allowed
+                    '140069': errors.PermissionDenied, // Do not allow OTC lending users to trade
+                    '140070': errors.InvalidOrder, // ETP symbols are not allowed to be traded
+                    '170001': errors.ExchangeError, // Internal error.
+                    '170005': errors.InvalidOrder, // Too many new orders; current limit is %s orders per %s.
+                    '170007': errors.RequestTimeout, // Timeout waiting for response from backend server.
+                    '170010': errors.InvalidOrder, // Purchase failed: Exceed the maximum position limit of leveraged tokens, the current available limit is %s USDT
+                    '170011': errors.InvalidOrder, // "Purchase failed: Exceed the maximum position limit of innovation tokens,
+                    '170019': errors.InvalidOrder, // the current available limit is replaceKey0 USDT"
+                    '170031': errors.ExchangeError, // The feature has been suspended
+                    '170032': errors.ExchangeError, // Network error. Please try again later
+                    '170033': errors.InsufficientFunds, // margin Insufficient account balance
+                    '170034': errors.InsufficientFunds, // Liability over flow in spot leverage trade!
+                    '170035': errors.BadRequest, // Submitted to the system for processing!
+                    '170036': errors.BadRequest, // You haven't enabled Cross Margin Trading yet. To do so, please head to the PC trading site or the Bybit app
+                    '170037': errors.BadRequest, // Cross Margin Trading not yet supported by the selected coin
+                    '170105': errors.BadRequest, // Parameter '%s' was empty.
+                    '170115': errors.InvalidOrder, // Invalid timeInForce.
+                    '170116': errors.InvalidOrder, // Invalid orderType.
+                    '170117': errors.InvalidOrder, // Invalid side.
+                    '170121': errors.InvalidOrder, // Invalid symbol.
+                    '170124': errors.InvalidOrder, // Order amount too large.
+                    '170130': errors.BadRequest, // Data sent for paramter '%s' is not valid.
+                    '170131': errors.InsufficientFunds, // Balance insufficient
+                    '170132': errors.InvalidOrder, // Order price too high.
+                    '170133': errors.InvalidOrder, // Order price lower than the minimum.
+                    '170134': errors.InvalidOrder, // Order price decimal too long.
+                    '170135': errors.InvalidOrder, // Order quantity too large.
+                    '170136': errors.InvalidOrder, // Order quantity lower than the minimum.
+                    '170137': errors.InvalidOrder, // Order volume decimal too long
+                    '170139': errors.InvalidOrder, // Order has been filled.
+                    '170140': errors.InvalidOrder, // Transaction amount lower than the minimum.
+                    '170141': errors.InvalidOrder, // Duplicate clientOrderId
+                    '170142': errors.InvalidOrder, // Order has been canceled
+                    '170143': errors.InvalidOrder, // Cannot be found on order book
+                    '170144': errors.InvalidOrder, // Order has been locked
+                    '170145': errors.InvalidOrder, // This order type does not support cancellation
+                    '170146': errors.InvalidOrder, // Order creation timeout
+                    '170147': errors.InvalidOrder, // Order cancellation timeout
+                    '170148': errors.InvalidOrder, // Market order amount decimal too long
+                    '170149': errors.ExchangeError, // Create order failed
+                    '170150': errors.ExchangeError, // Cancel order failed
+                    '170151': errors.InvalidOrder, // The trading pair is not open yet
+                    '170157': errors.InvalidOrder, // The trading pair is not available for api trading
+                    '170159': errors.InvalidOrder, // Market Order is not supported within the first %s minutes of newly launched pairs due to risk control.
+                    '170190': errors.InvalidOrder, // Cancel order has been finished
+                    '170191': errors.InvalidOrder, // Can not cancel order, please try again later
+                    '170192': errors.InvalidOrder, // Order price cannot be higher than %s .
+                    '170193': errors.InvalidOrder, // Buy order price cannot be higher than %s.
+                    '170194': errors.InvalidOrder, // Sell order price cannot be lower than %s.
+                    '170195': errors.InvalidOrder, // Please note that your order may not be filled
+                    '170196': errors.InvalidOrder, // Please note that your order may not be filled
+                    '170197': errors.InvalidOrder, // Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again
+                    '170198': errors.InvalidOrder, // Your order quantity to sell is too large. The filled price may deviate significantly from the market price. Please try again
+                    '170199': errors.InvalidOrder, // Your order quantity to buy is too large. The filled price may deviate significantly from the nav. Please try again.
+                    '170200': errors.InvalidOrder, // Your order quantity to sell is too large. The filled price may deviate significantly from the nav. Please try again.
+                    '170201': errors.PermissionDenied, // Your account has been restricted for trades. If you have any questions, please email us at support@bybit.com
+                    '170202': errors.InvalidOrder, // Invalid orderFilter parameter.
+                    '170203': errors.InvalidOrder, // Please enter the TP/SL price.
+                    '170204': errors.InvalidOrder, // trigger price cannot be higher than 110% price.
+                    '170206': errors.InvalidOrder, // trigger price cannot be lower than 90% of qty.
+                    '170209': errors.RestrictedLocation, // {"retCode":170209,"retMsg":"This trading pair is only available to the Brunei,Kampuchea (Cambodia ],Indonesia,Laos,Malaysia,Burma,Philippines,Thailand,Timor-Leste,Vietnam region.","result":{},"retExtInfo":{},"time":1769526868171}
+                    '170210': errors.InvalidOrder, // New order rejected.
+                    '170213': errors.OrderNotFound, // Order does not exist.
+                    '170217': errors.InvalidOrder, // Only LIMIT-MAKER order is supported for the current pair.
+                    '170218': errors.InvalidOrder, // The LIMIT-MAKER order is rejected due to invalid price.
+                    '170221': errors.BadRequest, // This coin does not exist.
+                    '170222': errors.RateLimitExceeded, // Too many requests in this time frame.
+                    '170223': errors.InsufficientFunds, // Your Spot Account with Institutional Lending triggers an alert or liquidation.
+                    '170224': errors.PermissionDenied, // You're not a user of the Innovation Zone.
+                    '170226': errors.InsufficientFunds, // Your Spot Account for Margin Trading is being liquidated.
+                    '170227': errors.ExchangeError, // This feature is not supported.
+                    '170228': errors.InvalidOrder, // The purchase amount of each order exceeds the estimated maximum purchase amount.
+                    '170229': errors.InvalidOrder, // The sell quantity per order exceeds the estimated maximum sell quantity.
+                    '170234': errors.ExchangeError, // System Error
+                    '170241': errors.ManualInteractionNeeded, // To proceed with trading, users must read through and confirm that they fully understand the project's risk disclosure document.
+                    '170371': errors.InvalidOrder, // {"retCode":170371,"retMsg":"Order price cannot be lower than 0.0025, the price limitation.","result":{},"retExtInfo":{},"time":1766500057720}
+                    '170372': errors.InvalidOrder, // {"retCode":170372,"retMsg":"Order price cannot be higher than 24.2175, the price limitation","result":{},"retExtInfo":{},"time":1766500129105}
+                    '175000': errors.InvalidOrder, // The serialNum is already in use.
+                    '175001': errors.InvalidOrder, // Daily purchase limit has been exceeded. Please try again later.
+                    '175002': errors.InvalidOrder, // There's a large number of purchase orders. Please try again later.
+                    '175003': errors.InsufficientFunds, // Insufficient available balance. Please make a deposit and try again.
+                    '175004': errors.InvalidOrder, // Daily redemption limit has been exceeded. Please try again later.
+                    '175005': errors.InvalidOrder, // There's a large number of redemption orders. Please try again later.
+                    '175006': errors.InsufficientFunds, // Insufficient available balance. Please make a deposit and try again.
+                    '175007': errors.InvalidOrder, // Order not found.
+                    '175008': errors.InvalidOrder, // Purchase period hasn't started yet.
+                    '175009': errors.InvalidOrder, // Purchase amount has exceeded the upper limit.
+                    '175010': errors.PermissionDenied, // You haven't passed the quiz yet! To purchase and/or redeem an LT, please complete the quiz first.
+                    '175012': errors.InvalidOrder, // Redemption period hasn't started yet.
+                    '175013': errors.InvalidOrder, // Redemption amount has exceeded the upper limit.
+                    '175014': errors.InvalidOrder, // Purchase of the LT has been temporarily suspended.
+                    '175015': errors.InvalidOrder, // Redemption of the LT has been temporarily suspended.
+                    '175016': errors.InvalidOrder, // Invalid format. Please check the length and numeric precision.
+                    '175017': errors.InvalidOrder, // Failed to place order：Exceed the maximum position limit of leveraged tokens, the current available limit is XXXX USDT
+                    '175027': errors.ExchangeError, // Subscriptions and redemptions are temporarily unavailable while account upgrade is in progress
+                    '176002': errors.BadRequest, // Query user account info error
+                    '176004': errors.BadRequest, // Query order history start time exceeds end time
+                    '176003': errors.BadRequest, // Query user loan history error
+                    '176006': errors.BadRequest, // Repayment Failed
+                    '176005': errors.BadRequest, // Failed to borrow
+                    '176008': errors.BadRequest, // You haven't enabled Cross Margin Trading yet. To do so
+                    '176007': errors.BadRequest, // User not found
+                    '176010': errors.BadRequest, // Failed to locate the coins to borrow
+                    '176009': errors.BadRequest, // You haven't enabled Cross Margin Trading yet. To do so
+                    '176012': errors.BadRequest, // Pair not available
+                    '176011': errors.BadRequest, // Cross Margin Trading not yet supported by the selected coin
+                    '176014': errors.BadRequest, // Repeated repayment requests
+                    '176013': errors.BadRequest, // Cross Margin Trading not yet supported by the selected pair
+                    '176015': errors.InsufficientFunds, // Insufficient available balance
+                    '176016': errors.BadRequest, // No repayment required
+                    '176017': errors.BadRequest, // Repayment amount has exceeded the total liability
+                    '176018': errors.BadRequest, // Settlement in progress
+                    '176019': errors.BadRequest, // Liquidation in progress
+                    '176020': errors.BadRequest, // Failed to locate repayment history
+                    '176021': errors.BadRequest, // Repeated borrowing requests
+                    '176022': errors.BadRequest, // Coins to borrow not generally available yet
+                    '176023': errors.BadRequest, // Pair to borrow not generally available yet
+                    '176024': errors.BadRequest, // Invalid user status
+                    '176025': errors.BadRequest, // Amount to borrow cannot be lower than the min. amount to borrow (per transaction)
+                    '176026': errors.BadRequest, // Amount to borrow cannot be larger than the max. amount to borrow (per transaction)
+                    '176027': errors.BadRequest, // Amount to borrow cannot be higher than the max. amount to borrow per user
+                    '176028': errors.BadRequest, // Amount to borrow has exceeded Bybit's max. amount to borrow
+                    '176029': errors.BadRequest, // Amount to borrow has exceeded the user's estimated max. amount to borrow
+                    '176030': errors.BadRequest, // Query user loan info error
+                    '176031': errors.BadRequest, // Number of decimals has exceeded the maximum precision
+                    '176034': errors.BadRequest, // The leverage ratio is out of range
+                    '176035': errors.PermissionDenied, // Failed to close the leverage switch during liquidation
+                    '176036': errors.PermissionDenied, // Failed to adjust leverage switch during forced liquidation
+                    '176037': errors.PermissionDenied, // For non-unified transaction users, the operation failed
+                    '176038': errors.BadRequest, // The spot leverage is closed and the current operation is not allowed
+                    '176039': errors.BadRequest, // Borrowing, current operation is not allowed
+                    '176040': errors.BadRequest, // There is a spot leverage order, and the adjustment of the leverage switch failed!
+                    '181000': errors.BadRequest, // category is null
+                    '181001': errors.BadRequest, // category only support linear or option or spot.
+                    '181002': errors.InvalidOrder, // symbol is null.
+                    '181003': errors.InvalidOrder, // side is null.
+                    '181004': errors.InvalidOrder, // side only support Buy or Sell.
+                    '182000': errors.InvalidOrder, // symbol related quote price is null
+                    '181017': errors.BadRequest, // OrderStatus must be final status
+                    '20001': errors.OrderNotFound, // Order not exists
+                    '20003': errors.InvalidOrder, // missing parameter side
+                    '20004': errors.InvalidOrder, // invalid parameter side
+                    '20005': errors.InvalidOrder, // missing parameter symbol
+                    '20006': errors.InvalidOrder, // invalid parameter symbol
+                    '20007': errors.InvalidOrder, // missing parameter order_type
+                    '20008': errors.InvalidOrder, // invalid parameter order_type
+                    '20009': errors.InvalidOrder, // missing parameter qty
+                    '20010': errors.InvalidOrder, // qty must be greater than 0
+                    '20011': errors.InvalidOrder, // qty must be an integer
+                    '20012': errors.InvalidOrder, // qty must be greater than zero and less than 1 million
+                    '20013': errors.InvalidOrder, // missing parameter price
+                    '20014': errors.InvalidOrder, // price must be greater than 0
+                    '20015': errors.InvalidOrder, // missing parameter time_in_force
+                    '20016': errors.InvalidOrder, // invalid value for parameter time_in_force
+                    '20017': errors.InvalidOrder, // missing parameter order_id
+                    '20018': errors.InvalidOrder, // invalid date format
+                    '20019': errors.InvalidOrder, // missing parameter stop_px
+                    '20020': errors.InvalidOrder, // missing parameter base_price
+                    '20021': errors.InvalidOrder, // missing parameter stop_order_id
+                    '20022': errors.BadRequest, // missing parameter leverage
+                    '20023': errors.BadRequest, // leverage must be a number
+                    '20031': errors.BadRequest, // leverage must be greater than zero
+                    '20070': errors.BadRequest, // missing parameter margin
+                    '20071': errors.BadRequest, // margin must be greater than zero
+                    '20084': errors.BadRequest, // order_id or order_link_id is required
+                    '30001': errors.BadRequest, // order_link_id is repeated
+                    '30003': errors.InvalidOrder, // qty must be more than the minimum allowed
+                    '30004': errors.InvalidOrder, // qty must be less than the maximum allowed
+                    '30005': errors.InvalidOrder, // price exceeds maximum allowed
+                    '30007': errors.InvalidOrder, // price exceeds minimum allowed
+                    '30008': errors.InvalidOrder, // invalid order_type
+                    '30009': errors.ExchangeError, // no position found
+                    '30010': errors.InsufficientFunds, // insufficient wallet balance
+                    '30011': errors.PermissionDenied, // operation not allowed as position is undergoing liquidation
+                    '30012': errors.PermissionDenied, // operation not allowed as position is undergoing ADL
+                    '30013': errors.PermissionDenied, // position is in liq or adl status
+                    '30014': errors.InvalidOrder, // invalid closing order, qty should not greater than size
+                    '30015': errors.InvalidOrder, // invalid closing order, side should be opposite
+                    '30016': errors.ExchangeError, // TS and SL must be cancelled first while closing position
+                    '30017': errors.InvalidOrder, // estimated fill price cannot be lower than current Buy liq_price
+                    '30018': errors.InvalidOrder, // estimated fill price cannot be higher than current Sell liq_price
+                    '30019': errors.InvalidOrder, // cannot attach TP/SL params for non-zero position when placing non-opening position order
+                    '30020': errors.InvalidOrder, // position already has TP/SL params
+                    '30021': errors.InvalidOrder, // cannot afford estimated position_margin
+                    '30022': errors.InvalidOrder, // estimated buy liq_price cannot be higher than current mark_price
+                    '30023': errors.InvalidOrder, // estimated sell liq_price cannot be lower than current mark_price
+                    '30024': errors.InvalidOrder, // cannot set TP/SL/TS for zero-position
+                    '30025': errors.InvalidOrder, // trigger price should bigger than 10% of last price
+                    '30026': errors.InvalidOrder, // price too high
+                    '30027': errors.InvalidOrder, // price set for Take profit should be higher than Last Traded Price
+                    '30028': errors.InvalidOrder, // price set for Stop loss should be between Liquidation price and Last Traded Price
+                    '30029': errors.InvalidOrder, // price set for Stop loss should be between Last Traded Price and Liquidation price
+                    '30030': errors.InvalidOrder, // price set for Take profit should be lower than Last Traded Price
+                    '30031': errors.InsufficientFunds, // insufficient available balance for order cost
+                    '30032': errors.InvalidOrder, // order has been filled or cancelled
+                    '30033': errors.RateLimitExceeded, // The number of stop orders exceeds maximum limit allowed
+                    '30034': errors.OrderNotFound, // no order found
+                    '30035': errors.RateLimitExceeded, // too fast to cancel
+                    '30036': errors.ExchangeError, // the expected position value after order execution exceeds the current risk limit
+                    '30037': errors.InvalidOrder, // order already cancelled
+                    '30041': errors.ExchangeError, // no position found
+                    '30042': errors.InsufficientFunds, // insufficient wallet balance
+                    '30043': errors.InvalidOrder, // operation not allowed as position is undergoing liquidation
+                    '30044': errors.InvalidOrder, // operation not allowed as position is undergoing AD
+                    '30045': errors.InvalidOrder, // operation not allowed as position is not normal status
+                    '30049': errors.InsufficientFunds, // insufficient available balance
+                    '30050': errors.ExchangeError, // any adjustments made will trigger immediate liquidation
+                    '30051': errors.ExchangeError, // due to risk limit, cannot adjust leverage
+                    '30052': errors.ExchangeError, // leverage can not less than 1
+                    '30054': errors.ExchangeError, // position margin is invalid
+                    '30057': errors.ExchangeError, // requested quantity of contracts exceeds risk limit
+                    '30063': errors.ExchangeError, // reduce-only rule not satisfied
+                    '30067': errors.InsufficientFunds, // insufficient available balance
+                    '30068': errors.ExchangeError, // exit value must be positive
+                    '30074': errors.InvalidOrder, // can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is raising to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or greater than stop_px, please adjust base_price or stop_px
+                    '30075': errors.InvalidOrder, // can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is falling to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or less than stop_px, please adjust base_price or stop_px
+                    '30078': errors.ExchangeError, // {"ret_code":30078,"ret_msg":"","ext_code":"","ext_info":"","result":null,"time_now":"1644853040.916000","rate_limit_status":73,"rate_limit_reset_ms":1644853040912,"rate_limit":75}
                     // '30084': BadRequest, // Isolated not modified, see handleErrors below
-                    '33004': errors.AuthenticationError,
-                    '34026': errors.ExchangeError,
-                    '34036': errors.BadRequest,
-                    '35015': errors.BadRequest,
-                    '340099': errors.ExchangeError,
-                    '3400045': errors.ExchangeError,
-                    '3100116': errors.BadRequest,
-                    '3100198': errors.BadRequest,
+                    '33004': errors.AuthenticationError, // apikey already expired
+                    '34026': errors.ExchangeError, // the limit is no change
+                    '34036': errors.BadRequest, // {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
+                    '35015': errors.BadRequest, // {"ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100}
+                    '340099': errors.ExchangeError, // Server error
+                    '3400045': errors.ExchangeError, // Set margin mode failed
+                    '3100116': errors.BadRequest, // {"retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":{"key0":"0.01"}}
+                    '3100198': errors.BadRequest, // {"retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":{}}
                     '3200300': errors.InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
                 },
                 'broad': {
-                    'Not supported symbols': errors.BadSymbol,
-                    'Request timeout': errors.RequestTimeout,
-                    'unknown orderInfo': errors.OrderNotFound,
-                    'invalid api_key': errors.AuthenticationError,
+                    'Not supported symbols': errors.BadSymbol, // {"retCode":10001,"retMsg":"Not supported symbols","result":{},"retExtInfo":{},"time":1726147060461}
+                    'Request timeout': errors.RequestTimeout, // {"retCode":10016,"retMsg":"Request timeout, please try again later","result":{},"retExtInfo":{},"time":1675307914985}
+                    'unknown orderInfo': errors.OrderNotFound, // {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
+                    'invalid api_key': errors.AuthenticationError, // {"ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797"}
                     // the below two issues are caused as described: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
                     'oc_diff': errors.InsufficientFunds,
                     'new_oc': errors.InsufficientFunds,
@@ -1096,17 +1096,17 @@ class bybit extends bybit$1["default"] {
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
-                'createMarketBuyOrderRequiresPrice': false,
+                'createMarketBuyOrderRequiresPrice': false, // only true for classic accounts
                 'createUnifiedMarginAccount': false,
-                'defaultType': 'swap',
-                'defaultSubType': 'linear',
-                'defaultSettle': 'USDT',
+                'defaultType': 'swap', // 'swap', 'future', 'option', 'spot'
+                'defaultSubType': 'linear', // 'linear', 'inverse'
+                'defaultSettle': 'USDT', // USDC for USDC settled markets
                 'code': 'BTC',
-                'recvWindow': 5 * 1000,
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
-                'loadAllOptions': false,
-                'loadExpiredOptions': false,
+                'recvWindow': 5 * 1000, // 5 sec default
+                'timeDifference': 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'loadAllOptions': false, // load all possible option markets, adds signficant load time
+                'loadExpiredOptions': false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1131,6 +1131,7 @@ class bybit extends bybit$1["default"] {
                 },
                 'networks': {
                     'BTC': 'BTC',
+                    'BRC20': 'BTC',
                     'ETH': 'ETH',
                     'ERC20': 'ETH',
                     'TRX': 'TRX',
@@ -1142,80 +1143,71 @@ class bybit extends bybit$1["default"] {
                     'ADA': 'ADA',
                     'ALGO': 'ALGO',
                     'APT': 'APTOS',
-                    'AR': 'AR',
                     'ARBONE': 'ARBI',
+                    'ARBNOVA': 'ARBINOVA',
                     'AVAXC': 'CAVAX',
                     'AVAXX': 'XAVAX',
+                    'COSMOS': 'ATOM',
                     'ATOM': 'ATOM',
                     'BCH': 'BCH',
                     'BEP2': 'BNB',
-                    'CHZ': 'CHZ',
-                    'DCR': 'DCR',
-                    'DGB': 'DGB',
                     'DOGE': 'DOGE',
                     'DOT': 'DOT',
                     'EGLD': 'EGLD',
                     'EOS': 'EOS',
                     'ETC': 'ETC',
-                    'ETHF': 'ETHF',
                     'ETHW': 'ETHW',
                     'FIL': 'FIL',
                     'STEP': 'FITFI',
-                    'FLOW': 'FLOW',
-                    'FTM': 'FTM',
+                    'SONIC': 'SONIC', // previously fantom & FTM
                     'GLMR': 'GLMR',
                     'HBAR': 'HBAR',
-                    'HNT': 'HNT',
                     'ICP': 'ICP',
-                    'ICX': 'ICX',
-                    'KDA': 'KDA',
                     'KLAY': 'KLAY',
-                    'KMA': 'KMA',
-                    'KSM': 'KSM',
                     'LTC': 'LTC',
                     // 'TERRA': 'LUNANEW',
                     // 'TERRACLASSIC': 'LUNA',
+                    'POLYGON': 'MATIC',
                     'MATIC': 'MATIC',
-                    'MINA': 'MINA',
-                    'MOVR': 'MOVR',
                     'NEAR': 'NEAR',
-                    'NEM': 'NEM',
                     'OASYS': 'OAS',
                     'OASIS': 'ROSE',
-                    'OMNI': 'OMNI',
-                    'ONE': 'ONE',
-                    'OP': 'OP',
-                    'OPTIMISM': 'OP',
-                    'POKT': 'POKT',
-                    'QTUM': 'QTUM',
-                    'RVN': 'RVN',
-                    'SC': 'SC',
+                    'ONE': 'ONE', // harmony one
+                    'OP': 'OP', // 'OPTIMISM'
                     'SCRT': 'SCRT',
                     'STX': 'STX',
-                    'THETA': 'THETA',
                     'TON': 'TON',
-                    'WAVES': 'WAVES',
                     'WAX': 'WAXP',
-                    'XDC': 'XDC',
                     'XEC': 'XEC',
                     'XLM': 'XLM',
                     'XRP': 'XRP',
                     'XTZ': 'XTZ',
-                    'XYM': 'XYM',
-                    'ZEN': 'ZEN',
                     'ZIL': 'ZIL',
-                    'ZKSYNC': 'ZKSYNC',
-                    // todo: uncomment after consensus
-                    // 'CADUCEUS': 'CMP',
-                    // 'KON': 'KON', // konpay, "konchain"
-                    // 'AURORA': 'AURORA',
-                    // 'BITCOINGOLD': 'BTG',
+                    'ZKSYNCLITE': 'ZKSYNC',
+                    'ZKSYNCERA': 'ZKV2',
+                    '0G': 'ZEROGRAVITY',
+                    'MANTLE': 'MANTLE',
+                    'CHZ': 'CHILIZ',
+                    'BASE': 'BASE',
+                    'CELO': 'CELO',
+                    'SCROLL': 'SCROLL',
+                    'SUI': 'SUI',
+                    // 'SEI': 'SEI', SEIEVM ?
+                    'DYDX': 'DYDX',
+                    'HUMANITY': 'HUMANITY',
+                    'HYPER': 'HYPEREVM',
+                    // 'KAVA': 'KAVA',  KAVAEVM ?
+                    'MONAD': 'MONAD',
+                    'MOVE': 'MOVE',
+                    // 'LUNA2': 'LUNANEW' (Terra)
+                    // 'LUNA1': 'LUNA' (Terra)
                 },
                 'networksById': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
                     'OP': 'OP',
+                    'MATIC': 'MATIC',
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -1260,7 +1252,7 @@ class bybit extends bybit$1["default"] {
                             'GTD': false,
                         },
                         'hedged': true,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'trailing': true,
                         'iceberg': false,
                         'leverage': false,
@@ -1273,8 +1265,8 @@ class bybit extends bybit$1["default"] {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 365 * 2,
-                        'untilDays': 7,
+                        'daysBack': 365 * 2, // 2 years
+                        'untilDays': 7, // days between start-end
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -1294,7 +1286,7 @@ class bybit extends bybit$1["default"] {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 50,
-                        'daysBack': 365 * 2,
+                        'daysBack': 365 * 2, // 2 years
                         'daysBackCanceled': 1,
                         'untilDays': 7,
                         'trigger': true,
@@ -1842,7 +1834,7 @@ class bybit extends bybit$1["default"] {
             'category': 'spot',
         };
         const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
-        let response = undefined;
+        let response;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
         }
@@ -1979,7 +1971,7 @@ class bybit extends bybit$1["default"] {
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                let responseInner = undefined;
+                let responseInner;
                 if (usePrivateInstrumentsInfo) {
                     responseInner = await this.privateGetV5MarketInstrumentsInfo(params);
                 }
@@ -2159,7 +2151,7 @@ class bybit extends bybit$1["default"] {
             'category': 'option',
         };
         const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
-        let response = undefined;
+        let response;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
         }
@@ -2174,7 +2166,7 @@ class bybit extends bybit$1["default"] {
             if (paginationCursor !== undefined) {
                 while (paginationCursor !== undefined) {
                     request['cursor'] = paginationCursor;
-                    let responseInner = undefined;
+                    let responseInner;
                     if (usePrivateInstrumentsInfo) {
                         responseInner = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
                     }
@@ -2624,7 +2616,8 @@ class bybit extends bybit$1["default"] {
         //         "2.4343353100000003"
         //     ]
         //
-        const volumeIndex = (market['inverse']) ? 6 : 5;
+        const isInverse = this.safeBool(market, 'inverse');
+        const volumeIndex = (isInverse) ? 6 : 5;
         return [
             this.safeInteger(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
@@ -2676,7 +2669,7 @@ class bybit extends bybit$1["default"] {
         }
         [request, params] = this.handleUntilOption('end', request, params);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        let response = undefined;
+        let response;
         if (market['spot']) {
             request['category'] = 'spot';
             response = await this.publicGetV5MarketKline(this.extend(request, params));
@@ -2972,7 +2965,7 @@ class bybit extends bybit$1["default"] {
         //
         const rates = [];
         const result = this.safeDict(response, 'result');
-        const resultList = this.safeList(result, 'list');
+        const resultList = this.safeList(result, 'list', []);
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger(entry, 'fundingRateTimestamp');
@@ -3482,7 +3475,7 @@ class bybit extends bybit$1["default"] {
                 const entry = currencyList[i];
                 const accountType = this.safeString(entry, 'accountType');
                 if (accountType === 'UNIFIED' || accountType === 'CONTRACT' || accountType === 'SPOT') {
-                    const coins = this.safeList(entry, 'coin');
+                    const coins = this.safeList(entry, 'coin', []);
                     for (let j = 0; j < coins.length; j++) {
                         const account = this.account();
                         const coinEntry = coins[j];
@@ -3581,7 +3574,7 @@ class bybit extends bybit$1["default"] {
         const unifiedType = this.safeStringUpper(accountTypes, type, type);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
-        let response = undefined;
+        let response;
         if (isSpot && (marginMode !== undefined)) {
             response = await this.privateGetV5SpotCrossMarginTradeAccount(this.extend(request, params));
         }
@@ -3709,13 +3702,13 @@ class bybit extends bybit$1["default"] {
             'PENDING_CANCEL': 'open',
             'PENDING_NEW': 'open',
             'REJECTED': 'rejected',
-            'PARTIALLY_FILLED_CANCELLED': 'closed',
+            'PARTIALLY_FILLED_CANCELLED': 'closed', // context: https://github.com/ccxt/ccxt/issues/18685
             // v3 contract / unified margin / unified account
             'Created': 'open',
             'New': 'open',
-            'Rejected': 'rejected',
+            'Rejected': 'rejected', // order is triggered but failed upon being placed
             'PartiallyFilled': 'open',
-            'PartiallyFilledCanceled': 'closed',
+            'PartiallyFilledCanceled': 'closed', // context: https://github.com/ccxt/ccxt/issues/18685
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
@@ -4058,7 +4051,7 @@ class bybit extends bybit$1["default"] {
         }
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'createOrder', 'method', defaultMethod);
-        let response = undefined;
+        let response;
         if (method === 'privatePostV5PositionTradingStop') {
             response = await this.privatePostV5PositionTradingStop(orderRequest);
         }
@@ -6161,7 +6154,7 @@ class bybit extends bybit$1["default"] {
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchLedger', undefined, params);
-        let response = undefined;
+        let response;
         if (enableUnified[1]) {
             const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
@@ -6364,7 +6357,7 @@ class bybit extends bybit$1["default"] {
             'RealisedPNL': 'trade',
             'Commission': 'fee',
             'Refund': 'cashback',
-            'Prize': 'prize',
+            'Prize': 'prize', // ?
             'ExchangeOrderWithdraw': 'transaction',
             'ExchangeOrderDeposit': 'transaction',
             // v5
@@ -6859,14 +6852,14 @@ class bybit extends bybit$1["default"] {
             'leverage': this.parseNumber(leverage),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
             'realizedPnl': this.safeNumber2(position, 'curRealisedPnl', 'closedPnl'),
-            'contracts': this.parseNumber(size),
+            'contracts': this.parseNumber(size), // in USD for inverse swaps
             'contractSize': this.safeNumber(market, 'contractSize'),
             'marginRatio': this.parseNumber(marginRatio),
             'liquidationPrice': this.parseNumber(liquidationPrice),
             'markPrice': this.parseNumber(markPrice),
             'lastPrice': this.safeNumber(position, 'avgExitPrice'),
             'collateral': this.parseNumber(collateralString),
-            'marginMode': undefined,
+            'marginMode': undefined, // tradeMode was deprecated
             'side': side,
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2(position, 'stop_loss', 'stopLoss'),
@@ -6917,7 +6910,7 @@ class bybit extends bybit$1["default"] {
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         let market = undefined;
-        let response = undefined;
+        let response;
         if (isUnifiedAccount) {
             if (marginMode === 'isolated') {
                 marginMode = 'ISOLATED_MARGIN';
@@ -7076,10 +7069,10 @@ class bybit extends bybit$1["default"] {
             request['coin'] = 'USDT';
         }
         else {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (symbol !== undefined) {
-            request['category'] = market['linear'] ? 'linear' : 'inverse';
+            request['category'] = this.safeBool(market, 'linear') ? 'linear' : 'inverse';
         }
         else {
             let type = undefined;
@@ -7258,10 +7251,10 @@ class bybit extends bybit$1["default"] {
         const timestamp = this.safeInteger(interest, 'timestamp');
         const openInterest = this.safeNumber2(interest, 'open_interest', 'openInterest');
         // the openInterest is in the base asset for linear and quote asset for inverse
-        const amount = market['linear'] ? openInterest : undefined;
-        const value = market['inverse'] ? openInterest : undefined;
+        const amount = this.safeBool(market, 'linear') ? openInterest : undefined;
+        const value = this.safeBool(market, 'inverse') ? openInterest : undefined;
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
@@ -7329,7 +7322,7 @@ class bybit extends bybit$1["default"] {
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
             'rate': this.safeNumber(info, 'interestRate', hourlyBorrowRate),
-            'period': period,
+            'period': period, // Daily
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
@@ -8026,7 +8019,7 @@ class bybit extends bybit$1["default"] {
         const data = this.safeList(result, 'list', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     /**
      * @method
@@ -8087,7 +8080,7 @@ class bybit extends bybit$1["default"] {
         const data = this.safeList(result, 'list', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     parseSettlement(settlement, market) {
         //
@@ -8554,7 +8547,7 @@ class bybit extends bybit$1["default"] {
         const first = this.safeDict(result, 0);
         const total = result.length;
         const lastIndex = total - 1;
-        const last = this.safeDict(result, lastIndex);
+        const last = this.safeDict(result, lastIndex, {});
         const cursorValue = this.safeString(first, 'nextPageCursor');
         last['info'] = {
             'nextPageCursor': cursorValue,
@@ -8687,7 +8680,7 @@ class bybit extends bybit$1["default"] {
         [type, params] = this.getBybitType('fetchFundingHistory', market, params);
         request['category'] = type;
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8962,7 +8955,7 @@ class bybit extends bybit$1["default"] {
             'category': subType,
         };
         if ((symbols !== undefined) && (symbolsLength === 1)) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -9727,6 +9720,7 @@ class bybit extends bybit$1["default"] {
         if (method === 'POST') {
             const brokerId = this.safeString(this.options, 'brokerId');
             if (brokerId !== undefined) {
+                headers = (headers === undefined) ? {} : headers;
                 headers['Referer'] = brokerId;
             }
         }

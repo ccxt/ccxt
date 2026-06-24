@@ -20,7 +20,7 @@ class cryptomus extends cryptomus$1["default"] {
             'id': 'cryptomus',
             'name': 'Cryptomus',
             'countries': ['CA'],
-            'rateLimit': 100,
+            'rateLimit': 100, // todo check
             'version': 'v2',
             'certified': false,
             'pro': false,
@@ -164,32 +164,32 @@ class cryptomus extends cryptomus$1["default"] {
                 },
                 'www': 'https://cryptomus.com',
                 'doc': 'https://doc.cryptomus.com/personal',
-                'fees': 'https://cryptomus.com/tariffs',
+                'fees': 'https://cryptomus.com/tariffs', // todo check
                 'referral': 'https://app.cryptomus.com/signup/?ref=JRP4yj', // todo
             },
             'api': {
                 'public': {
                     'get': {
-                        'v2/user-api/exchange/markets': 1,
-                        'v2/user-api/exchange/market/price': 1,
-                        'v1/exchange/market/assets': 1,
-                        'v1/exchange/market/order-book/{currencyPair}': 1,
-                        'v1/exchange/market/tickers': 1,
+                        'v2/user-api/exchange/markets': 1, // done
+                        'v2/user-api/exchange/market/price': 1, // not used
+                        'v1/exchange/market/assets': 1, // done
+                        'v1/exchange/market/order-book/{currencyPair}': 1, // done
+                        'v1/exchange/market/tickers': 1, // done
                         'v1/exchange/market/trades/{currencyPair}': 1, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/user-api/exchange/orders': 1,
-                        'v2/user-api/exchange/orders/history': 1,
-                        'v2/user-api/exchange/account/balance': 1,
-                        'v2/user-api/exchange/account/tariffs': 1,
+                        'v2/user-api/exchange/orders': 1, // done
+                        'v2/user-api/exchange/orders/history': 1, // done
+                        'v2/user-api/exchange/account/balance': 1, // done
+                        'v2/user-api/exchange/account/tariffs': 1, // done
                         'v2/user-api/payment/services': 1,
                         'v2/user-api/payout/services': 1,
                         'v2/user-api/transaction/list': 1,
                     },
                     'post': {
-                        'v2/user-api/exchange/orders': 1,
+                        'v2/user-api/exchange/orders': 1, // done
                         'v2/user-api/exchange/orders/market': 1, // done
                     },
                     'delete': {
@@ -249,7 +249,7 @@ class cryptomus extends cryptomus$1["default"] {
             'exceptions': {
                 'exact': {
                     '500': errors.ExchangeError,
-                    '6': errors.InsufficientFunds,
+                    '6': errors.InsufficientFunds, // {"code":6,"message":"Insufficient funds."}
                     'Insufficient funds.': errors.InsufficientFunds,
                     'Minimum amount 15 USDT': errors.InvalidOrder,
                     // {"code":500,"message":"Server error."}
@@ -610,11 +610,11 @@ class cryptomus extends cryptomus$1["default"] {
             'id': this.safeString(trade, 'trade_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'side': this.safeString(trade, 'type'),
             'price': this.safeString(trade, 'price'),
-            'amount': this.safeString(trade, 'quote_volume'),
-            'cost': this.safeString(trade, 'base_volume'),
+            'amount': this.safeString(trade, 'quote_volume'), // quote_volume is amount
+            'cost': this.safeString(trade, 'base_volume'), // base_volume is cost
             'takerOrMaker': undefined,
             'type': undefined,
             'order': undefined,
@@ -707,7 +707,7 @@ class cryptomus extends cryptomus$1["default"] {
         const priceToString = this.numberToString(price);
         let cost = undefined;
         [cost, params] = this.handleParamString(params, 'cost');
-        let response = undefined;
+        let response;
         if (type === 'market') {
             if (sideBuy) {
                 let createMarketBuyOrderRequiresPrice = true;
@@ -1081,8 +1081,12 @@ class cryptomus extends cryptomus$1["default"] {
         const feeTiers = this.safeList(data, 'tariff_steps', []);
         const result = {};
         const tiers = this.parseFeeTiers(feeTiers);
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

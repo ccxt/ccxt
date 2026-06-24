@@ -530,13 +530,13 @@ func WithFetchMarginModesParams(params map[string]any) FetchMarginModesOptions {
 }
 
 type FetchRestOrderBookSafeOptionsStruct struct {
-	Limit  *any
+	Limit  *int64
 	Params *map[string]any
 }
 
 type FetchRestOrderBookSafeOptions func(opts *FetchRestOrderBookSafeOptionsStruct)
 
-func WithFetchRestOrderBookSafeLimit(limit any) FetchRestOrderBookSafeOptions {
+func WithFetchRestOrderBookSafeLimit(limit int64) FetchRestOrderBookSafeOptions {
 	return func(opts *FetchRestOrderBookSafeOptionsStruct) {
 		opts.Limit = &limit
 	}
@@ -4488,7 +4488,7 @@ type FetchPaginatedCallDeterministicOptionsStruct struct {
 	Limit                *int64
 	Timeframe            *string
 	Params               *map[string]any
-	MaxEntriesPerRequest *any
+	MaxEntriesPerRequest *int64
 }
 
 type FetchPaginatedCallDeterministicOptions func(opts *FetchPaginatedCallDeterministicOptionsStruct)
@@ -4523,7 +4523,7 @@ func WithFetchPaginatedCallDeterministicParams(params map[string]any) FetchPagin
 	}
 }
 
-func WithFetchPaginatedCallDeterministicMaxEntriesPerRequest(maxEntriesPerRequest any) FetchPaginatedCallDeterministicOptions {
+func WithFetchPaginatedCallDeterministicMaxEntriesPerRequest(maxEntriesPerRequest int64) FetchPaginatedCallDeterministicOptions {
 	return func(opts *FetchPaginatedCallDeterministicOptionsStruct) {
 		opts.MaxEntriesPerRequest = &maxEntriesPerRequest
 	}
@@ -4531,13 +4531,13 @@ func WithFetchPaginatedCallDeterministicMaxEntriesPerRequest(maxEntriesPerReques
 
 type FetchPaginatedCallCursorOptionsStruct struct {
 	Symbol               *string
-	Since                *any
-	Limit                *any
+	Since                *int64
+	Limit                *int64
 	Params               *map[string]any
-	CursorReceived       *any
-	CursorSent           *any
-	CursorIncrement      *any
-	MaxEntriesPerRequest *any
+	CursorReceived       *string
+	CursorSent           *string
+	CursorIncrement      *int64
+	MaxEntriesPerRequest *int64
 }
 
 type FetchPaginatedCallCursorOptions func(opts *FetchPaginatedCallCursorOptionsStruct)
@@ -4548,13 +4548,13 @@ func WithFetchPaginatedCallCursorSymbol(symbol string) FetchPaginatedCallCursorO
 	}
 }
 
-func WithFetchPaginatedCallCursorSince(since any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorSince(since int64) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.Since = &since
 	}
 }
 
-func WithFetchPaginatedCallCursorLimit(limit any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorLimit(limit int64) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.Limit = &limit
 	}
@@ -4566,25 +4566,25 @@ func WithFetchPaginatedCallCursorParams(params map[string]any) FetchPaginatedCal
 	}
 }
 
-func WithFetchPaginatedCallCursorCursorReceived(cursorReceived any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorCursorReceived(cursorReceived string) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.CursorReceived = &cursorReceived
 	}
 }
 
-func WithFetchPaginatedCallCursorCursorSent(cursorSent any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorCursorSent(cursorSent string) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.CursorSent = &cursorSent
 	}
 }
 
-func WithFetchPaginatedCallCursorCursorIncrement(cursorIncrement any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorCursorIncrement(cursorIncrement int64) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.CursorIncrement = &cursorIncrement
 	}
 }
 
-func WithFetchPaginatedCallCursorMaxEntriesPerRequest(maxEntriesPerRequest any) FetchPaginatedCallCursorOptions {
+func WithFetchPaginatedCallCursorMaxEntriesPerRequest(maxEntriesPerRequest int64) FetchPaginatedCallCursorOptions {
 	return func(opts *FetchPaginatedCallCursorOptionsStruct) {
 		opts.MaxEntriesPerRequest = &maxEntriesPerRequest
 	}
@@ -4592,11 +4592,11 @@ func WithFetchPaginatedCallCursorMaxEntriesPerRequest(maxEntriesPerRequest any) 
 
 type FetchPaginatedCallIncrementalOptionsStruct struct {
 	Symbol               *string
-	Since                *any
-	Limit                *any
+	Since                *int64
+	Limit                *int64
 	Params               *map[string]any
-	PageKey              *any
-	MaxEntriesPerRequest *any
+	PageKey              *string
+	MaxEntriesPerRequest *int64
 }
 
 type FetchPaginatedCallIncrementalOptions func(opts *FetchPaginatedCallIncrementalOptionsStruct)
@@ -4607,13 +4607,13 @@ func WithFetchPaginatedCallIncrementalSymbol(symbol string) FetchPaginatedCallIn
 	}
 }
 
-func WithFetchPaginatedCallIncrementalSince(since any) FetchPaginatedCallIncrementalOptions {
+func WithFetchPaginatedCallIncrementalSince(since int64) FetchPaginatedCallIncrementalOptions {
 	return func(opts *FetchPaginatedCallIncrementalOptionsStruct) {
 		opts.Since = &since
 	}
 }
 
-func WithFetchPaginatedCallIncrementalLimit(limit any) FetchPaginatedCallIncrementalOptions {
+func WithFetchPaginatedCallIncrementalLimit(limit int64) FetchPaginatedCallIncrementalOptions {
 	return func(opts *FetchPaginatedCallIncrementalOptionsStruct) {
 		opts.Limit = &limit
 	}
@@ -4625,13 +4625,13 @@ func WithFetchPaginatedCallIncrementalParams(params map[string]any) FetchPaginat
 	}
 }
 
-func WithFetchPaginatedCallIncrementalPageKey(pageKey any) FetchPaginatedCallIncrementalOptions {
+func WithFetchPaginatedCallIncrementalPageKey(pageKey string) FetchPaginatedCallIncrementalOptions {
 	return func(opts *FetchPaginatedCallIncrementalOptionsStruct) {
 		opts.PageKey = &pageKey
 	}
 }
 
-func WithFetchPaginatedCallIncrementalMaxEntriesPerRequest(maxEntriesPerRequest any) FetchPaginatedCallIncrementalOptions {
+func WithFetchPaginatedCallIncrementalMaxEntriesPerRequest(maxEntriesPerRequest int64) FetchPaginatedCallIncrementalOptions {
 	return func(opts *FetchPaginatedCallIncrementalOptionsStruct) {
 		opts.MaxEntriesPerRequest = &maxEntriesPerRequest
 	}
@@ -6736,13 +6736,13 @@ func WithFetchDepositAddressSupplementParams(params map[string]any) FetchDeposit
 }
 
 type FetchPrivateDepositWithdrawFeesOptionsStruct struct {
-	Codes  *any
+	Codes  *[]string
 	Params *map[string]any
 }
 
 type FetchPrivateDepositWithdrawFeesOptions func(opts *FetchPrivateDepositWithdrawFeesOptionsStruct)
 
-func WithFetchPrivateDepositWithdrawFeesCodes(codes any) FetchPrivateDepositWithdrawFeesOptions {
+func WithFetchPrivateDepositWithdrawFeesCodes(codes []string) FetchPrivateDepositWithdrawFeesOptions {
 	return func(opts *FetchPrivateDepositWithdrawFeesOptionsStruct) {
 		opts.Codes = &codes
 	}
@@ -6755,13 +6755,13 @@ func WithFetchPrivateDepositWithdrawFeesParams(params map[string]any) FetchPriva
 }
 
 type FetchPublicDepositWithdrawFeesOptionsStruct struct {
-	Codes  *any
+	Codes  *[]string
 	Params *map[string]any
 }
 
 type FetchPublicDepositWithdrawFeesOptions func(opts *FetchPublicDepositWithdrawFeesOptionsStruct)
 
-func WithFetchPublicDepositWithdrawFeesCodes(codes any) FetchPublicDepositWithdrawFeesOptions {
+func WithFetchPublicDepositWithdrawFeesCodes(codes []string) FetchPublicDepositWithdrawFeesOptions {
 	return func(opts *FetchPublicDepositWithdrawFeesOptionsStruct) {
 		opts.Codes = &codes
 	}

@@ -894,7 +894,7 @@ public partial class woo : ccxt.woo
         object cost = Precise.stringMul(price, amount);
         object side = this.safeStringLower(trade, "side");
         object timestamp = this.safeInteger(trade, "timestamp");
-        object maker = this.safeBool(trade, "marker");
+        object maker = this.safeBool(trade, "maker");
         object takerOrMaker = null;
         if (isTrue(!isEqual(maker, null)))
         {

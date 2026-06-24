@@ -19,7 +19,7 @@ class bitopro extends bitopro$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bitopro',
             'name': 'BitoPro',
-            'countries': ['TW'],
+            'countries': ['TW'], // Taiwan
             'version': 'v3',
             'rateLimit': 100,
             'pro': true,
@@ -188,16 +188,16 @@ class bitopro extends bitopro$1["default"] {
                         'orders/open': 1,
                     },
                     'post': {
-                        'orders/{pair}': 1 / 2,
-                        'orders/batch': 20 / 3,
+                        'orders/{pair}': 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch': 20 / 3, // 90/m => 1.5/s => 10/1.5 = 20/3
                         'wallet/withdraw/{currency}': 10, // 60/m => 1/s => 10/1 = 10
                     },
                     'put': {
                         'orders': 5, // 2/s => 10/2 = 5
                     },
                     'delete': {
-                        'orders/{pair}/{id}': 2 / 3,
-                        'orders/all': 5,
+                        'orders/{pair}/{id}': 2 / 3, // 900/m => 15/s => 10/15 = 2/3
+                        'orders/all': 5, // 2/s => 10/2 = 5
                         'orders/{pair}': 5, // 2/s => 10/2 = 5
                     },
                 },
@@ -248,7 +248,7 @@ class bitopro extends bitopro$1["default"] {
                         'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': true,
+                        'triggerDirection': true, // todo implement
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
@@ -323,16 +323,16 @@ class bitopro extends bitopro$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Unsupported currency.': errors.BadRequest,
-                    'Unsupported order type': errors.BadRequest,
-                    'Invalid body': errors.BadRequest,
-                    'Invalid Signature': errors.AuthenticationError,
+                    'Unsupported currency.': errors.BadRequest, // {"error":"Unsupported currency."}
+                    'Unsupported order type': errors.BadRequest, // {"error":"Unsupported order type"}
+                    'Invalid body': errors.BadRequest, // {"error":"Invalid body"}
+                    'Invalid Signature': errors.AuthenticationError, // {"error":"Invalid Signature"}
                     'Address not in whitelist.': errors.BadRequest,
                 },
                 'broad': {
-                    'Invalid amount': errors.InvalidOrder,
-                    'Balance for ': errors.InsufficientFunds,
-                    'Invalid ': errors.BadRequest,
+                    'Invalid amount': errors.InvalidOrder, // {"error":"Invalid amount 0.0000000001, decimal limit is 8."}
+                    'Balance for ': errors.InsufficientFunds, // {"error":"Balance for eth not enough, only has 0, but ordered 0.01."}
+                    'Invalid ': errors.BadRequest, // {"error":"Invalid price -1."}
                     'Wrong parameter': errors.BadRequest, // {"error":"Wrong parameter: from"}
                 },
             },

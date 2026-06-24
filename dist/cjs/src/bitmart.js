@@ -113,7 +113,7 @@ class bitmart extends bitmart$1["default"] {
                 'transfer': true,
                 'withdraw': true,
             },
-            'hostname': 'bitmart.com',
+            'hostname': 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14',
                 'api': {
@@ -136,23 +136,23 @@ class bitmart extends bitmart$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'system/time': 3,
+                        'system/time': 3, // 10 times/sec => 30/10 = 3
                         'system/service': 3,
                         // spot markets
                         'spot/v1/currencies': 7.5,
                         'spot/v1/symbols': 7.5,
                         'spot/v1/symbols/details': 5,
-                        'spot/quotation/v3/tickers': 6,
-                        'spot/quotation/v3/ticker': 4,
-                        'spot/quotation/v3/lite-klines': 5,
-                        'spot/quotation/v3/klines': 7,
-                        'spot/quotation/v3/books': 4,
-                        'spot/quotation/v3/trades': 4,
+                        'spot/quotation/v3/tickers': 6, // 10 times/2 sec = 5/s => 30/5 = 6
+                        'spot/quotation/v3/ticker': 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
+                        'spot/quotation/v3/lite-klines': 5, // should be 4 but errors
+                        'spot/quotation/v3/klines': 7, // should be 6 but errors
+                        'spot/quotation/v3/books': 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
+                        'spot/quotation/v3/trades': 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
                         'spot/v1/ticker': 5,
                         'spot/v2/ticker': 30,
-                        'spot/v1/ticker_detail': 5,
+                        'spot/v1/ticker_detail': 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v1/steps': 30,
-                        'spot/v1/symbols/kline': 6,
+                        'spot/v1/symbols/kline': 6, // should be 5 but errors
                         'spot/v1/symbols/book': 5,
                         'spot/v1/symbols/trades': 5,
                         // contract markets
@@ -162,7 +162,7 @@ class bitmart extends bitmart$1["default"] {
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
                         'contract/public/funding-rate-history': 30,
-                        'contract/public/kline': 6,
+                        'contract/public/kline': 6, // should be 5 but errors
                         'account/v1/currencies': 30,
                         'contract/public/markprice-kline': 5, // 6 times per 1 second
                     },
@@ -182,10 +182,10 @@ class bitmart extends bitmart$1["default"] {
                         'account/v1/currencies': 30,
                         'spot/v1/wallet': 5,
                         'account/v1/deposit/address': 30,
-                        'account/v1/withdraw/charge': 32,
+                        'account/v1/withdraw/charge': 32, // should be 30 but errors
                         'account/v2/deposit-withdraw/history': 7.5,
                         'account/v1/deposit-withdraw/detail': 7.5,
-                        'account/v1/withdraw/address/list': 30,
+                        'account/v1/withdraw/address/list': 30, // 2 times per 2 seconds
                         // order
                         'spot/v1/order_detail': 1,
                         'spot/v2/orders': 5,
@@ -235,28 +235,28 @@ class bitmart extends bitmart$1["default"] {
                         'spot/v1/batch_orders': 1,
                         'spot/v2/cancel_order': 1,
                         'spot/v1/cancel_orders': 15,
-                        'spot/v4/query/order': 1,
-                        'spot/v4/query/client-order': 1,
-                        'spot/v4/query/open-orders': 5,
-                        'spot/v4/query/history-orders': 5,
-                        'spot/v4/query/trades': 5,
-                        'spot/v4/query/order-trades': 5,
+                        'spot/v4/query/order': 1, // 60 times/2 sec = 30/s => 30/30 = 1
+                        'spot/v4/query/client-order': 1, // 60 times/2 sec = 30/s => 30/30 = 1
+                        'spot/v4/query/open-orders': 5, // 12 times/2 sec = 6/s => 30/6 = 5
+                        'spot/v4/query/history-orders': 5, // 12 times/2 sec = 6/s => 30/6 = 5
+                        'spot/v4/query/trades': 5, // 12 times/2 sec = 6/s => 30/6 = 5
+                        'spot/v4/query/order-trades': 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/cancel_orders': 3,
                         'spot/v4/cancel_all': 90,
                         'spot/v4/batch_orders': 3,
-                        'spot/v4/algo/submit_order': 6,
+                        'spot/v4/algo/submit_order': 6, // 10 times per 2 seconds
                         'spot/v4/algo/cancel_order': 6,
-                        'spot/v4/algo/cancel_all': 12,
+                        'spot/v4/algo/cancel_all': 12, // 5 times per 2 seconds
                         'spot/v4/query/algo/order': 1.5,
-                        'spot/v4/query/algo/client-order': 1.5,
+                        'spot/v4/query/algo/client-order': 1.5, // 40 times per 2 seconds
                         'spot/v4/query/algo/open-orders': 3,
-                        'spot/v4/query/algo/history-orders': 3,
+                        'spot/v4/query/algo/history-orders': 3, // 20 times per 2 seconds
                         // newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
                         'spot/v2/submit_order': 1,
                         // margin
-                        'spot/v1/margin/submit_order': 1.5,
+                        'spot/v1/margin/submit_order': 1.5, // 20 times per second
                         'spot/v1/margin/isolated/borrow': 30,
                         'spot/v1/margin/isolated/repay': 30,
                         'spot/v1/margin/isolated/transfer': 30,
@@ -274,8 +274,8 @@ class bitmart extends bitmart$1["default"] {
                         'contract/private/modify-preset-plan-order': 2.5,
                         'contract/private/modify-limit-order': 2.5,
                         'contract/private/modify-tp-sl-order': 2.5,
-                        'contract/private/submit-trail-order': 2.5,
-                        'contract/private/cancel-trail-order': 1.5,
+                        'contract/private/submit-trail-order': 2.5, // weight is not provided by the exchange, is set as ordinary order
+                        'contract/private/cancel-trail-order': 1.5, // weight is not provided by the exchange, is set as ordinary order
                         'contract/private/set-position-mode': 1,
                     },
                 },
@@ -329,205 +329,205 @@ class bitmart extends bitmart$1["default"] {
             'exceptions': {
                 'exact': {
                     // general errors
-                    '30000': errors.ExchangeError,
-                    '30001': errors.AuthenticationError,
-                    '30002': errors.AuthenticationError,
-                    '30003': errors.AccountSuspended,
-                    '30004': errors.AuthenticationError,
-                    '30005': errors.AuthenticationError,
-                    '30006': errors.AuthenticationError,
-                    '30007': errors.AuthenticationError,
-                    '30008': errors.AuthenticationError,
-                    '30010': errors.PermissionDenied,
-                    '30011': errors.AuthenticationError,
-                    '30012': errors.AuthenticationError,
-                    '30013': errors.RateLimitExceeded,
-                    '30014': errors.ExchangeNotAvailable,
-                    '30016': errors.OnMaintenance,
-                    '30017': errors.RateLimitExceeded,
-                    '30018': errors.BadRequest,
-                    '30019': errors.PermissionDenied,
+                    '30000': errors.ExchangeError, // 404, Not found
+                    '30001': errors.AuthenticationError, // 401, Header X-BM-KEY is empty
+                    '30002': errors.AuthenticationError, // 401, Header X-BM-KEY not found
+                    '30003': errors.AccountSuspended, // 401, Header X-BM-KEY has frozen
+                    '30004': errors.AuthenticationError, // 401, Header X-BM-SIGN is empty
+                    '30005': errors.AuthenticationError, // 401, Header X-BM-SIGN is wrong
+                    '30006': errors.AuthenticationError, // 401, Header X-BM-TIMESTAMP is empty
+                    '30007': errors.AuthenticationError, // 401, Header X-BM-TIMESTAMP range. Within a minute
+                    '30008': errors.AuthenticationError, // 401, Header X-BM-TIMESTAMP invalid format
+                    '30010': errors.PermissionDenied, // 403, IP is forbidden. We recommend enabling IP whitelist for API trading. After that reauth your account
+                    '30011': errors.AuthenticationError, // 403, Header X-BM-KEY over expire time
+                    '30012': errors.AuthenticationError, // 403, Header X-BM-KEY is forbidden to request it
+                    '30013': errors.RateLimitExceeded, // 429, Request too many requests
+                    '30014': errors.ExchangeNotAvailable, // 503, Service unavailable
+                    '30016': errors.OnMaintenance, // 200, Service maintenance, the function is temporarily unavailable
+                    '30017': errors.RateLimitExceeded, // 418, Your account request is temporarily rejected due to violation of current limiting rules
+                    '30018': errors.BadRequest, // 503, Request Body requires JSON format
+                    '30019': errors.PermissionDenied, // 200, You do not have the permissions to perform this operation
                     // funding account & sub account errors
-                    '60000': errors.BadRequest,
-                    '60001': errors.BadRequest,
-                    '60002': errors.BadRequest,
-                    '60003': errors.ExchangeError,
-                    '60004': errors.ExchangeError,
-                    '60005': errors.ExchangeError,
-                    '60006': errors.ExchangeError,
-                    '60007': errors.InvalidAddress,
-                    '60008': errors.InsufficientFunds,
-                    '60009': errors.ExchangeError,
-                    '60010': errors.ExchangeError,
-                    '60011': errors.InvalidAddress,
-                    '60012': errors.ExchangeError,
-                    '60020': errors.PermissionDenied,
-                    '60021': errors.PermissionDenied,
-                    '60022': errors.PermissionDenied,
-                    '60026': errors.PermissionDenied,
-                    '60027': errors.PermissionDenied,
-                    '60028': errors.AccountSuspended,
-                    '60029': errors.AccountSuspended,
-                    '60030': errors.BadRequest,
-                    '60031': errors.BadRequest,
-                    '60050': errors.ExchangeError,
-                    '60051': errors.ExchangeError,
-                    '61001': errors.InsufficientFunds,
-                    '61003': errors.BadRequest,
-                    '61004': errors.BadRequest,
-                    '61005': errors.BadRequest,
-                    '61006': errors.NotSupported,
-                    '61007': errors.ExchangeError,
-                    '61008': errors.ExchangeError,
+                    '60000': errors.BadRequest, // 400, Invalid request (maybe the body is empty, or the int parameter passes string data)
+                    '60001': errors.BadRequest, // 400, Asset account type does not exist
+                    '60002': errors.BadRequest, // 400, currency does not exist
+                    '60003': errors.ExchangeError, // 400, Currency has been closed recharge channel, if there is any problem, please consult customer service
+                    '60004': errors.ExchangeError, // 400, Currency has been closed withdraw channel, if there is any problem, please consult customer service
+                    '60005': errors.ExchangeError, // 400, Minimum amount is %s
+                    '60006': errors.ExchangeError, // 400, Maximum withdraw precision is %d
+                    '60007': errors.InvalidAddress, // 400, Only withdrawals from added addresses are allowed
+                    '60008': errors.InsufficientFunds, // 400, Balance not enough
+                    '60009': errors.ExchangeError, // 400, Beyond the limit
+                    '60010': errors.ExchangeError, // 400, Withdraw id or deposit id not found
+                    '60011': errors.InvalidAddress, // 400, Address is not valid
+                    '60012': errors.ExchangeError, // 400, This action is not supported in this currency(If IOTA, HLX recharge and withdraw calls are prohibited)
+                    '60020': errors.PermissionDenied, // 403, Your account is not allowed to recharge
+                    '60021': errors.PermissionDenied, // 403, Your account is not allowed to withdraw
+                    '60022': errors.PermissionDenied, // 403, No withdrawals for 24 hours
+                    '60026': errors.PermissionDenied, // 403, Sub-account does not have permission to operate
+                    '60027': errors.PermissionDenied, // 403, Only supports sub-account calls
+                    '60028': errors.AccountSuspended, // 403, Account is disabled for security reasons, please contact customer service
+                    '60029': errors.AccountSuspended, // 403, The account is frozen by the master account, please contact the master account to unfreeze the account
+                    '60030': errors.BadRequest, // 405, Method Not Allowed
+                    '60031': errors.BadRequest, // 415, Unsupported Media Type
+                    '60050': errors.ExchangeError, // 500, User account not found
+                    '60051': errors.ExchangeError, // 500, Internal Server Error
+                    '61001': errors.InsufficientFunds, // {"message":"Balance not enough","code":61001,"trace":"b85ea1f8-b9af-4001-ac5f-9e061fe93d78","data":{}}
+                    '61003': errors.BadRequest, // 400, {"message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":{}}
+                    '61004': errors.BadRequest, // 400, Duplicate requests (such as using an existing requestNo)
+                    '61005': errors.BadRequest, // 403, Asset transfer between accounts is not available
+                    '61006': errors.NotSupported, // 403, The sub-account api only supports organization accounts
+                    '61007': errors.ExchangeError, // 403, Please complete your institution verification to enable withdrawal function.
+                    '61008': errors.ExchangeError, // 403, Suspend transfer out
                     // spot public errors
-                    '70000': errors.ExchangeError,
-                    '70001': errors.BadRequest,
-                    '70002': errors.BadSymbol,
-                    '70003': errors.NetworkError,
-                    '71001': errors.BadRequest,
-                    '71002': errors.BadRequest,
-                    '71003': errors.BadRequest,
-                    '71004': errors.BadRequest,
-                    '71005': errors.BadRequest,
+                    '70000': errors.ExchangeError, // 200, no data
+                    '70001': errors.BadRequest, // 200, request param can not be null
+                    '70002': errors.BadSymbol, // 200, symbol is invalid
+                    '70003': errors.NetworkError, // {"code":70003,"trace":"81a9d57b63be4819b65d3065e6a4682b.105.17105295323593915","message":"net error, please try later","data":null}
+                    '71001': errors.BadRequest, // 200, after is invalid
+                    '71002': errors.BadRequest, // 200, before is invalid
+                    '71003': errors.BadRequest, // 200, request after or before is invalid
+                    '71004': errors.BadRequest, // 200, request kline count limit
+                    '71005': errors.BadRequest, // 200, request step error
                     // spot & margin errors
-                    '50000': errors.BadRequest,
-                    '50001': errors.BadSymbol,
-                    '50002': errors.BadRequest,
-                    '50003': errors.BadRequest,
-                    '50004': errors.BadRequest,
-                    '50005': errors.OrderNotFound,
-                    '50006': errors.InvalidOrder,
-                    '50007': errors.InvalidOrder,
-                    '50008': errors.InvalidOrder,
-                    '50009': errors.InvalidOrder,
-                    '50010': errors.InvalidOrder,
-                    '50011': errors.InvalidOrder,
-                    '50012': errors.InvalidOrder,
-                    '50013': errors.InvalidOrder,
-                    '50014': errors.BadRequest,
-                    '50015': errors.BadRequest,
-                    '50016': errors.BadRequest,
-                    '50017': errors.BadRequest,
-                    '50018': errors.BadRequest,
-                    '50019': errors.ExchangeError,
-                    '50020': errors.InsufficientFunds,
-                    '50021': errors.BadRequest,
-                    '50022': errors.ExchangeNotAvailable,
-                    '50023': errors.BadSymbol,
-                    '50024': errors.BadRequest,
-                    '50025': errors.BadRequest,
-                    '50026': errors.BadRequest,
-                    '50027': errors.BadRequest,
-                    '50028': errors.BadRequest,
-                    '50029': errors.InvalidOrder,
-                    '50030': errors.OrderNotFound,
-                    '50031': errors.OrderNotFound,
-                    '50032': errors.OrderNotFound,
-                    '50033': errors.InvalidOrder,
+                    '50000': errors.BadRequest, // 400, Bad Request
+                    '50001': errors.BadSymbol, // 400, Symbol not found
+                    '50002': errors.BadRequest, // 400, From Or To format error
+                    '50003': errors.BadRequest, // 400, Step format error
+                    '50004': errors.BadRequest, // 400, Kline size over 500
+                    '50005': errors.OrderNotFound, // 400, Order Id not found
+                    '50006': errors.InvalidOrder, // 400, Minimum size is %s
+                    '50007': errors.InvalidOrder, // 400, Maximum size is %s
+                    '50008': errors.InvalidOrder, // 400, Minimum price is %s
+                    '50009': errors.InvalidOrder, // 400, Minimum count*price is %s
+                    '50010': errors.InvalidOrder, // 400, RequestParam size is required
+                    '50011': errors.InvalidOrder, // 400, RequestParam price is required
+                    '50012': errors.InvalidOrder, // 400, RequestParam notional is required
+                    '50013': errors.InvalidOrder, // 400, Maximum limit*offset is %d
+                    '50014': errors.BadRequest, // 400, RequestParam limit is required
+                    '50015': errors.BadRequest, // 400, Minimum limit is 1
+                    '50016': errors.BadRequest, // 400, Maximum limit is %d
+                    '50017': errors.BadRequest, // 400, RequestParam offset is required
+                    '50018': errors.BadRequest, // 400, Minimum offset is 1
+                    '50019': errors.ExchangeError, // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled]                    '50020': InsufficientFunds, // 400, Balance not enough
+                    '50020': errors.InsufficientFunds, // 400, Balance not enough
+                    '50021': errors.BadRequest, // 400, Invalid %s
+                    '50022': errors.ExchangeNotAvailable, // 400, Service unavailable
+                    '50023': errors.BadSymbol, // 400, This Symbol can't place order by api
+                    '50024': errors.BadRequest, // 400, Order book size over 200
+                    '50025': errors.BadRequest, // 400, Maximum price is %s
+                    '50026': errors.BadRequest, // 400, The buy order price cannot be higher than the open price
+                    '50027': errors.BadRequest, // 400, The sell order price cannot be lower than the open price
+                    '50028': errors.BadRequest, // 400, Missing parameters
+                    '50029': errors.InvalidOrder, // 400, {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
+                    '50030': errors.OrderNotFound, // 400, {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
+                    '50031': errors.OrderNotFound, // 400, Order is already completed
+                    '50032': errors.OrderNotFound, // 400, {"message":"Order does not exist","code":50032,"trace":"8d6b482d-4bf2-4e6c-aab2-9dcd22bf2481","data":{}}
+                    '50033': errors.InvalidOrder, // 400, The order quantity should be greater than 0 and less than or equal to 10
                     // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
-                    '50034': errors.InvalidOrder,
-                    '50035': errors.InvalidOrder,
-                    '50036': errors.ExchangeError,
-                    '50037': errors.BadRequest,
-                    '50038': errors.BadRequest,
-                    '50039': errors.BadRequest,
-                    '50040': errors.BadSymbol,
-                    '50041': errors.ExchangeError,
-                    '50042': errors.BadRequest,
-                    '51000': errors.BadSymbol,
-                    '51001': errors.ExchangeError,
-                    '51002': errors.ExchangeError,
-                    '51003': errors.ExchangeError,
-                    '51004': errors.InsufficientFunds,
-                    '51005': errors.InvalidOrder,
-                    '51006': errors.InvalidOrder,
-                    '51007': errors.BadRequest,
-                    '51008': errors.ExchangeError,
-                    '51009': errors.InvalidOrder,
-                    '51010': errors.InvalidOrder,
-                    '51011': errors.InvalidOrder,
-                    '51012': errors.InvalidOrder,
-                    '51013': errors.InvalidOrder,
-                    '51014': errors.InvalidOrder,
-                    '51015': errors.InvalidOrder,
-                    '52000': errors.BadRequest,
-                    '52001': errors.BadRequest,
-                    '52002': errors.BadRequest,
-                    '52003': errors.BadRequest,
-                    '52004': errors.BadRequest,
-                    '53000': errors.AccountSuspended,
-                    '53001': errors.AccountSuspended,
-                    '53002': errors.PermissionDenied,
-                    '53003': errors.PermissionDenied,
-                    '53005': errors.PermissionDenied,
-                    '53006': errors.PermissionDenied,
-                    '53007': errors.PermissionDenied,
-                    '53008': errors.PermissionDenied,
-                    '53009': errors.PermissionDenied,
-                    '53010': errors.PermissionDenied,
-                    '57001': errors.BadRequest,
-                    '58001': errors.BadRequest,
-                    '59001': errors.ExchangeError,
-                    '59002': errors.ExchangeError,
-                    '59003': errors.ExchangeError,
-                    '59004': errors.ExchangeError,
-                    '59005': errors.PermissionDenied,
-                    '59006': errors.ExchangeError,
-                    '59007': errors.ExchangeError,
-                    '59008': errors.ExchangeError,
-                    '59009': errors.ExchangeError,
-                    '59010': errors.InsufficientFunds,
-                    '59011': errors.ExchangeError,
+                    '50034': errors.InvalidOrder, // 400, {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
+                    '50035': errors.InvalidOrder, // 400, {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
+                    '50036': errors.ExchangeError, // 400, Cancel failed, order is not revocable status
+                    '50037': errors.BadRequest, // 400, The maximum length of clientOrderId cannot exceed 32
+                    '50038': errors.BadRequest, // 400, ClientOrderId only allows a combination of numbers and letters
+                    '50039': errors.BadRequest, // 400, Order_id and clientOrderId cannot be empty at the same time
+                    '50040': errors.BadSymbol, // 400, Symbol Not Available
+                    '50041': errors.ExchangeError, // 400, Out of query time range
+                    '50042': errors.BadRequest, // 400, clientOrderId is duplicate
+                    '51000': errors.BadSymbol, // 400, Currency not found
+                    '51001': errors.ExchangeError, // 400, Margin Account not Opened
+                    '51002': errors.ExchangeError, // 400, Margin Account Not Available
+                    '51003': errors.ExchangeError, // 400, Account Limit
+                    '51004': errors.InsufficientFunds, // 400, {"message":"Exceed the maximum number of borrows available.","code":51004,"trace":"4030b753-9beb-44e6-8352-1633c5edcd47","data":{}}
+                    '51005': errors.InvalidOrder, // 400, Less than the minimum borrowable amount
+                    '51006': errors.InvalidOrder, // 400, Exceeds the amount to be repaid
+                    '51007': errors.BadRequest, // 400, order_mode not found
+                    '51008': errors.ExchangeError, // 400, Operation is limited, please try again later
+                    '51009': errors.InvalidOrder, // 400, Parameter mismatch: limit order/market order quantity should be greater than the minimum number of should buy/sell
+                    '51010': errors.InvalidOrder, // 400, Parameter mismatch: limit order price should be greater than the minimum buy price
+                    '51011': errors.InvalidOrder, // 400, {"message":"param not match : size * price >=5","code":51011,"trace":"525e1d27bfd34d60b2d90ba13a7c0aa9.74.16696421352220797","data":{}}
+                    '51012': errors.InvalidOrder, // 400, Parameter mismatch: limit order price should be greater than the minimum buy price
+                    '51013': errors.InvalidOrder, // 400, Parameter mismatch: Limit order quantity * price should be greater than the minimum transaction amount
+                    '51014': errors.InvalidOrder, // 400, Participation mismatch: the number of market order buy orders should be greater than the minimum buyable amount
+                    '51015': errors.InvalidOrder, // 400, Parameter mismatch: the price of market order buy order placed is too small
+                    '52000': errors.BadRequest, // 400, Unsupported OrderMode Type
+                    '52001': errors.BadRequest, // 400, Unsupported Trade Type
+                    '52002': errors.BadRequest, // 400, Unsupported Side Type
+                    '52003': errors.BadRequest, // 400, Unsupported Query State Type
+                    '52004': errors.BadRequest, // 400, End time must be greater than or equal to Start time
+                    '53000': errors.AccountSuspended, // 403, Your account is frozen due to security policies. Please contact customer service
+                    '53001': errors.AccountSuspended, // 403, {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
+                    '53002': errors.PermissionDenied, // 403, Your account has not yet completed the kyc advanced certification, please complete first
+                    '53003': errors.PermissionDenied, // 403 No permission, please contact the main account
+                    '53005': errors.PermissionDenied, // 403 Don't have permission to access the interface
+                    '53006': errors.PermissionDenied, // 403 Please complete your personal verification(Starter)
+                    '53007': errors.PermissionDenied, // 403 Please complete your personal verification(Advanced)
+                    '53008': errors.PermissionDenied, // 403 Services is not available in your countries and areas
+                    '53009': errors.PermissionDenied, // 403 Your account has not yet completed the qr code certification, please complete first
+                    '53010': errors.PermissionDenied, // 403 This account is restricted from borrowing
+                    '57001': errors.BadRequest, // 405, Method Not Allowed
+                    '58001': errors.BadRequest, // 415, Unsupported Media Type
+                    '59001': errors.ExchangeError, // 500, User account not found
+                    '59002': errors.ExchangeError, // 500, Internal Server Error
+                    '59003': errors.ExchangeError, // 500, Spot wallet call fail
+                    '59004': errors.ExchangeError, // 500, Margin wallet service call exception
+                    '59005': errors.PermissionDenied, // 500, Margin wallet service restricted
+                    '59006': errors.ExchangeError, // 500, Transfer fail
+                    '59007': errors.ExchangeError, // 500, Get symbol risk data fail
+                    '59008': errors.ExchangeError, // 500, Trading order failure
+                    '59009': errors.ExchangeError, // 500, Loan success,but trading order failure
+                    '59010': errors.InsufficientFunds, // 500, Insufficient loan amount.
+                    '59011': errors.ExchangeError, // 500, The Get Wallet Balance service call fail, please try again later
                     // contract errors
-                    '40001': errors.ExchangeError,
-                    '40002': errors.ExchangeError,
-                    '40003': errors.ExchangeError,
-                    '40004': errors.ExchangeError,
-                    '40005': errors.ExchangeError,
-                    '40006': errors.PermissionDenied,
-                    '40007': errors.BadRequest,
-                    '40008': errors.InvalidNonce,
-                    '40009': errors.BadRequest,
-                    '40010': errors.BadRequest,
-                    '40011': errors.BadRequest,
-                    '40012': errors.ExchangeError,
-                    '40013': errors.ExchangeError,
-                    '40014': errors.BadSymbol,
-                    '40015': errors.BadSymbol,
-                    '40016': errors.InvalidOrder,
-                    '40017': errors.InvalidOrder,
-                    '40018': errors.InvalidOrder,
-                    '40019': errors.ExchangeError,
-                    '40020': errors.InvalidOrder,
-                    '40021': errors.ExchangeError,
-                    '40022': errors.ExchangeError,
-                    '40023': errors.ExchangeError,
-                    '40024': errors.ExchangeError,
-                    '40025': errors.ExchangeError,
-                    '40026': errors.ExchangeError,
-                    '40027': errors.InsufficientFunds,
-                    '40028': errors.PermissionDenied,
-                    '40029': errors.InvalidOrder,
-                    '40030': errors.InvalidOrder,
-                    '40031': errors.InvalidOrder,
-                    '40032': errors.InvalidOrder,
-                    '40033': errors.InvalidOrder,
-                    '40034': errors.BadSymbol,
-                    '40035': errors.OrderNotFound,
-                    '40036': errors.InvalidOrder,
-                    '40037': errors.OrderNotFound,
-                    '40038': errors.BadRequest,
-                    '40039': errors.BadRequest,
-                    '40040': errors.InvalidOrder,
-                    '40041': errors.InvalidOrder,
-                    '40042': errors.InvalidOrder,
-                    '40043': errors.InvalidOrder,
-                    '40044': errors.InvalidOrder,
-                    '40045': errors.InvalidOrder,
-                    '40046': errors.PermissionDenied,
-                    '40047': errors.PermissionDenied,
-                    '40048': errors.InvalidOrder,
-                    '40049': errors.InvalidOrder,
+                    '40001': errors.ExchangeError, // 400, Cloud account not found
+                    '40002': errors.ExchangeError, // 400, out_trade_no not found
+                    '40003': errors.ExchangeError, // 400, out_trade_no already existed
+                    '40004': errors.ExchangeError, // 400, Cloud account count limit
+                    '40005': errors.ExchangeError, // 400, Transfer vol precision error
+                    '40006': errors.PermissionDenied, // 400, Invalid ip error
+                    '40007': errors.BadRequest, // 400, Parse parameter error
+                    '40008': errors.InvalidNonce, // 400, Check nonce error
+                    '40009': errors.BadRequest, // 400, Check ver error
+                    '40010': errors.BadRequest, // 400, Not found func error
+                    '40011': errors.BadRequest, // 400, Invalid request
+                    '40012': errors.ExchangeError, // 500, System error
+                    '40013': errors.ExchangeError, // 400, Access too often" CLIENT_TIME_INVALID, "Please check your system time.
+                    '40014': errors.BadSymbol, // 400, This contract is offline
+                    '40015': errors.BadSymbol, // 400, This contract's exchange has been paused
+                    '40016': errors.InvalidOrder, // 400, This order would trigger user position liquidate
+                    '40017': errors.InvalidOrder, // 400, It is not possible to open and close simultaneously in the same position
+                    '40018': errors.InvalidOrder, // 400, Your position is closed
+                    '40019': errors.ExchangeError, // 400, Your position is in liquidation delegating
+                    '40020': errors.InvalidOrder, // 400, Your position volume is not enough
+                    '40021': errors.ExchangeError, // 400, The position is not exsit
+                    '40022': errors.ExchangeError, // 400, The position is not isolated
+                    '40023': errors.ExchangeError, // 400, The position would liquidate when sub margin
+                    '40024': errors.ExchangeError, // 400, The position would be warnning of liquidation when sub margin
+                    '40025': errors.ExchangeError, // 400, The position’s margin shouldn’t be lower than the base limit
+                    '40026': errors.ExchangeError, // 400, You cross margin position is in liquidation delegating
+                    '40027': errors.InsufficientFunds, // 400, You contract account available balance not enough
+                    '40028': errors.PermissionDenied, // 400, Your plan order's count is more than system maximum limit.
+                    '40029': errors.InvalidOrder, // 400, The order's leverage is too large.
+                    '40030': errors.InvalidOrder, // 400, The order's leverage is too small.
+                    '40031': errors.InvalidOrder, // 400, The deviation between current price and trigger price is too large.
+                    '40032': errors.InvalidOrder, // 400, The plan order's life cycle is too long.
+                    '40033': errors.InvalidOrder, // 400, The plan order's life cycle is too short.
+                    '40034': errors.BadSymbol, // 400, This contract is not found
+                    '40035': errors.OrderNotFound, // 400, The order is not exist
+                    '40036': errors.InvalidOrder, // 400, The order status is invalid
+                    '40037': errors.OrderNotFound, // 400, The order id is not exist
+                    '40038': errors.BadRequest, // 400, The k-line step is invalid
+                    '40039': errors.BadRequest, // 400, The timestamp is invalid
+                    '40040': errors.InvalidOrder, // 400, The order leverage is invalid
+                    '40041': errors.InvalidOrder, // 400, The order side is invalid
+                    '40042': errors.InvalidOrder, // 400, The order type is invalid
+                    '40043': errors.InvalidOrder, // 400, The order precision is invalid
+                    '40044': errors.InvalidOrder, // 400, The order range is invalid
+                    '40045': errors.InvalidOrder, // 400, The order open type is invalid
+                    '40046': errors.PermissionDenied, // 403, The account is not opened futures
+                    '40047': errors.PermissionDenied, // 403, Services is not available in you countries and areas
+                    '40048': errors.InvalidOrder, // 403, ClientOrderId only allows a combination of numbers and letters
+                    '40049': errors.InvalidOrder, // 403, The maximum length of clientOrderId cannot exceed 32
                     '40050': errors.InvalidOrder, // 403, Client OrderId duplicated with existing orders
                 },
                 'broad': {
@@ -551,8 +551,8 @@ class bitmart extends bitmart$1["default"] {
                     'BTC': 'BTC',
                     'ETH': 'ERC20',
                 },
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'ERC20': 'ERC20',
                     'SOL': 'SOL',
@@ -637,7 +637,7 @@ class bitmart extends bitmart$1["default"] {
                     // 'CONFLUX': [ 'CFX eSpace', 'CFX' ], // todo: after unification
                     'OPTIMISM': 'OPTIMISM',
                     'REEF': 'REEF',
-                    'SYS': 'SYS',
+                    'SYS': 'SYS', // NEVM is different
                     'VITE': 'VITE',
                     'STX': 'STX',
                     'SXP': 'SXP',
@@ -707,10 +707,10 @@ class bitmart extends bitmart$1["default"] {
                 'networksById': {
                     'ETH': 'ERC20',
                     'Ethereum': 'ERC20',
-                    'USDT': 'OMNI',
+                    'USDT': 'OMNI', // the default USDT network for bitmart is OMNI
                     'Bitcoin': 'BTC',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'account'
                 },
@@ -740,9 +740,9 @@ class bitmart extends bitmart$1["default"] {
                         },
                         'hedged': false,
                         'trailing': false,
-                        'marketBuyRequiresPrice': false,
+                        'marketBuyRequiresPrice': false, // todo: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
                         'marketBuyByCost': true,
-                        'leverage': true,
+                        'leverage': true, // todo: implement
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
@@ -794,7 +794,7 @@ class bitmart extends bitmart$1["default"] {
                             'mark': true,
                             'index': false,
                         },
-                        'triggerDirection': true,
+                        'triggerDirection': true, // todo: implementation broken
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
@@ -2725,22 +2725,22 @@ class bitmart extends bitmart$1["default"] {
     parseOrderStatusByType(type, status) {
         const statusesByType = {
             'spot': {
-                '1': 'rejected',
-                '2': 'open',
-                '3': 'rejected',
-                '4': 'open',
-                '5': 'open',
-                '6': 'closed',
-                '7': 'canceled',
-                '8': 'canceled',
+                '1': 'rejected', // Order failure
+                '2': 'open', // Placing order
+                '3': 'rejected', // Order failure, Freeze failure
+                '4': 'open', // Order success, Pending for fulfilment
+                '5': 'open', // Partially filled
+                '6': 'closed', // Fully filled
+                '7': 'canceled', // Canceling
+                '8': 'canceled', // Canceled
                 'new': 'open',
                 'partially_filled': 'open',
                 'filled': 'closed',
                 'partially_canceled': 'canceled',
             },
             'swap': {
-                '1': 'open',
-                '2': 'open',
+                '1': 'open', // Submitting
+                '2': 'open', // Commissioned
                 '4': 'closed', // Completed
             },
         };
@@ -2904,7 +2904,7 @@ class bitmart extends bitmart$1["default"] {
             ordersRequests.push(orderRequest);
         }
         const request = {
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
             'orderParams': ordersRequests,
         };
         const response = await this.privatePostSpotV4BatchOrders(request);
@@ -3462,7 +3462,7 @@ class bitmart extends bitmart$1["default"] {
         }
         const request = {
             'symbol': market['id'],
-            'offset': 1,
+            'offset': 1, // max offset * limit < 500
             'N': 100, // max limit is 100
         };
         if (status === 'open') {
@@ -3808,7 +3808,7 @@ class bitmart extends bitmart$1["default"] {
             if (orderType !== undefined) {
                 request['type'] = orderType;
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             request['order_id'] = id;
             response = await this.privateGetContractPrivateOrder(this.extend(request, params));
         }
@@ -3965,7 +3965,7 @@ class bitmart extends bitmart$1["default"] {
         const request = {
             'currency': this.getCurrencyIdFromCodeAndNetwork(code, network),
             'amount': amount,
-            'destination': 'To Digital Address',
+            'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
             'address': address,
         };
         if (tag !== undefined) {
@@ -3996,7 +3996,7 @@ class bitmart extends bitmart$1["default"] {
             limit = 1000; // max 1000
         }
         const request = {
-            'operation_type': type,
+            'operation_type': type, // deposit or withdraw
             'N': limit,
         };
         let currency = undefined;
@@ -4155,11 +4155,11 @@ class bitmart extends bitmart$1["default"] {
     }
     parseTransactionStatus(status) {
         const statuses = {
-            '0': 'pending',
-            '1': 'pending',
-            '2': 'pending',
-            '3': 'ok',
-            '4': 'canceled',
+            '0': 'pending', // Create
+            '1': 'pending', // Submitted, waiting for withdrawal
+            '2': 'pending', // Processing
+            '3': 'ok', // Success
+            '4': 'canceled', // Cancel
             '5': 'failed', // Fail
         };
         return this.safeString(statuses, status, status);
@@ -4436,7 +4436,7 @@ class bitmart extends bitmart$1["default"] {
             'baseRate': this.safeNumber(baseData, 'hourly_interest'),
             'quote': this.safeCurrencyCode(quoteId),
             'quoteRate': this.safeNumber(quoteData, 'hourly_interest'),
-            'period': 3600000,
+            'period': 3600000, // 1-Hour
             'timestamp': undefined,
             'datetime': undefined,
             'info': info,
@@ -4650,7 +4650,7 @@ class bitmart extends bitmart$1["default"] {
         }
         const pageNumber = this.safeInteger(params, 'page', 1);
         const request = {
-            'page': pageNumber,
+            'page': pageNumber, // default is 1, max is 1000
             'limit': limit, // default is 10, max is 100
         };
         let currency = undefined;
@@ -4772,7 +4772,7 @@ class bitmart extends bitmart$1["default"] {
             'interestRate': this.safeNumber(info, 'hourly_interest'),
             'amountBorrowed': this.safeNumber(info, 'borrow_amount'),
             'marginMode': 'isolated',
-            'timestamp': timestamp,
+            'timestamp': timestamp, // borrow creation time
             'datetime': this.iso8601(timestamp),
         };
     }
@@ -5079,7 +5079,7 @@ class bitmart extends bitmart$1["default"] {
         const request = {};
         if (symbolsLength === 1) {
             // only supports symbols as undefined or sending one symbol
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         const response = await this.privateGetContractPrivatePositionV2(this.extend(request, params));
         //

@@ -1186,7 +1186,7 @@ public class BackpackCore extends BackpackApi
         Object timestamp = this.safeInteger(interest, "timestamp");
         Object openInterest = this.safeNumber(interest, "openInterest");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", BackpackCore.this.safeString(market, "symbol") );
             put( "openInterestAmount", null );
             put( "openInterestValue", openInterest );
             put( "timestamp", timestamp );

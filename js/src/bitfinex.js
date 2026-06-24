@@ -69,7 +69,7 @@ export default class bitfinex extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchGreeks': false,
@@ -153,19 +153,19 @@ export default class bitfinex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'conf/{config}': 2.7,
+                        'conf/{config}': 2.7, // 90 requests a minute, 90/60 = 1.5, 1000 / (250 * 2.66) = 1.503, use 2.7 instead of 2.66 to ensure rateLimitExceeded is not triggered
                         'conf/pub:{action}:{object}': 2.7,
                         'conf/pub:{action}:{object}:{detail}': 2.7,
                         'conf/pub:map:{object}': 2.7,
                         'conf/pub:map:{object}:{detail}': 2.7,
                         'conf/pub:map:currency:{detail}': 2.7,
-                        'conf/pub:map:currency:sym': 2.7,
-                        'conf/pub:map:currency:label': 2.7,
-                        'conf/pub:map:currency:unit': 2.7,
-                        'conf/pub:map:currency:undl': 2.7,
-                        'conf/pub:map:currency:pool': 2.7,
-                        'conf/pub:map:currency:explorer': 2.7,
-                        'conf/pub:map:currency:tx:fee': 2.7,
+                        'conf/pub:map:currency:sym': 2.7, // maps symbols to their API symbols, BAB > BCH
+                        'conf/pub:map:currency:label': 2.7, // verbose friendly names, BNT > Bancor
+                        'conf/pub:map:currency:unit': 2.7, // maps symbols to unit of measure where applicable
+                        'conf/pub:map:currency:undl': 2.7, // maps derivatives symbols to their underlying currency
+                        'conf/pub:map:currency:pool': 2.7, // maps symbols to underlying network/protocol they operate on
+                        'conf/pub:map:currency:explorer': 2.7, // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee': 2.7, // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
                         'conf/pub:map:tx:method': 2.7,
                         'conf/pub:list:{object}': 2.7,
                         'conf/pub:list:{object}:{detail}': 2.7,
@@ -178,14 +178,14 @@ export default class bitfinex extends Exchange {
                         'conf/pub:info:{object}:{detail}': 2.7,
                         'conf/pub:info:pair': 2.7,
                         'conf/pub:info:pair:futures': 2.7,
-                        'conf/pub:info:tx:status': 2.7,
+                        'conf/pub:info:tx:status': 2.7, // [ deposit, withdrawal ] statuses 1 = active, 0 = maintenance
                         'conf/pub:fees': 2.7,
-                        'platform/status': 8,
-                        'tickers': 2.7,
+                        'platform/status': 8, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
+                        'tickers': 2.7, // 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
                         'ticker/{symbol}': 2.7,
                         'tickers/hist': 2.7,
                         'trades/{symbol}/hist': 2.7,
-                        'book/{symbol}/{precision}': 1,
+                        'book/{symbol}/{precision}': 1, // 240 requests a minute
                         'book/{symbol}/P0': 1,
                         'book/{symbol}/P1': 1,
                         'book/{symbol}/P2': 1,
@@ -208,12 +208,12 @@ export default class bitfinex extends Exchange {
                         'status/{type}': 2.7,
                         'status/deriv': 2.7,
                         'status/deriv/{symbol}/hist': 2.7,
-                        'liquidations/hist': 80,
+                        'liquidations/hist': 80, // 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
                         'rankings/{key}:{timeframe}:{symbol}/{section}': 2.7,
                         'rankings/{key}:{timeframe}:{symbol}/hist': 2.7,
                         'pulse/hist': 2.7,
                         'pulse/profile/{nickname}': 2.7,
-                        'funding/stats/{symbol}/hist': 10,
+                        'funding/stats/{symbol}/hist': 10, // ratelimit not in docs
                         'ext/vasps': 1,
                     },
                     'post': {
@@ -280,13 +280,13 @@ export default class bitfinex extends Exchange {
                         'auth/r/permissions': 2.7,
                         'auth/w/token': 2.7,
                         'auth/r/audit/hist': 2.7,
-                        'auth/w/transfer': 2.7,
-                        'auth/w/deposit/address': 24,
-                        'auth/w/deposit/invoice': 24,
-                        'auth/w/withdraw': 24,
+                        'auth/w/transfer': 2.7, // ratelimit not in docs...
+                        'auth/w/deposit/address': 24, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/w/deposit/invoice': 24, // ratelimit not in docs
+                        'auth/w/withdraw': 24, // ratelimit not in docs
                         'auth/r/movements/{currency}/hist': 2.7,
                         'auth/r/movements/hist': 2.7,
-                        'auth/r/alerts': 5.34,
+                        'auth/r/alerts': 5.34, // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
                         'auth/w/alert/set': 2.7,
                         'auth/w/alert/price:{symbol}:{price}/del': 2.7,
                         'auth/w/alert/{type}:{symbol}:{price}/del': 2.7,
@@ -295,7 +295,7 @@ export default class bitfinex extends Exchange {
                         'auth/r/settings': 2.7,
                         'auth/w/settings/del': 2.7,
                         'auth/r/pulse/hist': 2.7,
-                        'auth/w/pulse/add': 16,
+                        'auth/w/pulse/add': 16, // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
                         'auth/w/pulse/del': 2.7,
                     },
                 },
@@ -342,8 +342,8 @@ export default class bitfinex extends Exchange {
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
-                'precision': 'R0',
-                'defaultCurrencyPrecision': 8,
+                'precision': 'R0', // P0, P1, P2, P3, P4, R0
+                'defaultCurrencyPrecision': 8, // default currency precision
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -429,8 +429,8 @@ export default class bitfinex extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true,
-                        'leverage': true,
+                        'trailing': true, // todo: implement
+                        'leverage': true, // todo: implement
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': true,
                         'selfTradePrevention': false,
@@ -443,7 +443,7 @@ export default class bitfinex extends Exchange {
                         'marginMode': false,
                         'limit': 2500,
                         'daysBack': undefined,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo: implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -491,7 +491,7 @@ export default class bitfinex extends Exchange {
             'exceptions': {
                 'exact': {
                     '11010': RateLimitExceeded,
-                    '10001': PermissionDenied,
+                    '10001': PermissionDenied, // api_key: permission invalid (#10001)
                     '10020': BadRequest,
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,
@@ -510,9 +510,9 @@ export default class bitfinex extends Exchange {
                 'UST': 'USDT',
                 'EUTF0': 'EURT',
                 'USTF0': 'USDT',
-                'ALG': 'ALGO',
+                'ALG': 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
-                'ATO': 'ATOM',
+                'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
                 'BCHABC': 'XEC',
                 'BCHN': 'BCH',
                 'DAT': 'DATA',
@@ -528,7 +528,7 @@ export default class bitfinex extends Exchange {
                 'LUNA': 'LUNC',
                 'LUNA2': 'LUNA',
                 'MNA': 'MANA',
-                'ORS': 'ORS Group',
+                'ORS': 'ORS Group', // conflict with Origin Sport #3230
                 'PAS': 'PASS',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
@@ -537,7 +537,7 @@ export default class bitfinex extends Exchange {
                 'STJ': 'STORJ',
                 'TERRAUST': 'USTC',
                 'TSD': 'TUSD',
-                'YGG': 'YEED',
+                'YGG': 'YEED', // conflict with Yield Guild Games
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'VSY': 'VSYS',
@@ -691,7 +691,7 @@ export default class bitfinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt('8'),
+                    'amount': parseInt('8'), // https://github.com/ccxt/ccxt/issues/7310
                     'price': parseInt('5'),
                 },
                 'limits': {
@@ -712,7 +712,7 @@ export default class bitfinex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'created': undefined,
+                'created': undefined, // todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
                 'info': market,
             });
         }
@@ -729,15 +729,15 @@ export default class bitfinex extends Exchange {
     async fetchCurrencies(params = {}) {
         const labels = [
             'pub:list:currency',
-            'pub:map:currency:sym',
-            'pub:map:currency:label',
-            'pub:map:currency:unit',
-            'pub:map:currency:undl',
-            'pub:map:currency:pool',
-            'pub:map:currency:explorer',
-            'pub:map:currency:tx:fee',
-            'pub:map:tx:method',
-            'pub:info:tx:status',
+            'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
+            'pub:map:currency:label', // verbose friendly names, BNT > Bancor
+            'pub:map:currency:unit', // maps symbols to unit of measure where applicable
+            'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
+            'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
+            'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+            'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
+            'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
+            'pub:info:tx:status', // maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
             'pub:list:currency:margin', // margin enabled currencies
         ];
         const config = labels.join(',');
@@ -1602,7 +1602,7 @@ export default class bitfinex extends Exchange {
         const orderTypes = {
             'EXCHANGE IOC': 'IOC',
             'EXCHANGE FOK': 'FOK',
-            'IOC': 'IOC',
+            'IOC': 'IOC', // Margin
             'FOK': 'FOK', // Margin
         };
         return this.safeString(orderTypes, orderType, 'GTC');
@@ -1948,7 +1948,7 @@ export default class bitfinex extends Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const cid = this.safeValue2(params, 'cid', 'clientOrderId'); // client order id
-        let request = undefined;
+        let request;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2116,7 +2116,7 @@ export default class bitfinex extends Exchange {
         await this.loadMarkets();
         const request = {};
         let market = undefined;
-        let response = undefined;
+        let response;
         if (symbol === undefined) {
             response = await this.privatePostAuthROrders(this.extend(request, params));
         }
@@ -2200,7 +2200,7 @@ export default class bitfinex extends Exchange {
         }
         [request, params] = this.handleUntilOption('end', request, params);
         let market = undefined;
-        let response = undefined;
+        let response;
         if (symbol === undefined) {
             response = await this.privatePostAuthROrdersHist(this.extend(request, params));
         }
@@ -2308,7 +2308,7 @@ export default class bitfinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 25, max 1000
         }
-        let response = undefined;
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
@@ -2541,10 +2541,10 @@ export default class bitfinex extends Exchange {
             'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'address': addressTo,
+            'address': addressTo, // this is actually the tag for XRP transfers (the address is missing)
             'addressFrom': undefined,
             'addressTo': addressTo,
-            'tag': tag,
+            'tag': tag, // refix it properly for the tag from description
             'tagFrom': undefined,
             'tagTo': tag,
             'updated': updated,
@@ -2693,7 +2693,7 @@ export default class bitfinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000
         }
-        let response = undefined;
+        let response;
         if (code !== undefined) {
             currency = this.currency(code);
             request['currency'] = currency['id'];
@@ -2917,7 +2917,7 @@ export default class bitfinex extends Exchange {
             'id': this.safeString(positionList, 11),
             'symbol': this.safeSymbol(marketId, market),
             'notional': this.parseNumber(amount),
-            'marginMode': 'isolated',
+            'marginMode': 'isolated', // derivatives use isolated, margin uses cross, https://support.bitfinex.com/hc/en-us/articles/360035475374-Derivatives-Trading-on-Bitfinex
             'liquidationPrice': this.safeNumber(positionList, 8),
             'entryPrice': this.safeNumber(positionList, 3),
             'unrealizedPnl': this.safeNumber(positionList, 6),
@@ -3108,7 +3108,7 @@ export default class bitfinex extends Exchange {
             request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        let response = undefined;
+        let response;
         if (code !== undefined) {
             currency = this.currency(code);
             request['currency'] = currency['id'];
@@ -3746,7 +3746,7 @@ export default class bitfinex extends Exchange {
         const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
@@ -3774,7 +3774,7 @@ export default class bitfinex extends Exchange {
             'id': [this.parseToNumeric(id)],
         };
         let market = undefined;
-        let response = undefined;
+        let response;
         if (symbol === undefined) {
             response = await this.privatePostAuthROrders(this.extend(request, params));
         }

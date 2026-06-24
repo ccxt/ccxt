@@ -1198,23 +1198,23 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (Helpers.isTrue(Helpers.isGreaterThan(u, Helpers.GetValue(orderbook, "nonce"))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(u, nonce)))
                     {
                         Object timestamp = this.safeInteger(orderbook, "timestamp");
                         Object conditional = null;
                         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = Helpers.isTrue((Helpers.isLessThanOrEqual((Helpers.subtract(U, 1)), Helpers.GetValue(orderbook, "nonce")))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual((Helpers.subtract(u, 1)), Helpers.GetValue(orderbook, "nonce"))));
+                            conditional = Helpers.isTrue((Helpers.isLessThanOrEqual((Helpers.subtract(U, 1)), nonce))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual((Helpers.subtract(u, 1)), nonce)));
                         } else
                         {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = (Helpers.isEqual((Helpers.subtract(U, 1)), Helpers.GetValue(orderbook, "nonce")));
+                            conditional = (Helpers.isEqual((Helpers.subtract(U, 1)), nonce));
                         }
                         if (Helpers.isTrue(conditional))
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (Helpers.isTrue(Helpers.isLessThan(nonce, Helpers.GetValue(orderbook, "nonce"))))
+                            if (Helpers.isTrue(Helpers.isLessThan(nonce, this.safeInteger(orderbook, "nonce", 0))))
                             {
                                 client.resolve(orderbook, messageHash);
                             }
@@ -1231,14 +1231,14 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 {
                     // future
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(u, Helpers.GetValue(orderbook, "nonce"))))
+                    if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(u, nonce)))
                     {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThanOrEqual(U, Helpers.GetValue(orderbook, "nonce")))) || Helpers.isTrue((Helpers.isEqual(pu, Helpers.GetValue(orderbook, "nonce"))))))
+                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThanOrEqual(U, nonce))) || Helpers.isTrue((Helpers.isEqual(pu, nonce)))))
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (Helpers.isTrue(Helpers.isLessThanOrEqual(nonce, Helpers.GetValue(orderbook, "nonce"))))
+                            if (Helpers.isTrue(Helpers.isLessThanOrEqual(nonce, this.safeInteger(orderbook, "nonce", 0))))
                             {
                                 client.resolve(orderbook, messageHash);
                             }
@@ -1542,7 +1542,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //
         //     {
         //         "e": "trade",       // event type
-        //         "E": 1579481530911, // event time
+        //         "E": 1579481530912, // event time
         //         "s": "ETHBTC",      // symbol
         //         "t": 158410082,     // trade id
         //         "p": "0.01914100",  // price

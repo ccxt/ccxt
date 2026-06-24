@@ -1114,7 +1114,7 @@ public partial class backpack : Exchange
         object timestamp = this.safeInteger(interest, "timestamp");
         object openInterest = this.safeNumber(interest, "openInterest");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "openInterestAmount", null },
             { "openInterestValue", openInterest },
             { "timestamp", timestamp },

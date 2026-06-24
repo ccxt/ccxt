@@ -1611,7 +1611,7 @@ public class WhitebitCore extends WhitebitApi
                 Object market = this.safeMarket(marketId);
                 Object ticker = this.parseTicker(Helpers.GetValue(response, marketId), market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
-                Helpers.addElementToObject(result, symbol, ticker);
+                Helpers.addElementToObject(result, ((String)symbol), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });
@@ -2733,7 +2733,7 @@ public class WhitebitCore extends WhitebitApi
             put( "margin limit", "limit" );
             put( "margin market", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -2856,7 +2856,7 @@ public class WhitebitCore extends WhitebitApi
             put( "PARTIALLY_FILLED", "open" );
             put( "FILLED", "closed" );
         }};
-        return this.safeStringLower(statuses, status, status);
+        return this.safeStringLower(statuses, ((String)status), status);
     }
 
     /**
@@ -3502,7 +3502,7 @@ public class WhitebitCore extends WhitebitApi
             put( "16", "pending" );
             put( "17", "pending" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**

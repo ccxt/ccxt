@@ -19,7 +19,7 @@ class independentreserve extends independentreserve$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
-            'countries': ['AU', 'NZ'],
+            'countries': ['AU', 'NZ'], // Australia, New Zealand
             'rateLimit': 1000,
             'pro': true,
             'has': {
@@ -143,7 +143,7 @@ class independentreserve extends independentreserve$1["default"] {
                         'GetRecentTrades',
                         'GetFxRates',
                         'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees',
+                        'GetCryptoWithdrawalFees', // deprecated - replaced by GetCryptoWithdrawalFees2 (docs removed)
                         'GetCryptoWithdrawalFees2',
                         'GetNetworks',
                         'GetPrimaryCurrencyConfig2',
@@ -158,9 +158,9 @@ class independentreserve extends independentreserve$1["default"] {
                         'GetAccounts',
                         'GetTransactions',
                         'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress',
+                        'GetDigitalCurrencyDepositAddress', // deprecated - replaced by GetDigitalCurrencyDepositAddress2 (docs removed)
                         'GetDigitalCurrencyDepositAddress2',
-                        'GetDigitalCurrencyDepositAddresses',
+                        'GetDigitalCurrencyDepositAddresses', // deprecated - replaced by GetDigitalCurrencyDepositAddresses2 (docs removed)
                         'GetDigitalCurrencyDepositAddresses2',
                         'GetTrades',
                         'GetBrokerageFees',
@@ -171,7 +171,7 @@ class independentreserve extends independentreserve$1["default"] {
                         'SynchDigitalCurrencyDepositAddressWithBlockchain',
                         'RequestFiatWithdrawal',
                         'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency',
+                        'WithdrawDigitalCurrency', // deprecated - replaced by WithdrawCrypto (docs removed)
                         'WithdrawCrypto',
                     ],
                 },
@@ -213,7 +213,7 @@ class independentreserve extends independentreserve$1["default"] {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo
                         'daysBack': undefined,
                         'untilDays': undefined,
                         'symbolRequired': false,
@@ -226,7 +226,7 @@ class independentreserve extends independentreserve$1["default"] {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -234,7 +234,7 @@ class independentreserve extends independentreserve$1["default"] {
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo
                         'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
@@ -891,7 +891,7 @@ class independentreserve extends independentreserve$1["default"] {
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         };
-        let response = undefined;
+        let response;
         request['volume'] = amount;
         if (type === 'limit') {
             request['price'] = price;

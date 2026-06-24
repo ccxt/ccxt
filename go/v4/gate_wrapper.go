@@ -89,12 +89,12 @@ func (this *Gate) FetchOptionMarkets(params ...any) ([]map[string]any, error) {
 	}
 	return res.([]map[string]any), nil
 }
-func (this *Gate) FetchOptionUnderlyings() ([]map[string]any, error) {
+func (this *Gate) FetchOptionUnderlyings() ([]string, error) {
 	res := <-this.Core.FetchOptionUnderlyings()
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewStringArray(res), nil
 }
 
 /**
@@ -1916,12 +1916,12 @@ func (this *Gate) SetPositionMode(hedged bool, options ...SetPositionModeOptions
  * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
  * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
  */
-func (this *Gate) FetchUnderlyingAssets(params ...any) ([]map[string]any, error) {
+func (this *Gate) FetchUnderlyingAssets(params ...any) ([]string, error) {
 	res := <-this.Core.FetchUnderlyingAssets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewStringArray(res), nil
 }
 
 /**

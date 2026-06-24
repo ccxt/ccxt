@@ -1566,7 +1566,6 @@ class bydfi extends Exchange {
                 'symbol' => $market['id'],
                 'wallet' => $wallet,
             );
-            $response = null;
             $trigger = false;
             list($trigger, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'trigger', $trigger);
             if (!$trigger) {
@@ -1644,7 +1643,6 @@ class bydfi extends Exchange {
             $wallet = 'W001';
             list($wallet, $params) = $this->handle_option_and_params($params, 'fetchOpenOrder', 'wallet', $wallet);
             $request['wallet'] = $wallet;
-            $response = null;
             $trigger = false;
             list($trigger, $params) = $this->handle_option_and_params($params, 'fetchOpenOrder', 'trigger', $trigger);
             if (!$trigger) {
@@ -2523,7 +2521,6 @@ class bydfi extends Exchange {
             $wallet = null;
             list($wallet, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'wallet');
             $request = array();
-            $response = null;
             if ($wallet === null) {
                 $options = $this->safe_dict($this->options, 'accountsByType', array());
                 $parsedAccountType = $this->safe_string_upper($options, $type, $type);
@@ -2850,7 +2847,6 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = null;
             if ($type === 'deposit') {
                 //
                 //     {

@@ -19,7 +19,7 @@ class coinone extends coinone$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
-            'countries': ['KR'],
+            'countries': ['KR'], // Korea
             'rateLimit': 50,
             'version': 'v2',
             'pro': false,
@@ -53,7 +53,7 @@ class coinone extends coinone$1["default"] {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -254,9 +254,9 @@ class coinone extends coinone$1["default"] {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'limit': 100, // todo implement
+                        'daysBack': 100000, // todo implement
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -273,7 +273,7 @@ class coinone extends coinone$1["default"] {
                         'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined, // todo implement
                 },
                 'swap': {
@@ -1129,14 +1129,12 @@ class coinone extends coinone$1["default"] {
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            // eslint-disable-next-line quotes
             throw new errors.ArgumentsRequired(this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
         }
         const price = this.safeNumber(params, 'price');
         const qty = this.safeNumber(params, 'qty');
         const isAsk = this.safeInteger(params, 'is_ask');
         if ((price === undefined) || (qty === undefined) || (isAsk === undefined)) {
-            // eslint-disable-next-line quotes
             throw new errors.ArgumentsRequired(this.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
         }
         await this.loadMarkets();

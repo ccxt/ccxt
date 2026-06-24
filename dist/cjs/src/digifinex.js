@@ -21,7 +21,7 @@ class digifinex extends digifinex$1["default"] {
             'name': 'DigiFinex',
             'countries': ['SG'],
             'version': 'v3',
-            'rateLimit': 900,
+            'rateLimit': 900, // 300 for posts
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -267,7 +267,7 @@ class digifinex extends digifinex$1["default"] {
                     'fetchMyTrades': {
                         'marginMode': true,
                         'limit': 500,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': 30,
                         'symbolRequired': false,
                     },
@@ -288,7 +288,7 @@ class digifinex extends digifinex$1["default"] {
                     'fetchOrders': {
                         'marginMode': true,
                         'limit': 100,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': 30,
                         'trigger': false,
                         'trailing': false,
@@ -311,7 +311,7 @@ class digifinex extends digifinex$1["default"] {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': 100000, // todo
                     },
                     'fetchOrder': {
@@ -438,8 +438,8 @@ class digifinex extends digifinex$1["default"] {
                     'POLYGON': 'Polygon',
                     'MATIC': 'Polygon',
                     'RIPPLE': 'XRP',
-                    'SOL': 'SOL',
-                    'XLM': 'Stella',
+                    'SOL': 'SOL', // SOL & SPL
+                    'XLM': 'Stella', // STELLAR
                     'TERRACLASSIC': 'TerraClassic',
                     'TERRA': 'Terra',
                     'TON': 'Ton',
@@ -1509,23 +1509,23 @@ class digifinex extends digifinex$1["default"] {
         //         0.029927
         //     ]
         //
-        if (market['swap']) {
+        if (this.safeBool(market, 'swap')) {
             return [
                 this.safeInteger(ohlcv, 0),
-                this.safeNumber(ohlcv, 1),
-                this.safeNumber(ohlcv, 2),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
+                this.safeNumber(ohlcv, 1), // open
+                this.safeNumber(ohlcv, 2), // high
+                this.safeNumber(ohlcv, 3), // low
+                this.safeNumber(ohlcv, 4), // close
                 this.safeNumber(ohlcv, 5), // volume
             ];
         }
         else {
             return [
                 this.safeTimestamp(ohlcv, 0),
-                this.safeNumber(ohlcv, 5),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
-                this.safeNumber(ohlcv, 2),
+                this.safeNumber(ohlcv, 5), // open
+                this.safeNumber(ohlcv, 3), // high
+                this.safeNumber(ohlcv, 4), // low
+                this.safeNumber(ohlcv, 2), // close
                 this.safeNumber(ohlcv, 1), // volume
             ];
         }
@@ -1949,7 +1949,7 @@ class digifinex extends digifinex$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
             }
-            request['instrument_id'] = market['id'];
+            request['instrument_id'] = this.safeString(market, 'id');
         }
         else {
             request['market'] = marketType;
@@ -2007,8 +2007,8 @@ class digifinex extends digifinex$1["default"] {
         }
     }
     parseCancelOrders(response) {
-        const success = this.safeList(response, 'success');
-        const error = this.safeList(response, 'error');
+        const success = this.safeList(response, 'success', []);
+        const error = this.safeList(response, 'error', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
             const order = success[i];
@@ -2065,7 +2065,7 @@ class digifinex extends digifinex$1["default"] {
     parseOrderStatus(status) {
         const statuses = {
             '0': 'open',
-            '1': 'open',
+            '1': 'open', // partially filled
             '2': 'closed',
             '3': 'canceled',
             '4': 'canceled', // partially filled and canceled
@@ -2568,7 +2568,7 @@ class digifinex extends digifinex$1["default"] {
         }
         const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
         if (symbol !== undefined) {
-            request[marketIdRequest] = market['id'];
+            request[marketIdRequest] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2917,9 +2917,9 @@ class digifinex extends digifinex$1["default"] {
         // deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
         // withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
         const statuses = {
-            '1': 'pending',
-            '2': 'pending',
-            '3': 'ok',
+            '1': 'pending', // in Progress
+            '2': 'pending', // to be confirmed
+            '3': 'ok', // Completed
             '4': 'failed', // Rejected
         };
         return this.safeString(statuses, status, status);
@@ -3200,7 +3200,7 @@ class digifinex extends digifinex$1["default"] {
             'symbol': symbol,
             'currency': currency,
             'interest': undefined,
-            'interestRate': 0.001,
+            'interestRate': 0.001, // all interest rates on digifinex are 0.1%
             'amountBorrowed': this.parseNumber(amountBorrowed),
             'marginMode': undefined,
             'timestamp': undefined,
@@ -3292,7 +3292,7 @@ class digifinex extends digifinex$1["default"] {
         const currencyId = this.safeString(info, 'currency');
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'rate': 0.001,
+            'rate': 0.001, // all interest rates on digifinex are 0.1%
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -4274,7 +4274,7 @@ class digifinex extends digifinex$1["default"] {
             'marginMode': 'isolated',
             'amount': this.safeNumber(data, 'amount'),
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString(market, 'settle'),
             'status': undefined,
             'timestamp': undefined,
             'datetime': undefined,

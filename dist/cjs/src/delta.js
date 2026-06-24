@@ -19,7 +19,7 @@ class delta extends delta$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'delta',
             'name': 'Delta Exchange',
-            'countries': ['VC'],
+            'countries': ['VC'], // Saint Vincent and the Grenadines
             'rateLimit': 300,
             'version': 'v2',
             // new metainfo interface
@@ -54,7 +54,7 @@ class delta extends delta$1["default"] {
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode': true,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
@@ -222,7 +222,7 @@ class delta extends delta$1["default"] {
                     },
                 },
             },
-            'userAgent': this.userAgents['chrome39'],
+            'userAgent': this.userAgents['chrome39'], // needed for C#
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',
@@ -234,7 +234,7 @@ class delta extends delta$1["default"] {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo implement
                         // todo implement
                         'triggerPriceType': {
                             'last': true,
@@ -242,8 +242,8 @@ class delta extends delta$1["default"] {
                             'index': true,
                         },
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
                             'price': true,
@@ -257,16 +257,16 @@ class delta extends delta$1["default"] {
                         },
                         'hedged': false,
                         'selfTradePrevention': false,
-                        'trailing': false,
+                        'trailing': false, // todo: implement
                         'iceberg': false,
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                     },
-                    'createOrders': undefined,
+                    'createOrders': undefined, // todo: implement
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo: revise
                         'daysBack': 100000,
                         'untilDays': 100000,
                         'symbolRequired': false,
@@ -274,7 +274,7 @@ class delta extends delta$1["default"] {
                     'fetchOrder': undefined,
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo: revise
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -322,18 +322,18 @@ class delta extends delta$1["default"] {
             'exceptions': {
                 'exact': {
                     // Margin required to place order with selected leverage and quantity is insufficient.
-                    'insufficient_margin': errors.InsufficientFunds,
-                    'order_size_exceed_available': errors.InvalidOrder,
-                    'risk_limits_breached': errors.BadRequest,
-                    'invalid_contract': errors.BadSymbol,
-                    'immediate_liquidation': errors.InvalidOrder,
-                    'out_of_bankruptcy': errors.InvalidOrder,
-                    'self_matching_disrupted_post_only': errors.InvalidOrder,
-                    'immediate_execution_post_only': errors.InvalidOrder,
-                    'bad_schema': errors.BadRequest,
-                    'invalid_api_key': errors.AuthenticationError,
-                    'invalid_signature': errors.AuthenticationError,
-                    'open_order_not_found': errors.OrderNotFound,
+                    'insufficient_margin': errors.InsufficientFunds, // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
+                    'order_size_exceed_available': errors.InvalidOrder, // The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
+                    'risk_limits_breached': errors.BadRequest, // orders couldn't be placed as it will breach allowed risk limits.
+                    'invalid_contract': errors.BadSymbol, // The contract/product is either doesn't exist or has already expired.
+                    'immediate_liquidation': errors.InvalidOrder, // Order will cause immediate liquidation.
+                    'out_of_bankruptcy': errors.InvalidOrder, // Order prices are out of position bankruptcy limits.
+                    'self_matching_disrupted_post_only': errors.InvalidOrder, // Self matching is not allowed during auction.
+                    'immediate_execution_post_only': errors.InvalidOrder, // orders couldn't be placed as it includes post only orders which will be immediately executed
+                    'bad_schema': errors.BadRequest, // {"error":{"code":"bad_schema","context":{"schema_errors":[{"code":"validation_error","message":"id is required","param":""}]}},"success":false}
+                    'invalid_api_key': errors.AuthenticationError, // {"success":false,"error":{"code":"invalid_api_key"}}
+                    'invalid_signature': errors.AuthenticationError, // {"success":false,"error":{"code":"invalid_signature"}}
+                    'open_order_not_found': errors.OrderNotFound, // {"error":{"code":"open_order_not_found"},"success":false}
                     'unavailable': errors.ExchangeNotAvailable, // {"error":{"code":"unavailable"},"success":false}
                 },
                 'broad': {},
@@ -603,7 +603,7 @@ class delta extends delta$1["default"] {
             'numericId': numericId,
             'code': code,
             'name': this.safeString(rawCurrency, 'name'),
-            'info': rawCurrency,
+            'info': rawCurrency, // the original payload
             'active': undefined,
             'deposit': this.safeString(rawCurrency, 'deposit_status') === 'enabled',
             'withdraw': this.safeString(rawCurrency, 'withdrawal_status') === 'enabled',
@@ -919,7 +919,7 @@ class delta extends delta$1["default"] {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': spot ? undefined : false,
+                'margin': false,
                 'swap': swap,
                 'future': future,
                 'option': option,
@@ -931,7 +931,7 @@ class delta extends delta$1["default"] {
                 'maker': this.safeNumber(market, 'maker_commission_rate'),
                 'contractSize': spot ? undefined : contractSize,
                 'expiry': expiry,
-                'expiryDatetime': this.iso8601(expiry),
+                'expiryDatetime': this.iso8601(expiry), // do not use raw expiry string
                 'strike': this.parseNumber(strike),
                 'optionType': optionType,
                 'precision': {
@@ -1826,7 +1826,7 @@ class delta extends delta$1["default"] {
             'marginMode': undefined,
             'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'entryPrice': this.safeNumber(position, 'entry_price'),
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': undefined, // todo - realized_pnl ?
             'percentage': undefined,
             'contracts': this.parseNumber(sizeString),
             'contractSize': this.safeNumber(market, 'contractSize'),
@@ -3215,7 +3215,7 @@ class delta extends delta$1["default"] {
         const result = this.safeList(response, 'result', []);
         const settlements = this.parseSettlements(result, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     parseSettlement(settlement, market) {
         //
@@ -3431,7 +3431,7 @@ class delta extends delta$1["default"] {
             'bidPrice': this.safeNumber(quotes, 'best_bid'),
             'askPrice': this.safeNumber(quotes, 'best_ask'),
             'markPrice': this.safeNumber(greeks, 'mark_price'),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber(greeks, 'last_price'),
             'underlyingPrice': this.safeNumber(greeks, 'spot_price'),
             'info': greeks,
         };
@@ -3679,7 +3679,7 @@ class delta extends delta$1["default"] {
         const timestamp = this.safeIntegerProduct(chain, 'timestamp', 0.001);
         return {
             'info': chain,
-            'currency': undefined,
+            'currency': this.safeString(chain, 'currency'),
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -3689,12 +3689,12 @@ class delta extends delta$1["default"] {
             'askPrice': this.safeNumber(quotes, 'best_ask'),
             'midPrice': this.safeNumber(quotes, 'impact_mid_price'),
             'markPrice': this.safeNumber(chain, 'mark_price'),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber(chain, 'last_price'),
             'underlyingPrice': this.safeNumber(chain, 'spot_price'),
-            'change': undefined,
-            'percentage': undefined,
+            'change': this.safeNumber(chain, 'change'),
+            'percentage': this.safeNumber(chain, 'percentage'),
             'baseVolume': this.safeNumber(chain, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeNumber(chain, 'quote_volume'),
         };
     }
     /**
@@ -4062,7 +4062,7 @@ class delta extends delta$1["default"] {
             'datetime': datetime,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit(params, this.extractParams(path));

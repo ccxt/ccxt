@@ -50,11 +50,11 @@
 
 - [📂 Fetch Tickers](https://github.com/ccxt/ccxt/tree/master/./examples/ts/fetch-tickers)
 
-- [Gateio Swap Watch Many Orderbooks](./examples/ts/gateio-swap-watch-many-orderbooks.md)
+- [Gate Swap Watch Many Orderbooks](./examples/ts/gate-swap-watch-many-orderbooks.md)
 
-- [Gateio Watch Balance](./examples/ts/gateio-watch-balance.md)
+- [Gate Watch Balance](./examples/ts/gate-watch-balance.md)
 
-- [Gateio Watch Order Book](./examples/ts/gateio-watch-order-book.md)
+- [Gate Watch Order Book](./examples/ts/gate-watch-order-book.md)
 
 - [Graceful Shutdown](./examples/ts/graceful-shutdown.md)
 
@@ -72,9 +72,9 @@
 
 - [📂 Nextjs Page Router](https://github.com/ccxt/ccxt/tree/master/./examples/ts/nextjs-page-router)
 
-- [Okex Watch Balance And Create Order](./examples/ts/okex-watch-balance-and-create-order.md)
-
 - [Okx Create Futures Order](./examples/ts/okx-create-futures-order.md)
+
+- [Okx Watch Balance And Create Order](./examples/ts/okx-watch-balance-and-create-order.md)
 
 - [Okx Watch Tickers](./examples/ts/okx-watch-tickers.md)
 

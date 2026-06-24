@@ -441,7 +441,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //
         Object marketId = this.safeString(message, "pair");
         // market-ids are lowercase in REST API and uppercase in WS API
-        Object market = this.safeMarket(((String)marketId).toLowerCase(), null, "_");
+        Object market = this.safeMarket(((Helpers.isTrue(!Helpers.isEqual(marketId, null)))) ? ((String)marketId).toLowerCase() : null, null, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);

@@ -146,7 +146,7 @@ class lighter extends Exchange {
             ),
             'hostname' => 'zklighter.elliot.ai',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0',
+                'logo' => 'https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0',
                 'api' => array(
                     'root' => 'https://mainnet.{hostname}',
                     'public' => 'https://mainnet.{hostname}',
@@ -579,12 +579,12 @@ class lighter extends Exchange {
         $cachedAuth = $this->safe_dict($accountAuths, $apiKeyIndex);
         $cachedDeadline = $this->safe_integer($cachedAuth, 'deadline');
         if ($cachedDeadline !== null) {
-            $minimumDeadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineMinimumRemaining');
+            $minimumDeadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineMinimumRemaining', 60);
             if ($cachedDeadline >= $minimumDeadline) {
                 return $this->safe_string($cachedAuth, 'token');
             }
         }
-        $deadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineExpiry');
+        $deadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineExpiry', 28800);
         $request = array(
             'deadline' => $deadline,
             'api_key_index' => $this->parse_to_int($apiKeyIndex),
@@ -806,7 +806,7 @@ class lighter extends Exchange {
                 }
             }
         }
-        $marketInfo = $this->safe_dict($market, 'info');
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $amountStr = null;
         $priceStr = $this->price_to_precision($symbol, $price);
         $amountScale = $this->pow('10', $marketInfo['size_decimals']);
@@ -953,7 +953,6 @@ class lighter extends Exchange {
                 $order['nonce'] = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex));
             }
             $txType = null;
-            $txInfo = null;
             if ($totalOrderRequests < 2) {
                 list($txType, $txInfo) = $this->lighter_sign_create_order($signer, $order);
             } else {
@@ -1012,7 +1011,7 @@ class lighter extends Exchange {
             $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
             $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
             $market = $this->market($symbol);
-            $marketInfo = $this->safe_dict($market, 'info');
+            $marketInfo = $this->safe_dict($market, 'info', array());
             $amountScale = $this->pow('10', $marketInfo['size_decimals']);
             $priceScale = $this->pow('10', $marketInfo['price_decimals']);
             $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
@@ -2347,7 +2346,7 @@ class lighter extends Exchange {
             $typeAsInteger = $this->safe_integer($order, 'order_type');
             $type = $this->parse_order_type_integer($typeAsInteger);
         }
-        $triggerPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'trigger_price')));
+        $triggerPrice = $this->parse_number($this->omit_zero(($this->safe_string($order, 'trigger_price'))));
         $stopLossPrice = null;
         $takeProfitPrice = null;
         if ($type !== null) {
@@ -2377,7 +2376,7 @@ class lighter extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
-            'clientOrderId' => $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'client_order_index')),
+            'clientOrderId' => $this->omit_zero(($this->safe_string_2($order, 'client_order_id', 'client_order_index'))),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -3352,7 +3351,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $url = null;
         if ($api === 'root') {
             $url = $this->implode_hostname($this->urls['api']['public']);

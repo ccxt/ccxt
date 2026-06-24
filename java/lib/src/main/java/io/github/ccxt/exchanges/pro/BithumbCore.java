@@ -179,8 +179,8 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object date = this.safeString(ticker, "date", "");
-        Object time = this.safeString(ticker, "time", "");
+        Object date = ((String)this.safeString(ticker, "date", ""));
+        Object time = ((String)this.safeString(ticker, "time", ""));
         Object datetime = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.slice(date, 0, 4), "-"), Helpers.slice(date, 4, 6)), "-"), Helpers.slice(date, 6, 8)), "T"), Helpers.slice(time, 0, 2)), ":"), Helpers.slice(time, 2, 4)), ":"), Helpers.slice(time, 4, 6));
         Object marketId = this.safeString(ticker, "symbol");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -269,7 +269,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         Object first = this.safeDict(list, 0, new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(first, "symbol");
         Object symbol = this.safeSymbol(marketId, null, "_");
-        Object timestampStr = this.safeString(content, "datetime");
+        Object timestampStr = ((String)this.safeString(content, "datetime"));
         Object timestamp = this.parseToInt(Helpers.slice(timestampStr, 0, 13));
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -407,7 +407,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         Object marketId = this.safeString(trade, "symbol");
         Object datetime = this.safeString(trade, "contDtm");
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        Object timestamp = Helpers.subtract(this.parse8601(datetime), 32400000);
+        Object timestamp = Helpers.subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
         Object sideId = this.safeString(trade, "buySellGb");
         final Object finalSideId = sideId;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{

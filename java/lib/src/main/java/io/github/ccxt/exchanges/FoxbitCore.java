@@ -1994,7 +1994,7 @@ public class FoxbitCore extends FoxbitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", entry );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", FoxbitCore.this.safeString(market, "symbol") );
             put( "maker", FoxbitCore.this.safeNumber(entry, "maker") );
             put( "taker", FoxbitCore.this.safeNumber(entry, "taker") );
             put( "percentage", true );
@@ -2062,7 +2062,7 @@ public class FoxbitCore extends FoxbitApi
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", FoxbitCore.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", FoxbitCore.this.safeString(market, "symbol") );
             put( "order", null );
             put( "type", null );
             put( "side", side );

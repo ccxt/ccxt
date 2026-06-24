@@ -1113,9 +1113,11 @@ class okx extends Exchange {
                     'TRX' => 'TRC20',
                     'TRC20' => 'TRC20',
                     'CRC20' => 'Crypto',
+                    'CRONOS' => 'Crypto',
                     'ACA' => 'Acala',
                     'ALGO' => 'Algorand',
                     'APT' => 'Aptos',
+                    'SONIC' => 'Sonic',
                     'SCROLL' => 'Scroll',
                     'ARBONE' => 'Arbitrum One',
                     'AVAXC' => 'Avalanche C-Chain',
@@ -1124,15 +1126,18 @@ class okx extends Exchange {
                     'SUI' => 'SUI',
                     'ZKSYNCERA' => 'zkSync Era',
                     'LINEA' => 'Linea',
+                    'VAULTA' => 'Vaulta',
                     'AR' => 'Arweave',
                     'ASTR' => 'Astar',
                     'BCH' => 'BitcoinCash',
                     'BSV' => 'Bitcoin SV',
                     'ADA' => 'Cardano',
                     'CSPR' => 'Casper',
+                    'CANTON' => 'Canton Network',
                     'CELO' => 'CELO',
                     'XCH' => 'Chia',
-                    // 'CHZ' => 'Chiliz', TBD => Chiliz 2.0 Chain vs Chiliz Chain
+                    'BABY' => 'Babylon',
+                    // 'CHZ' => 'Chiliz', TBD => Chiliz Chain New vs Chiliz Chain
                     'ATOM' => 'Cosmos',
                     'DGB' => 'Digibyte',
                     'DOGE' => 'Dogecoin',
@@ -1144,11 +1149,10 @@ class okx extends Exchange {
                     'ETHW' => 'EthereumPow',
                     // 'FTM' => 'Fantom', 'Sonic' TBD
                     'FIL' => 'Filecoin',
-                    'ONE' => 'Harmony',
                     'HBAR' => 'Hedera',
-                    'ICX' => 'ICON',
+                    'HYPER' => 'HyperEVM',
                     'ICP' => 'Dfinity',
-                    'IOST' => 'IOST',
+                    'PI' => 'PI',
                     'IOTA' => 'MIOTA',
                     'KLAY' => 'Klaytn',
                     'KSM' => 'Kusama',
@@ -1163,9 +1167,7 @@ class okx extends Exchange {
                     'NULS' => 'NULS',
                     'OASYS' => 'OASYS',
                     'ONT' => 'Ontology',
-                    'OPTIMISM' => 'Optimism',
-                    // 'OP' => 'Optimism', or Optimism (V2), TBD
-                    'LAT' => 'PlatON',
+                    'OP' => 'Optimism', // TBD => OPTIMISM vs OPTIMISM (V2)
                     'DOT' => 'Polkadot',
                     'MATIC' => 'Polygon',
                     'RVN' => 'Ravencoin',
@@ -1179,51 +1181,39 @@ class okx extends Exchange {
                     'THETA' => 'Theta',
                     'WAX' => 'Wax',
                     'ZIL' => 'Zilliqa',
-                    // non-supported known network => CRP. KAVA, TAIKO, BOB, GNO, BLAST, RSK, SEI, MANTLE, HYPE, RUNE, OSMO, XIN, WEMIX, HT, FSN, NEO, TLOS, CANTO, SCRT, AURORA, XMR
+                    'ZEC' => 'Zcash',
+                    'ZETA' => 'ZetaChain',
+                    'TIA' => 'Celestia',
+                    'SEI' => 'SEI',
+                    'QUANTUM' => 'Quantum',
+                    'PHAROS' => 'Pharos',
+                    'RONIN' => 'Ronin',
+                    'MEGAETH' => 'MegaETH',
+                    'INJ' => 'INJ',
+                    'FOGO' => 'Fogo',
+                    'FLR' => 'Flare',
+                    'FLOW' => 'FLOW',
+                    'DYDX' => 'DYDX',
+                    'AELF' => 'AELF',
+                    'BERA' => 'Berachain',
+                    'TEMPO' => 'Tempo',
+                    // tbd 'STARK' => 'Starknet',
+                    // tbd Story(IP)
+                    'MONAD' => 'Monad',
+                    'PLASMA' => 'Plasma',
+                    // tbd OKTC
+                    // tbd Enjin Relay Chain
                     // others:
-                    // "OKTC",
-                    // "X Layer",
                     // "Polygon (Bridged)",
-                    // "BTCK-OKTC",
-                    // "ETHK-OKTC",
-                    // "Starknet",
-                    // "LTCK-OKTC",
-                    // "XRPK-OKTC",
-                    // "BCHK-OKTC",
-                    // "ETCK-OKTC",
-                    // "Endurance Smart Chain",
-                    // "Berachain",
-                    // "CELO-TOKEN",
-                    // "CFX_EVM",
                     // "Cortex",
-                    // "DAIK-OKTC",
-                    // "Dora Vota Mainnet",
-                    // "DOTK-OKTC",
-                    // "DYDX",
-                    // "AELF",
-                    // "Enjin Relay Chain",
                     // "FEVM",
-                    // "FILK-OKTC",
-                    // "Flare",
                     // "Gravity Alpha Mainnet",
-                    // "INJ",
-                    // "Story",
-                    // "LINKK-OKTC",
                     // "Terra",
                     // "Terra Classic",
                     // "Terra Classic (USTC)",
-                    // "MERLIN Network",
                     // "Layer 3",
-                    // "PI",
-                    // "Ronin",
-                    // "Quantum",
-                    // "SHIBK-OKTC",
-                    // "SUSHIK-OKTC",
                     // "Celestia",
-                    // "TRXK-OKTC",
-                    // "UNIK-OKTC",
                     // "Venom",
-                    // "WBTCK-OKTC",
                     // "ZetaChain",
                 ),
                 'networksById' => array(
@@ -1965,7 +1955,7 @@ class okx extends Exchange {
         return $this->parse_markets($marketsWithoutTest);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -4599,7 +4589,6 @@ class okx extends Exchange {
             $request['instId'] = $market['id'];
         }
         $type = null;
-        $query = null;
         list($type, $query) = $this->handle_market_type_and_params('fetchCanceledOrders', $market, $params);
         $request['instType'] = $this->convert_to_instrument_type($type);
         if ($limit !== null) {
@@ -4793,7 +4782,6 @@ class okx extends Exchange {
             $request['instId'] = $market['id'];
         }
         $type = null;
-        $query = null;
         list($type, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
         $request['instType'] = $this->convert_to_instrument_type($type);
         if ($limit !== null) {
@@ -6531,7 +6519,7 @@ class okx extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -6994,7 +6982,6 @@ class okx extends Exchange {
          */
         $accounts = $this->fetch_accounts();
         $length = count($accounts);
-        $selectedAccount = null;
         if ($length > 1) {
             $accountId = $this->safe_string($params, 'accountId');
             if ($accountId === null) {
@@ -7102,7 +7089,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function fetch_cross_borrow_rates($params = array ()): CrossBorrowRates {
+    public function fetch_cross_borrow_rates($params = array ()): array {
         /**
          * fetch the borrow interest $rates of all currencies
          *
@@ -7537,7 +7524,7 @@ class okx extends Exchange {
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'tier'),
                 'symbol' => $this->safe_symbol($marketId, $market),
-                'currency' => $market['quote'],
+                'currency' => $this->safe_string($market, 'quote'),
                 'minNotional' => $this->safe_number($tier, 'minSz'),
                 'maxNotional' => $this->safe_number($tier, 'maxSz'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'mmr'),
@@ -7782,7 +7769,7 @@ class okx extends Exchange {
         return $this->parse_open_interest($data[0], $market);
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array ()): OpenInterests {
+    public function fetch_open_interests(?array $symbols = null, $params = array ()): array {
         /**
          * Retrieves the open interests of some currencies
          *
@@ -8503,7 +8490,7 @@ class okx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_option(string $symbol, $params = array ()): Option {
+    public function fetch_option(string $symbol, $params = array ()): array {
         /**
          * fetches option data that is commonly found in an option $chain
          *
@@ -8550,7 +8537,7 @@ class okx extends Exchange {
         return $this->parse_option($chain, null, $market);
     }
 
-    public function fetch_option_chain(string $code, $params = array ()): OptionChain {
+    public function fetch_option_chain(string $code, $params = array ()): array {
         /**
          * fetches data for an underlying asset that is commonly found in an option chain
          *
@@ -8598,7 +8585,7 @@ class okx extends Exchange {
         return $this->parse_option_chain($result, null, 'instId');
     }
 
-    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
         //         "instType" => "OPTION",
@@ -8922,7 +8909,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_convert_currencies($params = array ()): ?array {
+    public function fetch_convert_currencies($params = array ()): array {
         /**
          * fetches all available currencies that can be converted
          *

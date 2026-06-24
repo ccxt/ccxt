@@ -194,13 +194,13 @@ class zebpay extends zebpay$1["default"] {
             'exceptions': {
                 'exact': {
                     '77': errors.InvalidOrder,
-                    '400': errors.BadRequest,
-                    '401': errors.AuthenticationError,
-                    '403': errors.NotSupported,
-                    '404': errors.NotSupported,
-                    '429': errors.RateLimitExceeded,
-                    '500': errors.ExchangeNotAvailable,
-                    '503': errors.ExchangeNotAvailable,
+                    '400': errors.BadRequest, // Bad Request -- Invalid request format
+                    '401': errors.AuthenticationError, // Unauthorized -- Invalid API Key
+                    '403': errors.NotSupported, // Forbidden -- The request is forbidden
+                    '404': errors.NotSupported, // Not Found -- The specified resource could not be found
+                    '429': errors.RateLimitExceeded, // Too Many Requests -- Access limit breached
+                    '500': errors.ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                    '503': errors.ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
                     '3013': errors.OrderNotFound,
                     'Order quantity is out of range': errors.InvalidOrder,
                     'Invalid trade order type': errors.InvalidOrder,
@@ -1266,7 +1266,7 @@ class zebpay extends zebpay$1["default"] {
         //         }
         //     }
         //
-        const responseData = this.safeDict(response, 'data');
+        const responseData = this.safeDict(response, 'data', {});
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {
@@ -1388,7 +1388,7 @@ class zebpay extends zebpay$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id'].toUpperCase(),
+            'symbol': this.safeStringUpper(market, 'id'),
         };
         const response = await this.privateSwapGetV1TradeUserLeverage(this.extend(request, params));
         //
@@ -1835,7 +1835,7 @@ class zebpay extends zebpay$1["default"] {
         const timestamp = this.milliseconds();
         return {
             'info': info,
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
             'type': undefined,
             'marginMode': undefined,
             'amount': this.safeNumber(info, 'amount'),

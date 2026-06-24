@@ -12,7 +12,7 @@ import log from 'ololog';
 const // ----------------------------------------------------------------------------
 table = asTable.configure ({ delimiter: ' | ' });(async () => {
 
-    const exchange = new ccxt.bitfinex2 ({
+    const exchange = new ccxt.bitfinex ({
         'verbose': process.argv.includes ('--verbose'),
         'timeout': 60000,
     })

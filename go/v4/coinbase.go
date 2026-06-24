@@ -624,7 +624,7 @@ func (this *CoinbaseCore) FetchAccountsV2(optionalArgs ...any) <-chan any {
 		var accounts any = this.SafeList(response, "data", []any{})
 		var length any = GetArrayLength(accounts)
 		var lastIndex any = Subtract(length, 1)
-		var last any = this.SafeDict(accounts, lastIndex)
+		var last any = this.SafeDict(accounts, lastIndex, map[string]any{})
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((!IsEqual(cursor, "")))) {
 			AddElementToObject(last, "next_starting_after", cursor)
 			AddElementToObject(accounts, lastIndex, last)
@@ -698,7 +698,7 @@ func (this *CoinbaseCore) FetchAccountsV3(optionalArgs ...any) <-chan any {
 		var cursor any = this.SafeString(response, "cursor")
 		if IsTrue(IsTrue(IsTrue((IsGreaterThan(accountsLength, 0))) && IsTrue((!IsEqual(cursor, nil)))) && IsTrue((!IsEqual(cursor, "")))) {
 			var lastIndex any = Subtract(accountsLength, 1)
-			var last any = this.SafeDict(accounts, lastIndex)
+			var last any = this.SafeDict(accounts, lastIndex, map[string]any{})
 			AddElementToObject(last, "cursor", cursor)
 			AddElementToObject(accounts, lastIndex, last)
 		}
@@ -4263,7 +4263,7 @@ func (this *CoinbaseCore) FetchOrders(optionalArgs ...any) <-chan any {
 		//     }
 		//
 		var orders any = this.SafeList(response, "orders", []any{})
-		var first any = this.SafeDict(orders, 0)
+		var first any = this.SafeDict(orders, 0, map[string]any{})
 		var cursor any = this.SafeString(response, "cursor")
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((!IsEqual(cursor, "")))) {
 			AddElementToObject(first, "cursor", cursor)
@@ -4360,7 +4360,7 @@ func (this *CoinbaseCore) FetchOrdersByStatus(status any, optionalArgs ...any) <
 		//     }
 		//
 		var orders any = this.SafeList(response, "orders", []any{})
-		var first any = this.SafeDict(orders, 0)
+		var first any = this.SafeDict(orders, 0, map[string]any{})
 		var cursor any = this.SafeString(response, "cursor")
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((!IsEqual(cursor, "")))) {
 			AddElementToObject(first, "cursor", cursor)
@@ -4801,7 +4801,7 @@ func (this *CoinbaseCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		//     }
 		//
 		var trades any = this.SafeList(response, "fills", []any{})
-		var first any = this.SafeDict(trades, 0)
+		var first any = this.SafeDict(trades, 0, map[string]any{})
 		var cursor any = this.SafeString(response, "cursor")
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((!IsEqual(cursor, "")))) {
 			AddElementToObject(first, "cursor", cursor)
@@ -6060,7 +6060,7 @@ func (this *CoinbaseCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		//
 		var data any = this.SafeDict(response, "fee_tier", map[string]any{})
 		var taker_fee any = this.SafeNumber(data, "taker_fee_rate")
-		var marker_fee any = this.SafeNumber(data, "maker_fee_rate")
+		var maker_fee any = this.SafeNumber(data, "maker_fee_rate")
 		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 			var symbol any = GetValue(this.Symbols, i)
@@ -6069,8 +6069,8 @@ func (this *CoinbaseCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 				AddElementToObject(result, symbol, map[string]any{
 					"info":       response,
 					"symbol":     symbol,
-					"maker":      taker_fee,
-					"taker":      marker_fee,
+					"maker":      maker_fee,
+					"taker":      taker_fee,
 					"percentage": true,
 				})
 			}

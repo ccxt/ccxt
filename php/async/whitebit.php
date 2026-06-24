@@ -844,7 +844,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
         //
         //    {
         //        "1INCH" => {
@@ -1525,7 +1525,6 @@ class whitebit extends Exchange {
                     $method = 'v4PublicGetTicker';
                 }
             }
-            $response = null;
             if ($method === 'v4PublicGetTicker') {
                 //
                 //      "BCH_RUB" => array(
@@ -2053,7 +2052,6 @@ class whitebit extends Exchange {
             }
             $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
             $useCollateralEndpoint = $marginMode !== null || $marketType === 'swap';
-            $response = null;
             if ($isStopOrder) {
                 $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 if ($isLimitOrder) {
@@ -2360,7 +2358,6 @@ class whitebit extends Exchange {
             Async\await($this->load_markets());
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            $response = null;
             if ($marketType === 'swap') {
                 $response = Async\await($this->v4PrivatePostCollateralAccountBalance ($params));
             } else {
@@ -2805,7 +2802,6 @@ class whitebit extends Exchange {
             $request = array(
                 'ticker' => $currency['id'],
             );
-            $response = null;
             if ($this->is_fiat($code)) {
                 $provider = $this->safe_string($params, 'provider');
                 if ($provider === null) {
@@ -3623,7 +3619,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories($contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -4226,7 +4222,7 @@ class whitebit extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $this->safe_value($api, 0);
         $accessibility = $this->safe_value($api, 1);
@@ -4235,7 +4231,7 @@ class whitebit extends Exchange {
         }
         $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         $pathWithParams = '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'][$version][$accessibility] . $pathWithParams;
+        $url = ($this->urls['api'])[$version][$accessibility] . $pathWithParams;
         if ($accessibility === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);

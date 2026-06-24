@@ -723,6 +723,7 @@ closes open positions for a market
 * [deepcoin](/exchanges/deepcoin.md#closeposition)
 * [gate](/exchanges/gate.md#closeposition)
 * [hitbtc](/exchanges/hitbtc.md#closeposition)
+* [htx](/exchanges/htx.md#closeposition)
 * [kucoin](/exchanges/kucoin.md#closeposition)
 * [okx](/exchanges/okx.md#closeposition)
 * [weex](/exchanges/weex.md#closeposition)
@@ -747,7 +748,6 @@ closes open positions for a market
 ##### Supported exchanges
 * [bitget](/exchanges/bitget.md#closepositions)
 * [cryptocom](/exchanges/cryptocom.md#closepositions)
-* [htx](/exchanges/htx.md#closepositions)
 
 ---
 
@@ -2186,6 +2186,7 @@ fetches information on multiple canceled orders made by the user
 * [derive](/exchanges/derive.md#fetchcanceledorders)
 * [exmo](/exchanges/exmo.md#fetchcanceledorders)
 * [extended](/exchanges/extended.md#fetchcanceledorders)
+* [htx](/exchanges/htx.md#fetchcanceledorders)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchcanceledorders)
 * [krakenfutures](/exchanges/krakenfutures.md#fetchcanceledorders)
 * [mexc](/exchanges/mexc.md#fetchcanceledorders)

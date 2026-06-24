@@ -35,12 +35,12 @@ class grvt extends grvt$1["default"] {
             },
             'options': {
                 'watchOrderBookForSymbols': {
-                    'depth': 100,
-                    'interval': 500,
+                    'depth': 100, // 5, 10, 20, 50, 100
+                    'interval': 500, // 100, 200, 500, 1000
                     'channel': 'v1.book.s', // v1.book.s | v1.book.d
                 },
                 'watchTickers': {
-                    'channel': 'v1.ticker.s',
+                    'channel': 'v1.ticker.s', // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
                     'interval': 500, // raw, 50, 100, 200, 500, 1000, 5000
                 },
             },
@@ -258,7 +258,7 @@ class grvt extends grvt$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'feed', {});
-        const selector = this.safeString(message, 'selector');
+        const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId, undefined);
@@ -346,7 +346,7 @@ class grvt extends grvt$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'feed', {});
-        const selector = this.safeString(message, 'selector');
+        const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId, undefined);
@@ -441,12 +441,12 @@ class grvt extends grvt$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'feed', {});
-        const selector = this.safeString(message, 'selector');
+        const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId, undefined);
         const symbol = market['symbol'];
-        const secondPart = this.safeString(parts, 1);
+        const secondPart = this.safeString(parts, 1, '');
         const timeframeId = secondPart.replace('-TRADE', '');
         const timeframe = this.findTimeframe(timeframeId);
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
@@ -552,7 +552,7 @@ class grvt extends grvt$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'feed', {});
-        const selector = this.safeString(message, 'selector');
+        const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId, undefined);
@@ -562,7 +562,7 @@ class grvt extends grvt$1["default"] {
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];
-        const sequenceNumber = this.safeInteger(message, 'sequence_number');
+        const sequenceNumber = this.safeInteger(message, 'sequence_number', 0);
         const stream = this.safeString(message, 'stream');
         const isSnapshotChannel = stream === 'v1.book.s';
         const isSnapshotMessage = sequenceNumber <= 0;

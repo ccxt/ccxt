@@ -28,20 +28,20 @@ export default class poloniex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // has but not fully implemented
                 'swap': true,
                 'future': true,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
+                'cancelOrders': undefined, // not yet implemented, because RL is worse than cancelOrder
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': undefined,
+                'createOrders': undefined, // not yet implemented, because RL is worse than createOrder
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
@@ -62,11 +62,11 @@ export default class poloniex extends Exchange {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': undefined, // has but not implemented
                 'fetchGreeks': false,
-                'fetchLedger': undefined,
+                'fetchLedger': undefined, // has but not implemented
                 'fetchLeverage': true,
-                'fetchLiquidations': undefined,
+                'fetchLiquidations': undefined, // has but not implemented
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -104,13 +104,13 @@ export default class poloniex extends Exchange {
             'timeframes': {
                 '1m': 'MINUTE_1',
                 '5m': 'MINUTE_5',
-                '10m': 'MINUTE_10',
+                '10m': 'MINUTE_10', // not in swap
                 '15m': 'MINUTE_15',
                 '30m': 'MINUTE_30',
                 '1h': 'HOUR_1',
                 '2h': 'HOUR_2',
                 '4h': 'HOUR_4',
-                '6h': 'HOUR_6',
+                '6h': 'HOUR_6', // not in swap
                 '12h': 'HOUR_12',
                 '1d': 'DAY_1',
                 '3d': 'DAY_3',
@@ -217,7 +217,7 @@ export default class poloniex extends Exchange {
                         'v3/market/allInstruments': 2 / 3,
                         'v3/market/instruments': 2 / 3,
                         'v3/market/orderBook': 2 / 3,
-                        'v3/market/candles': 10,
+                        'v3/market/candles': 10, // candles have differnt RL
                         'v3/market/indexPriceCandlesticks': 10,
                         'v3/market/premiumIndexCandlesticks': 10,
                         'v3/market/markPriceCandlesticks': 10,
@@ -241,7 +241,7 @@ export default class poloniex extends Exchange {
                         'v3/trade/order/trades': 20,
                         'v3/trade/order/history': 20,
                         'v3/trade/position/opens': 20,
-                        'v3/trade/position/history': 20,
+                        'v3/trade/position/history': 20, // todo: method for this
                         'v3/position/leverages': 20,
                         'v3/position/mode': 20,
                     },
@@ -284,8 +284,8 @@ export default class poloniex extends Exchange {
                 'HOT': 'Hotcoin',
                 'ITC': 'Information Coin',
                 'KEY': 'KEYCoin',
-                'MASK': 'NFTX Hashmasks Index',
-                'MEME': 'Degenerator Meme',
+                'MASK': 'NFTX Hashmasks Index', // conflict with Mask Network
+                'MEME': 'Degenerator Meme', // Degenerator Meme migrated to Meme Inu, this exchange still has the old price
                 'PLX': 'ParallaxCoin',
                 'REPV2': 'REP',
                 'STR': 'XLM',
@@ -350,12 +350,12 @@ export default class poloniex extends Exchange {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
-                        'marginMode': true,
+                        'marginMode': true, // todo
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -367,7 +367,7 @@ export default class poloniex extends Exchange {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo, only for non-trigger orders
                         'trailing': false,
                         'iceberg': false,
                     },
@@ -395,7 +395,7 @@ export default class poloniex extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': {
                         'limit': 500,
                     },
@@ -409,7 +409,7 @@ export default class poloniex extends Exchange {
                         'marginMode': true,
                         'triggerPrice': false,
                         'hedged': true,
-                        'stpMode': true,
+                        'stpMode': true, // todo
                         'marketBuyByCost': false,
                     },
                     'createOrders': {
@@ -454,111 +454,111 @@ export default class poloniex extends Exchange {
             'exceptions': {
                 'exact': {
                     // General
-                    '500': ExchangeNotAvailable,
-                    '603': RequestTimeout,
-                    '601': BadRequest,
-                    '415': ExchangeError,
-                    '602': ArgumentsRequired,
+                    '500': ExchangeNotAvailable, // Internal System Error
+                    '603': RequestTimeout, // Internal Request Timeout
+                    '601': BadRequest, // Invalid Parameter
+                    '415': ExchangeError, // System Error
+                    '602': ArgumentsRequired, // Missing Required Parameters
                     // Accounts
-                    '21604': BadRequest,
-                    '21600': AuthenticationError,
-                    '21605': AuthenticationError,
-                    '21102': ExchangeError,
-                    '21100': AuthenticationError,
-                    '21704': AuthenticationError,
-                    '21700': BadRequest,
-                    '21705': BadRequest,
-                    '21707': ExchangeError,
-                    '21708': BadRequest,
-                    '21601': AccountSuspended,
-                    '21711': ExchangeError,
-                    '21709': InsufficientFunds,
-                    '250000': ExchangeError,
-                    '250001': BadRequest,
-                    '250002': BadRequest,
-                    '250003': BadRequest,
-                    '250004': BadRequest,
-                    '250005': InsufficientFunds,
-                    '250008': BadRequest,
-                    '250012': ExchangeError,
+                    '21604': BadRequest, // Invalid UserId
+                    '21600': AuthenticationError, // Account Not Found
+                    '21605': AuthenticationError, // Invalid Account Type
+                    '21102': ExchangeError, // Invalid Currency
+                    '21100': AuthenticationError, // Invalid account
+                    '21704': AuthenticationError, // Missing UserId and/or AccountId
+                    '21700': BadRequest, // Error updating accounts
+                    '21705': BadRequest, // Invalid currency type
+                    '21707': ExchangeError, // Internal accounts Error
+                    '21708': BadRequest, // Currency not available to User
+                    '21601': AccountSuspended, // Account locked. Contact support
+                    '21711': ExchangeError, // Currency locked. Contact support
+                    '21709': InsufficientFunds, // Insufficient balance
+                    '250000': ExchangeError, // Transfer error. Try again later
+                    '250001': BadRequest, // Invalid toAccount for transfer
+                    '250002': BadRequest, // Invalid fromAccount for transfer
+                    '250003': BadRequest, // Invalid transfer amount
+                    '250004': BadRequest, // Transfer is not supported
+                    '250005': InsufficientFunds, // Insufficient transfer balance
+                    '250008': BadRequest, // Invalid transfer currency
+                    '250012': ExchangeError, // Futures account is not valid
                     // Trading
-                    '21110': BadRequest,
-                    '10040': BadSymbol,
-                    '10060': ExchangeError,
-                    '10020': BadSymbol,
-                    '10041': BadSymbol,
-                    '21340': OnMaintenance,
-                    '21341': InvalidOrder,
-                    '21342': InvalidOrder,
-                    '21343': InvalidOrder,
-                    '21351': AccountSuspended,
-                    '21352': BadSymbol,
-                    '21353': PermissionDenied,
-                    '21354': PermissionDenied,
-                    '21359': OrderNotFound,
-                    '21360': InvalidOrder,
-                    '24106': BadRequest,
-                    '24201': ExchangeNotAvailable,
+                    '21110': BadRequest, // Invalid quote currency
+                    '10040': BadSymbol, // Invalid symbol
+                    '10060': ExchangeError, // Symbol setup error
+                    '10020': BadSymbol, // Invalid currency
+                    '10041': BadSymbol, // Symbol frozen for trading
+                    '21340': OnMaintenance, // No order creation/cancelation is allowed as Poloniex is in Maintenane Mode
+                    '21341': InvalidOrder, // Post-only orders (type as LIMIT_MAKER) allowed as Poloniex is in Post Only Mode
+                    '21342': InvalidOrder, // Price is higher than highest bid as Poloniex is in Maintenance Mode
+                    '21343': InvalidOrder, // Price is lower than lowest bid as Poloniex is in Maintenance Mode
+                    '21351': AccountSuspended, // Trading for this account is frozen. Contact support
+                    '21352': BadSymbol, // Trading for this currency is frozen
+                    '21353': PermissionDenied, // Trading for US customers is not supported
+                    '21354': PermissionDenied, // Account needs to be verified via email before trading is enabled. Contact support
+                    '21359': OrderNotFound, // { "code" : 21359, "message" : "Order was already canceled or filled." }
+                    '21360': InvalidOrder, // { "code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again." }
+                    '24106': BadRequest, // Invalid market depth
+                    '24201': ExchangeNotAvailable, // Service busy. Try again later
                     // Orders
-                    '21301': OrderNotFound,
-                    '21302': ExchangeError,
-                    '21304': ExchangeError,
-                    '21305': OrderNotFound,
-                    '21307': ExchangeError,
-                    '21309': InvalidOrder,
-                    '21310': InvalidOrder,
-                    '21311': InvalidOrder,
-                    '21312': InvalidOrder,
-                    '21314': InvalidOrder,
-                    '21315': InvalidOrder,
-                    '21317': InvalidOrder,
-                    '21319': InvalidOrder,
-                    '21320': InvalidOrder,
-                    '21321': InvalidOrder,
-                    '21322': InvalidOrder,
-                    '21324': BadRequest,
-                    '21327': InvalidOrder,
-                    '21328': InvalidOrder,
-                    '21330': InvalidOrder,
-                    '21335': InvalidOrder,
-                    '21336': InvalidOrder,
-                    '21337': InvalidOrder,
-                    '21344': InvalidOrder,
-                    '21345': InvalidOrder,
-                    '21346': InvalidOrder,
-                    '21348': InvalidOrder,
-                    '21347': InvalidOrder,
-                    '21349': InvalidOrder,
-                    '21350': InvalidOrder,
-                    '21355': ExchangeError,
-                    '21356': BadRequest,
+                    '21301': OrderNotFound, // Order not found
+                    '21302': ExchangeError, // Batch cancel order error
+                    '21304': ExchangeError, // Order is filled
+                    '21305': OrderNotFound, // Order is canceled
+                    '21307': ExchangeError, // Error during Order Cancelation
+                    '21309': InvalidOrder, // Order price must be greater than 0
+                    '21310': InvalidOrder, // Order price must be less than max price
+                    '21311': InvalidOrder, // Order price must be greater than min price
+                    '21312': InvalidOrder, // Client orderId already exists
+                    '21314': InvalidOrder, // Max limit of open orders (2000) exceeded
+                    '21315': InvalidOrder, // Client orderId exceeded max length of 17 digits
+                    '21317': InvalidOrder, // Amount must be greater than 0
+                    '21319': InvalidOrder, // Invalid order side
+                    '21320': InvalidOrder, // Invalid order type
+                    '21321': InvalidOrder, // Invalid timeInForce value
+                    '21322': InvalidOrder, // Amount is less than minAmount trade limit
+                    '21324': BadRequest, // Invalid account type
+                    '21327': InvalidOrder, // Order pice must be greater than 0
+                    '21328': InvalidOrder, // Order quantity must be greater than 0
+                    '21330': InvalidOrder, // Quantity is less than minQuantity trade limit
+                    '21335': InvalidOrder, // Invalid priceScale for this symbol
+                    '21336': InvalidOrder, // Invalid quantityScale for this symbol
+                    '21337': InvalidOrder, // Invalid amountScale for this symbol
+                    '21344': InvalidOrder, // Value of limit param is greater than max value of 100
+                    '21345': InvalidOrder, // Value of limit param value must be greater than 0
+                    '21346': InvalidOrder, // Order Id must be of type Long
+                    '21348': InvalidOrder, // Order type must be LIMIT_MAKER
+                    '21347': InvalidOrder, // Stop price must be greater than 0
+                    '21349': InvalidOrder, // Order value is too large
+                    '21350': InvalidOrder, // Amount must be greater than 1 USDT
+                    '21355': ExchangeError, // Interval between startTime and endTime in trade/order history has exceeded 7 day limit
+                    '21356': BadRequest, // Order size would cause too much price movement. Reduce order size.
                     '21721': InsufficientFunds,
-                    '24101': BadSymbol,
-                    '24102': InvalidOrder,
-                    '24103': InvalidOrder,
-                    '24104': InvalidOrder,
-                    '24105': InvalidOrder,
-                    '25020': InvalidOrder,
+                    '24101': BadSymbol, // Invalid symbol
+                    '24102': InvalidOrder, // Invalid K-line type
+                    '24103': InvalidOrder, // Invalid endTime
+                    '24104': InvalidOrder, // Invalid amount
+                    '24105': InvalidOrder, // Invalid startTime
+                    '25020': InvalidOrder, // No active kill switch
                     // Smartorders
-                    '25000': InvalidOrder,
-                    '25001': InvalidOrder,
-                    '25002': InvalidOrder,
-                    '25003': ExchangeError,
-                    '25004': InvalidOrder,
-                    '25005': ExchangeError,
-                    '25006': InvalidOrder,
-                    '25007': InvalidOrder,
-                    '25008': InvalidOrder,
-                    '25009': ExchangeError,
-                    '25010': PermissionDenied,
-                    '25011': InvalidOrder,
-                    '25012': ExchangeError,
-                    '25013': OrderNotFound,
-                    '25014': OrderNotFound,
-                    '25015': OrderNotFound,
-                    '25016': ExchangeError,
-                    '25017': ExchangeError,
-                    '25018': BadRequest,
+                    '25000': InvalidOrder, // Invalid userId
+                    '25001': InvalidOrder, // Invalid parameter
+                    '25002': InvalidOrder, // Invalid userId.
+                    '25003': ExchangeError, // Unable to place order
+                    '25004': InvalidOrder, // Client orderId already exists
+                    '25005': ExchangeError, // Unable to place smart order
+                    '25006': InvalidOrder, // OrderId and clientOrderId already exists
+                    '25007': InvalidOrder, // Invalid orderid
+                    '25008': InvalidOrder, // Both orderId and clientOrderId are required
+                    '25009': ExchangeError, // Failed to cancel order
+                    '25010': PermissionDenied, // Unauthorized to cancel order
+                    '25011': InvalidOrder, // Failed to cancel due to invalid paramters
+                    '25012': ExchangeError, // Failed to cancel
+                    '25013': OrderNotFound, // Failed to cancel as orders were not found
+                    '25014': OrderNotFound, // Failed to cancel as smartorders were not found
+                    '25015': OrderNotFound, // Failed to cancel as no orders exist
+                    '25016': ExchangeError, // Failed to cancel as unable to release funds
+                    '25017': ExchangeError, // No orders were canceled
+                    '25018': BadRequest, // Invalid accountType
                     '25019': BadSymbol, // Invalid symbol
                 },
                 'broad': {},
@@ -1409,7 +1409,7 @@ export default class poloniex extends Exchange {
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': this.safeStringLower2(trade, 'ordType', 'type'),
+            'type': this.safeStringLower2(trade, 'ordType', 'type'), // ordType should take precedence
             'side': side,
             'takerOrMaker': this.safeStringLower2(trade, 'matchRole', 'role'),
             'price': priceString,
@@ -1515,7 +1515,7 @@ export default class poloniex extends Exchange {
             request['limit'] = limit;
         }
         if (isContract && symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         [request, params] = this.handleUntilOption(endKey, request, params);
         if (isContract) {
@@ -2811,7 +2811,7 @@ export default class poloniex extends Exchange {
         const now = this.seconds();
         const start = (since !== undefined) ? this.parseToInt(since / 1000) : now - 10 * year;
         const request = {
-            'start': start,
+            'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
         };
         const response = await this.privateGetWalletsActivity(this.extend(request, params));
@@ -3278,7 +3278,7 @@ export default class poloniex extends Exchange {
         let longLeverage = undefined;
         let marketId = undefined;
         let marginMode = undefined;
-        const data = this.safeList(leverage, 'data');
+        const data = this.safeList(leverage, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             marketId = this.safeString(entry, 'symbol');

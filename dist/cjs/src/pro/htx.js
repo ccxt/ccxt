@@ -101,7 +101,7 @@ class htx extends htx$1["default"] {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'api': 'api',
+                'api': 'api', // or api-aws for clients hosted on AWS
                 'watchOrderBook': {
                     'maxRetries': 3,
                     'checksum': true,
@@ -117,12 +117,12 @@ class htx extends htx$1["default"] {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'bad-request': errors.BadRequest,
-                        '2002': errors.AuthenticationError,
+                        'bad-request': errors.BadRequest, // {  ts: 1586323747018,  status: 'error',    'err-code': 'bad-request',  err-msg': 'invalid mbp.150.symbol linkusdt', id: '2'}
+                        '2002': errors.AuthenticationError, // { action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state' }
                         '2021': errors.BadRequest,
-                        '2001': errors.BadSymbol,
-                        '2011': errors.BadSymbol,
-                        '2040': errors.BadRequest,
+                        '2001': errors.BadSymbol, // { action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
+                        '2011': errors.BadSymbol, // { op: 'sub', cid: '1649149285', topic: 'orders_cross.ltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637 }
+                        '2040': errors.BadRequest, // { op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684 }
                         '4007': errors.BadRequest, // { op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540 }
                     },
                 },
@@ -681,7 +681,7 @@ class htx extends htx$1["default"] {
             orderbook.reset(snapshot);
             orderbook['nonce'] = version;
         }
-        if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
+        if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger(orderbook, 'nonce', 0)) {
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum) {
                 throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));

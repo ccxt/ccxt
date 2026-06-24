@@ -22,8 +22,8 @@ class pacifica extends pacifica$1["default"] {
             'name': 'Pacifica',
             'countries': [],
             'version': 'v1',
-            'isSandboxModeEnabled': false,
-            'rateLimit': 50,
+            'isSandboxModeEnabled': false, // is testnet api
+            'rateLimit': 50, // 125 requests per minute without api-key (300 with api-key) ~ 2 req/sec = 1 req/500 ms.
             'certified': false,
             'pro': true,
             'dex': true,
@@ -160,7 +160,7 @@ class pacifica extends pacifica$1["default"] {
                         'kline': 12,
                         'kline/mark': 12,
                         'book': 1,
-                        'trades': 1,
+                        'trades': 1, // Recent
                         'funding_rate/history': 1,
                         'account': 1,
                         'account/settings': 1,
@@ -215,7 +215,7 @@ class pacifica extends pacifica$1["default"] {
             'requiredCredentials': {
                 'apiKey': false,
                 'secret': false,
-                'walletAddress': false,
+                'walletAddress': false, // agentAddress, apiKey only in options.
                 'privateKey': true, // base58 solana private key
             },
             'exceptions': {
@@ -249,8 +249,8 @@ class pacifica extends pacifica$1["default"] {
             'options': {
                 'agentAddress': undefined,
                 'apiKey': undefined,
-                'builderCode': 'CCXT',
-                'feeRate': '0.01',
+                'builderCode': 'CCXT', // case sensitive
+                'feeRate': '0.01', // default rate for builder fee approval 0.01%
                 'builderFee': true,
                 'batchOrdersMax': 10,
                 'defaultType': 'swap',
@@ -1142,7 +1142,7 @@ class pacifica extends pacifica$1["default"] {
         [request, params] = this.handleUntilOption('end_time', request, params);
         request['account'] = userAddress;
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1797,7 +1797,7 @@ class pacifica extends pacifica$1["default"] {
         const priceNormalized = this.priceToPrecision(symbol, price);
         const amountNormalized = this.amountToPrecision(symbol, amount);
         const sigPayload = {
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
             'price': priceNormalized,
             'amount': amountNormalized,
         };

@@ -57,19 +57,19 @@ class ohlcv(Exchange):
 
 
 # Another example of OOP / class inheritance.
-# This time my_okex class is inherited from two other classes
-# both ohlcv and ccxt.okex, and has the methods from both classes.
+# This time my_okx class is inherited from two other classes
+# both ohlcv and ccxt.okx, and has the methods from both classes.
 # This is just an example, it is not necessary do it this way.
 # You can combine classes and methods using Python's OOP how you like.
 
-class my_okex(ohlcv, ccxt.okex):
+class my_okx(ohlcv, ccxt.okx):
     pass
 
 
 # instantiate your class and call the inherited method
 
-exchange = my_okex({
-    # 'hostname': 'okex.me',  # if you're in mainland China
+exchange = my_okx({
+    # 'hostname': 'okx.me',  # if you're in mainland China
 })
 
 symbol = 'BTC/USDT'

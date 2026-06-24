@@ -65,7 +65,7 @@ public class HtxCore extends HtxApi
                 put( "fetchBorrowInterest", true );
                 put( "fetchBorrowRateHistories", null );
                 put( "fetchBorrowRateHistory", null );
-                put( "fetchCanceledOrders", null );
+                put( "fetchCanceledOrders", true );
                 put( "fetchClosedOrder", null );
                 put( "fetchClosedOrders", true );
                 put( "fetchCrossBorrowRate", false );
@@ -537,7 +537,6 @@ public class HtxCore extends HtxApi
                             put( "linear-swap-api/v1/swap_index", 1 );
                             put( "linear-swap-api/v1/swap_query_elements", 1 );
                             put( "linear-swap-api/v1/swap_price_limit", 1 );
-                            put( "linear-swap-api/v1/swap_open_interest", 1 );
                             put( "linear-swap-ex/market/depth", 1 );
                             put( "linear-swap-ex/market/bbo", 1 );
                             put( "linear-swap-ex/market/history/kline", 1 );
@@ -547,7 +546,6 @@ public class HtxCore extends HtxApi
                             put( "v2/linear-swap-ex/market/detail/batch_merged", 1 );
                             put( "linear-swap-ex/market/trade", 1 );
                             put( "linear-swap-ex/market/history/trade", 1 );
-                            put( "linear-swap-api/v1/swap_risk_info", 1 );
                             put( "swap-api/v1/linear-swap-api/v1/swap_insurance_fund", 1 );
                             put( "linear-swap-api/v1/swap_adjustfactor", 1 );
                             put( "linear-swap-api/v1/swap_cross_adjustfactor", 1 );
@@ -555,20 +553,23 @@ public class HtxCore extends HtxApi
                             put( "linear-swap-api/v1/swap_ladder_margin", 1 );
                             put( "linear-swap-api/v1/swap_cross_ladder_margin", 1 );
                             put( "linear-swap-api/v1/swap_api_state", 1 );
-                            put( "linear-swap-api/v1/swap_cross_transfer_state", 1 );
-                            put( "linear-swap-api/v1/swap_cross_trade_state", 1 );
                             put( "linear-swap-api/v1/swap_elite_account_ratio", 1 );
                             put( "linear-swap-api/v1/swap_elite_position_ratio", 1 );
-                            put( "linear-swap-api/v1/swap_liquidation_orders", 1 );
                             put( "linear-swap-api/v1/swap_settlement_records", 1 );
-                            put( "linear-swap-api/v1/swap_funding_rate", 1 );
-                            put( "linear-swap-api/v1/swap_batch_funding_rate", 1 );
-                            put( "linear-swap-api/v1/swap_historical_funding_rate", 1 );
                             put( "linear-swap-api/v3/swap_liquidation_orders", 1 );
                             put( "index/market/history/linear_swap_premium_index_kline", 1 );
                             put( "index/market/history/linear_swap_estimated_rate_kline", 1 );
                             put( "index/market/history/linear_swap_basis", 1 );
                             put( "linear-swap-api/v1/swap_estimated_settlement_price", 1 );
+                            put( "v5/market/funding_rate", 0.125 );
+                            put( "v5/market/funding_rate_history", 0.125 );
+                            put( "v5/market/open_interest", 0.125 );
+                            put( "v5/market/liquidation_orders", 0.125 );
+                            put( "v5/market/settlement_history", 0.125 );
+                            put( "v5/market/elite_account_ratio", 0.125 );
+                            put( "v5/market/elite_position_ratio", 0.125 );
+                            put( "v5/market/estimated_settlement_price", 0.125 );
+                            put( "v5/market/price_limit", 0.125 );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
@@ -577,28 +578,25 @@ public class HtxCore extends HtxApi
                             put( "api/v1/contract_api_trading_status", 1 );
                             put( "swap-api/v1/swap_sub_auth_list", 1 );
                             put( "swap-api/v1/swap_api_trading_status", 1 );
-                            put( "linear-swap-api/v1/swap_sub_auth_list", 1 );
-                            put( "linear-swap-api/v1/swap_api_trading_status", 1 );
-                            put( "linear-swap-api/v1/swap_cross_position_side", 1 );
-                            put( "linear-swap-api/v1/swap_position_side", 1 );
-                            put( "linear-swap-api/v3/unified_account_info", 1 );
-                            put( "linear-swap-api/v3/fix_position_margin_change_record", 1 );
-                            put( "linear-swap-api/v3/swap_unified_account_type", 1 );
-                            put( "linear-swap-api/v3/linear_swap_overview_account_info", 1 );
-                            put( "v5/account/balance", 1 );
-                            put( "v5/account/asset_mode", 1 );
-                            put( "v5/trade/position/opens", 1 );
-                            put( "v5/trade/order/opens", 1 );
-                            put( "v5/trade/order/details", 1 );
-                            put( "v5/trade/order/history", 1 );
-                            put( "v5/trade/order", 1 );
-                            put( "v5/position/lever", 1 );
-                            put( "v5/position/mode", 1 );
-                            put( "v5/position/risk/limit", 1 );
-                            put( "v5/position/risk/limit_tier", 1 );
-                            put( "v5/market/risk/limit", 1 );
-                            put( "v5/market/assets_deduction_currency", 1 );
-                            put( "v5/market/multi_assets_margin", 1 );
+                            put( "v5/account/asset_mode", 0.20834 );
+                            put( "v5/account/balance", 0.20834 );
+                            put( "v5/account/bills", 0.20834 );
+                            put( "v5/account/fee_deduction_currency", 0.20834 );
+                            put( "v5/trade/position/opens", 0.41679 );
+                            put( "v5/trade/order/opens", 0.41679 );
+                            put( "v5/trade/order/details", 0.41679 );
+                            put( "v5/trade/order/history", 0.41679 );
+                            put( "v5/trade/order", 0.41679 );
+                            put( "v5/position/lever", 0.20834 );
+                            put( "v5/position/mode", 0.20834 );
+                            put( "v5/position/risk/limit", 0.20834 );
+                            put( "v5/position/risk/limit_tier", 0.20834 );
+                            put( "v5/market/risk/limit", 0.125 );
+                            put( "v5/market/assets_deduction_currency", 0.125 );
+                            put( "v5/market/multi_assets_margin", 0.125 );
+                            put( "v5/algo/order/opens", 0.41679 );
+                            put( "v5/algo/order", 0.41679 );
+                            put( "v5/algo/order/history", 0.41679 );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "api/v1/contract_balance_valuation", 1 );
@@ -711,124 +709,21 @@ public class HtxCore extends HtxApi
                             put( "swap-api/v1/swap_track_cancelall", 1 );
                             put( "swap-api/v1/swap_track_openorders", 1 );
                             put( "swap-api/v1/swap_track_hisorders", 1 );
-                            put( "linear-swap-api/v1/swap_lever_position_limit", 1 );
-                            put( "linear-swap-api/v1/swap_cross_lever_position_limit", 1 );
-                            put( "linear-swap-api/v1/swap_balance_valuation", 1 );
-                            put( "linear-swap-api/v1/swap_account_info", 1 );
-                            put( "linear-swap-api/v1/swap_cross_account_info", 1 );
-                            put( "linear-swap-api/v1/swap_position_info", 1 );
-                            put( "linear-swap-api/v1/swap_cross_position_info", 1 );
-                            put( "linear-swap-api/v1/swap_account_position_info", 1 );
-                            put( "linear-swap-api/v1/swap_cross_account_position_info", 1 );
-                            put( "linear-swap-api/v1/swap_sub_auth", 1 );
-                            put( "linear-swap-api/v1/swap_sub_account_list", 1 );
-                            put( "linear-swap-api/v1/swap_cross_sub_account_list", 1 );
-                            put( "linear-swap-api/v1/swap_sub_account_info_list", 1 );
-                            put( "linear-swap-api/v1/swap_cross_sub_account_info_list", 1 );
-                            put( "linear-swap-api/v1/swap_sub_account_info", 1 );
-                            put( "linear-swap-api/v1/swap_cross_sub_account_info", 1 );
-                            put( "linear-swap-api/v1/swap_sub_position_info", 1 );
-                            put( "linear-swap-api/v1/swap_cross_sub_position_info", 1 );
-                            put( "linear-swap-api/v1/swap_financial_record", 1 );
-                            put( "linear-swap-api/v1/swap_financial_record_exact", 1 );
-                            put( "linear-swap-api/v1/swap_user_settlement_records", 1 );
-                            put( "linear-swap-api/v1/swap_cross_user_settlement_records", 1 );
-                            put( "linear-swap-api/v1/swap_available_level_rate", 1 );
-                            put( "linear-swap-api/v1/swap_cross_available_level_rate", 1 );
-                            put( "linear-swap-api/v1/swap_order_limit", 1 );
-                            put( "linear-swap-api/v1/swap_fee", 1 );
-                            put( "linear-swap-api/v1/swap_transfer_limit", 1 );
-                            put( "linear-swap-api/v1/swap_cross_transfer_limit", 1 );
-                            put( "linear-swap-api/v1/swap_position_limit", 1 );
-                            put( "linear-swap-api/v1/swap_cross_position_limit", 1 );
-                            put( "linear-swap-api/v1/swap_master_sub_transfer", 1 );
-                            put( "linear-swap-api/v1/swap_master_sub_transfer_record", 1 );
-                            put( "linear-swap-api/v1/swap_transfer_inner", 1 );
-                            put( "linear-swap-api/v3/swap_financial_record", 1 );
-                            put( "linear-swap-api/v3/swap_financial_record_exact", 1 );
-                            put( "linear-swap-api/v1/swap_order", 1 );
-                            put( "linear-swap-api/v1/swap_cross_order", 1 );
-                            put( "linear-swap-api/v1/swap_batchorder", 1 );
-                            put( "linear-swap-api/v1/swap_cross_batchorder", 1 );
-                            put( "linear-swap-api/v1/swap_cancel", 1 );
-                            put( "linear-swap-api/v1/swap_cross_cancel", 1 );
-                            put( "linear-swap-api/v1/swap_cancelall", 1 );
-                            put( "linear-swap-api/v1/swap_cross_cancelall", 1 );
-                            put( "linear-swap-api/v1/swap_switch_lever_rate", 30 );
-                            put( "linear-swap-api/v1/swap_cross_switch_lever_rate", 30 );
-                            put( "linear-swap-api/v1/swap_lightning_close_position", 1 );
-                            put( "linear-swap-api/v1/swap_cross_lightning_close_position", 1 );
-                            put( "linear-swap-api/v1/swap_order_info", 1 );
-                            put( "linear-swap-api/v1/swap_cross_order_info", 1 );
-                            put( "linear-swap-api/v1/swap_order_detail", 1 );
-                            put( "linear-swap-api/v1/swap_cross_order_detail", 1 );
-                            put( "linear-swap-api/v1/swap_openorders", 1 );
-                            put( "linear-swap-api/v1/swap_cross_openorders", 1 );
-                            put( "linear-swap-api/v1/swap_hisorders", 1 );
-                            put( "linear-swap-api/v1/swap_cross_hisorders", 1 );
-                            put( "linear-swap-api/v1/swap_hisorders_exact", 1 );
-                            put( "linear-swap-api/v1/swap_cross_hisorders_exact", 1 );
-                            put( "linear-swap-api/v1/swap_matchresults", 1 );
-                            put( "linear-swap-api/v1/swap_cross_matchresults", 1 );
-                            put( "linear-swap-api/v1/swap_matchresults_exact", 1 );
-                            put( "linear-swap-api/v1/swap_cross_matchresults_exact", 1 );
-                            put( "linear-swap-api/v1/linear-cancel-after", 1 );
-                            put( "linear-swap-api/v1/swap_switch_position_mode", 1 );
-                            put( "linear-swap-api/v1/swap_cross_switch_position_mode", 1 );
-                            put( "linear-swap-api/v3/swap_matchresults", 1 );
-                            put( "linear-swap-api/v3/swap_cross_matchresults", 1 );
-                            put( "linear-swap-api/v3/swap_matchresults_exact", 1 );
-                            put( "linear-swap-api/v3/swap_cross_matchresults_exact", 1 );
-                            put( "linear-swap-api/v3/swap_hisorders", 1 );
-                            put( "linear-swap-api/v3/swap_cross_hisorders", 1 );
-                            put( "linear-swap-api/v3/swap_hisorders_exact", 1 );
-                            put( "linear-swap-api/v3/swap_cross_hisorders_exact", 1 );
-                            put( "linear-swap-api/v3/fix_position_margin_change", 1 );
-                            put( "linear-swap-api/v3/swap_switch_account_type", 1 );
-                            put( "linear-swap-api/v3/linear_swap_fee_switch", 1 );
-                            put( "linear-swap-api/v1/swap_trigger_order", 1 );
-                            put( "linear-swap-api/v1/swap_cross_trigger_order", 1 );
-                            put( "linear-swap-api/v1/swap_trigger_cancel", 1 );
-                            put( "linear-swap-api/v1/swap_cross_trigger_cancel", 1 );
-                            put( "linear-swap-api/v1/swap_trigger_cancelall", 1 );
-                            put( "linear-swap-api/v1/swap_cross_trigger_cancelall", 1 );
-                            put( "linear-swap-api/v1/swap_trigger_openorders", 1 );
-                            put( "linear-swap-api/v1/swap_cross_trigger_openorders", 1 );
-                            put( "linear-swap-api/v1/swap_trigger_hisorders", 1 );
-                            put( "linear-swap-api/v1/swap_cross_trigger_hisorders", 1 );
-                            put( "linear-swap-api/v1/swap_tpsl_order", 1 );
-                            put( "linear-swap-api/v1/swap_cross_tpsl_order", 1 );
-                            put( "linear-swap-api/v1/swap_tpsl_cancel", 1 );
-                            put( "linear-swap-api/v1/swap_cross_tpsl_cancel", 1 );
-                            put( "linear-swap-api/v1/swap_tpsl_cancelall", 1 );
-                            put( "linear-swap-api/v1/swap_cross_tpsl_cancelall", 1 );
-                            put( "linear-swap-api/v1/swap_tpsl_openorders", 1 );
-                            put( "linear-swap-api/v1/swap_cross_tpsl_openorders", 1 );
-                            put( "linear-swap-api/v1/swap_tpsl_hisorders", 1 );
-                            put( "linear-swap-api/v1/swap_cross_tpsl_hisorders", 1 );
-                            put( "linear-swap-api/v1/swap_relation_tpsl_order", 1 );
-                            put( "linear-swap-api/v1/swap_cross_relation_tpsl_order", 1 );
-                            put( "linear-swap-api/v1/swap_track_order", 1 );
-                            put( "linear-swap-api/v1/swap_cross_track_order", 1 );
-                            put( "linear-swap-api/v1/swap_track_cancel", 1 );
-                            put( "linear-swap-api/v1/swap_cross_track_cancel", 1 );
-                            put( "linear-swap-api/v1/swap_track_cancelall", 1 );
-                            put( "linear-swap-api/v1/swap_cross_track_cancelall", 1 );
-                            put( "linear-swap-api/v1/swap_track_openorders", 1 );
-                            put( "linear-swap-api/v1/swap_cross_track_openorders", 1 );
-                            put( "linear-swap-api/v1/swap_track_hisorders", 1 );
-                            put( "linear-swap-api/v1/swap_cross_track_hisorders", 1 );
-                            put( "v5/account/asset_mode", 1 );
-                            put( "v5/trade/order", 1 );
-                            put( "v5/trade/batch_orders", 1 );
-                            put( "v5/trade/cancel_order", 1 );
-                            put( "v5/trade/cancel_batch_orders", 1 );
-                            put( "v5/trade/cancel_all_orders", 1 );
-                            put( "v5/trade/position", 1 );
-                            put( "v5/trade/position_all", 1 );
-                            put( "v5/position/lever", 1 );
-                            put( "v5/position/mode", 1 );
-                            put( "v5/account/fee_deduction_currency", 1 );
+                            put( "v5/account/asset_mode", 100 );
+                            put( "v5/trade/order", 0.41679 );
+                            put( "v5/trade/batch_orders", 0.41679 );
+                            put( "v5/trade/cancel_order", 0.41679 );
+                            put( "v5/trade/cancel_batch_orders", 0.41679 );
+                            put( "v5/trade/cancel_all_orders", 0.41679 );
+                            put( "v5/trade/cancel-after", 0.41679 );
+                            put( "v5/trade/position", 0.41679 );
+                            put( "v5/trade/position_all", 0.41679 );
+                            put( "v5/position/lever", 0.20834 );
+                            put( "v5/position/mode", 0.20834 );
+                            put( "v5/position/margin", 0.20834 );
+                            put( "v5/account/fee_deduction_currency", 0.20834 );
+                            put( "v5/algo/order", 0.41679 );
+                            put( "v5/algo/cancel_orders", 0.41679 );
                         }} );
                     }} );
                 }} );
@@ -1274,21 +1169,21 @@ public class HtxCore extends HtxApi
                     }} );
                     put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
                         put( "marginMode", true );
-                        put( "trigger", false );
-                        put( "trailing", false );
+                        put( "trigger", true );
+                        put( "trailing", true );
                         put( "limit", 50 );
                     }} );
                     put( "fetchOrders", new java.util.HashMap<String, Object>() {{
                         put( "marginMode", true );
-                        put( "trigger", false );
-                        put( "trailing", false );
+                        put( "trigger", true );
+                        put( "trailing", true );
                         put( "limit", 50 );
                         put( "daysBack", 90 );
                     }} );
                     put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
                         put( "marginMode", true );
-                        put( "trigger", false );
-                        put( "trailing", false );
+                        put( "trigger", true );
+                        put( "trailing", true );
                         put( "untilDays", 2 );
                         put( "limit", 50 );
                         put( "daysBack", 90 );
@@ -2837,16 +2732,41 @@ public class HtxCore extends HtxApi
         //         "trade_partition":"USDT"
         //     }
         //
+        // linear swap fetchMyTrades
+        //
+        //     {
+        //         "id": "1513834754679549965",
+        //         "contract_code": "BTC-USDT",
+        //         "order_id": "1513834754585190400",
+        //         "trade_id": "152022944",
+        //         "side": "sell",
+        //         "position_side": "long",
+        //         "order_type": "1",
+        //         "margin_mode": "cross",
+        //         "type": "market",
+        //         "role": "TAKER",
+        //         "trade_price": "62688.2",
+        //         "trade_volume": "2",
+        //         "trade_turnover": "125.3764",
+        //         "created_time": "1780967931197",
+        //         "updated_time": "1780967931197",
+        //         "order_source": "api",
+        //         "fee_currency": "USDT",
+        //         "trade_fee": "0.07522584",
+        //         "deduction_price": "",
+        //         "profit": "-0.3656",
+        //         "contract_type": "swap"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString2(trade, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger2(trade, "ts", "created-at");
-        timestamp = this.safeInteger2(trade, "created_at", "create_date", timestamp);
+        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("ts", "created-at", "created_at", "create_date", "created_time")));
         Object order = this.safeString2(trade, "order-id", "order_id");
-        Object side = this.safeString(trade, "direction");
+        Object side = this.safeString2(trade, "direction", "side");
         Object type = this.safeString(trade, "type");
-        if (Helpers.isTrue(!Helpers.isEqual(type, null)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "-"), 0)))))
         {
             Object typeParts = Helpers.split(type, "-");
             side = Helpers.GetValue(typeParts, 0);
@@ -2863,7 +2783,7 @@ public class HtxCore extends HtxApi
         {
             feeCost = Precise.stringNeg(this.safeString(trade, "trade_fee"));
         }
-        Object feeCurrencyId = this.safeString2(trade, "fee-currency", "fee_asset");
+        Object feeCurrencyId = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee-currency", "fee_asset", "fee_currency")));
         Object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         Object filledPoints = this.safeString(trade, "filled-points");
         if (Helpers.isTrue(!Helpers.isEqual(filledPoints, null)))
@@ -2900,7 +2820,6 @@ public class HtxCore extends HtxApi
             id = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("trade_id", "trade-id", "id")));
         }
         final Object finalId = id;
-        final Object finalTimestamp = timestamp;
         final Object finalType = type;
         final Object finalSide = side;
         final Object finalAmountString = amountString;
@@ -2909,8 +2828,8 @@ public class HtxCore extends HtxApi
             put( "id", finalId );
             put( "info", trade );
             put( "order", order );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", HtxCore.this.iso8601(finalTimestamp) );
+            put( "timestamp", timestamp );
+            put( "datetime", HtxCore.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "type", finalType );
             put( "side", finalSide );
@@ -2996,16 +2915,15 @@ public class HtxCore extends HtxApi
     /**
      * @method
      * @name htx#fetchMyTrades
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
      * @description fetch all trades made by the user
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195898804f0
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
@@ -3062,38 +2980,32 @@ public class HtxCore extends HtxApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
                 }
-                Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
-                Helpers.addElementToObject(request, "trade_type", 0); // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
-                    Helpers.addElementToObject(request, "start_time", since); // a date within 120 days from today
+                    Helpers.addElementToObject(request, "start_time", since);
                 }
                 var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                if (Helpers.isTrue(this.safeBool(market, "linear")))
                 {
-                    Helpers.addElementToObject(request, "page_size", limit); // default 100, max 500
-                }
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
-                {
-                    Object marginMode = null;
-                    var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
-                    marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-                    parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                    marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                    if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
+                    Helpers.addElementToObject(request, "contract_code", this.safeString(market, "id"));
+                    if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                     {
-                        response = (this.contractPrivatePostLinearSwapApiV3SwapMatchresultsExact(this.extend(request, parameters))).join();
-                    } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
-                    {
-                        response = (this.contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact(this.extend(request, parameters))).join();
+                        Helpers.addElementToObject(request, "limit", limit); // default 100, max 500
                     }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                    response = (this.contractPrivateGetV5TradeOrderDetails(this.extend(request, parameters))).join();
+                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
                 {
+                    if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                    {
+                        Helpers.addElementToObject(request, "page_size", limit); // default 100, max 500
+                    }
+                    Helpers.addElementToObject(request, "contract", this.safeString(market, "id"));
+                    Helpers.addElementToObject(request, "trade_type", 0); // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
                     if (Helpers.isTrue(Helpers.isEqual(marketType, "future")))
                     {
-                        Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "settleId"));
+                        Helpers.addElementToObject(request, "symbol", this.safeString(market, "settleId"));
                         response = (this.contractPrivatePostApiV3ContractMatchresultsExact(this.extend(request, parameters))).join();
                     } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
                     {
@@ -3168,6 +3080,39 @@ public class HtxCore extends HtxApi
             //             "next_id": 2424413094
             //         },
             //         "ts": 1604372202243
+            //     }
+            //
+            // linear swap
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "id": "1513834754679549965",
+            //                 "contract_code": "BTC-USDT",
+            //                 "order_id": "1513834754585190400",
+            //                 "trade_id": "152022944",
+            //                 "side": "sell",
+            //                 "position_side": "long",
+            //                 "order_type": "1",
+            //                 "margin_mode": "cross",
+            //                 "type": "market",
+            //                 "role": "TAKER",
+            //                 "trade_price": "62688.2",
+            //                 "trade_volume": "2",
+            //                 "trade_turnover": "125.3764",
+            //                 "created_time": "1780967931197",
+            //                 "updated_time": "1780967931197",
+            //                 "order_source": "api",
+            //                 "fee_currency": "USDT",
+            //                 "trade_fee": "0.07522584",
+            //                 "deduction_price": "",
+            //                 "profit": "-0.3656",
+            //                 "contract_type": "swap"
+            //             }
+            //         ],
+            //         "ts": 1781066959396
             //     }
             //
             Object trades = this.safeValue(response, "data");
@@ -3755,9 +3700,13 @@ public class HtxCore extends HtxApi
     public Object networkCodeToId(Object networkCode, Object... optionalArgs)
     {
         Object currencyCode = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
+        {
+            return null;
+        }
         if (Helpers.isTrue(Helpers.isEqual(currencyCode, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " networkCodeToId() requires a currencyCode argument")) ;
+            return super.networkCodeToId(networkCode);
         }
         Object keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkChainIdsByNames"));
         Object keysLength = Helpers.getArrayLength(keys);
@@ -3782,15 +3731,12 @@ public class HtxCore extends HtxApi
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] linear or future
-     * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {string} [params.type] spot, margin, future or swap
+     * @param {string} [params.subType] linear or inverse
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -3801,25 +3747,30 @@ public class HtxCore extends HtxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
+            Object isUnifiedAccount = null;
+            var isUnifiedAccountparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
+            isUnifiedAccount = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(1);
+            if (Helpers.isTrue(isUnifiedAccount))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " fetchBalance() unified account has been deprecated on htx")) ;
+            }
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            Object isUnifiedAccount = null;
             Object isMultiAssetMode = null;
             var subTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType", "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            var isUnifiedAccountparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
-            isUnifiedAccount = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(1);
             var isMultiAssetModeparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
             isMultiAssetMode = ((java.util.List<Object>) isMultiAssetModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isMultiAssetModeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object spot = (Helpers.isEqual(type, "spot"));
             Object future = (Helpers.isEqual(type, "future"));
+            Object swap = (Helpers.isEqual(type, "swap"));
             Object inverse = (Helpers.isEqual(subType, "inverse"));
             Object linear = (Helpers.isEqual(subType, "linear"));
             Object marginMode = null;
@@ -3830,7 +3781,7 @@ public class HtxCore extends HtxApi
             Object cross = (Helpers.isEqual(marginMode, "cross"));
             Object margin = Helpers.isTrue((Helpers.isEqual(type, "margin"))) || Helpers.isTrue((Helpers.isTrue(spot) && Helpers.isTrue((Helpers.isTrue(cross) || Helpers.isTrue(isolated)))));
             Object response = null;
-            if (Helpers.isTrue(isMultiAssetMode))
+            if (Helpers.isTrue(Helpers.isTrue(isMultiAssetMode) || Helpers.isTrue((Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future)))))))
             {
                 response = (this.contractPrivateGetV5AccountBalance(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.isTrue(spot) || Helpers.isTrue(margin)))
@@ -3850,18 +3801,6 @@ public class HtxCore extends HtxApi
                     Object accountId = (this.fetchAccountIdByType(type, null, null, parameters)).join();
                     Helpers.addElementToObject(request, "account-id", accountId);
                     response = (this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, parameters))).join();
-                }
-            } else if (Helpers.isTrue(isUnifiedAccount))
-            {
-                response = (this.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(linear))
-            {
-                if (Helpers.isTrue(isolated))
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapAccountInfo(this.extend(request, parameters))).join();
-                } else
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo(this.extend(request, parameters))).join();
                 }
             } else if (Helpers.isTrue(inverse))
             {
@@ -3974,63 +3913,7 @@ public class HtxCore extends HtxApi
             //         "ts": 1637644827566
             //     }
             //
-            // linear cross futures and linear cross swap
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "futures_contract_detail": [
-            //                     {
-            //                         "symbol": "ETH",
-            //                         "contract_code": "ETH-USDT-220325",
-            //                         "margin_position": 0,
-            //                         "margin_frozen": 0,
-            //                         "margin_available": 200.000000000000000000,
-            //                         "profit_unreal": 0E-18,
-            //                         "liquidation_price": null,
-            //                         "lever_rate": 5,
-            //                         "adjust_factor": 0.060000000000000000,
-            //                         "contract_type": "quarter",
-            //                         "pair": "ETH-USDT",
-            //                         "business_type": "futures"
-            //                     },
-            //                 ],
-            //                 "margin_mode": "cross",
-            //                 "margin_account": "USDT",
-            //                 "margin_asset": "USDT",
-            //                 "margin_balance": 49.874186030200000000,
-            //                 "money_in": 50,
-            //                 "money_out": 0,
-            //                 "margin_static": 49.872786030200000000,
-            //                 "margin_position": 6.180000000000000000,
-            //                 "margin_frozen": 6.000000000000000000,
-            //                 "profit_unreal": 0.001400000000000000,
-            //                 "withdraw_available": 37.6927860302,
-            //                 "risk_rate": 271.984050521072796934,
-            //                 "new_risk_rate": 0.001858676950514399,
-            //                 "contract_detail": [
-            //                     {
-            //                         "symbol": "MANA",
-            //                         "contract_code": "MANA-USDT",
-            //                         "margin_position": 0,
-            //                         "margin_frozen": 0,
-            //                         "margin_available": 200.000000000000000000,
-            //                         "profit_unreal": 0E-18,
-            //                         "liquidation_price": null,
-            //                         "lever_rate": 5,
-            //                         "adjust_factor": 0.100000000000000000,
-            //                         "contract_type": "swap",
-            //                         "pair": "MANA-USDT",
-            //                         "business_type": "swap"
-            //                     },
-            //                 ]
-            //             }
-            //         ],
-            //         "ts": 1640915104870
-            //     }
-            //
-            // multi asset mode
+            // linear swap and multi asset mode
             //
             //     {
             //         "code": 200,
@@ -4075,7 +3958,7 @@ public class HtxCore extends HtxApi
                 put( "info", finalResponse );
             }});
             Object data = this.safeValue(response, "data");
-            if (Helpers.isTrue(isMultiAssetMode))
+            if (Helpers.isTrue(Helpers.isTrue(isMultiAssetMode) || Helpers.isTrue((Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future)))))))
             {
                 Object details = this.safeList(data, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
@@ -4084,7 +3967,8 @@ public class HtxCore extends HtxApi
                     Object currencyId = this.safeString(balance, "currency");
                     Object code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
-                    Helpers.addElementToObject(account, "free", this.safeString(balance, "withdraw_available"));
+                    Helpers.addElementToObject(account, "free", this.safeString(balance, "available_margin"));
+                    Helpers.addElementToObject(account, "total", this.safeString(balance, "equity"));
                     Helpers.addElementToObject(result, code, account);
                 }
                 result = this.safeBalance(result);
@@ -4119,74 +4003,6 @@ public class HtxCore extends HtxApi
                     }
                     result = this.safeBalance(result);
                 }
-            } else if (Helpers.isTrue(isUnifiedAccount))
-            {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
-                {
-                    Object entry = Helpers.GetValue(data, i);
-                    Object marginAsset = this.safeString(entry, "margin_asset");
-                    Object currencyCode = this.safeCurrencyCode(marginAsset);
-                    if (Helpers.isTrue(isolated))
-                    {
-                        Object isolated_swap = this.safeValue(entry, "isolated_swap", new java.util.HashMap<String, Object>() {{}});
-                        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(isolated_swap)); j++)
-                        {
-                            Object balance = Helpers.GetValue(isolated_swap, j);
-                            Object marketId = this.safeString(balance, "contract_code");
-                            Object subBalance = new java.util.HashMap<String, Object>() {{
-                                put( "code", currencyCode );
-                                put( "free", HtxCore.this.safeNumber(balance, "margin_available") );
-                            }};
-                            Object symbol = this.safeSymbol(marketId);
-                            Helpers.addElementToObject(result, symbol, subBalance);
-                            result = this.safeBalance(result);
-                        }
-                    } else
-                    {
-                        Object account = this.account();
-                        Helpers.addElementToObject(account, "free", this.safeString(entry, "margin_static"));
-                        Helpers.addElementToObject(account, "used", this.safeString(entry, "margin_frozen"));
-                        Helpers.addElementToObject(result, currencyCode, account);
-                        result = this.safeBalance(result);
-                    }
-                }
-            } else if (Helpers.isTrue(linear))
-            {
-                Object first = this.safeValue(data, 0, new java.util.HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(isolated))
-                {
-                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
-                    {
-                        Object balance = Helpers.GetValue(data, i);
-                        Object marketId = this.safeString2(balance, "contract_code", "margin_account");
-                        Object market = this.safeMarket(marketId);
-                        Object currencyId = this.safeString(balance, "margin_asset");
-                        Object currency = this.safeCurrency(currencyId);
-                        Object code = this.safeString(market, "settle", Helpers.GetValue(currency, "code"));
-                        // the exchange outputs positions for delisted markets
-                        // https://www.huobi.com/support/en-us/detail/74882968522337
-                        // we skip it if the market was delisted
-                        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
-                        {
-                            Object account = this.account();
-                            Helpers.addElementToObject(account, "free", this.safeString(balance, "margin_balance"));
-                            Helpers.addElementToObject(account, "used", this.safeString(balance, "margin_frozen"));
-                            Object accountsByCode = new java.util.HashMap<String, Object>() {{}};
-                            Helpers.addElementToObject(accountsByCode, code, account);
-                            Object symbol = Helpers.GetValue(market, "symbol");
-                            Helpers.addElementToObject(result, symbol, this.safeBalance(accountsByCode));
-                        }
-                    }
-                } else
-                {
-                    Object account = this.account();
-                    Helpers.addElementToObject(account, "free", this.safeString(first, "withdraw_available"));
-                    Helpers.addElementToObject(account, "total", this.safeString(first, "margin_balance"));
-                    Object currencyId = this.safeString2(first, "margin_asset", "symbol");
-                    Object code = this.safeCurrencyCode(currencyId);
-                    Helpers.addElementToObject(result, code, account);
-                    result = this.safeBalance(result);
-                }
             } else if (Helpers.isTrue(inverse))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -4212,13 +4028,17 @@ public class HtxCore extends HtxApi
      * @description fetches information on an order made by the user
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-196a8401f83
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] *linear only* set to true if you want to fetch a trigger order
+     * @param {bool} [params.stopLossTakeProfit] *linear only* set to true if you want to fetch a stop-loss take-profit order
+     * @param {bool} [params.stopLoss] *linear only* set to true if you want to fetch a stop-loss order
+     * @param {bool} [params.takeProfit] *linear only* set to true if you want to fetch a take-profit order
+     * @param {bool} [params.trailing] *linear only* set to true if you want to fetch a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
@@ -4256,42 +4076,79 @@ public class HtxCore extends HtxApi
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
-                {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
-                }
-                Object clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
+                Object trigger = this.safeBool2(parameters, "stop", "trigger");
+                Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+                Object stopLoss = this.safeBool(parameters, "stopLoss");
+                Object takeProfit = this.safeBool(parameters, "takeProfit");
+                Object trailing = this.safeBool(parameters, "trailing");
+                Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLoss)) || Helpers.isTrue(takeProfit)) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing));
+                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+                Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
                 if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
                 {
-                    Helpers.addElementToObject(request, "order_id", id);
+                    if (Helpers.isTrue(isAlgo))
+                    {
+                        Helpers.addElementToObject(request, "algo_id", id);
+                    } else
+                    {
+                        Helpers.addElementToObject(request, "order_id", id);
+                    }
                 } else
                 {
-                    Helpers.addElementToObject(request, "client_order_id", clientOrderId);
-                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId")));
-                }
-                Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
-                {
-                    Object marginMode = null;
-                    var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
-                    marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-                    parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                    marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                    if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
+                    if (Helpers.isTrue(isAlgo))
                     {
-                        response = (this.contractPrivatePostLinearSwapApiV1SwapOrderInfo(this.extend(request, parameters))).join();
-                    } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
+                        Helpers.addElementToObject(request, "algo_client_order_id", clientOrderId);
+                    } else
                     {
-                        response = (this.contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo(this.extend(request, parameters))).join();
+                        Helpers.addElementToObject(request, "client_order_id", clientOrderId);
                     }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
+                }
+                if (Helpers.isTrue(this.safeBool(market, "linear")))
+                {
+                    if (Helpers.isTrue(isAlgo))
+                    {
+                        if (Helpers.isTrue(trigger))
+                        {
+                            Helpers.addElementToObject(request, "type", "trigger");
+                        } else if (Helpers.isTrue(trailing))
+                        {
+                            Helpers.addElementToObject(request, "type", "trailing_stop");
+                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        {
+                            Helpers.addElementToObject(request, "type", "tpsl");
+                        } else if (Helpers.isTrue(stopLoss))
+                        {
+                            Helpers.addElementToObject(request, "type", "sl");
+                        } else if (Helpers.isTrue(takeProfit))
+                        {
+                            Helpers.addElementToObject(request, "type", "tp");
+                        }
+                        response = (this.contractPrivateGetV5AlgoOrder(this.extend(request, parameters))).join();
+                    } else
+                    {
+                        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                        {
+                            throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                        }
+                        Helpers.addElementToObject(request, "contract_code", this.safeString(market, "id"));
+                        Object marginMode = null;
+                        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+                        marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
+                        parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
+                        marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
+                        Helpers.addElementToObject(request, "margin_mode", marginMode);
+                        response = (this.contractPrivateGetV5TradeOrder(this.extend(request, parameters))).join();
+                    }
+                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(marketType, "future")))
                     {
-                        Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "settleId"));
+                        Helpers.addElementToObject(request, "symbol", this.safeString(market, "settleId"));
                         response = (this.contractPrivatePostApiV1ContractOrderInfo(this.extend(request, parameters))).join();
                     } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
                     {
+                        Helpers.addElementToObject(request, "contract_code", this.safeString(market, "id"));
                         response = (this.contractPrivatePostSwapApiV1SwapOrderInfo(this.extend(request, parameters))).join();
                     } else
                     {
@@ -4323,113 +4180,87 @@ public class HtxCore extends HtxApi
             //         }
             //     }
             //
-            // linear swap cross margin
+            // linear swap
             //
             //     {
-            //         "status":"ok",
-            //         "data":[
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": {
+            //             "id": "1513828877079584768",
+            //             "side": "buy",
+            //             "type": "limit",
+            //             "price": "50000",
+            //             "volume": "1",
+            //             "state": "new",
+            //             "profit": null,
+            //             "contract_code": "BTC-USDT",
+            //             "position_side": "long",
+            //             "price_match": null,
+            //             "order_id": "1513828877079584768",
+            //             "client_order_id": "1513828877079584768",
+            //             "margin_mode": "cross",
+            //             "lever_rate": 20,
+            //             "order_source": "api",
+            //             "reduce_only": false,
+            //             "time_in_force": "gtc",
+            //             "tp_trigger_price": "",
+            //             "tp_order_price": "",
+            //             "tp_type": "0",
+            //             "tp_trigger_price_type": "",
+            //             "sl_trigger_price": "",
+            //             "sl_order_price": "",
+            //             "sl_type": "0",
+            //             "sl_trigger_price_type": "",
+            //             "trade_avg_price": "0",
+            //             "trade_volume": "0",
+            //             "trade_turnover": "0",
+            //             "fee_currency": "",
+            //             "fee": "0",
+            //             "price_protect": false,
+            //             "real_profit": null,
+            //             "contract_type": "swap",
+            //             "created_time": "1780966529876",
+            //             "updated_time": "1780966572409",
+            //             "cancel_reason": null,
+            //             "self_match_prevent": "cancel_taker"
+            //         },
+            //         "ts": 1780966573200
+            //     }
+            //
+            // linear swap algo
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
             //             {
-            //                 "business_type":"swap",
-            //                 "contract_type":"swap",
-            //                 "pair":"BTC-USDT",
-            //                 "symbol":"BTC",
-            //                 "contract_code":"BTC-USDT",
-            //                 "volume":1,
-            //                 "price":3000,
-            //                 "order_price_type":"limit",
-            //                 "order_type":1,
-            //                 "direction":"buy",
-            //                 "offset":"open",
-            //                 "lever_rate":1,
-            //                 "order_id":924912513206878210,
-            //                 "client_order_id":null,
-            //                 "created_at":1640557927189,
-            //                 "trade_volume":0,
-            //                 "trade_turnover":0,
-            //                 "fee":0,
-            //                 "trade_avg_price":null,
-            //                 "margin_frozen":3.000000000000000000,
-            //                 "profit":0,
-            //                 "status":3,
-            //                 "order_source":"api",
-            //                 "order_id_str":"924912513206878210",
-            //                 "fee_asset":"USDT",
-            //                 "liquidation_type":"0",
-            //                 "canceled_at":0,
-            //                 "margin_asset":"USDT",
-            //                 "margin_account":"USDT",
-            //                 "margin_mode":"cross",
-            //                 "is_tpsl":0,
-            //                 "real_profit":0
+            //                 "id": "162320614",
+            //                 "volume": "2",
+            //                 "type": "tp",
+            //                 "state": "active",
+            //                 "side": "sell",
+            //                 "algo_id": "1513832307038027776",
+            //                 "contract_code": "BTC-USDT",
+            //                 "position_side": "long",
+            //                 "margin_mode": "cross",
+            //                 "created_time": "1780967347642",
+            //                 "updated_time": "1780967347848",
+            //                 "order_source": "api",
+            //                 "tp_trigger_price": "101000",
+            //                 "tp_order_price": "0",
+            //                 "tp_type": "market",
+            //                 "tp_trigger_price_type": "last"
             //             }
             //         ],
-            //         "ts":1640557982556
+            //         "ts": 1780967407144
             //     }
             //
-            // linear swap isolated margin detail
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "symbol": "BTC",
-            //             "contract_code": "BTC-USDT",
-            //             "instrument_price": 0,
-            //             "final_interest": 0,
-            //             "adjust_value": 0,
-            //             "lever_rate": 10,
-            //             "direction": "sell",
-            //             "offset": "open",
-            //             "volume": 1.000000000000000000,
-            //             "price": 13059.800000000000000000,
-            //             "created_at": 1603703614712,
-            //             "canceled_at": 0,
-            //             "order_source": "api",
-            //             "order_price_type": "opponent",
-            //             "margin_frozen": 0,
-            //             "profit": 0,
-            //             "trades": [
-            //                 {
-            //                     "trade_id": 131560927,
-            //                     "trade_price": 13059.800000000000000000,
-            //                     "trade_volume": 1.000000000000000000,
-            //                     "trade_turnover": 13.059800000000000000,
-            //                     "trade_fee": -0.005223920000000000,
-            //                     "created_at": 1603703614715,
-            //                     "role": "taker",
-            //                     "fee_asset": "USDT",
-            //                     "profit": 0,
-            //                     "real_profit": 0,
-            //                     "id": "131560927-770334322963152896-1"
-            //                 }
-            //             ],
-            //             "total_page": 1,
-            //             "current_page": 1,
-            //             "total_size": 1,
-            //             "liquidation_type": "0",
-            //             "fee_asset": "USDT",
-            //             "fee": -0.005223920000000000,
-            //             "order_id": 770334322963152896,
-            //             "order_id_str": "770334322963152896",
-            //             "client_order_id": 57012021045,
-            //             "order_type": "1",
-            //             "status": 6,
-            //             "trade_avg_price": 13059.800000000000000000,
-            //             "trade_turnover": 13.059800000000000000,
-            //             "trade_volume": 1.000000000000000000,
-            //             "margin_asset": "USDT",
-            //             "margin_mode": "isolated",
-            //             "margin_account": "BTC-USDT",
-            //             "real_profit": 0,
-            //             "is_tpsl": 0
-            //         },
-            //         "ts": 1603703678477
-            //     }
             Object order = this.safeValue(response, "data");
             if (Helpers.isTrue(Helpers.isArray(order)))
             {
                 order = this.safeValue(order, 0);
             }
-            return this.parseOrder(order);
+            return this.parseOrder(order, market);
         });
 
     }
@@ -4557,7 +4388,7 @@ public class HtxCore extends HtxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchSpotOrdersByStates("filled,partial-canceled,canceled", symbol, since, limit, parameters)).join();
+            return (this.fetchSpotOrdersByStates("filled", symbol, since, limit, parameters)).join();
         });
 
     }
@@ -4577,75 +4408,64 @@ public class HtxCore extends HtxApi
             }
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "trade_type", 0 );
-                put( "status", "0" );
-            }};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+            Object stopLoss = this.safeBool(parameters, "stopLoss");
+            Object takeProfit = this.safeBool(parameters, "takeProfit");
             Object trailing = this.safeBool(parameters, "trailing", false);
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing)))
+            Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLoss)) || Helpers.isTrue(takeProfit)) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing));
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
-                {
-                    Helpers.addElementToObject(request, "page_size", limit);
-                }
-                Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
-                Helpers.addElementToObject(request, "create_date", 90);
-            } else
-            {
-                if (Helpers.isTrue(!Helpers.isEqual(since, null)))
-                {
-                    Helpers.addElementToObject(request, "start_time", since); // max 90 days back
-                }
-                Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
-                Helpers.addElementToObject(request, "type", 1); // 1:All Orders,2:Order in Finished Status
+                Helpers.addElementToObject(request, "start_time", since);
             }
             var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
+                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                {
+                    Helpers.addElementToObject(request, "limit", limit);
+                }
                 Object marginMode = null;
                 var marginModeparametersVariable = this.handleMarginModeAndParams("fetchContractOrders", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
+                Helpers.addElementToObject(request, "margin_mode", marginMode);
+                Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
+                if (Helpers.isTrue(isAlgo))
                 {
                     if (Helpers.isTrue(trigger))
                     {
-                        response = (this.contractPrivatePostLinearSwapApiV1SwapTriggerHisorders(this.extend(request, parameters))).join();
-                    } else if (Helpers.isTrue(stopLossTakeProfit))
-                    {
-                        response = (this.contractPrivatePostLinearSwapApiV1SwapTpslHisorders(this.extend(request, parameters))).join();
+                        Helpers.addElementToObject(request, "type", "trigger");
                     } else if (Helpers.isTrue(trailing))
                     {
-                        response = (this.contractPrivatePostLinearSwapApiV1SwapTrackHisorders(this.extend(request, parameters))).join();
-                    } else
+                        Helpers.addElementToObject(request, "type", "trailing_stop");
+                    } else if (Helpers.isTrue(stopLossTakeProfit))
                     {
-                        response = (this.contractPrivatePostLinearSwapApiV3SwapHisorders(this.extend(request, parameters))).join();
+                        Helpers.addElementToObject(request, "type", "tpsl");
+                    } else if (Helpers.isTrue(stopLoss))
+                    {
+                        Helpers.addElementToObject(request, "type", "sl");
+                    } else if (Helpers.isTrue(takeProfit))
+                    {
+                        Helpers.addElementToObject(request, "type", "tp");
                     }
-                } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
+                    response = (this.contractPrivateGetV5AlgoOrderHistory(this.extend(request, parameters))).join();
+                } else
                 {
-                    if (Helpers.isTrue(trigger))
-                    {
-                        response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders(this.extend(request, parameters))).join();
-                    } else if (Helpers.isTrue(stopLossTakeProfit))
-                    {
-                        response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders(this.extend(request, parameters))).join();
-                    } else if (Helpers.isTrue(trailing))
-                    {
-                        response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders(this.extend(request, parameters))).join();
-                    } else
-                    {
-                        response = (this.contractPrivatePostLinearSwapApiV3SwapCrossHisorders(this.extend(request, parameters))).join();
-                    }
+                    response = (this.contractPrivateGetV5TradeOrderHistory(this.extend(request, parameters))).join();
                 }
             } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
             {
+                Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "type", 1); // 1:All Orders,2:Order in Finished Status
+                Helpers.addElementToObject(request, "trade_type", 0); // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
+                Helpers.addElementToObject(request, "status", "0"); // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
                 if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
                 {
                     if (Helpers.isTrue(trigger))
@@ -4679,148 +4499,6 @@ public class HtxCore extends HtxApi
                     }
                 }
             }
-            //
-            // future and swap
-            //
-            //     {
-            //         "code": 200,
-            //         "msg": "ok",
-            //         "data": [
-            //             {
-            //                 "direction": "buy",
-            //                 "offset": "open",
-            //                 "volume": 1.000000000000000000,
-            //                 "price": 25000.000000000000000000,
-            //                 "profit": 0E-18,
-            //                 "pair": "BTC-USDT",
-            //                 "query_id": 47403349100,
-            //                 "order_id": 1103683465337593856,
-            //                 "contract_code": "BTC-USDT-230505",
-            //                 "symbol": "BTC",
-            //                 "lever_rate": 5,
-            //                 "create_date": 1683180243577,
-            //                 "order_source": "web",
-            //                 "canceled_source": "web",
-            //                 "order_price_type": 1,
-            //                 "order_type": 1,
-            //                 "margin_frozen": 0E-18,
-            //                 "trade_volume": 0E-18,
-            //                 "trade_turnover": 0E-18,
-            //                 "fee": 0E-18,
-            //                 "trade_avg_price": 0,
-            //                 "status": 7,
-            //                 "order_id_str": "1103683465337593856",
-            //                 "fee_asset": "USDT",
-            //                 "fee_amount": 0,
-            //                 "fee_quote_amount": 0,
-            //                 "liquidation_type": "0",
-            //                 "margin_asset": "USDT",
-            //                 "margin_mode": "cross",
-            //                 "margin_account": "USDT",
-            //                 "update_time": 1683180352034,
-            //                 "is_tpsl": 0,
-            //                 "real_profit": 0,
-            //                 "trade_partition": "USDT",
-            //                 "reduce_only": 0,
-            //                 "contract_type": "this_week",
-            //                 "business_type": "futures"
-            //             }
-            //         ],
-            //         "ts": 1683239909141
-            //     }
-            //
-            // trigger
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "orders": [
-            //                 {
-            //                     "contract_type": "swap",
-            //                     "business_type": "swap",
-            //                     "pair": "BTC-USDT",
-            //                     "symbol": "BTC",
-            //                     "contract_code": "BTC-USDT",
-            //                     "trigger_type": "le",
-            //                     "volume": 1.000000000000000000,
-            //                     "order_type": 1,
-            //                     "direction": "buy",
-            //                     "offset": "open",
-            //                     "lever_rate": 1,
-            //                     "order_id": 1103670703588327424,
-            //                     "order_id_str": "1103670703588327424",
-            //                     "relation_order_id": "-1",
-            //                     "order_price_type": "limit",
-            //                     "status": 6,
-            //                     "order_source": "web",
-            //                     "trigger_price": 25000.000000000000000000,
-            //                     "triggered_price": null,
-            //                     "order_price": 24000.000000000000000000,
-            //                     "created_at": 1683177200945,
-            //                     "triggered_at": null,
-            //                     "order_insert_at": 0,
-            //                     "canceled_at": 1683179075234,
-            //                     "fail_code": null,
-            //                     "fail_reason": null,
-            //                     "margin_mode": "cross",
-            //                     "margin_account": "USDT",
-            //                     "update_time": 1683179075958,
-            //                     "trade_partition": "USDT",
-            //                     "reduce_only": 0
-            //                 },
-            //             ],
-            //             "total_page": 1,
-            //             "current_page": 1,
-            //             "total_size": 2
-            //         },
-            //         "ts": 1683239702792
-            //     }
-            //
-            // stop-loss and take-profit
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "orders": [
-            //                 {
-            //                     "contract_type": "swap",
-            //                     "business_type": "swap",
-            //                     "pair": "BTC-USDT",
-            //                     "symbol": "BTC",
-            //                     "contract_code": "BTC-USDT",
-            //                     "margin_mode": "cross",
-            //                     "margin_account": "USDT",
-            //                     "volume": 1.000000000000000000,
-            //                     "order_type": 1,
-            //                     "tpsl_order_type": "sl",
-            //                     "direction": "sell",
-            //                     "order_id": 1103680386844839936,
-            //                     "order_id_str": "1103680386844839936",
-            //                     "order_source": "web",
-            //                     "trigger_type": "le",
-            //                     "trigger_price": 25000.000000000000000000,
-            //                     "created_at": 1683179509613,
-            //                     "order_price_type": "market",
-            //                     "status": 11,
-            //                     "source_order_id": null,
-            //                     "relation_tpsl_order_id": "-1",
-            //                     "canceled_at": 0,
-            //                     "fail_code": null,
-            //                     "fail_reason": null,
-            //                     "triggered_price": null,
-            //                     "relation_order_id": "-1",
-            //                     "update_time": 1683179968231,
-            //                     "order_price": 0E-18,
-            //                     "trade_partition": "USDT"
-            //                 },
-            //             ],
-            //             "total_page": 1,
-            //             "current_page": 1,
-            //             "total_size": 2
-            //         },
-            //         "ts": 1683229230233
-            //     }
-            //
             Object orders = this.safeValue(response, "data");
             if (!Helpers.isTrue(Helpers.isArray(orders)))
             {
@@ -4840,9 +4518,32 @@ public class HtxCore extends HtxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "status", "5,6,7" );
-            }};
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchClosedContractOrders() requires a symbol argument")) ;
+            }
+            (this.loadMarkets()).join();
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object market = this.market(symbol);
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                Object trigger = this.safeBool2(parameters, "stop", "trigger");
+                Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+                Object stopLoss = this.safeBool(parameters, "stopLoss");
+                Object takeProfit = this.safeBool(parameters, "takeProfit");
+                Object trailing = this.safeBool(parameters, "trailing", false);
+                Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLoss)) || Helpers.isTrue(takeProfit)) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing));
+                if (Helpers.isTrue(isAlgo))
+                {
+                    Helpers.addElementToObject(request, "states", "effective");
+                } else
+                {
+                    Helpers.addElementToObject(request, "states", "filled");
+                }
+            } else
+            {
+                Helpers.addElementToObject(request, "status", "6");
+            }
             return (this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters))).join();
         });
 
@@ -4851,21 +4552,23 @@ public class HtxCore extends HtxApi
     /**
      * @method
      * @name htx#fetchOrders
+     * @description fetches information on multiple orders made by the user
      * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
-     * @description fetches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
-     * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
+     * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
+     * @param {bool} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
+     * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss and take-profit orders
+     * @param {bool} [params.stopLoss] *contract only* set to true if you want to fetch stop loss orders
+     * @param {bool} [params.takeProfit] *contract only* set to true if you want to fetch take profit orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
@@ -4905,14 +4608,94 @@ public class HtxCore extends HtxApi
 
     /**
      * @method
-     * @name htx#fetchClosedOrders
+     * @name htx#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
      * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object paginate = false;
+            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledOrders", "paginate");
+            paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
+            if (Helpers.isTrue(paginate))
+            {
+                return (this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, parameters, 100)).join();
+            }
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                market = this.market(symbol);
+            }
+            Object marketType = null;
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
+            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
+            {
+                return (this.fetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, parameters)).join();
+            } else
+            {
+                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchCanceledOrders() requires a symbol argument for "), marketType), " orders")) ;
+                }
+                Object request = new java.util.HashMap<String, Object>() {{}};
+                if (Helpers.isTrue(this.safeBool(market, "linear")))
+                {
+                    Object trigger = this.safeBool2(parameters, "stop", "trigger");
+                    Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+                    Object stopLoss = this.safeBool(parameters, "stopLoss");
+                    Object takeProfit = this.safeBool(parameters, "takeProfit");
+                    Object trailing = this.safeBool(parameters, "trailing", false);
+                    Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLoss)) || Helpers.isTrue(takeProfit)) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing));
+                    if (Helpers.isTrue(isAlgo))
+                    {
+                        Helpers.addElementToObject(request, "states", "canceled");
+                    } else
+                    {
+                        Helpers.addElementToObject(request, "states", "partially_canceled,canceled");
+                    }
+                } else
+                {
+                    Helpers.addElementToObject(request, "status", "5,7"); // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+                }
+                return (this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            }
+        });
+
+    }
+
+    /**
+     * @method
+     * @name htx#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4962,17 +4745,19 @@ public class HtxCore extends HtxApi
     /**
      * @method
      * @name htx#fetchOpenOrders
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
      * @description fetch all unfilled currently open orders
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589587da5
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b9754d736
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
-     * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
+     * @param {bool} [params.stopLoss] *linear swap contract only* if the orders are stop-loss orders
+     * @param {bool} [params.takeProfit] *linear swap contract only* if the orders are take-profit orders
+     * @param {bool} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
@@ -4999,12 +4784,13 @@ public class HtxCore extends HtxApi
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            Object isLinear = (Helpers.isEqual(subType, "linear"));
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
-                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                    Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 }
                 // todo replace with fetchAccountIdByType
                 Object accountId = this.safeString(parameters, "account-id");
@@ -5037,53 +4823,48 @@ public class HtxCore extends HtxApi
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
                     // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-                    Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
+                    Helpers.addElementToObject(request, "contract_code", this.safeString(market, "id"));
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
-                    Helpers.addElementToObject(request, "page_size", limit);
+                    if (Helpers.isTrue(isLinear))
+                    {
+                        Helpers.addElementToObject(request, "limit", limit);
+                    } else
+                    {
+                        Helpers.addElementToObject(request, "page_size", limit);
+                    }
                 }
                 Object trigger = this.safeBool2(parameters, "stop", "trigger");
-                Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+                Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+                Object stopLoss = this.safeBool(parameters, "stopLoss");
+                Object takeProfit = this.safeBool(parameters, "takeProfit");
                 Object trailing = this.safeBool(parameters, "trailing", false);
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
-                if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
+                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+                if (Helpers.isTrue(isLinear))
                 {
-                    Object marginMode = null;
-                    var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
-                    marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-                    parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                    marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                    if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(trailing)) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(stopLoss)) || Helpers.isTrue(takeProfit)))
                     {
                         if (Helpers.isTrue(trigger))
                         {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTpslOpenorders(this.extend(request, parameters))).join();
+                            Helpers.addElementToObject(request, "type", "trigger");
                         } else if (Helpers.isTrue(trailing))
                         {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTrackOpenorders(this.extend(request, parameters))).join();
-                        } else
+                            Helpers.addElementToObject(request, "type", "trailing_stop");
+                        } else if (Helpers.isTrue(stopLossTakeProfit))
                         {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapOpenorders(this.extend(request, parameters))).join();
+                            Helpers.addElementToObject(request, "type", "tpsl");
+                        } else if (Helpers.isTrue(stopLoss))
+                        {
+                            Helpers.addElementToObject(request, "type", "sl");
+                        } else if (Helpers.isTrue(takeProfit))
+                        {
+                            Helpers.addElementToObject(request, "type", "tp");
                         }
-                    } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
+                        response = (this.contractPrivateGetV5AlgoOrderOpens(this.extend(request, parameters))).join();
+                    } else
                     {
-                        if (Helpers.isTrue(trigger))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders(this.extend(request, parameters))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders(this.extend(request, parameters))).join();
-                        }
+                        response = (this.contractPrivateGetV5TradeOrderOpens(this.extend(request, parameters))).join();
                     }
                 } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
                 {
@@ -5305,6 +5086,82 @@ public class HtxCore extends HtxApi
             //         "ts": 1704242440106
             //     }
             //
+            // linear swap
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "id": "1512509978516443136",
+            //                 "side": "buy",
+            //                 "type": "limit",
+            //                 "price": "30",
+            //                 "volume": "1",
+            //                 "state": "new",
+            //                 "profit": null,
+            //                 "contract_code": "LTC-USDT",
+            //                 "position_side": "long",
+            //                 "price_match": null,
+            //                 "order_id": "1512509978516443136",
+            //                 "client_order_id": "1512509978516443136",
+            //                 "margin_mode": "isolated",
+            //                 "lever_rate": 10,
+            //                 "order_source": "api",
+            //                 "reduce_only": false,
+            //                 "time_in_force": "gtc",
+            //                 "tp_trigger_price": "",
+            //                 "tp_order_price": "",
+            //                 "tp_type": "0",
+            //                 "tp_trigger_price_type": "",
+            //                 "sl_trigger_price": "",
+            //                 "sl_order_price": "",
+            //                 "sl_type": "0",
+            //                 "sl_trigger_price_type": "",
+            //                 "trade_avg_price": "0",
+            //                 "trade_volume": "0",
+            //                 "trade_turnover": "0",
+            //                 "fee_currency": "",
+            //                 "fee": "0",
+            //                 "price_protect": false,
+            //                 "contract_type": "swap",
+            //                 "created_time": "1780652079954",
+            //                 "updated_time": "1780652079954",
+            //                 "cancel_reason": null,
+            //                 "self_match_prevent": "cancel_taker"
+            //             }
+            //         ],
+            //         "ts": 1780652167077
+            //     }
+            //
+            // linear swap algo
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "id": "162173672",
+            //                 "volume": "1",
+            //                 "type": "tp",
+            //                 "state": "active",
+            //                 "side": "sell",
+            //                 "algo_id": "1512871666507657216",
+            //                 "contract_code": "BTC-USDT",
+            //                 "position_side": "long",
+            //                 "margin_mode": "cross",
+            //                 "created_time": "1780738313091",
+            //                 "updated_time": "1780738313187",
+            //                 "order_source": "api",
+            //                 "tp_trigger_price": "101000",
+            //                 "tp_order_price": "0",
+            //                 "tp_type": "market",
+            //                 "tp_trigger_price_type": "last"
+            //             }
+            //         ],
+            //         "ts": 1780739390596
+            //     }
+            //
             Object orders = this.safeValue(response, "data");
             if (!Helpers.isTrue(Helpers.isArray(orders)))
             {
@@ -5332,6 +5189,10 @@ public class HtxCore extends HtxApi
             put( "6", "closed" );
             put( "7", "canceled" );
             put( "11", "canceling" );
+            put( "active", "open" );
+            put( "new", "open" );
+            put( "partially_filled", "open" );
+            put( "partially_canceled", "canceled" );
         }};
         return this.safeString(statuses, status, status);
     }
@@ -5375,103 +5236,18 @@ public class HtxCore extends HtxApi
         //         "canceled-at":  0
         //     }
         //
-        // linear swap cross margin createOrder
+        // linear swap createOrder, closePosition
         //
         //     {
-        //         "order_id":924660854912552960,
-        //         "order_id_str":"924660854912552960"
+        //         "order_id": "1512501029504577536",
+        //         "client_order_id": "1512501029504577536"
         //     }
         //
-        // contracts fetchOrder
+        // linear swap algo createOrder
         //
         //     {
-        //         "business_type":"swap",
-        //         "contract_type":"swap",
-        //         "pair":"BTC-USDT",
-        //         "symbol":"BTC",
-        //         "contract_code":"BTC-USDT",
-        //         "volume":1,
-        //         "price":3000,
-        //         "order_price_type":"limit",
-        //         "order_type":1,
-        //         "direction":"buy",
-        //         "offset":"open",
-        //         "lever_rate":1,
-        //         "order_id":924912513206878210,
-        //         "client_order_id":null,
-        //         "created_at":1640557927189,
-        //         "trade_volume":0,
-        //         "trade_turnover":0,
-        //         "fee":0,
-        //         "trade_avg_price":null,
-        //         "margin_frozen":3.000000000000000000,
-        //         "profit":0,
-        //         "status":3,
-        //         "order_source":"api",
-        //         "order_id_str":"924912513206878210",
-        //         "fee_asset":"USDT",
-        //         "liquidation_type":"0",
-        //         "canceled_at":0,
-        //         "margin_asset":"USDT",
-        //         "margin_account":"USDT",
-        //         "margin_mode":"cross",
-        //         "is_tpsl":0,
-        //         "real_profit":0
-        //     }
-        //
-        // contracts fetchOrder detailed
-        //
-        //     {
-        //         "symbol": "BTC",
-        //         "contract_code": "BTC-USDT",
-        //         "instrument_price": 0,
-        //         "final_interest": 0,
-        //         "adjust_value": 0,
-        //         "lever_rate": 10,
-        //         "direction": "sell",
-        //         "offset": "open",
-        //         "volume": 1.000000000000000000,
-        //         "price": 13059.800000000000000000,
-        //         "created_at": 1603703614712,
-        //         "canceled_at": 0,
-        //         "order_source": "api",
-        //         "order_price_type": "opponent",
-        //         "margin_frozen": 0,
-        //         "profit": 0,
-        //         "trades": [
-        //             {
-        //                 "trade_id": 131560927,
-        //                 "trade_price": 13059.800000000000000000,
-        //                 "trade_volume": 1.000000000000000000,
-        //                 "trade_turnover": 13.059800000000000000,
-        //                 "trade_fee": -0.005223920000000000,
-        //                 "created_at": 1603703614715,
-        //                 "role": "taker",
-        //                 "fee_asset": "USDT",
-        //                 "profit": 0,
-        //                 "real_profit": 0,
-        //                 "id": "131560927-770334322963152896-1"
-        //             }
-        //         ],
-        //         "total_page": 1,
-        //         "current_page": 1,
-        //         "total_size": 1,
-        //         "liquidation_type": "0",
-        //         "fee_asset": "USDT",
-        //         "fee": -0.005223920000000000,
-        //         "order_id": 770334322963152896,
-        //         "order_id_str": "770334322963152896",
-        //         "client_order_id": 57012021045,
-        //         "order_type": "1",
-        //         "status": 6,
-        //         "trade_avg_price": 13059.800000000000000000,
-        //         "trade_turnover": 13.059800000000000000,
-        //         "trade_volume": 1.000000000000000000,
-        //         "margin_asset": "USDT",
-        //         "margin_mode": "isolated",
-        //         "margin_account": "BTC-USDT",
-        //         "real_profit": 0,
-        //         "is_tpsl": 0
+        //         "algo_id": "1512871666507657216",
+        //         "algo_client_order_id": null
         //     }
         //
         // future and swap: fetchOrders
@@ -5513,160 +5289,6 @@ public class HtxCore extends HtxApi
         //         "business_type": "futures" // only in cross-margin (inverse & linear)
         //     }
         //
-        // trigger: fetchOpenOrders
-        //
-        //     {
-        //         "contract_type": "swap",
-        //         "business_type": "swap",
-        //         "pair": "BTC-USDT",
-        //         "symbol": "BTC",
-        //         "contract_code": "BTC-USDT",
-        //         "trigger_type": "le",
-        //         "volume": 1.000000000000000000,
-        //         "order_type": 1,
-        //         "direction": "buy",
-        //         "offset": "open",
-        //         "lever_rate": 1,
-        //         "order_id": 1103670703588327424,
-        //         "order_id_str": "1103670703588327424",
-        //         "order_source": "web",
-        //         "trigger_price": 25000.000000000000000000,
-        //         "order_price": 24000.000000000000000000,
-        //         "created_at": 1683177200945,
-        //         "order_price_type": "limit",
-        //         "status": 2,
-        //         "margin_mode": "cross",
-        //         "margin_account": "USDT",
-        //         "trade_partition": "USDT",
-        //         "reduce_only": 0
-        //     }
-        //
-        // stop-loss and take-profit: fetchOpenOrders
-        //
-        //     {
-        //         "contract_type": "swap",
-        //         "business_type": "swap",
-        //         "pair": "BTC-USDT",
-        //         "symbol": "BTC",
-        //         "contract_code": "BTC-USDT",
-        //         "margin_mode": "cross",
-        //         "margin_account": "USDT",
-        //         "volume": 1.000000000000000000,
-        //         "order_type": 1,
-        //         "direction": "sell",
-        //         "order_id": 1103680386844839936,
-        //         "order_id_str": "1103680386844839936",
-        //         "order_source": "web",
-        //         "trigger_type": "le",
-        //         "trigger_price": 25000.000000000000000000,
-        //         "order_price": 0E-18,
-        //         "created_at": 1683179509613,
-        //         "order_price_type": "market",
-        //         "status": 2,
-        //         "tpsl_order_type": "sl",
-        //         "source_order_id": null,
-        //         "relation_tpsl_order_id": "-1",
-        //         "trade_partition": "USDT"
-        //     }
-        //
-        // trailing: fetchOpenOrders
-        //
-        //     {
-        //         "contract_type": "swap",
-        //         "business_type": "swap",
-        //         "pair": "BTC-USDT",
-        //         "symbol": "BTC",
-        //         "contract_code": "BTC-USDT",
-        //         "volume": 1.000000000000000000,
-        //         "order_type": 1,
-        //         "direction": "sell",
-        //         "offset": "close",
-        //         "lever_rate": 1,
-        //         "order_id": 1192021437253877761,
-        //         "order_id_str": "1192021437253877761",
-        //         "order_source": "api",
-        //         "created_at": 1704241657328,
-        //         "order_price_type": "formula_price",
-        //         "status": 2,
-        //         "callback_rate": 0.050000000000000000,
-        //         "active_price": 50000.000000000000000000,
-        //         "is_active": 0,
-        //         "margin_mode": "cross",
-        //         "margin_account": "USDT",
-        //         "trade_partition": "USDT",
-        //         "reduce_only": 1
-        //     }
-        //
-        // trigger: fetchOrders
-        //
-        //     {
-        //         "contract_type": "swap",
-        //         "business_type": "swap",
-        //         "pair": "BTC-USDT",
-        //         "symbol": "BTC",
-        //         "contract_code": "BTC-USDT",
-        //         "trigger_type": "le",
-        //         "volume": 1.000000000000000000,
-        //         "order_type": 1,
-        //         "direction": "buy",
-        //         "offset": "open",
-        //         "lever_rate": 1,
-        //         "order_id": 1103670703588327424,
-        //         "order_id_str": "1103670703588327424",
-        //         "relation_order_id": "-1",
-        //         "order_price_type": "limit",
-        //         "status": 6,
-        //         "order_source": "web",
-        //         "trigger_price": 25000.000000000000000000,
-        //         "triggered_price": null,
-        //         "order_price": 24000.000000000000000000,
-        //         "created_at": 1683177200945,
-        //         "triggered_at": null,
-        //         "order_insert_at": 0,
-        //         "canceled_at": 1683179075234,
-        //         "fail_code": null,
-        //         "fail_reason": null,
-        //         "margin_mode": "cross",
-        //         "margin_account": "USDT",
-        //         "update_time": 1683179075958,
-        //         "trade_partition": "USDT",
-        //         "reduce_only": 0
-        //     }
-        //
-        // stop-loss and take-profit: fetchOrders
-        //
-        //     {
-        //         "contract_type": "swap",
-        //         "business_type": "swap",
-        //         "pair": "BTC-USDT",
-        //         "symbol": "BTC",
-        //         "contract_code": "BTC-USDT",
-        //         "margin_mode": "cross",
-        //         "margin_account": "USDT",
-        //         "volume": 1.000000000000000000,
-        //         "order_type": 1,
-        //         "tpsl_order_type": "sl",
-        //         "direction": "sell",
-        //         "order_id": 1103680386844839936,
-        //         "order_id_str": "1103680386844839936",
-        //         "order_source": "web",
-        //         "trigger_type": "le",
-        //         "trigger_price": 25000.000000000000000000,
-        //         "created_at": 1683179509613,
-        //         "order_price_type": "market",
-        //         "status": 11,
-        //         "source_order_id": null,
-        //         "relation_tpsl_order_id": "-1",
-        //         "canceled_at": 0,
-        //         "fail_code": null,
-        //         "fail_reason": null,
-        //         "triggered_price": null,
-        //         "relation_order_id": "-1",
-        //         "update_time": 1683179968231,
-        //         "order_price": 0E-18,
-        //         "trade_partition": "USDT"
-        //     }
-        //
         // spot: createOrders
         //
         //     [
@@ -5696,29 +5318,137 @@ public class HtxCore extends HtxApi
         //         }
         //     ]
         //
+        // linear swap fetchOpenOrders, fetchOrder, fetchOrders
+        //
+        //     {
+        //         "id": "1512509978516443136",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "price": "30",
+        //         "volume": "1",
+        //         "state": "new",
+        //         "profit": null,
+        //         "contract_code": "LTC-USDT",
+        //         "position_side": "long",
+        //         "price_match": null,
+        //         "order_id": "1512509978516443136",
+        //         "client_order_id": "1512509978516443136",
+        //         "margin_mode": "isolated",
+        //         "lever_rate": 10,
+        //         "order_source": "api",
+        //         "reduce_only": false,
+        //         "time_in_force": "gtc",
+        //         "tp_trigger_price": "",
+        //         "tp_order_price": "",
+        //         "tp_type": "0",
+        //         "tp_trigger_price_type": "",
+        //         "sl_trigger_price": "",
+        //         "sl_order_price": "",
+        //         "sl_type": "0",
+        //         "sl_trigger_price_type": "",
+        //         "trade_avg_price": "0",
+        //         "trade_volume": "0",
+        //         "trade_turnover": "0",
+        //         "fee_currency": "",
+        //         "fee": "0",
+        //         "price_protect": false,
+        //         "real_profit": null,
+        //         "contract_type": "swap",
+        //         "created_time": "1780652079954",
+        //         "updated_time": "1780652079954",
+        //         "cancel_reason": null,
+        //         "self_match_prevent": "cancel_taker"
+        //     }
+        //
+        // linear swap algo fetchOpenOrders, fetchOrder, fetchOrders
+        //
+        //     {
+        //         "id": "162173672",
+        //         "volume": "1",
+        //         "type": "tp",
+        //         "state": "active",
+        //         "side": "sell",
+        //         "algo_id": "1512871666507657216",
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "long",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780738313091",
+        //         "updated_time": "1780738313187",
+        //         "order_source": "api",
+        //         "tp_trigger_price": "101000",
+        //         "tp_order_price": "0",
+        //         "tp_type": "market",
+        //         "tp_trigger_price_type": "last"
+        //     }
+        //
+        // linear swap trailing fetchOpenOrders, fetchOrder, fetchOrders
+        //
+        //     {
+        //         "id": "1163773",
+        //         "volume": "1",
+        //         "type": "trailing_stop",
+        //         "state": "active",
+        //         "side": "sell",
+        //         "algo_id": "1512889773167009792",
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "long",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780742630055",
+        //         "updated_time": "1780742630223",
+        //         "order_source": "api",
+        //         "active_price": "90000",
+        //         "callback_rate": "0.05",
+        //         "reduce_only": true,
+        //         "order_price_type": "formula_price"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object marketId = this.safeString2(order, "contract_code", "symbol");
+        market = this.safeMarket(marketId, market);
         Object rejectedCreateOrders = this.safeString2(order, "err_code", "err-code");
         Object status = this.parseOrderStatus(this.safeString2(order, "state", "status"));
         if (Helpers.isTrue(!Helpers.isEqual(rejectedCreateOrders, null)))
         {
             status = "rejected";
         }
-        Object id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "order_id_str", "order-id")));
-        Object side = this.safeString(order, "direction");
-        Object type = this.safeString(order, "order_price_type");
-        if (Helpers.isTrue(Helpers.inOp(order, "type")))
+        Object id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("algo_id", "id", "order_id_str", "order-id", "order_id")));
+        Object side = this.safeString2(order, "direction", "side");
+        Object contractCode = this.safeString(order, "contract_code");
+        Object isLinearOrder = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contractCode, null))) && Helpers.isTrue((!Helpers.isEqual(market, null)))) && Helpers.isTrue(Helpers.GetValue(market, "linear"))) && !Helpers.isTrue(Helpers.GetValue(market, "spot"));
+        Object type = null;
+        if (Helpers.isTrue(isLinearOrder))
         {
-            Object orderType = Helpers.split(Helpers.GetValue(order, "type"), "-");
-            side = Helpers.GetValue(orderType, 0);
-            type = Helpers.GetValue(orderType, 1);
+            type = this.safeString(order, "type");
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, null))) || Helpers.isTrue((Helpers.isEqual(type, "tp")))) || Helpers.isTrue((Helpers.isEqual(type, "sl")))) || Helpers.isTrue((Helpers.isEqual(type, "tpsl")))))
+            {
+                type = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("tp_type", "sl_type")));
+            }
+            if (Helpers.isTrue(Helpers.isEqual(type, "0")))
+            {
+                type = null;
+            }
+        } else
+        {
+            type = this.safeString(order, "order_price_type");
+            Object rawType = this.safeString(order, "type");
+            if (Helpers.isTrue(!Helpers.isEqual(rawType, null)))
+            {
+                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(rawType, "-"), 0)))
+                {
+                    Object orderType = Helpers.split(rawType, "-");
+                    side = Helpers.GetValue(orderType, 0);
+                    type = Helpers.GetValue(orderType, 1);
+                } else if (Helpers.isTrue(Helpers.isEqual(type, null)))
+                {
+                    type = rawType;
+                }
+            }
         }
-        Object marketId = this.safeString2(order, "contract_code", "symbol");
-        market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("created_at", "created-at", "create_date")));
-        Object clientOrderId = this.safeString2(order, "client_order_id", Helpers.add("client-or", "der-id")); // transpiler regex trick for php issue
+        Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("created_at", "created-at", "create_date", "created_time")));
+        Object clientOrderId = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", Helpers.add("client-or", "der-id"), "algo_client_order_id"))); // transpiler regex trick for php issue
         Object cost = null;
         Object amount = null;
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "market"), 0)))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "market"), 0)))) && Helpers.isTrue((!Helpers.isTrue(isLinearOrder)))))
         {
             cost = this.safeString(order, "field-cash-amount");
         } else
@@ -5731,10 +5461,10 @@ public class HtxCore extends HtxApi
         Object feeCost = this.safeString2(order, "filled-fees", "field-fees"); // typo in their API, filled feeSide
         feeCost = this.safeString(order, "fee", feeCost);
         Object fee = null;
-        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(feeCost, null))) && Helpers.isTrue((!Helpers.isEqual(feeCost, "0")))) && Helpers.isTrue((!Helpers.isEqual(feeCost, "0.0")))))
         {
             Object feeCurrency = null;
-            Object feeCurrencyId = this.safeString(order, "fee_asset");
+            Object feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
             if (Helpers.isTrue(!Helpers.isEqual(feeCurrencyId, null)))
             {
                 feeCurrency = this.safeCurrencyCode(feeCurrencyId);
@@ -5751,11 +5481,17 @@ public class HtxCore extends HtxApi
         }
         Object average = this.safeString(order, "trade_avg_price");
         Object trades = this.safeValue(order, "trades");
-        Object reduceOnlyInteger = this.safeInteger(order, "reduce_only");
         Object reduceOnly = null;
-        if (Helpers.isTrue(!Helpers.isEqual(reduceOnlyInteger, null)))
+        if (Helpers.isTrue(isLinearOrder))
         {
-            reduceOnly = ((Helpers.isTrue((Helpers.isEqual(reduceOnlyInteger, 0))))) ? false : true;
+            reduceOnly = this.safeBool(order, "reduce_only");
+        } else
+        {
+            Object reduceOnlyInteger = this.safeInteger(order, "reduce_only");
+            if (Helpers.isTrue(!Helpers.isEqual(reduceOnlyInteger, null)))
+            {
+                reduceOnly = ((Helpers.isTrue((Helpers.isEqual(reduceOnlyInteger, 0))))) ? false : true;
+            }
         }
         final Object finalMarket = market;
         final Object finalType = type;
@@ -5774,11 +5510,13 @@ public class HtxCore extends HtxApi
             put( "lastTradeTimestamp", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", finalType );
-            put( "timeInForce", null );
+            put( "timeInForce", HtxCore.this.safeStringUpper(order, "time_in_force") );
             put( "postOnly", null );
             put( "side", finalSide );
             put( "price", price );
             put( "triggerPrice", HtxCore.this.safeString2(order, "stop-price", "trigger_price") );
+            put( "stopLossPrice", HtxCore.this.safeString2(order, "sl_trigger_price", "sl_order_price") );
+            put( "takeProfitPrice", HtxCore.this.safeString2(order, "tp_trigger_price", "tp_order_price") );
             put( "average", average );
             put( "cost", finalCost );
             put( "amount", finalAmount );
@@ -6018,6 +5756,14 @@ public class HtxCore extends HtxApi
         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
         * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
         * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
+        * @param {object} [params.takeProfit] *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+        * @param {float} [params.takeProfit.price] take profit order price take profit orders
+        * @param {string} [params.takeProfit.type] market is the default, limit, optimal_5, optimal_10, optimal_20
+        * @param {object} [params.stopLoss] *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+        * @param {float} [params.stopLoss.price] stop loss order price for stop loss orders
+        * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
         * @returns {object} request to be sent to the exchange
         */
         Object price = Helpers.getArg(optionalArgs, 0, null);
@@ -6026,7 +5772,6 @@ public class HtxCore extends HtxApi
         Object request = new java.util.HashMap<String, Object>() {{
             put( "contract_code", Helpers.GetValue(market, "id") );
             put( "volume", HtxCore.this.amountToPrecision(symbol, amount) );
-            put( "direction", side );
         }};
         Object postOnly = null;
         var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "post_only"), parameters);
@@ -6036,13 +5781,87 @@ public class HtxCore extends HtxApi
         {
             type = "post_only";
         }
-        Object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
-        if (Helpers.isTrue(Helpers.isEqual(timeInForce, "FOK")))
+        Object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("createOrder", market, parameters);
+        subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
+        parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+        Object isLinear = (Helpers.isEqual(subType, "linear"));
+        Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        Object hedged = this.safeBool(parameters, "hedged", false);
+        Object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
+        if (Helpers.isTrue(isLinear))
         {
-            type = "fok";
-        } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "IOC")))
+            Object marginMode = null;
+            var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
+            marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
+            Helpers.addElementToObject(request, "margin_mode", marginMode);
+            Helpers.addElementToObject(request, "side", side);
+            if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
+            {
+                Helpers.addElementToObject(request, "time_in_force", ((String)timeInForce).toLowerCase());
+            }
+            Object stopLoss = this.safeDict(parameters, "stopLoss");
+            Object takeProfit = this.safeDict(parameters, "takeProfit");
+            Object stopLossTriggerPriceAttached = this.safeNumber(stopLoss, "triggerPrice");
+            Object stopLossOrderPrice = this.safeNumber(stopLoss, "price");
+            Object stopLossType = this.safeString(stopLoss, "type");
+            Object takeProfitTriggerPriceAttached = this.safeNumber(takeProfit, "triggerPrice");
+            Object takeProfitOrderPrice = this.safeNumber(takeProfit, "price");
+            Object takeProfitType = this.safeString(takeProfit, "type");
+            // on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
+            if (Helpers.isTrue(!Helpers.isEqual(stopLoss, null)))
+            {
+                if (Helpers.isTrue(!Helpers.isEqual(stopLossTriggerPriceAttached, null)))
+                {
+                    Helpers.addElementToObject(request, "sl_trigger_price", this.priceToPrecision(symbol, stopLossTriggerPriceAttached));
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(stopLossOrderPrice, null)))
+                {
+                    Helpers.addElementToObject(request, "sl_order_price", this.priceToPrecision(symbol, stopLossOrderPrice));
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(stopLossType, null)))
+                {
+                    Helpers.addElementToObject(request, "sl_type", stopLossType);
+                }
+                parameters = this.omit(parameters, "stopLoss");
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(takeProfit, null)))
+            {
+                if (Helpers.isTrue(!Helpers.isEqual(takeProfitTriggerPriceAttached, null)))
+                {
+                    Helpers.addElementToObject(request, "tp_trigger_price", this.priceToPrecision(symbol, takeProfitTriggerPriceAttached));
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(takeProfitOrderPrice, null)))
+                {
+                    Helpers.addElementToObject(request, "tp_order_price", this.priceToPrecision(symbol, takeProfitOrderPrice));
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(takeProfitType, null)))
+                {
+                    Helpers.addElementToObject(request, "tp_type", takeProfitType);
+                }
+                parameters = this.omit(parameters, "takeProfit");
+            }
+        } else
         {
-            type = "ioc";
+            if (Helpers.isTrue(hedged))
+            {
+                if (Helpers.isTrue(reduceOnly))
+                {
+                    Helpers.addElementToObject(request, "offset", "close");
+                } else
+                {
+                    Helpers.addElementToObject(request, "offset", "open");
+                }
+            }
+            if (Helpers.isTrue(Helpers.isEqual(timeInForce, "fok")))
+            {
+                type = "fok";
+            } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "ioc")))
+            {
+                type = "ioc";
+            }
+            Helpers.addElementToObject(request, "direction", side);
         }
         Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "trigger_price")));
         Object stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
@@ -6053,20 +5872,45 @@ public class HtxCore extends HtxApi
         Object isTrigger = !Helpers.isEqual(triggerPrice, null);
         Object isStopLossTriggerOrder = !Helpers.isEqual(stopLossTriggerPrice, null);
         Object isTakeProfitTriggerOrder = !Helpers.isEqual(takeProfitTriggerPrice, null);
+        Object clientOrderId = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
+        if (Helpers.isTrue(Helpers.isTrue(isLinear) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrigger)) || Helpers.isTrue(isStopLossTriggerOrder)) || Helpers.isTrue(isTakeProfitTriggerOrder)))))
+        {
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+            {
+                Helpers.addElementToObject(request, "algo_client_order_id", clientOrderId);
+                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_order_id")));
+            }
+        }
         if (Helpers.isTrue(isTrigger))
         {
-            Object triggerType = this.safeString2(parameters, "triggerType", "trigger_type", "le");
-            Helpers.addElementToObject(request, "trigger_type", triggerType);
             Helpers.addElementToObject(request, "trigger_price", this.priceToPrecision(symbol, triggerPrice));
-            if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+            if (Helpers.isTrue(isLinear))
             {
-                Helpers.addElementToObject(request, "order_price", this.priceToPrecision(symbol, price));
+                Helpers.addElementToObject(request, "type", "trigger");
+                if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+                {
+                    Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+                }
+            } else
+            {
+                Object triggerType = this.safeString2(parameters, "triggerType", "trigger_type", "le");
+                Helpers.addElementToObject(request, "trigger_type", triggerType);
+                if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+                {
+                    Helpers.addElementToObject(request, "order_price", this.priceToPrecision(symbol, price));
+                }
             }
         } else if (Helpers.isTrue(Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder)))
         {
             if (Helpers.isTrue(isStopLossTriggerOrder))
             {
-                Helpers.addElementToObject(request, "sl_order_price_type", type);
+                if (!Helpers.isTrue(isLinear))
+                {
+                    Helpers.addElementToObject(request, "sl_order_price_type", type);
+                } else
+                {
+                    Helpers.addElementToObject(request, "type", "sl");
+                }
                 Helpers.addElementToObject(request, "sl_trigger_price", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                 {
@@ -6074,7 +5918,13 @@ public class HtxCore extends HtxApi
                 }
             } else
             {
-                Helpers.addElementToObject(request, "tp_order_price_type", type);
+                if (!Helpers.isTrue(isLinear))
+                {
+                    Helpers.addElementToObject(request, "tp_order_price_type", type);
+                } else
+                {
+                    Helpers.addElementToObject(request, "type", "tp");
+                }
                 Helpers.addElementToObject(request, "tp_trigger_price", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                 {
@@ -6085,11 +5935,14 @@ public class HtxCore extends HtxApi
         {
             Object trailingPercentString = Precise.stringDiv(trailingPercent, "100");
             Helpers.addElementToObject(request, "callback_rate", this.parseToNumeric(trailingPercentString));
-            Helpers.addElementToObject(request, "active_price", trailingTriggerPrice);
             Helpers.addElementToObject(request, "order_price_type", this.safeString(parameters, "order_price_type", "formula_price"));
+            Helpers.addElementToObject(request, "active_price", trailingTriggerPrice);
+            if (Helpers.isTrue(isLinear))
+            {
+                Helpers.addElementToObject(request, "type", "trailing_stop");
+            }
         } else
         {
-            Object clientOrderId = this.safeInteger2(parameters, "client_order_id", "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -6103,28 +5956,25 @@ public class HtxCore extends HtxApi
                 }
             }
         }
-        Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         if (Helpers.isTrue(!Helpers.isTrue(isStopLossTriggerOrder) && !Helpers.isTrue(isTakeProfitTriggerOrder)))
         {
             if (Helpers.isTrue(reduceOnly))
             {
                 Helpers.addElementToObject(request, "reduce_only", 1);
             }
-            Helpers.addElementToObject(request, "lever_rate", this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("leverRate", "lever_rate", "leverage")), 1));
-            if (!Helpers.isTrue(isTrailingPercentOrder))
+            if (Helpers.isTrue(isLinear))
             {
-                Helpers.addElementToObject(request, "order_price_type", type);
-            }
-        }
-        Object hedged = this.safeBool(parameters, "hedged", false);
-        if (Helpers.isTrue(hedged))
-        {
-            if (Helpers.isTrue(reduceOnly))
-            {
-                Helpers.addElementToObject(request, "offset", "close");
+                if (!Helpers.isTrue(isTrailingPercentOrder))
+                {
+                    Helpers.addElementToObject(request, "type", type);
+                }
             } else
             {
-                Helpers.addElementToObject(request, "offset", "open");
+                if (!Helpers.isTrue(isTrailingPercentOrder))
+                {
+                    Helpers.addElementToObject(request, "order_price_type", type);
+                }
+                Helpers.addElementToObject(request, "lever_rate", this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("leverRate", "lever_rate", "leverage")), 1));
             }
         }
         Object broker = this.safeValue(this.options, "broker", new java.util.HashMap<String, Object>() {{}});
@@ -6138,17 +5988,15 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#createOrder
      * @description create a trade order
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                       // spot, margin
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order            // coin-m swap
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order       // coin-m swap trigger
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588768fe7 // usdt-m swap cross and isolated
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b933812c9 // usdt-m swap cross and isolated trigger and trailing orders
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                            // coin-m futures
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                       // coin-m futures contract trigger
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -6168,6 +6016,16 @@ public class HtxCore extends HtxApi
      * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
      * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
      * @param {bool} [params.hedged] *contract only* true for hedged mode, false for one way mode, default is false
+     * @param {string} [params.marginMode] linear swap supports 'cross' and 'isolated', 'cross' is the default
+     * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
+     * @param {object} [params.takeProfit] *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {float} [params.takeProfit.price] take profit price for take profit orders
+     * @param {string} [params.takeProfit.type] market is the default, limit, optimal_5, optimal_10, optimal_20
+     * @param {object} [params.stopLoss] *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.stopLoss.price] stop loss price for stop loss orders
+     * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
@@ -6201,41 +6059,12 @@ public class HtxCore extends HtxApi
                 Object contractRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
                 if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
                 {
-                    Object marginMode = null;
-                    var marginModecontractRequestVariable = this.handleMarginModeAndParams("createOrder", contractRequest);
-                    marginMode = ((java.util.List<Object>) marginModecontractRequestVariable).get(0);
-                    contractRequest = ((java.util.List<Object>) marginModecontractRequestVariable).get(1);
-                    marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                    if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue(isStopLossTriggerOrder)) || Helpers.isTrue(isTakeProfitTriggerOrder)) || Helpers.isTrue(isTrailingPercentOrder)))
                     {
-                        if (Helpers.isTrue(isTrigger))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(contractRequest)).join();
-                        } else if (Helpers.isTrue(Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder)))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTpslOrder(contractRequest)).join();
-                        } else if (Helpers.isTrue(isTrailingPercentOrder))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTrackOrder(contractRequest)).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapOrder(contractRequest)).join();
-                        }
-                    } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
+                        response = (this.contractPrivatePostV5AlgoOrder(contractRequest)).join();
+                    } else
                     {
-                        if (Helpers.isTrue(isTrigger))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(contractRequest)).join();
-                        } else if (Helpers.isTrue(Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder)))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(contractRequest)).join();
-                        } else if (Helpers.isTrue(isTrailingPercentOrder))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder(contractRequest)).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossOrder(contractRequest)).join();
-                        }
+                        response = (this.contractPrivatePostV5TradeOrder(contractRequest)).join();
                     }
                 } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
                 {
@@ -6293,6 +6122,32 @@ public class HtxCore extends HtxApi
             //         "ts": 1640497927185
             //     }
             //
+            // linear swap
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": {
+            //             "order_id": "1512501029504577536",
+            //             "client_order_id": "1512501029504577536"
+            //         },
+            //         "ts": 1780649946353
+            //     }
+            //
+            // linear swap algo
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "algo_id": "1512871666507657216",
+            //                 "algo_client_order_id": null
+            //             }
+            //         ],
+            //         "ts": 1780738313102
+            //     }
+            //
             // stop-loss and take-profit
             //
             //     {
@@ -6332,6 +6187,22 @@ public class HtxCore extends HtxApi
                     put( "clientOrderId", null );
                     put( "average", null );
                 }}, market);
+            } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue(isTrailingPercentOrder)) || Helpers.isTrue(isStopLossTriggerOrder)) || Helpers.isTrue(isTakeProfitTriggerOrder)))
+                {
+                    data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+                } else
+                {
+                    result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                }
+                return this.extend(this.parseOrder(result, market), new java.util.HashMap<String, Object>() {{
+                    put( "type", type );
+                    put( "side", side );
+                    put( "price", price );
+                    put( "amount", amount );
+                }});
             } else if (Helpers.isTrue(isStopLossTriggerOrder))
             {
                 data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
@@ -6356,8 +6227,7 @@ public class HtxCore extends HtxApi
      * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
      * @see https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958935dae1
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -6421,28 +6291,21 @@ public class HtxCore extends HtxApi
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(this.safeBool(market, "spot")))
             {
                 response = (this.privatePostOrderBatchOrders(ordersRequests)).join();
             } else
             {
-                Helpers.addElementToObject(request, "orders_data", ordersRequests);
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                if (Helpers.isTrue(this.safeBool(market, "linear")))
                 {
-                    marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                    if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
-                    {
-                        response = (this.contractPrivatePostLinearSwapApiV1SwapBatchorder(request)).join();
-                    } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
-                    {
-                        response = (this.contractPrivatePostLinearSwapApiV1SwapCrossBatchorder(request)).join();
-                    }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                    response = (this.contractPrivatePostV5TradeBatchOrders(ordersRequests)).join();
+                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
                 {
-                    if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                    Helpers.addElementToObject(request, "orders_data", ordersRequests);
+                    if (Helpers.isTrue(this.safeBool(market, "swap")))
                     {
                         response = (this.contractPrivatePostSwapApiV1SwapBatchorder(request)).join();
-                    } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                    } else if (Helpers.isTrue(this.safeBool(market, "future")))
                     {
                         response = (this.contractPrivatePostApiV1ContractBatchorder(request)).join();
                     }
@@ -6489,16 +6352,46 @@ public class HtxCore extends HtxApi
             //         "ts": 1699688256671
             //     }
             //
+            // linear swap
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "code": 200,
+            //                 "message": "Success",
+            //                 "order_id": "1513217421638275072",
+            //                 "client_order_id": "1513217421638275072"
+            //             },
+            //             {
+            //                 "code": 200,
+            //                 "message": "Success",
+            //                 "order_id": "1513217421638275073",
+            //                 "client_order_id": "1513217421638275073"
+            //             }
+            //         ],
+            //         "ts": 1780820747555
+            //     }
+            //
+            //
             Object result = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(this.safeBool(market, "spot")))
             {
                 result = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else
             {
-                Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-                Object success = this.safeValue(data, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object errors = this.safeValue(data, "errors", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                result = this.arrayConcat(success, errors);
+                Object data = this.safeValue(response, "data");
+                if (Helpers.isTrue(Helpers.isArray(data)))
+                {
+                    result = data;
+                } else
+                {
+                    Object batchData = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    Object success = this.safeValue(batchData, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object errors = this.safeValue(batchData, "errors", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    result = this.arrayConcat(success, errors);
+                }
             }
             return this.parseOrders(result, market);
         });
@@ -6509,12 +6402,16 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#cancelOrder
      * @description cancels an open order
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958947efe6
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b935d4997
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] *contract only* if the order is a trigger trigger order or not
-     * @param {boolean} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
-     * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel a trailing order
+     * @param {bool} [params.trigger] *contract only* if the order is a trigger trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
+     * @param {bool} [params.stopLoss] *contract only* if the order is a stop-loss order
+     * @param {bool} [params.takeProfit] *contract only* if the order is a take-profit order
+     * @param {bool} [params.trailing] *contract only* set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
@@ -6534,7 +6431,16 @@ public class HtxCore extends HtxApi
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            Object subType = null;
+            var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
+            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            Object isLinear = (Helpers.isEqual(subType, "linear"));
             Object request = new java.util.HashMap<String, Object>() {{}};
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
+            Object stopLossTakeProfit = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossTakeProfit", "stopLoss", "takeProfit")));
+            Object trailing = this.safeBool(parameters, "trailing", false);
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
@@ -6555,67 +6461,51 @@ public class HtxCore extends HtxApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
                 }
-                Object clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
-                if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+                Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
+                if (!Helpers.isTrue((Helpers.isTrue(isLinear) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing))))))
                 {
-                    Helpers.addElementToObject(request, "order_id", id);
-                } else
-                {
-                    Helpers.addElementToObject(request, "client_order_id", clientOrderId);
-                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId")));
-                }
-                if (Helpers.isTrue(Helpers.GetValue(market, "future")))
-                {
-                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "settleId"));
-                } else
-                {
-                    Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
-                }
-                Object trigger = this.safeBool2(parameters, "stop", "trigger");
-                Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-                Object trailing = this.safeBool(parameters, "trailing", false);
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
-                {
-                    Object marginMode = null;
-                    var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
-                    marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-                    parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                    marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                    if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
+                    if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
                     {
-                        if (Helpers.isTrue(trigger))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTpslCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTrackCancel(this.extend(request, parameters))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCancel(this.extend(request, parameters))).join();
-                        }
-                    } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
+                        Helpers.addElementToObject(request, "order_id", id);
+                    } else
                     {
-                        if (Helpers.isTrue(trigger))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel(this.extend(request, parameters))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossCancel(this.extend(request, parameters))).join();
-                        }
+                        Helpers.addElementToObject(request, "client_order_id", clientOrderId);
+                        parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId")));
                     }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                }
+                if (Helpers.isTrue(this.safeBool(market, "future")))
                 {
-                    if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                    Helpers.addElementToObject(request, "symbol", this.safeString(market, "settleId"));
+                } else
+                {
+                    Helpers.addElementToObject(request, "contract_code", this.safeString(market, "id"));
+                }
+                if (Helpers.isTrue(isLinear))
+                {
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing)))
+                    {
+                        final Object finalMarket = market;
+                        Object requestItem = new java.util.HashMap<String, Object>() {{
+                            put( "contract_code", HtxCore.this.safeString(finalMarket, "id") );
+                        }};
+                        if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+                        {
+                            Helpers.addElementToObject(requestItem, "algo_id", id);
+                            parameters = this.omit(parameters, "algo_id");
+                        } else
+                        {
+                            Helpers.addElementToObject(requestItem, "algo_client_order_id", clientOrderId);
+                            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
+                        }
+                        Object requestBody = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.extend(requestItem, parameters)));
+                        response = (this.contractPrivatePostV5AlgoCancelOrders(requestBody)).join();
+                    } else
+                    {
+                        response = (this.contractPrivatePostV5TradeCancelOrder(this.extend(request, parameters))).join();
+                    }
+                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
+                {
+                    if (Helpers.isTrue(this.safeBool(market, "swap")))
                     {
                         if (Helpers.isTrue(trigger))
                         {
@@ -6630,7 +6520,7 @@ public class HtxCore extends HtxApi
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, parameters))).join();
                         }
-                    } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                    } else if (Helpers.isTrue(this.safeBool(market, "future")))
                     {
                         if (Helpers.isTrue(trigger))
                         {
@@ -6670,7 +6560,50 @@ public class HtxCore extends HtxApi
             //         "ts": 1640504486089
             //     }
             //
-            return this.extend(this.parseOrder(response, market), new java.util.HashMap<String, Object>() {{
+            // linear swap
+            //
+            //     {
+            //         "code": 200,
+            //         "data": {
+            //             "client_order_id": "1512509978516443136",
+            //             "order_id": "1512509978516443136"
+            //         },
+            //         "message": "Success",
+            //         "ts": 1780653244729
+            //     }
+            //
+            // linear swap algo
+            //
+            //     {
+            //         "code": 200,
+            //         "data": [
+            //             {
+            //                 "algo_client_order_id": "1329854623927160832",
+            //                 "code": 200,
+            //                 "message": "Success",
+            //                 "algo_id": "1329854623927160832"
+            //             },
+            //         ],
+            //         "message": "Success",
+            //         "ts": 1737103890390
+            //     }
+            //
+            Object result = null;
+            if (Helpers.isTrue(isLinear))
+            {
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing)))
+                {
+                    Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+                } else
+                {
+                    result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                }
+            } else
+            {
+                result = response;
+            }
+            return this.extend(this.parseOrder(result, market), new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", "canceled" );
             }});
@@ -6682,6 +6615,7 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#cancelOrders
      * @description cancel multiple orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894d0de8
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6707,6 +6641,9 @@ public class HtxCore extends HtxApi
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
+            Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trigger")));
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
@@ -6739,61 +6676,45 @@ public class HtxCore extends HtxApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
                 }
-                Object clientOrderIds = this.safeString2(parameters, "client_order_id", "clientOrderId");
-                clientOrderIds = this.safeString2(parameters, "client_order_ids", "clientOrderIds", clientOrderIds);
-                if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
+                Object clientOrderIds = this.safeValue2(parameters, "client_order_id", "clientOrderId");
+                clientOrderIds = this.safeValue2(parameters, "client_order_ids", "clientOrderIds", clientOrderIds);
+                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds")));
+                if (!Helpers.isTrue(this.safeBool(market, "linear")))
                 {
-                    Helpers.addElementToObject(request, "order_id", String.join((String)",", (java.util.List<String>)ids));
+                    if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
+                    {
+                        Helpers.addElementToObject(request, "order_id", String.join((String)",", (java.util.List<String>)ids));
+                    } else
+                    {
+                        Helpers.addElementToObject(request, "client_order_id", clientOrderIds);
+                    }
+                }
+                if (Helpers.isTrue(this.safeBool(market, "future")))
+                {
+                    Helpers.addElementToObject(request, "symbol", this.safeString(market, "settleId"));
                 } else
                 {
-                    Helpers.addElementToObject(request, "client_order_id", clientOrderIds);
-                    parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds")));
+                    Helpers.addElementToObject(request, "contract_code", this.safeString(market, "id"));
                 }
-                if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                if (Helpers.isTrue(this.safeBool(market, "linear")))
                 {
-                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "settleId"));
-                } else
-                {
-                    Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
-                }
-                Object trigger = this.safeBool2(parameters, "stop", "trigger");
-                Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trigger")));
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
-                {
-                    Object marginMode = null;
-                    var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrders", parameters);
-                    marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-                    parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                    marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                    if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
+                    if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
                     {
-                        if (Helpers.isTrue(trigger))
+                        Helpers.addElementToObject(request, "order_id", ids);
+                    } else
+                    {
+                        if (Helpers.isTrue((clientOrderIds instanceof String)))
                         {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTpslCancel(this.extend(request, parameters))).join();
+                            Helpers.addElementToObject(request, "client_order_id", Helpers.split(clientOrderIds, ","));
                         } else
                         {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCancel(this.extend(request, parameters))).join();
-                        }
-                    } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
-                    {
-                        if (Helpers.isTrue(trigger))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(this.extend(request, parameters))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossCancel(this.extend(request, parameters))).join();
+                            Helpers.addElementToObject(request, "client_order_id", clientOrderIds);
                         }
                     }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                    response = (this.contractPrivatePostV5TradeCancelBatchOrders(this.extend(request, parameters))).join();
+                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
                 {
-                    if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                    if (Helpers.isTrue(this.safeBool(market, "swap")))
                     {
                         if (Helpers.isTrue(trigger))
                         {
@@ -6805,7 +6726,7 @@ public class HtxCore extends HtxApi
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, parameters))).join();
                         }
-                    } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                    } else if (Helpers.isTrue(this.safeBool(market, "future")))
                     {
                         if (Helpers.isTrue(trigger))
                         {
@@ -6874,6 +6795,32 @@ public class HtxCore extends HtxApi
             //         "ts": 1604367997451
             //     }
             //
+            // linear swap
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "code": 200,
+            //                 "message": "Success",
+            //                 "order_id": "1513217421638275072",
+            //                 "client_order_id": "1513217421638275072"
+            //             },
+            //             {
+            //                 "code": 200,
+            //                 "message": "Success",
+            //                 "order_id": "1513217421638275073",
+            //                 "client_order_id": "1513217421638275073"
+            //             }
+            //         ],
+            //         "ts": 1780822053167
+            //     }
+            //
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(this.safeBool(market, "linear")) && !Helpers.isTrue(trigger)) && !Helpers.isTrue(stopLossTakeProfit)))
+            {
+                return this.parseCancelOrders(response);
+            }
             Object data = this.safeDict(response, "data");
             return this.parseCancelOrders(data);
         });
@@ -6910,6 +6857,28 @@ public class HtxCore extends HtxApi
         //        "successes": "1258075374411399168,1258075393254871040"
         //    }
         //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275072",
+        //                 "client_order_id": "1513217421638275072"
+        //             },
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275073",
+        //                 "client_order_id": "1513217421638275073"
+        //             }
+        //         ],
+        //         "ts": 1780822053167
+        //     }
+        //
         Object successes = this.safeString(orders, "successes");
         Object success = null;
         if (Helpers.isTrue(!Helpers.isEqual(successes, null)))
@@ -6920,7 +6889,18 @@ public class HtxCore extends HtxApi
             success = this.safeList(orders, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         }
         Object failed = this.safeList2(orders, "errors", "failed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(orders, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+        {
+            Object order = Helpers.GetValue(data, i);
+            ((java.util.List<Object>)result).add(this.safeOrder(new java.util.HashMap<String, Object>() {{
+                put( "info", order );
+                put( "id", HtxCore.this.safeString(order, "order_id") );
+                put( "status", "canceled" );
+                put( "clientOrderId", HtxCore.this.safeString(order, "client_order_id") );
+            }}));
+        }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(success)); i++)
         {
             Object order = Helpers.GetValue(success, i);
@@ -6947,6 +6927,7 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#cancelAllOrders
      * @description cancel all open orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894f0cf6
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] *contract only* if the orders are trigger trigger orders or not
@@ -6977,7 +6958,7 @@ public class HtxCore extends HtxApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
-                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                    Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 }
                 response = (this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.extend(request, parameters))).join();
                 //
@@ -7000,56 +6981,21 @@ public class HtxCore extends HtxApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
                 }
-                if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                if (Helpers.isTrue(this.safeBool(market, "future")))
                 {
-                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "settleId"));
+                    Helpers.addElementToObject(request, "symbol", this.safeString(market, "settleId"));
                 }
-                Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "contract_code", this.safeString(market, "id"));
                 Object trigger = this.safeBool2(parameters, "stop", "trigger");
                 Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
                 Object trailing = this.safeBool(parameters, "trailing", false);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                if (Helpers.isTrue(this.safeBool(market, "linear")))
                 {
-                    Object marginMode = null;
-                    var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
-                    marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-                    parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                    marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                    if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
-                    {
-                        if (Helpers.isTrue(trigger))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTriggerCancelall(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTpslCancelall(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapTrackCancelall(this.extend(request, parameters))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCancelall(this.extend(request, parameters))).join();
-                        }
-                    } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
-                    {
-                        if (Helpers.isTrue(trigger))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall(this.extend(request, parameters))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostLinearSwapApiV1SwapCrossCancelall(this.extend(request, parameters))).join();
-                        }
-                    }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                    response = (this.contractPrivatePostV5TradeCancelAllOrders(this.extend(request, parameters))).join();
+                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
                 {
-                    if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                    if (Helpers.isTrue(this.safeBool(market, "swap")))
                     {
                         if (Helpers.isTrue(trigger))
                         {
@@ -7064,7 +7010,7 @@ public class HtxCore extends HtxApi
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapCancelall(this.extend(request, parameters))).join();
                         }
-                    } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                    } else if (Helpers.isTrue(this.safeBool(market, "future")))
                     {
                         if (Helpers.isTrue(trigger))
                         {
@@ -7094,6 +7040,10 @@ public class HtxCore extends HtxApi
                 //         "ts": "1683435723755"
                 //     }
                 //
+                if (Helpers.isTrue(Helpers.isTrue(this.safeBool(market, "linear")) && Helpers.isTrue((Helpers.isTrue(!Helpers.isTrue(trigger) && !Helpers.isTrue(trailing)) && !Helpers.isTrue(stopLossTakeProfit)))))
+                {
+                    return this.parseCancelOrders(response);
+                }
                 Object data = this.safeDict(response, "data");
                 return this.parseCancelOrders(data);
             }
@@ -7872,14 +7822,15 @@ public class HtxCore extends HtxApi
     /**
      * @method
      * @name htx#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97ea5941
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
-     * @description fetches historical funding rate prices
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] not used by huobi, but filtered internally by ccxt
-     * @param {int} [limit] not used by huobi, but filtered internally by ccxt
+     * @param {int} [since] the earliest time in ms to fetch funding rate history for
+     * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchFundingRateHistory(Object... optionalArgs)
@@ -7908,12 +7859,25 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "contract_code", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
+                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                {
+                    Helpers.addElementToObject(request, "limit", limit);
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+                {
+                    Helpers.addElementToObject(request, "start_time", since);
+                }
             } else
             {
-                Helpers.addElementToObject(request, "page_size", 50); // max
+                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                {
+                    Helpers.addElementToObject(request, "page_size", limit);
+                } else
+                {
+                    Helpers.addElementToObject(request, "page_size", 50); // max
+                }
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
@@ -7921,51 +7885,48 @@ public class HtxCore extends HtxApi
                 response = (this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
-                response = (this.contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate(this.extend(request, parameters))).join();
+                response = (this.contractPublicGetV5MarketFundingRateHistory(this.extend(request, parameters))).join();
             } else
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRateHistory() supports inverse and linear swaps only")) ;
             }
-            //
-            // {
-            //     "status": "ok",
-            //     "data": {
-            //         "total_page": 62,
-            //         "current_page": 1,
-            //         "total_size": 1237,
-            //         "data": [
-            //             {
-            //                 "avg_premium_index": "-0.000208064395065541",
-            //                 "funding_rate": "0.000100000000000000",
-            //                 "realized_rate": "0.000100000000000000",
-            //                 "funding_time": "1638921600000",
-            //                 "contract_code": "BTC-USDT",
-            //                 "symbol": "BTC",
-            //                 "fee_asset": "USDT"
-            //             },
-            //         ]
-            //     },
-            //     "ts": 1638939294277
-            // }
-            //
             Object data = this.safeValue(response, "data");
-            Object cursor = this.safeValue(data, "current_page");
-            Object result = this.safeValue(data, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
-                Object entry = Helpers.GetValue(result, i);
-                Helpers.addElementToObject(entry, "current_page", cursor);
-                Object marketId = this.safeString(entry, "contract_code");
-                Object symbolInner = this.safeSymbol(marketId);
-                Object timestamp = this.safeInteger(entry, "funding_time");
-                ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
-                    put( "info", entry );
-                    put( "symbol", symbolInner );
-                    put( "fundingRate", HtxCore.this.safeNumber(entry, "funding_rate") );
-                    put( "timestamp", timestamp );
-                    put( "datetime", HtxCore.this.iso8601(timestamp) );
-                }});
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+                {
+                    Object entry = Helpers.GetValue(data, i);
+                    Object marketId = this.safeString(entry, "contract_code");
+                    Object symbolInner = this.safeSymbol(marketId, market);
+                    Object timestamp = this.safeInteger(entry, "funding_time");
+                    ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
+                        put( "info", entry );
+                        put( "symbol", symbolInner );
+                        put( "fundingRate", HtxCore.this.safeNumber(entry, "funding_rate") );
+                        put( "timestamp", timestamp );
+                        put( "datetime", HtxCore.this.iso8601(timestamp) );
+                    }});
+                }
+            } else
+            {
+                Object cursor = this.safeValue(data, "current_page");
+                Object result = this.safeValue(data, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
+                {
+                    Object entry = Helpers.GetValue(result, i);
+                    Helpers.addElementToObject(entry, "current_page", cursor);
+                    Object marketId = this.safeString(entry, "contract_code");
+                    Object symbolInner = this.safeSymbol(marketId);
+                    Object timestamp = this.safeInteger(entry, "funding_time");
+                    ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
+                        put( "info", entry );
+                        put( "symbol", symbolInner );
+                        put( "fundingRate", HtxCore.this.safeNumber(entry, "funding_rate") );
+                        put( "timestamp", timestamp );
+                        put( "datetime", HtxCore.this.iso8601(timestamp) );
+                    }});
+                }
             }
             Object sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
@@ -7976,19 +7937,28 @@ public class HtxCore extends HtxApi
     public Object parseFundingRate(Object contract, Object... optionalArgs)
     {
         //
-        // {
-        //      "status": "ok",
-        //      "data": {
-        //         "estimated_rate": "0.000100000000000000",
+        // inverse swap
+        //
+        //     {
+        //         "estimated_rate": null,
         //         "funding_rate": "0.000100000000000000",
-        //         "contract_code": "BCH-USD",
-        //         "symbol": "BCH",
-        //         "fee_asset": "BCH",
-        //         "funding_time": "1639094400000",
-        //         "next_funding_time": "1639123200000"
-        //     },
-        //     "ts": 1639085854775
-        // }
+        //         "contract_code": "BTC-USD",
+        //         "symbol": "BTC",
+        //         "fee_asset": "BTC",
+        //         "funding_time": "1781280000000",
+        //         "next_funding_time": null
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "contract_code": "BTC-USDT",
+        //         "funding_rate": "0.000083024939363172",
+        //         "funding_time": "1781251200000",
+        //         "next_funding_time": "1781280000000",
+        //         "min_funding_rate": "-0.003750000000000000",
+        //         "max_funding_rate": "0.003750000000000000"
+        //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object nextFundingRate = this.safeNumber(contract, "estimated_rate");
@@ -8038,7 +8008,7 @@ public class HtxCore extends HtxApi
      * @name htx#fetchFundingRate
      * @description fetch the current funding rate
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97d0c0bf
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -8060,27 +8030,20 @@ public class HtxCore extends HtxApi
                 response = (this.contractPublicGetSwapApiV1SwapFundingRate(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
-                response = (this.contractPublicGetLinearSwapApiV1SwapFundingRate(this.extend(request, parameters))).join();
+                response = (this.contractPublicGetV5MarketFundingRate(this.extend(request, parameters))).join();
             } else
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRate() supports inverse and linear swaps only")) ;
             }
-            //
-            // {
-            //     "status": "ok",
-            //     "data": {
-            //         "estimated_rate": "0.000100000000000000",
-            //         "funding_rate": "0.000100000000000000",
-            //         "contract_code": "BTC-USDT",
-            //         "symbol": "BTC",
-            //         "fee_asset": "USDT",
-            //         "funding_time": "1603699200000",
-            //         "next_funding_time": "1603728000000"
-            //     },
-            //     "ts": 1603696494714
-            // }
-            //
-            Object result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object result = null;
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            } else
+            {
+                result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
+            }
             return this.parseFundingRate(result, market);
         });
 
@@ -8090,7 +8053,6 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#fetchFundingRates
      * @description fetch the funding rate for multiple markets
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8121,7 +8083,7 @@ public class HtxCore extends HtxApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
             {
-                response = (this.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(this.extend(request, parameters))).join();
+                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRates() not support this market type")) ;
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.contractPublicGetSwapApiV1SwapBatchFundingRate(this.extend(request, parameters))).join();
@@ -8314,7 +8276,15 @@ public class HtxCore extends HtxApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object url = "/";
-        Object query = this.omit(parameters, this.extractParams(path));
+        Object isArrayParams = Helpers.isArray(parameters);
+        Object query = null;
+        if (Helpers.isTrue(isArrayParams))
+        {
+            query = new java.util.HashMap<String, Object>() {{}};
+        } else
+        {
+            query = this.omit(parameters, this.extractParams(path));
+        }
         if (Helpers.isTrue((api instanceof String)))
         {
             // signing implementation for the old endpoints
@@ -8352,7 +8322,15 @@ public class HtxCore extends HtxApi
                 url = Helpers.add(url, Helpers.add("?", auth));
                 if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
                 {
-                    body = this.json(query);
+                    Object bodyRequest = null;
+                    if (Helpers.isTrue(isArrayParams))
+                    {
+                        bodyRequest = parameters;
+                    } else
+                    {
+                        bodyRequest = query;
+                    }
+                    body = this.json(bodyRequest);
                     headers = new java.util.HashMap<String, Object>() {{
                         put( "Content-Type", "application/json" );
                     }};
@@ -8405,21 +8383,24 @@ public class HtxCore extends HtxApi
                 {
                     Object options = this.safeValue(this.options, "broker", new java.util.HashMap<String, Object>() {{}});
                     Object id = this.safeString(options, "id", "AA03022abc");
-                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(path, "cancel"), Helpers.opNeg(1))) && Helpers.isTrue(((String)path).endsWith(((String)"order")))))
+                    if (!Helpers.isTrue(isArrayParams))
                     {
-                        // swap order placement
-                        Object channelCode = this.safeString(parameters, "channel_code");
-                        if (Helpers.isTrue(Helpers.isEqual(channelCode, null)))
+                        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(path, "cancel"), Helpers.opNeg(1))) && Helpers.isTrue(((String)path).endsWith(((String)"order")))))
                         {
-                            Helpers.addElementToObject(parameters, "channel_code", id);
-                        }
-                    } else if (Helpers.isTrue(((String)path).endsWith(((String)"orders/place"))))
-                    {
-                        // spot order placement
-                        Object clientOrderId = this.safeString(parameters, "client-order-id");
-                        if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+                            // swap order placement
+                            Object channelCode = this.safeString(parameters, "channel_code");
+                            if (Helpers.isTrue(Helpers.isEqual(channelCode, null)))
+                            {
+                                Helpers.addElementToObject(parameters, "channel_code", id);
+                            }
+                        } else if (Helpers.isTrue(((String)path).endsWith(((String)"orders/place"))))
                         {
-                            Helpers.addElementToObject(parameters, "client-order-id", Helpers.add(id, this.uuid()));
+                            // spot order placement
+                            Object clientOrderId = this.safeString(parameters, "client-order-id");
+                            if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+                            {
+                                Helpers.addElementToObject(parameters, "client-order-id", Helpers.add(id, this.uuid()));
+                            }
                         }
                     }
                 }
@@ -8448,8 +8429,16 @@ public class HtxCore extends HtxApi
                 url = Helpers.add(url, Helpers.add("?", auth));
                 if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
                 {
-                    body = this.json(query);
-                    if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(body), 2)))
+                    Object bodyRequest = null;
+                    if (Helpers.isTrue(isArrayParams))
+                    {
+                        bodyRequest = parameters;
+                    } else
+                    {
+                        bodyRequest = query;
+                    }
+                    body = this.json(bodyRequest);
+                    if (Helpers.isTrue(!Helpers.isTrue(isArrayParams) && Helpers.isTrue((Helpers.isEqual(((String)body).length(), 2)))))
                     {
                         body = "{}";
                     }
@@ -8529,13 +8518,14 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          // coin-m swaps
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchFundingHistory(Object... optionalArgs)
@@ -8549,59 +8539,46 @@ public class HtxCore extends HtxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
-            var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
-            var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
+            Object marketType = null;
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
+            marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "30,31" );
             }};
+            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Helpers.addElementToObject(request, "start_date", since);
+                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                {
+                    Helpers.addElementToObject(request, "start_time", since);
+                } else
+                {
+                    Helpers.addElementToObject(request, "start_date", since);
+                }
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
-                Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
                 if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
                 {
-                    //
-                    //    {
-                    //        "status": "ok",
-                    //        "data": {
-                    //           "financial_record": [
-                    //               {
-                    //                   "id": "1320088022",
-                    //                   "type": "30",
-                    //                   "amount": "0.004732510000000000",
-                    //                   "ts": "1641168019321",
-                    //                   "contract_code": "BTC-USDT",
-                    //                   "asset": "USDT",
-                    //                   "margin_account": "BTC-USDT",
-                    //                   "face_margin_account": ''
-                    //               },
-                    //           ],
-                    //           "remain_size": "0",
-                    //           "next_id": null
-                    //        },
-                    //        "ts": "1641189898425"
-                    //    }
-                    //
                     Object marginMode = null;
                     var marginModeparametersVariable = this.handleMarginModeAndParams("fetchFundingHistory", parameters);
                     marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                     marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                    if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
+                    Helpers.addElementToObject(request, "margin_mode", marginMode);
+                    Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
+                    if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                     {
-                        Helpers.addElementToObject(request, "mar_acct", Helpers.GetValue(market, "id"));
-                    } else
-                    {
-                        Helpers.addElementToObject(request, "mar_acct", Helpers.GetValue(market, "quoteId"));
+                        Helpers.addElementToObject(request, "limit", limit);
                     }
-                    response = (this.contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(this.extend(request, query))).join();
+                    response = (this.contractPrivateGetV5AccountBills(this.extend(request, parameters))).join();
                 } else
                 {
+                    Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
                     //
                     //     {
                     //         "code": 200,
@@ -8622,12 +8599,12 @@ public class HtxCore extends HtxApi
                     //         "ts": 1604312615051
                     //     }
                     //
-                    response = (this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, query))).join();
+                    response = (this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, parameters))).join();
                 }
             } else
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
-                response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, query))).join();
+                response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, parameters))).join();
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseIncomes(data, market, since, limit);
@@ -8639,13 +8616,13 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#setLeverage
      * @description set the level of leverage for a market
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959439f997
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
      * @see https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  // Coin-m futures
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
     public java.util.concurrent.CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
@@ -8682,16 +8659,8 @@ public class HtxCore extends HtxApi
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
-                if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate(this.extend(request, query))).join();
-                } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate(this.extend(request, query))).join();
-                } else
-                {
-                    throw new NotSupported((String)Helpers.add(this.id, " setLeverage() not support this market type")) ;
-                }
+                Helpers.addElementToObject(request, "margin_mode", marginMode);
+                response = (this.contractPrivatePostV5PositionLever(this.extend(request, query))).join();
             } else
             {
                 if (Helpers.isTrue(Helpers.isEqual(marketType, "future")))
@@ -8722,13 +8691,25 @@ public class HtxCore extends HtxApi
         //       "contract_code": "BTC-USD"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id": "2194774775",
+        //         "type": "30",
+        //         "currency": "USDT",
+        //         "amount": "0.000433432461821856",
+        //         "contract_code": "BTC-USDT",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780963213165"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(income, "contract_code");
         Object symbol = this.safeSymbol(marketId, market);
         Object amount = this.safeNumber(income, "amount");
-        Object timestamp = this.safeInteger(income, "ts");
+        Object timestamp = this.safeInteger2(income, "ts", "created_time");
         Object id = this.safeString(income, "id");
-        Object currencyId = this.safeString2(income, "symbol", "asset");
+        Object currencyId = this.safeStringN(income, new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol", "asset", "currency")));
         Object code = this.safeCurrencyCode(currencyId);
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -8774,16 +8755,44 @@ public class HtxCore extends HtxApi
         //        "margin_static": "24.965720070000000000"
         //    }
         //
+        // linear swap
+        //
+        //     {
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "long",
+        //         "direction": "buy",
+        //         "margin_mode": "cross",
+        //         "open_avg_price": "63204.5",
+        //         "volume": "1",
+        //         "available": "1",
+        //         "lever_rate": 20,
+        //         "adl_risk_percent": 3,
+        //         "liquidation_price": "-110163.844268282697306843",
+        //         "margin": "3.158275",
+        //         "initial_margin": "3.158275",
+        //         "maintenance_margin": "0.2147627",
+        //         "profit_unreal": "-0.039",
+        //         "profit_rate": "-0.0123",
+        //         "margin_rate": "0.0012",
+        //         "mark_price": "63165.5",
+        //         "last_price": "63163.3",
+        //         "margin_currency": "USDT",
+        //         "contract_type": "swap",
+        //         "created_time": "1780903703234",
+        //         "updated_time": "1780903703234"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(this.safeString(position, "contract_code"));
         Object symbol = Helpers.GetValue(market, "symbol");
         Object contracts = this.safeString(position, "volume");
         Object contractSize = this.safeValue(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
-        Object entryPrice = this.safeNumber(position, "cost_open");
-        Object initialMargin = this.safeString(position, "position_margin");
+        Object entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
+        Object initialMargin = this.safeString2(position, "position_margin", "initial_margin");
         Object rawSide = this.safeString(position, "direction");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
+        Object rawPositionSide = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
+        Object side = this.safeString(position, "position_side", rawPositionSide);
         Object unrealizedProfit = this.safeNumber(position, "profit_unreal");
         Object marginMode = this.safeString(position, "margin_mode");
         Object leverage = this.safeString(position, "lever_rate");
@@ -8800,14 +8809,36 @@ public class HtxCore extends HtxApi
             marginMode = "cross";
         }
         Object intialMarginPercentage = Precise.stringDiv(initialMargin, notional);
-        Object collateral = this.safeString(position, "margin_balance");
-        Object liquidationPrice = this.safeNumber(position, "liquidation_price");
+        Object collateral = this.safeString2(position, "margin_balance", "margin");
         Object adjustmentFactor = this.safeString(position, "adjust_factor");
-        Object maintenanceMarginPercentage = Precise.stringDiv(adjustmentFactor, leverage);
-        Object maintenanceMargin = Precise.stringMul(maintenanceMarginPercentage, notional);
-        Object marginRatio = Precise.stringDiv(maintenanceMargin, collateral);
+        Object maintenanceMarginLinear = this.safeString(position, "maintenance_margin");
+        Object marginRatioLinear = this.safeString(position, "margin_rate");
+        Object maintenanceMarginPercentage = null;
+        Object maintenanceMargin = null;
+        Object marginRatio = null;
+        Object maintenanceMarginPercentageResult = null;
+        if (Helpers.isTrue(Helpers.isEqual(maintenanceMarginLinear, null)))
+        {
+            maintenanceMarginPercentage = Precise.stringDiv(adjustmentFactor, leverage);
+            maintenanceMargin = Precise.stringMul(maintenanceMarginPercentage, notional);
+            maintenanceMarginPercentageResult = this.parseNumber(maintenanceMarginPercentage);
+        } else
+        {
+            maintenanceMargin = maintenanceMarginLinear;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(marginRatioLinear, null)))
+        {
+            marginRatio = Precise.stringDiv(maintenanceMargin, collateral);
+        } else
+        {
+            marginRatio = marginRatioLinear;
+        }
+        Object timestamp = this.safeInteger(position, "created_time");
         final Object finalMarginMode = marginMode;
         final Object finalNotional = notional;
+        final Object finalMaintenanceMargin = maintenanceMargin;
+        final Object finalMaintenanceMarginPercentageResult = maintenanceMarginPercentageResult;
+        final Object finalMarginRatio = marginRatio;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -8822,18 +8853,18 @@ public class HtxCore extends HtxApi
             put( "percentage", HtxCore.this.parseNumber(percentage) );
             put( "marginMode", finalMarginMode );
             put( "notional", HtxCore.this.parseNumber(finalNotional) );
-            put( "markPrice", null );
-            put( "lastPrice", null );
-            put( "liquidationPrice", liquidationPrice );
+            put( "markPrice", HtxCore.this.safeNumber(position, "mark_price") );
+            put( "lastPrice", HtxCore.this.parseNumber(lastPrice) );
+            put( "liquidationPrice", HtxCore.this.safeNumber(position, "liquidation_price") );
             put( "initialMargin", HtxCore.this.parseNumber(initialMargin) );
             put( "initialMarginPercentage", HtxCore.this.parseNumber(intialMarginPercentage) );
-            put( "maintenanceMargin", HtxCore.this.parseNumber(maintenanceMargin) );
-            put( "maintenanceMarginPercentage", HtxCore.this.parseNumber(maintenanceMarginPercentage) );
-            put( "marginRatio", HtxCore.this.parseNumber(marginRatio) );
-            put( "timestamp", null );
-            put( "datetime", null );
+            put( "maintenanceMargin", HtxCore.this.parseNumber(finalMaintenanceMargin) );
+            put( "maintenanceMarginPercentage", finalMaintenanceMarginPercentageResult );
+            put( "marginRatio", HtxCore.this.parseNumber(finalMarginRatio) );
+            put( "timestamp", timestamp );
+            put( "datetime", HtxCore.this.iso8601(timestamp) );
             put( "hedged", null );
-            put( "lastUpdateTimestamp", null );
+            put( "lastUpdateTimestamp", HtxCore.this.safeInteger(position, "updated_time") );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
         }});
@@ -8843,8 +8874,7 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#fetchPositions
      * @description fetch all open positions
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
      * @param {string[]} [symbols] list of unified market symbols
@@ -8873,10 +8903,6 @@ public class HtxCore extends HtxApi
                     market = this.market(first);
                 }
             }
-            Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPositions", parameters, "cross");
-            marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object subType = null;
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
@@ -8892,16 +8918,7 @@ public class HtxCore extends HtxApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
             {
-                if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapPositionInfo(parameters)).join();
-                } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(parameters)).join();
-                } else
-                {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() not support this market type")) ;
-                }
+                response = (this.contractPrivateGetV5TradePositionOpens(parameters)).join();
             } else
             {
                 if (Helpers.isTrue(Helpers.isEqual(marketType, "future")))
@@ -8936,8 +8953,7 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
@@ -8966,7 +8982,7 @@ public class HtxCore extends HtxApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "settleId"));
             } else
             {
-                if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
+                if (Helpers.isTrue(!Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue((Helpers.isEqual(marginMode, "cross")))))
                 {
                     Helpers.addElementToObject(request, "margin_account", "USDT"); // only allowed value
                 }
@@ -8975,16 +8991,7 @@ public class HtxCore extends HtxApi
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
-                if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo(this.extend(request, query))).join();
-                } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo(this.extend(request, query))).join();
-                } else
-                {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchPosition() not support this market type")) ;
-                }
+                response = (this.contractPrivateGetV5TradePositionOpens(this.extend(request, query))).join();
             } else
             {
                 if (Helpers.isTrue(Helpers.isEqual(marketType, "future")))
@@ -8999,6 +9006,11 @@ public class HtxCore extends HtxApi
                 }
             }
             Object data = this.safeValue(response, "data");
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                Object linearPosition = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+                return this.parsePosition(linearPosition, market);
+            }
             Object account = null;
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
             {
@@ -9026,7 +9038,7 @@ public class HtxCore extends HtxApi
                 position = this.safeValue(positions, 0);
             }
             Object timestamp = this.safeInteger(response, "ts");
-            Object parsed = this.parsePosition(this.extend(position, omitted));
+            Object parsed = this.parsePosition(this.extend(position, omitted), market);
             Helpers.addElementToObject(parsed, "timestamp", timestamp);
             Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
             return parsed;
@@ -9411,7 +9423,6 @@ public class HtxCore extends HtxApi
      * @description Retrieves the open interest for a list of symbols
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
      * @param {string[]} [symbols] a list of unified CCXT market symbols
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -9453,8 +9464,7 @@ public class HtxCore extends HtxApi
                 response = (this.contractPublicGetSwapApiV1SwapOpenInterest(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "contract_type", "swap");
-                response = (this.contractPublicGetLinearSwapApiV1SwapOpenInterest(this.extend(request, parameters))).join();
+                throw new NotSupported((String)Helpers.add(this.id, " fetchOpenInterests() does not currently support linear markets")) ;
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
@@ -9468,7 +9478,7 @@ public class HtxCore extends HtxApi
      * @description Retrieves the open interest of a currency
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97fb53f2
      * @param {string} symbol Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -9501,36 +9511,29 @@ public class HtxCore extends HtxApi
                 response = (this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
-                Helpers.addElementToObject(request, "contract_type", "swap");
-                // USDT-M
-                response = (this.contractPublicGetLinearSwapApiV1SwapOpenInterest(this.extend(request, parameters))).join();
+                // USDT-M swaps
+                response = (this.contractPublicGetV5MarketOpenInterest(this.extend(request, parameters))).join();
             } else
             {
                 // COIN-M swaps
                 response = (this.contractPublicGetSwapApiV1SwapOpenInterest(this.extend(request, parameters))).join();
             }
             //
-            // USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
+            // USDT-M linear swap
             //
             //     {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "volume": 7192610.000000000000000000,
-            //                 "amount": 7192.610000000000000000,
-            //                 "symbol": "BTC",
-            //                 "value": 134654290.332000000000000000,
-            //                 "contract_code": "BTC-USDT",
-            //                 "trade_amount": 70692.804,
-            //                 "trade_volume": 70692804,
-            //                 "trade_turnover": 1379302592.9518,
-            //                 "business_type": "swap",
-            //                 "pair": "BTC-USDT",
-            //                 "contract_type": "swap",
-            //                 "trade_partition": "USDT"
-            //             }
-            //         ],
-            //         "ts": 1664336503144
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": {
+            //             "amount": "32476.092",
+            //             "volume": "32476092",
+            //             "value": "2063137924.9668",
+            //             "contract_code": "BTC-USDT",
+            //             "trade_amount": "11371.362",
+            //             "trade_volume": "11371362",
+            //             "trade_turnover": "723600792.7222"
+            //         },
+            //         "ts": 1781327941440
             //     }
             //
             // COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
@@ -9570,9 +9573,17 @@ public class HtxCore extends HtxApi
             //         "ts": 1664337928805
             //     }
             //
+            Object timestamp = this.safeInteger(response, "ts");
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                return this.extend(this.parseOpenInterest(result, market), new java.util.HashMap<String, Object>() {{
+                    put( "timestamp", timestamp );
+                    put( "datetime", HtxCore.this.iso8601(timestamp) );
+                }});
+            }
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object openInterest = this.parseOpenInterest(Helpers.GetValue(data, 0), market);
-            Object timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(openInterest, "timestamp", timestamp);
             Helpers.addElementToObject(openInterest, "datetime", this.iso8601(timestamp));
             return openInterest;
@@ -9595,18 +9606,13 @@ public class HtxCore extends HtxApi
         // fetchOpenInterest: USDT-M
         //
         //     {
-        //         "volume": 7192610.000000000000000000,
-        //         "amount": 7192.610000000000000000,
-        //         "symbol": "BTC",
-        //         "value": 134654290.332000000000000000,
+        //         "amount": "32476.092",
+        //         "volume": "32476092",
+        //         "value": "2063137924.9668",
         //         "contract_code": "BTC-USDT",
-        //         "trade_amount": 70692.804,
-        //         "trade_volume": 70692804,
-        //         "trade_turnover": 1379302592.9518,
-        //         "business_type": "swap",
-        //         "pair": "BTC-USDT",
-        //         "contract_type": "swap",
-        //         "trade_partition": "USDT"
+        //         "trade_amount": "11371.362",
+        //         "trade_volume": "11371362",
+        //         "trade_turnover": "723600792.7222"
         //     }
         //
         // fetchOpenInterest: COIN-M Swap
@@ -9870,7 +9876,7 @@ public class HtxCore extends HtxApi
      * @description Fetches historical settlement records
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
      * @param {string} symbol unified symbol of the market to fetch the settlement history for
      * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
      * @param {int} [limit] page items, default 20, shall not exceed 50
@@ -9893,8 +9899,6 @@ public class HtxCore extends HtxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
             }
-            Object until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.GetValue(market, "future")))
@@ -9904,24 +9908,29 @@ public class HtxCore extends HtxApi
             {
                 Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
-            {
-                Helpers.addElementToObject(request, "start_at", since);
-            }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))))
+                {
+                    Helpers.addElementToObject(request, "limit", limit);
+                } else
+                {
+                    Helpers.addElementToObject(request, "page_size", limit);
+                }
             }
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Helpers.addElementToObject(request, "end_at", until);
+                Helpers.addElementToObject(request, "start_time", since);
             }
+            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
                 if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
                 {
-                    response = (this.contractPublicGetLinearSwapApiV1SwapSettlementRecords(this.extend(request, parameters))).join();
+                    response = (this.contractPublicGetV5MarketSettlementHistory(this.extend(request, parameters))).join();
                 } else
                 {
                     response = (this.contractPublicGetSwapApiV1SwapSettlementRecords(this.extend(request, parameters))).join();
@@ -9931,7 +9940,7 @@ public class HtxCore extends HtxApi
                 response = (this.contractPublicGetApiV1ContractSettlementRecords(this.extend(request, parameters))).join();
             }
             //
-            // linear swap, coin-m swap
+            // coin-m swap
             //
             //    {
             //        "status": "ok",
@@ -9982,6 +9991,29 @@ public class HtxCore extends HtxApi
             //        }
             //    }
             //
+            // linear swap
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "id": "14900",
+            //                 "contract_code": "BTC-USDT",
+            //                 "settlement_time": "1781827200000",
+            //                 "clawback_ratio": "0",
+            //                 "settlement_price": "62933.747161774209291325"
+            //             },
+            //         ],
+            //         "ts": 1781853150623
+            //     }
+            //
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                Object dataLinear = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object settlementsLinear = this.parseSettlements(dataLinear, market);
+                return this.sortBy(settlementsLinear, "timestamp");
+            }
             Object data = this.safeValue(response, "data");
             Object settlementRecord = this.safeValue(data, "settlement_record");
             Object settlements = this.parseSettlements(settlementRecord, market);
@@ -10128,7 +10160,7 @@ public class HtxCore extends HtxApi
     public Object parseSettlements(Object settlements, Object market)
     {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    [
         //        {
@@ -10163,12 +10195,28 @@ public class HtxCore extends HtxApi
         //        },
         //    ]
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     [
+        //         {
+        //             "id": "14900",
+        //             "contract_code": "BTC-USDT",
+        //             "settlement_time": "1781827200000",
+        //             "clawback_ratio": "0",
+        //             "settlement_price": "62933.747161774209291325"
+        //         }
+        //     ]
+        //
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
         {
             Object settlement = Helpers.GetValue(settlements, i);
             Object list = this.safeValue(settlement, "list");
-            if (Helpers.isTrue(!Helpers.isEqual(list, null)))
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                Object parsedSettlement = this.parseSettlement(settlement, market);
+                ((java.util.List<Object>)result).add(parsedSettlement);
+            } else if (Helpers.isTrue(!Helpers.isEqual(list, null)))
             {
                 Object timestamp = this.safeInteger(settlement, "settlement_time");
                 Object timestampDetails = new java.util.HashMap<String, Object>() {{
@@ -10192,7 +10240,7 @@ public class HtxCore extends HtxApi
     public Object parseSettlement(Object settlement, Object market)
     {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    {
         //        "symbol": "ADA",
@@ -10214,6 +10262,16 @@ public class HtxCore extends HtxApi
         //        "settlement_type": "settlement"
         //    }
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     {
+        //         "id": "14900",
+        //         "contract_code": "BTC-USDT",
+        //         "settlement_time": "1781827200000",
+        //         "clawback_ratio": "0",
+        //         "settlement_price": "62933.747161774209291325"
+        //     }
+        //
         Object timestamp = this.safeInteger(settlement, "settlement_time");
         Object marketId = this.safeString(settlement, "contract_code");
         return new java.util.HashMap<String, Object>() {{
@@ -10229,7 +10287,7 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
      * @param {string} symbol unified CCXT market symbol
@@ -10237,7 +10295,7 @@ public class HtxCore extends HtxApi
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the huobi api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @param {int} [params.tradeType] default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+     * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(Object symbol, Object... optionalArgs)
@@ -10250,10 +10308,13 @@ public class HtxCore extends HtxApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            Object tradeType = this.safeInteger(parameters, "trade_type", 0);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "trade_type", tradeType );
-            }};
+            Object tradeType = this.safeInteger2(parameters, "trade_type", "tradeType", 0);
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            if (!Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                Helpers.addElementToObject(request, "trade_type", tradeType);
+            }
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trade_type", "tradeType")));
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start_time", since);
@@ -10264,12 +10325,17 @@ public class HtxCore extends HtxApi
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
-                Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
                 if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
                 {
-                    response = (this.contractPublicGetLinearSwapApiV3SwapLiquidationOrders(this.extend(request, parameters))).join();
+                    Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
+                    if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                    {
+                        Helpers.addElementToObject(request, "limit", limit);
+                    }
+                    response = (this.contractPublicGetV5MarketLiquidationOrders(this.extend(request, parameters))).join();
                 } else
                 {
+                    Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
                     response = (this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(request, parameters))).join();
                 }
             } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
@@ -10327,16 +10393,30 @@ public class HtxCore extends HtxApi
         //         "pair": "BTC-USDT"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id": "150153038758",
+        //         "contract_code": "BTC-USDT",
+        //         "liquidation_time": "1781849094165",
+        //         "side": "buy",
+        //         "position_side": "short",
+        //         "volume": "2",
+        //         "amount": "2",
+        //         "bankrupt_price": "62978.5",
+        //         "trade_turnover": "125.957"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(liquidation, "contract_code");
-        Object timestamp = this.safeInteger(liquidation, "created_at");
+        Object timestamp = this.safeInteger2(liquidation, "created_at", "liquidation_time");
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", HtxCore.this.safeSymbol(marketId, market) );
             put( "contracts", HtxCore.this.safeNumber(liquidation, "volume") );
             put( "contractSize", HtxCore.this.safeNumber(market, "contractSize") );
-            put( "price", HtxCore.this.safeNumber(liquidation, "price") );
-            put( "side", HtxCore.this.safeStringLower(liquidation, "direction") );
+            put( "price", HtxCore.this.safeNumber2(liquidation, "price", "bankrupt_price") );
+            put( "side", HtxCore.this.safeStringLower2(liquidation, "direction", "side") );
             put( "baseValue", HtxCore.this.safeNumber(liquidation, "amount") );
             put( "quoteValue", HtxCore.this.safeNumber(liquidation, "trade_turnover") );
             put( "timestamp", timestamp );
@@ -10346,10 +10426,9 @@ public class HtxCore extends HtxApi
 
     /**
      * @method
-     * @name htx#closePositions
-     * @description closes open positions for a contract market, requires 'amount' in params, unlike other exchanges
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (isolated)
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (cross)
+     * @name htx#closePosition
+     * @description closes open positions for a contract market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958953a715    // USDT-M
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
      * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
      * @param {string} symbol unified CCXT market symbol
@@ -10361,6 +10440,7 @@ public class HtxCore extends HtxApi
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {number} [params.amount] order quantity
      * @param {string} [params.order_price_type] 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
+     * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbol, Object... optionalArgs)
@@ -10377,28 +10457,34 @@ public class HtxCore extends HtxApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " closePosition() symbol supports contract markets only")) ;
             }
-            this.checkRequiredArgument("closePosition", side, "side");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "contract_code", Helpers.GetValue(market, "id") );
-                put( "direction", side );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
+                parameters = this.omit(parameters, "clientOrderId");
             }
-            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            Object response = null;
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
+                Object marginMode = null;
+                var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
+                marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
+                parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
+                Helpers.addElementToObject(request, "margin_mode", marginMode);
+                response = (this.contractPrivatePostV5TradePosition(this.extend(request, parameters))).join();
+            } else
+            {
+                this.checkRequiredArgument("closePosition", side, "side");
                 Object amount = this.safeString2(parameters, "volume", "amount");
                 if (Helpers.isTrue(Helpers.isEqual(amount, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " closePosition () requires an extra argument params[\"amount\"] for inverse markets")) ;
                 }
                 Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount));
-            }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "volume", "amount")));
-            Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
-            {
+                Helpers.addElementToObject(request, "direction", side);
+                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("volume", "amount")));
                 if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
                 {
                     response = (this.contractPrivatePostSwapApiV1SwapLightningClosePosition(this.extend(request, parameters))).join();
@@ -10406,19 +10492,11 @@ public class HtxCore extends HtxApi
                 {
                     response = (this.contractPrivatePostApiV1LightningClosePosition(this.extend(request, parameters))).join();
                 }
-            } else
+            }
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
-                Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
-                marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition(this.extend(request, parameters))).join();
-                } else
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapLightningClosePosition(this.extend(request, parameters))).join();
-                }
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                return this.parseOrder(data, market);
             }
             return this.parseOrder(response, market);
         });
@@ -10429,8 +10507,7 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#setPositionMode
      * @description set hedged to true or false
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959443cae3
      * @param {bool} hedged set to true to for hedged mode, must be set separately for each market in isolated margin mode, only valid for linear markets
      * @param {string} [symbol] unified market symbol, required for isolated margin mode
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -10451,31 +10528,24 @@ public class HtxCore extends HtxApi
             {
                 market = this.market(symbol);
             }
-            Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("setPositionMode", parameters, "cross");
-            marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "position_mode", posMode );
             }};
-            Object response = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.GetValue(market, "inverse")))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setPositionMode can only be used for linear markets")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
-            {
-                if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
-                {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " setPositionMode requires a symbol argument for isolated margin mode")) ;
-                }
-                Helpers.addElementToObject(request, "margin_account", Helpers.GetValue(market, "id"));
-                response = (this.contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode(this.extend(request, parameters))).join();
-            } else
-            {
-                Helpers.addElementToObject(request, "margin_account", "USDT");
-                response = (this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode(this.extend(request, parameters))).join();
-            }
+            Object response = (this.contractPrivatePostV5PositionMode(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": {
+            //             "position_mode": "single_side"
+            //         },
+            //         "ts": 1781233894454
+            //     }
+            //
             return response;
         });
 
@@ -10485,8 +10555,7 @@ public class HtxCore extends HtxApi
      * @method
      * @name htx#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
      * @param {string[]} [symbols] a list of unified market symbols
@@ -10512,10 +10581,6 @@ public class HtxCore extends HtxApi
                     market = this.market(first);
                 }
             }
-            Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPositionsADLRank", parameters, "cross");
-            marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object subType = null;
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
@@ -10531,16 +10596,7 @@ public class HtxCore extends HtxApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
             {
-                if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapPositionInfo(parameters)).join();
-                } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
-                {
-                    response = (this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(parameters)).join();
-                } else
-                {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchPositionsADLRank() not support this market type")) ;
-                }
+                response = (this.contractPrivateGetV5TradePositionOpens(parameters)).join();
             } else
             {
                 if (Helpers.isTrue(Helpers.isEqual(marketType, "future")))
@@ -10563,47 +10619,31 @@ public class HtxCore extends HtxApi
     public Object parseADLRank(Object info, Object... optionalArgs)
     {
         //
-        // fetchPositionADLRank linear swap and future
+        // fetchPositionADLRank linear
         //
         //     {
-        //         "symbol": "BTC",
         //         "contract_code": "BTC-USDT",
-        //         "volume": 1.000000000000000000,
-        //         "available": 1.000000000000000000,
-        //         "frozen": 0E-18,
-        //         "cost_open": 96039.700000000000000000,
-        //         "cost_hold": 96039.700000000000000000,
-        //         "profit_unreal": 0.000600000000000000,
-        //         "profit_rate": 0.000006247416432995,
-        //         "lever_rate": 1,
-        //         "position_margin": 96.040300000000000000,
+        //         "position_side": "long",
         //         "direction": "buy",
-        //         "profit": 0.000600000000000000,
-        //         "last_price": 96040.3,
-        //         "margin_asset": "USDT",
         //         "margin_mode": "cross",
-        //         "margin_account": "USDT",
-        //         "contract_type": "swap",
-        //         "pair": "BTC-USDT",
-        //         "business_type": "swap",
-        //         "trade_partition":"USDT",
-        //         "position_mode": "single_side",
-        //         "store_time": "2023-10-08 20:05:06",
-        //         "liquidation_price": null,
-        //         "market_closing_slippage": null,
-        //         "risk_rate": 249.274066168760049797,
-        //         "new_risk_rate": 0.003995619743220614,
-        //         "risk_rate_percent": 0.003995619743220614,
-        //         "withdraw_available": null,
-        //         "open_adl": 1,
+        //         "open_avg_price": "63204.5",
+        //         "volume": "1",
+        //         "available": "1",
+        //         "lever_rate": 20,
         //         "adl_risk_percent": 3,
-        //         "tp_trigger_price": null,
-        //         "sl_trigger_price": null,
-        //         "tp_order_id": null,
-        //         "sl_order_id": null,
-        //         "tp_trigger_type": null,
-        //         "sl_trigger_type": null,
-        //         "adjust_value": null
+        //         "liquidation_price": "-110163.844268282697306843",
+        //         "margin": "3.158275",
+        //         "initial_margin": "3.158275",
+        //         "maintenance_margin": "0.2147627",
+        //         "profit_unreal": "-0.039",
+        //         "profit_rate": "-0.0123",
+        //         "margin_rate": "0.0012",
+        //         "mark_price": "63165.5",
+        //         "last_price": "63163.3",
+        //         "margin_currency": "USDT",
+        //         "contract_type": "swap",
+        //         "created_time": "1780903703234",
+        //         "updated_time": "1780903703234"
         //     }
         //
         // fetchPositionADLRank inverse
@@ -10631,14 +10671,15 @@ public class HtxCore extends HtxApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(info, "contract_code");
+        Object timestamp = this.safeInteger(info, "created_time");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", HtxCore.this.safeSymbol(marketId, market, null, "contract") );
             put( "rank", HtxCore.this.safeInteger(info, "adl_risk_percent") );
             put( "rating", null );
             put( "percentage", null );
-            put( "timestamp", null );
-            put( "datetime", null );
+            put( "timestamp", timestamp );
+            put( "datetime", HtxCore.this.iso8601(timestamp) );
         }};
     }
 }

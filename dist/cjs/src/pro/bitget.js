@@ -85,18 +85,18 @@ class bitget extends bitget$1["default"] {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        '30001': errors.BadRequest,
-                        '30002': errors.AuthenticationError,
-                        '30003': errors.BadRequest,
-                        '30004': errors.AuthenticationError,
-                        '30005': errors.AuthenticationError,
-                        '30006': errors.RateLimitExceeded,
-                        '30007': errors.RateLimitExceeded,
-                        '30011': errors.AuthenticationError,
-                        '30012': errors.AuthenticationError,
-                        '30013': errors.AuthenticationError,
-                        '30014': errors.BadRequest,
-                        '30015': errors.AuthenticationError,
+                        '30001': errors.BadRequest, // {"event":"error","code":30001,"msg":"instType:sp,channel:candleundefined,instId:BTCUSDT doesn't exist"}
+                        '30002': errors.AuthenticationError, // illegal request
+                        '30003': errors.BadRequest, // invalid op
+                        '30004': errors.AuthenticationError, // requires login
+                        '30005': errors.AuthenticationError, // login failed
+                        '30006': errors.RateLimitExceeded, // too many requests
+                        '30007': errors.RateLimitExceeded, // request over limit,connection close
+                        '30011': errors.AuthenticationError, // invalid ACCESS_KEY
+                        '30012': errors.AuthenticationError, // invalid ACCESS_PASSPHRASE
+                        '30013': errors.AuthenticationError, // invalid ACCESS_TIMESTAMP
+                        '30014': errors.BadRequest, // Request timestamp expired
+                        '30015': errors.AuthenticationError, // { event: 'error', code: 30015, msg: 'Invalid sign' }
                         '30016': errors.BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
                     },
                     'broad': {},

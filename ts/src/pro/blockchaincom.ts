@@ -3,7 +3,7 @@
 import blockchaincomRest from '../blockchaincom.js';
 import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -259,7 +259,7 @@ export default class blockchaincom extends blockchaincomRest {
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let ticker = undefined;
+        let ticker: Ticker | undefined = undefined;
         if (event === 'subscribed') {
             return;
         } else if (event === 'snapshot') {
@@ -273,7 +273,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsUpdatedTicker (ticker, lastTicker = undefined, market = undefined) {
+    parseWsUpdatedTicker (ticker, lastTicker = undefined, market: Market = undefined) {
         //
         //     {
         //         "seqnum": 2,
@@ -379,7 +379,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "seqnum": 1,
@@ -544,7 +544,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //     {
         //         "seqnum": 3,

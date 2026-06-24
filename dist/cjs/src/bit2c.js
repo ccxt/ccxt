@@ -19,7 +19,7 @@ class bit2c extends bit2c$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
-            'countries': ['IL'],
+            'countries': ['IL'], // Israel
             'rateLimit': 3000,
             'pro': false,
             'has': {
@@ -256,7 +256,7 @@ class bit2c extends bit2c$1["default"] {
                         'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined,
                 },
                 'swap': {
@@ -271,7 +271,7 @@ class bit2c extends bit2c$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Please provide valid APIkey': errors.AuthenticationError,
+                    'Please provide valid APIkey': errors.AuthenticationError, // { "error" : "Please provide valid APIkey" }
                     'No order found.': errors.OrderNotFound, // { "Error" : "No order found." }
                 },
                 'broad': {
@@ -674,7 +674,7 @@ class bit2c extends bit2c$1["default"] {
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        let status;
+        let status = undefined;
         if (isNewOrder) {
             const tempStatus = this.safeInteger(orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {

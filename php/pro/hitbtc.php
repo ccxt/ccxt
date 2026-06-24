@@ -15,7 +15,11 @@ use \React\Promise\PromiseInterface;
 class hitbtc extends \ccxt\async\hitbtc {
 
     public function describe(): mixed {
-        return $this->deep_extend(parent::describe(), array(
+        return $this->deep_extend(parent::describe(), $this->describe_data());
+    }
+
+    public function describe_data(): mixed {
+        return array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -77,7 +81,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             'streaming' => array(
                 'keepAlive' => 4000,
             ),
-        ));
+        );
     }
 
     public function authenticate() {

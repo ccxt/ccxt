@@ -24,7 +24,7 @@ async def main():
         'bitfinex',
         'poloniex',
         'kraken',
-        'bittrex',
+        'kucoin',
         'hitbtc',
     ]])
 

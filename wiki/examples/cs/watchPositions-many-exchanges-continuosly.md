@@ -57,7 +57,7 @@ partial class Examples
                 }
             },
             {
-                "huobi", new Dictionary<string, object>()
+                "htx", new Dictionary<string, object>()
                 {
                     { "apiKey", "YOUR_API_KEY" },
                     { "secret", "YOUR_API_SECRET" },

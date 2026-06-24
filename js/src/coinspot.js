@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinspot.js';
-import { ExchangeError, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ export default class coinspot extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': ['AU'],
+            'countries': ['AU'], // Australia
             'rateLimit': 1000,
             'pro': false,
             'has': {
@@ -278,13 +278,13 @@ export default class coinspot extends Exchange {
                         'marginMode': false,
                         'limit': undefined,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
-                    'fetchOpenOrders': undefined,
+                    'fetchOpenOrders': undefined, // todo implement
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined,
                 },
                 'swap': {
@@ -659,7 +659,7 @@ export default class coinspot extends Exchange {
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
-        const method = 'privatePostMy' + this.capitalize(side);
+        const sideUpper = side.toUpperCase();
         if (type === 'market') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
@@ -669,8 +669,22 @@ export default class coinspot extends Exchange {
             'amount': amount,
             'rate': price,
         };
-        const response = await this[method](this.extend(request, params));
-        return this.parseOrder(response);
+        let response;
+        if (sideUpper === 'BUY') {
+            response = await this.privatePostMyBuy(this.extend(request, params));
+        }
+        else if (sideUpper === 'SELL') {
+            response = await this.privatePostMySell(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' createOrder only support buy/sell side');
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     /**
      * @method
@@ -692,7 +706,7 @@ export default class coinspot extends Exchange {
         const request = {
             'id': id,
         };
-        let response = undefined;
+        let response;
         if (side === 'buy') {
             response = await this.privatePostMyBuyCancel(this.extend(request, params));
         }
@@ -705,6 +719,17 @@ export default class coinspot extends Exchange {
         return this.safeOrder({
             'info': response,
         });
+    }
+    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        const status = this.safeString(response, 'status');
+        if (status === 'error') {
+            const feedback = this.id + ' ' + this.json(response);
+            throw new ExchangeError(feedback);
+        }
+        return undefined;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isVersionedApi = Array.isArray(api);

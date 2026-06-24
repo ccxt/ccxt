@@ -20,7 +20,7 @@ export default class tokocrypto extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'tokocrypto',
             'name': 'Tokocrypto',
-            'countries': ['ID'],
+            'countries': ['ID'], // Indonesia
             'certified': false,
             'pro': false,
             'version': 'v1',
@@ -202,9 +202,9 @@ export default class tokocrypto extends Exchange {
                         'open/v1/common/time': 1,
                         'open/v1/common/symbols': 1,
                         // all the actual symbols are type 1
-                        'open/v1/market/depth': 1,
-                        'open/v1/market/trades': 1,
-                        'open/v1/market/agg-trades': 1,
+                        'open/v1/market/depth': 1, // when symbol type is not 1
+                        'open/v1/market/trades': 1, // when symbol type is not 1
+                        'open/v1/market/agg-trades': 1, // when symbol type is not 1
                         'open/v1/market/klines': 1, // when symbol type is not 1
                     },
                 },
@@ -232,7 +232,7 @@ export default class tokocrypto extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber('0.0075'),
+                    'taker': this.parseNumber('0.0075'), // 0.1% trading fee, zero fees for all trading pairs before November 1
                     'maker': this.parseNumber('0.0075'), // 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
             },
@@ -240,19 +240,19 @@ export default class tokocrypto extends Exchange {
             'options': {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice': true,
-                'defaultTimeInForce': 'GTC',
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 // 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 // 'fetchPositions': 'positionRisk', // or 'account'
-                'recvWindow': 5 * 1000,
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'recvWindow': 5 * 1000, // 5 sec, binance default
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'newOrderRespType': {
-                    'market': 'FULL',
+                    'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
-                'quoteOrderQty': false,
+                'quoteOrderQty': false, // whether market orders support amounts in quote currency
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
@@ -398,222 +398,222 @@ export default class tokocrypto extends Exchange {
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
-                    'System is under maintenance.': OnMaintenance,
-                    'System abnormality': ExchangeError,
-                    'You are not authorized to execute this request.': PermissionDenied,
+                    'System is under maintenance.': OnMaintenance, // {"code":1,"msg":"System is under maintenance."}
+                    'System abnormality': ExchangeError, // {"code":-1000,"msg":"System abnormality"}
+                    'You are not authorized to execute this request.': PermissionDenied, // {"msg":"You are not authorized to execute this request."}
                     'API key does not exist': AuthenticationError,
                     'Order would trigger immediately.': OrderImmediatelyFillable,
-                    'Stop price would trigger immediately.': OrderImmediatelyFillable,
-                    'Order would immediately match and take.': OrderImmediatelyFillable,
+                    'Stop price would trigger immediately.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Stop price would trigger immediately."}
+                    'Order would immediately match and take.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Order would immediately match and take."}
                     'Account has insufficient balance for requested action.': InsufficientFunds,
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
-                    "You don't have permission.": PermissionDenied,
-                    'Market is closed.': ExchangeNotAvailable,
-                    'Too many requests. Please try again later.': DDoSProtection,
-                    'This action disabled is on this account.': AccountSuspended,
-                    '-1000': ExchangeNotAvailable,
-                    '-1001': ExchangeNotAvailable,
-                    '-1002': AuthenticationError,
-                    '-1003': RateLimitExceeded,
-                    '-1004': DDoSProtection,
-                    '-1005': PermissionDenied,
-                    '-1006': BadResponse,
-                    '-1007': RequestTimeout,
-                    '-1010': BadResponse,
-                    '-1011': PermissionDenied,
-                    '-1013': InvalidOrder,
-                    '-1014': InvalidOrder,
-                    '-1015': RateLimitExceeded,
-                    '-1016': ExchangeNotAvailable,
-                    '-1020': BadRequest,
-                    '-1021': InvalidNonce,
-                    '-1022': AuthenticationError,
-                    '-1023': BadRequest,
-                    '-1099': AuthenticationError,
-                    '-1100': BadRequest,
-                    '-1101': BadRequest,
-                    '-1102': BadRequest,
-                    '-1103': BadRequest,
-                    '-1104': BadRequest,
-                    '-1105': BadRequest,
-                    '-1106': BadRequest,
-                    '-1108': BadRequest,
-                    '-1109': AuthenticationError,
-                    '-1110': BadRequest,
-                    '-1111': BadRequest,
-                    '-1112': InvalidOrder,
-                    '-1113': BadRequest,
-                    '-1114': BadRequest,
-                    '-1115': BadRequest,
-                    '-1116': BadRequest,
-                    '-1117': BadRequest,
-                    '-1118': BadRequest,
-                    '-1119': BadRequest,
-                    '-1120': BadRequest,
-                    '-1121': BadSymbol,
-                    '-1125': AuthenticationError,
-                    '-1127': BadRequest,
-                    '-1128': BadRequest,
-                    '-1130': BadRequest,
-                    '-1131': BadRequest,
-                    '-1136': BadRequest,
-                    '-2008': AuthenticationError,
-                    '-2010': ExchangeError,
-                    '-2011': OrderNotFound,
-                    '-2013': OrderNotFound,
-                    '-2014': AuthenticationError,
-                    '-2015': AuthenticationError,
-                    '-2016': BadRequest,
-                    '-2018': InsufficientFunds,
-                    '-2019': InsufficientFunds,
-                    '-2020': OrderNotFillable,
-                    '-2021': OrderImmediatelyFillable,
-                    '-2022': InvalidOrder,
-                    '-2023': InsufficientFunds,
-                    '-2024': InsufficientFunds,
-                    '-2025': InvalidOrder,
-                    '-2026': InvalidOrder,
-                    '-2027': InvalidOrder,
-                    '-2028': InsufficientFunds,
-                    '-3000': ExchangeError,
-                    '-3001': AuthenticationError,
-                    '-3002': BadSymbol,
-                    '-3003': BadRequest,
-                    '-3004': ExchangeError,
-                    '-3005': InsufficientFunds,
-                    '-3006': InsufficientFunds,
-                    '-3007': ExchangeError,
-                    '-3008': InsufficientFunds,
-                    '-3009': BadRequest,
-                    '-3010': ExchangeError,
-                    '-3011': BadRequest,
-                    '-3012': ExchangeError,
-                    '-3013': BadRequest,
-                    '-3014': AccountSuspended,
-                    '-3015': ExchangeError,
-                    '-3016': BadRequest,
-                    '-3017': ExchangeError,
-                    '-3018': AccountSuspended,
-                    '-3019': AccountSuspended,
-                    '-3020': InsufficientFunds,
-                    '-3021': BadRequest,
-                    '-3022': AccountSuspended,
-                    '-3023': BadRequest,
-                    '-3024': ExchangeError,
-                    '-3025': BadRequest,
-                    '-3026': BadRequest,
-                    '-3027': BadSymbol,
-                    '-3028': BadSymbol,
-                    '-3029': ExchangeError,
-                    '-3036': AccountSuspended,
-                    '-3037': ExchangeError,
-                    '-3038': BadRequest,
-                    '-3041': InsufficientFunds,
-                    '-3042': BadRequest,
-                    '-3043': BadRequest,
-                    '-3044': DDoSProtection,
-                    '-3045': ExchangeError,
-                    '-3999': ExchangeError,
-                    '-4001': BadRequest,
-                    '-4002': BadRequest,
-                    '-4003': BadRequest,
-                    '-4004': AuthenticationError,
-                    '-4005': RateLimitExceeded,
-                    '-4006': BadRequest,
-                    '-4007': BadRequest,
-                    '-4008': BadRequest,
-                    '-4010': BadRequest,
-                    '-4011': BadRequest,
-                    '-4012': BadRequest,
-                    '-4013': AuthenticationError,
-                    '-4014': PermissionDenied,
-                    '-4015': ExchangeError,
-                    '-4016': PermissionDenied,
-                    '-4017': PermissionDenied,
-                    '-4018': BadSymbol,
-                    '-4019': BadSymbol,
-                    '-4021': BadRequest,
-                    '-4022': BadRequest,
-                    '-4023': ExchangeError,
-                    '-4024': InsufficientFunds,
-                    '-4025': InsufficientFunds,
-                    '-4026': InsufficientFunds,
-                    '-4027': ExchangeError,
-                    '-4028': BadRequest,
-                    '-4029': BadRequest,
-                    '-4030': ExchangeError,
-                    '-4031': ExchangeError,
-                    '-4032': ExchangeError,
-                    '-4033': BadRequest,
-                    '-4034': ExchangeError,
-                    '-4035': PermissionDenied,
-                    '-4036': BadRequest,
-                    '-4037': ExchangeError,
-                    '-4038': ExchangeError,
-                    '-4039': BadRequest,
-                    '-4040': BadRequest,
-                    '-4041': ExchangeError,
-                    '-4042': ExchangeError,
-                    '-4043': BadRequest,
-                    '-4044': BadRequest,
-                    '-4045': ExchangeError,
-                    '-4046': AuthenticationError,
-                    '-4047': BadRequest,
-                    '-5001': BadRequest,
-                    '-5002': InsufficientFunds,
-                    '-5003': InsufficientFunds,
-                    '-5004': BadRequest,
-                    '-5005': InsufficientFunds,
-                    '-5006': BadRequest,
-                    '-5007': BadRequest,
-                    '-5008': InsufficientFunds,
-                    '-5009': BadRequest,
-                    '-5010': ExchangeError,
-                    '-5011': BadRequest,
-                    '-5012': ExchangeError,
-                    '-5013': InsufficientFunds,
-                    '-5021': BadRequest,
-                    '-6001': BadRequest,
-                    '-6003': BadRequest,
-                    '-6004': ExchangeError,
-                    '-6005': InvalidOrder,
-                    '-6006': BadRequest,
-                    '-6007': BadRequest,
-                    '-6008': BadRequest,
-                    '-6009': RateLimitExceeded,
-                    '-6011': BadRequest,
-                    '-6012': InsufficientFunds,
-                    '-6013': ExchangeError,
-                    '-6014': BadRequest,
-                    '-6015': BadRequest,
-                    '-6016': BadRequest,
-                    '-6017': BadRequest,
-                    '-6018': BadRequest,
-                    '-6019': AuthenticationError,
-                    '-6020': BadRequest,
-                    '-7001': BadRequest,
-                    '-7002': BadRequest,
-                    '-9000': InsufficientFunds,
-                    '-10017': BadRequest,
-                    '-11008': InsufficientFunds,
-                    '-12014': RateLimitExceeded,
-                    '-13000': BadRequest,
-                    '-13001': BadRequest,
-                    '-13002': BadRequest,
-                    '-13003': BadRequest,
-                    '-13004': BadRequest,
-                    '-13005': BadRequest,
-                    '-13006': InvalidOrder,
-                    '-13007': AuthenticationError,
-                    '-21001': BadRequest,
-                    '-21002': BadRequest,
-                    '-21003': BadRequest,
-                    '100001003': BadRequest,
-                    '2202': InsufficientFunds,
-                    '3210': InvalidOrder,
-                    '3203': InvalidOrder,
-                    '3211': InvalidOrder,
-                    '3207': InvalidOrder,
+                    "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
+                    'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
+                    'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
+                    'This action disabled is on this account.': AccountSuspended, // {"code":-2010,"msg":"This action disabled is on this account."}
+                    '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1001': ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
+                    '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
+                    '-1003': RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
+                    '-1004': DDoSProtection, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                    '-1005': PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
+                    '-1006': BadResponse, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
+                    '-1007': RequestTimeout, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
+                    '-1010': BadResponse, // {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
+                    '-1011': PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
+                    '-1013': InvalidOrder, // {"code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL"}
+                    '-1014': InvalidOrder, // {"code":-1014,"msg":"Unsupported order combination."}
+                    '-1015': RateLimitExceeded, // {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
+                    '-1016': ExchangeNotAvailable, // {"code":-1016,"msg":"'This service is no longer available.',"}
+                    '-1020': BadRequest, // {"code":-1020,"msg":"'This operation is not supported.'"}
+                    '-1021': InvalidNonce, // {"code":-1021,"msg":"'your time is ahead of server'"}
+                    '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
+                    '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                    '-1100': BadRequest, // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
+                    '-1101': BadRequest, // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
+                    '-1102': BadRequest, // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
+                    '-1103': BadRequest, // {"code":-1103,"msg":"An unknown parameter was sent."}
+                    '-1104': BadRequest, // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
+                    '-1105': BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
+                    '-1106': BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
+                    '-1108': BadRequest, // {"code":-1108,"msg":"Invalid asset."}
+                    '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
+                    '-1110': BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
+                    '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
+                    '-1112': InvalidOrder, // {"code":-1112,"msg":"No orders on book for symbol."}
+                    '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
+                    '-1114': BadRequest, // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
+                    '-1115': BadRequest, // {"code":-1115,"msg":"Invalid timeInForce."}
+                    '-1116': BadRequest, // {"code":-1116,"msg":"Invalid orderType."}
+                    '-1117': BadRequest, // {"code":-1117,"msg":"Invalid side."}
+                    '-1118': BadRequest, // {"code":-1118,"msg":"New client order ID was empty."}
+                    '-1119': BadRequest, // {"code":-1119,"msg":"Original client order ID was empty."}
+                    '-1120': BadRequest, // {"code":-1120,"msg":"Invalid interval."}
+                    '-1121': BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
+                    '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
+                    '-1127': BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
+                    '-1128': BadRequest, // {"code":-1128,"msg":"{"code":-1128,"msg":"Combination of optional parameters invalid."}"}
+                    '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
+                    '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                    '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
+                    '-2008': AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
+                    '-2010': ExchangeError, // {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
+                    '-2011': OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
+                    '-2013': OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
+                    '-2014': AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
+                    '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    '-2016': BadRequest, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
+                    '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
+                    '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                    '-2020': OrderNotFillable, // {"code":-2020,"msg":"Unable to fill."}
+                    '-2021': OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
+                    '-2022': InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
+                    '-2023': InsufficientFunds, // {"code":-2023,"msg":"User in liquidation mode now."}
+                    '-2024': InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
+                    '-2025': InvalidOrder, // {"code":-2025,"msg":"Reach max open order limit."}
+                    '-2026': InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
+                    '-2027': InvalidOrder, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
+                    '-2028': InsufficientFunds, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
+                    '-3000': ExchangeError, // {"code":-3000,"msg":"Internal server error."}
+                    '-3001': AuthenticationError, // {"code":-3001,"msg":"Please enable 2FA first."}
+                    '-3002': BadSymbol, // {"code":-3002,"msg":"We don't have this asset."}
+                    '-3003': BadRequest, // {"code":-3003,"msg":"Margin account does not exist."}
+                    '-3004': ExchangeError, // {"code":-3004,"msg":"Trade not allowed."}
+                    '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                    '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
+                    '-3007': ExchangeError, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
+                    '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                    '-3009': BadRequest, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
+                    '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3011': BadRequest, // {"code":-3011,"msg":"Your input date is invalid."}
+                    '-3012': ExchangeError, // {"code":-3012,"msg":"Borrow is banned for this asset."}
+                    '-3013': BadRequest, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
+                    '-3014': AccountSuspended, // {"code":-3014,"msg":"Borrow is banned for this account."}
+                    '-3015': ExchangeError, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                    '-3016': BadRequest, // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
+                    '-3017': ExchangeError, // {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
+                    '-3018': AccountSuspended, // {"code":-3018,"msg":"Transferring in has been banned for this account."}
+                    '-3019': AccountSuspended, // {"code":-3019,"msg":"Transferring out has been banned for this account."}
+                    '-3020': InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                    '-3021': BadRequest, // {"code":-3021,"msg":"Margin account are not allowed to trade this trading pair."}
+                    '-3022': AccountSuspended, // {"code":-3022,"msg":"You account's trading is banned."}
+                    '-3023': BadRequest, // {"code":-3023,"msg":"You can't transfer out/place order under current margin level."}
+                    '-3024': ExchangeError, // {"code":-3024,"msg":"The unpaid debt is too small after this repayment."}
+                    '-3025': BadRequest, // {"code":-3025,"msg":"Your input date is invalid."}
+                    '-3026': BadRequest, // {"code":-3026,"msg":"Your input param is invalid."}
+                    '-3027': BadSymbol, // {"code":-3027,"msg":"Not a valid margin asset."}
+                    '-3028': BadSymbol, // {"code":-3028,"msg":"Not a valid margin pair."}
+                    '-3029': ExchangeError, // {"code":-3029,"msg":"Transfer failed."}
+                    '-3036': AccountSuspended, // {"code":-3036,"msg":"This account is not allowed to repay."}
+                    '-3037': ExchangeError, // {"code":-3037,"msg":"PNL is clearing. Wait a second."}
+                    '-3038': BadRequest, // {"code":-3038,"msg":"Listen key not found."}
+                    '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
+                    '-3042': BadRequest, // {"code":-3042,"msg":"PriceIndex not available for this margin pair."}
+                    '-3043': BadRequest, // {"code":-3043,"msg":"Transferring in not allowed."}
+                    '-3044': DDoSProtection, // {"code":-3044,"msg":"System busy."}
+                    '-3045': ExchangeError, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
+                    '-3999': ExchangeError, // {"code":-3999,"msg":"This function is only available for invited users."}
+                    '-4001': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
+                    '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
+                    '-4003': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
+                    '-4004': AuthenticationError, // {"code":-4004,"msg":"You don't login or auth."}
+                    '-4005': RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
+                    '-4006': BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
+                    '-4007': BadRequest, // {"code":-4007 ,"msg":"Address validation is not passed."}
+                    '-4008': BadRequest, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
+                    '-4010': BadRequest, // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
+                    '-4011': BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
+                    '-4012': BadRequest, // {"code":-4012 ,"msg":"White list is not opened."}
+                    '-4013': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
+                    '-4014': PermissionDenied, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                    '-4015': ExchangeError, // {"code":-4015 ,"msg":"Withdraw is limited."}
+                    '-4016': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                    '-4017': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
+                    '-4018': BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
+                    '-4019': BadSymbol, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
+                    '-4021': BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
+                    '-4022': BadRequest, // {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
+                    '-4023': ExchangeError, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
+                    '-4024': InsufficientFunds, // {"code":-4024,"msg":"You don't have this asset."}
+                    '-4025': InsufficientFunds, // {"code":-4025,"msg":"The number of hold asset is less than zero."}
+                    '-4026': InsufficientFunds, // {"code":-4026,"msg":"You have insufficient balance."}
+                    '-4027': ExchangeError, // {"code":-4027,"msg":"Failed to obtain tranId."}
+                    '-4028': BadRequest, // {"code":-4028,"msg":"The amount of withdrawal must be greater than the Commission."}
+                    '-4029': BadRequest, // {"code":-4029,"msg":"The withdrawal record does not exist."}
+                    '-4030': ExchangeError, // {"code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs"}
+                    '-4031': ExchangeError, // {"code":-4031,"msg":"Cancellation failed."}
+                    '-4032': ExchangeError, // {"code":-4032,"msg":"Withdraw verification exception."}
+                    '-4033': BadRequest, // {"code":-4033,"msg":"Illegal address."}
+                    '-4034': ExchangeError, // {"code":-4034,"msg":"The address is suspected of fake."}
+                    '-4035': PermissionDenied, // {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
+                    '-4036': BadRequest, // {"code":-4036,"msg":"The new address needs to be withdrawn in {0} hours."}
+                    '-4037': ExchangeError, // {"code":-4037,"msg":"Re-sending Mail failed."}
+                    '-4038': ExchangeError, // {"code":-4038,"msg":"Please try again in 5 minutes."}
+                    '-4039': BadRequest, // {"code":-4039,"msg":"The user does not exist."}
+                    '-4040': BadRequest, // {"code":-4040,"msg":"This address not charged."}
+                    '-4041': ExchangeError, // {"code":-4041,"msg":"Please try again in one minute."}
+                    '-4042': ExchangeError, // {"code":-4042,"msg":"This asset cannot get deposit address again."}
+                    '-4043': BadRequest, // {"code":-4043,"msg":"More than 100 recharge addresses were used in 24 hours."}
+                    '-4044': BadRequest, // {"code":-4044,"msg":"This is a blacklist country."}
+                    '-4045': ExchangeError, // {"code":-4045,"msg":"Failure to acquire assets."}
+                    '-4046': AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
+                    '-4047': BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
+                    '-5001': BadRequest, // {"code":-5001,"msg":"Don't allow transfer to micro assets."}
+                    '-5002': InsufficientFunds, // {"code":-5002,"msg":"You have insufficient balance."}
+                    '-5003': InsufficientFunds, // {"code":-5003,"msg":"You don't have this asset."}
+                    '-5004': BadRequest, // {"code":-5004,"msg":"The residual balances of %s have exceeded 0.001BTC, Please re-choose."}
+                    '-5005': InsufficientFunds, // {"code":-5005,"msg":"The residual balances of %s is too low, Please re-choose."}
+                    '-5006': BadRequest, // {"code":-5006,"msg":"Only transfer once in 24 hours."}
+                    '-5007': BadRequest, // {"code":-5007,"msg":"Quantity must be greater than zero."}
+                    '-5008': InsufficientFunds, // {"code":-5008,"msg":"Insufficient amount of returnable assets."}
+                    '-5009': BadRequest, // {"code":-5009,"msg":"Product does not exist."}
+                    '-5010': ExchangeError, // {"code":-5010,"msg":"Asset transfer fail."}
+                    '-5011': BadRequest, // {"code":-5011,"msg":"future account not exists."}
+                    '-5012': ExchangeError, // {"code":-5012,"msg":"Asset transfer is in pending."}
+                    '-5013': InsufficientFunds, // {"code":-5013,"msg":"Asset transfer failed: insufficient balance""} // undocumented
+                    '-5021': BadRequest, // {"code":-5021,"msg":"This parent sub have no relation"}
+                    '-6001': BadRequest, // {"code":-6001,"msg":"Daily product not exists."}
+                    '-6003': BadRequest, // {"code":-6003,"msg":"Product not exist or you don't have permission"}
+                    '-6004': ExchangeError, // {"code":-6004,"msg":"Product not in purchase status"}
+                    '-6005': InvalidOrder, // {"code":-6005,"msg":"Smaller than min purchase limit"}
+                    '-6006': BadRequest, // {"code":-6006,"msg":"Redeem amount error"}
+                    '-6007': BadRequest, // {"code":-6007,"msg":"Not in redeem time"}
+                    '-6008': BadRequest, // {"code":-6008,"msg":"Product not in redeem status"}
+                    '-6009': RateLimitExceeded, // {"code":-6009,"msg":"Request frequency too high"}
+                    '-6011': BadRequest, // {"code":-6011,"msg":"Exceeding the maximum num allowed to purchase per user"}
+                    '-6012': InsufficientFunds, // {"code":-6012,"msg":"Balance not enough"}
+                    '-6013': ExchangeError, // {"code":-6013,"msg":"Purchasing failed"}
+                    '-6014': BadRequest, // {"code":-6014,"msg":"Exceed up-limit allowed to purchased"}
+                    '-6015': BadRequest, // {"code":-6015,"msg":"Empty request body"}
+                    '-6016': BadRequest, // {"code":-6016,"msg":"Parameter err"}
+                    '-6017': BadRequest, // {"code":-6017,"msg":"Not in whitelist"}
+                    '-6018': BadRequest, // {"code":-6018,"msg":"Asset not enough"}
+                    '-6019': AuthenticationError, // {"code":-6019,"msg":"Need confirm"}
+                    '-6020': BadRequest, // {"code":-6020,"msg":"Project not exists"}
+                    '-7001': BadRequest, // {"code":-7001,"msg":"Date range is not supported."}
+                    '-7002': BadRequest, // {"code":-7002,"msg":"Data request type is not supported."}
+                    '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}"
+                    '-10017': BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
+                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented
+                    '-12014': RateLimitExceeded, // {"code":-12014,"msg":"More than 1 request in 3 seconds"}
+                    '-13000': BadRequest, // {"code":-13000,"msg":"Redeption of the token is forbiden now"}
+                    '-13001': BadRequest, // {"code":-13001,"msg":"Exceeds individual 24h redemption limit of the token"}
+                    '-13002': BadRequest, // {"code":-13002,"msg":"Exceeds total 24h redemption limit of the token"}
+                    '-13003': BadRequest, // {"code":-13003,"msg":"Subscription of the token is forbiden now"}
+                    '-13004': BadRequest, // {"code":-13004,"msg":"Exceeds individual 24h subscription limit of the token"}
+                    '-13005': BadRequest, // {"code":-13005,"msg":"Exceeds total 24h subscription limit of the token"}
+                    '-13006': InvalidOrder, // {"code":-13006,"msg":"Subscription amount is too small"}
+                    '-13007': AuthenticationError, // {"code":-13007,"msg":"The Agreement is not signed"}
+                    '-21001': BadRequest, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
+                    '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
+                    '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
+                    '100001003': BadRequest, // {"code":100001003,"msg":"Verification failed"} // undocumented
+                    '2202': InsufficientFunds, // {"code":2202,"msg":"Insufficient balance","data":{"code":-2010,"msg":"Account has insufficient balance for requested action."},"timestamp":1662733681161}
+                    '3210': InvalidOrder, // {"code":3210,"msg":"The total volume is too low","data":{"code":-1013,"msg":"Filter failure: MIN_NOTIONAL"},"timestamp":1662734704462}
+                    '3203': InvalidOrder, // {"code":3203,"msg":"Incorrect Order Quantity","timestamp":1662734809758}
+                    '3211': InvalidOrder, // {"code":3211,"msg":"The total volume must be greater than 10","timestamp":1662739358179}
+                    '3207': InvalidOrder, // {"code":3207,"msg":"The price cannot be lower than 12.18","timestamp":1662739502856}
                     '3218': OrderNotFound, // {"code":3218,"msg":"Order does not exist","timestamp":1662739749275}
                 },
                 'broad': {
@@ -629,8 +629,8 @@ export default class tokocrypto extends Exchange {
                         'triggerPrice': true,
                         'triggerDirection': false,
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -643,15 +643,15 @@ export default class tokocrypto extends Exchange {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo
                         'iceberg': true, // todo
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -679,9 +679,9 @@ export default class tokocrypto extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': true,
@@ -905,9 +905,9 @@ export default class tokocrypto extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        let response = undefined;
+        let response;
         if (market['quote'] === 'USDT') {
-            request['symbol'] = market['baseId'] + market['quoteId'];
+            request['symbol'] = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
             response = await this.binanceGetDepth(this.extend(request, params));
         }
         else {
@@ -1278,7 +1278,7 @@ export default class tokocrypto extends Exchange {
             'open': this.safeString(ticker, 'openPrice'),
             'close': last,
             'last': last,
-            'previousClose': this.safeString(ticker, 'prevClosePrice'),
+            'previousClose': this.safeString(ticker, 'prevClosePrice'), // previous day close
             'change': this.safeString(ticker, 'priceChange'),
             'percentage': this.safeString(ticker, 'priceChangePercent'),
             'average': undefined,
@@ -1320,7 +1320,7 @@ export default class tokocrypto extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['baseId'] + market['quoteId'],
+            'symbol': this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', ''),
         };
         const response = await this.binanceGetTicker24hr(this.extend(request, params));
         if (Array.isArray(response)) {
@@ -1514,18 +1514,18 @@ export default class tokocrypto extends Exchange {
     parseOrderStatus(status) {
         const statuses = {
             '-2': 'open',
-            '0': 'open',
-            '1': 'open',
-            '2': 'closed',
-            '3': 'canceled',
-            '4': 'canceling',
-            '5': 'rejected',
-            '6': 'expired',
+            '0': 'open', // NEW
+            '1': 'open', // PARTIALLY_FILLED
+            '2': 'closed', // FILLED
+            '3': 'canceled', // CANCELED
+            '4': 'canceling', // PENDING_CANCEL (currently unused)
+            '5': 'rejected', // REJECTED
+            '6': 'expired', // EXPIRED
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
-            'PENDING_CANCEL': 'canceling',
+            'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
@@ -2321,12 +2321,12 @@ export default class tokocrypto extends Exchange {
                 '1': 'ok',
             },
             'withdrawal': {
-                '0': 'pending',
-                '1': 'canceled',
-                '2': 'pending',
-                '3': 'failed',
-                '4': 'pending',
-                '5': 'failed',
+                '0': 'pending', // Email Sent
+                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+                '2': 'pending', // Awaiting Approval
+                '3': 'failed', // Rejected
+                '4': 'pending', // Processing
+                '5': 'failed', // Failure
                 '10': 'ok', // Completed
             },
         };

@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -96,10 +96,10 @@ export default class gate extends Exchange {
         info: any;
     };
     fetchOptionMarkets(params?: {}): Promise<any[]>;
-    fetchOptionUnderlyings(): Promise<any[]>;
-    prepareRequest(market?: any, type?: any, params?: {}): Dict[];
-    spotOrderPrepareRequest(market?: any, trigger?: boolean, params?: {}): any[];
-    multiOrderSpotPrepareRequest(market?: any, trigger?: boolean, params?: {}): any[];
+    fetchOptionUnderlyings(): Promise<string[]>;
+    prepareRequest(market?: Market, type?: Str, params?: Dict): Dict[];
+    spotOrderPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): any[];
+    multiOrderSpotPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): any[];
     getMarginMode(trigger: any, params: any): any[];
     getSettlementCurrencies(type: any, method: any): any;
     /**
@@ -156,13 +156,7 @@ export default class gate extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    parseDepositAddress(depositAddress: any, currency?: any): {
-        info: any;
-        currency: string;
-        address: string;
-        tag: string;
-        network: string;
-    };
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name gate#fetchTradingFee
@@ -473,7 +467,7 @@ export default class gate extends Exchange {
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrdersRequest(orders: OrderRequest[], params?: {}): any[];
+    createOrdersRequest(orders: OrderRequest[], params?: {}): Dict[];
     /**
      * @method
      * @name gate#createOrders
@@ -670,7 +664,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -720,7 +714,7 @@ export default class gate extends Exchange {
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
-    parseEmulatedLeverageTiers(info: any, market?: any): LeverageTier[];
+    parseEmulatedLeverageTiers(info: Dict, market?: Market): LeverageTier[];
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     /**
      * @method
@@ -834,11 +828,11 @@ export default class gate extends Exchange {
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     nonce(): number;
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     modifyMarginHelper(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
@@ -880,14 +874,7 @@ export default class gate extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
-    parseOpenInterest(interest: any, market?: Market): {
-        symbol: string;
-        openInterestAmount: number;
-        openInterestValue: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
+    parseOpenInterest(interest: any, market?: Market): OpenInterest;
     /**
      * @method
      * @name gate#fetchSettlementHistory
@@ -920,7 +907,7 @@ export default class gate extends Exchange {
         timestamp: number;
         datetime: string;
     };
-    parseSettlements(settlements: any, market: any): any[];
+    parseSettlements(settlements: any, market: any): object[];
     /**
      * @method
      * @name gate#fetchLedger
@@ -962,7 +949,7 @@ export default class gate extends Exchange {
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
-    fetchUnderlyingAssets(params?: {}): Promise<any[]>;
+    fetchUnderlyingAssets(params?: {}): Promise<string[]>;
     /**
      * @method
      * @name gate#fetchLiquidations

@@ -2,7 +2,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import cexRest from '../cex.js';
-import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Dict, Bool } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
@@ -233,10 +233,10 @@ export default class cex extends cexRest {
         const symbol = this.safeString (this.options['watchTrades'], 'symbol');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.trades[symbol] = new ArrayCache (limit);
+            this.trades[(symbol as string)] = new ArrayCache (limit);
         }
-        const stored = this.trades[symbol];
-        const market = this.market (symbol);
+        const stored = this.trades[(symbol as string)];
+        const market = this.market ((symbol as string));
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const index = dataLength - 1 - i;
@@ -245,8 +245,8 @@ export default class cex extends cexRest {
             stored.append (parsed);
         }
         const messageHash = 'trades';
-        this.trades[symbol] = stored;
-        client.resolve (this.trades[symbol], messageHash);
+        this.trades[(symbol as string)] = stored;
+        client.resolve (this.trades[(symbol as string)], messageHash);
     }
 
     /**
@@ -752,7 +752,7 @@ export default class cex extends cexRest {
         }
         const storedOrders = this.orders;
         const ordersBySymbol = this.safeValue (storedOrders.hashmap, symbol, {});
-        let order = this.safeValue (ordersBySymbol, orderId);
+        let order = this.safeValue (ordersBySymbol, (orderId as string));
         if (order === undefined) {
             order = this.parseWsOrderUpdate (data, market);
         }
@@ -820,7 +820,7 @@ export default class cex extends cexRest {
         //
         const isTransaction = this.safeValue (order, 'd') !== undefined;
         const remainsPrecision = this.safeString (order, 'remains');
-        let remaining = undefined;
+        let remaining: Str = undefined;
         if (remainsPrecision !== undefined) {
             remaining = this.currencyFromPrecision (market['base'], remainsPrecision);
         }
@@ -837,7 +837,7 @@ export default class cex extends cexRest {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if (base !== undefined && quote !== undefined) {
             symbol = base + '/' + quote;
         }
@@ -1237,7 +1237,7 @@ export default class cex extends cexRest {
     async fetchOrderWs (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1380,7 +1380,7 @@ export default class cex extends cexRest {
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1490,7 +1490,7 @@ export default class cex extends cexRest {
             throw new ExchangeError (feedback);
         } catch (error) {
             const messageHash = this.safeString (message, 'oid');
-            const future = this.safeValue (client['futures'], messageHash);
+            const future = this.safeValue (client['futures'], (messageHash as string));
             if (future !== undefined) {
                 client.reject (error, messageHash);
                 return true;
@@ -1530,7 +1530,7 @@ export default class cex extends cexRest {
             'mass-cancel-place-orders': this.resolveData,
             'get-order': this.resolveData,
         };
-        const handler = this.safeValue (handlers, event);
+        const handler = this.safeValue (handlers, (event as string));
         if (handler !== undefined) {
             handler.call (this, client, message);
         }

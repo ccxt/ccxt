@@ -65,8 +65,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Bitfinex Fetch Trades](./examples/js/bitfinex-fetch-trades.md)
 
-- [Bitfinex2 Fetch Trades](./examples/js/bitfinex2-fetch-trades.md)
-
 - [Bitmex Browser Cors Proxy](./examples/js/bitmex-browser-cors-proxy.md)
 
 - [Bitpanda FetchMyTrades Reduce](./examples/js/bitpanda-fetchMyTrades-reduce.md)
@@ -187,37 +185,35 @@ node path/to/example.js # substitute for actual filename here
 
 - [📂 Fetch Tickers](https://github.com/ccxt/ccxt/tree/master/./examples/js/fetch-tickers)
 
-- [Gateio Create Batch Order](./examples/js/gateio-create-batch-order.md)
+- [Gate Create Batch Order](./examples/js/gate-create-batch-order.md)
 
-- [Gateio Futures](./examples/js/gateio-futures.md)
+- [Gate Futures](./examples/js/gate-futures.md)
 
-- [Gateio Open Close Contract](./examples/js/gateio-open-close-contract.md)
+- [Gate Open Close Contract](./examples/js/gate-open-close-contract.md)
 
-- [Gateio Swap Watch Many Orderbooks](./examples/js/gateio-swap-watch-many-orderbooks.md)
+- [Gate Swap Watch Many Orderbooks](./examples/js/gate-swap-watch-many-orderbooks.md)
 
-- [Gateio Swaps](./examples/js/gateio-swaps.md)
+- [Gate Swaps](./examples/js/gate-swaps.md)
 
-- [Gateio Watch Balance](./examples/js/gateio-watch-balance.md)
+- [Gate Watch Balance](./examples/js/gate-watch-balance.md)
 
-- [Gateio Watch Order Book](./examples/js/gateio-watch-order-book.md)
-
-- [Gdax Fetch Trades Pagination](./examples/js/gdax-fetch-trades-pagination.md)
+- [Gate Watch Order Book](./examples/js/gate-watch-order-book.md)
 
 - [Graceful Shutdown](./examples/js/graceful-shutdown.md)
 
 - [Hibachi Example](./examples/js/hibachi-example.md)
 
-- [Hitbtc2 Withdraw](./examples/js/hitbtc2-withdraw.md)
+- [Hitbtc Withdraw](./examples/js/hitbtc-withdraw.md)
 
 - [How To Import One Exchange Esm](./examples/js/how-to-import-one-exchange-esm.md)
 
-- [Huobi Futures](./examples/js/huobi-futures.md)
+- [Htx Futures](./examples/js/htx-futures.md)
 
-- [Huobi Open Close Contract](./examples/js/huobi-open-close-contract.md)
+- [Htx Market Buy Sell Fetch Trading Limits](./examples/js/htx-market-buy-sell-fetch-trading-limits.md)
 
-- [Huobi Swaps](./examples/js/huobi-swaps.md)
+- [Htx Open Close Contract](./examples/js/htx-open-close-contract.md)
 
-- [Huobipro Market Buy Sell Fetch Trading Limits](./examples/js/huobipro-market-buy-sell-fetch-trading-limits.md)
+- [Htx Swaps](./examples/js/htx-swaps.md)
 
 - [HybridCJSExample](./examples/js/hybridCJSExample.md)
 
@@ -267,17 +263,17 @@ node path/to/example.js # substitute for actual filename here
 
 - [Ohlcv Console Chart](./examples/js/ohlcv-console-chart.md)
 
-- [Okex Fetch Closed Orders Archive](./examples/js/okex-fetch-closed-orders-archive.md)
-
-- [Okex Transfer](./examples/js/okex-transfer.md)
-
-- [Okex Watch Balance And Create Order](./examples/js/okex-watch-balance-and-create-order.md)
-
 - [Okx Create Futures Order](./examples/js/okx-create-futures-order.md)
+
+- [Okx Fetch Closed Orders Archive](./examples/js/okx-fetch-closed-orders-archive.md)
 
 - [Okx Poll Fetch My Trades](./examples/js/okx-poll-fetch-my-trades.md)
 
 - [Okx Poll Rate Limit](./examples/js/okx-poll-rate-limit.md)
+
+- [Okx Transfer](./examples/js/okx-transfer.md)
+
+- [Okx Watch Balance And Create Order](./examples/js/okx-watch-balance-and-create-order.md)
 
 - [Okx Watch Tickers](./examples/js/okx-watch-tickers.md)
 
@@ -310,8 +306,6 @@ node path/to/example.js # substitute for actual filename here
 - [Sort Swap Markets By Hourly Price Change](./examples/js/sort-swap-markets-by-hourly-price-change.md)
 
 - [Symbols](./examples/js/symbols.md)
-
-- [Theocean](./examples/js/theocean.md)
 
 - [Tickers](./examples/js/tickers.md)
 

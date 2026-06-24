@@ -6,7 +6,7 @@ import ccxt from '../../js/ccxt.js';
 // see https://github.com/ccxt/ccxt/issues/7312 for details
 // ----------------------------------------------------------------------------
 
-const globalIds = [ 'binance', 'poloniex', 'bittrex', 'bitstamp' ]
+const globalIds = [ 'binance', 'poloniex', 'kucoin', 'bitstamp' ]
 const globalExchanges = {}
 
 async function loadExchange (id) {
@@ -34,10 +34,10 @@ async function main () {
         },
         'user2': {
             'poloniex': { 'apiKey': 'USER2_POLONIEX_API_KEY', 'secret': 'USER2_POLONIEX_SECRET' },
-            'bittrex': { 'apiKey': 'USER2_BITTREX_API_KEY', 'secret': 'USER2_BITTREX_SECRET' }
+            'kucoin': { 'apiKey': 'USER2_kucoin_API_KEY', 'secret': 'USER2_kucoin_SECRET' }
         },
         'user3': {
-            'bittrex': { 'apiKey': 'USER3_BITTREX_API_KEY', 'secret': 'USER3_BITTREX_SECRET' },
+            'kucoin': { 'apiKey': 'USER3_kucoin_API_KEY', 'secret': 'USER3_kucoin_SECRET' },
             'bitstamp': { 'apiKey': 'USER3_BITSTAMP_API_KEY', 'secret': 'USER3_BITSTAMP_SECRET' }
         }
     }

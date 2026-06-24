@@ -19,7 +19,7 @@ class bithumb extends bithumb$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bithumb',
             'name': 'Bithumb',
-            'countries': ['KR'],
+            'countries': ['KR'], // South Korea
             'rateLimit': 500,
             'pro': true,
             'has': {
@@ -226,9 +226,9 @@ class bithumb extends bithumb$1["default"] {
             'exceptions': {
                 'Bad Request(SSL)': errors.BadRequest,
                 'Bad Request(Bad Method)': errors.BadRequest,
-                'Bad Request.(Auth Data)': errors.AuthenticationError,
+                'Bad Request.(Auth Data)': errors.AuthenticationError, // { "status": "5100", "message": "Bad Request.(Auth Data)" }
                 'Not Member': errors.AuthenticationError,
-                'Invalid Apikey': errors.AuthenticationError,
+                'Invalid Apikey': errors.AuthenticationError, // {"status":"5300","message":"Invalid Apikey"}
                 'Method Not Allowed.(Access IP)': errors.PermissionDenied,
                 'Method Not Allowed.(BTC Adress)': errors.InvalidAddress,
                 'Method Not Allowed.(Access)': errors.PermissionDenied,
@@ -345,7 +345,7 @@ class bithumb extends bithumb$1["default"] {
             const quote = quotes[i];
             const quoteId = quote;
             const response = results[i];
-            const data = this.safeDict(response, 'data');
+            const data = this.safeDict(response, 'data', {});
             const extension = this.safeDict(quoteCurrencies, quote, {});
             const currencyIds = Object.keys(data);
             for (let j = 0; j < currencyIds.length; j++) {

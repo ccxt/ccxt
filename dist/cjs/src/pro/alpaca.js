@@ -36,7 +36,7 @@ class alpaca extends alpaca$1["default"] {
                 'watchPosition': false,
                 'watchPositions': false,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTrades': true,
             },
             'urls': {

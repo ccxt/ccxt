@@ -19,9 +19,9 @@ class toobit extends toobit$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'toobit',
             'name': 'Toobit',
-            'countries': ['KY'],
+            'countries': ['KY'], // Cayman Islands
             'version': 'v1',
-            'rateLimit': 20,
+            'rateLimit': 20, // 50 requests per second
             'certified': false,
             'pro': true,
             'has': {
@@ -105,7 +105,7 @@ class toobit extends toobit$1["default"] {
                         'api/v1/time': 1,
                         'api/v1/ping': 1,
                         'api/v1/exchangeInfo': 1,
-                        'quote/v1/depth': 1,
+                        'quote/v1/depth': 1, // todo: by limit 1-10
                         'quote/v1/depth/merged': 1,
                         'quote/v1/trades': 1,
                         'quote/v1/klines': 1,
@@ -113,8 +113,8 @@ class toobit extends toobit$1["default"] {
                         'quote/v1/markPrice/klines': 1,
                         'quote/v1/markPrice': 1,
                         'quote/v1/index': 1,
-                        'quote/v1/ticker/24hr': 40,
-                        'quote/v1/contract/ticker/24hr': 40,
+                        'quote/v1/ticker/24hr': 40, // todo: 1-40 depenidng noSymbol
+                        'quote/v1/contract/ticker/24hr': 40, // todo: 1-40 depenidng noSymbol
                         'quote/v1/ticker/price': 1,
                         'quote/v1/ticker/bookTicker': 1,
                         'api/v1/futures/fundingRate': 1,
@@ -195,94 +195,94 @@ class toobit extends toobit$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '-1000': errors.OperationFailed,
-                    '-1001': errors.OperationFailed,
-                    '-1002': errors.PermissionDenied,
-                    '-1003': errors.RateLimitExceeded,
-                    '-1004': errors.BadRequest,
-                    '-1006': errors.OperationFailed,
-                    '-1007': errors.OperationFailed,
-                    '-1014': errors.OperationFailed,
-                    '-1015': errors.RateLimitExceeded,
-                    '-1016': errors.OperationRejected,
-                    '-1020': errors.OperationRejected,
-                    '-1021': errors.OperationRejected,
-                    '-1022': errors.OperationRejected,
-                    '-1100': errors.BadRequest,
-                    '-1101': errors.BadRequest,
-                    '-1102': errors.BadRequest,
-                    '-1103': errors.BadRequest,
-                    '-1104': errors.BadRequest,
-                    '-1105': errors.BadRequest,
-                    '-1106': errors.BadRequest,
-                    '-1111': errors.BadRequest,
-                    '-1112': errors.OperationRejected,
-                    '-1114': errors.BadRequest,
-                    '-1115': errors.BadRequest,
-                    '-1116': errors.BadRequest,
-                    '-1117': errors.BadRequest,
-                    '-1118': errors.InvalidOrder,
-                    '-1119': errors.InvalidOrder,
-                    '-1120': errors.BadRequest,
-                    '-1121': errors.BadRequest,
-                    '-1125': errors.OperationRejected,
-                    '-1127': errors.OperationRejected,
-                    '-1128': errors.BadRequest,
-                    '-1130': errors.BadRequest,
-                    '-1132': errors.OperationRejected,
-                    '-1133': errors.OperationRejected,
-                    '-1134': errors.OperationRejected,
-                    '-1135': errors.OperationRejected,
-                    '-1136': errors.OperationRejected,
-                    '-1137': errors.OperationRejected,
-                    '-1138': errors.OperationRejected,
-                    '-1139': errors.OperationRejected,
-                    '-1140': errors.OperationRejected,
-                    '-1141': errors.InvalidOrder,
-                    '-1142': errors.InvalidOrder,
-                    '-1143': errors.InvalidOrder,
-                    '-1144': errors.OperationRejected,
-                    '-1145': errors.OperationRejected,
-                    '-1146': errors.OperationFailed,
-                    '-1147': errors.OperationFailed,
-                    '-1193': errors.OperationRejected,
-                    '-1194': errors.OperationRejected,
-                    '-1195': errors.OperationRejected,
-                    '-1196': errors.OperationRejected,
-                    '-1197': errors.OperationRejected,
-                    '-1198': errors.OperationRejected,
-                    '-1199': errors.OperationRejected,
-                    '-1200': errors.OperationRejected,
-                    '-1201': errors.OperationRejected,
-                    '-1202': errors.OperationRejected,
-                    '-1203': errors.OperationRejected,
-                    '-1206': errors.OperationRejected,
-                    '-2010': errors.OperationFailed,
-                    '-2011': errors.OperationFailed,
-                    '-2013': errors.InvalidOrder,
-                    '-2014': errors.PermissionDenied,
-                    '-2015': errors.PermissionDenied,
-                    '-2016': errors.BadRequest,
+                    '-1000': errors.OperationFailed, // An unknown error occurred while processing the request.
+                    '-1001': errors.OperationFailed, // Internal error; unable to process your request. Please try again.
+                    '-1002': errors.PermissionDenied, // You are not authorized to execute this request.
+                    '-1003': errors.RateLimitExceeded, // TOO_MANY_REQUESTS
+                    '-1004': errors.BadRequest, // {"code":-1004,"msg":"Missing required parameter \u0027xyz\u0027"} | {"code":-1004,"msg":"Bad request"}
+                    '-1006': errors.OperationFailed, // An unexpected response was received from the message bus. Execution status unknown
+                    '-1007': errors.OperationFailed, // Timeout waiting for response from backend server. Send status unknown; execution status unknown.
+                    '-1014': errors.OperationFailed, // Unsupported order combination.
+                    '-1015': errors.RateLimitExceeded, // Too many new orders
+                    '-1016': errors.OperationRejected, // This service is no longer available.
+                    '-1020': errors.OperationRejected, // This operation is not supported.
+                    '-1021': errors.OperationRejected, // Timestamp for this request is outside of the recvWindow.
+                    '-1022': errors.OperationRejected, // Signature for this request is not valid.
+                    '-1100': errors.BadRequest, // Illegal characters found in a parameter.
+                    '-1101': errors.BadRequest, // Too many parameters sent for this endpoint.
+                    '-1102': errors.BadRequest, // A mandatory parameter was not sent, was empty/null, or malformed
+                    '-1103': errors.BadRequest, // An unknown parameter was sent
+                    '-1104': errors.BadRequest, // Not all sent parameters were read
+                    '-1105': errors.BadRequest, // A parameter was empty
+                    '-1106': errors.BadRequest, // A parameter was sent when not required
+                    '-1111': errors.BadRequest, // Precision is over the maximum defined for this asset.
+                    '-1112': errors.OperationRejected, // No orders on book for symbol.
+                    '-1114': errors.BadRequest, // TimeInForce parameter sent when not required.
+                    '-1115': errors.BadRequest, // Invalid timeInForce
+                    '-1116': errors.BadRequest, // Invalid orderType
+                    '-1117': errors.BadRequest, // Invalid side
+                    '-1118': errors.InvalidOrder, // New client order ID was empty.
+                    '-1119': errors.InvalidOrder, // Original client order ID was empty
+                    '-1120': errors.BadRequest, // Invalid interval
+                    '-1121': errors.BadRequest, // Invalid symbol
+                    '-1125': errors.OperationRejected, // This listenKey does not exist.
+                    '-1127': errors.OperationRejected, // Lookup interval is too big
+                    '-1128': errors.BadRequest, // Combination of optional parameters invalid
+                    '-1130': errors.BadRequest, // Invalid data sent for a parameter
+                    '-1132': errors.OperationRejected, // Order price too high
+                    '-1133': errors.OperationRejected, // Order price lower than the minimum,please check general broker info
+                    '-1134': errors.OperationRejected, // Order price decimal too long,please check general broker info
+                    '-1135': errors.OperationRejected, // Order quantity too large
+                    '-1136': errors.OperationRejected, // Order quantity lower than the minimum
+                    '-1137': errors.OperationRejected, // Order quantity decimal too long
+                    '-1138': errors.OperationRejected, // Order price exceeds permissible range
+                    '-1139': errors.OperationRejected, // Order has been filled
+                    '-1140': errors.OperationRejected, // Transaction amount lower than the minimum
+                    '-1141': errors.InvalidOrder, // Duplicate clientOrderId
+                    '-1142': errors.InvalidOrder, // Order has been canceled
+                    '-1143': errors.InvalidOrder, // Cannot be found on order book
+                    '-1144': errors.OperationRejected, // Order has been locked
+                    '-1145': errors.OperationRejected, // This order type does not support cancellation
+                    '-1146': errors.OperationFailed, // Order creation timeout
+                    '-1147': errors.OperationFailed, // Order cancellation timeout
+                    '-1193': errors.OperationRejected, // Create order count limit
+                    '-1194': errors.OperationRejected, // Create market order forbidden
+                    '-1195': errors.OperationRejected, // Create limit order price too small
+                    '-1196': errors.OperationRejected, // Create limit order price too big
+                    '-1197': errors.OperationRejected, // Create limit order buy price too big
+                    '-1198': errors.OperationRejected, // Create limit order sell price too small
+                    '-1199': errors.OperationRejected, // Create order buy quantity too small
+                    '-1200': errors.OperationRejected, // Create order buy quantity too big
+                    '-1201': errors.OperationRejected, // Create limit order sell price too big
+                    '-1202': errors.OperationRejected, // Create order sell quantity too small
+                    '-1203': errors.OperationRejected, // Create order sell quantity too big
+                    '-1206': errors.OperationRejected, // Orders over the maximum transaction amount
+                    '-2010': errors.OperationFailed, // NEW_ORDER_REJECTED
+                    '-2011': errors.OperationFailed, // CANCEL_REJECTED
+                    '-2013': errors.InvalidOrder, // Order does not exist.
+                    '-2014': errors.PermissionDenied, // API-key format invalid.
+                    '-2015': errors.PermissionDenied, // Invalid API-key, IP, or permissions for action.
+                    '-2016': errors.BadRequest, // No trading window could be found for the symbol. Try ticker/24hrs instead.
                     // errors above 3xxx are from swap API
-                    '-3050': errors.ExchangeError,
-                    '-3101': errors.OperationRejected,
-                    '-3102': errors.OperationRejected,
-                    '-3103': errors.BadRequest,
-                    '-3105': errors.OperationRejected,
-                    '-3107': errors.OperationRejected,
-                    '-3108': errors.OperationRejected,
-                    '-3109': errors.OperationRejected,
-                    '-3110': errors.InsufficientFunds,
-                    '-3116': errors.OperationRejected,
-                    '-3117': errors.OperationRejected,
-                    '-3120': errors.OperationRejected,
-                    '-3124': errors.OperationRejected,
-                    '-3125': errors.OperationRejected,
-                    '-3126': errors.OperationRejected,
-                    '-3127': errors.OperationFailed,
-                    '-3128': errors.OperationRejected,
-                    '-3129': errors.BadRequest,
-                    '-3130': errors.OperationRejected,
+                    '-3050': errors.ExchangeError, // CREATE_API_KEY_EXCEED_LIMIT
+                    '-3101': errors.OperationRejected, // open margin account error
+                    '-3102': errors.OperationRejected, // get margin safety error
+                    '-3103': errors.BadRequest, // risk config is not exit
+                    '-3105': errors.OperationRejected, // token can not borrow
+                    '-3107': errors.OperationRejected, // token can not withdraw
+                    '-3108': errors.OperationRejected, // get token avail withdraw error
+                    '-3109': errors.OperationRejected, // margin withdraw failed
+                    '-3110': errors.InsufficientFunds, // margin avail withdraw not enough failed
+                    '-3116': errors.OperationRejected, // repay fail
+                    '-3117': errors.OperationRejected, // get margin all position fail
+                    '-3120': errors.OperationRejected, // get repay order fail
+                    '-3124': errors.OperationRejected, // Position and order data error
+                    '-3125': errors.OperationRejected, // Position size cannot meet target leverage
+                    '-3126': errors.OperationRejected, // Adjust leverage fail
+                    '-3127': errors.OperationFailed, // Adjust leverage timeout
+                    '-3128': errors.OperationRejected, // The margin mode cannot be changed while you have an open order/position
+                    '-3129': errors.BadRequest, // cone futures change position type error
+                    '-3130': errors.OperationRejected, // order margin insufficient
                     '-3131': errors.NotSupported, // Leverage reduction is not supported in Isolated Margin Mode with open positions.
                 },
                 'broad': {
@@ -608,7 +608,7 @@ class toobit extends toobit$1["default"] {
         const id = this.safeString(rawCurrency, 'coinId');
         const code = this.safeCurrencyCode(id);
         const networks = {};
-        const rawNetworks = this.safeList(rawCurrency, 'chainTypes');
+        const rawNetworks = this.safeList(rawCurrency, 'chainTypes', []);
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString(rawNetwork, 'chainType');

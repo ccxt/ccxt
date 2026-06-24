@@ -41,7 +41,7 @@ async def exchange_loop(exchange_id, methods):
 
 async def main():
     exchanges = {
-        'okex': {
+        'okx': {
             'watchOrderBook': ['BTC/USDT', 'ETH/BTC', 'ETH/USDT'],
             'watchTicker': ['BTC/USDT'],
         },

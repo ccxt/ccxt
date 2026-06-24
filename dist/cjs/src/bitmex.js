@@ -20,7 +20,7 @@ class bitmex extends bitmex$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': ['SC'],
+            'countries': ['SC'], // Seychelles
             'version': 'v1',
             'userAgent': undefined,
             // cheapest endpoints are 10 requests per second (trading)
@@ -72,7 +72,7 @@ class bitmex extends bitmex$1["default"] {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchGreeks': false,
@@ -278,8 +278,8 @@ class bitmex extends bitmex$1["default"] {
                     'Signature not valid': errors.AuthenticationError,
                     'overloaded': errors.ExchangeNotAvailable,
                     'Account has insufficient Available Balance': errors.InsufficientFunds,
-                    'Service unavailable': errors.ExchangeNotAvailable,
-                    'Server Error': errors.ExchangeError,
+                    'Service unavailable': errors.ExchangeNotAvailable, // {"error":{"message":"Service unavailable","name":"HTTPError"}}
+                    'Server Error': errors.ExchangeError, // {"error":{"message":"Server Error","name":"HTTPError"}}
                     'Unable to cancel order due to existing state': errors.InvalidOrder,
                     'We require all new traders to verify': errors.PermissionDenied, // {"message":"We require all new traders to verify their identity before their first deposit. Please visit bitmex.com/verify to complete the process.","name":"HTTPError"}
                 },
@@ -288,7 +288,7 @@ class bitmex extends bitmex$1["default"] {
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
-                'api-expires': 5,
+                'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
                 'oldPrecision': false,
                 'networks': {
@@ -715,7 +715,75 @@ class bitmex extends bitmex$1["default"] {
         //        "settledPriceAdjustmentRate": null,
         //        "settledPrice": null,
         //        "timestamp": "2022-01-14T17:49:55.000Z"
-        //    }
+        //    },
+        //
+        //    other kind of markets have extra fields
+        //
+        //    {
+        //     "symbol": "XBTUSD-XBTU26",
+        //     "rootSymbol": "XBT",
+        //     "instrumentID": "3059",
+        //     "state": "Open",
+        //     "typ": "FFMCSX",
+        //     "listing": "2026-06-10T08:00:00.000Z",
+        //     "front": "2026-06-10T08:00:00.000Z",
+        //     "expiry": "2026-09-25T12:00:00.000Z",
+        //     "settle": "2026-09-25T12:00:00.000Z",
+        //     "positionCurrency": "USD",
+        //     "underlying": "XBT",
+        //     "quoteCurrency": "USD",
+        //     "underlyingSymbol": "XBT=",
+        //     "referenceSymbol": "XBTUSD",
+        //     "maxOrderQty": "10000000",
+        //     "minPrice": "-1000000",
+        //     "maxPrice": "1000000",
+        //     "lotSize": "100",
+        //     "tickSize": "0.5",
+        //     "multiplier": "1",
+        //     "settlCurrency": "XBt",
+        //     "underlyingToSettleMultiplier": "-100000000",
+        //     "isQuanto": false,
+        //     "isInverse": false,
+        //     "taxed": true,
+        //     "deleverage": true,
+        //     "makerFee": "0.0005",
+        //     "takerFee": "0.0005",
+        //     "limitDownPrice": null,
+        //     "limitUpPrice": null,
+        //     "prevTotalVolume": "300",
+        //     "totalVolume": "300",
+        //     "volume": "0",
+        //     "volume24h": "200",
+        //     "prevTotalTurnover": "460833",
+        //     "totalTurnover": "460833",
+        //     "turnover": "0",
+        //     "turnover24h": "298516",
+        //     "homeNotional24h": "0",
+        //     "foreignNotional24h": "0",
+        //     "prevPrice24h": "0",
+        //     "vwap": "577.5",
+        //     "highPrice": "577.5",
+        //     "lowPrice": "0",
+        //     "lastPrice": "577.5",
+        //     "lastPriceProtected": "577.5",
+        //     "lastTickDirection": "ZeroPlusTick",
+        //     "lastChangePcnt": "0",
+        //     "bidPrice": "566.5",
+        //     "midPrice": "567.25",
+        //     "askPrice": "568",
+        //     "hasLiquidity": false,
+        //     "openInterest": "0",
+        //     "openValue": "0",
+        //     "instantPnl": false,
+        //     "timestamp": "2026-06-17T05:22:50.000Z",
+        //     "capped": false,
+        //     "closingTimestamp": "2026-06-17T06:00:00.000Z",
+        //     "farLegSymbol": "XBTU26",
+        //     "nearLegSymbol": "XBTUSD",
+        //     "openingTimestamp": "2026-06-17T05:00:00.000Z",
+        //     "pool": "Primary",
+        //     "referencePrice": "65728"
+        //     }
         //  ]
         //
         return this.parseMarkets(response);
@@ -741,7 +809,7 @@ class bitmex extends bitmex$1["default"] {
             type = 'spot';
             spot = true;
         }
-        else if (typ === 'FFCCSX') {
+        else if (typ === 'FFCCSX' || typ === 'FFMCSX') {
             type = 'future';
             future = true;
         }
@@ -775,13 +843,12 @@ class bitmex extends bitmex$1["default"] {
             symbol = base + '/' + quote + ':' + settle;
             if (linear) {
                 const multiplierString = this.safeString2(market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
-                contractSize = this.parseNumber(Precise["default"].stringDiv('1', multiplierString));
+                contractSize = Precise["default"].stringAbs(Precise["default"].stringDiv('1', multiplierString));
             }
             else {
-                const multiplierString = Precise["default"].stringAbs(this.safeString(market, 'multiplier'));
-                contractSize = this.parseNumber(multiplierString);
+                contractSize = Precise["default"].stringAbs(this.safeString(market, 'multiplier'));
             }
-            expiryDatetime = this.safeString(market, 'expiry');
+            expiryDatetime = this.safeString2(market, 'expiry', 'closingTimestamp');
             expiry = this.parse8601(expiryDatetime);
             if (expiry !== undefined) {
                 symbol = symbol + '-' + this.yymmdd(expiry);
@@ -825,7 +892,7 @@ class bitmex extends bitmex$1["default"] {
             'quanto': isQuanto,
             'taker': this.safeNumber(market, 'takerFee'),
             'maker': this.safeNumber(market, 'makerFee'),
-            'contractSize': contractSize,
+            'contractSize': this.parseNumber(contractSize),
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': this.safeNumber(market, 'optionStrikePrice'),
@@ -852,7 +919,7 @@ class bitmex extends bitmex$1["default"] {
                     'max': positionIsQuote ? maxOrderQty : undefined,
                 },
             },
-            'created': undefined,
+            'created': undefined, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
         };
     }
@@ -1694,7 +1761,7 @@ class bitmex extends bitmex$1["default"] {
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
             for (let i = 0; i < result.length; i++) {
-                result[i][0] = result[i][0] - duration;
+                result[i][0] = this.parseToInt(result[i][0]) - duration;
             }
         }
         return result;
@@ -2042,7 +2109,7 @@ class bitmex extends bitmex$1["default"] {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize(side),
-            'orderQty': qty,
+            'orderQty': qty, // lot size multiplied by the number of contracts
             'ordType': capitalizeOrderType,
             'text': brokerId,
         };
@@ -2877,7 +2944,7 @@ class bitmex extends bitmex$1["default"] {
             'info': response,
             'currency': code,
             'network': networkCode,
-            'address': response.replace('"', '').replace('"', ''),
+            'address': response.replace('"', '').replace('"', ''), // Done twice because some languages only replace the first instance
             'tag': undefined,
         };
     }
@@ -3043,8 +3110,8 @@ class bitmex extends bitmex$1["default"] {
         return this.safeOpenInterest({
             'info': interest,
             'symbol': symbol,
-            'baseVolume': openInterest,
-            'quoteVolume': openValue,
+            'baseVolume': openInterest, // deprecated
+            'quoteVolume': openValue, // deprecated
             'openInterestAmount': openInterest,
             'openInterestValue': openValue,
             'timestamp': undefined,

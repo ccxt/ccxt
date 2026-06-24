@@ -308,7 +308,7 @@ class hibachi extends Exchange {
             'optionType' => null,
             'precision' => array(
                 'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'underlyingDecimals'))),
-                'price' => $this->parse_number($this->safe_list($market, 'orderbookGranularities')[0]) / 10000.0,
+                'price' => $this->parse_number($this->safe_value($this->safe_list($market, 'orderbookGranularities', array()), 0)) / 10000.0,
             ),
             'limits' => array(
                 'leverage' => array(
@@ -372,7 +372,7 @@ class hibachi extends Exchange {
         return $this->parse_markets($rows);
     }
 
-    public function hardcoded_currencies(): ?array {
+    public function hardcoded_currencies(): array {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
         $result = array();
@@ -824,6 +824,7 @@ class hibachi extends Exchange {
             $priceInternal = Precise::string_div(Precise::string_div(Precise::string_mul(Precise::string_mul($priceStr, $priceFactor), $settlement), $underlying), $one, 0);
             $price16 = $this->int_to_base16($this->parse_to_int($priceInternal));
             $pricePadded = str_pad($price16, 16, '0', STR_PAD_LEFT);
+            // @ts-expect-error
             $encodedPrice = $this->base16_to_binary($pricePadded);
         }
         $message = $this->binary_concat($encodedNonce, $encodedMarketId, $encodedQuantity, $encodedSide, $encodedPrice, $encodedFeeRate);
@@ -937,7 +938,7 @@ class hibachi extends Exchange {
         // array( "orders" => array( array( $nonce => '1754349993908', orderId => '589642085255349248' ) ) )
         //
         $ret = array();
-        $responseOrders = $this->safe_list($response, 'orders');
+        $responseOrders = $this->safe_list($response, 'orders', array());
         for ($i = 0; $i < count($responseOrders); $i++) {
             $responseOrder = $responseOrders[$i];
             $ret[] = $this->safe_order(array(
@@ -1030,7 +1031,7 @@ class hibachi extends Exchange {
         // array( "orders" => array( array( "orderId" => "589636801329628160" ) ) )
         //
         $ret = array();
-        $responseOrders = $this->safe_list($response, 'orders');
+        $responseOrders = $this->safe_list($response, 'orders', array());
         for ($i = 0; $i < count($responseOrders); $i++) {
             $responseOrder = $responseOrders[$i];
             $ret[] = $this->safe_order(array(
@@ -1105,7 +1106,7 @@ class hibachi extends Exchange {
         // array( "orders" => array( array( "orderId" => "589636801329628160" ) ) )
         //
         $ret = array();
-        $responseOrders = $this->safe_list($response, 'orders');
+        $responseOrders = $this->safe_list($response, 'orders', array());
         for ($i = 0; $i < count($responseOrders); $i++) {
             $responseOrder = $responseOrders[$i];
             $ret[] = $this->safe_order(array(
@@ -1606,7 +1607,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $headers = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );
@@ -1938,7 +1939,7 @@ class hibachi extends Exchange {
         //         ),
         //     )
         // }
-        $transactions = $this->safe_list($response, 'transactions');
+        $transactions = $this->safe_list($response, 'transactions', array());
         $deposits = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $transactions[$i];
@@ -1997,7 +1998,7 @@ class hibachi extends Exchange {
         //         ),
         //     )
         // }
-        $transactions = $this->safe_list($response, 'transactions');
+        $transactions = $this->safe_list($response, 'transactions', array());
         $withdrawals = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $transactions[$i];
@@ -2139,7 +2140,7 @@ class hibachi extends Exchange {
         //     )
         // }
         //
-        $data = $this->safe_list($response, 'data');
+        $data = $this->safe_list($response, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];

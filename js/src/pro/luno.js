@@ -18,7 +18,7 @@ export default class luno extends lunoRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchMyTrades': false,
-                'watchOrders': undefined,
+                'watchOrders': undefined, // is in beta
                 'watchOrderBook': true,
                 'watchOHLCV': false,
             },

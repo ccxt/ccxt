@@ -20,8 +20,8 @@ class backpack extends backpack$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'backpack',
             'name': 'Backpack',
-            'countries': ['JP'],
-            'rateLimit': 50,
+            'countries': ['JP'], // Japan
+            'rateLimit': 50, // 20 times per second
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -39,7 +39,7 @@ class backpack extends backpack$1["default"] {
                 'cancelOrders': false,
                 'cancelWithdraw': false,
                 'closePosition': false,
-                'createConvertTrade': false,
+                'createConvertTrade': false, // todo
                 'createDepositAddress': false,
                 'createLimitBuyOrder': true,
                 'createLimitOrder': true,
@@ -158,60 +158,60 @@ class backpack extends backpack$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/assets': 1,
-                        'api/v1/collateral': 1,
+                        'api/v1/assets': 1, // done
+                        'api/v1/collateral': 1, // not used
                         'api/v1/borrowLend/markets': 1,
                         'api/v1/borrowLend/markets/history': 1,
-                        'api/v1/markets': 1,
-                        'api/v1/market': 1,
-                        'api/v1/ticker': 1,
-                        'api/v1/tickers': 1,
-                        'api/v1/depth': 1,
-                        'api/v1/klines': 1,
-                        'api/v1/markPrices': 1,
-                        'api/v1/openInterest': 1,
-                        'api/v1/fundingRates': 1,
-                        'api/v1/status': 1,
-                        'api/v1/ping': 1,
-                        'api/v1/time': 1,
-                        'api/v1/wallets': 1,
-                        'api/v1/trades': 1,
+                        'api/v1/markets': 1, // done
+                        'api/v1/market': 1, // not used
+                        'api/v1/ticker': 1, // done
+                        'api/v1/tickers': 1, // done
+                        'api/v1/depth': 1, // done
+                        'api/v1/klines': 1, // done
+                        'api/v1/markPrices': 1, // done
+                        'api/v1/openInterest': 1, // done
+                        'api/v1/fundingRates': 1, // done
+                        'api/v1/status': 1, // done
+                        'api/v1/ping': 1, // todo check if it is needed for ws
+                        'api/v1/time': 1, // done
+                        'api/v1/wallets': 1, // not used
+                        'api/v1/trades': 1, // done
                         'api/v1/trades/history': 1, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 1,
-                        'api/v1/account/limits/borrow': 1,
-                        'api/v1/account/limits/order': 1,
-                        'api/v1/account/limits/withdrawal': 1,
-                        'api/v1/borrowLend/positions': 1,
-                        'api/v1/capital': 1,
-                        'api/v1/capital/collateral': 1,
-                        'wapi/v1/capital/deposits': 1,
-                        'wapi/v1/capital/deposit/address': 1,
-                        'wapi/v1/capital/withdrawals': 1,
-                        'api/v1/position': 1,
-                        'wapi/v1/history/borrowLend': 1,
-                        'wapi/v1/history/interest': 1,
-                        'wapi/v1/history/borrowLend/positions': 1,
-                        'wapi/v1/history/dust': 1,
-                        'wapi/v1/history/fills': 1,
-                        'wapi/v1/history/funding': 1,
-                        'wapi/v1/history/orders': 1,
+                        'api/v1/account': 1, // todo fetchTradingFee
+                        'api/v1/account/limits/borrow': 1, // not used
+                        'api/v1/account/limits/order': 1, // not used
+                        'api/v1/account/limits/withdrawal': 1, // not used
+                        'api/v1/borrowLend/positions': 1, // todo fetchBorrowInterest
+                        'api/v1/capital': 1, // done
+                        'api/v1/capital/collateral': 1, // not used
+                        'wapi/v1/capital/deposits': 1, // done
+                        'wapi/v1/capital/deposit/address': 1, // done
+                        'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
+                        'api/v1/position': 1, // done but todo check if all is right
+                        'wapi/v1/history/borrowLend': 1, // not used
+                        'wapi/v1/history/interest': 1, // not used
+                        'wapi/v1/history/borrowLend/positions': 1, // not used
+                        'wapi/v1/history/dust': 1, // not used
+                        'wapi/v1/history/fills': 1, // done
+                        'wapi/v1/history/funding': 1, // done
+                        'wapi/v1/history/orders': 1, // done
                         'wapi/v1/history/rfq': 1,
                         'wapi/v1/history/quote': 1,
                         'wapi/v1/history/settlement': 1,
                         'wapi/v1/history/strategies': 1,
-                        'api/v1/order': 1,
+                        'api/v1/order': 1, // done
                         'api/v1/orders': 1, // done
                     },
                     'post': {
                         'api/v1/account/convertDust': 1,
-                        'api/v1/borrowLend': 1,
-                        'wapi/v1/capital/withdrawals': 1,
-                        'api/v1/order': 1,
-                        'api/v1/orders': 1,
+                        'api/v1/borrowLend': 1, // todo borrowCrossMargin
+                        'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
+                        'api/v1/order': 1, // done
+                        'api/v1/orders': 1, // done
                         'api/v1/rfq': 1,
                         'api/v1/rfq/accept': 1,
                         'api/v1/rfq/refresh': 1,
@@ -219,7 +219,7 @@ class backpack extends backpack$1["default"] {
                         'api/v1/rfq/quote': 1,
                     },
                     'delete': {
-                        'api/v1/order': 1,
+                        'api/v1/order': 1, // done
                         'api/v1/orders': 1, // done
                     },
                     'patch': {
@@ -398,12 +398,12 @@ class backpack extends backpack$1["default"] {
                         'POST': 'withdraw',
                     },
                 },
-                'recvWindow': 5000,
+                'recvWindow': 5000, // default is 5000, max is 60000
                 'brokerId': '',
                 'currencyIdsListForParseMarket': undefined,
                 'broker': '',
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and the exchange server clock in milliseconds
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'APT': 'Aptos',
                     'ARB': 'Arbitrum',
@@ -469,7 +469,7 @@ class backpack extends backpack$1["default"] {
                     'INSUFFICIENT_SUPPLY': errors.InsufficientFunds,
                     'INVALID_ASSET': errors.BadRequest,
                     'INVALID_MARKET': errors.BadSymbol,
-                    'INVALID_PRICE': errors.InvalidOrder,
+                    'INVALID_PRICE': errors.InvalidOrder, // {"code":"INVALID_PRICE","message":"Price is too far from the last active price"}
                     'INVALID_POSITION_ID': errors.BadRequest,
                     'INVALID_QUANTITY': errors.BadRequest,
                     'INVALID_RANGE': errors.BadRequest,
@@ -576,7 +576,7 @@ class backpack extends backpack$1["default"] {
             'id': currencyId,
             'code': code,
             'precision': undefined,
-            'type': 'crypto',
+            'type': 'crypto', // todo check if it is always crypto
             'name': this.safeString(rawCurrency, 'displayName'),
             'active': active,
             'deposit': deposit,
@@ -715,7 +715,7 @@ class backpack extends backpack$1["default"] {
         const maxQuantity = this.safeNumber(quantityFilter, 'maxQuantity');
         const minQuantity = this.safeNumber(quantityFilter, 'minQuantity');
         const amountPrecision = this.safeNumber(quantityFilter, 'stepSize');
-        let type;
+        let type = undefined;
         const typeOfMarket = this.parseMarketType(this.safeString(market, 'marketType'));
         let linear = undefined;
         let inverse = undefined;
@@ -746,7 +746,7 @@ class backpack extends backpack$1["default"] {
             'settleId': settleId,
             'type': type,
             'spot': type === 'spot',
-            'margin': type === 'spot',
+            'margin': type === 'spot', // todo check if margin is supported for all markets
             'swap': type === 'swap',
             'future': false,
             'option': false,
@@ -754,8 +754,8 @@ class backpack extends backpack$1["default"] {
             'contract': type !== 'spot',
             'linear': linear,
             'inverse': inverse,
-            'taker': undefined,
-            'maker': undefined,
+            'taker': undefined, // todo check commission
+            'maker': undefined, // todo check commission
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -1087,7 +1087,7 @@ class backpack extends backpack$1["default"] {
         const timestamp = this.safeInteger(interest, 'timestamp');
         const openInterest = this.safeNumber(interest, 'openInterest');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': undefined,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
@@ -1636,7 +1636,7 @@ class backpack extends backpack$1["default"] {
         return {
             'info': depositAddress,
             'currency': currency['code'],
-            'network': undefined,
+            'network': undefined, // network is not returned by the API
             'address': address,
             'tag': undefined,
         };

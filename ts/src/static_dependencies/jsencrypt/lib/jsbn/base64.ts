@@ -14,7 +14,7 @@ export function b64toBA(s:string) {
     // piggyback on b64tohex for now, optimize later
     const h = b64tohex(s);
     let i;
-    const a = [];
+    const a: number[] = [];
     for (i = 0; 2 * i < h.length; ++i) {
         a[i] = parseInt(h.substring(2 * i, 2 * i + 2), 16);
     }

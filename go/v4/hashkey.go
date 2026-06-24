@@ -1435,7 +1435,7 @@ func (this *HashkeyCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a symbol argument for swap markets")))
 			}
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			if IsTrue(!IsEqual(accountId, nil)) {
 				AddElementToObject(request, "subAccountId", accountId)
 
@@ -3715,7 +3715,7 @@ func (this *HashkeyCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-cha
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a symbol argument for swap markets")))
 			}
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			var isTrigger any = false
 			isTriggerparamsVariable := this.HandleTriggerOptionAndParams(params, methodName, isTrigger)
 			isTrigger = GetValue(isTriggerparamsVariable, 0)
@@ -4378,7 +4378,7 @@ func (this *HashkeyCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var leverageValue any = this.SafeNumber(leverage, "leverage")
 	return map[string]any{
 		"info":          leverage,
-		"symbol":        GetValue(market, "symbol"),
+		"symbol":        this.SafeString(market, "symbol"),
 		"marginMode":    marginMode,
 		"longLeverage":  leverageValue,
 		"shortLeverage": leverageValue,

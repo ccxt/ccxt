@@ -377,7 +377,7 @@ class bitopro extends \ccxt\async\bitopro {
         //
         $marketId = $this->safe_string($message, 'pair');
         // $market-ids are lowercase in REST API and uppercase in WS API
-        $market = $this->safe_market(strtolower($marketId), null, '_');
+        $market = $this->safe_market($marketId !== null ? strtolower($marketId) : null, null, '_');
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
         $messageHash = $event . ':' . $symbol;

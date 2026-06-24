@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinmetro.js';
-import { Balances, Currencies, Currency, Dict, IndexType, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, LedgerEntry } from './base/types.js';
+import { Balances, Currencies, Currency, Dict, IndexType, int, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, LedgerEntry } from './base/types.js';
 /**
  * @class coinmetro
  * @augments Exchange
@@ -125,7 +125,7 @@ export default class coinmetro extends Exchange {
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseLedgerEntryDescription(description: any): any[];
+    parseLedgerEntryDescription(description: any): string[];
     parseLedgerEntryType(type: any): string;
     /**
      * @method
@@ -235,11 +235,11 @@ export default class coinmetro extends Exchange {
         datetime: any;
         info: any;
     };
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: any;
+        headers: Dict;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

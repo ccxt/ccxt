@@ -22,6 +22,10 @@ import { parseProxyResponse } from './parse-proxy-response.js';
  * the connection to the proxy server has been established.
  */
 export class HttpsProxyAgent extends Agent {
+    static { this.protocols = ['http', 'https']; }
+    get secureProxy() {
+        return isHTTPS(this.proxy.protocol);
+    }
     constructor(proxy, opts) {
         super(opts);
         this.options = { path: undefined };
@@ -42,9 +46,6 @@ export class HttpsProxyAgent extends Agent {
             host,
             port,
         };
-    }
-    get secureProxy() {
-        return isHTTPS(this.proxy.protocol);
     }
     /**
      * Called when the node-core HTTP client library is creating a
@@ -131,7 +132,6 @@ export class HttpsProxyAgent extends Agent {
         return fakeSocket;
     }
 }
-HttpsProxyAgent.protocols = ['http', 'https'];
 function resume(socket) {
     socket.resume();
 }

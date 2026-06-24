@@ -340,7 +340,7 @@ func (this *AftermathCore) ParseMarket(market any) any {
 	//     }
 	//
 	var precision any = this.SafeDict(market, "precision")
-	var limits any = this.SafeDict(market, "limits")
+	var limits any = this.SafeDict(market, "limits", map[string]any{})
 	return this.SafeMarketStructure(map[string]any{
 		"id":             this.SafeString(market, "id"),
 		"symbol":         this.SafeString(market, "symbol"),

@@ -466,8 +466,8 @@ class coinex extends coinex$1["default"] {
             'options': {
                 'brokerId': 'x-167673045',
                 'createMarketBuyOrderRequiresPrice': true,
-                'defaultType': 'spot',
-                'defaultSubType': 'linear',
+                'defaultType': 'spot', // spot, swap, margin
+                'defaultSubType': 'linear', // linear, inverse
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': true,
                 },
@@ -529,8 +529,8 @@ class coinex extends coinex$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -543,7 +543,7 @@ class coinex extends coinex$1["default"] {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'iceberg': true, // todo implement
                     },
                     'createOrders': {
@@ -618,61 +618,61 @@ class coinex extends coinex$1["default"] {
             'exceptions': {
                 'exact': {
                     // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
-                    '23': errors.PermissionDenied,
+                    '23': errors.PermissionDenied, // IP Prohibited
                     '24': errors.AuthenticationError,
                     '25': errors.AuthenticationError,
-                    '34': errors.AuthenticationError,
-                    '35': errors.ExchangeNotAvailable,
-                    '36': errors.RequestTimeout,
-                    '213': errors.RateLimitExceeded,
+                    '34': errors.AuthenticationError, // Access id is expires
+                    '35': errors.ExchangeNotAvailable, // Service unavailable
+                    '36': errors.RequestTimeout, // Service timeout
+                    '213': errors.RateLimitExceeded, // Too many requests
                     '107': errors.InsufficientFunds,
-                    '158': errors.PermissionDenied,
+                    '158': errors.PermissionDenied, // {"code":158,"data":{},"message":"API permission is not allowed"}
                     '600': errors.OrderNotFound,
                     '601': errors.InvalidOrder,
                     '602': errors.InvalidOrder,
                     '606': errors.InvalidOrder,
-                    '3008': errors.RequestTimeout,
-                    '3109': errors.InsufficientFunds,
-                    '3127': errors.InvalidOrder,
-                    '3600': errors.OrderNotFound,
-                    '3606': errors.InvalidOrder,
-                    '3610': errors.ExchangeError,
-                    '3612': errors.InvalidOrder,
-                    '3613': errors.InvalidOrder,
-                    '3614': errors.InvalidOrder,
-                    '3615': errors.InvalidOrder,
-                    '3616': errors.InvalidOrder,
-                    '3617': errors.InvalidOrder,
-                    '3618': errors.InvalidOrder,
-                    '3619': errors.InvalidOrder,
-                    '3620': errors.InvalidOrder,
-                    '3621': errors.InvalidOrder,
-                    '3622': errors.InvalidOrder,
-                    '3627': errors.InvalidOrder,
-                    '3628': errors.InvalidOrder,
-                    '3629': errors.InvalidOrder,
-                    '3632': errors.InvalidOrder,
-                    '3633': errors.InvalidOrder,
-                    '3634': errors.InvalidOrder,
-                    '3635': errors.InvalidOrder,
-                    '4001': errors.ExchangeNotAvailable,
-                    '4002': errors.RequestTimeout,
-                    '4003': errors.ExchangeError,
-                    '4004': errors.BadRequest,
-                    '4005': errors.AuthenticationError,
-                    '4006': errors.AuthenticationError,
-                    '4007': errors.PermissionDenied,
-                    '4008': errors.AuthenticationError,
-                    '4009': errors.ExchangeError,
-                    '4010': errors.ExchangeError,
-                    '4011': errors.PermissionDenied,
-                    '4017': errors.ExchangeError,
-                    '4115': errors.AccountSuspended,
-                    '4117': errors.BadSymbol,
-                    '4123': errors.RateLimitExceeded,
-                    '4130': errors.ExchangeError,
-                    '4158': errors.ExchangeError,
-                    '4213': errors.RateLimitExceeded,
+                    '3008': errors.RequestTimeout, // Service busy, please try again later.
+                    '3109': errors.InsufficientFunds, // {"code":3109,"data":{},"message":"balance not enough"}
+                    '3127': errors.InvalidOrder, // The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3600': errors.OrderNotFound, // {"code":3600,"data":{},"message":"Order not found"}
+                    '3606': errors.InvalidOrder, // The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
+                    '3610': errors.ExchangeError, // Order cancellation prohibited during the Call Auction period.
+                    '3612': errors.InvalidOrder, // The est. ask price is lower than the current bottom ask price. Please reduce the amount.
+                    '3613': errors.InvalidOrder, // The est. bid price is higher than the current top bid price. Please reduce the amount.
+                    '3614': errors.InvalidOrder, // The deviation between your est. filled price and the index price. Please reduce the amount.
+                    '3615': errors.InvalidOrder, // The deviation between your order price and the index price is too high. Please adjust your order price and try again.
+                    '3616': errors.InvalidOrder, // The order price exceeds the current top bid price. Please adjust the order price and try again.
+                    '3617': errors.InvalidOrder, // The order price exceeds the current bottom ask price. Please adjust the order price and try again.
+                    '3618': errors.InvalidOrder, // The deviation between your order price and the index price is too high. Please adjust your order price and try again.
+                    '3619': errors.InvalidOrder, // The deviation between your order price and the trigger price is too high. Please adjust your order price and try again.
+                    '3620': errors.InvalidOrder, // Market order submission is temporarily unavailable due to insufficient depth in the current market
+                    '3621': errors.InvalidOrder, // This order can't be completely executed and has been canceled.
+                    '3622': errors.InvalidOrder, // This order can't be set as Maker Only and has been canceled.
+                    '3627': errors.InvalidOrder, // The current market depth is low, please reduce your order amount and try again.
+                    '3628': errors.InvalidOrder, // The current market depth is low, please reduce your order amount and try again.
+                    '3629': errors.InvalidOrder, // The current market depth is low, please reduce your order amount and try again.
+                    '3632': errors.InvalidOrder, // The order price exceeds the current top bid price. Please adjust the order price and try again.
+                    '3633': errors.InvalidOrder, // The order price exceeds the current bottom ask price. Please adjust the order price and try again.
+                    '3634': errors.InvalidOrder, // The deviation between your est. filled price and the index price is too high. Please reduce the amount and try again.
+                    '3635': errors.InvalidOrder, // The deviation between your est. filled price and the index price is too high. Please reduce the amount and try again.
+                    '4001': errors.ExchangeNotAvailable, // Service unavailable, please try again later.
+                    '4002': errors.RequestTimeout, // Service request timed out, please try again later.
+                    '4003': errors.ExchangeError, // Internal error, please contact customer service for help.
+                    '4004': errors.BadRequest, // Parameter error, please check whether the request parameters are abnormal.
+                    '4005': errors.AuthenticationError, // Abnormal access_id, please check whether the value passed by X-COINEX-KEY is normal.
+                    '4006': errors.AuthenticationError, // Signature verification failed, please check the signature according to the documentation instructions.
+                    '4007': errors.PermissionDenied, // IP address prohibited, please check whether the whitelist or export IP is normal.
+                    '4008': errors.AuthenticationError, // Abnormal X-COIN-SIGN value, please check.
+                    '4009': errors.ExchangeError, // Abnormal request method, please check.
+                    '4010': errors.ExchangeError, // Expired request, please try again later.
+                    '4011': errors.PermissionDenied, // User prohibited from accessing, please contact customer service for help.
+                    '4017': errors.ExchangeError, // Signature expired, please try again later.
+                    '4115': errors.AccountSuspended, // User prohibited from trading, please contact customer service for help.
+                    '4117': errors.BadSymbol, // Trading prohibited in this market, please try again later.
+                    '4123': errors.RateLimitExceeded, // Rate limit triggered. Please adjust your strategy and reduce the request rate.
+                    '4130': errors.ExchangeError, // Futures trading prohibited, please try again later.
+                    '4158': errors.ExchangeError, // Trading prohibited, please try again later.
+                    '4213': errors.RateLimitExceeded, // The request is too frequent, please try again later.
                     '4512': errors.PermissionDenied, // Insufficient sub-account permissions, please check.
                 },
                 'broad': {
@@ -1095,7 +1095,7 @@ class coinex extends coinex$1["default"] {
         const request = {
             'market': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesTicker(this.extend(request, params));
         }
@@ -1273,7 +1273,7 @@ class coinex extends coinex$1["default"] {
             'limit': limit,
             'interval': '0',
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesDepth(this.extend(request, params));
             //
@@ -1430,7 +1430,7 @@ class coinex extends coinex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesDeals(this.extend(request, params));
         }
@@ -1472,7 +1472,7 @@ class coinex extends coinex$1["default"] {
         const request = {
             'market': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['spot']) {
             response = await this.v2PublicGetSpotMarket(this.extend(request, params));
             //
@@ -1537,7 +1537,7 @@ class coinex extends coinex$1["default"] {
         await this.loadMarkets();
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, params);
-        let response = undefined;
+        let response;
         if (type === 'swap') {
             response = await this.v2PublicGetFuturesMarket(params);
             //
@@ -1653,7 +1653,7 @@ class coinex extends coinex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (market['swap']) {
             response = await this.v2PublicGetFuturesKline(this.extend(request, params));
         }
@@ -2709,7 +2709,7 @@ class coinex extends coinex$1["default"] {
                 }
             }
             const innerData = this.safeDict(entry, 'data', {});
-            let order = undefined;
+            let order;
             if (market['spot'] && !isTriggerOrder) {
                 entry['status'] = status;
                 order = this.parseOrder(entry, market);
@@ -4163,7 +4163,7 @@ class coinex extends coinex$1["default"] {
             market = this.market(symbol);
             request['market'] = market['id'];
         }
-        let response = undefined;
+        let response;
         if (defaultMethod === 'v2PrivateGetFuturesPendingPosition') {
             response = await this.v2PrivateGetFuturesPendingPosition(this.extend(request, params));
         }
@@ -4642,7 +4642,7 @@ class coinex extends coinex$1["default"] {
             'marginMode': 'isolated',
             'amount': this.parseNumber(Precise["default"].stringAbs(change)),
             'total': this.safeNumber(data, 'margin_avbl'),
-            'code': market['quote'],
+            'code': this.safeString(market, 'quote'),
             'status': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -4913,7 +4913,7 @@ class coinex extends coinex$1["default"] {
         const currency = this.currency(code);
         const request = {
             'ccy': currency['id'],
-            'to_address': address,
+            'to_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
             'amount': this.currencyToPrecision(code, amount), // the actual amount without fees, https://www.coinex.com/fees
         };
         if (tag !== undefined) {
@@ -5551,7 +5551,7 @@ class coinex extends coinex$1["default"] {
             'interestRate': this.safeNumber(info, 'daily_interest_rate'),
             'amountBorrowed': this.safeNumber(info, 'borrow_amount'),
             'marginMode': 'isolated',
-            'timestamp': timestamp,
+            'timestamp': timestamp, // expiry time
             'datetime': this.iso8601(timestamp),
         };
     }

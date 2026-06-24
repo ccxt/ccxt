@@ -316,9 +316,9 @@ func StringEquals(a, b any) bool {
 	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
 }
 
-func StringMin(string1, string2 any) string {
+func StringMin(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Min(NewPrecise(string2.(string))).String()
 }

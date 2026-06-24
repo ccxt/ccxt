@@ -3855,7 +3855,7 @@ public class HitbtcCore extends HitbtcApi
         Object datetime = this.safeString(data, "updated_at");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", HitbtcCore.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );

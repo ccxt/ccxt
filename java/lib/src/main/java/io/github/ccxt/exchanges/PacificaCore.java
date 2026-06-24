@@ -1324,7 +1324,7 @@ public class PacificaCore extends PacificaApi
             Helpers.addElementToObject(request, "account", userAddress);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -2130,7 +2130,7 @@ public class PacificaCore extends PacificaApi
         Object priceNormalized = this.priceToPrecision(symbol, price);
         Object amountNormalized = this.amountToPrecision(symbol, amount);
         Object sigPayload = new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "id") );
+            put( "symbol", PacificaCore.this.safeString(market, "id") );
             put( "price", priceNormalized );
             put( "amount", amountNormalized );
         }};

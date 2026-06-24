@@ -20,7 +20,7 @@ export default class btcturk extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'btcturk',
             'name': 'BTCTurk',
-            'countries': ['TR'],
+            'countries': ['TR'], // Turkey
             'rateLimit': 100,
             'pro': false,
             'has': {
@@ -140,7 +140,7 @@ export default class btcturk extends Exchange {
                     'get': {
                         'orderbook': 1,
                         'ticker': 0.1,
-                        'trades': 1,
+                        'trades': 1, // ?last=COUNT (max 50)
                         'ohlc': 1,
                         'server/exchangeinfo': 1,
                     },

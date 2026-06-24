@@ -4039,7 +4039,7 @@ func (this *HitbtcCore) ParseMarginModification(data any, optionalArgs ...any) a
 	var datetime any = this.SafeString(data, "updated_at")
 	return map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
 		"marginMode": "isolated",
 		"amount":     nil,

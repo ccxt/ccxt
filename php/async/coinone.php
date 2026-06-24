@@ -1160,14 +1160,12 @@ class coinone extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($symbol === null) {
-                // eslint-disable-next-line quotes
                 throw new ArgumentsRequired($this->id . " cancelOrder() requires a $symbol argument. To cancel the order, pass a $symbol argument and array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
             }
             $price = $this->safe_number($params, 'price');
             $qty = $this->safe_number($params, 'qty');
             $isAsk = $this->safe_integer($params, 'is_ask');
             if (($price === null) || ($qty === null) || ($isAsk === null)) {
-                // eslint-disable-next-line quotes
                 throw new ArgumentsRequired($this->id . " cancelOrder() requires array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument.");
             }
             Async\await($this->load_markets());
@@ -1250,7 +1248,7 @@ class coinone extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . '/';

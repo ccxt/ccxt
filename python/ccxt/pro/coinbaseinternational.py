@@ -106,14 +106,14 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         elif symbolsLength == 1:
             market = self.market(symbols[0])
             messageHash = name + '::' + market['symbol']
-            productIds = [market['id']]
+            productIds = [(market['id'])]
         url = self.urls['api']['ws']
         if url is None:
             raise NotSupported(self.id + ' is not supported in sandbox environment')
         timestamp = str(self.nonce())
         auth = timestamp + self.apiKey + 'CBINTLMD' + self.password
         signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
-        subscribe: dict = {
+        subscribe = {
             'type': 'SUBSCRIBE',
             # 'product_ids': productIds,
             'channels': [name],
@@ -148,8 +148,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             symbols = self.market_symbols(symbols)
         messageHashes = []
         productIds = []
-        for i in range(0, len(symbols)):
-            marketId = self.market_id(symbols[i])
+        for i in range(0, len((symbols))):
+            marketId = self.market_id((symbols)[i])
             symbol = self.symbol(marketId)
             productIds.append(marketId)
             messageHashes.append(name + '::' + symbol)
@@ -159,7 +159,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         timestamp = self.number_to_string(self.seconds())
         auth = timestamp + self.apiKey + 'CBINTLMD' + self.password
         signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
-        subscribe: dict = {
+        subscribe = {
             'type': 'SUBSCRIBE',
             'time': timestamp,
             'product_ids': productIds,
@@ -199,7 +199,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         fundingRate = await self.subscribe_multiple('RISK', symbols, params)
         symbol = self.safe_string(fundingRate, 'symbol')
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[symbol] = fundingRate
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbols)
@@ -246,7 +246,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'LEVEL1')
         ticker = await self.subscribe(channel, symbols, params)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -759,7 +759,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if self.handle_error_message(client, message):
             return
         channel = self.safe_string(message, 'channel', '')
-        methods: dict = {
+        methods = {
             'SUBSCRIPTIONS': self.handle_subscription_status,
             'INSTRUMENTS': self.handle_instrument,
             'LEVEL1': self.handle_ticker,

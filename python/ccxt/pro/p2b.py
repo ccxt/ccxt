@@ -76,7 +76,7 @@ class p2b(ccxt.async_support.p2b):
         :returns dict: data from the websocket stream
         """
         url = self.urls['api']['ws']
-        subscribe: dict = {
+        subscribe = {
             'method': name,
             'params': request,
             'id': self.milliseconds(),
@@ -161,7 +161,7 @@ class p2b(ccxt.async_support.p2b):
             messageHashes.append(name + '::' + market['symbol'])
             args.append(market['id'])
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'method': name + '.subscribe',
             'params': args,
             'id': self.milliseconds(),
@@ -203,7 +203,7 @@ class p2b(ccxt.async_support.p2b):
                 messageHashes.append('deals::' + symbols[i])
         marketIds = self.market_ids(symbols)
         url = self.urls['api']['ws']
-        subscribe: dict = {
+        subscribe = {
             'method': 'deals.subscribe',
             'params': marketIds,
             'id': self.milliseconds(),
@@ -363,7 +363,7 @@ class p2b(ccxt.async_support.p2b):
         splitMethod = method.split('.')
         messageHashStart = self.safe_string(splitMethod, 0)
         tickerData = self.safe_dict(data, 1)
-        ticker = None
+        ticker: Ticker
         if method == 'price.update':
             lastPrice = self.safe_string(data, 1)
             ticker = self.safe_ticker({
@@ -437,7 +437,7 @@ class p2b(ccxt.async_support.p2b):
             self.handle_pong(client, message)
             return
         method = self.safe_string(message, 'method')
-        methods: dict = {
+        methods = {
             'depth.update': self.handle_order_book,
             'price.update': self.handle_ticker,
             'kline.update': self.handle_ohlcv,

@@ -565,7 +565,7 @@ func (this *HyperliquidCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var options any = this.SafeDict(this.Options, "fetchMarkets", map[string]any{})
-		var types any = this.SafeList(options, "types")
+		var types any = this.SafeList(options, "types", []any{})
 		var rawPromises any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(types)); i++ {
 			var marketType any = GetValue(types, i)
@@ -2938,7 +2938,7 @@ func (this *HyperliquidCore) CancelOrders(ids any, optionalArgs ...any) <-chan a
 		//
 		var innerResponse any = this.SafeDict(response, "response")
 		var data any = this.SafeDict(innerResponse, "data")
-		var statuses any = this.SafeList(data, "statuses")
+		var statuses any = this.SafeList(data, "statuses", []any{})
 		var orders any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(statuses)); i++ {
 			var status any = GetValue(statuses, i)
@@ -5501,7 +5501,7 @@ func (this *HyperliquidCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			for i := 0; IsLessThan(i, GetArrayLength(records)); i++ {
 				var record any = GetValue(records, i)
 				if IsTrue(IsEqual(GetValue(record, "type"), "vaultDeposit")) {
-					var delta any = this.SafeDict(record, "delta")
+					var delta any = this.SafeDict(record, "delta", map[string]any{})
 					if IsTrue(IsEqual(GetValue(delta, "vault"), Add("0x", vaultAddress))) {
 						AppendToArray(&deposits, record)
 					}
@@ -5590,7 +5590,7 @@ func (this *HyperliquidCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			for i := 0; IsLessThan(i, GetArrayLength(records)); i++ {
 				var record any = GetValue(records, i)
 				if IsTrue(IsEqual(GetValue(record, "type"), "vaultWithdraw")) {
-					var delta any = this.SafeDict(record, "delta")
+					var delta any = this.SafeDict(record, "delta", map[string]any{})
 					if IsTrue(IsEqual(GetValue(delta, "vault"), Add("0x", vaultAddress))) {
 						AppendToArray(&withdrawals, record)
 					}

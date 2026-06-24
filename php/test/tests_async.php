@@ -106,7 +106,8 @@ class testMainClass {
                 exit_script(0);
             }
             \React\Async\await($this->import_files($exchange));
-            assert(count(is_array($this->test_files) ? array_keys($this->test_files) : array()) > 0, 'Test files were not loaded'); // ensure test files are found & filled
+            // ensure test files are found & filled
+            assert(count(is_array($this->test_files) ? array_keys($this->test_files) : array()) > 0, 'Test files were not loaded');
             $this->expand_settings($exchange);
             $this->check_if_specific_test_is_chosen($method_argv);
             \React\Async\await($this->start_test($exchange, $symbol_argv));
@@ -622,7 +623,7 @@ class testMainClass {
             $values_length = count($values);
             if ($values_length > 0) {
                 $first = $values[0];
-                if ($first !== null) {
+                if ($first) {
                     $symbol = $first['symbol'];
                 }
             }
@@ -847,6 +848,7 @@ class testMainClass {
             if ($this->sandbox || get_exchange_prop($exchange, 'sandbox')) {
                 $exchange->set_sandbox_mode(true);
             }
+            $this->test_has_props($exchange);
             try {
                 $result = \React\Async\await($this->load_exchange($exchange));
                 if (!$result) {
@@ -870,6 +872,18 @@ class testMainClass {
                 throw $e;
             }
         }) ();
+    }
+
+    public function test_has_props($exchange) {
+        $watch_order_book_skips = $this->get_skips($exchange, 'watchOrderBook');
+        $fetch_order_book_skips = $this->get_skips($exchange, 'fetchOrderBook');
+        if ($this->ws_tests && !$exchange->safe_bool($exchange->has, 'watchOrderBook', false) && !is_string($watch_order_book_skips)) {
+            dump('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exit_script(1);
+        } elseif (!$this->ws_tests && !$exchange->safe_bool($exchange->has, 'fetchOrderBook', false) && !is_string($fetch_order_book_skips)) {
+            dump('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exit_script(1);
+        }
     }
 
     public function assert_static_error($cond, $message, $calculated_output, $stored_output, $key = null) {

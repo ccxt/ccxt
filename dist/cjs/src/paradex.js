@@ -339,14 +339,14 @@ class paradex extends paradex$1["default"] {
                     'BATCH_SIZE_OUT_OF_RANGE': errors.OperationRejected,
                     'ISOLATED_MARKET_ACCOUNT_MISMATCH': errors.OperationRejected,
                     'POINTS_SUMMARY_NOT_FOUND': errors.OperationRejected,
-                    '-32700': errors.BadRequest,
-                    '-32600': errors.BadRequest,
-                    '-32601': errors.BadRequest,
-                    '-32602': errors.BadRequest,
-                    '-32603': errors.ExchangeError,
-                    '100': errors.BadRequest,
-                    '40110': errors.AuthenticationError,
-                    '40111': errors.AuthenticationError,
+                    '-32700': errors.BadRequest, // Parse error
+                    '-32600': errors.BadRequest, // Invalid request
+                    '-32601': errors.BadRequest, // Method not found
+                    '-32602': errors.BadRequest, // Invalid parameterss
+                    '-32603': errors.ExchangeError, // Internal error
+                    '100': errors.BadRequest, // Method error
+                    '40110': errors.AuthenticationError, // Malformed Bearer Token
+                    '40111': errors.AuthenticationError, // Invalid Bearer Token
                     '40112': errors.PermissionDenied, // Geo IP blocked
                 },
                 'broad': {
@@ -356,7 +356,7 @@ class paradex extends paradex$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {},
             'options': {
-                'paradexAccount': undefined,
+                'paradexAccount': undefined, // add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard (optional)", "address": "copy Paradex Address from UI"}
                 'broker': 'CCXT',
             },
             'features': {
@@ -366,10 +366,10 @@ class paradex extends paradex$1["default"] {
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,
-                        'triggerDirection': true,
+                        'triggerDirection': true, // todo
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -382,7 +382,7 @@ class paradex extends paradex$1["default"] {
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -390,9 +390,9 @@ class paradex extends paradex$1["default"] {
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'limit': 100, // todo
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -403,7 +403,7 @@ class paradex extends paradex$1["default"] {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -411,13 +411,13 @@ class paradex extends paradex$1["default"] {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': {
                         'limit': undefined, // todo by from/to
                     },
@@ -1531,7 +1531,7 @@ class paradex extends paradex$1["default"] {
         const request = {
             'market': market['id'],
             'side': orderSide,
-            'type': orderType,
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
             'instruction': 'GTC',
         };
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
@@ -1857,7 +1857,7 @@ class paradex extends paradex$1["default"] {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        let response = undefined;
+        let response;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateDeleteOrdersByClientIdClientId(this.extend(request, params));
@@ -1994,7 +1994,7 @@ class paradex extends paradex$1["default"] {
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        let response = undefined;
+        let response;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateGetOrdersByClientIdClientId(this.extend(request, params));
@@ -2767,7 +2767,7 @@ class paradex extends paradex$1["default"] {
         const marginMode = this.safeStringLower(rawMarginMode, 'margin_type');
         return {
             'info': rawMarginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
         };
     }

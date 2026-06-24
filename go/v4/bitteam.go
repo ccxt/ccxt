@@ -1124,7 +1124,7 @@ func (this *BitteamCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var result any = this.SafeDict(response, "result")
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseOrder(result, market)
 		return nil
@@ -1280,7 +1280,7 @@ func (this *BitteamCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		PanicOnError(retRes11148)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
-			"pairId": ToString(GetValue(market, "numericId")),
+			"pairId": this.SafeString(market, "numericId"),
 			"type":   typeVar,
 			"side":   side,
 			"amount": this.AmountToPrecision(symbol, amount),
@@ -1397,7 +1397,7 @@ func (this *BitteamCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
-			AddElementToObject(request, "pairId", ToString(GetValue(market, "numericId")))
+			AddElementToObject(request, "pairId", this.SafeString(market, "numericId"))
 		} else {
 			AddElementToObject(request, "pairId", "0") // '0' for all markets
 		}

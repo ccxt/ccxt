@@ -702,7 +702,7 @@ public partial class derive : ccxt.derive
             object trade = this.parseTrade(message);
             callDynamically(myTrades, "append", new object[] {trade});
             callDynamically(client as WebSocketClient, "resolve", new object[] {myTrades, topic});
-            object messageHash = add(topic, getValue(trade, "symbol"));
+            object messageHash = add(topic, this.safeString(trade, "symbol", ""));
             callDynamically(client as WebSocketClient, "resolve", new object[] {myTrades, messageHash});
         }
     }

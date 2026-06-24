@@ -41,7 +41,7 @@ export default class hashkey extends hashkeyRest {
                 'listenKeyRefreshRate': 3600000,
                 'listenKey': undefined,
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // or false
                     'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
             },
@@ -677,7 +677,7 @@ export default class hashkey extends hashkeyRest {
             'hedged': true,
             'maintenanceMargin': this.safeNumber(position, 'mm'),
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': this.safeNumber(position, 'm'),
+            'initialMargin': this.safeNumber(position, 'm'), // todo check
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': undefined,

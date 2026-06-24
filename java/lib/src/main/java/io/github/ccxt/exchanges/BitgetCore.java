@@ -2888,7 +2888,7 @@ public class BitgetCore extends BitgetApi
             }
             Object maxNotional = this.safeNumberN(item, new java.util.ArrayList<Object>(java.util.Arrays.asList("endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount", "maxTierValue")));
             Object marginCurrency = this.safeString2(item, "coin", "baseCoin");
-            Object currencyId = ((Helpers.isTrue((!Helpers.isEqual(marginCurrency, null))))) ? marginCurrency : Helpers.GetValue(market, "base");
+            Object currencyId = ((Helpers.isTrue((!Helpers.isEqual(marginCurrency, null))))) ? marginCurrency : this.safeString(market, "base");
             Object marketId = this.safeString(item, "symbol");
 final Object finalMinNotional = minNotional;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
@@ -3840,7 +3840,7 @@ final Object finalMinNotional = minNotional;
                     Object symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                     {
-                        Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                        Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                     }
                 }
                 Helpers.addElementToObject(request, "category", productType);
@@ -8345,7 +8345,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
-                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                    Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 }
                 Object productType = null;
                 var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
@@ -9990,12 +9990,12 @@ final Object finalMinNotional = minNotional;
         Object status = ((Helpers.isTrue((Helpers.isEqual(errorCode, "00000"))))) ? "ok" : "failed";
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", BitgetCore.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", null );
-            put( "code", Helpers.GetValue(market, "settle") );
+            put( "code", BitgetCore.this.safeString(market, "settle") );
             put( "status", status );
             put( "timestamp", null );
             put( "datetime", null );
@@ -10128,7 +10128,7 @@ final Object finalMinNotional = minNotional;
         Object shortLevKey = ((Helpers.isTrue(isCrossMarginMode))) ? "crossedMarginLeverage" : "isolatedShortLever";
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", BitgetCore.this.safeString(market, "symbol") );
             put( "marginMode", ((Helpers.isTrue(isCrossMarginMode))) ? "cross" : "isolated" );
             put( "longLeverage", BitgetCore.this.safeInteger(leverage, longLevKey) );
             put( "shortLeverage", BitgetCore.this.safeInteger(leverage, shortLevKey) );
@@ -11025,7 +11025,7 @@ final Object finalMinNotional = minNotional;
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyLiquidations() requires a symbol argument")) ;
                 }
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 response = (this.privateMarginGetV2MarginIsolatedLiquidationHistory(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
             {
@@ -11461,7 +11461,7 @@ final Object finalMinNotional = minNotional;
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchBorrowInterest() requires a symbol argument")) ;
                 }
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 response = (this.privateMarginGetV2MarginIsolatedInterestHistory(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
             {
@@ -11745,7 +11745,7 @@ final Object finalMinNotional = minNotional;
         final Object finalMarginType = marginType;
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", BitgetCore.this.safeString(market, "symbol") );
             put( "marginMode", finalMarginType );
         }};
     }
@@ -12343,14 +12343,17 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
                 {
-                    Object queryInner = Helpers.add("?", this.urlencode(this.keysort(parameters)));
+                    Object sortedParams = this.keysort(parameters);
+                    Object queryInner = Helpers.add("?", this.urlencode(sortedParams, true));
                     // check #21169 pr
                     if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(queryInner, "%24"), Helpers.opNeg(1))))
                     {
                         queryInner = Helpers.replace((String)queryInner, (String)"%24", (String)"$");
                     }
                     url = Helpers.add(url, queryInner);
-                    auth = Helpers.add(auth, queryInner);
+                    // bitget signs the raw (non-percent-encoded) query string, so the
+                    // signature must use the decoded values (e.g. non-ascii market ids)
+                    auth = Helpers.add(auth, Helpers.add("?", this.rawencode(sortedParams)));
                 }
             }
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");

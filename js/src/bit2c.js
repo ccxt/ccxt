@@ -20,7 +20,7 @@ export default class bit2c extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
-            'countries': ['IL'],
+            'countries': ['IL'], // Israel
             'rateLimit': 3000,
             'pro': false,
             'has': {
@@ -257,7 +257,7 @@ export default class bit2c extends Exchange {
                         'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined,
                 },
                 'swap': {
@@ -272,7 +272,7 @@ export default class bit2c extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Please provide valid APIkey': AuthenticationError,
+                    'Please provide valid APIkey': AuthenticationError, // { "error" : "Please provide valid APIkey" }
                     'No order found.': OrderNotFound, // { "Error" : "No order found." }
                 },
                 'broad': {
@@ -675,7 +675,7 @@ export default class bit2c extends Exchange {
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        let status;
+        let status = undefined;
         if (isNewOrder) {
             const tempStatus = this.safeInteger(orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {

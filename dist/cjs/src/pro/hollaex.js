@@ -20,7 +20,7 @@ class hollaex extends hollaex$1["default"] {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
             },
@@ -46,7 +46,7 @@ class hollaex extends hollaex$1["default"] {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': errors.BadSymbol,
+                        'Bearer or HMAC authentication required': errors.BadSymbol, // { error: 'Bearer or HMAC authentication required' }
                         'Error: wrong input': errors.BadRequest, // { error: 'Error: wrong input' }
                     },
                 },

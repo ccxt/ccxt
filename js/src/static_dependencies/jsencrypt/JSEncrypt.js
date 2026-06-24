@@ -29,6 +29,7 @@ export class JSEncrypt {
         // The private and public key.
         this.key = null;
     }
+    static { this.version = version; }
     /**
      * Method to set the rsa key parameter (one method is enough to set both the public
      * and the private key, since the private key contains the public key paramenters)
@@ -191,4 +192,3 @@ export class JSEncrypt {
         return this.getKey().getPublicBaseKeyB64();
     }
 }
-JSEncrypt.version = version;

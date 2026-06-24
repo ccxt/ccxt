@@ -46,7 +46,7 @@ export default class cryptocom extends cryptocomRest {
             },
             'options': {
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'watchOrderBook': {

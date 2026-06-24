@@ -11,7 +11,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 print('CCXT Version:', ccxt.__version__)
 
-exchange_ids = ['binance', 'okx', 'gate', 'huobi', 'bitget']
+exchange_ids = ['binance', 'okx', 'gate', 'htx', 'bitget']
 symbols = ['BTC/USDT', 'ETH/USDT', 'LTC/USDT', 'XRP/USDT']
 from asyncio import gather, run
 

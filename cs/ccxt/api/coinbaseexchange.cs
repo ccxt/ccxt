@@ -341,6 +341,11 @@ public partial class coinbaseexchange : Exchange
         return await this.callAsync ("privatePostPositionClose",parameters);
     }
 
+    public async Task<object> privatePostProfiles (object parameters = null)
+    {
+        return await this.callAsync ("privatePostProfiles",parameters);
+    }
+
     public async Task<object> privatePostProfilesMarginTransfer (object parameters = null)
     {
         return await this.callAsync ("privatePostProfilesMarginTransfer",parameters);
@@ -404,6 +409,16 @@ public partial class coinbaseexchange : Exchange
     public async Task<object> privateDeleteOrdersId (object parameters = null)
     {
         return await this.callAsync ("privateDeleteOrdersId",parameters);
+    }
+
+    public async Task<object> privatePutProfilesIdDeactivate (object parameters = null)
+    {
+        return await this.callAsync ("privatePutProfilesIdDeactivate",parameters);
+    }
+
+    public async Task<object> privatePutProfilesId (object parameters = null)
+    {
+        return await this.callAsync ("privatePutProfilesId",parameters);
     }
 
 }

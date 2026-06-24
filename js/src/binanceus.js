@@ -12,9 +12,9 @@ export default class binanceus extends binance {
         return this.deepExtend(super.describe(), {
             'id': 'binanceus',
             'name': 'Binance US',
-            'countries': ['US'],
+            'countries': ['US'], // US
             'hostname': 'binance.us',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 req per min
             'certified': false,
             'pro': true,
             'urls': {
@@ -36,7 +36,7 @@ export default class binanceus extends binance {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber('0.001'),
+                    'taker': this.parseNumber('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1.
                     'maker': this.parseNumber('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1.
                 },
             },
@@ -142,7 +142,7 @@ export default class binanceus extends binance {
                         'order': 2,
                         'openOrders': { 'cost': 3, 'noSymbol': 40 },
                         'myTrades': 10,
-                        'myPreventedMatches': 10,
+                        'myPreventedMatches': 10, // with ID it has weight 1, but we don't have that complex handling yet
                         'allOrders': 10,
                         'orderList': 2,
                         'allOrderList': 10,

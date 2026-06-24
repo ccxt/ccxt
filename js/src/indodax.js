@@ -20,7 +20,7 @@ export default class indodax extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'indodax',
             'name': 'INDODAX',
-            'countries': ['ID'],
+            'countries': ['ID'], // Indonesia
             // 10 requests per second for making trades => 1000ms / 10 = 100ms
             // 180 requests per minute (public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
             'rateLimit': 50,
@@ -135,7 +135,7 @@ export default class indodax extends Exchange {
                 'transfer': false,
                 'withdraw': true,
             },
-            'version': '2.0',
+            'version': '2.0', // as of 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api': {
@@ -165,7 +165,7 @@ export default class indodax extends Exchange {
                         'getInfo': 4,
                         'transHistory': 4,
                         'trade': 1,
-                        'tradeHistory': 4,
+                        'tradeHistory': 4, // TODO add fetchMyTrades
                         'openOrders': 4,
                         'orderHistory': 4,
                         'getOrder': 4,
@@ -188,7 +188,7 @@ export default class indodax extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'invalid_pair': BadSymbol,
+                    'invalid_pair': BadSymbol, // {"error":"invalid_pair","error_description":"Invalid Pair"}
                     'Insufficient balance.': InsufficientFunds,
                     'invalid order.': OrderNotFound,
                     'Invalid credentials. API not found or session has expired.': AuthenticationError,
@@ -211,9 +211,9 @@ export default class indodax extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'recvWindow': 5 * 1000,
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'recvWindow': 5 * 1000, // default 5 sec
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'XLM': 'Stellar Token',
                     'BSC': 'bep20',
@@ -245,7 +245,7 @@ export default class indodax extends Exchange {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': true,
+                            'IOC': true, // todo implementation
                             'FOK': false,
                             'PO': false,
                             'GTD': false,
@@ -259,7 +259,7 @@ export default class indodax extends Exchange {
                         'iceberg': false,
                     },
                     'createOrders': undefined,
-                    'fetchMyTrades': undefined,
+                    'fetchMyTrades': undefined, // todo implement
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
@@ -277,7 +277,7 @@ export default class indodax extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'daysBackCanceled': 1,
                         'untilDays': undefined,
                         'trigger': false,
@@ -526,8 +526,8 @@ export default class indodax extends Exchange {
         //
         const symbol = this.safeSymbol(undefined, market);
         const timestamp = this.safeTimestamp(ticker, 'server_time');
-        const baseVolume = 'vol_' + market['baseId'].toLowerCase();
-        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase();
+        const baseVolume = 'vol_' + this.safeStringLower(market, 'baseId');
+        const quoteVolume = 'vol_' + this.safeStringLower(market, 'quoteId');
         const last = this.safeString(ticker, 'last');
         return this.safeTicker({
             'symbol': symbol,
@@ -1097,9 +1097,9 @@ export default class indodax extends Exchange {
         await this.loadMarkets();
         const request = {};
         if (since !== undefined) {
-            const startTime = this.iso8601(since).slice(0, 10);
+            const startTime = this.yyyymmdd(since);
             request['start'] = startTime;
-            request['end'] = this.iso8601(this.milliseconds()).slice(0, 10);
+            request['end'] = this.yyyymmdd(this.milliseconds());
         }
         const response = await this.privatePostTransHistory(this.extend(request, params));
         //

@@ -16,7 +16,7 @@ class aftermath extends aftermath$1["default"] {
             'name': 'AftermathFinance',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': false,
             'pro': true,
             'dex': true,
@@ -309,7 +309,7 @@ class aftermath extends aftermath$1["default"] {
         //     }
         //
         const precision = this.safeDict(market, 'precision');
-        const limits = this.safeDict(market, 'limits');
+        const limits = this.safeDict(market, 'limits', {});
         return this.safeMarketStructure({
             'id': this.safeString(market, 'id'),
             'symbol': this.safeString(market, 'symbol'),

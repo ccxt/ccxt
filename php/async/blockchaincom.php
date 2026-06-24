@@ -365,14 +365,12 @@ class blockchaincom extends Exchange {
                 $minOrderSize = $this->parse_number($minOrderSizePreciseString);
                 // maximum order size
                 $maxOrderSize = null;
-                $maxOrderSize = $this->safe_string($market, 'max_order_size');
-                if ($maxOrderSize !== '0') {
+                $maxOrderSizeRaw = $this->safe_string($market, 'max_order_size');
+                if ($maxOrderSizeRaw !== '0') {
                     $maxOrderSizeScaleString = $this->safe_string($market, 'max_order_size_scale');
                     $maxOrderSizeScalePrecisionString = $this->parse_precision($maxOrderSizeScaleString);
-                    $maxOrderSizeString = Precise::string_mul($maxOrderSize, $maxOrderSizeScalePrecisionString);
-                    $maxOrderSize = $this->parse_number($maxOrderSizeString);
-                } else {
-                    $maxOrderSize = null;
+                    $maxOrderSizeValueString = Precise::string_mul($maxOrderSizeRaw, $maxOrderSizeScalePrecisionString);
+                    $maxOrderSize = $this->parse_number($maxOrderSizeValueString);
                 }
                 $result[] = array(
                     'info' => $market,
@@ -875,7 +873,7 @@ class blockchaincom extends Exchange {
         //
         $orderId = $this->safe_string($trade, 'exOrdId');
         $tradeId = $this->safe_string($trade, 'tradeId');
-        $side = strtolower($this->safe_string($trade, 'side'));
+        $side = $this->safe_string_lower($trade, 'side');
         $marketId = $this->safe_string($trade, 'symbol');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
@@ -1284,7 +1282,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $requestPath = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { siteUrl } from '@/lib/shared';
+import { appName, siteUrl } from '@/lib/shared';
 import './global.css';
 
 // The real <html>/<body> + providers live in app/[lang]/layout.tsx so the document
@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   // metadataBase = origin only (image URLs already carry the basePath); fixes the
   // "using localhost:3000" warning. noindex on the /v2 staging build.
   metadataBase: new URL(siteUrl),
+  // Site-wide og:site_name (Discord shows it above the title). Pages that set their own
+  // openGraph re-declare siteName, since Next replaces the openGraph object per segment.
+  openGraph: { type: 'website', siteName: appName },
   ...(process.env.NEXT_PUBLIC_BASE_PATH ? { robots: { index: false, follow: false } } : {}),
 };
 

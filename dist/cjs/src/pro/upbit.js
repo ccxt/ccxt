@@ -438,7 +438,7 @@ class upbit extends upbit$1["default"] {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
-            'watch': 'open',
+            'watch': 'open', // not sure what this status means
             'trade': 'open',
         };
         return this.safeString(statuses, status, status);

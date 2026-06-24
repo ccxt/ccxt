@@ -849,7 +849,7 @@ func (this *CoinspotCore) CreateOrder(symbol any, typeVar any, side any, amount 
 
 		retRes6678 := (<-this.LoadMarkets())
 		PanicOnError(retRes6678)
-		var method any = Add("privatePostMy", this.Capitalize(side))
+		var sideUpper any = ToUpper(side)
 		if IsTrue(IsEqual(typeVar, "market")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
@@ -859,11 +859,25 @@ func (this *CoinspotCore) CreateOrder(symbol any, typeVar any, side any, amount 
 			"amount":   amount,
 			"rate":     price,
 		}
+		var response any = nil
+		if IsTrue(IsEqual(sideUpper, "BUY")) {
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PrivatePostMyBuy(this.Extend(request, params)))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(sideUpper, "SELL")) {
 
-		ch <- this.ParseOrder(response)
+			response = (<-this.PrivatePostMySell(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+			panic(NotSupported(Add(this.Id, " createOrder only support buy/sell side")))
+		}
+
+		//
+		// status - ok, error
+		//
+		ch <- this.SafeOrder(map[string]any{
+			"info": response,
+		})
 		return nil
 
 	}()
@@ -919,6 +933,17 @@ func (this *CoinspotCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 
 	}()
 	return ch
+}
+func (this *CoinspotCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+	if !IsTrue(response) {
+		return nil // fallback to default error handler
+	}
+	var status any = this.SafeString(response, "status")
+	if IsTrue(IsEqual(status, "error")) {
+		var feedback any = Add(Add(this.Id, " "), this.Json(response))
+		panic(ExchangeError(feedback))
+	}
+	return nil
 }
 func (this *CoinspotCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")

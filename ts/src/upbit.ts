@@ -7,7 +7,7 @@ import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, Insuffici
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -356,7 +356,7 @@ export default class upbit extends Exchange {
         const maxOnetimeWithdrawal = this.safeString (withdrawLimits, 'onetime');
         const maxDailyWithdrawal = this.safeString (withdrawLimits, 'daily', maxOnetimeWithdrawal);
         const remainingDailyWithdrawal = this.safeString (withdrawLimits, 'remaining_daily', maxDailyWithdrawal);
-        let maxWithdrawLimit = undefined;
+        let maxWithdrawLimit: Str = undefined;
         if (Precise.stringGt (remainingDailyWithdrawal, '0')) {
             maxWithdrawLimit = remainingDailyWithdrawal;
         } else {
@@ -632,12 +632,15 @@ export default class upbit extends Exchange {
      */
     async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBooks> {
         await this.loadMarkets ();
-        let ids = undefined;
+        let ids: Str = undefined;
         if (symbols === undefined) {
-            ids = this.ids.join (',');
+            const allIds = this.ids;
+            if (allIds !== undefined) {
+                ids = allIds.join (',');
+            }
         } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join (',');
+            const marketIds = this.marketIds (symbols);
+            ids = marketIds.join (',');
         }
         const request: Dict = {
             'markets': ids,
@@ -780,7 +783,7 @@ export default class upbit extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const ids = (symbols !== undefined) ? this.marketIds (symbols) : this.ids;
-        const promises = [];
+        const promises: List = [];
         const queries = this.idsQueryStrings (ids, 6400); // seems upbit server limitations
         for (let i = 0; i < queries.length; i++) {
             const idsQuery = queries[i];
@@ -821,7 +824,7 @@ export default class upbit extends Exchange {
 
     idsQueryStrings (ids: string[], maxQueryLength: number) {
         let idsString = '';
-        const queries = [];
+        const queries: List = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (idsString !== '') {
@@ -889,7 +892,7 @@ export default class upbit extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
-        let side = undefined;
+        let side: Str = undefined;
         const askOrBid = this.safeStringLower2 (trade, 'ask_bid', 'side');
         if (askOrBid === 'ask') {
             side = 'sell';
@@ -901,7 +904,7 @@ export default class upbit extends Exchange {
         const amount = this.safeString2 (trade, 'trade_volume', 'volume');
         const marketId = this.safeString2 (trade, 'market', 'code');
         market = this.safeMarket (marketId, market, '-');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (trade, askOrBid + '_fee');
         if (feeCost !== undefined) {
             fee = {
@@ -1117,7 +1120,7 @@ export default class upbit extends Exchange {
             'timeframe': timeframeValue,
             'count': limit,
         };
-        let response = undefined;
+        let response: List;
         if (since !== undefined) {
             // convert `since` to `to` value
             request['to'] = this.iso8601 (this.sum (since, timeframePeriod * limit * 1000));
@@ -1163,7 +1166,7 @@ export default class upbit extends Exchange {
     }
 
     calcOrderPrice (symbol: string, amount: number, price: Num = undefined, params = {}): string {
-        let quoteAmount = undefined;
+        let quoteAmount: Str = undefined;
         const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
         const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
@@ -1218,7 +1221,7 @@ export default class upbit extends Exchange {
         if (postOnly && (selfTradePrevention !== undefined)) {
             throw new ExchangeError (this.id + ' createOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
-        let orderSide = undefined;
+        let orderSide: Str = undefined;
         if (side === 'buy') {
             orderSide = 'bid';
         } else if (side === 'sell') {
@@ -1283,7 +1286,7 @@ export default class upbit extends Exchange {
         if (request['ord_type'] === 'best' && timeInForce === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a timeInForce parameter for best type orders');
         }
-        let response = undefined;
+        let response: Dict;
         params = this.omit (params, [ 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ]);
         if (test) {
             response = await this.privatePostOrdersTest (this.extend (request, params));
@@ -1497,7 +1500,7 @@ export default class upbit extends Exchange {
             // 'page': 1,
             // 'order_by': 'asc', // 'desc'
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1542,7 +1545,7 @@ export default class upbit extends Exchange {
         const request: Dict = {
             'uuid': id,
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1583,7 +1586,7 @@ export default class upbit extends Exchange {
         const request: Dict = {
             // 'state': 'submitting', // 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1629,7 +1632,7 @@ export default class upbit extends Exchange {
         const request: Dict = {
             'uuid': id,
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1834,14 +1837,14 @@ export default class upbit extends Exchange {
         const amount = this.safeString (order, 'volume');
         const remaining = this.safeString (order, 'remaining_volume');
         const filled = this.safeString (order, 'executed_volume');
-        let cost = undefined;
+        let cost: Str = undefined;
         if (type === 'price') {
             type = 'market';
             cost = price;
             price = undefined;
         }
-        let average = undefined;
-        let fee = undefined;
+        let average: Str = undefined;
+        let fee: NullableDict = undefined;
         let feeCost = this.safeString (order, 'paid_fee');
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
@@ -1920,7 +1923,7 @@ export default class upbit extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -1972,7 +1975,7 @@ export default class upbit extends Exchange {
         let request: Dict = {
             'state': 'done',
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -2029,7 +2032,7 @@ export default class upbit extends Exchange {
         let request: Dict = {
             'state': 'cancel',
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -2204,7 +2207,7 @@ export default class upbit extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
@@ -2284,7 +2287,7 @@ export default class upbit extends Exchange {
         const request: Dict = {
             'amount': amount,
         };
-        let response = undefined;
+        let response: Dict;
         if (code !== 'KRW') {
             this.checkAddress (address);
             // 2023-05-23 Change to required parameters for digital assets
@@ -2325,7 +2328,7 @@ export default class upbit extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         });
@@ -2345,7 +2348,7 @@ export default class upbit extends Exchange {
                 'nonce': nonce,
             };
             const hasQuery = Object.keys (query).length;
-            let auth = undefined;
+            let auth: Str = undefined;
             if ((method !== 'GET') && (method !== 'DELETE')) {
                 body = this.json (params);
                 headers['Content-Type'] = 'application/json';

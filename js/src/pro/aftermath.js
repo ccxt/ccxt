@@ -42,7 +42,7 @@ export default class aftermath extends aftermathRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },

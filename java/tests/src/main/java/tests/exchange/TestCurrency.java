@@ -12,6 +12,10 @@ import io.github.ccxt.errors.*;
 public class TestCurrency extends BaseTest {
     public static void testCurrency(Exchange exchange, Object skippedProperties, Object method, Object entry)
     {
+        if (Helpers.isTrue(Helpers.isEqual(entry, null)))
+        {
+            return;
+        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "id", "btc" );
             put( "code", "BTC" );

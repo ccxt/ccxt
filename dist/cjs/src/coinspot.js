@@ -19,7 +19,7 @@ class coinspot extends coinspot$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': ['AU'],
+            'countries': ['AU'], // Australia
             'rateLimit': 1000,
             'pro': false,
             'has': {
@@ -277,13 +277,13 @@ class coinspot extends coinspot$1["default"] {
                         'marginMode': false,
                         'limit': undefined,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
-                    'fetchOpenOrders': undefined,
+                    'fetchOpenOrders': undefined, // todo implement
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined,
                 },
                 'swap': {
@@ -658,7 +658,7 @@ class coinspot extends coinspot$1["default"] {
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
-        const method = 'privatePostMy' + this.capitalize(side);
+        const sideUpper = side.toUpperCase();
         if (type === 'market') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
@@ -668,8 +668,22 @@ class coinspot extends coinspot$1["default"] {
             'amount': amount,
             'rate': price,
         };
-        const response = await this[method](this.extend(request, params));
-        return this.parseOrder(response);
+        let response;
+        if (sideUpper === 'BUY') {
+            response = await this.privatePostMyBuy(this.extend(request, params));
+        }
+        else if (sideUpper === 'SELL') {
+            response = await this.privatePostMySell(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' createOrder only support buy/sell side');
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     /**
      * @method
@@ -691,7 +705,7 @@ class coinspot extends coinspot$1["default"] {
         const request = {
             'id': id,
         };
-        let response = undefined;
+        let response;
         if (side === 'buy') {
             response = await this.privatePostMyBuyCancel(this.extend(request, params));
         }
@@ -704,6 +718,17 @@ class coinspot extends coinspot$1["default"] {
         return this.safeOrder({
             'info': response,
         });
+    }
+    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        const status = this.safeString(response, 'status');
+        if (status === 'error') {
+            const feedback = this.id + ' ' + this.json(response);
+            throw new errors.ExchangeError(feedback);
+        }
+        return undefined;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isVersionedApi = Array.isArray(api);

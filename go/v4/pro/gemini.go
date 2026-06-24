@@ -333,7 +333,7 @@ func  (this *GeminiCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any
                 "type": "subscribe",
                 "subscriptions": []any{map[string]any {
             "name": ccxt.Add("candles_", timeframeId),
-            "symbols": []any{ccxt.ToUpper(ccxt.GetValue(market, "id"))},
+            "symbols": []any{this.SafeStringUpper(market, "id")},
         }},
             }
             var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", ccxt.GetValue(market, "symbol")), ":"), timeframeId)

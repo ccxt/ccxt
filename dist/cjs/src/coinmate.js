@@ -19,7 +19,7 @@ class coinmate extends coinmate$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'coinmate',
             'name': 'CoinMate',
-            'countries': ['GB', 'CZ', 'EU'],
+            'countries': ['GB', 'CZ', 'EU'], // UK, Czech Republic
             'rateLimit': 600,
             'has': {
                 'CORS': true,
@@ -253,11 +253,11 @@ class coinmate extends coinmate$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo implement
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -266,7 +266,7 @@ class coinmate extends coinmate$1["default"] {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true,
+                        'trailing': true, // todo implement
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
@@ -278,7 +278,7 @@ class coinmate extends coinmate$1["default"] {
                         'marginMode': false,
                         'limit': 1000,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -323,7 +323,7 @@ class coinmate extends coinmate$1["default"] {
                     'Not enough account balance available': errors.InsufficientFunds,
                     'Incorrect order ID': errors.InvalidOrder,
                     'Minimum Order Size ': errors.InvalidOrder,
-                    'max allowed precision': errors.InvalidOrder,
+                    'max allowed precision': errors.InvalidOrder, // {"error":true,"errorMessage":"USDT_EUR - max allowed precision is 4 decimal places","data":null}
                     'TOO MANY REQUESTS': errors.RateLimitExceeded,
                     'Access denied.': errors.AuthenticationError, // {"error":true,"errorMessage":"Access denied.","data":null}
                 },
@@ -585,7 +585,7 @@ class coinmate extends coinmate$1["default"] {
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
         const last = this.safeNumber(ticker, 'last');
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeNumber(ticker, 'high'),

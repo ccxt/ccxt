@@ -1752,7 +1752,7 @@ class gate extends \ccxt\async\gate {
         $client->resolve ($newLiquidations, 'myLiquidations');
     }
 
-    public function parse_ws_liquidation($liquidation, $market = null) {
+    public function parse_ws_liquidation($liquidation, ?array $market = null) {
         //
         // future / delivery
         //    {
@@ -1800,7 +1800,7 @@ class gate extends \ccxt\async\gate {
         ));
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //    {
         //        "time" => 1647274664,

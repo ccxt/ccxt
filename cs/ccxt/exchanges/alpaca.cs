@@ -332,7 +332,7 @@ public partial class alpaca : Exchange
         object jetlagStrStart = subtract(((string)timestamp).Length, 6);
         object jetlagStrEnd = subtract(((string)timestamp).Length, 3);
         object jetlag = slice(timestamp, jetlagStrStart, jetlagStrEnd);
-        object iso = subtract(this.parse8601(localTime), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
+        object iso = subtract(this.parseToInt(this.parse8601(localTime)), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
         return iso;
     }
 
