@@ -2,7 +2,7 @@
 
 'use strict';
 
-const ccxt = require ('../../js/ccxt.js');
+import ccxt from '../../js/ccxt.js';
 
 const exchange = new ccxt.binanceusdm ();
 const timeframe = '1h';
