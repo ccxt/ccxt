@@ -2,14 +2,14 @@
 import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import { Exchange, OrderBook } from '../../../../ccxt.js';
+import { Exchange } from '../../../../ccxt.js';
 
 async function testWatchOrderBook (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOrderBook';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response: OrderBook = exchange.orderBook ();
+        let response = undefined;
         let success = true;
         try {
             response = await exchange.watchOrderBook (symbol);
@@ -21,7 +21,7 @@ async function testWatchOrderBook (exchange: Exchange, skippedProperties: object
             // continue;
             success = false;
         }
-        if (success === true) {
+        if ((success === true) && (response !== undefined)) {
         // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
             assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
             now = exchange.milliseconds ();
