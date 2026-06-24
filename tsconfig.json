@@ -25,7 +25,7 @@
     // "jsxImportSource": "",                            /* Specify module specifier used to import the JSX factory functions when using `jsx: react-jsx*`.` */
     // "reactNamespace": "",                             /* Specify the object invoked for `createElement`. This only applies when targeting `react` JSX emit. */
     // "noLib": true,                                    /* Disable including any library files, including the default lib.d.ts. */
-    // "useDefineForClassFields": true,                  /* Emit ECMAScript-standard-compliant class fields. */
+    "useDefineForClassFields": false,                    /* Emit ECMAScript-standard-compliant class fields. */
 
     /* Modules */
     "module": "Node16",                                /* Specify what module code is generated. */
