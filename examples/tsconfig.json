@@ -5,7 +5,7 @@
     "types": ["node"],
     "module": "ES2022",
     "moduleResolution": "Node",
-    "allowJs": true,
+    "allowJs": false,
     "checkJs": false,
     "rootDir": "./ts",
     "outDir": "./js",
@@ -23,6 +23,6 @@
   "exclude": [
     "node_modules/",
     "./ts/cli.ts",
-    "build/"
+    "build/",
   ]
 }
