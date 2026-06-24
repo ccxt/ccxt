@@ -369,7 +369,7 @@ type IDerivedExchange interface {
 	FetchLeverages(optionalArgs ...any) <-chan any
 	SafeMarket(optionalArgs ...any) any
 	FetchTickers(optionalArgs ...any) <-chan any
-	Sign(path any, optionalArgs ...any) <-chan any
+	Sign(path any, optionalArgs ...any) any
 	FetchBalance(optionalArgs ...any) <-chan any
 	CancelOrder(id any, optionalArgs ...any) <-chan any
 	CancelOrders(ids any, optionalArgs ...any) <-chan any

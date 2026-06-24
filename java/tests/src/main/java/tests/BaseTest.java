@@ -229,12 +229,12 @@ public class BaseTest {
         return Crypto.hmac(request, secret, algorithm, "hex");
     }
 
-    public static CompletableFuture<String> rsa(Object request, Object secret, Object alg) {
-        return CompletableFuture.completedFuture(Crypto.rsa(request, secret, alg));
+    public static String rsa(Object request, Object secret, Object alg) {
+        return Crypto.rsa(request, secret, alg);
     }
 
-    public static CompletableFuture<String> rsa(Object request, Object secret) {
-        return CompletableFuture.completedFuture(Crypto.rsa(request, secret, null));
+    public static String rsa(Object request, Object secret) {
+        return Crypto.rsa(request, secret, null);
     }
 
     public static Object ecdsa(
@@ -254,16 +254,16 @@ public class BaseTest {
         return Crypto.Ecdsa(request, secret, alg, null);
     }
 
-    public CompletableFuture<String> jwt(Object data, Object secret, Object alg, boolean isRsa) {
-        return CompletableFuture.completedFuture(Crypto.Jwt(data, secret, alg, isRsa, null));
+    public String jwt(Object data, Object secret, Object alg, boolean isRsa) {
+        return Crypto.Jwt(data, secret, alg, isRsa, null);
     }
 
-    public CompletableFuture<String> jwt(Object data, Object secret) {
-        return CompletableFuture.completedFuture(Crypto.Jwt(data, secret, null, false, null));
+    public String jwt(Object data, Object secret) {
+        return Crypto.Jwt(data, secret, null, false, null);
     }
 
-    public CompletableFuture<String> jwt(Object data, Object secret, Object alg) {
-        return CompletableFuture.completedFuture(Crypto.Jwt(data, secret, alg, false, null));
+    public String jwt(Object data, Object secret, Object alg) {
+        return Crypto.Jwt(data, secret, alg, false, null);
     }
 
     public static Object crc32(Object str, Object signed) {

@@ -573,24 +573,24 @@ public class Exchange {
         return Crypto.Hash(payload, algo, output);
     }
 
-    public CompletableFuture<String> rsa(Object payload, Object publicKey, Object algo) {
-        return CompletableFuture.completedFuture(Crypto.Rsa(payload, publicKey, algo));
+    public String rsa(Object payload, Object publicKey, Object algo) {
+        return Crypto.Rsa(payload, publicKey, algo);
     }
 
     public Object eddsa(Object payload, Object secret, Object algo) {
         return Crypto.Eddsa(payload, secret, algo);
     }
 
-    public CompletableFuture<String> jwt(Object data, Object secret, Object hash, boolean isRsa, Object options2) {
-        return CompletableFuture.completedFuture(Crypto.Jwt(data, secret, hash, isRsa, (Map<String, Object>)options2));
+    public String jwt(Object data, Object secret, Object hash, boolean isRsa, Object options2) {
+        return Crypto.Jwt(data, secret, hash, isRsa, (Map<String, Object>)options2);
     }
 
-    public CompletableFuture<String> jwt(Object data, Object secret, Object hash) {
-        return CompletableFuture.completedFuture(Crypto.Jwt(data, secret, hash, false, new HashMap<String, Object> ()));
+    public String jwt(Object data, Object secret, Object hash) {
+        return Crypto.Jwt(data, secret, hash, false, new HashMap<String, Object> ());
     }
 
-    public CompletableFuture<String> jwt(Object data, Object secret, Object hash, boolean isRsa) {
-        return CompletableFuture.completedFuture(Crypto.Jwt(data, secret, hash, isRsa, new HashMap<String, Object> ()));
+    public String jwt(Object data, Object secret, Object hash, boolean isRsa) {
+        return Crypto.Jwt(data, secret, hash, isRsa, new HashMap<String, Object> ());
     }
 
     public static Map<String, Object> ecdsa(Object request, Object secret, Object curve, Object hash) {

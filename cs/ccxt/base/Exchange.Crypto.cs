@@ -1,6 +1,5 @@
 using System.Text;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using System.IO.Compression;
 using Cryptography.ECDSA;
 using Nethereum.Util;
@@ -146,7 +145,7 @@ public partial class Exchange
     }
 
 
-    public Task<string> jwt(object data, object secret, Delegate alg = null, bool isRsa = false, object options = null) => Task.FromResult(Jwt(data, secret, alg, isRsa, options));
+    public string jwt(object data, object secret, Delegate alg = null, bool isRsa = false, object options = null) => Jwt(data, secret, alg, isRsa, options);
 
     public static string Jwt(object data, object secret, Delegate hash = null, bool isRsa = false, object options2 = null)
     {
@@ -300,7 +299,7 @@ public partial class Exchange
         return resultBytes;
     }
 
-    public Task<string> rsa(object request, object secret, Delegate alg = null) => Task.FromResult(Rsa(request, secret, alg));
+    public string rsa(object request, object secret, Delegate alg = null) => Rsa(request, secret, alg);
 
     public static string Rsa(object data, object publicKey, Delegate hash = null)
     {

@@ -207,17 +207,10 @@ func signKeccak(data any) []byte {
 	return hash.Sum(nil)
 }
 
-func Jwt(data any, secret any, hash func() string, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		isRsa := GetArg(optionalArgs, 0, false).(bool)
-		params := GetArg(optionalArgs, 1, map[string]any{}).(map[string]any)
-		ch <- JwtFull(data, secret, hash, isRsa, params)
-		return nil
-	}()
-	return ch
+func Jwt(data any, secret any, hash func() string, optionalArgs ...any) string {
+	isRsa := GetArg(optionalArgs, 0, false).(bool)
+	params := GetArg(optionalArgs, 1, map[string]any{}).(map[string]any)
+	return JwtFull(data, secret, hash, isRsa, params)
 }
 
 func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[string]any) string {
@@ -254,7 +247,7 @@ func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[s
 
 	var signature string
 	if isRsa {
-		signature = rsaSync(token, secret, hash)
+		signature = Rsa(token, secret, hash)
 	} else if alg[:2] == "ES" {
 		ec := Ecdsa(token, secret, P256, hash)
 		r := ec["r"].(string)
@@ -273,18 +266,7 @@ func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[s
 	return token + "." + signature
 }
 
-func Rsa(data2 any, privateKey2 any, algorithm2 func() string) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		ch <- rsaSync(data2, privateKey2, algorithm2)
-		return nil
-	}()
-	return ch
-}
-
-func rsaSync(data2 any, privateKey2 any, algorithm2 func() string) string {
+func Rsa(data2 any, privateKey2 any, algorithm2 func() string) string {
 	data := data2.(string)
 	publicKey := privateKey2.(string)
 	// hashAlgorithm := hashAlgorithm2.(string)

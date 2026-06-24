@@ -13,7 +13,7 @@ import ansi from 'ansicolor'
 import { Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
-import { isMainEntry } from "./transpile.js";
+import { isMainEntry, stripSignAsyncForAst } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
@@ -403,6 +403,19 @@ class NewTranspiler {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        // sign (+ crypto helpers) is async only in JS; in Java it is synchronous. Wrap
+        // transpileJavaByPath so every file is transpiled from a sign-synchronous copy
+        // (async/await for sign stripped). byPath mode is preserved via a temp file.
+        const originalByPath = this.transpiler.transpileJavaByPath.bind (this.transpiler);
+        this.transpiler.transpileJavaByPath = (filePath: string) => {
+            const tmpPath = filePath.replace (/\.ts$/, '.__signsync__.ts');
+            fs.writeFileSync (tmpPath, stripSignAsyncForAst (fs.readFileSync (filePath, 'utf8')));
+            try {
+                return originalByPath (tmpPath);
+            } finally {
+                try { fs.unlinkSync (tmpPath); } catch (e) { /* ignore */ }
+            }
+        };
     }
 
     createGeneratedHeader() {
@@ -3071,17 +3084,38 @@ async function runMain() {
     if (!child && !multiprocess) {
         log.bright.green({ force })
     }
-    const transpiler = new NewTranspiler();
-    if (baseClassOnly) {
-        transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
-    } else if (ws) {
-        await transpiler.transpileWS(force)
-    } else if (test) {
-        transpiler.transpileTests()
-    } else if (multiprocess) {
-        await parallelizeTranspiling(exchangeIds)
-    } else {
-        await transpiler.transpileEverything(force, child, baseOnly, examples)
+    // sign is async only in JS; in Java it is synchronous. The AST transpiler resolves
+    // the base Exchange.ts (via `extends Exchange`) and base/functions/rsa.ts (rsa/jwt)
+    // to infer return types / async-ness, so those must be sign-synchronous ON DISK
+    // while exchanges + wrappers transpile. The top-level process strips them before
+    // forking workers and restores them after; child processes inherit the stripped files.
+    const syncStripFiles = [ './ts/src/base/Exchange.ts', './ts/src/base/functions/rsa.ts' ];
+    const syncStripBackups: { [path: string]: string } = {};
+    if (!child) {
+        for (const f of syncStripFiles) {
+            syncStripBackups[f] = fs.readFileSync (f, 'utf8');
+            fs.writeFileSync (f, stripSignAsyncForAst (syncStripBackups[f]));
+        }
+    }
+    try {
+        const transpiler = new NewTranspiler();
+        if (baseClassOnly) {
+            transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
+        } else if (ws) {
+            await transpiler.transpileWS(force)
+        } else if (test) {
+            transpiler.transpileTests()
+        } else if (multiprocess) {
+            await parallelizeTranspiling(exchangeIds)
+        } else {
+            await transpiler.transpileEverything(force, child, baseOnly, examples)
+        }
+    } finally {
+        if (!child) {
+            for (const f of Object.keys (syncStripBackups)) {
+                fs.writeFileSync (f, syncStripBackups[f]);
+            }
+        }
     }
 }
 

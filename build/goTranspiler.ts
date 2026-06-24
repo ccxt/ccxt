@@ -12,7 +12,7 @@ import ansi from 'ansicolor';
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
-import { isMainEntry } from "./transpile.js";
+import { isMainEntry, stripSignAsyncForAst } from "./transpile.js";
 
 type dict = { [key: string]: string };
 
@@ -166,7 +166,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "setSandboxMode": false,
     "safeCurrencyCode": false,
     "parseConversion": false,
-    "sign": true,
+    "sign": false,
     "signIn": true,
     // ws methods
     'cancelAllOrdersWs': true,
@@ -764,6 +764,19 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig());
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        // sign (+ crypto helpers) is async only in JS; in Go it is synchronous. Wrap
+        // transpileGoByPath so every file is transpiled from a sign-synchronous copy
+        // (async/await for sign stripped). byPath mode is preserved by using a temp file.
+        const originalByPath = this.transpiler.transpileGoByPath.bind (this.transpiler);
+        this.transpiler.transpileGoByPath = (filePath: string) => {
+            const tmpPath = filePath.replace (/\.ts$/, '.__signsync__.ts');
+            fs.writeFileSync (tmpPath, stripSignAsyncForAst (fs.readFileSync (filePath, 'utf8')));
+            try {
+                return originalByPath (tmpPath);
+            } finally {
+                try { fs.unlinkSync (tmpPath); } catch (e) { /* ignore */ }
+            }
+        };
     }
 
     createGeneratedHeader() {
