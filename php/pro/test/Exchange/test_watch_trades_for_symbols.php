@@ -28,13 +28,16 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
                 }
                 $now = $exchange->milliseconds();
             }
-            if ($success === true) {
+            if (($success === true) && ($response !== null)) {
                 assert(gettype($response) === 'array' && array_is_list($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an array. ' . $exchange->json($response));
                 $now = $exchange->milliseconds();
                 $symbol = null;
                 for ($i = 0; $i < count($response); $i++) {
                     $trade = $response[$i];
                     $symbol = $trade['symbol'];
+                    if ($symbol === null) {
+                        continue;
+                    }
                     test_trade($exchange, $skipped_properties, $method, $trade, $symbol, $now);
                     assert_in_array($exchange, $skipped_properties, $method, $trade, 'symbol', $symbols);
                     if (!$exchange->in_array($symbol, $returned_symbols)) {

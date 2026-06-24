@@ -520,8 +520,8 @@ public partial class coincheck : Exchange
                 takerOrMaker = "maker";
             }
             object funds = this.safeValue(trade, "funds", new Dictionary<string, object>() {});
-            amountString = this.safeString(funds, baseId);
-            costString = this.safeString(funds, quoteId);
+            amountString = this.safeString(funds, ((string)baseId));
+            costString = this.safeString(funds, ((string)quoteId));
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeString(trade, "fee_currency") },
                 { "cost", this.safeString(trade, "fee") },
@@ -565,7 +565,7 @@ public partial class coincheck : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
@@ -670,11 +670,16 @@ public partial class coincheck : Exchange
         //
         object fees = this.safeValue(response, "exchange_fees", new Dictionary<string, object>() {});
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        if (isTrue(isEqual(symbols, null)))
         {
-            object symbol = getValue(this.symbols, i);
+            return result;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object fee = this.safeValue(fees, getValue(market, "id"), new Dictionary<string, object>() {});
+            object fee = this.safeValue(fees, ((string)getValue(market, "id")), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
                 { "symbol", symbol },
@@ -883,7 +888,7 @@ public partial class coincheck : Exchange
             { "confirmed", "pending" },
             { "received", "ok" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseTransaction(object transaction, object currency = null)

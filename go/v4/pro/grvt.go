@@ -320,7 +320,7 @@ func  (this *GrvtCore) HandleTicker(client any, message any)  {
     //    }
     //
     var data any = this.SafeDict(message, "feed", map[string]any {})
-    var selector any = this.SafeString(message, "selector")
+    var selector any = this.SafeString(message, "selector", "")
     var parts any = ccxt.Split(selector, "@")
     var marketId any = this.SafeString(parts, 0)
     var market any = this.SafeMarket(marketId, nil)
@@ -446,7 +446,7 @@ func  (this *GrvtCore) HandleTrades(client any, message any)  {
     //    }
     //
     var data any = this.SafeDict(message, "feed", map[string]any {})
-    var selector any = this.SafeString(message, "selector")
+    var selector any = this.SafeString(message, "selector", "")
     var parts any = ccxt.Split(selector, "@")
     var marketId any = this.SafeString(parts, 0)
     var market any = this.SafeMarket(marketId, nil)
@@ -584,12 +584,12 @@ func  (this *GrvtCore) HandleOHLCV(client any, message any)  {
     //    }
     //
     var data any = this.SafeDict(message, "feed", map[string]any {})
-    var selector any = this.SafeString(message, "selector")
+    var selector any = this.SafeString(message, "selector", "")
     var parts any = ccxt.Split(selector, "@")
     var marketId any = this.SafeString(parts, 0)
     var market any = this.SafeMarket(marketId, nil)
     var symbol any = ccxt.GetValue(market, "symbol")
-    var secondPart any = this.SafeString(parts, 1)
+    var secondPart any = this.SafeString(parts, 1, "")
     var timeframeId any = ccxt.Replace(secondPart, "-TRADE", "")
     var timeframe any = this.FindTimeframe(timeframeId)
     var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)
@@ -737,7 +737,7 @@ func  (this *GrvtCore) HandleOrderBook(client any, message any)  {
     //    }
     //
     var data any = this.SafeDict(message, "feed", map[string]any {})
-    var selector any = this.SafeString(message, "selector")
+    var selector any = this.SafeString(message, "selector", "")
     var parts any = ccxt.Split(selector, "@")
     var marketId any = this.SafeString(parts, 0)
     var market any = this.SafeMarket(marketId, nil)
@@ -747,7 +747,7 @@ func  (this *GrvtCore) HandleOrderBook(client any, message any)  {
         ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
     }
     var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-    var sequenceNumber any = this.SafeInteger(message, "sequence_number")
+    var sequenceNumber any = this.SafeInteger(message, "sequence_number", 0)
     var stream any = this.SafeString(message, "stream")
     var isSnapshotChannel any = ccxt.IsEqual(stream, "v1.book.s")
     var isSnapshotMessage any = ccxt.IsLessThanOrEqual(sequenceNumber, 0)

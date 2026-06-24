@@ -92,7 +92,7 @@ public partial class coincheck : ccxt.coincheck
         //         }
         //     ]
         //
-        object symbol = this.symbol(this.safeString(message, 0));
+        object symbol = this.symbol(((string)this.safeString(message, 0)));
         object data = this.safeValue(message, 1, new Dictionary<string, object>() {});
         object timestamp = this.safeTimestamp(data, "last_update_at");
         object snapshot = this.parseOrderBook(data, symbol, timestamp);
@@ -159,7 +159,7 @@ public partial class coincheck : ccxt.coincheck
         //     ]
         //
         object first = this.safeValue(message, 0, new List<object>() {});
-        object symbol = this.symbol(this.safeString(first, 2));
+        object symbol = this.symbol(((string)this.safeString(first, 2)));
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -191,7 +191,7 @@ public partial class coincheck : ccxt.coincheck
         //         "2078767" // ID of the Maker
         //     ]
         //
-        object symbol = this.symbol(this.safeString(trade, 2));
+        object symbol = this.symbol(((string)this.safeString(trade, 2)));
         object timestamp = this.safeTimestamp(trade, 0);
         object side = this.safeString(trade, 5);
         object priceString = this.safeString(trade, 3);

@@ -1156,7 +1156,7 @@ public class CryptomusCore extends CryptomusApi
             put( "expired", "expired" );
             put( "failed", "failed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
@@ -1231,9 +1231,14 @@ public class CryptomusCore extends CryptomusApi
             Object feeTiers = this.safeList(data, "tariff_steps", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object tiers = this.parseFeeTiers(feeTiers);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                return result;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            {
+                Object symbol = Helpers.GetValue(symbols, i);
                 final Object finalMakerFee = makerFee;
                 final Object finalTakerFee = takerFee;
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{

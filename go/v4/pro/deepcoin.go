@@ -400,13 +400,13 @@ func  (this *DeepcoinCore) ParseWsTicker(ticker any, optionalArgs ...any) any  {
     var ask any = this.SafeNumber(ticker, "AP1")
     var baseVolume any = this.SafeNumber(ticker, "V")
     var quoteVolume any = this.SafeNumber(ticker, "T")
-    if ccxt.IsTrue(ccxt.GetValue(market, "inverse")) {
+    if ccxt.IsTrue(this.SafeBool(market, "inverse")) {
         var temp any = baseVolume
         baseVolume = quoteVolume
         quoteVolume = temp
     }
     return this.SafeTicker(map[string]any {
-        "symbol": ccxt.GetValue(market, "symbol"),
+        "symbol": this.SafeString(market, "symbol"),
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
         "high": high,
@@ -591,7 +591,7 @@ func  (this *DeepcoinCore) ParseWsTrade(trade any, optionalArgs ...any) any  {
         "info": trade,
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
-        "symbol": ccxt.GetValue(market, "symbol"),
+        "symbol": this.SafeString(market, "symbol"),
         "id": this.SafeString2(trade, "TradeID", "TI"),
         "order": this.SafeString(trade, "OS"),
         "type": nil,
@@ -909,7 +909,7 @@ func  (this *DeepcoinCore) HandleOrderBookSnapshot(client any, message any)  {
             ccxt.AppendToArray(&retRes72416, []any{price, volume})
         }
     }
-    var timestamp any = this.SafeInteger(message, "mt")
+    var timestamp any = this.SafeInteger(message, "mt", 0)
     var snapshot any = this.ParseOrderBook(orderedEntries, symbol, timestamp)
     orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
     var cachedMessages any = orderbook.(ccxt.OrderBookInterface).GetCache()
@@ -937,7 +937,7 @@ func  (this *DeepcoinCore) HandleOrderBookMessage(client any, message any, order
     //         "mt": 1760975816446
     //     }
     //
-    var timestamp any = this.SafeInteger(message, "mt")
+    var timestamp any = this.SafeInteger(message, "mt", 0)
     if ccxt.IsTrue(ccxt.IsGreaterThan(timestamp, ccxt.GetValue(orderbook, "timestamp"))) {
         var response any = this.SafeList(message, "r", []any{})
         this.HandleDeltas(orderbook, response)
@@ -1187,7 +1187,7 @@ func  (this *DeepcoinCore) ParseWsOrder(order any, optionalArgs ...any) any  {
         "lastTradeTimestamp": nil,
         "lastUpdateTimestamp": this.SafeTimestamp(order, "U"),
         "status": this.ParseWsOrderStatus(state),
-        "symbol": ccxt.GetValue(market, "symbol"),
+        "symbol": this.SafeString(market, "symbol"),
         "type": nil,
         "timeInForce": nil,
         "side": this.ParseTradeSide(direction),
@@ -1337,7 +1337,7 @@ func  (this *DeepcoinCore) ParseWsPosition(position any, optionalArgs ...any) an
     var direction any = this.SafeString(position, "p")
     var marginMode any = this.SafeString(position, "i")
     return this.SafePosition(map[string]any {
-        "symbol": ccxt.GetValue(market, "symbol"),
+        "symbol": this.SafeString(market, "symbol"),
         "id": nil,
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),

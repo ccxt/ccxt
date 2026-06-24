@@ -1018,13 +1018,16 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             {
                 marketsByWsName = new java.util.HashMap<String, Object>() {{}};
                 Object symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
-                    Object market = Helpers.GetValue(this.markets, symbol);
-                    Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
-                    Object wsName = ((String)this.safeString(info, "wsname"));
-                    Helpers.addElementToObject(marketsByWsName, wsName, market);
+                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                    {
+                        Object symbol = Helpers.GetValue(symbols, i);
+                        Object market = Helpers.GetValue(this.markets, symbol);
+                        Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
+                        Object wsName = ((String)this.safeString(info, "wsname"));
+                        Helpers.addElementToObject(marketsByWsName, wsName, market);
+                    }
                 }
                 Helpers.addElementToObject(this.options, "marketsByWsName", marketsByWsName);
             }
@@ -1705,6 +1708,10 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets()).join();
             // symbols are required
             symbols = this.marketSymbols(symbols, null, false, true, false);
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            {
+                return null;
+            }
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {

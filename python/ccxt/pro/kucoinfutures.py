@@ -63,12 +63,12 @@ class kucoinfutures(kucoin):
         await self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        request: dict = {
+        request = {
             'currency': self.safe_string(currency, 'id'),
             'amount': amountToPrecision,
         }
         toAccountString = self.parse_transfer_type(toAccount)
-        response: NullableDict = None
+        response = None
         if toAccountString == 'TRADE' or toAccountString == 'MAIN':
             request['recAccountType'] = toAccountString
             response = await self.futuresPrivatePostTransferOut(self.extend(request, params))
@@ -117,7 +117,7 @@ class kucoinfutures(kucoin):
         })
 
     def parse_transfer_type(self, transferType):
-        transferTypes: dict = {
+        transferTypes = {
             'spot': 'TRADE',
             'funding': 'MAIN',
         }
