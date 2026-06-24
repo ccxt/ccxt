@@ -31,7 +31,7 @@ const tryToCreateOrder = async function (exchange, symbol, type, side, amount, p
 
 // ----------------------------------------------------------------------------
 
-const exchange = new ccxt.bytetrade ({
+const exchange = new ccxt.okx ({
     'apiKey': 'classic123', // edit here
     'secret': 'ebcefff7de475ffe15e864ca3e3e410edf7e94fffd1f9af34edf9434e2bfff1b',  // edit here
 })
