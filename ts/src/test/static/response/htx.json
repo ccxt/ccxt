@@ -5032,6 +5032,56 @@
                     }
                 ]
             }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers with USDT",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "data": [
+                        {
+                            "id": "10058599436",
+                            "amount": "1.000000000000000000",
+                            "currency": "usdt",
+                            "status": "success",
+                            "transfer_id": "10058599436",
+                            "from_account_type": "spot",
+                            "to_account_type": "linear-swap",
+                            "from_asset_type": "",
+                            "to_asset_type": "",
+                            "transfer_time": "1779451000000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "10058599436",
+                            "amount": "1.000000000000000000",
+                            "currency": "usdt",
+                            "status": "success",
+                            "transfer_id": "10058599436",
+                            "from_account_type": "spot",
+                            "to_account_type": "linear-swap",
+                            "from_asset_type": "",
+                            "to_asset_type": "",
+                            "transfer_time": "1779451000000"
+                        },
+                        "id": "10058599436",
+                        "timestamp": 1779451000000,
+                        "datetime": "2026-05-22T11:56:40.000Z",
+                        "currency": "USDT",
+                        "amount": 1,
+                        "fromAccount": "spot",
+                        "toAccount": "swap",
+                        "status": "ok"
+                    }
+                ]
+            }
         ]
     }
 }
