@@ -123,7 +123,7 @@ jobs:
       run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add php/
+          git add php/ examples/php
           git commit -m "[Automated changes] PHP files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git config --global pull.rebase false
