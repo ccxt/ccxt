@@ -23,7 +23,7 @@ let printUsage = function () {
 }
 
 let printSymbols = function (exchange) {
-    log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
+    log (exchange.id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
 }
 
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
