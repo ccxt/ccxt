@@ -74,9 +74,38 @@ function transpileSignSyncByPath (transpileByPath: (p: string) => any, filePath:
     }
 }
 
+// Base files whose sign-async-ness the AST transpiler resolves (via `extends Exchange`
+// and the rsa/jwt imports) when inferring an exchange override's return type / async-ness.
+// They must be sign-synchronous ON DISK while exchanges + wrappers transpile.
+const SIGN_SYNC_BASE_FILES = [ './ts/src/base/Exchange.ts', './ts/src/base/functions/rsa.ts' ];
+
+// Runs `fn` with SIGN_SYNC_BASE_FILES made sign-synchronous on disk (originals held in
+// memory, restored afterwards). Used by the C#/Java transpiler entrypoints: the top-level
+// process strips them before forking workers and restores them once everything finishes;
+// child processes pass `inherit = true` (they reuse the parent's already-stripped files).
+async function withSyncSignBaseFiles (inherit: boolean, fn: () => Promise<void> | void): Promise<void> {
+    if (inherit) {
+        await fn ();
+        return;
+    }
+    const backups: { [path: string]: string } = {};
+    for (const f of SIGN_SYNC_BASE_FILES) {
+        backups[f] = fs.readFileSync (f, 'utf8');
+        fs.writeFileSync (f, stripSignAsyncForAst (backups[f]));
+    }
+    try {
+        await fn ();
+    } finally {
+        for (const f of Object.keys (backups)) {
+            fs.writeFileSync (f, backups[f]);
+        }
+    }
+}
+
 export {
     stripSignAsyncForAst,
     transpileSignSyncByPath,
+    withSyncSignBaseFiles,
     writeOverloadStrippedFile,
     removeOverloadStrippedFile,
 };

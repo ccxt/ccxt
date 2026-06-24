@@ -4,7 +4,7 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
-import { writeOverloadStrippedFile, removeOverloadStrippedFile, stripSignAsyncForAst, transpileSignSyncByPath } from './stripOverloads.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, transpileSignSyncByPath, withSyncSignBaseFiles } from './stripOverloads.js';
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
@@ -1484,21 +1484,10 @@ async function runMain () {
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
-    // sign is async only in JS; in C# it is synchronous. Because the AST transpiler
-    // resolves the base `Exchange.ts` (via `extends Exchange`) and base/functions/rsa.ts
-    // (rsa/jwt) to infer return types / async-ness, those files must be
-    // sign-synchronous ON DISK while exchanges + wrappers transpile. The top-level
-    // process strips them before forking workers and restores them after; child
-    // processes inherit the already-stripped files.
-    const syncStripFiles = [ './ts/src/base/Exchange.ts', './ts/src/base/functions/rsa.ts' ];
-    const syncStripBackups: { [path: string]: string } = {};
-    if (!child) {
-        for (const f of syncStripFiles) {
-            syncStripBackups[f] = fs.readFileSync (f, 'utf8');
-            fs.writeFileSync (f, stripSignAsyncForAst (syncStripBackups[f]));
-        }
-    }
-    try {
+    // sign is synchronous in C#; the AST transpiler resolves the base Exchange.ts +
+    // rsa.ts to infer override async-ness, so they're stripped on disk while transpiling
+    // (child processes inherit the parent's already-stripped files).
+    await withSyncSignBaseFiles (child, async () => {
         const transpiler = new NewTranspiler ();
         if (baseClassOnly) {
             transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
@@ -1511,13 +1500,7 @@ async function runMain () {
         } else {
             await transpiler.transpileEverything (force, child, baseOnly, examples)
         }
-    } finally {
-        if (!child) {
-            for (const f of Object.keys (syncStripBackups)) {
-                fs.writeFileSync (f, syncStripBackups[f]);
-            }
-        }
-    }
+    });
 }
 
 if (isMainEntry(metaUrl)) {
