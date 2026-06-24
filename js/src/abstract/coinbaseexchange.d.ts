@@ -67,7 +67,6 @@ interface Exchange {
     privatePostFundingRepay(params?: {}): Promise<implicitReturnType>;
     privatePostOrders(params?: {}): Promise<implicitReturnType>;
     privatePostPositionClose(params?: {}): Promise<implicitReturnType>;
-    privatePostProfiles(params?: {}): Promise<implicitReturnType>;
     privatePostProfilesMarginTransfer(params?: {}): Promise<implicitReturnType>;
     privatePostProfilesTransfer(params?: {}): Promise<implicitReturnType>;
     privatePostReports(params?: {}): Promise<implicitReturnType>;
@@ -81,8 +80,6 @@ interface Exchange {
     privateDeleteOrders(params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersClientClientOid(params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersId(params?: {}): Promise<implicitReturnType>;
-    privatePutProfilesIdDeactivate(params?: {}): Promise<implicitReturnType>;
-    privatePutProfilesId(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }
