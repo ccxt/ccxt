@@ -54,8 +54,29 @@ function removeOverloadStrippedFile (tmpPath: string, srcPath: string): void {
     }
 }
 
+// Transpile `filePath` with `sign` (and its crypto helpers) made synchronous, WITHOUT
+// creating a separate temp file. byPath mode is required so the file's real location is
+// used and relative imports (extends Exchange, ./base/functions/rsa.js) still resolve for
+// type inference — in-memory transpilation loses that (e.g. drops `override`). So the
+// original content is held in memory, the stripped content is written in place for the
+// duration of the transpile, then the original is restored.
+function transpileSignSyncByPath (transpileByPath: (p: string) => any, filePath: string): any {
+    const original = fs.readFileSync (filePath, 'utf8');
+    const stripped = stripSignAsyncForAst (original);
+    if (stripped === original) {
+        return transpileByPath (filePath); // nothing to strip
+    }
+    fs.writeFileSync (filePath, stripped);
+    try {
+        return transpileByPath (filePath);
+    } finally {
+        fs.writeFileSync (filePath, original);
+    }
+}
+
 export {
     stripSignAsyncForAst,
+    transpileSignSyncByPath,
     writeOverloadStrippedFile,
     removeOverloadStrippedFile,
 };

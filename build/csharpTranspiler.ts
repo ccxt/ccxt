@@ -4,7 +4,7 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
-import { writeOverloadStrippedFile, removeOverloadStrippedFile, stripSignAsyncForAst } from './stripOverloads.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, stripSignAsyncForAst, transpileSignSyncByPath } from './stripOverloads.js';
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
@@ -283,18 +283,10 @@ class NewTranspiler {
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         // sign (+ crypto helpers) is async only in JS; in C# it is synchronous. Wrap
-        // transpileCSharpByPath so every file is transpiled from a sign-synchronous copy
-        // (async/await for sign stripped). byPath mode is preserved via a temp file.
+        // transpileCSharpByPath so every file is transpiled with sign made synchronous
+        // (the original content is restored afterwards — see transpileSignSyncByPath).
         const originalByPath = this.transpiler.transpileCSharpByPath.bind (this.transpiler);
-        this.transpiler.transpileCSharpByPath = (filePath: string) => {
-            const tmpPath = filePath.replace (/\.ts$/, '.__signsync__.ts');
-            fs.writeFileSync (tmpPath, stripSignAsyncForAst (fs.readFileSync (filePath, 'utf8')));
-            try {
-                return originalByPath (tmpPath);
-            } finally {
-                try { fs.unlinkSync (tmpPath); } catch (e) { /* ignore */ }
-            }
-        };
+        this.transpiler.transpileCSharpByPath = (filePath: string) => transpileSignSyncByPath (originalByPath, filePath);
     }
 
     createGeneratedHeader() {

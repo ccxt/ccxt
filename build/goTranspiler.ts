@@ -3,7 +3,7 @@ import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
-import { writeOverloadStrippedFile, removeOverloadStrippedFile, stripSignAsyncForAst } from './stripOverloads.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, transpileSignSyncByPath } from "./stripOverloads.js";
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
 import fs from 'fs';
@@ -765,18 +765,10 @@ class NewTranspiler {
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         // sign (+ crypto helpers) is async only in JS; in Go it is synchronous. Wrap
-        // transpileGoByPath so every file is transpiled from a sign-synchronous copy
-        // (async/await for sign stripped). byPath mode is preserved by using a temp file.
+        // transpileGoByPath so every file is transpiled with sign made synchronous
+        // (the original content is restored afterwards — see transpileSignSyncByPath).
         const originalByPath = this.transpiler.transpileGoByPath.bind (this.transpiler);
-        this.transpiler.transpileGoByPath = (filePath: string) => {
-            const tmpPath = filePath.replace (/\.ts$/, '.__signsync__.ts');
-            fs.writeFileSync (tmpPath, stripSignAsyncForAst (fs.readFileSync (filePath, 'utf8')));
-            try {
-                return originalByPath (tmpPath);
-            } finally {
-                try { fs.unlinkSync (tmpPath); } catch (e) { /* ignore */ }
-            }
-        };
+        this.transpiler.transpileGoByPath = (filePath: string) => transpileSignSyncByPath (originalByPath, filePath);
     }
 
     createGeneratedHeader() {

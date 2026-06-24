@@ -1,7 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import log from 'ololog'
-import fs from 'fs'
-import { stripSignAsyncForAst } from './stripOverloads.js';
+import { transpileSignSyncByPath } from './stripOverloads.js';
 
 export default async ({transpilerConfig, files}) => {
     const transpiler = new Transpiler(transpilerConfig);
@@ -9,16 +8,9 @@ export default async ({transpilerConfig, files}) => {
     const result = [];
     for (const filePath of files) {
         log.blue('[worker][java] Transpiling', filePath);
-        // sign (+ crypto helpers) is async only in JS; transpile a sign-synchronous copy
-        // (byPath mode preserves output shape).
-        const tmpPath = filePath.replace(/\.ts$/, '.__signsync__.ts');
-        fs.writeFileSync(tmpPath, stripSignAsyncForAst(fs.readFileSync(filePath, 'utf8')));
-        try {
-            const transpiled = transpiler.transpileJavaByPath(tmpPath);
-            result.push(transpiled);
-        } finally {
-            try { fs.unlinkSync(tmpPath); } catch (e) { /* ignore */ }
-        }
+        // sign (+ crypto helpers) is async only in JS; transpile with sign made synchronous
+        // (original content held in memory and restored — no temp file).
+        result.push(transpileSignSyncByPath((p) => transpiler.transpileJavaByPath(p), filePath));
     }
     return result;
 }
