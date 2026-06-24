@@ -1,6 +1,6 @@
 // @NO_AUTO_TRANSPILE
 "use strict";
-const ccxt = require('../../ccxt');
+import ccxt from '../../js/ccxt.js';
 const exchange = new ccxt.binance();
 const symbols = ['BTC/USDT', 'ETH/USDT', 'ADA/USDT'];
 // start from i.e. 01 february 2022

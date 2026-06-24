@@ -2,6 +2,7 @@
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
 import ololog from 'ololog';
+// @ts-ignore
 import config from '../../keys.json';
 import ansicolor from 'ansicolor';
 const log = ololog.configure({ locate: false });
@@ -77,7 +78,7 @@ let proxies = [
             let hasBCH = exchange.currencies.includes('BCH');
             let hasBoth = (hasBCC && hasBCH);
             return {
-                id,
+                id: id,
                 'BCC': hasBoth ? id.green : (hasBCC ? id.yellow : ''),
                 'BCH': hasBCH ? id.green : '',
             };

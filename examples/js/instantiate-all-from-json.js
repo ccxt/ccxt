@@ -1,5 +1,6 @@
 // @NO_AUTO_TRANSPILE
 import ccxt from '../../js/ccxt.js';
+// @ts-ignore
 import settings from '../../keys.json';
 async function test() {
     const ids = ccxt.exchanges.filter(id => id in settings);

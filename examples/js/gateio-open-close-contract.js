@@ -1,6 +1,5 @@
-"use strict";
 // @NO_AUTO_TRANSPILE
-const ccxt = require('../../ccxt');
+import ccxt from '../../js/ccxt.js';
 const exchange = new ccxt.gate({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',

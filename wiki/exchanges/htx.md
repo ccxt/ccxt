@@ -40,6 +40,7 @@
 * [fetchWithdrawals](#fetchwithdrawals)
 * [withdraw](#withdraw)
 * [transfer](#transfer)
+* [fetchTransfers](#fetchtransfers)
 * [fetchIsolatedBorrowRates](#fetchisolatedborrowrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingRate](#fetchfundingrate)
@@ -1038,6 +1039,33 @@ transfer currency internally between wallets on the same account
 
 ```javascript
 htx.transfer (code, amount, fromAccount, toAccount, params?)
+```
+
+
+<a name="fetchTransfers" id="fetchtransfers"></a>
+
+### fetchTransfers{docsify-ignore}
+fetch a history of internal transfers made on an account
+
+**Kind**: instance method of [<code>htx</code>](#htx)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://www.huobi.com/en-us/opend/newApiPages/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
+| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.status | <code>string</code> | No | transfer status: 'success', 'pending', 'failed' |
+| params.from | <code>int</code> | No | the starting ID for pagination |
+| params.direct | <code>string</code> | No | pagination direction: 'prev' or 'next', default 'next' |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for |
+
+
+```javascript
+htx.fetchTransfers (code?, since?, limit?, params?)
 ```
 
 

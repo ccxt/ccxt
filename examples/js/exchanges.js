@@ -10,11 +10,11 @@ process.on('uncaughtException', e => { log.bright.red.error(e); process.exit(1);
 process.on('unhandledRejection', e => { log.bright.red.error(e); process.exit(1); });
 let exchanges = {};
 ccxt.exchanges.forEach(id => { exchanges[id] = new (ccxt)[id](); });
-log('The ccxt library supports', (ccxt.exchanges.length.toString()).green, 'exchanges:');
+log('The ccxt library supports', ccxt.exchanges.length.toString().green, 'exchanges:');
 var countryName = function (code) {
     return ((countries[code] !== undefined) ? countries[code] : code);
 };
-log(asTable.configure({ delimiter: ' | ' })(Object.values(exchanges).map(exchange => {
+log(asTable.configure({ delimiter: ' | ' })(Object.values(exchanges).map((exchange) => {
     let countries = Array.isArray(exchange.countries) ?
         exchange.countries.map(countryName).join(', ') :
         countryName(exchange.countries);

@@ -1,11 +1,13 @@
 // @NO_AUTO_TRANSPILE
 import ccxt from '../../js/ccxt.js';
-const bitpanda = new ccxt.bitpanda({
-    "apiKey": "INSERTYOURAPIKEY"
+// @ts-expect-error
+const binance = new ccxt.binance({
+    "apiKey": "INSERTYOURAPIKEY",
+    "secret": "INSERTYOURSECRETKEY",
 }) 
 // output
 `
-fetching USDT/EUR trades on bitpanda
+fetching USDT/EUR trades on binance
 ---------------------------------------------
 maker volume 6621.81 USDT maker fee 5.62 USDT
 taker volume 2544.82 USDT taker fee 3.27 USDT
@@ -19,9 +21,9 @@ bought 0.00 USDT for 0.00 EUR
         base: 'USDT',
         quote: 'EUR',
     };
-    console.log('fetching', market.symbol, 'trades on bitpanda');
+    console.log('fetching', market.symbol, 'trades on binance');
     console.log('---------------------------------------------');
-    const trades = await bitpanda.fetchMyTrades('USDT/EUR');
+    const trades = await binance.fetchMyTrades('USDT/EUR');
     const makers = trades.filter(x => x.takerOrMaker === 'maker');
     const takers = trades.filter(x => x.takerOrMaker === 'taker');
     console.log('maker volume', makers.reduce((a, b) => a + b.amount, 0).toFixed(2), market.base, 'maker fee', makers.reduce((a, b) => a + b.fee['cost'], 0).toFixed(2), market.base);

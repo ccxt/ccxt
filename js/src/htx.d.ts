@@ -651,6 +651,22 @@ export default class htx extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     /**
      * @method
+     * @name htx#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.huobi.com/en-us/opend/newApiPages/
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.status] transfer status: 'success', 'pending', 'failed'
+     * @param {int} [params.from] the starting ID for pagination
+     * @param {string} [params.direct] pagination direction: 'prev' or 'next', default 'next'
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
+    /**
+     * @method
      * @name htx#fetchIsolatedBorrowRates
      * @description fetch the borrow interest rates of all currencies
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated

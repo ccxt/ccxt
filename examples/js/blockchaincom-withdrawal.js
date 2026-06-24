@@ -1,6 +1,6 @@
 // @NO_AUTO_TRANSPILE
 "use strict";
-const ccxt = require('../../ccxt.js');
+import ccxt from '../../js/ccxt.js';
 const asTable = require('as-table');
 const log = require('ololog').configure({ locate: false });
 const exchange = new ccxt.blockchaincom({

@@ -1,6 +1,6 @@
 // @NO_AUTO_TRANSPILE
 'use strict';
-const ccxt = require('../../ccxt');
+import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version);
 const exchange = new ccxt.bybit({
     'apiKey': 'YOUR_API_KEY',
@@ -31,6 +31,7 @@ async function example1() {
         'side': rawSide,
         'trailing_stop': trailing_stop
     };
+    // @ts-expect-error
     const trailing_response = await exchange.privatePostPrivateLinearPositionTradingStop(trailingParams);
     console.log(trailing_response);
     // check opened position

@@ -6559,6 +6559,7 @@ fetch a history of internal transfers made on an account
 * [dydx](/exchanges/dydx.md#fetchtransfers)
 * [extended](/exchanges/extended.md#fetchtransfers)
 * [grvt](/exchanges/grvt.md#fetchtransfers)
+* [htx](/exchanges/htx.md#fetchtransfers)
 * [kucoin](/exchanges/kucoin.md#fetchtransfers)
 * [latoken](/exchanges/latoken.md#fetchtransfers)
 * [lighter](/exchanges/lighter.md#fetchtransfers)
