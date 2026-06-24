@@ -84,9 +84,9 @@ async function main () {
         await test (exchange, symbol)
     }))
 
-    let succeeded = (exchanges.filter (exchange => exchange.markets ? true : false).length.toString ()  as any).bright.green
-    let failed = (exchanges.filter (exchange => exchange.markets ? false : true).length.toString ()  as any).bright.red
-    let total = (ccxt.exchanges.length.toString ()  as any).bright.white
+    let succeeded = (exchanges.filter (exchange => exchange.markets ? true : false).length.toString () as any).bright.green
+    let failed = (exchanges.filter (exchange => exchange.markets ? false : true).length.toString () as any).bright.red
+    let total = (ccxt.exchanges.length.toString () as any).bright.white
     console.log (succeeded, 'of', total, 'exchanges loaded', (('(' + failed + ' errors)') as any).red)
 }
 
