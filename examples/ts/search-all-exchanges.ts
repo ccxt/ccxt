@@ -33,11 +33,11 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 /*  ------------------------------------------------------------------------ */
 
 let printUsage = function () {
-    log ('     Non-strict search: node', process.argv[1], 'symbol'.green)
-    log ('     Non-strict search: node', process.argv[1], 'currency'.green)
-    log ('         Strict search: node', process.argv[1], '--strict', 'argument'.green)
-    log ('   Search markets only: node', process.argv[1], '--markets', 'argument'.green)
-    log ('Search currencies only: node', process.argv[1], '--currencies', 'argument'.green)
+    log ('     Non-strict search: node', process.argv[1], ('symbol' as any).green)
+    log ('     Non-strict search: node', process.argv[1], ('currency' as any).green)
+    log ('         Strict search: node', process.argv[1], '--strict', ('argument' as any).green)
+    log ('   Search markets only: node', process.argv[1], '--markets', ('argument' as any).green)
+    log ('Search currencies only: node', process.argv[1], '--currencies', ('argument' as any).green)
 
 }
 
@@ -50,14 +50,14 @@ if (process.argv.length < 3) {
 
 const keysGlobal = path.resolve ('keys.json')
 const keysLocal = path.resolve ('keys.local.json')
-let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
+let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : null
 let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
-
+// @ts-expect-error
 const keys = JSON.parse (fs.readFileSync (localKeysFile))
 
 /*  ------------------------------------------------------------------------ */
 
-log ('Looking up for:', argument.bright, strict ? '(strict search)' : '(non-strict search)')
+log ('Looking up for:', (argument as any).bright, strict ? '(strict search)' : '(non-strict search)')
 
 const checkAgainst = strict ?
     (a, b) => (a.toString () || '').toUpperCase ().includes ((b.toString () || '').toUpperCase ()) :
@@ -101,7 +101,7 @@ const checkAgainst = strict ?
 
         let markets = ccxt.flatten (exchanges
             .map (exchange =>
-                Object.values (exchange.markets).map (market =>
+                Object.values (exchange.markets).map ((market: any) =>
                     exchange.extend (market, {
                         exchange: exchange.id[(market.active !== false) ? 'green' : 'yellow'],
                     }))))
@@ -132,7 +132,7 @@ const checkAgainst = strict ?
             };
         })))
 
-        log (markets.length.toString ().yellow, 'markets')
+        log ((markets.length.toString () as any).yellow, 'markets')
     }
 
     if (!marketsOnly) {
@@ -143,7 +143,7 @@ const checkAgainst = strict ?
 
         let currencies = ccxt.flatten (exchanges
             .map (exchange =>
-                Object.values (exchange.currencies).map (currency =>
+                Object.values (exchange.currencies).map ((currency: any) =>
                     exchange.extend (currency, {
                         exchange: exchange.id[(currency.active !== false) ? 'green' : 'yellow'],
                     }))))
@@ -160,7 +160,7 @@ const checkAgainst = strict ?
             };
         })))
 
-        log (currencies.length.toString ().yellow, 'currencies')
+        log ((currencies.length.toString () as any).yellow, 'currencies')
     }
 
     process.exit ()

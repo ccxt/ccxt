@@ -4,7 +4,7 @@ import ccxt from '../../js/ccxt.js';
 import fs from 'fs';
 import ololog from 'ololog'
 
-const log = ololog.configure.unlimited.noLocate,
+const log = (ololog.configure as any).unlimited.noLocate,
       verbose = process.argv.includes ('--verbose'),
       keysGlobal = 'keys.json',
       keysLocal = 'keys.local.json',
