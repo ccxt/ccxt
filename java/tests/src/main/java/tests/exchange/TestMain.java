@@ -900,6 +900,7 @@ public class TestMain extends BaseTest
                 put( "fetchTransactions", new java.util.ArrayList<Object>(java.util.Arrays.asList(code)) );
                 put( "fetchDeposits", new java.util.ArrayList<Object>(java.util.Arrays.asList(code)) );
                 put( "fetchWithdrawals", new java.util.ArrayList<Object>(java.util.Arrays.asList(code)) );
+                put( "fetchTransfers", new java.util.ArrayList<Object>(java.util.Arrays.asList(code)) );
                 put( "fetchBorrowInterest", new java.util.ArrayList<Object>(java.util.Arrays.asList(code, symbol)) );
                 put( "cancelAllOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
                 put( "fetchCanceledOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
