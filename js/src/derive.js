@@ -1352,7 +1352,7 @@ export default class derive extends Exchange {
         const result = this.safeDict(response, 'result');
         let rawOrder = this.safeDict(result, 'raw_data');
         if (rawOrder === undefined) {
-            rawOrder = this.safeDict(result, 'order');
+            rawOrder = this.safeDict(result, 'order', {});
         }
         const order = this.parseOrder(rawOrder, market);
         order['type'] = type;
@@ -1522,7 +1522,7 @@ export default class derive extends Exchange {
         //   }
         //
         const result = this.safeDict(response, 'result');
-        const rawOrder = this.safeDict(result, 'order');
+        const rawOrder = this.safeDict(result, 'order', {});
         const order = this.parseOrder(rawOrder, market);
         return order;
     }
@@ -1614,7 +1614,7 @@ export default class derive extends Exchange {
         // }
         //
         const extendParams = { 'symbol': symbol };
-        const order = this.safeDict(response, 'result');
+        const order = this.safeDict(response, 'result', {});
         if (isByClientOrder) {
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
         }
@@ -1757,12 +1757,12 @@ export default class derive extends Exchange {
         const page = this.safeInteger(params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict(data, 'pagination');
-            const currentPage = this.safeInteger(pagination, 'num_pages');
+            const currentPage = this.safeInteger(pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
         }
-        const orders = this.safeList(data, 'orders');
+        const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     /**
@@ -2114,7 +2114,7 @@ export default class derive extends Exchange {
         const page = this.safeInteger(params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict(result, 'pagination');
-            const currentPage = this.safeInteger(pagination, 'num_pages');
+            const currentPage = this.safeInteger(pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
@@ -2331,7 +2331,7 @@ export default class derive extends Exchange {
         const page = this.safeInteger(params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict(result, 'pagination');
-            const currentPage = this.safeInteger(pagination, 'num_pages');
+            const currentPage = this.safeInteger(pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
@@ -2498,7 +2498,7 @@ export default class derive extends Exchange {
         //
         const currency = this.safeCurrency(code);
         const result = this.safeDict(response, 'result', {});
-        const events = this.safeList(result, 'events');
+        const events = this.safeList(result, 'events', []);
         return this.parseTransactions(events, currency, since, limit, params);
     }
     /**
@@ -2544,7 +2544,7 @@ export default class derive extends Exchange {
         //
         const currency = this.safeCurrency(code);
         const result = this.safeDict(response, 'result', {});
-        const events = this.safeList(result, 'events');
+        const events = this.safeList(result, 'events', []);
         return this.parseTransactions(events, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {

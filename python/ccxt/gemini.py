@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -456,9 +456,9 @@ class gemini(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         type = 'fiat' if self.safe_string(rawCurrency, 7) else 'crypto'
         precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 5)))
-        networks: dict = {}
+        networks = {}
         networkId = self.safe_string(rawCurrency, 9)
-        networkCode: Str = None
+        networkCode = None
         if networkId is not None:
             networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
@@ -617,7 +617,7 @@ class gemini(Exchange, ImplicitAPI):
         return result
 
     def parse_market_active(self, status):
-        statuses: dict = {
+        statuses = {
             'open': True,
             'closed': False,
             'cancel_only': True,
@@ -637,7 +637,7 @@ class gemini(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(fetchUsdtMarkets)):
             marketId = fetchUsdtMarkets[i]
-            request: dict = {
+            request = {
                 'symbol': marketId,
             }
             # don't use Promise.all here, for some reason the exchange can't handle it and crashes
@@ -665,7 +665,7 @@ class gemini(Exchange, ImplicitAPI):
             promises = []
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
-                request: dict = {
+                request = {
                     'symbol': marketId,
                 }
                 promises.append(self.publicGetV1SymbolsDetailsSymbol(self.extend(request, params)))
@@ -733,18 +733,18 @@ class gemini(Exchange, ImplicitAPI):
         #         "contract_price_currency": "GUSD"
         #     }
         #
-        marketId: Str = None
-        baseId: Str = None
-        quoteId: Str = None
-        settleId: Str = None
-        tickSize: Num = None
-        amountPrecision: Num = None
-        minSize: Num = None
-        status: Bool = None
+        marketId = None
+        baseId = None
+        quoteId = None
+        settleId = None
+        tickSize = None
+        amountPrecision = None
+        minSize = None
+        status = None
         swap = False
-        contractSize: Num = None
-        linear: Bool = None
-        inverse: Bool = None
+        contractSize = None
+        linear = None
+        inverse = None
         isString = (isinstance(response, str))
         isArray = (isinstance(response, list))
         if not isString and not isArray:
@@ -862,7 +862,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -874,7 +874,7 @@ class gemini(Exchange, ImplicitAPI):
     def fetch_ticker_v1(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.publicGetV1PubtickerSymbol(self.extend(request, params))
@@ -895,7 +895,7 @@ class gemini(Exchange, ImplicitAPI):
     def fetch_ticker_v2(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.publicGetV2TickerSymbol(self.extend(request, params))
@@ -986,13 +986,13 @@ class gemini(Exchange, ImplicitAPI):
         #
         volume = self.safe_value(ticker, 'volume', {})
         timestamp = self.safe_integer(volume, 'timestamp')
-        symbol: Str = None
+        symbol = None
         marketId = self.safe_string_lower(ticker, 'pair')
         market = self.safe_market(marketId, market)
-        baseId: Str = None
-        quoteId: Str = None
-        base: Str = None
-        quote: Str = None
+        baseId = None
+        quoteId = None
+        base = None
+        quote = None
         if (marketId is not None) and (market is None):
             idLength = len(marketId) - 0
             if idLength == 7:
@@ -1144,7 +1144,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1168,7 +1168,7 @@ class gemini(Exchange, ImplicitAPI):
         return self.parse_trades(response, market, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -1224,7 +1224,7 @@ class gemini(Exchange, ImplicitAPI):
         takerString = Precise.string_div(takerBps, '10000')
         maker = self.parse_number(makerString)
         taker = self.parse_number(takerString)
-        result: dict = {}
+        result = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             result[symbol] = {
@@ -1421,7 +1421,7 @@ class gemini(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = self.privatePostV1OrderStatus(self.extend(request, params))
@@ -1489,7 +1489,7 @@ class gemini(Exchange, ImplicitAPI):
         #          }
         #      ]
         #
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)  # throws on non-existent symbol
         return self.parse_orders(response, market, since, limit)
@@ -1518,7 +1518,7 @@ class gemini(Exchange, ImplicitAPI):
         market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
         priceString = self.price_to_precision(symbol, price)
-        request: dict = {
+        request = {
             'client_order_id': clientOrderId,
             'symbol': market['id'],
             'amount': amountString,
@@ -1593,7 +1593,7 @@ class gemini(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = self.privatePostV1OrderCancel(self.extend(request, params))
@@ -1639,7 +1639,7 @@ class gemini(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1666,7 +1666,7 @@ class gemini(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -1719,7 +1719,7 @@ class gemini(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit_transfers'] = limit
         if since is not None:
@@ -1753,7 +1753,7 @@ class gemini(Exchange, ImplicitAPI):
         type = self.safe_string_lower(transaction, 'type')
         # if status field is available, then it's complete
         statusRaw = self.safe_string(transaction, 'status')
-        fee: Fee = None
+        fee = None
         feeAmount = self.safe_number(transaction, 'feeAmount')
         if feeAmount is not None:
             fee = {
@@ -1784,7 +1784,7 @@ class gemini(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'Advanced': 'ok',
             'Complete': 'ok',
         }
@@ -1821,7 +1821,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         self.load_markets()
         groupedByNetwork = self.fetch_deposit_addresses_by_network(code, params)
-        networkCode: Str = None
+        networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         networkGroup = self.index_by(self.safe_value(groupedByNetwork, networkCode), 'currency')
         return self.safe_value(networkGroup, code)
@@ -1840,12 +1840,12 @@ class gemini(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         code = currency['code']
-        networkCode: Str = None
+        networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddresses() requires a network parameter')
         networkId = self.network_code_to_id(networkCode, currency['code'])
-        request: dict = {
+        request = {
             'network': networkId,
         }
         response = self.privatePostV1AddressesNetwork(self.extend(request, params))
@@ -1919,7 +1919,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
         response = self.privatePostV1DepositCurrencyNewAddress(self.extend(request, params))
@@ -1949,7 +1949,7 @@ class gemini(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'timeframe': timeframeId,
             'symbol': market['id'],
         }
@@ -1975,7 +1975,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.publicGetV1RiskstatsSymbol(self.extend(request, params))

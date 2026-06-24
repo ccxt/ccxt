@@ -1634,7 +1634,7 @@ watches a price ticker, a statistical calculation with the information calculate
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.channel | <code>string</code> | No | 'webData2' or 'allMids', default is 'webData2' |
-| params.dex | <code>string</code> | No | for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market |
+| params.dex | <code>string</code> | No | for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market |
 
 
 ```javascript
@@ -1813,7 +1813,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.dex | <code>string</code> | No | for for hip3 tokens subscription, eg: 'xyz' or 'flx' |
+| params.dex | <code>string</code> | No | for hip3 tokens subscription, eg: 'xyz' or 'flx' |
 
 
 ```javascript
@@ -1857,6 +1857,7 @@ watch all open positions
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
 | limit | <code>int</code> | No | the maximum number of positions to retrieve |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| params.dex | <code>string</code> | No | for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market |
 
 
 ```javascript

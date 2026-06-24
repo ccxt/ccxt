@@ -529,7 +529,7 @@ public partial class ascendex : Exchange
         {
             object networkEtnry = getValue(chains, j);
             object networkId = this.safeString(networkEtnry, "chainName");
-            object networkCode = this.networkCodeToId(networkId, code);
+            object networkCode = this.networkCodeToId(((string)networkId), code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "fee", this.safeNumber(networkEtnry, "withdrawFee") },
                 { "active", null },
@@ -1258,7 +1258,7 @@ public partial class ascendex : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object symbol = this.safeString(symbols, 0);
-            market = this.market(symbol);
+            market = this.market(((string)symbol));
             object marketIds = this.marketIds(symbols);
             ((IDictionary<string,object>)request)["symbol"] = String.Join(",", ((IList<object>)marketIds).ToArray());
         }
@@ -1495,7 +1495,7 @@ public partial class ascendex : Exchange
             { "Canceled", "canceled" },
             { "Rejected", "rejected" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1653,7 +1653,7 @@ public partial class ascendex : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
+        object triggerPrice = this.omitZero(((string)this.safeString(order, "stopPrice")));
         object reduceOnly = null;
         object execInst = this.safeStringLower(order, "execInst");
         if (isTrue(isEqual(execInst, "reduceonly")))
@@ -2010,10 +2010,10 @@ public partial class ascendex : Exchange
                     }
                 }
             }
-            object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            object orderRequest = this.createOrderRequest(((string)marketId), ((string)type), side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, getValue(market, "type"), "cash");
         if (isTrue(!isEqual(marginMode, null)))
@@ -2711,7 +2711,7 @@ public partial class ascendex : Exchange
         //
         object address = this.safeString(depositAddress, "address");
         object tagId = this.safeString(depositAddress, "tagId");
-        object tag = this.safeString(depositAddress, tagId);
+        object tag = this.safeString(depositAddress, ((string)tagId));
         this.checkAddress(address);
         object code = ((bool) isTrue((isEqual(currency, null)))) ? null : getValue(currency, "code");
         object chainName = this.safeString(depositAddress, "blockchain");
@@ -2741,7 +2741,7 @@ public partial class ascendex : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object networkCode = this.safeString2(parameters, "network", "chainName");
-        object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
+        object networkId = this.networkCodeToId(((string)networkCode), getValue(currency, "code"));
         parameters = this.omit(parameters, new List<object>() {"chainName"});
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -2912,7 +2912,7 @@ public partial class ascendex : Exchange
             { "confirmed", "ok" },
             { "rejected", "rejected" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseTransaction(object transaction, object currency = null)

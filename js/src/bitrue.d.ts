@@ -283,7 +283,7 @@ export default class bitrue extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatusByType(status: any, type?: any): string;
+    parseTransactionStatusByType(status: any, type?: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -309,7 +309,7 @@ export default class bitrue extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    parseTransfer(transfer: any, currency?: any): {
+    parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: any;
         timestamp: number;
@@ -361,7 +361,7 @@ export default class bitrue extends Exchange {
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
-    parseMarginModification(data: any, market?: any): MarginModification;
+    parseMarginModification(data: any, market?: Market): MarginModification;
     /**
      * @method
      * @name bitrue#setMargin

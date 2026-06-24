@@ -53,7 +53,7 @@ class dydx(ccxt.async_support.dydx):
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'trade:' + market['symbol']
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'channel': 'v4_trades',
             'id': market['id'],
@@ -77,7 +77,7 @@ class dydx(ccxt.async_support.dydx):
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'trade:' + market['symbol']
-        request: dict = {
+        request = {
             'type': 'unsubscribe',
             'channel': 'v4_trades',
             'id': market['id'],
@@ -168,7 +168,7 @@ class dydx(ccxt.async_support.dydx):
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'channel': 'v4_orderbook',
             'id': market['id'],
@@ -190,7 +190,7 @@ class dydx(ccxt.async_support.dydx):
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
-        request: dict = {
+        request = {
             'type': 'unsubscribe',
             'channel': 'v4_orderbook',
             'id': market['id'],
@@ -265,7 +265,7 @@ class dydx(ccxt.async_support.dydx):
         market = self.market(symbol)
         messageHash = 'ohlcv:' + market['symbol']
         resolution = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'channel': 'v4_candles',
             'id': market['id'] + '/' + resolution,
@@ -292,7 +292,7 @@ class dydx(ccxt.async_support.dydx):
         market = self.market(symbol)
         messageHash = 'ohlcv:' + market['symbol']
         resolution = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'type': 'unsubscribe',
             'channel': 'v4_candles',
             'id': market['id'] + '/' + resolution,
@@ -395,7 +395,7 @@ class dydx(ccxt.async_support.dydx):
             return
         if type is not None:
             topic = self.safe_string(message, 'channel')
-            methods: dict = {
+            methods = {
                 'v4_trades': self.handle_trades,
                 'v4_orderbook': self.handle_order_book,
                 'v4_candles': self.handle_ohlcv,
