@@ -101,6 +101,8 @@ jobs:
       with:
           name: shared_env
           path: shared_env.txt
+    - name: Copy Python files
+      run: npm run copy-python-files
 
     - name: Upload Python Files
       uses: actions/upload-artifact@v4
