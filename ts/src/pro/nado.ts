@@ -1,9 +1,11 @@
 //  ---------------------------------------------------------------------------
 
 import nadoRest from '../nado.js';
-import { ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Bool, Dict, Int, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Precise } from '../base/Precise.js';
+import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
+import type { Bool, Dict, Int, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -33,7 +35,7 @@ export default class nado extends nadoRest {
                 'watchOHLCVForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchPositions': false,
                 'watchTicker': true,
                 'watchTickers': true,
@@ -521,6 +523,46 @@ export default class nado extends nadoRest {
         return await this.unWatchPublic (streamType, market, messageHash, params);
     }
 
+    /**
+     * @method
+     * @name nado#watchOrders
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        await this.authenticate (this.extend ({}, params));
+        let market = undefined;
+        let messageHash = 'orders';
+        let productId = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+            productId = this.parseToInt (market['id']);
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'watchOrders', 'subaccount', 'default');
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const stream: Dict = {
+            'type': 'order_update',
+            'subaccount': sender,
+            'product_id': productId,
+        };
+        const orders = await this.watchPrivate ('order_update', stream, messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
     async watchPublic (streamType, market, messageHash: string, params = {}) {
         const url = this.urls['api']['ws']['subscriptions'];
         const stream: Dict = {
@@ -539,6 +581,89 @@ export default class nado extends nadoRest {
             'symbol': this.safeString (market, 'symbol'),
         };
         return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    async watchPrivate (streamType, stream, messageHash: string, params = {}) {
+        const url = this.urls['api']['ws']['subscriptions'];
+        const client = this.client (url);
+        const clientSubscription = this.safeValue (client.subscriptions, messageHash);
+        if (clientSubscription !== undefined) {
+            return await this.watch (url, messageHash);
+        }
+        const id = this.nonce ();
+        const subscribeHash = 'subscribe:' + messageHash;
+        const request: Dict = {
+            'method': 'subscribe',
+            'stream': this.deepExtend (stream, params),
+            'id': id,
+        };
+        const subscription = {
+            'streamType': streamType,
+        };
+        client.subscriptions['subscription:' + this.numberToString (id)] = {
+            'subscribeHash': subscribeHash,
+        };
+        this.watchMultiple (url, [ subscribeHash ], request, [ messageHash ], subscription);
+        return await this.watch (url, messageHash);
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws']['subscriptions'];
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated !== undefined) {
+            const future = this.safeValue (client.futures, messageHash);
+            if (future !== undefined) {
+                return await future;
+            }
+            return authenticated;
+        }
+        let recvWindow = undefined;
+        [ recvWindow, params ] = this.handleOptionAndParams (params, 'authenticate', 'recvWindow', 5000);
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'authenticate', 'subaccount', 'default');
+        const id = this.nonce ();
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const expiration = this.sum (this.milliseconds (), recvWindow);
+        const tx = {
+            'sender': sender,
+            'expiration': this.numberToString (expiration),
+        };
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeString (contracts, 'chain_id');
+        const endpointAddress = this.safeString (contracts, 'endpoint_addr');
+        if (endpointAddress === undefined) {
+            throw new ExchangeError (this.id + ' authenticate() requires endpoint_addr from contracts query');
+        }
+        const signature = this.signStreamAuthentication (tx, chainId, endpointAddress);
+        const request: Dict = {
+            'method': 'authenticate',
+            'id': id,
+            'tx': tx,
+            'signature': signature,
+        };
+        client.subscriptions['authentication:' + this.numberToString (id)] = messageHash;
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    signStreamAuthentication (tx, chainId, endpointAddress: string) {
+        const domain: Dict = {
+            'name': 'Nado',
+            'version': '0.0.1',
+            'chainId': chainId,
+            'verifyingContract': endpointAddress,
+        };
+        const messageTypes: Dict = {
+            'StreamAuthentication': [
+                { 'name': 'sender', 'type': 'bytes32' },
+                { 'name': 'expiration', 'type': 'uint64' },
+            ],
+        };
+        const encoded = this.ethEncodeStructuredData (domain, messageTypes, tx);
+        const hash = '0x' + this.hash (encoded, keccak, 'hex');
+        return this.signHash (hash, this.privateKey);
     }
 
     createPublicSubscriptionRequest (method: string, streamType, market = undefined, id: Int = undefined, params = {}) {
@@ -560,7 +685,8 @@ export default class nado extends nadoRest {
         const client = this.client (url);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
-            if (!(messageHash in client.subscriptions)) {
+            const clientSubscription = this.safeValue (client.subscriptions, messageHash);
+            if (clientSubscription === undefined) {
                 const market = markets[i];
                 const id = this.nonce ();
                 const subscribeHash = 'subscribe:' + messageHash;
@@ -719,6 +845,83 @@ export default class nado extends nadoRest {
         client.resolve ([ symbol, timeframe, stored ], messageHash);
     }
 
+    parseWsOrder (order: Dict, market = undefined): Order {
+        //
+        //     {
+        //         "type": "order_update",
+        //         "timestamp": "1695081920633151000",
+        //         "product_id": 1,
+        //         "digest": "0xf7712b63ccf70358db8f201e9bf33977423e7a63f6a16f6dab180bdd580f7c6c",
+        //         "amount": "82000000000000000",
+        //         "reason": "filled",
+        //         "filled_qty": "18000000000000000",
+        //         "filled_price": "25000000000000000000000",
+        //         "id": 100
+        //     }
+        //
+        const marketId = this.safeString (order, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.parseWsTimestamp (order, 'timestamp');
+        const id = this.safeString (order, 'digest');
+        const amountString = this.safeString (order, 'amount');
+        let remaining = undefined;
+        if (amountString !== undefined) {
+            remaining = this.parseX18 (amountString);
+        }
+        const filled = this.parseX18 (this.safeString (order, 'filled_qty'));
+        const average = this.parseX18 (this.safeString (order, 'filled_price'));
+        const reason = this.safeString (order, 'reason');
+        let status = undefined;
+        if (reason === 'placed') {
+            status = 'open';
+        } else if (reason === 'filled') {
+            status = 'open';
+            if ((amountString !== undefined) && Precise.stringEq (amountString, '0')) {
+                status = 'closed';
+            }
+        } else if (reason === 'cancelled') {
+            status = 'canceled';
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': (filled === undefined) ? undefined : timestamp,
+            'lastUpdateTimestamp': timestamp,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    handleOrder (client: Client, message) {
+        const order = this.parseWsOrder (message);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        orders.append (order);
+        const symbol = order['symbol'];
+        client.resolve (orders, 'orders');
+        client.resolve (orders, 'orders:' + symbol);
+    }
+
     parseWsBidAsk (bidask: Dict, market = undefined): Ticker {
         //
         //     {
@@ -865,6 +1068,16 @@ export default class nado extends nadoRest {
         }
     }
 
+    handleAuthentication (client: Client, message) {
+        const id = this.safeString (message, 'id');
+        const messageHash = this.safeString (client.subscriptions, 'authentication:' + id);
+        if (messageHash !== undefined) {
+            delete client.subscriptions['authentication:' + id];
+            client.subscriptions[messageHash] = true;
+            client.resolve (message, messageHash);
+        }
+    }
+
     handleUnsubscription (client: Client, message) {
         const id = this.safeString (message, 'id');
         const unsubscription = this.safeDict (client.subscriptions, 'unsubscription:' + id);
@@ -974,7 +1187,13 @@ export default class nado extends nadoRest {
         const hasResult = ('result' in message);
         const result = message['result'];
         if ((id !== undefined) && hasResult) {
-            if (('subscription:' + id) in client.subscriptions) {
+            const authentication = this.safeValue (client.subscriptions, 'authentication:' + id);
+            if (authentication !== undefined) {
+                this.handleAuthentication (client, message);
+                return;
+            }
+            const subscription = this.safeValue (client.subscriptions, 'subscription:' + id);
+            if (subscription !== undefined) {
                 this.handleSubscription (client, message);
                 return;
             }
@@ -997,6 +1216,7 @@ export default class nado extends nadoRest {
             'best_bid_offer': this.handleBidAsk,
             'book_depth': this.handleOrderBook,
             'latest_candlestick': this.handleOHLCV,
+            'order_update': this.handleOrder,
         };
         const handler = this.safeValue (methods, type);
         if (handler !== undefined) {
