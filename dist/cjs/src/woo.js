@@ -611,10 +611,10 @@ class woo extends woo$1["default"] {
         return this.parseMarkets(rows);
     }
     parseMarket(market) {
-        const marketId = this.safeString(market, 'symbol');
+        const marketId = this.safeString(market, 'symbol', '');
         const parts = marketId.split('_');
         const first = this.safeString(parts, 0);
-        let marketType;
+        let marketType = undefined;
         let spot = false;
         let swap = false;
         if (first === 'SPOT') {
@@ -789,7 +789,7 @@ class woo extends woo$1["default"] {
         const order_id = this.safeString2(trade, 'order_id', 'orderId');
         const fee = this.parseTokenAndFeeTemp(trade, ['fee_asset', 'feeAsset'], ['fee']);
         const feeCost = this.safeString(fee, 'cost');
-        if (feeCost !== undefined) {
+        if ((fee !== undefined) && (feeCost !== undefined)) {
             fee['cost'] = feeCost;
         }
         const cost = Precise["default"].stringMul(price, amount);
@@ -919,8 +919,12 @@ class woo extends woo$1["default"] {
         const maker = this.safeString(data, 'makerFeeRate');
         const taker = this.safeString(data, 'takerFeeRate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1031,7 +1035,7 @@ class woo extends woo$1["default"] {
                 '_networks_by_id': networksById[id],
             };
             const parsed = this.parseCurrency(customCurrency);
-            const code = parsed['code'];
+            const code = this.safeString(parsed, 'code');
             result[code] = parsed;
         }
         return result;
@@ -1530,7 +1534,7 @@ class woo extends woo$1["default"] {
             response = await this.v3PrivateDeleteTradeAlgoOrder(this.extend(request, params));
         }
         else {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             if (isByClientOrder) {
                 request['clientOrderId'] = clientOrderIdExchangeSpecific;
             }
@@ -2543,7 +2547,7 @@ class woo extends woo$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId(networkCode, currency['code']);
+            request['network'] = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2735,7 +2739,7 @@ class woo extends woo$1["default"] {
         };
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
         const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = this.safeList(currencyRows, 1, []);
         return this.parseTransactions(rows, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -3641,7 +3645,7 @@ class woo extends woo$1["default"] {
         const marginMode = this.safeStringLower(leverage, 'marginMode');
         let spotLeverage = this.safeInteger(leverage, 'leverage');
         if (spotLeverage === 0) {
-            spotLeverage = null;
+            spotLeverage = undefined;
         }
         let longLeverage = spotLeverage;
         let shortLeverage = spotLeverage;
@@ -3691,18 +3695,18 @@ class woo extends woo$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        if ((symbol === undefined) || market['spot']) {
+        if ((symbol === undefined) || this.safeBool(market, 'spot')) {
             return await this.v3PrivatePostSpotMarginLeverage(this.extend(request, params));
         }
-        else if (market['swap']) {
-            request['symbol'] = market['id'];
+        else if (this.safeBool(market, 'swap')) {
+            request['symbol'] = this.safeString(market, 'id');
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params, 'cross');
             request['marginMode'] = this.encodeMarginMode(marginMode);
             return await this.v3PrivatePutFuturesLeverage(this.extend(request, params));
         }
         else {
-            throw new errors.NotSupported(this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets');
+            throw new errors.NotSupported(this.id + ' fetchLeverage() is not supported for ' + this.safeString(market, 'type') + ' markets');
         }
     }
     /**

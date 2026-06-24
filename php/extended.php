@@ -606,7 +606,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -803,7 +803,7 @@ class extended extends Exchange {
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //       "dailyVolume" => "231216165.666600",
@@ -1133,7 +1133,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -1259,7 +1259,7 @@ class extended extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //       "o" => "75657.5",
@@ -1438,7 +1438,7 @@ class extended extends Exchange {
         //
         $timestamp = $this->safe_integer($interest, 't');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'openInterestAmount' => $this->safe_number($interest, 'I'),
             'openInterestValue' => $this->safe_number($interest, 'i'),
             'baseVolume' => $this->safe_number($interest, 'I'),
@@ -2164,7 +2164,7 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($fee, $market = null): array {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",
@@ -2247,7 +2247,7 @@ class extended extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage($leverage, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",
@@ -2401,7 +2401,7 @@ class extended extends Exchange {
         return $this->filter_by_since_limit($positions, $since, $limit, 'timestamp');
     }
 
-    public function parse_position($position, $market = null): array {
+    public function parse_position($position, ?array $market = null): array {
         //
         //     {
         //         "id" => 1,
@@ -2998,7 +2998,7 @@ class extended extends Exchange {
             $clientOrderIds = array( $clientOrderId );
         }
         $hasClientOrderIds = $clientOrderIds !== null;
-        if ($hasClientOrderIds) {
+        if ($clientOrderIds !== null) {
             $clientOrderIdsLength = count($clientOrderIds);
             if ($clientOrderIdsLength > 0) {
                 $request['externalOrderIds'] = $clientOrderIds;
@@ -3283,7 +3283,7 @@ class extended extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "id" => 1784963886257016832,
@@ -3537,7 +3537,7 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $this->safe_string($api, 0);
         $accessibility = $this->safe_string($api, 1);
         $endpoint = '/' . $this->implode_params($path, $params);

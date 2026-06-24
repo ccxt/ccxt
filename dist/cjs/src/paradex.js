@@ -1857,7 +1857,7 @@ class paradex extends paradex$1["default"] {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        let response = undefined;
+        let response;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateDeleteOrdersByClientIdClientId(this.extend(request, params));
@@ -1994,7 +1994,7 @@ class paradex extends paradex$1["default"] {
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        let response = undefined;
+        let response;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateGetOrdersByClientIdClientId(this.extend(request, params));
@@ -2767,7 +2767,7 @@ class paradex extends paradex$1["default"] {
         const marginMode = this.safeStringLower(rawMarginMode, 'margin_type');
         return {
             'info': rawMarginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
         };
     }

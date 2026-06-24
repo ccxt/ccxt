@@ -1238,7 +1238,7 @@ class phemex extends phemex$1["default"] {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let response = undefined;
+        let response;
         const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
         if (market['linear'] && isStableSettled) {
             response = await this.v2GetMdV2Orderbook(this.extend(request, params));
@@ -1394,7 +1394,7 @@ class phemex extends phemex$1["default"] {
             limit = maxLimit;
         }
         request['limit'] = Math.min(limit, maxLimit);
-        let response = undefined;
+        let response;
         if (market['linear'] || isStableSettled) {
             if ((until !== undefined) || (since !== undefined)) {
                 const candleDuration = this.parseTimeframe(timeframe);
@@ -1556,7 +1556,7 @@ class phemex extends phemex$1["default"] {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             if (market['inverse'] || market['settle'] === 'USD') {
                 response = await this.v1GetMdTicker24hr(this.extend(request, params));
@@ -1638,7 +1638,7 @@ class phemex extends phemex$1["default"] {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params);
         const query = this.omit(params, 'type');
-        let response = undefined;
+        let response;
         if (type === 'spot') {
             response = await this.v1GetMdSpotTicker24hrAll(query);
         }
@@ -1669,7 +1669,7 @@ class phemex extends phemex$1["default"] {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let response = undefined;
+        let response;
         const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
         if (market['linear'] && isStableSettled) {
             response = await this.v2GetMdV2Trade(this.extend(request, params));
@@ -2119,7 +2119,7 @@ class phemex extends phemex$1["default"] {
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const code = this.safeString(params, 'code');
         params = this.omit(params, ['code']);
-        let response = undefined;
+        let response;
         const request = {};
         if ((type !== 'spot') && (type !== 'swap')) {
             throw new errors.BadRequest(this.id + ' does not support ' + type + ' markets, only spot and swap');
@@ -2876,7 +2876,7 @@ class phemex extends phemex$1["default"] {
             }
             params = this.omit(params, 'stopLossPrice');
         }
-        let response = undefined;
+        let response;
         if (isStableSettled) {
             response = await this.privatePostGOrders(this.extend(request, params));
         }
@@ -3027,7 +3027,7 @@ class phemex extends phemex$1["default"] {
             }
         }
         params = this.omit(params, ['triggerPrice', 'stopPx', 'stopPrice']);
-        let response = undefined;
+        let response;
         if (isStableSettled) {
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
@@ -3072,7 +3072,7 @@ class phemex extends phemex$1["default"] {
         else {
             request['orderID'] = id;
         }
-        let response = undefined;
+        let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
@@ -3114,7 +3114,7 @@ class phemex extends phemex$1["default"] {
         if (trigger) {
             request['untriggerred'] = trigger;
         }
-        let response = undefined;
+        let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             response = await this.privateDeleteGOrdersAll(this.extend(request, params));
             //
@@ -3180,7 +3180,7 @@ class phemex extends phemex$1["default"] {
         else {
             request['orderID'] = id;
         }
-        let response = undefined;
+        let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, params));
         }
@@ -3236,7 +3236,7 @@ class phemex extends phemex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             request['currency'] = market['settle'];
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, params));
@@ -3274,7 +3274,7 @@ class phemex extends phemex$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         try {
             if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
                 response = await this.privateGetGOrdersActiveList(this.extend(request, params));
@@ -3332,12 +3332,12 @@ class phemex extends phemex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if ((symbol === undefined) || (this.safeString(market, 'settle') === 'USDT')) {
             request['currency'] = this.safeString(params, 'settle', 'USDT');
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, params));
         }
-        else if (market['swap']) {
+        else if (market !== undefined && market['swap']) {
             response = await this.privateGetExchangeOrderList(this.extend(request, params));
         }
         else {
@@ -3422,13 +3422,13 @@ class phemex extends phemex$1["default"] {
                 request['limit'] = 200;
             }
         }
-        else if (symbol !== undefined) {
+        else if (symbol !== undefined && market !== undefined) {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['start'] = since;
         }
-        let response = undefined;
+        let response;
         if (isUSDTSettled) {
             response = await this.privateGetExchangeOrderV2TradingList(this.extend(request, params));
         }
@@ -3543,7 +3543,7 @@ class phemex extends phemex$1["default"] {
         //     }
         // }
         //
-        let data = undefined;
+        let data;
         if (isUSDTSettled) {
             data = this.safeValue(response, 'data', []);
         }
@@ -3871,7 +3871,7 @@ class phemex extends phemex$1["default"] {
         const request = {
             'currency': currency['id'],
         };
-        let response = undefined;
+        let response;
         if (isUSDTSettled) {
             let method = undefined;
             [method, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
@@ -4230,7 +4230,7 @@ class phemex extends phemex$1["default"] {
             }
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
         if (isStableSettled) {
             response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, params));
@@ -4281,7 +4281,7 @@ class phemex extends phemex$1["default"] {
         return result;
     }
     parseFundingFeeToPrecision(value, market = undefined, currencyCode = undefined) {
-        if (value === undefined || currencyCode === undefined) {
+        if (value === undefined || currencyCode === undefined || market === undefined) {
             return value;
         }
         // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
@@ -4751,7 +4751,7 @@ class phemex extends phemex$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             if (!isHedged && longLeverageRr === undefined && shortLeverageRr === undefined) {
                 request['leverageRr'] = leverage;
@@ -5020,7 +5020,7 @@ class phemex extends phemex$1["default"] {
             request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        let response = undefined;
+        let response;
         if (isUsdtSettled) {
             response = await this.v2GetApiDataPublicDataFundingRateHistory(this.extend(request, params));
         }
@@ -5470,7 +5470,7 @@ class phemex extends phemex$1["default"] {
         const request = {
             'currency': currency['id'],
         };
-        let response = undefined;
+        let response;
         if (isUSDTSettled) {
             let method = undefined;
             [method, params] = this.handleOptionAndParams(params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions');

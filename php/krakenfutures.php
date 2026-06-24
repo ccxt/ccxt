@@ -765,7 +765,7 @@ class krakenfutures extends Exchange {
         //    }
         //
         $candles = $this->safe_list($response, 'candles');
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs(($candles), $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -817,7 +817,7 @@ class krakenfutures extends Exchange {
         );
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
-        $rawTrades = null;
+        $rawTrades = array();
         $isFullHistoryEndpoint = ($method === 'historyGetMarketSymbolExecutions');
         if ($isFullHistoryEndpoint) {
             list($request, $params) = $this->handle_until_option('before', $request, $params);
@@ -1572,7 +1572,6 @@ class krakenfutures extends Exchange {
             $request['since'] = $since;
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-        $response = null;
         if ($isTrigger) {
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             $response = $this->historyGetTriggers ($this->extend($request, $params));
@@ -1630,7 +1629,6 @@ class krakenfutures extends Exchange {
         if ($since !== null) {
             $request['from'] = $since;
         }
-        $response = null;
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         if ($isTrigger) {
             $params = $this->omit($params, array( 'trigger', 'stop' ));
@@ -1679,7 +1677,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($typesMap, $orderType, $orderType);
     }
 
-    public function verify_order_action_success($status, $method, $omit = []) {
+    public function verify_order_action_success($status, $method, array $omit = []) {
         $errors = array(
             'invalidOrderType' => '\\ccxt\\InvalidOrder',
             'invalidSide' => '\\ccxt\\InvalidOrder',
@@ -2621,7 +2619,7 @@ class krakenfutures extends Exchange {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
-            'symbol' => strtoupper($market['id']),
+            'symbol' => $this->safe_string_upper($market, 'id'),
         );
         $response = $this->publicGetHistoricalfundingrates ($this->extend($request, $params));
         //
@@ -2964,7 +2962,6 @@ class krakenfutures extends Exchange {
         $request = array(
             'amount' => $amount,
         );
-        $response = null;
         if ($toAccount === 'spot') {
             if ($this->parse_account($fromAccount) !== 'cash') {
                 throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccount . ' to ' . $toAccount);
@@ -3110,7 +3107,7 @@ class krakenfutures extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $apiVersions = $this->safe_value($this->options['versions'], $api, array());
         $methodVersions = $this->safe_value($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->version);

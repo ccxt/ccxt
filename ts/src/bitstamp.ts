@@ -6,7 +6,7 @@ import Exchange from './abstract/bitstamp.js';
 import { AccountSuspended, AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1148,14 +1148,14 @@ export default class bitstamp extends Exchange {
             market = this.getMarketFromTrade (trade);
         }
         const feeCostString = this.safeString (trade, 'fee');
-        const feeCurrency = market['quote'];
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['id'];
+        const feeCurrency = this.safeString (market, 'quote');
+        const priceId = (rawMarketId !== undefined) ? rawMarketId : this.safeString (market, 'id');
         priceString = this.safeString (trade, priceId, priceString);
-        amountString = this.safeString (trade, market['baseId'], amountString);
-        costString = this.safeString (trade, market['quoteId'], costString);
+        amountString = this.safeString (trade, this.safeString (market, 'baseId'), amountString);
+        costString = this.safeString (trade, this.safeString (market, 'quoteId'), costString);
         // this endpoint is not aligned with "markets" endpoint
-        const baseIdLower = market['baseId'].toLowerCase ();
-        const quoteIdLower = market['quoteId'].toLowerCase ();
+        const baseIdLower = this.safeStringLower (market, 'baseId');
+        const quoteIdLower = this.safeStringLower (market, 'quoteId');
         const dashedIdLower = baseIdLower + '_' + quoteIdLower;
         if (priceString === undefined) {
             priceString = this.safeString (trade, dashedIdLower);
@@ -1166,7 +1166,7 @@ export default class bitstamp extends Exchange {
         if (costString === undefined) {
             costString = this.safeString (trade, quoteIdLower);
         }
-        symbol = market['symbol'];
+        symbol = this.safeString (market, 'symbol');
         const datetimeString = this.safeString2 (trade, 'date', 'datetime');
         let timestamp: Int = undefined;
         if (datetimeString !== undefined) {
@@ -1951,7 +1951,7 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2297,7 +2297,7 @@ export default class bitstamp extends Exchange {
                 'referenceId': parsedTrade['order'],
                 'referenceAccount': undefined,
                 'type': type,
-                'currency': market['base'],
+                'currency': this.safeString (market, 'base'),
                 'amount': parsedTrade['amount'],
                 'before': undefined,
                 'after': undefined,
@@ -2354,7 +2354,7 @@ export default class bitstamp extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostUserTransactions (this.extend (request, params));
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2524,7 +2524,7 @@ export default class bitstamp extends Exchange {
         const request: Dict = {
             'amount': amount,
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         let method: Str = undefined;
         if (!this.isFiat (code)) {
             const name = this.getCurrencyName (code);
@@ -2619,7 +2619,7 @@ export default class bitstamp extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/';
         url += this.version + '/';
         url += this.implodeParams (path, params);

@@ -4,7 +4,7 @@ import Exchange from './abstract/alpaca.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
+import type{ Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -440,7 +440,7 @@ export default class alpaca extends Exchange {
         const jetlagStrStart = timestamp.length - 6;
         const jetlagStrEnd = timestamp.length - 3;
         const jetlag = timestamp.slice (jetlagStrStart, jetlagStrEnd);
-        const iso = this.parse8601 (localTime) - this.parseToNumeric (jetlag) * 3600 * 1000;
+        const iso = this.parseToInt (this.parse8601 (localTime)) - this.parseToNumeric (jetlag) * 3600 * 1000;
         return iso;
     }
 
@@ -710,7 +710,7 @@ export default class alpaca extends Exchange {
         const orderbooks = this.safeDict (response, 'orderbooks', {});
         const rawOrderbook = this.safeDict (orderbooks, id, {});
         const timestamp = this.parse8601 (this.safeString (rawOrderbook, 't'));
-        return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
+        return this.parseOrderBook (rawOrderbook as Dict, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
 
     /**
@@ -1395,7 +1395,7 @@ export default class alpaca extends Exchange {
         const alpacaStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (alpacaStatus);
         const feeValue = this.safeString (order, 'commission');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeValue !== undefined) {
             fee = {
                 'cost': feeValue,
@@ -1890,7 +1890,7 @@ export default class alpaca extends Exchange {
         return this.safeBalance (result);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};

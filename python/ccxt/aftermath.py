@@ -314,7 +314,7 @@ class aftermath(Exchange, ImplicitAPI):
         #     }
         #
         precision = self.safe_dict(market, 'precision')
-        limits = self.safe_dict(market, 'limits')
+        limits = self.safe_dict(market, 'limits', {})
         return self.safe_market_structure({
             'id': self.safe_string(market, 'id'),
             'symbol': self.safe_string(market, 'symbol'),
@@ -598,7 +598,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param str [params.account]: account object ID, required
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        account: Str = None
+        account = None
         account, params = self.handle_option_and_params(params, 'fetchBalance', 'account')
         request = {
             'account': account,
@@ -621,7 +621,7 @@ class aftermath(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
         }
         balances = self.safe_dict(response, 'balances', [])
@@ -688,7 +688,7 @@ class aftermath(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        accountNumber: Int = None
+        accountNumber = None
         accountNumber, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'accountNumber')
         if accountNumber is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires an accountNumber parameter in params')
@@ -745,7 +745,7 @@ class aftermath(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
-        accountNumber: Int = None
+        accountNumber = None
         accountNumber, params = self.handle_option_and_params(params, 'fetchPositions', 'accountNumber')
         if accountNumber is None:
             raise ArgumentsRequired(self.id + ' fetchPositions() requires an accountNumber parameter in params')
@@ -816,7 +816,7 @@ class aftermath(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        account: Str = None
+        account = None
         account, params = self.handle_option_and_params(params, 'createOrder', 'account')
         order = self.parse_create_edit_order_args(None, symbol, type, side, amount, price, params)
         accountObj = {'account': account}
@@ -854,7 +854,7 @@ class aftermath(Exchange, ImplicitAPI):
                 order['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             order['amount'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
             ordersRequest.append(order)
-        account: Str = None
+        account = None
         account, params = self.handle_option_and_params(params, 'createOrders', 'account')
         txRequest = {
             'accountId': account,
@@ -920,7 +920,7 @@ class aftermath(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        account: Str = None
+        account = None
         account, params = self.handle_option_and_params(params, 'cancelOrders', 'account')
         txRequest = {
             'accountId': account,
@@ -1001,7 +1001,7 @@ class aftermath(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        account: Str = None
+        account = None
         account, params = self.handle_option_and_params_2(params, 'addMargin', 'account', 'accountId')
         txRequest = {
             'accountId': account,
@@ -1048,7 +1048,7 @@ class aftermath(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        account: Str = None
+        account = None
         account, params = self.handle_option_and_params_2(params, 'reduceMargin', 'account', 'accountId')
         txRequest = {
             'accountId': account,
@@ -1152,7 +1152,7 @@ class aftermath(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        account: Str = None
+        account = None
         account, params = self.handle_option_and_params(params, 'withdraw', 'account')
         if account is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a account parameter in params')
@@ -1225,7 +1225,7 @@ class aftermath(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        account: Str = None
+        account = None
         account, params = self.handle_option_and_params_2(params, 'setLeverage', 'account', 'accountId')
         txRequest = {
             'accountId': account,
@@ -1297,7 +1297,7 @@ class aftermath(Exchange, ImplicitAPI):
             raise ExchangeError(body)
         return None
 
-    def sign(self, path, api='public', method='POST', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='POST', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + path
         if api == 'private':
             self.check_required_credentials()

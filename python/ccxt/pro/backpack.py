@@ -65,7 +65,7 @@ class backpack(ccxt.async_support.backpack):
         await self.load_markets()
         url = self.urls['api']['ws']['public']
         method = 'UNSUBSCRIBE' if unwatch else 'SUBSCRIBE'
-        request: dict = {
+        request = {
             'method': method,
             'params': topics,
         }
@@ -86,7 +86,7 @@ class backpack(ccxt.async_support.backpack):
         secretBytes = self.base64_to_binary(self.secret)
         seed = self.array_slice(secretBytes, 0, 32)
         signature = self.eddsa(self.encode(payload), seed, 'ed25519')
-        request: dict = {
+        request = {
             'method': method,
             'params': topics,
             'signature': [self.apiKey, signature, ts, recvWindow],
@@ -359,7 +359,7 @@ class backpack(ccxt.async_support.backpack):
         self.bidsasks[symbol] = parsedBidAsk
         client.resolve(parsedBidAsk, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         #
         #     {
         #         A: '0.4087',
@@ -660,7 +660,7 @@ class backpack(ccxt.async_support.backpack):
         client.resolve(cache, messageHash)
         client.resolve(cache, 'trades')
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         E: '1754601477746429',
@@ -681,8 +681,8 @@ class backpack(ccxt.async_support.backpack):
         marketId = self.safe_string(trade, 's')
         market = self.safe_market(marketId, market)
         isBuyerMaker = self.safe_bool(trade, 'm')
-        side: Str = None
-        takerOrMaker: Str = None
+        side = None
+        takerOrMaker = None
         if isBuyerMaker is not None:
             takerOrMaker = 'taker'
             if isBuyerMaker:
@@ -827,7 +827,7 @@ class backpack(ccxt.async_support.backpack):
         client.resolve(storedOrderBook, messageHash)
 
     def handle_delta(self, orderbook, delta):
-        timestamp = self.parse_to_int(self.safe_integer(delta, 'T') / 1000)
+        timestamp = self.parse_to_int(self.safe_integer(delta, 'T', 0) / 1000)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['nonce'] = self.safe_integer(delta, 'u')
@@ -949,7 +949,7 @@ class backpack(ccxt.async_support.backpack):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(orders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #     {
         #         E: '1754939110175879',
@@ -1024,7 +1024,7 @@ class backpack(ccxt.async_support.backpack):
         }, market)
 
     def parse_ws_order_status(self, status, market=None):
-        statuses: dict = {
+        statuses = {
             'New': 'open',
             'Filled': 'closed',
             'Cancelled': 'canceled',
@@ -1036,7 +1036,7 @@ class backpack(ccxt.async_support.backpack):
         return self.safe_string(statuses, status, status)
 
     def parse_ws_order_side(self, side: Str):
-        sides: dict = {
+        sides = {
             'Bid': 'buy',
             'Ask': 'sell',
         }

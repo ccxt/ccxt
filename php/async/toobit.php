@@ -620,7 +620,7 @@ class toobit extends Exchange {
         $id = $this->safe_string($rawCurrency, 'coinId');
         $code = $this->safe_currency_code($id);
         $networks = array();
-        $rawNetworks = $this->safe_list($rawCurrency, 'chainTypes');
+        $rawNetworks = $this->safe_list($rawCurrency, 'chainTypes', array());
         for ($j = 0; $j < count($rawNetworks); $j++) {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string($rawNetwork, 'chainType');
@@ -3054,7 +3054,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $isPost = $method === 'POST';
         $isDelete = $method === 'DELETE';

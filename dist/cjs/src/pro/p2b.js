@@ -370,7 +370,7 @@ class p2b extends p2b$1["default"] {
         const splitMethod = method.split('.');
         const messageHashStart = this.safeString(splitMethod, 0);
         const tickerData = this.safeDict(data, 1);
-        let ticker = undefined;
+        let ticker;
         if (method === 'price.update') {
             const lastPrice = this.safeString(data, 1);
             ticker = this.safeTicker({

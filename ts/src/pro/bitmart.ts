@@ -278,6 +278,9 @@ export default class bitmart extends bitmartRest {
         //    }
         //
         const channel = this.safeString2 (message, 'table', 'group');
+        if (channel === undefined) {
+            return;
+        }
         const data = this.safeValue (message, 'data');
         if (data === undefined) {
             return;
@@ -350,7 +353,7 @@ export default class bitmart extends bitmartRest {
         let marketType: Str = undefined;
         [ symbols, marketType, params ] = this.getParamsForMultipleSub ('watchTradesForSymbols', symbols, limit, params);
         const channelName = 'trade';
-        const trades = await this.subscribeMultiple ('trade', channelName, marketType, symbols, params);
+        const trades = await this.subscribeMultiple ('trade', channelName, marketType as string, symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -395,10 +398,10 @@ export default class bitmart extends bitmartRest {
         [ symbols, marketType, params ] = this.getParamsForMultipleSub ('unWatchTradesForSymbols', symbols, undefined, params);
         const channelName = 'trade';
         params = this.extend (params, { 'unsubscribe': true });
-        return await this.subscribeMultiple ('trade', channelName, marketType, symbols, params);
+        return await this.subscribeMultiple ('trade', channelName, marketType as string, symbols, params);
     }
 
-    getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
+    getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}): [string[], Str, Dict] {
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const length = symbols.length;
         if (length > 20) {
@@ -551,7 +554,7 @@ export default class bitmart extends bitmartRest {
         }
     }
 
-    parseWsBidAsk (ticker, market = undefined) {
+    parseWsBidAsk (ticker, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
@@ -592,7 +595,7 @@ export default class bitmart extends bitmartRest {
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         await this.authenticate (type, params);
-        let request: Dict = undefined;
+        let request: Dict;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
             if (symbol !== undefined) {
@@ -643,7 +646,7 @@ export default class bitmart extends bitmartRest {
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         await this.authenticate (type, params);
-        let request: Dict = undefined;
+        let request: Dict;
         if (type === 'spot') {
             let argsRequest = 'spot/user/order:';
             if (symbol !== undefined) {
@@ -1423,7 +1426,7 @@ export default class bitmart extends bitmartRest {
         // use a reverse lookup in a static map instead
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (interval, timeframes);
-        const duration = this.parseTimeframe (timeframe);
+        const duration = this.parseTimeframe (timeframe as string);
         const durationInMs = duration * 1000;
         if (isSpot) {
             for (let i = 0; i < data.length; i++) {
@@ -1432,7 +1435,7 @@ export default class bitmart extends bitmartRest {
                 const symbol = market['symbol'];
                 const rawOHLCV = this.safeList (data[i], 'candle');
                 const parsed = this.parseOHLCV (rawOHLCV, market);
-                parsed[0] = this.parseToInt (parsed[0] / durationInMs) * durationInMs;
+                parsed[0] = this.parseToInt (this.parseToInt (parsed[0]) / durationInMs) * durationInMs;
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
                 let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
                 if (stored === undefined) {
@@ -1740,7 +1743,7 @@ export default class bitmart extends bitmartRest {
         if (type === 'swap' && channel === 'depth/increase100') {
             channel = 'depth50';
         }
-        const orderbook = await this.subscribeMultiple ('orderbook', channel, type, symbols, params);
+        const orderbook = await this.subscribeMultiple ('orderbook', channel as string, type, symbols, params);
         return orderbook.limit ();
     }
 
@@ -1764,7 +1767,7 @@ export default class bitmart extends bitmartRest {
             channel = 'depth50';
         }
         params = this.extend (params, { 'unsubscribe': true });
-        return await this.subscribeMultiple ('orderbook', channel, type, symbols, params);
+        return await this.subscribeMultiple ('orderbook', channel as string, type, symbols, params);
     }
 
     /**
@@ -1846,7 +1849,7 @@ export default class bitmart extends bitmartRest {
             const path = 'bitmart.WebSocket';
             const auth = timestamp + '#' + memo + '#' + path;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            let request: Dict = undefined;
+            let request: Dict;
             if (type === 'spot') {
                 request = {
                     'op': 'login',
@@ -1973,7 +1976,7 @@ export default class bitmart extends bitmartRest {
         const unsubHash = 'unsubscribe::' + subHash;
         const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
         // clean up both ways of storing subscription and unsubscription
-        this.cleanUnsubscription (client, subHash, unsubHash, subHashIsPrefix);
+        this.cleanUnsubscription (client, subHash as string, unsubHash, subHashIsPrefix);
         this.cleanUnsubscription (client, messageTopic, unSubMessageTopic, subHashIsPrefix);
         this.cleanCache (subscription);
     }
@@ -1983,7 +1986,7 @@ export default class bitmart extends bitmartRest {
         const channel = this.safeString (parts, 0);
         const marketTypeAndTopic = channel.split ('/');
         const rawMarketType = this.safeStringLower (marketTypeAndTopic, 0);
-        const marketType = this.parseMarketType (rawMarketType);
+        const marketType = this.parseMarketType (rawMarketType as string);
         let topic = this.safeString (marketTypeAndTopic, 1);
         const thirdPart = this.safeString (marketTypeAndTopic, 2);
         if (thirdPart !== undefined) {

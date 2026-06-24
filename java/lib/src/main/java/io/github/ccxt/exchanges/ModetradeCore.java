@@ -698,7 +698,7 @@ public class ModetradeCore extends ModetradeApi
     public Object parseCurrency(Object rawCurrency)
     {
         Object currencyId = this.safeString(rawCurrency, "token");
-        Object networks = this.safeList(rawCurrency, "chain_details");
+        Object networks = this.safeList(rawCurrency, "chain_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object code = this.safeCurrencyCode(currencyId);
         Object minPrecision = null;
         Object resultingNetworks = new java.util.HashMap<String, Object>() {{}};
@@ -1772,7 +1772,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 response = (this.v1PrivatePostOrder(request)).join();
             }
-            Object data = this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             Object order = this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
@@ -1981,7 +1981,7 @@ public class ModetradeCore extends ModetradeApi
             }
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(finalMarket, "id") );
+                put( "symbol", ModetradeCore.this.safeString(finalMarket, "id") );
             }};
             Object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
             Object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
@@ -3057,7 +3057,7 @@ public class ModetradeCore extends ModetradeApi
         Object leverageValue = this.safeInteger(leverage, "max_leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", ModetradeCore.this.safeString(market, "symbol") );
             put( "marginMode", null );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );

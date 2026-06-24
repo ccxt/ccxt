@@ -363,15 +363,12 @@ export default class blockchaincom extends Exchange {
             const minOrderSize = this.parseNumber(minOrderSizePreciseString);
             // maximum order size
             let maxOrderSize = undefined;
-            maxOrderSize = this.safeString(market, 'max_order_size');
-            if (maxOrderSize !== '0') {
+            const maxOrderSizeRaw = this.safeString(market, 'max_order_size');
+            if (maxOrderSizeRaw !== '0') {
                 const maxOrderSizeScaleString = this.safeString(market, 'max_order_size_scale');
                 const maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
-                const maxOrderSizeString = Precise.stringMul(maxOrderSize, maxOrderSizeScalePrecisionString);
-                maxOrderSize = this.parseNumber(maxOrderSizeString);
-            }
-            else {
-                maxOrderSize = undefined;
+                const maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
+                maxOrderSize = this.parseNumber(maxOrderSizeValueString);
             }
             result.push({
                 'info': market,
@@ -831,7 +828,7 @@ export default class blockchaincom extends Exchange {
         //
         const orderId = this.safeString(trade, 'exOrdId');
         const tradeId = this.safeString(trade, 'tradeId');
-        const side = this.safeString(trade, 'side').toLowerCase();
+        const side = this.safeStringLower(trade, 'side');
         const marketId = this.safeString(trade, 'symbol');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'qty');

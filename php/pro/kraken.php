@@ -168,10 +168,10 @@ class kraken extends \ccxt\async\kraken {
         $isTrailingLimitAmountOrder = $trailingLimitAmount !== null;
         $isTrailingLimitPercentOrder = $trailingLimitPercent !== null;
         $offset = $this->safe_string($params, 'offset', ''); // can set this to - for minus
-        $trailingAmountString = ($trailingAmount !== null) ? $offset . $this->number_to_string($trailingAmount) : null;
-        $trailingPercentString = ($trailingPercent !== null) ? $offset . $this->number_to_string($trailingPercent) : null;
-        $trailingLimitAmountString = ($trailingLimitAmount !== null) ? $offset . $this->number_to_string($trailingLimitAmount) : null;
-        $trailingLimitPercentString = ($trailingLimitPercent !== null) ? $offset . $this->number_to_string($trailingLimitPercent) : null;
+        $trailingAmountString = ($trailingAmount !== null) ? $offset . ($this->number_to_string($trailingAmount)) : null;
+        $trailingPercentString = ($trailingPercent !== null) ? $offset . ($this->number_to_string($trailingPercent)) : null;
+        $trailingLimitAmountString = ($trailingLimitAmount !== null) ? $offset . ($this->number_to_string($trailingLimitAmount)) : null;
+        $trailingLimitPercentString = ($trailingLimitPercent !== null) ? $offset . ($this->number_to_string($trailingLimitPercent)) : null;
         $priceType = ($isTrailingPercentOrder || $isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if ($method === 'createOrderWs') {
             $reduceOnly = $this->safe_bool($params, 'reduceOnly');
@@ -289,7 +289,7 @@ class kraken extends \ccxt\async\kraken {
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
             $market = $this->market($symbol);
-            $url = $this->urls['api']['ws']['privateV2'];
+            $url = ($this->urls['api'])['ws']['privateV2'];
             $requestId = $this->request_id();
             $messageHash = $this->number_to_string($requestId);
             $request = array(
@@ -359,7 +359,7 @@ class kraken extends \ccxt\async\kraken {
              */
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['privateV2'];
+            $url = ($this->urls['api'])['ws']['privateV2'];
             $requestId = $this->request_id();
             $messageHash = $this->number_to_string($requestId);
             $request = array(
@@ -393,7 +393,7 @@ class kraken extends \ccxt\async\kraken {
             }
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['privateV2'];
+            $url = ($this->urls['api'])['ws']['privateV2'];
             $requestId = $this->request_id();
             $messageHash = $this->number_to_string($requestId);
             $request = array(
@@ -425,7 +425,7 @@ class kraken extends \ccxt\async\kraken {
             }
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['privateV2'];
+            $url = ($this->urls['api'])['ws']['privateV2'];
             $requestId = $this->request_id();
             $messageHash = $this->number_to_string($requestId);
             $request = array(
@@ -473,7 +473,7 @@ class kraken extends \ccxt\async\kraken {
             }
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['privateV2'];
+            $url = ($this->urls['api'])['ws']['privateV2'];
             $requestId = $this->request_id();
             $messageHash = $this->number_to_string($requestId);
             $request = array(
@@ -831,7 +831,7 @@ class kraken extends \ccxt\async\kraken {
             $name = 'ohlc';
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $url = $this->urls['api']['ws']['publicV2'];
+            $url = ($this->urls['api'])['ws']['publicV2'];
             $requestId = $this->request_id();
             $messageHash = $this->get_message_hash('ohlcv', null, $symbol);
             $subscribe = array(
@@ -858,12 +858,15 @@ class kraken extends \ccxt\async\kraken {
             $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
             if (($marketsByWsName === null) || $reload) {
                 $marketsByWsName = array();
-                for ($i = 0; $i < count($this->symbols); $i++) {
-                    $symbol = $this->symbols[$i];
-                    $market = $this->markets[$symbol];
-                    $info = $this->safe_value($market, 'info', array());
-                    $wsName = $this->safe_string($info, 'wsname');
-                    $marketsByWsName[$wsName] = $market;
+                $symbols = $this->symbols; // do not cast `as stringarray()` => $this->symbols is List<Object> in Java, and List<Object>->List<'strval'> is an illegal cast
+                if ($symbols !== null) {
+                    for ($i = 0; $i < count($symbols); $i++) {
+                        $symbol = $symbols[$i];
+                        $market = $this->markets[$symbol];
+                        $info = $this->safe_value($market, 'info', array());
+                        $wsName = $this->safe_string($info, 'wsname');
+                        $marketsByWsName[$wsName] = $market;
+                    }
                 }
                 $this->options['marketsByWsName'] = $marketsByWsName;
             }
@@ -891,7 +894,7 @@ class kraken extends \ccxt\async\kraken {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
             $event = 'heartbeat';
-            $url = $this->urls['api']['ws']['publicV2'];
+            $url = ($this->urls['api'])['ws']['publicV2'];
             return Async\await($this->watch($url, $event));
         }) ();
     }
@@ -1100,7 +1103,7 @@ class kraken extends \ccxt\async\kraken {
 
     public function authenticate($params = array ()) {
         return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws']['private'];
+            $url = ($this->urls['api'])['ws']['private'];
             $client = $this->client($url);
             $authenticated = 'authenticated';
             $subscription = $this->safe_value($client->subscriptions, $authenticated);
@@ -1137,7 +1140,7 @@ class kraken extends \ccxt\async\kraken {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
-            $url = $this->urls['api']['ws']['privateV2'];
+            $url = ($this->urls['api'])['ws']['privateV2'];
             $requestId = $this->request_id();
             $subscribe = array(
                 'method' => 'subscribe',
@@ -1458,6 +1461,9 @@ class kraken extends \ccxt\async\kraken {
             Async\await($this->load_markets());
             // $symbols are required
             $symbols = $this->market_symbols($symbols, null, false, true, false);
+            if ($symbols === null) {
+                return null;
+            }
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $eventTrigger = $this->safe_string($params, 'event_trigger');
@@ -1476,7 +1482,7 @@ class kraken extends \ccxt\async\kraken {
                 'req_id' => $this->request_id(),
             );
             $request['params'] = $this->deep_extend($request['params'], $params);
-            $url = $this->urls['api']['ws']['publicV2'];
+            $url = ($this->urls['api'])['ws']['publicV2'];
             return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes, $subscriptionArgs));
         }) ();
     }
@@ -1494,7 +1500,7 @@ class kraken extends \ccxt\async\kraken {
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
             $messageHash = 'balances';
-            $url = $this->urls['api']['ws']['privateV2'];
+            $url = ($this->urls['api'])['ws']['privateV2'];
             $requestId = $this->request_id();
             $subscribe = array(
                 'method' => 'subscribe',
@@ -1600,7 +1606,7 @@ class kraken extends \ccxt\async\kraken {
         // }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     {
         //         "errorMessage" => "Currency pair not in ISO 4217-A3 format foobar",

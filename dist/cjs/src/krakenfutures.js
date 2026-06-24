@@ -819,7 +819,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         };
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
-        let rawTrades = undefined;
+        let rawTrades = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
             [request, params] = this.handleUntilOption('before', request, params);
@@ -1571,7 +1571,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             request['since'] = since;
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
-        let response = undefined;
+        let response;
         if (isTrigger) {
             params = this.omit(params, ['trigger', 'stop']);
             response = await this.historyGetTriggers(this.extend(request, params));
@@ -1630,7 +1630,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (since !== undefined) {
             request['from'] = since;
         }
-        let response = undefined;
+        let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         if (isTrigger) {
             params = this.omit(params, ['trigger', 'stop']);
@@ -2621,7 +2621,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
-            'symbol': market['id'].toUpperCase(),
+            'symbol': this.safeStringUpper(market, 'id'),
         };
         const response = await this.publicGetHistoricalfundingrates(this.extend(request, params));
         //
@@ -2961,7 +2961,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const request = {
             'amount': amount,
         };
-        let response = undefined;
+        let response;
         if (toAccount === 'spot') {
             if (this.parseAccount(fromAccount) !== 'cash') {
                 throw new errors.BadRequest(this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);

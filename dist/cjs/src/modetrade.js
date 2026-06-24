@@ -659,7 +659,7 @@ class modetrade extends modetrade$1["default"] {
     }
     parseCurrency(rawCurrency) {
         const currencyId = this.safeString(rawCurrency, 'token');
-        const networks = this.safeList(rawCurrency, 'chain_details');
+        const networks = this.safeList(rawCurrency, 'chain_details', []);
         const code = this.safeCurrencyCode(currencyId);
         let minPrecision = undefined;
         const resultingNetworks = {};
@@ -1598,7 +1598,7 @@ class modetrade extends modetrade$1["default"] {
             // }
             //
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         data['timestamp'] = this.safeInteger(response, 'timestamp');
         const order = this.parseOrder(data, market);
         order['type'] = type;
@@ -1769,12 +1769,12 @@ class modetrade extends modetrade$1["default"] {
             market = this.market(symbol);
         }
         const request = {
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
         };
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response;
         if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
@@ -2598,7 +2598,7 @@ class modetrade extends modetrade$1["default"] {
         const leverageValue = this.safeInteger(leverage, 'max_leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,

@@ -55,8 +55,22 @@ export default class Exchange {
         this.certified = false;
         this.pro = false;
         this.countries = undefined;
+        this.proxyUrl = undefined;
+        this.proxy_url = undefined;
+        this.httpProxy = undefined;
+        this.http_proxy = undefined;
+        this.httpsProxy = undefined;
+        this.https_proxy = undefined;
+        this.socksProxy = undefined;
+        this.socks_proxy = undefined;
         this.userAgent = undefined;
         this.user_agent = undefined;
+        this.wsProxy = undefined;
+        this.ws_proxy = undefined;
+        this.wssProxy = undefined;
+        this.wss_proxy = undefined;
+        this.wsSocksProxy = undefined;
+        this.ws_socks_proxy = undefined;
         //
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -1729,6 +1743,20 @@ export default class Exchange {
         request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo, res.messageToSign];
+    }
+    setLastRestRequestTimestamp() {
+        // hand-written per language (not transpiled): in most languages this is a
+        // plain assignment, but the Go implementation guards the write with a mutex
+        // because concurrent requests would otherwise data-race on this field
+        this.lastRestRequestTimestamp = this.milliseconds();
+    }
+    setLastRequest(request) {
+        // hand-written per language (not transpiled): plain assignments in most
+        // languages, but the Go implementation guards the writes with a mutex because
+        // concurrent requests would otherwise data-race on these bookkeeping fields
+        this.last_request_headers = request['headers'];
+        this.last_request_body = request['body'];
+        this.last_request_url = request['url'];
     }
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -5169,11 +5197,9 @@ export default class Exchange {
         [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', 0);
         for (let i = 0; i < retries + 1; i++) {
             try {
-                this.lastRestRequestTimestamp = this.milliseconds();
+                this.setLastRestRequestTimestamp();
                 const request = this.sign(path, api, method, params, headers, body);
-                this.last_request_headers = request['headers'];
-                this.last_request_body = request['body'];
-                this.last_request_url = request['url'];
+                this.setLastRequest(request);
                 return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
             }
             catch (e) {
@@ -5369,7 +5395,7 @@ export default class Exchange {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
+        if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
         let code = currencyId;
@@ -7629,7 +7655,7 @@ export default class Exchange {
                     errors = 0;
                     result = this.arrayConcat(result, response);
                     const last = this.safeValue(response, responseLength - 1);
-                    paginationTimestamp = this.safeInteger(last, 'timestamp') + 1;
+                    paginationTimestamp = this.safeInteger(last, 'timestamp', 0) + 1;
                     if ((until !== undefined) && (paginationTimestamp >= until)) {
                         break;
                     }

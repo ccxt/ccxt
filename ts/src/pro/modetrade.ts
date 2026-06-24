@@ -557,7 +557,7 @@ export default class modetrade extends modetradeRest {
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeValue = this.safeString (trade, 'fee');
         if (feeValue !== undefined) {
             fee = {

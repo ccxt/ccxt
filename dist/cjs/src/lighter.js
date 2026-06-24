@@ -563,12 +563,12 @@ class lighter extends lighter$1["default"] {
         const cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         const cachedDeadline = this.safeInteger(cachedAuth, 'deadline');
         if (cachedDeadline !== undefined) {
-            const minimumDeadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineMinimumRemaining');
+            const minimumDeadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineMinimumRemaining', 60);
             if (cachedDeadline >= minimumDeadline) {
                 return this.safeString(cachedAuth, 'token');
             }
         }
-        const deadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineExpiry');
+        const deadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineExpiry', 28800);
         const request = {
             'deadline': deadline,
             'api_key_index': this.parseToInt(apiKeyIndex),
@@ -782,7 +782,7 @@ class lighter extends lighter$1["default"] {
                 }
             }
         }
-        const marketInfo = this.safeDict(market, 'info');
+        const marketInfo = this.safeDict(market, 'info', {});
         let amountStr = undefined;
         const priceStr = this.priceToPrecision(symbol, price);
         const amountScale = this.pow('10', marketInfo['size_decimals']);
@@ -931,7 +931,7 @@ class lighter extends lighter$1["default"] {
             order['nonce'] = await this.fetchNonce(accountIndex, apiKeyIndex);
         }
         let txType = undefined;
-        let txInfo = undefined;
+        let txInfo;
         if (totalOrderRequests < 2) {
             [txType, txInfo] = this.lighterSignCreateOrder(signer, order);
         }
@@ -990,7 +990,7 @@ class lighter extends lighter$1["default"] {
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
         const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         const market = this.market(symbol);
-        const marketInfo = this.safeDict(market, 'info');
+        const marketInfo = this.safeDict(market, 'info', {});
         const amountScale = this.pow('10', marketInfo['size_decimals']);
         const priceScale = this.pow('10', marketInfo['price_decimals']);
         const triggerPrice = this.safeStringN(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);

@@ -607,7 +607,7 @@ class testMainClass {
             $values_length = count($values);
             if ($values_length > 0) {
                 $first = $values[0];
-                if ($first !== null) {
+                if ($first) {
                     $symbol = $first['symbol'];
                 }
             }

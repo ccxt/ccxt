@@ -29,7 +29,7 @@ export default class bingx extends bingxRest {
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(message: any, market?: any): Ticker;
+    parseWsTicker(message: any, market?: Market): Ticker;
     getOrderBookLimitByMarketType(marketType: string, limit?: Int): number;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
     /**
@@ -87,7 +87,7 @@ export default class bingx extends bingxRest {
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleOrderBook(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method

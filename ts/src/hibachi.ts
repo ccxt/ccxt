@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, Fee } from './base/types.js';
+import type{ Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, Fee, NullableDict } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
 import { BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
@@ -315,7 +315,7 @@ export default class hibachi extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'underlyingDecimals'))),
-                'price': this.parseNumber (this.safeList (market, 'orderbookGranularities')[0]) / 10000.0,
+                'price': this.parseNumber (this.safeValue (this.safeList (market, 'orderbookGranularities', []), 0)) / 10000.0,
             },
             'limits': {
                 'leverage': {
@@ -542,7 +542,7 @@ export default class hibachi extends Exchange {
         const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const cost = Precise.stringMul (price, amount);
         let side: Str = undefined;
-        let fee = undefined;
+        let fee: Dict = undefined;
         let orderType: Str = undefined;
         let orderId: Str = undefined;
         let takerOrMaker: Str = undefined;
@@ -690,7 +690,7 @@ export default class hibachi extends Exchange {
         const remaining = this.safeString (order, 'availableQuantity');
         const totalQuantity = this.safeString (order, 'totalQuantity');
         const availableQuantity = this.safeString (order, 'availableQuantity');
-        let filled = undefined;
+        let filled: Str = undefined;
         if (totalQuantity !== undefined && availableQuantity !== undefined) {
             filled = Precise.stringSub (totalQuantity, availableQuantity);
         }
@@ -947,7 +947,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList (response, 'orders');
+        const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1040,7 +1040,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList (response, 'orders');
+        const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1115,7 +1115,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList (response, 'orders');
+        const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push (this.safeOrder ({
@@ -1615,7 +1615,7 @@ export default class hibachi extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         headers = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
@@ -1949,7 +1949,7 @@ export default class hibachi extends Exchange {
         //         },
         //     ]
         // }
-        const transactions = this.safeList (response, 'transactions');
+        const transactions = this.safeList (response, 'transactions', []);
         const deposits = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
@@ -2008,7 +2008,7 @@ export default class hibachi extends Exchange {
         //         },
         //     ]
         // }
-        const transactions = this.safeList (response, 'transactions');
+        const transactions = this.safeList (response, 'transactions', []);
         const withdrawals = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
@@ -2150,7 +2150,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeList (response, 'data');
+        const data = this.safeList (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

@@ -328,7 +328,7 @@ export default class bitrue extends bitrueRest {
             cbId = wsId;
             url = this.urls['api']['ws']['futurePublic'];
         } else {
-            const marketIdLowercase = market['id'].toLowerCase ();
+            const marketIdLowercase = this.safeStringLower (market, 'id');
             channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
             cbId = marketIdLowercase;
             url = this.urls['api']['ws']['public'];

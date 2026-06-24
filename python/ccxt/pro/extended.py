@@ -224,7 +224,7 @@ class extended(ccxt.async_support.extended):
         #     }
         #
         data = self.safe_dict(message, 'data', {})
-        result: dict = {
+        result = {
             'info': data,
         }
         balance = self.safe_dict(data, 'balance')
@@ -311,7 +311,7 @@ class extended(ccxt.async_support.extended):
         stored = self.myTrades
         data = self.safe_dict(message, 'data', {})
         rawTrades = self.safe_list(data, 'trades', [])
-        symbols: dict = {}
+        symbols = {}
         first = self.safe_dict(rawTrades, 0)
         if first is None:
             return
@@ -445,7 +445,7 @@ class extended(ccxt.async_support.extended):
         orders = self.orders
         data = self.safe_dict(message, 'data', {})
         rawOrders = self.safe_list(data, 'orders')
-        symbols: dict = {}
+        symbols = {}
         first = self.safe_dict(rawOrders, 0)
         if first is None:
             return

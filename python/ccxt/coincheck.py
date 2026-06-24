@@ -265,7 +265,7 @@ class coincheck(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -306,7 +306,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         self.load_markets()
         # Only BTC/JPY is meaningful
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         response = self.privateGetExchangeOrdersOpens(params)
@@ -378,7 +378,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = self.publicGetOrderBooks(self.extend(request, params))
@@ -436,7 +436,7 @@ class coincheck(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         ticker = self.publicGetTicker(self.extend(request, params))
@@ -492,12 +492,12 @@ class coincheck(Exchange, ImplicitAPI):
         baseId = market['baseId']
         quoteId = market['quoteId']
         symbol = market['symbol']
-        takerOrMaker: Str = None
-        amountString: Str = None
-        costString: Str = None
-        side: Str = None
+        takerOrMaker = None
+        amountString = None
+        costString = None
+        side = None
         fee = None
-        orderId: Str = None
+        orderId = None
         if 'liquidity' in trade:
             if self.safe_string(trade, 'liquidity') == 'T':
                 takerOrMaker = 'taker'
@@ -545,7 +545,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetExchangeOrdersTransactionsPagination(self.extend(request, params))
@@ -588,7 +588,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -638,9 +638,12 @@ class coincheck(Exchange, ImplicitAPI):
         #     }
         #
         fees = self.safe_value(response, 'exchange_fees', {})
-        result: dict = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        result = {}
+        symbols = self.symbols
+        if symbols is None:
+            return result
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             fee = self.safe_value(fees, market['id'], {})
             result[symbol] = {
@@ -669,7 +672,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if type == 'market':
@@ -704,7 +707,7 @@ class coincheck(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'id': id,
         }
         response = self.privateDeleteExchangeOrdersId(self.extend(request, params))
@@ -729,8 +732,8 @@ class coincheck(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency: Currency = None
-        request: dict = {}
+        currency = None
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -776,10 +779,10 @@ class coincheck(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetWithdraws(self.extend(request, params))
@@ -808,7 +811,7 @@ class coincheck(Exchange, ImplicitAPI):
         return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             # withdrawals
             'pending': 'pending',
             'processing': 'pending',
@@ -855,7 +858,7 @@ class coincheck(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         updated = self.parse8601(self.safe_string(transaction, 'confirmed_at'))
-        fee: Fee = None
+        fee = None
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             fee = {
@@ -888,7 +891,7 @@ class coincheck(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

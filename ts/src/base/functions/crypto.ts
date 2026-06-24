@@ -67,8 +67,8 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
                 // }
                 if (typeof asn1.sub[2].sub !== null && asn1.sub[2].sub.length > 0) {
                     const oid = asn1.sub[2].sub[0].content (undefined);
-                    if (supportedCurve[oid] === undefined) throw new Error('Unsupported curve');
-                    curve = supportedCurve[oid];
+                    if (supportedCurve[oid as string] === undefined) throw new Error('Unsupported curve');
+                    curve = supportedCurve[oid as string];
                 }
                 secret = asn1.sub[1].getHexStringValue()
             } else {

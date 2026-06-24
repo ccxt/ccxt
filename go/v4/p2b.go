@@ -801,7 +801,7 @@ func (this *P2bCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       this.SafeString(trade, "amount"),
 		"cost":         this.SafeString(trade, "deal"),
 		"fee": map[string]any{
-			"currency": GetValue(market, "quote"),
+			"currency": this.SafeString(market, "quote"),
 			"cost":     this.SafeString2(trade, "fee", "deal_fee"),
 		},
 	}, market)

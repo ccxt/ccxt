@@ -1422,7 +1422,7 @@ class extended extends extended$1["default"] {
         //
         const timestamp = this.safeInteger(interest, 't');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': this.safeNumber(interest, 'I'),
             'openInterestValue': this.safeNumber(interest, 'i'),
             'baseVolume': this.safeNumber(interest, 'I'),
@@ -2952,7 +2952,7 @@ class extended extends extended$1["default"] {
             clientOrderIds = [clientOrderId];
         }
         const hasClientOrderIds = clientOrderIds !== undefined;
-        if (hasClientOrderIds) {
+        if (clientOrderIds !== undefined) {
             const clientOrderIdsLength = clientOrderIds.length;
             if (clientOrderIdsLength > 0) {
                 request['externalOrderIds'] = clientOrderIds;

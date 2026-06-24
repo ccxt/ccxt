@@ -1,5 +1,4 @@
 import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
 // Note, this is just an example and might not yet work on other exchanges, which are being still unified.
 async function example() {
     // ########## user inputs ##########

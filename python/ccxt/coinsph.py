@@ -640,7 +640,7 @@ class coinsph(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         isFiat = self.safe_bool(rawCurrency, 'isLegalMoney')
         networkList = self.safe_list(rawCurrency, 'networkList', [])
-        networks: dict = {}
+        networks = {}
         for j in range(0, len(networkList)):
             networkItem = networkList[j]
             network = self.safe_string(networkItem, 'network')
@@ -885,7 +885,7 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         if symbols is not None:
             ids = []
             for i in range(0, len(symbols)):
@@ -896,7 +896,7 @@ class coinsph(Exchange, ImplicitAPI):
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_dict(self.options, 'fetchTickers', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        tickers: List[dict] = None
+        tickers = None
         if method == 'publicGetOpenapiQuoteV1TickerPrice':
             tickers = self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
         elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
@@ -919,13 +919,13 @@ class coinsph(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_dict(self.options, 'fetchTicker', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        ticker: dict = None
+        ticker = None
         if method == 'publicGetOpenapiQuoteV1TickerPrice':
             ticker = self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
         elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
@@ -1025,7 +1025,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1066,7 +1066,7 @@ class coinsph(Exchange, ImplicitAPI):
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe)
         until = self.safe_integer(params, 'until')
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'interval': interval,
         }
@@ -1133,7 +1133,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1174,7 +1174,7 @@ class coinsph(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1201,7 +1201,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
-        request: dict = {
+        request = {
             'orderId': id,
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
@@ -1262,14 +1262,14 @@ class coinsph(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
         isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker')
-        side: Str = None
+        side = None
         if isBuyer is not None:
             side = 'buy' if (isBuyer is True) else 'sell'
         isMaker = self.safe_string(trade, 'isMaker')
-        takerOrMaker: Str = None
+        takerOrMaker = None
         if isMaker is not None:
             takerOrMaker = 'maker' if (isMaker == 'true') else 'taker'
-        costString: Str = None
+        costString = None
         if orderId is not None:
             costString = self.safe_string(trade, 'quoteQty')
         return self.safe_trade({
@@ -1324,7 +1324,7 @@ class coinsph(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         balances = self.safe_list(response, 'balances', [])
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -1364,7 +1364,7 @@ class coinsph(Exchange, ImplicitAPI):
         orderType = self.encode_order_type(orderType)
         params = self.omit(params, 'type')
         orderSide = self.encode_order_side(side)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'type': orderType,
             'side': orderSide,
@@ -1386,7 +1386,7 @@ class coinsph(Exchange, ImplicitAPI):
             if orderSide == 'SELL':
                 request['quantity'] = self.amount_to_precision(symbol, amount)
             elif orderSide == 'BUY':
-                quoteAmount: Str = None
+                quoteAmount = None
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
@@ -1411,7 +1411,7 @@ class coinsph(Exchange, ImplicitAPI):
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
-        response: dict = None
+        response = None
         if testOrder:
             response = self.privatePostOpenapiV1OrderTest(self.extend(request, params))
         else:
@@ -1457,7 +1457,7 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
@@ -1480,8 +1480,8 @@ class coinsph(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market: Market = None
-        request: dict = {}
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1504,7 +1504,7 @@ class coinsph(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1528,7 +1528,7 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
@@ -1551,8 +1551,8 @@ class coinsph(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
-        market: Market = None
-        request: dict = {}
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1661,21 +1661,21 @@ class coinsph(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_side(self, status):
-        statuses: dict = {
+        statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
         }
         return self.safe_string(statuses, status, status)
 
     def encode_order_side(self, status):
-        statuses: dict = {
+        statuses = {
             'buy': 'BUY',
             'sell': 'SELL',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
-        statuses: dict = {
+        statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
@@ -1687,7 +1687,7 @@ class coinsph(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def encode_order_type(self, status):
-        statuses: dict = {
+        statuses = {
             'market': 'MARKET',
             'limit': 'LIMIT',
             'limit_maker': 'LIMIT_MAKER',
@@ -1699,7 +1699,7 @@ class coinsph(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -1710,7 +1710,7 @@ class coinsph(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_time_in_force(self, status):
-        statuses: dict = {
+        statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
@@ -1729,7 +1729,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.privateGetOpenapiV1AssetTradeFee(self.extend(request, params))
@@ -1770,7 +1770,7 @@ class coinsph(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result: dict = {}
+        result = {}
         for i in range(0, len(response)):
             fee = self.parse_trading_fee(response[i])
             symbol = fee['symbol']
@@ -1820,7 +1820,7 @@ class coinsph(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' withdraw() require network parameter')
         self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'amount': self.number_to_string(amount),
             'network': networkId,
@@ -1846,8 +1846,8 @@ class coinsph(Exchange, ImplicitAPI):
         """
         # todo: returns an empty array - find out why
         self.load_markets()
-        currency: Currency = None
-        request: dict = {}
+        currency = None
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -1900,8 +1900,8 @@ class coinsph(Exchange, ImplicitAPI):
         """
         # todo: returns an empty array - find out why
         self.load_markets()
-        currency: Currency = None
-        request: dict = {}
+        currency = None
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -1992,10 +1992,10 @@ class coinsph(Exchange, ImplicitAPI):
         txid = self.safe_string(transaction, 'txId')
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp: Int = None
+        timestamp = None
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
         updated = None
-        type: Str = None
+        type = None
         withdrawOrderId = self.safe_string(transaction, 'withdrawOrderId')
         depositOrderId = self.safe_string(transaction, 'depositOrderId')
         if withdrawOrderId is not None:
@@ -2005,7 +2005,7 @@ class coinsph(Exchange, ImplicitAPI):
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_number(transaction, 'amount')
         feeCost = self.safe_number(transaction, 'transactionFee')
-        fee: Fee = None
+        fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         network = self.safe_string(transaction, 'network')
@@ -2034,7 +2034,7 @@ class coinsph(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',
@@ -2059,7 +2059,7 @@ class coinsph(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchDepositAddress() require network parameter')
         self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'network': networkId,
         }
@@ -2117,7 +2117,7 @@ class coinsph(Exchange, ImplicitAPI):
         urlEncodedParam = key + '=' + stringifiedArray
         return urlEncodedParam
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         endpoint = self.implode_params(path, params)

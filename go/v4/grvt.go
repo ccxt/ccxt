@@ -3677,7 +3677,7 @@ func (this *GrvtCore) ParseOrder(order any, optionalArgs ...any) any {
 	var price any = nil
 	var filled any = nil
 	var avgPrice any = nil
-	var legs any = this.SafeList(order, "legs")
+	var legs any = this.SafeList(order, "legs", []any{})
 	var metadata any = this.SafeDict(order, "metadata", map[string]any{})
 	var stateObj any = this.SafeDict(order, "state", map[string]any{})
 	var filledAmounts any = this.SafeList(stateObj, "traded_size", []any{})
@@ -3705,7 +3705,7 @@ func (this *GrvtCore) ParseOrder(order any, optionalArgs ...any) any {
 		"lastTradeTimeStamp":  nil,
 		"lastUpdateTimestamp": this.SafeIntegerProduct(stateObj, "update_time", 0.000001),
 		"status":              this.ParseOrderStatus(this.SafeString(stateObj, "status")),
-		"symbol":              GetValue(market, "symbol"),
+		"symbol":              this.SafeString(market, "symbol"),
 		"type":                orderType,
 		"timeInForce":         timeInForce,
 		"postOnly":            isPostOnly,

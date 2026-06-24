@@ -31,14 +31,14 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
                 // continue;
                 $success = false;
             }
-            if ($success === true) {
+            if (($success === true) && ($response !== null)) {
                 // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
                 assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an object. ' . $exchange->json($response));
                 $now = $exchange->milliseconds();
                 assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
                 test_order_book($exchange, $skipped_properties, $method, $response, null);
                 $symbol = $response['symbol'];
-                if (!$exchange->in_array($symbol, $returned_symbols)) {
+                if (($symbol !== null) && !$exchange->in_array($symbol, $returned_symbols)) {
                     $returned_symbols[] = $symbol;
                 }
             }

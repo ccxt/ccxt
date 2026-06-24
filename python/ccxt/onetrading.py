@@ -672,7 +672,7 @@ class onetrading(Exchange, ImplicitAPI):
         futuresTiers = self.parse_fee_tiers(futuresFeeTiers)
         firstSpotTier = self.safe_dict(spotTiers, 0, {})
         firstFuturesTier = self.safe_dict(futuresTiers, 0, {})
-        result: dict = {}
+        result = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
@@ -734,7 +734,7 @@ class onetrading(Exchange, ImplicitAPI):
         futuresTakerFee = self.safe_string(futuresFees, 'taker_fee')
         futuresMakerFee = Precise.string_div(futuresMakerFee, '100')
         futuresTakerFee = Precise.string_div(futuresTakerFee, '100')
-        result: dict = {}
+        result = {}
         # tiers = self.parse_fee_tiers(feeTiers)
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
@@ -833,7 +833,7 @@ class onetrading(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_code': market['id'],
         }
         response = self.publicGetMarketTickerInstrumentCode(self.extend(request, params))
@@ -890,7 +890,7 @@ class onetrading(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result: dict = {}
+        result = {}
         for i in range(0, len(response)):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
@@ -910,7 +910,7 @@ class onetrading(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_code': market['id'],
             # level 1 means only the best bid and ask
             # level 2 is a compiled order book up to market precision
@@ -998,7 +998,7 @@ class onetrading(Exchange, ImplicitAPI):
         granularity = self.safe_value(ohlcv, 'granularity')
         unit = self.safe_string(granularity, 'unit')
         period = self.safe_string(granularity, 'period')
-        units: dict = {
+        units = {
             'MINUTES': 'm',
             'HOURS': 'h',
             'DAYS': 'd',
@@ -1043,7 +1043,7 @@ class onetrading(Exchange, ImplicitAPI):
         duration = durationInSeconds * 1000
         if limit is None:
             limit = 1500
-        request: dict = {
+        request = {
             'instrument_code': market['id'],
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),
@@ -1149,7 +1149,7 @@ class onetrading(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'balances', [])
-        result: dict = {'info': response}
+        result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')
@@ -1190,7 +1190,7 @@ class onetrading(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'FILLED': 'open',
             'FILLED_FULLY': 'closed',
             'FILLED_CLOSED': 'canceled',
@@ -1312,13 +1312,13 @@ class onetrading(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_type(self, type: Str):
-        types: dict = {
+        types = {
             'booked': 'limit',
         }
         return self.safe_string(types, type, type)
 
     def parse_time_in_force(self, timeInForce: Str):
-        timeInForces: dict = {
+        timeInForces = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
             'IMMEDIATE_OR_CANCELLED': 'IOC',
@@ -1344,7 +1344,7 @@ class onetrading(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
-        request: dict = {
+        request = {
             'instrument_code': market['id'],
             'type': uppercaseType,  # LIMIT, MARKET, STOP
             'side': side.upper(),  # or SELL
@@ -1411,7 +1411,7 @@ class onetrading(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
         method = 'privateDeleteAccountOrdersOrderId'
-        request: dict = {}
+        request = {}
         if clientOrderId is not None:
             method = 'privateDeleteAccountOrdersClientClientId'
             request['client_id'] = clientOrderId
@@ -1438,7 +1438,7 @@ class onetrading(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_code'] = market['id']
@@ -1462,7 +1462,7 @@ class onetrading(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'ids': ','.join(ids),
         }
         response = self.privateDeleteAccountOrders(self.extend(request, params))
@@ -1486,7 +1486,7 @@ class onetrading(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = self.privateGetAccountOrdersOrderId(self.extend(request, params))
@@ -1546,7 +1546,7 @@ class onetrading(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days
             # 'instrument_code': market['id'],
@@ -1662,7 +1662,7 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
@@ -1681,7 +1681,7 @@ class onetrading(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'order_id': id,
             # 'max_page_size': 100,
             # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
@@ -1738,7 +1738,7 @@ class onetrading(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days
             # 'instrument_code': market['id'],
@@ -1790,7 +1790,7 @@ class onetrading(Exchange, ImplicitAPI):
         tradeHistory = self.safe_list(response, 'trade_history', [])
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

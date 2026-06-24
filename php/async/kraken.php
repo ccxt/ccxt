@@ -1746,7 +1746,7 @@ class kraken extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_dict($response, 'result');
+            $result = $this->safe_dict($response, 'result', array());
             $result['usingCost'] = $isUsingCost;
             // it's impossible to know if the order was created using cost or base currency
             // because kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
@@ -1801,7 +1801,7 @@ class kraken extends Exchange {
             $response = null;
             $request = array(
                 'orders' => $ordersRequests,
-                'pair' => $market['id'],
+                'pair' => $this->safe_string($market, 'id'),
             );
             $request = $this->extend($request, $params);
             $response = Async\await($this->privatePostAddOrderBatch ($request));
@@ -2256,6 +2256,7 @@ class kraken extends Exchange {
         $close = $this->safe_dict($params, 'close');
         if ($close !== null) {
             $close = $this->extend(array(), $close);
+            $close = ($close === null) ? array() : $close;
             $closePrice = $this->safe_value($close, 'price');
             if ($closePrice !== null) {
                 $close['price'] = $this->price_to_precision($symbol, $closePrice);
@@ -3659,7 +3660,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {

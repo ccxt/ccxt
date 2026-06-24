@@ -7,7 +7,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, Liquidation, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Liquidation, List, Market, Num, NullableDict, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import Client from '../base/ws/Client.js';
@@ -304,8 +304,8 @@ export default class binance extends binanceRest {
      */
     async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
-        const subscriptionHashes = [];
-        const messageHashes = [];
+        const subscriptionHashes: string[] = [];
+        const messageHashes: string[] = [];
         let streamHash = 'liquidations';
         symbols = this.marketSymbols (symbols, undefined, true, true);
         if (this.isEmpty (symbols)) {
@@ -719,8 +719,8 @@ export default class binance extends binanceRest {
             name = 'rpiDepth';
             watchOrderBookRate = '500';
         }
-        const subParams = [];
-        const messageHashes = [];
+        const subParams: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -778,9 +778,9 @@ export default class binance extends binanceRest {
             streamHash += '::' + symbols.join (',');
         }
         const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
-        const subParams = [];
-        const subMessageHashes = [];
-        const messageHashes = [];
+        const subParams: string[] = [];
+        const subMessageHashes: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -1029,19 +1029,19 @@ export default class binance extends binanceRest {
                 if (pu === undefined) {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (u > orderbook['nonce']) {
+                    if (u > nonce) {
                         const timestamp = this.safeInteger (orderbook, 'timestamp');
                         let conditional: Bool = undefined;
                         if (timestamp === undefined) {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = ((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce']);
+                            conditional = ((U - 1) <= nonce) && ((u - 1) >= nonce);
                         } else {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = ((U - 1) === orderbook['nonce']);
+                            conditional = ((U - 1) === nonce);
                         }
                         if (conditional) {
                             this.handleOrderBookMessage (client, message, orderbook);
-                            if (nonce < orderbook['nonce']) {
+                            if (nonce < this.safeInteger (orderbook, 'nonce', 0)) {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
@@ -1055,12 +1055,12 @@ export default class binance extends binanceRest {
                 } else {
                     // future
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (u >= orderbook['nonce']) {
+                    if (u >= nonce) {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-                        if ((U <= orderbook['nonce']) || (pu === orderbook['nonce'])) {
+                        if ((U <= nonce) || (pu === nonce)) {
                             this.handleOrderBookMessage (client, message, orderbook);
-                            if (nonce <= orderbook['nonce']) {
+                            if (nonce <= this.safeInteger (orderbook, 'nonce', 0)) {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
@@ -1165,8 +1165,8 @@ export default class binance extends binanceRest {
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
-        const messageHashes = [];
-        const subParams = [];
+        const messageHashes: string[] = [];
+        const subParams: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -1227,9 +1227,9 @@ export default class binance extends binanceRest {
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
-        const subMessageHashes = [];
-        const subParams = [];
-        const messageHashes = [];
+        const subMessageHashes: string[] = [];
+        const subParams: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -1431,7 +1431,7 @@ export default class binance extends binanceRest {
             }
             takerOrMaker = trade['m'] ? 'maker' : 'taker';
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (trade, 'n');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'N');
@@ -1532,8 +1532,8 @@ export default class binance extends binanceRest {
         let timezone: Str = undefined;
         [ timezone, params ] = this.handleParamString (params, 'timezone');
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq (timezone, '8'));
-        const rawHashes = [];
-        const messageHashes = [];
+        const rawHashes: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symAndTf = symbolsAndTimeframes[i];
             const symbolString = symAndTf[0];
@@ -1598,9 +1598,9 @@ export default class binance extends binanceRest {
         let timezone: Str = undefined;
         [ timezone, params ] = this.handleParamString (params, 'timezone');
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq (timezone, '8'));
-        const rawHashes = [];
-        const subMessageHashes = [];
-        const messageHashes = [];
+        const rawHashes: string[] = [];
+        const subMessageHashes: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symAndTf = symbolsAndTimeframes[i];
             const symbolString = symAndTf[0];
@@ -2070,9 +2070,9 @@ export default class binance extends binanceRest {
         if (isMarkPrice && !this.inArray (marketType, [ 'swap', 'future' ])) {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet');
         }
-        const subscriptionArgs = [];
-        const messageHashes = [];
-        const unsubscribeMessageHashes = [];
+        const subscriptionArgs: string[] = [];
+        const messageHashes: string[] = [];
+        const unsubscribeMessageHashes: string[] = [];
         let suffix = '';
         if (isMarkPrice) {
             suffix = (use1sFreq) ? '@1s' : '';
@@ -2370,8 +2370,8 @@ export default class binance extends binanceRest {
             unifiedPrefix = 'ticker';
         }
         let channelName: Str = undefined;
-        const resolvedMessageHashes = [];
-        let rawTickers = [];
+        const resolvedMessageHashes: string[] = [];
+        let rawTickers: List = [];
         const newTickers: Dict = {};
         if (Array.isArray (message)) {
             rawTickers = message;
@@ -2623,7 +2623,7 @@ export default class binance extends binanceRest {
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            let response: Dict = undefined;
+            let response: Dict;
             if (isPortfolioMargin) {
                 response = await this.papiPostListenKey (params);
                 params = this.extend (params, { 'portfolioMargin': true });
@@ -2798,7 +2798,7 @@ export default class binance extends binanceRest {
         //
         //
         const messageHash = this.safeString (message, 'id');
-        let rawBalance = undefined;
+        let rawBalance: NullableList = undefined;
         if (Array.isArray (message['result'])) {
             // account.balance
             rawBalance = this.safeList (message, 'result', []);
@@ -2963,7 +2963,7 @@ export default class binance extends binanceRest {
         //
         const messageHash = this.safeString (message, 'id');
         const result = this.safeList (message, 'result', []);
-        const positions = [];
+        const positions: Position[] = [];
         for (let i = 0; i < result.length; i++) {
             const parsed = this.parsePositionRisk (result[i]);
             const entryPrice = this.safeString (parsed, 'entryPrice');
@@ -3476,7 +3476,7 @@ export default class binance extends binanceRest {
         const messageHash = this.safeString (message, 'id');
         const result = this.safeDict (message, 'result', {});
         const newSpotOrder = this.safeDict (result, 'newOrderResponse');
-        let order: Order = undefined;
+        let order: Order;
         if (newSpotOrder !== undefined) {
             order = this.parseOrder (newSpotOrder);
         } else {
@@ -3693,7 +3693,7 @@ export default class binance extends binanceRest {
      */
     async fetchClosedOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const orders = await this.fetchOrdersWs (symbol, since, limit, params);
-        const closedOrders = [];
+        const closedOrders: Order[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             if (order['status'] === 'closed') {
@@ -3931,7 +3931,7 @@ export default class binance extends binanceRest {
             lastTradeTimestamp = T;
         }
         const lastUpdateTimestamp = T;
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (order, 'n');
         if ((feeCost !== undefined) && (Precise.stringGt (feeCost, '0'))) {
             const feeCurrencyId = this.safeString (order, 'N');
@@ -4257,7 +4257,7 @@ export default class binance extends binanceRest {
         const cache = this.positions[accountType];
         const data = this.safeDict (message, 'a', {});
         const rawPositions = this.safeList (data, 'P', []);
-        const newPositions = [];
+        const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parseWsPosition (rawPosition);

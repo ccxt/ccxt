@@ -377,7 +377,7 @@ public partial class blofin
         var res = await this.watchFundingRate(symbol, parameters);
         return new FundingRate(res);
     }
-    public async Task<Dictionary<string, object>> WatchMultipleWrapper(bool isPublic, string channelName, string callerMethodName, List<object> symbolsArray = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> WatchMultipleWrapper(bool isPublic, string channelName, string callerMethodName, object symbolsArray = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchMultipleWrapper(isPublic, channelName, callerMethodName, symbolsArray, parameters);
         return ((Dictionary<string, object>)res);

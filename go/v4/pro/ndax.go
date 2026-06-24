@@ -333,7 +333,7 @@ func  (this *NdaxCore) HandleOHLCV(client any, message any)  {
                 ccxt.AddElementToObject(stored, ccxt.Subtract(length, 1), []any{ccxt.GetValue(parsed, 0), ccxt.GetValue(previous, 1), ccxt.MathMax(ccxt.GetValue(parsed, 1), ccxt.GetValue(previous, 1)), ccxt.MathMin(ccxt.GetValue(parsed, 2), ccxt.GetValue(previous, 2)), ccxt.GetValue(parsed, 4), this.Sum(ccxt.GetValue(parsed, 5), ccxt.GetValue(previous, 5))})
                 ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
             } else {
-                if ccxt.IsTrue(ccxt.IsTrue(length) && ccxt.IsTrue((ccxt.IsLessThan(ccxt.GetValue(parsed, 0), ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0))))) {
+                if ccxt.IsTrue(ccxt.IsTrue(length) && ccxt.IsTrue((ccxt.IsLessThan(this.ParseToInt(ccxt.GetValue(parsed, 0)), this.ParseToInt(ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0)))))) {
                     continue
                 } else {
                     ccxt.AppendToArray(&stored, parsed)

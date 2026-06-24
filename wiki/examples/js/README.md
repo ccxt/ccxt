@@ -185,25 +185,19 @@ node path/to/example.js # substitute for actual filename here
 
 - [📂 Fetch Tickers](https://github.com/ccxt/ccxt/tree/master/./examples/js/fetch-tickers)
 
+- [Gate Create Batch Order](./examples/js/gate-create-batch-order.md)
+
+- [Gate Futures](./examples/js/gate-futures.md)
+
+- [Gate Open Close Contract](./examples/js/gate-open-close-contract.md)
+
 - [Gate Swap Watch Many Orderbooks](./examples/js/gate-swap-watch-many-orderbooks.md)
+
+- [Gate Swaps](./examples/js/gate-swaps.md)
 
 - [Gate Watch Balance](./examples/js/gate-watch-balance.md)
 
 - [Gate Watch Order Book](./examples/js/gate-watch-order-book.md)
-
-- [Gateio Create Batch Order](./examples/js/gateio-create-batch-order.md)
-
-- [Gateio Futures](./examples/js/gateio-futures.md)
-
-- [Gateio Open Close Contract](./examples/js/gateio-open-close-contract.md)
-
-- [Gateio Swap Watch Many Orderbooks](./examples/js/gateio-swap-watch-many-orderbooks.md)
-
-- [Gateio Swaps](./examples/js/gateio-swaps.md)
-
-- [Gateio Watch Balance](./examples/js/gateio-watch-balance.md)
-
-- [Gateio Watch Order Book](./examples/js/gateio-watch-order-book.md)
 
 - [Graceful Shutdown](./examples/js/graceful-shutdown.md)
 
@@ -312,8 +306,6 @@ node path/to/example.js # substitute for actual filename here
 - [Sort Swap Markets By Hourly Price Change](./examples/js/sort-swap-markets-by-hourly-price-change.md)
 
 - [Symbols](./examples/js/symbols.md)
-
-- [Theocean](./examples/js/theocean.md)
 
 - [Tickers](./examples/js/tickers.md)
 

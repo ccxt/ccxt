@@ -739,7 +739,7 @@ public class WoofiproCore extends WoofiproApi
     {
         Object token = this.safeDict(rawCurrency, "_token", new java.util.HashMap<String, Object>() {{}});
         Object currencyId = this.safeString(token, "token");
-        Object networks = this.safeList(token, "chain_details");
+        Object networks = this.safeList(token, "chain_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object code = this.safeCurrencyCode(currencyId);
         Object indexedChains = this.safeDict(rawCurrency, "_indexedChains", new java.util.HashMap<String, Object>() {{}});
         Object resultingNetworks = new java.util.HashMap<String, Object>() {{}};
@@ -1811,7 +1811,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 response = (this.v1PrivatePostOrder(request)).join();
             }
-            Object data = this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             Object order = this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
@@ -2020,7 +2020,7 @@ public class WoofiproCore extends WoofiproApi
             }
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(finalMarket, "id") );
+                put( "symbol", WoofiproCore.this.safeString(finalMarket, "id") );
             }};
             Object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
             Object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
@@ -3096,7 +3096,7 @@ public class WoofiproCore extends WoofiproApi
         Object leverageValue = this.safeInteger(leverage, "max_leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", WoofiproCore.this.safeString(market, "symbol") );
             put( "marginMode", null );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );

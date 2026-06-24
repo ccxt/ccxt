@@ -317,7 +317,7 @@ public class HibachiCore extends HibachiApi
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
                 put( "amount", HibachiCore.this.parseNumber(HibachiCore.this.parsePrecision(HibachiCore.this.safeString(market, "underlyingDecimals"))) );
-                put( "price", Helpers.divide(HibachiCore.this.parseNumber(Helpers.GetValue(HibachiCore.this.safeList(market, "orderbookGranularities"), 0)), 10000) );
+                put( "price", Helpers.divide(HibachiCore.this.parseNumber(HibachiCore.this.safeValue(HibachiCore.this.safeList(market, "orderbookGranularities", new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0)), 10000) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1058,7 +1058,7 @@ public class HibachiCore extends HibachiApi
             // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
             //
             Object ret = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object responseOrders = this.safeList(response, "orders");
+            Object responseOrders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseOrders)); i++)
             {
                 Object responseOrder = Helpers.GetValue(responseOrders, i);
@@ -1173,7 +1173,7 @@ public class HibachiCore extends HibachiApi
             // { "orders": [ { "orderId": "589636801329628160" } ] }
             //
             Object ret = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object responseOrders = this.safeList(response, "orders");
+            Object responseOrders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseOrders)); i++)
             {
                 Object responseOrder = Helpers.GetValue(responseOrders, i);
@@ -1267,7 +1267,7 @@ public class HibachiCore extends HibachiApi
             // { "orders": [ { "orderId": "589636801329628160" } ] }
             //
             Object ret = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object responseOrders = this.safeList(response, "orders");
+            Object responseOrders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseOrders)); i++)
             {
                 Object responseOrder = Helpers.GetValue(responseOrders, i);
@@ -2253,7 +2253,7 @@ public class HibachiCore extends HibachiApi
             //         },
             //     ]
             // }
-            Object transactions = this.safeList(response, "transactions");
+            Object transactions = this.safeList(response, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object deposits = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
             {
@@ -2324,7 +2324,7 @@ public class HibachiCore extends HibachiApi
             //         },
             //     ]
             // }
-            Object transactions = this.safeList(response, "transactions");
+            Object transactions = this.safeList(response, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object withdrawals = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
             {
@@ -2499,7 +2499,7 @@ public class HibachiCore extends HibachiApi
             //     ]
             // }
             //
-            Object data = this.safeList(response, "data");
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {

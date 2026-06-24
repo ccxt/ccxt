@@ -107,7 +107,7 @@ class mexc(ccxt.async_support.mexc):
             return await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.ticker'
-            requestParams: dict = {
+            requestParams = {
                 'symbol': market['id'],
             }
             return await self.watch_swap_public(channel, messageHash, requestParams, params)
@@ -186,7 +186,7 @@ class mexc(ccxt.async_support.mexc):
         timestamp = self.safe_integer_2(message, 't', 'sendTime')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        ticker: Ticker = None
+        ticker: Ticker
         if market['spot']:
             ticker = self.parse_ws_ticker(rawTicker, market)
             ticker['timestamp'] = timestamp
@@ -214,14 +214,14 @@ class mexc(ccxt.async_support.mexc):
         symbols = self.market_symbols(symbols, None)
         messageHashes = []
         firstSymbol = self.safe_string(symbols, 0)
-        market: Market = None
+        market = None
         if firstSymbol is not None:
             market = self.market(firstSymbol)
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchTickers', market, params)
         isSpot = (type == 'spot')
         url = self.urls['api']['ws']['spot'] if (isSpot) else self.urls['api']['ws']['swap']
-        request: dict = {}
+        request = {}
         if isSpot:
             raise NotSupported(self.id + ' watchTickers does not support spot markets')
             # miniTicker = False
@@ -256,7 +256,7 @@ class mexc(ccxt.async_support.mexc):
             messageHashes.append('ticker')
         ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if isSpot and self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -335,7 +335,7 @@ class mexc(ccxt.async_support.mexc):
         result = []
         for i in range(0, len(data)):
             entry = data[i]
-            ticker: Ticker = None
+            ticker: Ticker
             if isSpot:
                 ticker = self.parse_ws_ticker(entry, market)
             else:
@@ -347,7 +347,7 @@ class mexc(ccxt.async_support.mexc):
             client.resolve(ticker, messageHash)
         client.resolve(result, topic)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         # protobuf ticker
         # "bidprice": "93387.28",  # Best bid price
         # "bidquantity": "3.73485",  # Best bid quantity
@@ -418,7 +418,7 @@ class mexc(ccxt.async_support.mexc):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, False, True)
-        marketType: Str = None
+        marketType = None
         if symbols is None:
             raise ArgumentsRequired(self.id + ' watchBidsAsks required symbols argument')
         markets = self.markets_for_symbols(symbols)
@@ -434,13 +434,13 @@ class mexc(ccxt.async_support.mexc):
                 topics.append('spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'])
             messageHashes.append('bidask:' + symbols[i])
         url = self.urls['api']['ws']['spot']
-        request: dict = {
+        request = {
             'method': 'SUBSCRIPTION',
             'params': topics,
         }
         ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
@@ -467,7 +467,7 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'bidask:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         data = self.safe_dict(ticker, 'd')
         marketId = self.safe_string(ticker, 's')
         market = self.safe_market(marketId, market)
@@ -489,7 +489,7 @@ class mexc(ccxt.async_support.mexc):
         params = self.omit(params, ['unsubscribed'])
         url = self.urls['api']['ws']['spot']
         method = 'UNSUBSCRIPTION' if (unsubscribed) else 'SUBSCRIPTION'
-        request: dict = {
+        request = {
             'method': method,
             'params': [channel],
         }
@@ -499,7 +499,7 @@ class mexc(ccxt.async_support.mexc):
         self.check_required_credentials()
         listenKey = await self.authenticate(channel)
         url = self.urls['api']['ws']['spot'] + '?listenKey=' + listenKey
-        request: dict = {
+        request = {
             'method': 'SUBSCRIPTION',
             'params': [channel],
         }
@@ -507,7 +507,7 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_swap_public(self, channel, messageHash, requestParams, params={}):
         url = self.urls['api']['ws']['swap']
-        request: dict = {
+        request = {
             'method': channel,
             'param': requestParams,
         }
@@ -521,7 +521,7 @@ class mexc(ccxt.async_support.mexc):
         timestamp = str(self.milliseconds())
         payload = self.apiKey + timestamp
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
-        request: dict = {
+        request = {
             'method': channel,
             'param': {
                 'apiKey': self.apiKey,
@@ -557,7 +557,7 @@ class mexc(ccxt.async_support.mexc):
             ohlcv = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.kline'
-            requestParams: dict = {
+            requestParams = {
                 'symbol': market['id'],
                 'interval': timeframeId,
             }
@@ -631,9 +631,9 @@ class mexc(ccxt.async_support.mexc):
         #    }
         # }
         #
-        parsed: dict = None
-        symbol: Str = None
-        timeframe: Str = None
+        parsed: dict
+        symbol = None
+        timeframe = None
         if 'publicSpotKline' in message:
             symbol = self.symbol(self.safe_string(message, 'symbol'))
             data = self.safe_dict(message, 'publicSpotKline', {})
@@ -660,7 +660,7 @@ class mexc(ccxt.async_support.mexc):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         # spot
         #
@@ -737,13 +737,13 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'orderbook:' + symbol
         orderbook = None
         if market['spot']:
-            frequency: Str = None
+            frequency = None
             frequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'frequency', '100ms')
             channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id']
             orderbook = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.depth'
-            requestParams: dict = {
+            requestParams = {
                 'symbol': market['id'],
             }
             orderbook = await self.watch_swap_public(channel, messageHash, requestParams, params)
@@ -926,7 +926,7 @@ class mexc(ccxt.async_support.mexc):
             trades = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.deal'
-            requestParams: dict = {
+            requestParams = {
                 'symbol': market['id'],
             }
             trades = await self.watch_swap_public(channel, messageHash, requestParams, params)
@@ -999,7 +999,7 @@ class mexc(ccxt.async_support.mexc):
         if d is None:
             trades = self.safe_list(message, 'data', [])
         for j in range(0, len(trades)):
-            parsedTrade: Trade = None
+            parsedTrade: Trade
             if market['spot']:
                 parsedTrade = self.parse_ws_trade(trades[j], market)
             else:
@@ -1022,12 +1022,12 @@ class mexc(ccxt.async_support.mexc):
         """
         await self.load_markets()
         messageHash = 'myTrades'
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = messageHash + ':' + symbol
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         trades = None
         if type == 'spot':
@@ -1080,7 +1080,7 @@ class mexc(ccxt.async_support.mexc):
         marketId = self.safe_string_2(message, 's', 'symbol', futuresMarketId)
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        trade: Trade = None
+        trade: Trade
         if market['spot']:
             trade = self.parse_ws_trade(data, market)
         else:
@@ -1095,7 +1095,7 @@ class mexc(ccxt.async_support.mexc):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(trades, symbolSpecificMessageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # public trade(protobuf)
         #    {
@@ -1192,12 +1192,12 @@ class mexc(ccxt.async_support.mexc):
         """
         await self.load_markets()
         messageHash = 'orders'
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = messageHash + ':' + symbol
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         orders = None
         if type == 'spot':
@@ -1288,7 +1288,7 @@ class mexc(ccxt.async_support.mexc):
         marketId = self.safe_string_2(message, 's', 'symbol', futuresMarketId)
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        parsed: Order = None
+        parsed: Order
         if market['spot']:
             parsed = self.parse_ws_order(data, market)
         else:
@@ -1303,7 +1303,7 @@ class mexc(ccxt.async_support.mexc):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(orders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         # spot
         #     {
@@ -1375,7 +1375,7 @@ class mexc(ccxt.async_support.mexc):
         side = self.safe_string(order, 'tradeType')
         status = self.safe_string_2(order, 'status', 'state')
         type = self.safe_string(order, 'orderType')
-        fee: Fee = None
+        fee = None
         feeCurrency = self.safe_string(order, 'N')
         if feeCurrency is not None:
             fee = {
@@ -1406,8 +1406,8 @@ class mexc(ccxt.async_support.mexc):
             'info': order,
         }, market)
 
-    def parse_ws_order_status(self, status, market=None):
-        statuses: dict = {
+    def parse_ws_order_status(self, status, market: Market = None):
+        statuses = {
             '0': 'open',     # new/pending(OCO orders)
             '1': 'open',     # new order
             '2': 'closed',   # filled
@@ -1422,7 +1422,7 @@ class mexc(ccxt.async_support.mexc):
         return self.safe_string(statuses, status, status)
 
     def parse_ws_order_type(self, type):
-        types: dict = {
+        types = {
             '1': 'limit',   # LIMIT_ORDER
             '2': 'limit',  # POST_ONLY
             '3': None,  # IMMEDIATE_OR_CANCEL
@@ -1435,7 +1435,7 @@ class mexc(ccxt.async_support.mexc):
         return self.safe_string(types, type)
 
     def parse_ws_time_in_force(self, timeInForce):
-        timeInForceIds: dict = {
+        timeInForceIds = {
             '1': 'GTC',   # LIMIT_ORDER
             '2': 'PO',  # POST_ONLY
             '3': 'IOC',  # IMMEDIATE_OR_CANCEL
@@ -1457,7 +1457,7 @@ class mexc(ccxt.async_support.mexc):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'balance:' + type
         if type == 'spot':
@@ -1535,7 +1535,7 @@ class mexc(ccxt.async_support.mexc):
         market = self.market(symbol)
         messageHash = 'fundingRate:' + market['symbol']
         channel = 'sub.funding.rate'
-        requestParams: dict = {
+        requestParams = {
             'symbol': market['id'],
         }
         return await self.watch_swap_public(channel, messageHash, requestParams, params)
@@ -1553,9 +1553,9 @@ class mexc(ccxt.async_support.mexc):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = 'unsubscribe:fundingRate:' + market['symbol']
-        url: Str = None
+        url = None
         channel = 'unsub.funding.rate'
-        requestParams: dict = {
+        requestParams = {
             'symbol': market['id'],
         }
         url = self.urls['api']['ws']['swap']
@@ -1594,8 +1594,8 @@ class mexc(ccxt.async_support.mexc):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = 'unsubscribe:ticker:' + market['symbol']
-        url: Str = None
-        channel: Str = None
+        url = None
+        channel = None
         if market['spot']:
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id']
             url = self.urls['api']['ws']['spot']
@@ -1603,7 +1603,7 @@ class mexc(ccxt.async_support.mexc):
             self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'unsub.ticker'
-            requestParams: dict = {
+            requestParams = {
                 'symbol': market['id'],
             }
             url = self.urls['api']['ws']['swap']
@@ -1623,14 +1623,14 @@ class mexc(ccxt.async_support.mexc):
         symbols = self.market_symbols(symbols, None)
         messageHashes = []
         firstSymbol = self.safe_string(symbols, 0)
-        market: Market = None
+        market = None
         if firstSymbol is not None:
             market = self.market(firstSymbol)
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchTickers', market, params)
         isSpot = (type == 'spot')
         url = self.urls['api']['ws']['spot'] if (isSpot) else self.urls['api']['ws']['swap']
-        request: dict = {}
+        request = {}
         if isSpot:
             raise NotSupported(self.id + ' watchTickers does not support spot markets')
             # miniTicker = False
@@ -1677,7 +1677,7 @@ class mexc(ccxt.async_support.mexc):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, False, True)
-        marketType: Str = None
+        marketType = None
         if symbols is None:
             raise ArgumentsRequired(self.id + ' watchBidsAsks required symbols argument')
         markets = self.markets_for_symbols(symbols)
@@ -1693,7 +1693,7 @@ class mexc(ccxt.async_support.mexc):
                 topics.append('spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'])
             messageHashes.append('unsubscribe:bidask:' + symbols[i])
         url = self.urls['api']['ws']['spot']
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIPTION',
             'params': topics,
         }
@@ -1717,7 +1717,7 @@ class mexc(ccxt.async_support.mexc):
         timeframes = self.safe_value(self.options, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe)
         messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe
-        url: Str = None
+        url = None
         if market['spot']:
             url = self.urls['api']['ws']['spot']
             channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId
@@ -1726,7 +1726,7 @@ class mexc(ccxt.async_support.mexc):
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.kline'
-            requestParams: dict = {
+            requestParams = {
                 'symbol': market['id'],
                 'interval': timeframeId,
             }
@@ -1747,10 +1747,10 @@ class mexc(ccxt.async_support.mexc):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'unsubscribe:orderbook:' + symbol
-        url: Str = None
+        url = None
         if market['spot']:
             url = self.urls['api']['ws']['spot']
-            frequency: Str = None
+            frequency = None
             frequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'frequency', '100ms')
             channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id']
             params['unsubscribed'] = True
@@ -1758,7 +1758,7 @@ class mexc(ccxt.async_support.mexc):
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.depth'
-            requestParams: dict = {
+            requestParams = {
                 'symbol': market['id'],
             }
             self.watch_swap_public(channel, messageHash, requestParams, params)
@@ -1778,7 +1778,7 @@ class mexc(ccxt.async_support.mexc):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'unsubscribe:trades:' + symbol
-        url: Str = None
+        url = None
         if market['spot']:
             url = self.urls['api']['ws']['spot']
             channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id']
@@ -1787,7 +1787,7 @@ class mexc(ccxt.async_support.mexc):
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.deal'
-            requestParams: dict = {
+            requestParams = {
                 'symbol': market['id'],
             }
             self.watch_swap_public(channel, messageHash, requestParams, params)
@@ -1853,7 +1853,7 @@ class mexc(ccxt.async_support.mexc):
     async def keep_alive_listen_key(self, listenKey, params={}):
         if listenKey is None:
             return
-        request: dict = {
+        request = {
             'listenKey': listenKey,
         }
         try:
@@ -1885,7 +1885,7 @@ class mexc(ccxt.async_support.mexc):
         elif msg.find('@') > -1:
             parts = msg.split('@')
             channel = self.safe_string(parts, 1)
-            methods: dict = {
+            methods = {
                 'public.increase.depth.v3.api': self.handle_order_book_subscription,
                 'public.aggre.depth.v3.api.pb': self.handle_order_book_subscription,
             }
@@ -1945,13 +1945,13 @@ class mexc(ccxt.async_support.mexc):
             self.handle_subscription_status(client, message)
             return
         c = self.safe_string(message, 'c')
-        channel: Str = None
+        channel = None
         if c is None:
             channel = self.safe_string(message, 'channel')
         else:
             parts = c.split('@')
             channel = self.safe_string(parts, 1)
-        methods: dict = {
+        methods = {
             'public.deals.v3.api': self.handle_trades,
             'push.deal': self.handle_trades,
             'public.kline.v3.api': self.handle_ohlcv,

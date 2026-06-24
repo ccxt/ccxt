@@ -309,7 +309,7 @@ export default class aftermath extends Exchange {
         //     }
         //
         const precision = this.safeDict(market, 'precision');
-        const limits = this.safeDict(market, 'limits');
+        const limits = this.safeDict(market, 'limits', {});
         return this.safeMarketStructure({
             'id': this.safeString(market, 'id'),
             'symbol': this.safeString(market, 'symbol'),

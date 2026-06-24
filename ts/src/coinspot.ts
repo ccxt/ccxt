@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Dict, Fee, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Fee, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -676,7 +676,7 @@ export default class coinspot extends Exchange {
             'amount': amount,
             'rate': price,
         };
-        let response = undefined;
+        let response: Dict;
         if (sideUpper === 'BUY') {
             response = await this.privatePostMyBuy (this.extend (request, params));
         } else if (sideUpper === 'SELL') {
@@ -712,7 +712,7 @@ export default class coinspot extends Exchange {
         const request: Dict = {
             'id': id,
         };
-        let response: Dict = undefined;
+        let response: Dict;
         if (side === 'buy') {
             response = await this.privatePostMyBuyCancel (this.extend (request, params));
         } else {
@@ -738,7 +738,7 @@ export default class coinspot extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const isVersionedApi = Array.isArray (api);
         const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api;

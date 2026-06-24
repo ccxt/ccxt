@@ -641,7 +641,7 @@ func (this *ToobitCore) ParseCurrency(rawCurrency any) any {
 	var id any = this.SafeString(rawCurrency, "coinId")
 	var code any = this.SafeCurrencyCode(id)
 	var networks any = map[string]any{}
-	var rawNetworks any = this.SafeList(rawCurrency, "chainTypes")
+	var rawNetworks any = this.SafeList(rawCurrency, "chainTypes", []any{})
 	for j := 0; IsLessThan(j, GetArrayLength(rawNetworks)); j++ {
 		var rawNetwork any = GetValue(rawNetworks, j)
 		var networkId any = this.SafeString(rawNetwork, "chainType")

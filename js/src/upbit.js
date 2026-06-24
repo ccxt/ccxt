@@ -630,11 +630,14 @@ export default class upbit extends Exchange {
         await this.loadMarkets();
         let ids = undefined;
         if (symbols === undefined) {
-            ids = this.ids.join(',');
+            const allIds = this.ids;
+            if (allIds !== undefined) {
+                ids = allIds.join(',');
+            }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join(',');
+            const marketIds = this.marketIds(symbols);
+            ids = marketIds.join(',');
         }
         const request = {
             'markets': ids,
@@ -1104,7 +1107,7 @@ export default class upbit extends Exchange {
             'timeframe': timeframeValue,
             'count': limit,
         };
-        let response = undefined;
+        let response;
         if (since !== undefined) {
             // convert `since` to `to` value
             request['to'] = this.iso8601(this.sum(since, timeframePeriod * limit * 1000));
@@ -1277,7 +1280,7 @@ export default class upbit extends Exchange {
         if (request['ord_type'] === 'best' && timeInForce === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder() requires a timeInForce parameter for best type orders');
         }
-        let response = undefined;
+        let response;
         params = this.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test']);
         if (test) {
             response = await this.privatePostOrdersTest(this.extend(request, params));
@@ -2267,7 +2270,7 @@ export default class upbit extends Exchange {
         const request = {
             'amount': amount,
         };
-        let response = undefined;
+        let response;
         if (code !== 'KRW') {
             this.checkAddress(address);
             // 2023-05-23 Change to required parameters for digital assets

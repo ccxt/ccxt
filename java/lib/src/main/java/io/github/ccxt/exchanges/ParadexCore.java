@@ -842,7 +842,7 @@ public class ParadexCore extends ParadexApi
             {
                 Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
                 Object symbol = Helpers.GetValue(fee, "symbol");
-                Helpers.addElementToObject(result, symbol, fee);
+                Helpers.addElementToObject(result, ((String)symbol), fee);
             }
             return result;
         });
@@ -1629,7 +1629,7 @@ public class ParadexCore extends ParadexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(order, "created_at");
         Object orderId = this.safeString(order, "id");
-        Object clientOrderId = this.omitZero(this.safeString(order, "client_id"));
+        Object clientOrderId = this.omitZero(((String)this.safeString(order, "client_id")));
         Object marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1649,8 +1649,8 @@ public class ParadexCore extends ParadexApi
             }
         }
         Object side = this.safeStringLower(order, "side");
-        Object average = this.omitZero(this.safeString(order, "avg_fill_price"));
-        Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
+        Object average = this.omitZero(((String)this.safeString(order, "avg_fill_price")));
+        Object remaining = this.omitZero(((String)this.safeString(order, "remaining_size")));
         Object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         Object flags = this.safeList(order, "flags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object reduceOnly = null;
@@ -1699,7 +1699,7 @@ public class ParadexCore extends ParadexApi
             put( "GTC", "GTC" );
             put( "POST_ONLY", "PO" );
         }};
-        return this.safeString(timeInForces, timeInForce);
+        return this.safeString(timeInForces, ((String)timeInForce));
     }
 
     public Object parseOrderStatus(Object status)
@@ -1725,7 +1725,7 @@ public class ParadexCore extends ParadexApi
             put( "STOP_LIMIT", "limit" );
             put( "STOP_MARKET", "market" );
         }};
-        return this.safeStringLower(types, type, type);
+        return this.safeStringLower(types, ((String)type), type);
     }
 
     public Object scaleNumber(Object num)
@@ -1740,7 +1740,7 @@ public class ParadexCore extends ParadexApi
         Object market = this.market(symbol);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         Object orderType = ((String)type).toUpperCase();
-        Object orderSide = ((String)side).toUpperCase();
+        Object orderSide = ((String)((String)side)).toUpperCase();
         final Object finalOrderType = orderType;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
@@ -2076,7 +2076,7 @@ public class ParadexCore extends ParadexApi
                 Object price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object extendedParams = this.extend(parameters, orderParams);
-                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
+                Object orderRequest = this.createOrderRequest(((String)symbol), ((String)type), side, amount, price, extendedParams);
                 orderRequest = (this.signOrderRequest(orderRequest)).join();
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
@@ -3228,7 +3228,7 @@ public class ParadexCore extends ParadexApi
             put( "COMPLETED", "ok" );
             put( "FAILED", "failed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
@@ -3280,7 +3280,7 @@ public class ParadexCore extends ParadexApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", rawMarginMode );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", ParadexCore.this.safeString(finalMarket, "symbol") );
             put( "marginMode", marginMode );
         }};
     }
@@ -3306,7 +3306,7 @@ public class ParadexCore extends ParadexApi
             this.checkRequiredArgument("setMarginMode", symbol, "symbol");
             (this.authenticateRest()).join();
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object leverage = null;
             var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", 1);
             leverage = ((java.util.List<Object>) leverageparametersVariable).get(0);
@@ -3408,7 +3408,7 @@ public class ParadexCore extends ParadexApi
             this.checkRequiredArgument("setLeverage", symbol, "symbol");
             (this.authenticateRest()).join();
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -3818,7 +3818,7 @@ public class ParadexCore extends ParadexApi
             version = "v2";
             path = Helpers.replace((String)path, (String)"v2/", (String)"");
         }
-        Object url = Helpers.add(Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), version)), "/"), this.implodeParams(path, parameters));
+        Object url = Helpers.add(Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)version))), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {

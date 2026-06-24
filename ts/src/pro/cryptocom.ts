@@ -118,8 +118,8 @@ export default class cryptocom extends cryptocomRest {
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         if (!limit) {
             limit = 50;
         }
@@ -166,9 +166,9 @@ export default class cryptocom extends cryptocomRest {
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const topics = [];
-        const subMessageHashes = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const subMessageHashes: string[] = [];
+        const messageHashes: string[] = [];
         const limit = this.safeInteger (params, 'limit', 50);
         const topicParams = this.safeValue (params, 'params');
         if (topicParams === undefined) {
@@ -348,7 +348,7 @@ export default class cryptocom extends cryptocomRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const topics = [];
+        const topics: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -376,8 +376,8 @@ export default class cryptocom extends cryptocomRest {
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -508,7 +508,7 @@ export default class cryptocom extends cryptocomRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         const marketIds = this.marketIds (symbols);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -544,8 +544,8 @@ export default class cryptocom extends cryptocomRest {
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const subMessageHashes = [];
+        const messageHashes: string[] = [];
+        const subMessageHashes: string[] = [];
         const marketIds = this.marketIds (symbols);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -654,8 +654,8 @@ export default class cryptocom extends cryptocomRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const topics = [];
+        const messageHashes: string[] = [];
+        const topics: string[] = [];
         const marketIds = this.marketIds (symbols);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -976,7 +976,7 @@ export default class cryptocom extends cryptocomRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const newPositions = [];
+        const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);

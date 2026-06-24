@@ -1740,7 +1740,7 @@ func (this *AsterCore) ParseLastPrice(entry any, optionalArgs ...any) any {
 	_ = market
 	var timestamp any = this.SafeInteger(entry, "time")
 	return map[string]any{
-		"symbol":    GetValue(market, "symbol"),
+		"symbol":    this.SafeString(market, "symbol"),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"price":     this.SafeNumberOmitZero(entry, "price"),
@@ -3560,7 +3560,7 @@ func (this *AsterCore) ParseMarginMode(marginMode any, optionalArgs ...any) any 
 	market = this.SafeMarket(marketId, market, nil, "swap")
 	return map[string]any{
 		"info":       marginMode,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"marginMode": this.SafeStringLower(marginMode, "marginType"),
 	}
 }
@@ -4279,7 +4279,7 @@ func (this *AsterCore) FetchPositions(optionalArgs ...any) <-chan any {
 func (this *AsterCore) ParseAccountPositions(account any, optionalArgs ...any) any {
 	filterClosed := GetArg(optionalArgs, 0, false)
 	_ = filterClosed
-	var positions any = this.SafeList(account, "positions")
+	var positions any = this.SafeList(account, "positions", []any{})
 	var assets any = this.SafeList(account, "assets", []any{})
 	var balances any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
@@ -4795,13 +4795,12 @@ func (this *AsterCore) Transfer(code any, amount any, fromAccount any, toAccount
 		if IsTrue(IsEqual(typeVar, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")))
 		}
-		var response any = nil
 		var defaultClientTranId any = this.NumberToString(this.Milliseconds())
 		var clientTranId any = this.SafeString(params, "clientTranId", defaultClientTranId)
 		AddElementToObject(request, "kindType", typeVar)
 		AddElementToObject(request, "clientTranId", clientTranId)
 
-		response = (<-this.SapiPrivatePostV3AssetWalletTransfer(this.Extend(request, params)))
+		response := (<-this.SapiPrivatePostV3AssetWalletTransfer(this.Extend(request, params)))
 		PanicOnError(response)
 
 		ch <- this.ParseTransfer(response, currency)
@@ -4977,8 +4976,8 @@ func (this *AsterCore) LoadMarketsAndSignIn() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes42188 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
-		PanicOnError(retRes42188)
+		retRes42178 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
+		PanicOnError(retRes42178)
 		return nil
 	}()
 	return ch
@@ -5011,8 +5010,8 @@ func (this *AsterCore) SignIn(optionalArgs ...any) <-chan any {
 			panic(NotSupported(Add(this.Id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")))
 		}
 
-		retRes42398 := (<-this.InitializeClient(params))
-		PanicOnError(retRes42398)
+		retRes42388 := (<-this.InitializeClient(params))
+		PanicOnError(retRes42388)
 
 		ch <- true
 		return nil

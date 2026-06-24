@@ -1468,7 +1468,7 @@ export default class bitmex extends bitmexRest {
             const symbol = market['symbol'];
             const messageHash = table + ':' + market['id'];
             const result = [
-                this.parse8601(this.safeString(candle, 'timestamp')) - duration * 1000,
+                this.parseToInt(this.parse8601(this.safeString(candle, 'timestamp'))) - duration * 1000,
                 undefined, // set open price to undefined, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 this.safeFloat(candle, 'high'),
                 this.safeFloat(candle, 'low'),

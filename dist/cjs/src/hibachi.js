@@ -311,7 +311,7 @@ class hibachi extends hibachi$1["default"] {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'underlyingDecimals'))),
-                'price': this.parseNumber(this.safeList(market, 'orderbookGranularities')[0]) / 10000.0,
+                'price': this.parseNumber(this.safeValue(this.safeList(market, 'orderbookGranularities', []), 0)) / 10000.0,
             },
             'limits': {
                 'leverage': {
@@ -936,7 +936,7 @@ class hibachi extends hibachi$1["default"] {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList(response, 'orders');
+        const responseOrders = this.safeList(response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push(this.safeOrder({
@@ -1026,7 +1026,7 @@ class hibachi extends hibachi$1["default"] {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList(response, 'orders');
+        const responseOrders = this.safeList(response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push(this.safeOrder({
@@ -1098,7 +1098,7 @@ class hibachi extends hibachi$1["default"] {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList(response, 'orders');
+        const responseOrders = this.safeList(response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push(this.safeOrder({
@@ -1915,7 +1915,7 @@ class hibachi extends hibachi$1["default"] {
         //         },
         //     ]
         // }
-        const transactions = this.safeList(response, 'transactions');
+        const transactions = this.safeList(response, 'transactions', []);
         const deposits = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
@@ -1973,7 +1973,7 @@ class hibachi extends hibachi$1["default"] {
         //         },
         //     ]
         // }
-        const transactions = this.safeList(response, 'transactions');
+        const transactions = this.safeList(response, 'transactions', []);
         const withdrawals = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
@@ -2111,7 +2111,7 @@ class hibachi extends hibachi$1["default"] {
         //     ]
         // }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

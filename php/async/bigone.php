@@ -1047,7 +1047,6 @@ class bigone extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $response = null;
             if ($market['contract']) {
                 $request = array(
                     'symbol' => $market['id'],
@@ -1222,6 +1221,8 @@ class bigone extends Exchange {
             'cost' => null,
             'info' => $trade,
         );
+        $makerCurrencyCode = null;
+        $takerCurrencyCode = null;
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
@@ -1446,7 +1447,6 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
             $type = $this->safe_string($params, 'type', '');
             $params = $this->omit($params, 'type');
-            $response = null;
             if ($type === 'funding' || $type === 'fund') {
                 $response = Async\await($this->privateGetFundAccounts ($params));
             } else {
@@ -1963,7 +1963,7 @@ class bigone extends Exchange {
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);

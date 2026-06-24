@@ -722,7 +722,7 @@ public partial class testMainClass
             if (isTrue(isGreaterThan(valuesLength, 0)))
             {
                 object first = getValue(values, 0);
-                if (isTrue(!isEqual(first, null)))
+                if (isTrue(first))
                 {
                     symbol = getValue(first, "symbol");
                 }

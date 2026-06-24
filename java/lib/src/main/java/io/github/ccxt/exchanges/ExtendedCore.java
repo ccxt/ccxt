@@ -1588,7 +1588,7 @@ public class ExtendedCore extends ExtendedApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(interest, "t");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", ExtendedCore.this.safeString(market, "symbol") );
             put( "openInterestAmount", ExtendedCore.this.safeNumber(interest, "I") );
             put( "openInterestValue", ExtendedCore.this.safeNumber(interest, "i") );
             put( "baseVolume", ExtendedCore.this.safeNumber(interest, "I") );
@@ -3539,7 +3539,7 @@ public class ExtendedCore extends ExtendedApi
                 clientOrderIds = new java.util.ArrayList<Object>(java.util.Arrays.asList(clientOrderId));
             }
             Object hasClientOrderIds = !Helpers.isEqual(clientOrderIds, null);
-            if (Helpers.isTrue(hasClientOrderIds))
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
                 Object clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
                 if (Helpers.isTrue(Helpers.isGreaterThan(clientOrderIdsLength, 0)))

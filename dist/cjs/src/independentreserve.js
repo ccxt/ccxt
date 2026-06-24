@@ -891,7 +891,7 @@ class independentreserve extends independentreserve$1["default"] {
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         };
-        let response = undefined;
+        let response;
         request['volume'] = amount;
         if (type === 'limit') {
             request['price'] = price;

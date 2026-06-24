@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, SubType, Tickers, FundingRate, Transaction, TransferEntry
+from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -949,7 +949,7 @@ class xt(Exchange, ImplicitAPI):
                     },
                 }
             typeRaw = self.safe_string(entry, 'type')
-            type: Str = None
+            type = None
             if typeRaw == 'FT':
                 type = 'crypto'
             else:
@@ -1260,13 +1260,13 @@ class xt(Exchange, ImplicitAPI):
         state = self.safe_string(market, 'state')
         symbol = base + '/' + quote
         filters = self.safe_value(market, 'filters', [])
-        minAmount: Num = None
-        maxAmount: Num = None
-        minCost: Num = None
-        maxCost: Num = None
-        minPrice: Num = None
-        maxPrice: Num = None
-        amountPrecision: Num = None
+        minAmount = None
+        maxAmount = None
+        minCost = None
+        maxCost = None
+        minPrice = None
+        maxPrice = None
+        amountPrecision = None
         for i in range(0, len(filters)):
             entry = filters[i]
             filter = self.safe_string(entry, 'filter')
@@ -1282,11 +1282,11 @@ class xt(Exchange, ImplicitAPI):
         if amountPrecision is None:
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
         underlyingType = self.safe_string(market, 'underlyingType')
-        linear: Bool = None
-        inverse: Bool = None
-        settleId: Str = None
-        settle: Str = None
-        expiry: Int = None
+        linear = None
+        inverse = None
+        settleId = None
+        settle = None
+        expiry = None
         future = False
         swap = False
         contract = False
@@ -1499,7 +1499,8 @@ class xt(Exchange, ImplicitAPI):
         #         "v": "702461.58895"
         #     }
         #
-        volumeIndex = 'v' if (market['inverse']) else 'a'
+        isInverse = self.safe_bool(market, 'inverse')
+        volumeIndex = 'v' if (isInverse) else 'a'
         return [
             self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),
@@ -1670,7 +1671,7 @@ class xt(Exchange, ImplicitAPI):
             return self.parse_ticker(ticker[0], market)
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
 
@@ -1682,13 +1683,13 @@ class xt(Exchange, ImplicitAPI):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             market = self.market(symbols[0])
         request = {}
-        type: Str = None
-        subType: SubType = None
+        type = None
+        subType = None
         response = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
@@ -1754,7 +1755,7 @@ class xt(Exchange, ImplicitAPI):
             result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_bids_asks(self, symbols: List[str] = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
 
@@ -1767,10 +1768,10 @@ class xt(Exchange, ImplicitAPI):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
-        market: Market = None
+        market = None
         if symbols is not None:
             market = self.market(symbols[0])
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
         if subType is not None:
             raise NotSupported(self.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported')
@@ -1795,7 +1796,7 @@ class xt(Exchange, ImplicitAPI):
         tickers = self.safe_value(response, 'result', [])
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None):
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -1944,7 +1945,7 @@ class xt(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'result', [])
         return self.parse_trades(trades, market)
 
-    async def fetch_my_trades(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
 
@@ -1959,14 +1960,14 @@ class xt(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since
-        type: Str = None
-        subType: SubType = None
+        type = None
+        subType = None
         response = None
         type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         subType, params = self.handle_sub_type_and_params('fetchMyTrades', market, params)
@@ -1978,7 +1979,7 @@ class xt(Exchange, ImplicitAPI):
             else:
                 response = await self.privateLinearGetFutureTradeV1OrderTradeList(self.extend(request, params))
         else:
-            marginMode: Str = None
+            marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
             marginOrSpotRequest = 'LEVER' if (marginMode is not None) else 'SPOT'
             request['bizType'] = marginOrSpotRequest
@@ -2047,7 +2048,7 @@ class xt(Exchange, ImplicitAPI):
         trades = self.safe_value(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None):
         #
         # spot: fetchTrades
         #
@@ -2161,8 +2162,8 @@ class xt(Exchange, ImplicitAPI):
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
         market = self.safe_market(marketId, market, '_', marketType)
-        side: Str = None
-        takerOrMaker: Str = None
+        side = None
+        takerOrMaker = None
         isBuyerMaker = self.safe_bool(trade, 'b')
         if isBuyerMaker is not None:
             side = 'sell' if isBuyerMaker else 'buy'
@@ -2222,8 +2223,8 @@ class xt(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
-        type: Str = None
-        subType: SubType = None
+        type = None
+        subType = None
         response = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
@@ -2388,8 +2389,8 @@ class xt(Exchange, ImplicitAPI):
             'side': side.upper(),
             'type': type.upper(),
         }
-        timeInForce: Str = None
-        marginMode: Str = None
+        timeInForce = None
+        marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         marginOrSpotRequest = 'LEVER' if (marginMode is not None) else 'SPOT'
         request['bizType'] = marginOrSpotRequest
@@ -2405,7 +2406,7 @@ class xt(Exchange, ImplicitAPI):
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
-                        costCalculated: Str = None
+                        costCalculated = None
                         if price is not None:
                             costCalculated = Precise.string_mul(amountString, priceString)
                         else:
@@ -2500,7 +2501,7 @@ class xt(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_order(self, id: str, symbol: str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 
@@ -2517,12 +2518,12 @@ class xt(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         request = {}
-        type: Str = None
-        subType: SubType = None
+        type = None
+        subType = None
         response = None
         type, params = self.handle_market_type_and_params('fetchOrder', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrder', market, params)
@@ -2672,7 +2673,7 @@ class xt(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
-    async def fetch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple orders made by the user
 
@@ -2689,7 +2690,7 @@ class xt(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2697,8 +2698,8 @@ class xt(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        type: Str = None
-        subType: SubType = None
+        type = None
+        subType = None
         response = None
         type, params = self.handle_market_type_and_params('fetchOrders', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrders', market, params)
@@ -2714,7 +2715,7 @@ class xt(Exchange, ImplicitAPI):
         elif (subType == 'linear') or (type == 'swap') or (type == 'future'):
             response = await self.privateLinearGetFutureTradeV1OrderListHistory(self.extend(request, params))
         else:
-            marginMode: Str = None
+            marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
             marginOrSpotRequest = 'LEVER' if (marginMode is not None) else 'SPOT'
             request['bizType'] = marginOrSpotRequest
@@ -2833,10 +2834,10 @@ class xt(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_orders_by_status(self, status, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         request = {}
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2844,8 +2845,8 @@ class xt(Exchange, ImplicitAPI):
             request['size'] = limit
         if since is not None:
             request['startTime'] = since
-        type: Str = None
-        subType: SubType = None
+        type = None
+        subType = None
         response = None
         type, params = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrdersByStatus', market, params)
@@ -2891,7 +2892,7 @@ class xt(Exchange, ImplicitAPI):
             else:
                 response = await self.privateLinearGetFutureTradeV1OrderList(self.extend(request, params))
         else:
-            marginMode: Str = None
+            marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
             marginOrSpotRequest = 'LEVER' if (marginMode is not None) else 'SPOT'
             request['bizType'] = marginOrSpotRequest
@@ -3090,7 +3091,7 @@ class xt(Exchange, ImplicitAPI):
             orders = self.safe_list(response, 'result')
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all unfilled currently open orders
 
@@ -3109,7 +3110,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple closed orders made by the user
 
@@ -3128,7 +3129,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_canceled_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
 
@@ -3147,7 +3148,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('canceled', symbol, since, limit, params)
 
-    async def cancel_order(self, id: str, symbol: str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
 
@@ -3164,12 +3165,12 @@ class xt(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         request = {}
-        type: Str = None
-        subType: SubType = None
+        type = None
+        subType = None
         response = None
         type, params = self.handle_market_type_and_params('cancelOrder', market, params)
         subType, params = self.handle_sub_type_and_params('cancelOrder', market, params)
@@ -3224,7 +3225,7 @@ class xt(Exchange, ImplicitAPI):
         order = response if isContractResponse else self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
-    async def cancel_all_orders(self, symbol: str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
 
@@ -3241,12 +3242,12 @@ class xt(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        type: Str = None
-        subType: SubType = None
+        type = None
+        subType = None
         response = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params)
@@ -3269,7 +3270,7 @@ class xt(Exchange, ImplicitAPI):
         elif (subType == 'linear') or (type == 'swap') or (type == 'future'):
             response = await self.privateLinearPostFutureTradeV1OrderCancelAll(self.extend(request, params))
         else:
-            marginMode: Str = None
+            marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
             marginOrSpotRequest = 'LEVER' if (marginMode is not None) else 'SPOT'
             request['bizType'] = marginOrSpotRequest
@@ -3297,7 +3298,7 @@ class xt(Exchange, ImplicitAPI):
             self.safe_order(response),
         ]
 
-    async def cancel_orders(self, ids: List[str], symbol: str = None, params={}) -> List[Order]:
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -3312,10 +3313,10 @@ class xt(Exchange, ImplicitAPI):
         request = {
             'orderIds': ids,
         }
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('cancelOrders', market, params)
         if subType is not None:
             raise NotSupported(self.id + ' cancelOrders() does not support swap and future orders, only spot orders are accepted')
@@ -3334,7 +3335,7 @@ class xt(Exchange, ImplicitAPI):
             self.safe_order(response),
         ]
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None):
         #
         # spot: createOrder
         #
@@ -3533,15 +3534,15 @@ class xt(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        type: Str = None
-        subType: SubType = None
+        type = None
+        subType = None
         response = None
         type, params = self.handle_market_type_and_params('fetchLedger', None, params)
         subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
@@ -3578,7 +3579,7 @@ class xt(Exchange, ImplicitAPI):
         ledger = self.safe_value(data, 'items', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None) -> LedgerEntry:
+    def parse_ledger_entry(self, item, currency: Currency = None) -> LedgerEntry:
         #
         #     {
         #         "id": "207260567109387524",
@@ -3642,7 +3643,7 @@ class xt(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         await self.load_markets()
-        networkCode: Str = None
+        networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         currency = self.currency(code)
         networkId = self.network_code_to_id(networkCode, code)
@@ -3666,7 +3667,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3697,7 +3698,7 @@ class xt(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -3750,7 +3751,7 @@ class xt(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -3806,7 +3807,7 @@ class xt(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        networkCode: Str = None
+        networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         networkIdsByCodes = self.safe_value(self.options, 'networks', {})
         networkId = self.safe_string_2(networkIdsByCodes, networkCode, code, code)
@@ -3919,7 +3920,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def set_leverage(self, leverage: int, symbol: str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -3946,9 +3947,9 @@ class xt(Exchange, ImplicitAPI):
             'positionSide': positionSide,
             'leverage': leverage,
         }
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('setLeverage', market, params)
-        response = None
+        response: dict
         if subType == 'inverse':
             response = await self.privateInversePostFutureUserV1PositionAdjustLeverage(self.extend(request, params))
         else:
@@ -4002,7 +4003,7 @@ class xt(Exchange, ImplicitAPI):
             'type': addOrReduce,
             'positionSide': positionSide,
         }
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('modifyMarginHelper', market, params)
         response = None
         if subType == 'inverse':
@@ -4019,7 +4020,7 @@ class xt(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def parse_margin_modification(self, data, market=None) -> MarginModification:
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
         return {
             'info': data,
             'type': None,
@@ -4033,7 +4034,7 @@ class xt(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}) -> LeverageTiers:
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage for different trade sizes
 
@@ -4044,7 +4045,7 @@ class xt(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
         await self.load_markets()
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('fetchLeverageTiers', None, params)
         response = None
         if subType == 'inverse':
@@ -4079,7 +4080,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None) -> LeverageTiers:
+    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None) -> LeverageTiers:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -4125,7 +4126,7 @@ class xt(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('fetchMarketLeverageTiers', market, params)
         response = None
         if subType == 'inverse':
@@ -4157,7 +4158,7 @@ class xt(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'result', {})
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market=None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -4194,7 +4195,7 @@ class xt(Exchange, ImplicitAPI):
             })
         return tiers
 
-    async def fetch_funding_rate_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rates
 
@@ -4224,7 +4225,7 @@ class xt(Exchange, ImplicitAPI):
             request['limit'] = limit
         else:
             request['limit'] = 200  # max
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('fetchFundingRateHistory', market, params)
         response = None
         if subType == 'inverse':
@@ -4298,7 +4299,7 @@ class xt(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('fetchFundingRate', market, params)
         response = None
         if subType == 'inverse':
@@ -4321,7 +4322,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract, market=None) -> FundingRate:
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4380,7 +4381,7 @@ class xt(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('fetchFundingHistory', market, params)
         response = None
         if subType == 'inverse':
@@ -4417,7 +4418,7 @@ class xt(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
-    def parse_funding_history(self, contract, market=None):
+    def parse_funding_history(self, contract, market: Market = None):
         #
         #     {
         #         "id": "210804044057280512",
@@ -4458,7 +4459,7 @@ class xt(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('fetchPosition', market, params)
         response = None
         if subType == 'inverse':
@@ -4500,7 +4501,7 @@ class xt(Exchange, ImplicitAPI):
                 return self.parse_position(entry, marketInner)
         return None
 
-    async def fetch_positions(self, symbols: List[str] = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -4511,7 +4512,7 @@ class xt(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
-        subType: SubType = None
+        subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositions', None, params)
         response = None
         if subType == 'inverse':
@@ -4552,7 +4553,7 @@ class xt(Exchange, ImplicitAPI):
             result.append(self.parse_position(entry, marketInner))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4645,7 +4646,7 @@ class xt(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         return {
             'info': transfer,
             'id': self.safe_string(transfer, 'result'),
@@ -4686,7 +4687,7 @@ class xt(Exchange, ImplicitAPI):
         posSide = self.safe_string_upper(params, 'positionSide')
         if posSide is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"')
-        request: dict = {
+        request = {
             'positionType': marginMode,
             'positionSide': posSide,
             'symbol': market['id'],
@@ -4747,7 +4748,7 @@ class xt(Exchange, ImplicitAPI):
                 request['triggerProfitPrice'] = self.price_to_precision(symbol, takeProfit)
             else:
                 request['origQty'] = self.amount_to_precision(symbol, amount)
-            subType: SubType = None
+            subType = None
             subType, params = self.handle_sub_type_and_params('editOrder', market, params)
             if subType == 'inverse':
                 if isStopLoss or isTakeProfit:
@@ -4859,11 +4860,11 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)
-        payload: Str = None
+        payload = None
         if (endpoint == 'spot') or (endpoint == 'user'):
             if signed:
                 payload = '/' + self.version + request
@@ -4893,7 +4894,7 @@ class xt(Exchange, ImplicitAPI):
             if (method == 'PUT') and (endpoint == 'spot'):
                 isUndefinedBody = False
             body = None if isUndefinedBody else self.json(body)
-            payloadString: Str = None
+            payloadString = None
             if (endpoint == 'spot') or (endpoint == 'user'):
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
                 if isUndefinedBody:

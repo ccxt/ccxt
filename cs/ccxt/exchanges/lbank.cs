@@ -531,7 +531,7 @@ public partial class lbank : Exchange
         {
             object market = getValue(data, i);
             object marketId = this.safeString(market, "symbol");
-            object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)((string)marketId)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object baseId = getValue(parts, 0);
             object quoteId = getValue(parts, 1);
             object bs = this.safeCurrencyCode(baseId);
@@ -1075,7 +1075,7 @@ public partial class lbank : Exchange
         object feeCost = this.safeString(trade, "tradeFee");
         if (isTrue(!isEqual(feeCost, null)))
         {
-            object feeCurr = ((bool) isTrue((isEqual(side, "buy")))) ? getValue(market, "base") : getValue(market, "quote");
+            object feeCurr = ((bool) isTrue((isEqual(side, "buy")))) ? this.safeString(market, "base") : this.safeString(market, "quote");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
                 { "currency", feeCurr },
@@ -1615,7 +1615,7 @@ public partial class lbank : Exchange
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = fee;
+            ((IDictionary<string,object>)result)[(string)((string)symbol)] = fee;
         }
         return result;
     }
@@ -1775,7 +1775,7 @@ public partial class lbank : Exchange
             { "3", "canceled" },
             { "4", "closed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1877,7 +1877,7 @@ public partial class lbank : Exchange
         object postOnly = false;
         object type = "limit";
         object rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        object parts = ((string)rawType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)rawType)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object side = this.safeString(parts, 0);
         object typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (isTrue(isEqual(typePart, "market")))
@@ -2324,7 +2324,7 @@ public partial class lbank : Exchange
         object defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
         object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
+        network = this.safeString(networks, ((string)network), network); // handle ERC20>ETH alias
         return network;
     }
 
@@ -2408,7 +2408,7 @@ public partial class lbank : Exchange
         };
         object networks = this.safeValue(this.options, "networks");
         object network = this.safeStringUpper(parameters, "network");
-        network = this.safeString(networks, network, network);
+        network = this.safeString(networks, ((string)network), network);
         if (isTrue(!isEqual(network, null)))
         {
             ((IDictionary<string,object>)request)["networkName"] = network;
@@ -2477,7 +2477,7 @@ public partial class lbank : Exchange
         object network = this.safeStringUpper2(parameters, "network", "networkName");
         parameters = this.omit(parameters, new List<object>() {"network", "networkName"});
         object networks = this.safeValue(this.options, "networks");
-        object networkId = this.safeString(networks, network, network);
+        object networkId = this.safeString(networks, ((string)network), network);
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["networkName"] = networkId;
@@ -3290,7 +3290,7 @@ public partial class lbank : Exchange
                 { "10601", "Interface closed unavailable" },
                 { "10701", "invalid asset code" },
                 { "10702", "not allowed deposit" },
-            }, errorCode, this.json(response));
+            }, ((string)errorCode), this.json(response));
             object ErrorClass = this.safeValue(new Dictionary<string, object>() {
                 { "10001", typeof(BadRequest) },
                 { "10002", typeof(AuthenticationError) },
@@ -3341,7 +3341,7 @@ public partial class lbank : Exchange
                 { "10601", typeof(ExchangeError) },
                 { "10701", typeof(BadSymbol) },
                 { "10702", typeof(PermissionDenied) },
-            }, errorCode, typeof(ExchangeError));
+            }, ((string)errorCode), typeof(ExchangeError));
             throwDynamicException(ErrorClass, message);return null;
         }
         return null;

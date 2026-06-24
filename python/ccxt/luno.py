@@ -502,7 +502,7 @@ class luno(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         wallets = self.safe_value(response, 'balance', [])
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -563,10 +563,10 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
-        response: dict = None
+        response = None
         if limit is not None and limit <= 100:
             response = self.publicGetOrderbookTop(self.extend(request, params))
         else:
@@ -575,7 +575,7 @@ class luno(Exchange, ImplicitAPI):
         return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             # todo add other statuses
             'PENDING': 'open',
         }
@@ -602,7 +602,7 @@ class luno(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(order, 'creation_timestamp')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         status = status if (status == 'open') else status
-        side: Str = None
+        side = None
         orderType = self.safe_string(order, 'type')
         if (orderType == 'ASK') or (orderType == 'SELL'):
             side = 'sell'
@@ -616,7 +616,7 @@ class luno(Exchange, ImplicitAPI):
         baseFee = self.safe_number(order, 'fee_base')
         filled = self.safe_string(order, 'base')
         cost = self.safe_string(order, 'counter')
-        fee: dict = None
+        fee = None
         if quoteFee is not None:
             fee = {
                 'cost': quoteFee,
@@ -664,7 +664,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'id': id,
         }
         response = self.privateGetOrdersId(self.extend(request, params))
@@ -672,8 +672,8 @@ class luno(Exchange, ImplicitAPI):
 
     def fetch_orders_by_state(self, state: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
-        request: dict = {}
-        market: Market = None
+        request = {}
+        market = None
         if state is not None:
             request['state'] = state
         if symbol is not None:
@@ -777,7 +777,7 @@ class luno(Exchange, ImplicitAPI):
         response = self.publicGetTickers(params)
         tickers = self.index_by(response['tickers'], 'pair')
         ids = list(tickers.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
@@ -798,7 +798,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -848,8 +848,8 @@ class luno(Exchange, ImplicitAPI):
         # Private trade data includes ID field which public trade data does not.
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'sequence')
-        takerOrMaker: Str = None
-        side: Str = None
+        takerOrMaker = None
+        side = None
         if orderId is not None:
             type = self.safe_string(trade, 'type')
             if (type == 'ASK') or (type == 'SELL'):
@@ -870,11 +870,11 @@ class luno(Exchange, ImplicitAPI):
         feeCost = None
         if feeBaseString is not None:
             if not Precise.string_equals(feeBaseString, '0.0'):
-                feeCurrency = market['base']
+                feeCurrency = self.safe_string(market, 'base')
                 feeCost = feeBaseString
         elif feeCounterString is not None:
             if not Precise.string_equals(feeCounterString, '0.0'):
-                feeCurrency = market['quote']
+                feeCurrency = self.safe_string(market, 'quote')
                 feeCost = feeCounterString
         timestamp = self.safe_integer(trade, 'timestamp')
         return self.safe_trade({
@@ -882,7 +882,7 @@ class luno(Exchange, ImplicitAPI):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'order': orderId,
             'type': None,
             'side': side,
@@ -911,7 +911,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if since is not None:
@@ -948,7 +948,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'duration': self.safe_value(self.timeframes, timeframe, timeframe),
             'pair': market['id'],
         }
@@ -1011,7 +1011,7 @@ class luno(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if since is not None:
@@ -1055,7 +1055,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = self.privateGetFeeInfo(self.extend(request, params))
@@ -1092,10 +1092,10 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
-        response: dict = None
+        response = None
         if type == 'market':
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic is implemented in the other exchanges
@@ -1126,7 +1126,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = self.privatePostStoporder(self.extend(request, params))
@@ -1146,7 +1146,7 @@ class luno(Exchange, ImplicitAPI):
         if limit is None:
             limit = 1
         since = None
-        request: dict = {
+        request = {
             'min_row': entry,
             'max_row': self.sum(entry, limit),
         }
@@ -1166,7 +1166,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         self.load_accounts()
-        currency: Currency = None
+        currency = None
         id = self.safe_string(params, 'id')  # account id
         min_row = self.safe_value(params, 'min_row')
         max_row = self.safe_value(params, 'max_row')
@@ -1191,7 +1191,7 @@ class luno(Exchange, ImplicitAPI):
                 max_row = min_row + limit
         if max_row - min_row > 1000:
             raise ExchangeError(self.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")
-        request: dict = {
+        request = {
             'id': id,
             'min_row': min_row,
             'max_row': max_row,
@@ -1202,7 +1202,7 @@ class luno(Exchange, ImplicitAPI):
 
     def parse_ledger_comment(self, comment):
         words = comment.split(' ')
-        types: dict = {
+        types = {
             'Withdrawal': 'fee',
             'Trading': 'fee',
             'Payment': 'transaction',
@@ -1215,7 +1215,7 @@ class luno(Exchange, ImplicitAPI):
             'Bought': 'trade',
             'Failure': 'failed',
         }
-        referenceId: Str = None
+        referenceId = None
         firstWord = self.safe_string(words, 0)
         thirdWord = self.safe_string(words, 2)
         fourthWord = self.safe_string(words, 3)
@@ -1246,8 +1246,8 @@ class luno(Exchange, ImplicitAPI):
         result = self.parse_ledger_comment(comment)
         type = result['type']
         referenceId = result['referenceId']
-        direction: Str = None
-        status: Str = None
+        direction = None
+        status = None
         if not Precise.string_equals(balance_delta, '0.0'):
             before = Precise.string_sub(after, balance_delta)
             status = 'ok'
@@ -1294,7 +1294,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset': currency['id'],
         }
         response = self.privatePostFundingAddress(self.extend(request, params))
@@ -1333,7 +1333,7 @@ class luno(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset': currency['id'],
         }
         response = self.privateGetFundingAddress(self.extend(request, params))
@@ -1390,7 +1390,7 @@ class luno(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'name'),
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:

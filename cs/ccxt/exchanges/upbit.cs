@@ -647,11 +647,15 @@ public partial class upbit : Exchange
         object ids = null;
         if (isTrue(isEqual(symbols, null)))
         {
-            ids = String.Join(",", ((IList<object>)this.ids).ToArray());
+            object allIds = this.ids;
+            if (isTrue(!isEqual(allIds, null)))
+            {
+                ids = String.Join(",", ((IList<object>)allIds).ToArray());
+            }
         } else
         {
-            ids = this.marketIds(symbols);
-            ids = String.Join(",", ((IList<object>)ids).ToArray());
+            object marketIds = this.marketIds(symbols);
+            ids = String.Join(",", ((IList<object>)marketIds).ToArray());
         }
         object request = new Dictionary<string, object>() {
             { "markets", ids },

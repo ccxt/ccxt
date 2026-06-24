@@ -681,7 +681,7 @@ class htx extends htx$1["default"] {
             orderbook.reset(snapshot);
             orderbook['nonce'] = version;
         }
-        if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
+        if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger(orderbook, 'nonce', 0)) {
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum) {
                 throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));

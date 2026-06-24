@@ -1143,7 +1143,7 @@ export default class pacifica extends Exchange {
         [request, params] = this.handleUntilOption('end_time', request, params);
         request['account'] = userAddress;
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1798,7 +1798,7 @@ export default class pacifica extends Exchange {
         const priceNormalized = this.priceToPrecision(symbol, price);
         const amountNormalized = this.amountToPrecision(symbol, amount);
         const sigPayload = {
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
             'price': priceNormalized,
             'amount': amountNormalized,
         };

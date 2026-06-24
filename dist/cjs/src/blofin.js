@@ -969,8 +969,7 @@ class blofin extends blofin$1["default"] {
             request['after'] = until;
             params = this.omit(params, 'until');
         }
-        let response = undefined;
-        response = await this.publicGetMarketCandles(this.extend(request, params));
+        const response = await this.publicGetMarketCandles(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
@@ -1221,7 +1220,7 @@ class blofin extends blofin$1["default"] {
         let accountType = undefined;
         [accountType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'accountType', 'type');
         const request = {};
-        let response = undefined;
+        let response;
         if (accountType !== undefined && accountType !== 'swap') {
             const options = this.safeDict(this.options, 'accountsByType', {});
             const parsedAccountType = this.safeString(options, accountType, accountType);
@@ -1477,7 +1476,7 @@ class blofin extends blofin$1["default"] {
         [isTpslEndpoint, params] = this.handleOptionAndParams(params, 'createOrder', 'tpsl', false);
         const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint;
         const isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
-        let response = undefined;
+        let response;
         const reduceOnly = this.safeBool(params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
@@ -1679,7 +1678,7 @@ class blofin extends blofin$1["default"] {
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
-        let response = undefined;
+        let response;
         if (isTpSl || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
         }
@@ -1727,7 +1726,7 @@ class blofin extends blofin$1["default"] {
         }
         let type = 'swap';
         [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params, type);
-        let response = undefined;
+        let response;
         if (type === 'spot') {
             request['instType'] = 'SPOT';
             //
@@ -1864,8 +1863,7 @@ class blofin extends blofin$1["default"] {
             request['currency'] = currency['id'];
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        let response = undefined;
-        response = await this.privateGetAssetBills(this.extend(request, params));
+        const response = await this.privateGetAssetBills(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         return this.parseLedger(data, currency, since, limit);
     }
@@ -2092,7 +2090,7 @@ class blofin extends blofin$1["default"] {
                 });
             }
         }
-        let response = undefined;
+        let response;
         if (method === 'privatePostTradeCancelTpsl') {
             response = await this.privatePostTradeCancelTpsl(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
@@ -2416,9 +2414,10 @@ class blofin extends blofin$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         symbols = this.marketSymbols(symbols);
+        const symbolsList = symbols;
         let instIds = '';
-        for (let i = 0; i < symbols.length; i++) {
-            const entry = symbols[i];
+        for (let i = 0; i < symbolsList.length; i++) {
+            const entry = symbolsList[i];
             const entryMarket = this.market(entry);
             if (i > 0) {
                 instIds = instIds + ',' + entryMarket['id'];
@@ -2605,7 +2604,7 @@ class blofin extends blofin$1["default"] {
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
-        let response = undefined;
+        let response;
         if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         }
@@ -2678,7 +2677,7 @@ class blofin extends blofin$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseMarginMode(data, market);
+        return this.parseMarginMode(data, market); // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
     }
     /**
      * @method

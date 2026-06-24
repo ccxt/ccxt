@@ -6,7 +6,7 @@ import Exchange from './abstract/bigone.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, Bool } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, Bool, NullableDict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -934,7 +934,7 @@ export default class bigone extends Exchange {
         const isSpot = type === 'spot';
         const request: Dict = {};
         symbols = this.marketSymbols (symbols);
-        let data = undefined;
+        let data: NullableList = undefined;
         if (isSpot) {
             if (symbols !== undefined) {
                 const ids = this.marketIds (symbols);
@@ -1036,7 +1036,7 @@ export default class bigone extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response: Dict = undefined;
+        let response: Dict;
         if (market['contract']) {
             const request: Dict = {
                 'symbol': market['id'],
@@ -1210,8 +1210,8 @@ export default class bigone extends Exchange {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode: string;
-        let takerCurrencyCode: string;
+        let makerCurrencyCode: Str = undefined;
+        let takerCurrencyCode: Str = undefined;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
@@ -1431,7 +1431,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', '');
         params = this.omit (params, 'type');
-        let response: Dict = undefined;
+        let response: Dict;
         if (type === 'funding' || type === 'fund') {
             response = await this.privateGetFundAccounts (params);
         } else {
@@ -1929,7 +1929,7 @@ export default class bigone extends Exchange {
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);

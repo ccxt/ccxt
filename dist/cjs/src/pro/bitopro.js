@@ -358,7 +358,7 @@ class bitopro extends bitopro$1["default"] {
         //
         const marketId = this.safeString(message, 'pair');
         // market-ids are lowercase in REST API and uppercase in WS API
-        const market = this.safeMarket(marketId.toLowerCase(), undefined, '_');
+        const market = this.safeMarket(marketId !== undefined ? marketId.toLowerCase() : undefined, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
         const messageHash = event + ':' + symbol;

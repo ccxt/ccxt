@@ -927,7 +927,7 @@ public class DeltaCore extends DeltaApi
                     put( "settleId", settleId );
                     put( "type", finalType );
                     put( "spot", spot );
-                    put( "margin", ((Helpers.isTrue(spot))) ? null : false );
+                    put( "margin", false );
                     put( "swap", finalSwap );
                     put( "future", finalFuture );
                     put( "option", option );
@@ -3540,7 +3540,7 @@ public class DeltaCore extends DeltaApi
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(result, market);
             Object sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
         });
 
     }
@@ -3774,7 +3774,7 @@ public class DeltaCore extends DeltaApi
             put( "bidPrice", DeltaCore.this.safeNumber(quotes, "best_bid") );
             put( "askPrice", DeltaCore.this.safeNumber(quotes, "best_ask") );
             put( "markPrice", DeltaCore.this.safeNumber(greeks, "mark_price") );
-            put( "lastPrice", null );
+            put( "lastPrice", DeltaCore.this.safeNumber(greeks, "last_price") );
             put( "underlyingPrice", DeltaCore.this.safeNumber(greeks, "spot_price") );
             put( "info", greeks );
         }};
@@ -4056,7 +4056,7 @@ public class DeltaCore extends DeltaApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", chain );
-            put( "currency", null );
+            put( "currency", DeltaCore.this.safeString(chain, "currency") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
             put( "datetime", DeltaCore.this.iso8601(timestamp) );
@@ -4066,12 +4066,12 @@ public class DeltaCore extends DeltaApi
             put( "askPrice", DeltaCore.this.safeNumber(quotes, "best_ask") );
             put( "midPrice", DeltaCore.this.safeNumber(quotes, "impact_mid_price") );
             put( "markPrice", DeltaCore.this.safeNumber(chain, "mark_price") );
-            put( "lastPrice", null );
+            put( "lastPrice", DeltaCore.this.safeNumber(chain, "last_price") );
             put( "underlyingPrice", DeltaCore.this.safeNumber(chain, "spot_price") );
-            put( "change", null );
-            put( "percentage", null );
+            put( "change", DeltaCore.this.safeNumber(chain, "change") );
+            put( "percentage", DeltaCore.this.safeNumber(chain, "percentage") );
             put( "baseVolume", DeltaCore.this.safeNumber(chain, "volume") );
-            put( "quoteVolume", null );
+            put( "quoteVolume", DeltaCore.this.safeNumber(chain, "quote_volume") );
         }};
     }
 
@@ -4457,7 +4457,7 @@ public class DeltaCore extends DeltaApi
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
+        Object headers = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object requestPath = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), requestPath);

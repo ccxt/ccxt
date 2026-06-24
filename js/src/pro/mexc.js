@@ -182,7 +182,7 @@ export default class mexc extends mexcRest {
         const timestamp = this.safeInteger2(message, 't', 'sendTime');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        let ticker = undefined;
+        let ticker;
         if (market['spot']) {
             ticker = this.parseWsTicker(rawTicker, market);
             ticker['timestamp'] = timestamp;
@@ -337,7 +337,7 @@ export default class mexc extends mexcRest {
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            let ticker = undefined;
+            let ticker;
             if (isSpot) {
                 ticker = this.parseWsTicker(entry, market);
             }
@@ -645,7 +645,7 @@ export default class mexc extends mexcRest {
         //    }
         // }
         //
-        let parsed = undefined;
+        let parsed;
         let symbol = undefined;
         let timeframe = undefined;
         if ('publicSpotKline' in message) {
@@ -1037,7 +1037,7 @@ export default class mexc extends mexcRest {
             trades = this.safeList(message, 'data', []);
         }
         for (let j = 0; j < trades.length; j++) {
-            let parsedTrade = undefined;
+            let parsedTrade;
             if (market['spot']) {
                 parsedTrade = this.parseWsTrade(trades[j], market);
             }
@@ -1125,7 +1125,7 @@ export default class mexc extends mexcRest {
         const marketId = this.safeString2(message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        let trade = undefined;
+        let trade;
         if (market['spot']) {
             trade = this.parseWsTrade(data, market);
         }
@@ -1341,7 +1341,7 @@ export default class mexc extends mexcRest {
         const marketId = this.safeString2(message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        let parsed = undefined;
+        let parsed;
         if (market['spot']) {
             parsed = this.parseWsOrder(data, market);
         }

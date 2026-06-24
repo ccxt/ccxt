@@ -1011,12 +1011,12 @@ func  (this *KrakenfuturesCore) HandleOrder(client any, message any) any  {
                 ccxt.AddElementToObject(previousOrder, "fee", map[string]any {
     "rate": nil,
     "cost": "0",
-    "currency": this.NumberToString(ccxt.GetValue(ccxt.GetValue(trade, "fee"), "currency")),
+    "currency": this.NumberToString(this.SafeString(ccxt.GetValue(trade, "fee"), "currency")),
 })
             }
-            if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil))) && ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(trade, "fee"), "cost"), nil)))) {
+            if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil))) && ccxt.IsTrue((!ccxt.IsEqual(this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost"), nil)))) {
                 var stringOrderCost any = this.NumberToString(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"))
-                var stringTradeCost any = this.NumberToString(ccxt.GetValue(ccxt.GetValue(trade, "fee"), "cost"))
+                var stringTradeCost any = this.NumberToString(this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost"))
                 ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
             }
             // update the newUpdates count

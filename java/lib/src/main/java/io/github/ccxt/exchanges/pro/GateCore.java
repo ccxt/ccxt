@@ -715,7 +715,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         //         }
         //     }
         //
-        Object channel = this.safeString(message, "channel");
+        Object channel = ((String)this.safeString(message, "channel"));
         if (Helpers.isTrue(Helpers.isEqual(channel, "spot.obu")))
         {
             this.handleNewSpotOrderBook(client, message);
@@ -991,7 +991,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
 
     public void handleTickerAndBidAsk(Object objectName, Client client, Object message)
     {
-        Object channel = this.safeString(message, "channel");
+        Object channel = ((String)this.safeString(message, "channel"));
         Object parts = Helpers.split(channel, ".");
         Object rawMarketType = this.safeString(parts, 0);
         Object marketType = ((Helpers.isTrue((Helpers.isEqual(rawMarketType, "futures"))))) ? "contract" : "spot";
@@ -1255,7 +1255,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         //     }
         //   }
         //
-        Object channel = this.safeString(message, "channel");
+        Object channel = ((String)this.safeString(message, "channel"));
         Object channelParts = Helpers.split(channel, ".");
         Object rawMarketType = this.safeString(channelParts, 0);
         Object marketType = ((Helpers.isTrue((Helpers.isEqual(rawMarketType, "spot"))))) ? "spot" : "contract";
@@ -1546,7 +1546,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Helpers.addElementToObject(account, "total", this.safeString2(rawBalance, "total", "balance"));
             Helpers.addElementToObject(this.balance, code, account);
         }
-        Object channel = this.safeString(message, "channel");
+        Object channel = ((String)this.safeString(message, "channel"));
         Object parts = Helpers.split(channel, ".");
         Object rawType = this.safeString(parts, 0);
         Object channelType = this.getSupportedMapping(rawType, new java.util.HashMap<String, Object>() {{
@@ -2226,7 +2226,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                     ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
                 }
                 // remove subscriptions for watchSymbols
-                Object channel = this.safeString(message, "channel");
+                Object channel = ((String)this.safeString(message, "channel"));
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(channel, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(channel, "."), 0)))))
                 {
                     Object parsedChannel = Helpers.split(channel, ".");
@@ -2260,7 +2260,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
 
     public void handleSubscriptionStatus(Client client, Object message)
     {
-        Object channel = this.safeString(message, "channel");
+        Object channel = ((String)this.safeString(message, "channel"));
         Object methods = new java.util.HashMap<String, Object>() {{
             put( "balance", "handleBalanceSubscription");
             put( "spot.order_book_update", "handleOrderBookSubscription");

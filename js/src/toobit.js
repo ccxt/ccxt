@@ -609,7 +609,7 @@ export default class toobit extends Exchange {
         const id = this.safeString(rawCurrency, 'coinId');
         const code = this.safeCurrencyCode(id);
         const networks = {};
-        const rawNetworks = this.safeList(rawCurrency, 'chainTypes');
+        const rawNetworks = this.safeList(rawCurrency, 'chainTypes', []);
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString(rawNetwork, 'chainType');

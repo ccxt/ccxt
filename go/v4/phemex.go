@@ -3600,7 +3600,7 @@ func (this *PhemexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 
 			response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if IsTrue(GetValue(market, "swap")) {
+		} else if IsTrue(IsTrue(!IsEqual(market, nil)) && IsTrue(GetValue(market, "swap"))) {
 
 			response = (<-this.PrivateGetExchangeOrderList(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3710,7 +3710,7 @@ func (this *PhemexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(limit, nil)) {
 				AddElementToObject(request, "limit", 200)
 			}
-		} else if IsTrue(!IsEqual(symbol, nil)) {
+		} else if IsTrue(IsTrue(!IsEqual(symbol, nil)) && IsTrue(!IsEqual(market, nil))) {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -4705,7 +4705,7 @@ func (this *PhemexCore) ParseFundingFeeToPrecision(value any, optionalArgs ...an
 	_ = market
 	currencyCode := GetArg(optionalArgs, 1, nil)
 	_ = currencyCode
-	if IsTrue(IsTrue(IsEqual(value, nil)) || IsTrue(IsEqual(currencyCode, nil))) {
+	if IsTrue(IsTrue(IsTrue(IsEqual(value, nil)) || IsTrue(IsEqual(currencyCode, nil))) || IsTrue(IsEqual(market, nil))) {
 		return value
 	}
 	// it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'

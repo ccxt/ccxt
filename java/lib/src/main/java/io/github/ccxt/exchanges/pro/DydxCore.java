@@ -449,12 +449,12 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         Object ohlcv = this.safeDict(candles, 0, content);
         Object parsed = this.parseOHLCV(ohlcv, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, messageHash);
@@ -489,7 +489,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
                 put( "v4_orderbook", "handleOrderBook");
                 put( "v4_candles", "handleOHLCV");
             }};
-            Object method = this.safeValue(methods, topic);
+            Object method = this.safeValue(methods, ((String)topic));
             if (Helpers.isTrue(!Helpers.isEqual(method, null)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});

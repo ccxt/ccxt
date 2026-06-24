@@ -693,7 +693,7 @@ export default class htx extends htxRest {
             orderbook.reset (snapshot);
             orderbook['nonce'] = version;
         }
-        if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
+        if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger (orderbook, 'nonce', 0)) {
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
                 throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
@@ -810,7 +810,7 @@ export default class htx extends htxRest {
         let messageHash: Str = undefined;
         let channel: Str = undefined;
         let trades = undefined;
-        let subType = undefined;
+        let subType: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -903,7 +903,7 @@ export default class htx extends htxRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let type: Str = undefined;
-        let subType = undefined;
+        let subType: Str = undefined;
         let market: Market = undefined;
         let suffix = '*'; // wildcard
         if (symbol !== undefined) {
@@ -1258,7 +1258,7 @@ export default class htx extends htxRest {
         const filled = this.safeString (order, 'execAmt');
         const typeSide = this.safeString (order, 'type');
         const feeCost = this.safeString (order, 'fee');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fee_asset');
             fee = {
@@ -2383,7 +2383,7 @@ export default class htx extends htxRest {
             orderTypeParts = orderType.split ('-');
             type = this.safeString (orderTypeParts, 1);
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
         if (feeCurrency !== undefined) {
             fee = {
@@ -2483,7 +2483,7 @@ export default class htx extends htxRest {
             'params': params,
         };
         const extendedSubsription = this.extend (subscription, subscriptionParams);
-        let request = undefined;
+        let request: Dict = undefined;
         if (type === 'spot') {
             request = {
                 'action': 'sub',
@@ -2523,7 +2523,7 @@ export default class htx extends htxRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
-            let signatureParams = undefined;
+            let signatureParams: Dict = undefined;
             if (type === 'spot') {
                 signatureParams = {
                     'accessKey': this.apiKey,
@@ -2543,7 +2543,7 @@ export default class htx extends htxRest {
             const auth = this.urlencode (signatureParams, true); // true required in go
             const payload = [ 'GET', hostname, relativePath, auth ].join ("\n"); // eslint-disable-line quotes
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
-            let request = undefined;
+            let request: Dict = undefined;
             if (type === 'spot') {
                 const newParams: Dict = {
                     'authType': 'api',

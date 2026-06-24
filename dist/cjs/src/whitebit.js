@@ -1493,7 +1493,7 @@ class whitebit extends whitebit$1["default"] {
                 method = 'v4PublicGetTicker';
             }
         }
-        let response = undefined;
+        let response;
         if (method === 'v4PublicGetTicker') {
             //
             //      "BCH_RUB": {
@@ -2001,7 +2001,7 @@ class whitebit extends whitebit$1["default"] {
         }
         params = this.omit(query, ['postOnly', 'triggerPrice', 'stopPrice']);
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
-        let response = undefined;
+        let response;
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision(symbol, triggerPrice);
             if (isLimitOrder) {
@@ -2305,7 +2305,7 @@ class whitebit extends whitebit$1["default"] {
         await this.loadMarkets();
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        let response = undefined;
+        let response;
         if (marketType === 'swap') {
             response = await this.v4PrivatePostCollateralAccountBalance(params);
         }
@@ -2731,7 +2731,7 @@ class whitebit extends whitebit$1["default"] {
         const request = {
             'ticker': currency['id'],
         };
-        let response = undefined;
+        let response;
         if (this.isFiat(code)) {
             const provider = this.safeString(params, 'provider');
             if (provider === undefined) {

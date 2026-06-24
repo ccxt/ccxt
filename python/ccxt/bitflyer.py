@@ -231,7 +231,7 @@ class bitflyer(Exchange, ImplicitAPI):
         day = expiry[0:2]
         monthName = expiry[2:5]
         year = expiry[5:9]
-        months: dict = {
+        months = {
             'JAN': '01',
             'FEB': '02',
             'MAR': '03',
@@ -306,10 +306,10 @@ class bitflyer(Exchange, ImplicitAPI):
             future = (marketType == 'Futures')
             spot = not swap and not future
             type = 'spot'
-            settle: Str = None
-            baseId: Str = None
-            quoteId: Str = None
-            expiry: Int = None
+            settle = None
+            baseId = None
+            quoteId = None
+            expiry = None
             if spot:
                 baseId = self.safe_string(currencies, 0)
                 quoteId = self.safe_string(currencies, 1)
@@ -404,7 +404,7 @@ class bitflyer(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency_code')
@@ -460,7 +460,7 @@ class bitflyer(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_code': market['id'],
         }
         orderbook = self.publicGetGetboard(self.extend(request, params))
@@ -505,7 +505,7 @@ class bitflyer(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_code': market['id'],
         }
         response = self.publicGetGetticker(self.extend(request, params))
@@ -584,7 +584,7 @@ class bitflyer(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_code': market['id'],
         }
         if limit is not None:
@@ -617,7 +617,7 @@ class bitflyer(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_code': market['id'],
         }
         response = self.privateGetGettradingcommission(self.extend(request, params))
@@ -651,7 +651,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'product_code': self.market_id(symbol),
             'child_order_type': type.upper(),
             'side': side.upper(),
@@ -680,7 +680,7 @@ class bitflyer(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
-        request: dict = {
+        request = {
             'product_code': self.market_id(symbol),
             'child_order_acceptance_id': id,
         }
@@ -693,7 +693,7 @@ class bitflyer(Exchange, ImplicitAPI):
         })
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',
             'CANCELED': 'canceled',
@@ -713,7 +713,7 @@ class bitflyer(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         marketId = self.safe_string(order, 'product_code')
         symbol = self.safe_symbol(marketId, market)
-        fee: dict = None
+        fee = None
         feeCost = self.safe_number(order, 'total_commission')
         if feeCost is not None:
             fee = {
@@ -762,7 +762,7 @@ class bitflyer(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_code': market['id'],
             'count': limit,
         }
@@ -784,7 +784,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'child_order_state': 'ACTIVE',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -801,7 +801,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'child_order_state': 'COMPLETED',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -841,7 +841,7 @@ class bitflyer(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_code': market['id'],
         }
         if limit is not None:
@@ -876,7 +876,7 @@ class bitflyer(Exchange, ImplicitAPI):
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array')
         self.load_markets()
-        request: dict = {
+        request = {
             'product_code': self.market_ids(symbols),
         }
         response = self.privateGetGetpositions(self.extend(request, params))
@@ -918,7 +918,7 @@ class bitflyer(Exchange, ImplicitAPI):
         if code != 'JPY' and code != 'USD' and code != 'EUR':
             raise ExchangeError(self.id + ' allows withdrawing JPY, USD, EUR only, ' + code + ' is not supported')
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency_code': currency['id'],
             'amount': amount,
             # 'bank_account_id': 1234,
@@ -944,8 +944,8 @@ class bitflyer(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency: Currency = None
-        request: dict = {}
+        currency = None
+        request = {}
         if code is not None:
             currency = self.currency(code)
         if limit is not None:
@@ -980,8 +980,8 @@ class bitflyer(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        currency: Currency = None
-        request: dict = {}
+        currency = None
+        request = {}
         if code is not None:
             currency = self.currency(code)
         if limit is not None:
@@ -1006,14 +1006,14 @@ class bitflyer(Exchange, ImplicitAPI):
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_deposit_status(self, status):
-        statuses: dict = {
+        statuses = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_withdrawal_status(self, status):
-        statuses: dict = {
+        statuses = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
         }
@@ -1063,8 +1063,8 @@ class bitflyer(Exchange, ImplicitAPI):
         amount = self.safe_number(transaction, 'amount')
         txId = self.safe_string(transaction, 'tx_hash')
         rawStatus = self.safe_string(transaction, 'status')
-        type: Str = None
-        status: Str = None
+        type = None
+        status = None
         fee = None
         if 'fee' in transaction:
             type = 'withdrawal'
@@ -1110,7 +1110,7 @@ class bitflyer(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_code': market['id'],
         }
         response = self.publicGetGetfundingrate(self.extend(request, params))
@@ -1152,7 +1152,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'

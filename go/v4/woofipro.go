@@ -744,7 +744,7 @@ func (this *WoofiproCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 func (this *WoofiproCore) ParseCurrency(rawCurrency any) any {
 	var token any = this.SafeDict(rawCurrency, "_token", map[string]any{})
 	var currencyId any = this.SafeString(token, "token")
-	var networks any = this.SafeList(token, "chain_details")
+	var networks any = this.SafeList(token, "chain_details", []any{})
 	var code any = this.SafeCurrencyCode(currencyId)
 	var indexedChains any = this.SafeDict(rawCurrency, "_indexedChains", map[string]any{})
 	var resultingNetworks any = map[string]any{}
@@ -1856,7 +1856,7 @@ func (this *WoofiproCore) CreateOrder(symbol any, typeVar any, side any, amount 
 			response = (<-this.V1PrivatePostOrder(request))
 			PanicOnError(response)
 		}
-		var data any = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
 		var order any = this.ParseOrder(data, market)
 		AddElementToObject(order, "type", typeVar)
@@ -2077,7 +2077,7 @@ func (this *WoofiproCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			market = this.Market(symbol)
 		}
 		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
+			"symbol": this.SafeString(market, "id"),
 		}
 		var clientOrderIdUnified any = this.SafeString2(params, "clOrdID", "clientOrderId")
 		var clientOrderIdExchangeSpecific any = this.SafeString(params, "client_order_id", clientOrderIdUnified)
@@ -3274,7 +3274,7 @@ func (this *WoofiproCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var leverageValue any = this.SafeInteger(leverage, "max_leverage")
 	return map[string]any{
 		"info":          leverage,
-		"symbol":        GetValue(market, "symbol"),
+		"symbol":        this.SafeString(market, "symbol"),
 		"marginMode":    nil,
 		"longLeverage":  leverageValue,
 		"shortLeverage": leverageValue,

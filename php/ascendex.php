@@ -489,7 +489,7 @@ class ascendex extends Exchange {
         return $this->capitalize($lowercaseAccount);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1577,7 +1577,7 @@ class ascendex extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
+        $triggerPrice = $this->omit_zero(($this->safe_string($order, 'stopPrice')));
         $reduceOnly = null;
         $execInst = $this->safe_string_lower($order, 'execInst');
         if ($execInst === 'reduceonly') {
@@ -2486,7 +2486,7 @@ class ascendex extends Exchange {
             'time' => $this->milliseconds(),
         );
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = null;
         if (($type === 'spot') || ($type === 'margin')) {
@@ -3048,12 +3048,12 @@ class ascendex extends Exchange {
         $status = ($errorCode === '0') ? 'ok' : 'failed';
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
-            'code' => $market['quote'],
+            'code' => $this->safe_string($market, 'quote'),
             'status' => $status,
             'timestamp' => null,
             'datetime' => null,
@@ -3680,7 +3680,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $version = $api[0];
         $access = $api[1];
         $type = $this->safe_string($api, 2);

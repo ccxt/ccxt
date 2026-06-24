@@ -341,7 +341,7 @@ export default class bithumb extends bithumbRest {
         const marketId = this.safeString(trade, 'symbol');
         const datetime = this.safeString(trade, 'contDtm');
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        const timestamp = this.parse8601(datetime) - 32400000;
+        const timestamp = this.parseToInt(this.parse8601(datetime)) - 32400000;
         const sideId = this.safeString(trade, 'buySellGb');
         return this.safeTrade({
             'id': undefined,

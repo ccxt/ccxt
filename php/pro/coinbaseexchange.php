@@ -446,7 +446,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $message;
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         // private trades
         // {
@@ -677,11 +677,11 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         if ($previousOrder['fee'] === null) {
                             $previousOrder['fee'] = array(
                                 'cost' => 0,
-                                'currency' => $trade['fee']['currency'],
+                                'currency' => $this->safe_string($trade['fee'], 'currency'),
                             );
                         }
-                        if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
-                            $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $trade['fee']['cost']);
+                        if (($previousOrder['fee']['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
+                            $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $this->safe_number($trade['fee'], 'cost'));
                             $previousOrderFee = $this->safe_dict($previousOrder, 'fee');
                             $tradeFee = $this->safe_dict($trade, 'fee');
                             $previousOrder['fee']['cost'] = $this->parse_number(Precise::string_add($this->safe_string($previousOrderFee, 'cost'), $this->safe_string($tradeFee, 'cost')));
@@ -709,7 +709,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         }
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         $id = $this->safe_string($order, 'order_id');
         $clientOrderId = $this->safe_string($order, 'client_oid');
         $marketId = $this->safe_string($order, 'product_id');
@@ -792,7 +792,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $message;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "type" => "ticker",
@@ -939,7 +939,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     {
         //         "type" => "error",
