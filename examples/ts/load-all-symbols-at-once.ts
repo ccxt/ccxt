@@ -57,14 +57,14 @@ async function main () {
         await test (exchange)
     }))
 
-    let succeeded = exchanges.filter (exchange => exchange.markets ? true : false).length.toString ().bright.green
-    let failed = exchanges.filter (exchange => exchange.markets ? false : true).length
-    let total = ccxt.exchanges.length.toString ().bright.white
+    let succeeded = (exchanges.filter (exchange => exchange.markets ? true : false).length.toString () as any).bright.green
+    let failed = (exchanges.filter (exchange => exchange.markets ? false : true).length.toString () as any).bright.red
+    let total = (ccxt.exchanges.length.toString () as any).bright.white
     let numSymbols = 0;
     exchanges.map (exchange => {
         numSymbols += exchange.symbols ? exchange.symbols.length : 0;
     })
-    log (numSymbols, 'symbols from', succeeded, 'of', total, 'exchanges loaded', ('(' + failed + ' errors)').red)
+    log (numSymbols, 'symbols from', succeeded, 'of', total, 'exchanges loaded', (('(' + failed + ' errors)') as any).red)
 
 }
 
