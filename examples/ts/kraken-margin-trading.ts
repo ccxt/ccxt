@@ -48,7 +48,7 @@ async function main () {
 
         console.log ('Fetching open positions...')
         const positionsParams = { 'docalcs': true }
-        let openPositions = await exchange.fetchPositions (positionsParams)
+        let openPositions = await exchange.fetchPositions (undefined, positionsParams)
         console.log ('Current positions:')
         console.log (openPositions)
 
@@ -70,7 +70,7 @@ async function main () {
         console.log ('-----------------------------------------------------------')
 
         console.log ('Fetching open positions again...')
-        openPositions = await exchange.fetchPositions (positionsParams)
+        openPositions = await exchange.fetchPositions (undefined, positionsParams)
         console.log ('Current positions:')
         console.log (openPositions)
 
