@@ -1484,49 +1484,6 @@ public class Exchange {
         return Helpers.parseJson(input);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadMarketsHelper(boolean reload) throws ExecutionException, InterruptedException {
-
-        if (!reload && this.markets != null) {
-            if (this.markets_by_id == null) {
-                return java.util.concurrent.CompletableFuture.completedFuture(this.setMarkets(this.markets));
-            }
-            return java.util.concurrent.CompletableFuture.completedFuture(this.markets);
-        }
-
-        // Chain: fetchCurrencies (if supported) → fetchMarkets → setMarkets
-        // No thread blocked at any point
-        // The base describe() sets has['fetchCurrencies'] to "emulated" (a String) for
-        // exchanges that don't override it (e.g., bit2c, bitbns, coincheck). A direct
-        // (Boolean) cast on that String throws ClassCastException. Mirror the TS form
-        // `this.has['fetchCurrencies'] === true`: only treat as true when the value is
-        // an actual Boolean true.
-        Object fetchCurrenciesFlag = (this.has != null) ? this.has.get("fetchCurrencies") : null;
-        boolean hasFetchCurrencies = (fetchCurrenciesFlag instanceof Boolean) && (Boolean) fetchCurrenciesFlag;
-
-        java.util.concurrent.CompletableFuture<Object> currenciesFuture;
-        if (hasFetchCurrencies) {
-            currenciesFuture = this.fetchCurrencies();
-        } else {
-            currenciesFuture = java.util.concurrent.CompletableFuture.completedFuture(null);
-        }
-
-        return currenciesFuture.thenCompose(currencies -> {
-            if (currencies != null) {
-                this.options.put("cachedCurrencies", currencies);
-            }
-            return this.fetchMarkets().thenApply(markets -> {
-                this.options.remove("cachedCurrencies");
-                // Pass currencies through so setMarkets() can merge fetched currencies
-                // (including ones not appearing as a base/quote/settle in any market —
-                // e.g. AGLD/WBTC for bigone/apex, USDC for aftermath). The previous
-                // form dropped this argument, forcing setMarkets to reconstruct the
-                // currencies dict from market base/quote only and silently lose entries.
-                return this.setMarkets(markets, currencies);
-            });
-        });
-
-    }
-
     private final Object marketsLock = new Object();
 
     public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object... args) {
