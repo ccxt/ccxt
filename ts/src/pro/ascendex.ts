@@ -143,7 +143,7 @@ export default class ascendex extends ascendexRest {
         const messageHash = channel + ':' + interval + ':' + marketId;
         const timeframe = this.findTimeframe (interval);
         if (timeframe === undefined) {
-            return;
+            return message;
         }
         const market = this.market (symbol);
         const parsed = this.parseOHLCV (message, market);

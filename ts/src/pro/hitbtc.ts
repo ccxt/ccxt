@@ -778,7 +778,7 @@ export default class hitbtc extends hitbtcRest {
         const period = this.safeString (splitChannel, 1);
         const timeframe = this.findTimeframe (period);
         if (timeframe === undefined) {
-            return;
+            return message;
         }
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
