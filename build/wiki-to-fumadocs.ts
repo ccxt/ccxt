@@ -469,6 +469,13 @@ function main () {
             const cex = rows.filter((r) => r.type === 'CEX').length;
             const dex = rows.filter((r) => r.type === 'DEX').length;
             const pred = rows.filter((r) => r.type === 'Prediction').length;
+            // Fail loudly instead of shipping an empty/partial table: parseExchangeMarkets is
+            // coupled to export-exchanges.js's markdown (column order + the <!--- init list -->
+            // / <!--- init prediction list --> markers). If that format changes — or this runs
+            // before export-exchanges.js populated the file — the parse silently yields 0 rows.
+            if (cex + dex === 0 || pred === 0) {
+                throw new Error(`parseExchangeMarkets parsed ${cex + dex} crypto and ${pred} prediction rows from wiki/${file} — the <ExchangesTable/> would be empty. The table format or its <!--- init list -->/<!--- init prediction list --> markers likely changed; run export-exchanges.js, then update parseExchangeMarkets() in build/wiki-to-fumadocs.ts.`);
+            }
             const intro = `CCXT supports **${cex + dex} cryptocurrency** exchanges and **${pred} prediction-market** exchanges. Search, filter by type, and sort any column.`;
             const desc = ROUTE_DESC[route] || intro;
             write(path.join(OUT, `${route}.md`),
