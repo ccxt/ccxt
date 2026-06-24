@@ -1589,7 +1589,7 @@ export default class Exchange {
         obj[property] = defaultValue;
     }
 
-    exceptionMessage (exc, includeStack: boolean = true) {
+    exceptionMessage (exc: any, includeStack: boolean = true): string {
         const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
         const length = Math.min (100000, message.length);
         return message.slice (0, length);
