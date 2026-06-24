@@ -546,7 +546,7 @@ public class AscendexCore extends AscendexApi
         {
             Object networkEtnry = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(networkEtnry, "chainName");
-            Object networkCode = this.networkCodeToId(networkId, code);
+            Object networkCode = this.networkCodeToId(((String)networkId), code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "fee", AscendexCore.this.safeNumber(networkEtnry, "withdrawFee") );
     put( "active", null );
@@ -1325,7 +1325,7 @@ public class AscendexCore extends AscendexApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbol = this.safeString(symbols, 0);
-                market = this.market(symbol);
+                market = this.market(((String)symbol));
                 Object marketIds = this.marketIds(symbols);
                 Helpers.addElementToObject(request, "symbol", String.join((String)",", (java.util.List<String>)marketIds));
             }
@@ -1581,7 +1581,7 @@ public class AscendexCore extends AscendexApi
             put( "Canceled", "canceled" );
             put( "Rejected", "rejected" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -1741,7 +1741,7 @@ public class AscendexCore extends AscendexApi
                 put( "currency", feeCurrencyCode );
             }};
         }
-        Object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
+        Object triggerPrice = this.omitZero(((String)this.safeString(order, "stopPrice")));
         Object reduceOnly = null;
         Object execInst = this.safeStringLower(order, "execInst");
         if (Helpers.isTrue(Helpers.isEqual(execInst, "reduceonly")))
@@ -2121,10 +2121,10 @@ public class AscendexCore extends AscendexApi
                         }
                     }
                 }
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+                Object orderRequest = this.createOrderRequest(((String)marketId), ((String)type), side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             Object accountCategory = this.safeString(accountsByType, Helpers.GetValue(market, "type"), "cash");
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -2861,7 +2861,7 @@ public class AscendexCore extends AscendexApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object address = this.safeString(depositAddress, "address");
         Object tagId = this.safeString(depositAddress, "tagId");
-        Object tag = this.safeString(depositAddress, tagId);
+        Object tag = this.safeString(depositAddress, ((String)tagId));
         this.checkAddress(address);
         Object code = ((Helpers.isTrue((Helpers.isEqual(currency, null))))) ? null : Helpers.GetValue(currency, "code");
         Object chainName = this.safeString(depositAddress, "blockchain");
@@ -2894,7 +2894,7 @@ public class AscendexCore extends AscendexApi
             (this.loadMarkets()).join();
             Object currency = this.currency(code);
             Object networkCode = this.safeString2(parameters, "network", "chainName");
-            Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
+            Object networkId = this.networkCodeToId(((String)networkCode), Helpers.GetValue(currency, "code"));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("chainName")));
             final Object finalNetworkId = networkId;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3092,7 +3092,7 @@ public class AscendexCore extends AscendexApi
             put( "confirmed", "ok" );
             put( "rejected", "rejected" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)

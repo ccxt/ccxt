@@ -370,7 +370,7 @@ class indodax(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result: List = []
+        result = []
         for i in range(0, len(response)):
             market = response[i]
             id = self.safe_string(market, 'id')
@@ -438,7 +438,7 @@ class indodax(Exchange, ImplicitAPI):
         free = self.safe_value(balances, 'balance', {})
         used = self.safe_value(balances, 'balance_hold', {})
         timestamp = self.safe_timestamp(balances, 'server_time')
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -509,7 +509,7 @@ class indodax(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         orderbook = self.publicGetApiDepthPair(self.extend(request, params))
@@ -568,7 +568,7 @@ class indodax(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = self.publicGetApiTickerPair(self.extend(request, params))
@@ -619,7 +619,7 @@ class indodax(Exchange, ImplicitAPI):
         response = self.publicGetApiTickerAll(params)
         tickers = self.safe_dict(response, 'tickers', {})
         keys = list(tickers.keys())
-        parsedTickers: dict = {}
+        parsedTickers = {}
         for i in range(0, len(keys)):
             key = keys[i]
             rawTicker = tickers[key]
@@ -661,7 +661,7 @@ class indodax(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = self.publicGetApiTradesPair(self.extend(request, params))
@@ -704,7 +704,7 @@ class indodax(Exchange, ImplicitAPI):
         now = self.seconds()
         until = self.safe_integer(params, 'until', now)
         params = self.omit(params, ['until'])
-        request: dict = {
+        request = {
             'to': until,
             'tf': selectedTimeframe,
             'symbol': market['id'],
@@ -732,7 +732,7 @@ class indodax(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'open': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
@@ -781,15 +781,15 @@ class indodax(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        side: Str = None
+        side = None
         if 'type' in order:
             side = order['type']
         status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
-        symbol: Str = None
-        cost: Str = None
+        symbol = None
+        cost = None
         price = self.safe_string(order, 'price')
-        amount: Str = None
-        remaining: Str = None
+        amount = None
+        remaining = None
         marketId = self.safe_string(order, 'pair')
         market = self.safe_market(marketId, market)
         if market is not None:
@@ -846,7 +846,7 @@ class indodax(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
             'order_id': id,
         }
@@ -869,8 +869,8 @@ class indodax(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market: Market = None
-        request: dict = {}
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -884,7 +884,7 @@ class indodax(Exchange, ImplicitAPI):
             return self.parse_orders(rawOrders, market, since, limit)
         # {success: 1, return: {orders: {marketid: [... objects]}}} if all orders are fetched
         marketIds = list(rawOrders.keys())
-        exchangeOrders: List = []
+        exchangeOrders = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             marketOrders = rawOrders[marketId]
@@ -909,7 +909,7 @@ class indodax(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = self.privatePostOrderHistory(self.extend(request, params))
@@ -933,7 +933,7 @@ class indodax(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
             'type': side,
             'price': price,
@@ -942,7 +942,7 @@ class indodax(Exchange, ImplicitAPI):
         quantityIsRequired = False
         if type == 'market':
             if side == 'buy':
-                quoteAmount: Str = None
+                quoteAmount = None
                 cost = self.safe_number(params, 'cost')
                 params = self.omit(params, 'cost')
                 if cost is not None:
@@ -994,7 +994,7 @@ class indodax(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an extra "side" param')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
             'pair': market['id'],
             'type': side,
@@ -1034,7 +1034,7 @@ class indodax(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
         response = self.privatePostWithdrawFee(self.extend(request, params))
@@ -1069,7 +1069,7 @@ class indodax(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         if since is not None:
             startTime = self.yyyymmdd(since)
             request['start'] = startTime
@@ -1135,8 +1135,8 @@ class indodax(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'return', {})
         withdraw = self.safe_value(data, 'withdraw', {})
         deposit = self.safe_value(data, 'deposit', {})
-        transactions: List = []
-        currency: Currency = None
+        transactions = []
+        currency = None
         if code is None:
             keys = list(withdraw.keys())
             for i in range(0, len(keys)):
@@ -1177,7 +1177,7 @@ class indodax(Exchange, ImplicitAPI):
         requestId = self.milliseconds()
         # Alternatively:
         # requestId = self.uuid()
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'withdraw_amount': amount,
             'withdraw_address': address,
@@ -1249,7 +1249,7 @@ class indodax(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp_2(transaction, 'success_time', 'submit_time')
         depositId = self.safe_string(transaction, 'deposit_id')
         feeCost = self.safe_number(transaction, 'fee')
-        fee: Fee = None
+        fee = None
         if feeCost is not None:
             fee = {
                 'currency': self.safe_currency_code(None, currency),
@@ -1280,7 +1280,7 @@ class indodax(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'success': 'ok',
         }
         return self.safe_string(statuses, status, status)
@@ -1336,7 +1336,7 @@ class indodax(Exchange, ImplicitAPI):
         addresses = self.safe_dict(data, 'address', {})
         networks = self.safe_dict(data, 'network', {})
         addressKeys = list(addresses.keys())
-        result: dict = {
+        result = {
             'info': data,
         }
         for i in range(0, len(addressKeys)):

@@ -1610,7 +1610,7 @@ class ascendex extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
+        $triggerPrice = $this->omit_zero(($this->safe_string($order, 'stopPrice')));
         $reduceOnly = null;
         $execInst = $this->safe_string_lower($order, 'execInst');
         if ($execInst === 'reduceonly') {

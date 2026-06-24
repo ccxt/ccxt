@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -54,7 +54,7 @@ class hashkey(ccxt.async_support.hashkey):
         })
 
     async def wath_public(self, market: Market, topic: str, messageHash: str, params={}):
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'topic': topic,
             'event': 'sub',
@@ -422,11 +422,11 @@ class hashkey(ccxt.async_support.hashkey):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'O')
         side = self.safe_string_lower(order, 'S')
-        reduceOnly: Bool = None
+        reduceOnly = None
         side, reduceOnly = self.parseOrderSideAndReduceOnly(side)
-        type: Str = self.parseOrderType(self.safe_string(order, 'o'))
+        type = self.parseOrderType(self.safe_string(order, 'o'))
         timeInForce = self.safe_string(order, 'f')
-        postOnly: Bool = None
+        postOnly = None
         type, timeInForce, postOnly = self.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce)
         if market['contract']:  # swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = None
@@ -546,8 +546,8 @@ class hashkey(ccxt.async_support.hashkey):
         timestamp = self.safe_integer(trade, 't')
         isBuyerMaker = self.safe_bool(trade, 'm')
         isPublicTrade = self.safe_string(trade, 'e') is None
-        side: Str = None
-        takerOrMaker: Str = None
+        side = None
+        takerOrMaker = None
         if isBuyerMaker is not None:
             if isPublicTrade:
                 takerOrMaker = 'taker'
@@ -587,7 +587,7 @@ class hashkey(ccxt.async_support.hashkey):
         listenKey = await self.authenticate()
         symbols = self.market_symbols(symbols)
         messageHash = 'positions'
-        messageHashes: List[Any] = []
+        messageHashes = []
         if symbols is None:
             messageHashes.append(messageHash)
         else:
@@ -685,8 +685,8 @@ class hashkey(ccxt.async_support.hashkey):
         url = self.get_private_url(listenKey)
         client = self.client(url)
         self.set_balance_cache(client, type, messageHash)
-        fetchBalanceSnapshot: Bool = None
-        awaitBalanceSnapshot: Bool = None
+        fetchBalanceSnapshot = None
+        awaitBalanceSnapshot = None
         fetchBalanceSnapshot, params = self.handle_option_and_params(self.options, 'watchBalance', 'fetchBalanceSnapshot', True)
         awaitBalanceSnapshot, params = self.handle_option_and_params(self.options, 'watchBalance', 'awaitBalanceSnapshot', False)
         if fetchBalanceSnapshot and awaitBalanceSnapshot:
@@ -771,7 +771,7 @@ class hashkey(ccxt.async_support.hashkey):
     async def keep_alive_listen_key(self, listenKey, params={}):
         if listenKey is None:
             return
-        request: dict = {
+        request = {
             'listenKey': listenKey,
         }
         try:

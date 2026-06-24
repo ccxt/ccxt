@@ -81,7 +81,7 @@ class aftermath(ccxt.async_support.aftermath):
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@trade'
-        request: dict = {
+        request = {
             'chId': market['id'],
         }
         message = self.extend(request, params)
@@ -135,7 +135,7 @@ class aftermath(ccxt.async_support.aftermath):
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@orderbook'
-        request: dict = {
+        request = {
             'chId': market['id'],
         }
         message = self.extend(request, params)
@@ -336,7 +336,7 @@ class aftermath(ccxt.async_support.aftermath):
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
-        # methods: Dict = {
+        # methods = {
         #     'trade': self.handle_trade,
         # }
         if 'asks' in message:

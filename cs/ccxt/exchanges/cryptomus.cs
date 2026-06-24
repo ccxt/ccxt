@@ -1068,7 +1068,7 @@ public partial class cryptomus : Exchange
             { "expired", "expired" },
             { "failed", "failed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     /**
@@ -1140,9 +1140,14 @@ public partial class cryptomus : Exchange
         object feeTiers = this.safeList(data, "tariff_steps", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         object tiers = this.parseFeeTiers(feeTiers);
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        if (isTrue(isEqual(symbols, null)))
         {
-            object symbol = getValue(this.symbols, i);
+            return result;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },

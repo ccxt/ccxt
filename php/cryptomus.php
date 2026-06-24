@@ -1029,7 +1029,7 @@ class cryptomus extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
         $response = $this->privateGetV2UserApiExchangeAccountTariffs ($params);
         //
@@ -1089,8 +1089,12 @@ class cryptomus extends Exchange {
         $feeTiers = $this->safe_list($data, 'tariff_steps', array());
         $result = array();
         $tiers = $this->parse_fee_tiers($feeTiers);
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        if ($symbols === null) {
+            return $result;
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,

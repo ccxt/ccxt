@@ -768,8 +768,14 @@ func (this *CoincheckCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		//
 		var fees any = this.SafeValue(response, "exchange_fees", map[string]any{})
 		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
-			var symbol any = GetValue(this.Symbols, i)
+		var symbols any = this.Symbols
+		if IsTrue(IsEqual(symbols, nil)) {
+
+			ch <- result
+			return nil
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+			var symbol any = GetValue(symbols, i)
 			var market any = this.Market(symbol)
 			var fee any = this.SafeValue(fees, GetValue(market, "id"), map[string]any{})
 			AddElementToObject(result, symbol, map[string]any{
@@ -812,8 +818,8 @@ func (this *CoincheckCore) CreateOrder(symbol any, typeVar any, side any, amount
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes6888 := (<-this.LoadMarkets())
-		PanicOnError(retRes6888)
+		retRes6928 := (<-this.LoadMarkets())
+		PanicOnError(retRes6928)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -914,8 +920,8 @@ func (this *CoincheckCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes7548 := (<-this.LoadMarkets())
-		PanicOnError(retRes7548)
+		retRes7588 := (<-this.LoadMarkets())
+		PanicOnError(retRes7588)
 		var currency any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -987,8 +993,8 @@ func (this *CoincheckCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes8048 := (<-this.LoadMarkets())
-		PanicOnError(retRes8048)
+		retRes8088 := (<-this.LoadMarkets())
+		PanicOnError(retRes8088)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)

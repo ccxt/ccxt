@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.extended import ImplicitAPI
 import math
 import json
-from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -350,7 +350,7 @@ class extended(Exchange, ImplicitAPI):
         return markets
 
     def index_by_stringified_numeric_id(self, input):
-        result: dict = {}
+        result = {}
         if input is None:
             return None
         keys = list(input.keys())
@@ -537,15 +537,15 @@ class extended(Exchange, ImplicitAPI):
         maxLeverage = self.safe_number(tradingConfig, 'maxLeverage')
         minAmount = self.safe_number(tradingConfig, 'minOrderSize')
         maxCost = self.safe_number(tradingConfig, 'maxLimitOrderValue')
-        created: Int = self.safe_integer(market, 'createdAt')
-        settleId: Str = None
-        settle: Str = None
+        created = self.safe_integer(market, 'createdAt')
+        settleId = None
+        settle = None
         symbol = base + '/' + quote
         isSpot = False
         type = self.safe_string_lower(market, 'type')
-        contractSize: Num = None
-        linear: Bool = None
-        inverse: Bool = None
+        contractSize = None
+        linear = None
+        inverse = None
         if type == 'spot':
             isSpot = True
         else:
@@ -704,7 +704,7 @@ class extended(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PublicGetInfoMarketsMarketStats(self.extend(request, params))
@@ -759,7 +759,7 @@ class extended(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
+        request = {}
         if symbols is not None:
             marketIds = []
             for i in range(0, len(symbols)):
@@ -785,7 +785,7 @@ class extended(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        tickers: dict = {}
+        tickers = {}
         for i in range(0, len(data)):
             marketData = data[i]
             marketId = self.safe_string(marketData, 'name')
@@ -872,7 +872,7 @@ class extended(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PublicGetInfoMarketsMarketOrderbook(self.extend(request, params))
@@ -918,7 +918,7 @@ class extended(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PublicGetInfoMarketsMarketTrades(self.extend(request, params))
@@ -959,8 +959,8 @@ class extended(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
-        market: Market = None
-        request: dict = {}
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -1023,8 +1023,8 @@ class extended(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
-        market: Market = None
-        request: dict = {}
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -1151,7 +1151,7 @@ class extended(Exchange, ImplicitAPI):
             'currency': None if (market is None) else market['settle'],
         }
         isTaker = self.safe_bool(trade, 'isTaker')
-        takerOrMaker: Str = None
+        takerOrMaker = None
         if isTaker is not None:
             takerOrMaker = 'taker' if isTaker else 'maker'
         return self.safe_trade({
@@ -1199,7 +1199,7 @@ class extended(Exchange, ImplicitAPI):
                 candleType = 'trades'
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['candleType', 'price', 'until'])
-        request: dict = {
+        request = {
             'market': market['id'],
             'candleType': candleType,
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -1278,7 +1278,7 @@ class extended(Exchange, ImplicitAPI):
         params = self.omit(params, ['endTime', 'until'])
         if since is None:
             since = endTime - (limit * 60 * 60 * 1000)
-        request: dict = {
+        request = {
             'market': market['id'],
             'startTime': since,
             'endTime': endTime,
@@ -1359,7 +1359,7 @@ class extended(Exchange, ImplicitAPI):
         params = self.omit(params, ['endTime', 'until'])
         if since is None:
             since = endTime - (limit * self.parse_timeframe(timeframe) * 1000)
-        request: dict = {
+        request = {
             'market': market['id'],
             'interval': interval,
             'startTime': since,
@@ -1446,7 +1446,7 @@ class extended(Exchange, ImplicitAPI):
         return self.parse_balance(data)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         for i in range(0, len(response)):
             balance = self.safe_dict(response, i, {})
             currencyId = self.safe_string(balance, 'asset')
@@ -1527,7 +1527,7 @@ class extended(Exchange, ImplicitAPI):
 
     def parse_account(self, account: dict) -> Account:
         accountIndex = self.safe_integer(account, 'accountIndex')
-        type: Str = None
+        type = None
         if accountIndex is not None:
             type = 'main' if (accountIndex == 0) else 'subaccount'
         return {
@@ -1555,10 +1555,10 @@ class extended(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'cursor', 'cursor', None, 50)
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = self.v1PrivateGetUserAssetOperations(self.extend(request, params))
@@ -1593,10 +1593,10 @@ class extended(Exchange, ImplicitAPI):
         code = self.get_extended_currency_code_by_id(assetId, currency)
         ledgerCurrency = self.safe_currency(code, currency)
         amountString = self.safe_string(item, 'amount')
-        direction: Str = None
+        direction = None
         if amountString is not None:
             direction = 'out' if Precise.string_lt(amountString, '0') else 'in'
-        fee: dict = None
+        fee = None
         feeCost = self.safe_string(item, 'fee')
         if feeCost is not None:
             fee = {
@@ -1639,10 +1639,10 @@ class extended(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchTransactions', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTransactions', code, since, limit, params, 'cursor', 'cursor', None, 50)
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = self.v1PrivateGetUserAssetOperations(self.extend(request, params))
@@ -1737,7 +1737,7 @@ class extended(Exchange, ImplicitAPI):
         amountString = self.currency_to_precision(code, amount)
         accountId = self.safe_string(account, 'accountId')
         settlement = self.create_withdrawal_settlement_data(address, amountString, currency, account, params)
-        request: dict = {
+        request = {
             'accountId': accountId,
             'amount': amountString,
             'chainId': chainId,
@@ -1794,10 +1794,10 @@ class extended(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', None, 50)
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {
+        request = {
             'type': 'TRANSFER',
         }
         if limit is not None:
@@ -1846,7 +1846,7 @@ class extended(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' transfer() requires a toAccount argument and params["toVault"] and params["toL2Key"]')
         amountString = self.currency_to_precision(code, amount)
         settlement = self.create_transfer_settlement_data(amountString, currency, account, toVault, toL2Key, params)
-        request: dict = {
+        request = {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'amount': amountString,
@@ -1896,7 +1896,7 @@ class extended(Exchange, ImplicitAPI):
             fromAccount = counterpartyAccountId
             toAccount = accountId
         validSignature = self.safe_bool(transfer, 'validSignature')
-        status: Str = None
+        status = None
         if validSignature is not None:
             status = 'ok' if validSignature else 'failed'
         else:
@@ -1928,7 +1928,7 @@ class extended(Exchange, ImplicitAPI):
         return code
 
     def parse_transaction_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'CREATED': 'pending',
             'IN_PROGRESS': 'pending',
             'COMPLETED': 'ok',
@@ -1937,7 +1937,7 @@ class extended(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_type(self, type: Str) -> Str:
-        types: dict = {
+        types = {
             'DEPOSIT': 'deposit',
             'WITHDRAWAL': 'withdrawal',
             'TRANSFER': 'transfer',
@@ -1964,7 +1964,7 @@ class extended(Exchange, ImplicitAPI):
         code = self.get_extended_currency_code_by_id(assetId, currency)
         amountString = self.safe_string(transaction, 'amount')
         amount = None if (amountString is None) else self.parse_number(Precise.string_abs(amountString))
-        fee: Fee = None
+        fee = None
         feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
             fee = {
@@ -2009,7 +2009,7 @@ class extended(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PrivateGetUserFees(self.extend(request, params))
@@ -2057,7 +2057,7 @@ class extended(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(data)):
             fee = self.safe_dict(data, i, {})
             parsed = self.parse_trading_fee(fee)
@@ -2097,7 +2097,7 @@ class extended(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PrivateGetUserLeverage(self.extend(request, params))
@@ -2130,7 +2130,7 @@ class extended(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'leverage': self.number_to_string(leverage),
         }
@@ -2173,7 +2173,7 @@ class extended(Exchange, ImplicitAPI):
         :returns Position[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
-        request: dict = {}
+        request = {}
         if symbols is not None:
             marketIds = self.market_ids(symbols)
             request['market'] = marketIds
@@ -2244,7 +2244,7 @@ class extended(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchPositionsHistory', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchPositionsHistory', symbols, since, limit, params, 'cursor', 'cursor', None, 10000)
-        request: dict = {}
+        request = {}
         if symbols is not None:
             marketIds = self.market_ids(symbols)
             request['market'] = marketIds
@@ -2422,7 +2422,7 @@ class extended(Exchange, ImplicitAPI):
         if (positionId is None) or (collateralId is None) or (resolution is None) or (starkKey is None):
             raise BadRequest(self.id + ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key')
         amount = self.get_extended_stark_amount(amountString, resolution)
-        settlement: dict = {
+        settlement = {
             'recipient': recipient,
             'positionId': positionId,
             'collateralId': collateralId,
@@ -2452,7 +2452,7 @@ class extended(Exchange, ImplicitAPI):
         if (fromVault is None) or (fromL2Key is None) or (collateralId is None) or (resolution is None):
             raise BadRequest(self.id + ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key')
         transferAmount = self.get_extended_stark_amount(amountString, resolution)
-        settlement: dict = {
+        settlement = {
             'amount': transferAmount,
             'assetId': collateralId,
             'expirationTimestamp': settlementExpiration,
@@ -2489,8 +2489,8 @@ class extended(Exchange, ImplicitAPI):
         if timeInForce is None:
             timeInForce = 'IOC' if (uppercaseType == 'MARKET') else 'GTT'
         fee = self.safe_string(params, 'fee', '0.0005')
-        builderFeeRate: Str = None
-        builderId: Str = None
+        builderFeeRate = None
+        builderId = None
         if self.isSandboxModeEnabled:
             builderFeeRate = self.safe_string_2(params, 'builderFeeRate', 'defaultBuilderFeeRate')
             builderId = self.safe_string_2(params, 'builderId', 'defaultBuilderId')
@@ -2529,7 +2529,7 @@ class extended(Exchange, ImplicitAPI):
         }
         isBuy = (uppercaseSide == 'BUY')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id', self.uuid())
-        request: dict = {
+        request = {
             'id': clientOrderId,
             'market': market['id'],
             'type': uppercaseType,
@@ -2773,21 +2773,21 @@ class extended(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-        response: dict = None
+        response = None
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
         if clientOrderId is not None:
-            request: dict = {
+            request = {
                 'externalId': clientOrderId,
             }
             response = self.v1PrivateDeleteUserOrder(self.extend(request, params))
         else:
             if id is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires an id argument')
-            request: dict = {
+            request = {
                 'id': id,
             }
             response = self.v1PrivateDeleteUserOrderId(self.extend(request, params))
@@ -2825,7 +2825,7 @@ class extended(Exchange, ImplicitAPI):
         clientOrderIds = self.safe_list_n(params, ['clientOrderIds', 'client_order_ids', 'externalOrderIds', 'external_order_ids'])
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderIds', 'client_order_ids', 'clientOrderId', 'client_id', 'externalOrderIds', 'external_order_ids', 'orderIds', 'order_ids', 'markets', 'cancelAll', 'cancel_all'])
-        request: dict = {}
+        request = {}
         hasOrderIds = ids is not None
         if hasOrderIds:
             idsLength = len(ids)
@@ -2860,10 +2860,10 @@ class extended(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'cancelAll': True,
         }
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['markets'] = [market['id']]
@@ -2887,7 +2887,7 @@ class extended(Exchange, ImplicitAPI):
         :returns dict: the api result
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'countdownTime': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
         }
         return self.v1PrivatePostUserDeadmanswitch(self.extend(request, params))
@@ -2906,15 +2906,15 @@ class extended(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-        response: dict = None
-        order: dict = None
+        response = None
+        order = None
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
         if clientOrderId is not None:
-            request: dict = {
+            request = {
                 'externalId': clientOrderId,
             }
             response = self.v1PrivateGetUserOrdersExternalExternalId(self.extend(request, params))
@@ -2923,7 +2923,7 @@ class extended(Exchange, ImplicitAPI):
         else:
             if id is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires an id argument')
-            request: dict = {
+            request = {
                 'id': id,
             }
             response = self.v1PrivateGetUserOrdersId(self.extend(request, params))
@@ -2943,8 +2943,8 @@ class extended(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        market: Market = None
-        request: dict = {}
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -2998,8 +2998,8 @@ class extended(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
-        market: Market = None
-        request: dict = {}
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -3085,7 +3085,7 @@ class extended(Exchange, ImplicitAPI):
         return self.filter_by_symbol_since_limit(canceledOrders, symbol, since, limit)
 
     def parse_order_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'UNTRIGGERED': 'open',

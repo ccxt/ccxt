@@ -262,7 +262,7 @@ class coinex(ccxt.async_support.coinex):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params, 'spot')
         await self.authenticate(type)
         url = self.urls['api']['ws'][type]
@@ -277,7 +277,7 @@ class coinex(ccxt.async_support.coinex):
             messageHash += ':spot'
         else:
             messageHash += ':swap'
-        subscribe: dict = {
+        subscribe = {
             'method': 'balance.subscribe',
             'params': {'ccy_list': currencies},
             'id': self.request_id(),
@@ -334,9 +334,9 @@ class coinex(ccxt.async_support.coinex):
         unrealizedPnl = self.safe_string(firstEntry, 'unrealized_pnl')
         isSpot = (updated is not None)
         isSwap = (unrealizedPnl is not None)
-        info: Any = None
-        account: Str = None
-        rawBalances: List[Any] = []
+        info = None
+        account = None
+        rawBalances = []
         if isSpot:
             account = 'spot'
             for i in range(0, len(balances)):
@@ -350,7 +350,7 @@ class coinex(ccxt.async_support.coinex):
         for i in range(0, len(rawBalances)):
             entry = rawBalances[i]
             self.parse_ws_balance(entry, account)
-        messageHash: Str = None
+        messageHash = None
         if account is not None:
             if self.safe_value(self.balance, account) is None:
                 self.balance[account] = {}
@@ -409,15 +409,15 @@ class coinex(ccxt.async_support.coinex):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params, 'spot')
         await self.authenticate(type)
         url = self.urls['api']['ws'][type]
-        subscribedSymbols: List[Any] = []
+        subscribedSymbols = []
         messageHash = 'myTrades'
         if market is not None:
             messageHash += ':' + symbol
@@ -427,7 +427,7 @@ class coinex(ccxt.async_support.coinex):
                 messageHash += ':spot'
             else:
                 messageHash += ':swap'
-        message: dict = {
+        message = {
             'method': 'user_deals.subscribe',
             'params': {'market_list': subscribedSymbols},
             'id': self.request_id(),
@@ -580,7 +580,7 @@ class coinex(ccxt.async_support.coinex):
         defaultType = 'spot' if isSpot else 'swap'
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
-        fee: dict = {}
+        fee = {}
         feeCost = self.omit_zero((self.safe_string(trade, 'fee')))
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_ccy', market['quote'])
@@ -633,8 +633,8 @@ class coinex(ccxt.async_support.coinex):
         """
         await self.load_markets()
         marketIds = self.market_ids(symbols)
-        market: Market = None
-        messageHashes: List[Any] = []
+        market = None
+        messageHashes = []
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
             for i in range(0, len(symbols)):
@@ -644,11 +644,11 @@ class coinex(ccxt.async_support.coinex):
         else:
             marketIds = []
             messageHashes.append('tickers')
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchTickers', market, params)
         url = self.urls['api']['ws'][type]
         subscriptionHashes = ['all@ticker']
-        subscribe: dict = {
+        subscribe = {
             'method': 'state.subscribe',
             'params': {'market_list': marketIds},
             'id': self.request_id(),
@@ -688,10 +688,10 @@ class coinex(ccxt.async_support.coinex):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
-        subscribedSymbols: List[Any] = []
-        messageHashes: List[Any] = []
-        market: Market = None
-        callerMethodName: Str = None
+        subscribedSymbols = []
+        messageHashes = []
+        market = None
+        callerMethodName = None
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchTradesForSymbols')
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
@@ -702,11 +702,11 @@ class coinex(ccxt.async_support.coinex):
                 messageHashes.append('trades:' + market['symbol'])
         else:
             messageHashes.append('trades')
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params(callerMethodName, market, params)
         url = self.urls['api']['ws'][type]
         # subscriptionHashes = ['trades']
-        subscribe: dict = {
+        subscribe = {
             'method': 'deals.subscribe',
             'params': {'market_list': subscribedSymbols},
             'id': self.request_id(),
@@ -729,11 +729,11 @@ class coinex(ccxt.async_support.coinex):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        watchOrderBookSubscriptions: dict = {}
-        messageHashes: List[Any] = []
-        market: Market = None
-        type: Str = None
-        callerMethodName: Str = None
+        watchOrderBookSubscriptions = {}
+        messageHashes = []
+        market = None
+        type = None
+        callerMethodName = None
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
         options = self.safe_dict(self.options, 'watchOrderBook', {})
         limits = self.safe_list(options, 'limits', [])
@@ -757,7 +757,7 @@ class coinex(ccxt.async_support.coinex):
             watchOrderBookSubscriptions[symbol] = [market['id'], limit, aggregation, True]
         type, params = self.handle_market_type_and_params(callerMethodName, market, params)
         marketList = list(watchOrderBookSubscriptions.values())
-        subscribe: dict = {
+        subscribe = {
             'method': 'depth.subscribe',
             'params': {'market_list': marketList},
             'id': self.request_id(),
@@ -869,12 +869,12 @@ class coinex(ccxt.async_support.coinex):
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         messageHash = 'orders'
-        market: Market = None
-        marketList: NullableList = None
+        market = None
+        marketList = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params, 'spot')
         await self.authenticate(type)
         if symbol is not None:
@@ -886,12 +886,12 @@ class coinex(ccxt.async_support.coinex):
                 messageHash += ':spot'
             else:
                 messageHash += ':swap'
-        method: Str = None
+        method = None
         if trigger:
             method = 'stop.subscribe'
         else:
             method = 'order.subscribe'
-        message: dict = {
+        message = {
             'method': method,
             'params': {'market_list': marketList},
             'id': self.request_id(),
@@ -1131,7 +1131,7 @@ class coinex(ccxt.async_support.coinex):
         isSpot = ('margin_market' in order)
         defaultType = 'spot' if isSpot else 'swap'
         market = self.safe_market(marketId, market, None, defaultType)
-        fee: NullableDict = None
+        fee = None
         feeCost = self.omit_zero((self.safe_string_2(order, 'fee', 'quote_ccy_fee')))
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'fee_ccy', market['quote'])
@@ -1165,7 +1165,7 @@ class coinex(ccxt.async_support.coinex):
         }, market)
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             'active_success': 'open',
             'active_fail': 'canceled',
             'cancel': 'canceled',
@@ -1185,8 +1185,8 @@ class coinex(ccxt.async_support.coinex):
         """
         await self.load_markets()
         marketIds = self.market_ids(symbols)
-        messageHashes: List[Any] = []
-        market: Market = None
+        messageHashes = []
+        market = None
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
             for i in range(0, len(symbols)):
@@ -1195,11 +1195,11 @@ class coinex(ccxt.async_support.coinex):
                 messageHashes.append('bidsasks:' + market['symbol'])
         else:
             messageHashes.append('bidsasks')
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchBidsAsks', market, params)
         url = self.urls['api']['ws'][type]
         subscriptionHashes = ['all@bidsasks']
-        subscribe: dict = {
+        subscribe = {
             'method': 'bbo.subscribe',
             'params': {'market_list': marketIds},
             'id': self.request_id(),
@@ -1262,7 +1262,7 @@ class coinex(ccxt.async_support.coinex):
         error = self.safe_string(message, 'message')
         if error is not None:
             self.handle_errors(1, '', client.url, method, {}, self.json(error), message, {}, {})
-        handlers: dict = {
+        handlers = {
             'state.update': self.handle_ticker,
             'balance.update': self.handle_balance,
             'deals.update': self.handle_trades,
@@ -1348,12 +1348,12 @@ class coinex(ccxt.async_support.coinex):
         if authenticated is not None:
             return await future
         requestId = self.request_id()
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
             'future': messageHash,
         }
         hmac = self.hmac(self.encode(timestamp), self.encode(self.secret), hashlib.sha256, 'hex')
-        request: dict = {
+        request = {
             'id': requestId,
             'method': 'server.sign',
             'params': {

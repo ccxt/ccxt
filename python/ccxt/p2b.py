@@ -488,7 +488,7 @@ class p2b(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
@@ -594,7 +594,7 @@ class p2b(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -647,7 +647,7 @@ class p2b(Exchange, ImplicitAPI):
         if lastId is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires an extra parameter params["lastId"]')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'lastId': lastId,
         }
@@ -758,7 +758,7 @@ class p2b(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'interval': timeframe,
         }
@@ -856,7 +856,7 @@ class p2b(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result: dict = {
+        result = {
             'info': response,
         }
         keys = list(response.keys())
@@ -866,7 +866,7 @@ class p2b(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             used = self.safe_string(balance, 'freeze')
             available = self.safe_string(balance, 'available')
-            account: dict = {
+            account = {
                 'free': available,
                 'used': used,
             }
@@ -891,7 +891,7 @@ class p2b(Exchange, ImplicitAPI):
         if type == 'market':
             raise BadRequest(self.id + ' createOrder() can only accept orders with type "limit"')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -938,7 +938,7 @@ class p2b(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'orderId': id,
         }
@@ -987,7 +987,7 @@ class p2b(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires the symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -1039,7 +1039,7 @@ class p2b(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.safe_market(symbol)
-        request: dict = {
+        request = {
             'orderId': id,
         }
         if limit is not None:
@@ -1105,7 +1105,7 @@ class p2b(Exchange, ImplicitAPI):
         market = self.market(symbol)
         sinceSec = self.parse_to_int(since / 1000)
         untilSec = self.parse_to_int(until / 1000)
-        request: dict = {
+        request = {
             'market': market['id'],
             'startTime': sinceSec,
             'endTime': untilSec,
@@ -1162,7 +1162,7 @@ class p2b(Exchange, ImplicitAPI):
         self.load_markets()
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         if until is None:
@@ -1176,7 +1176,7 @@ class p2b(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchClosedOrders() the time between since and params["until"] cannot be greater than 24 hours')
         sinceSec = self.parse_to_int(since / 1000)
         untilSec = self.parse_to_int(until / 1000)
-        request: dict = {
+        request = {
             'startTime': sinceSec,
             'endTime': untilSec,
         }
@@ -1212,7 +1212,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_value(response, 'result')
-        orders: List[Order] = []
+        orders = []
         keys = list(result.keys())
         for i in range(0, len(keys)):
             marketId = keys[i]
