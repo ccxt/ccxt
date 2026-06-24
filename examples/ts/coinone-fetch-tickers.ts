@@ -1,7 +1,7 @@
 // @NO_AUTO_TRANSPILE
 
 
-
+// @ts-expect-error
 import { nice as ansi } from 'ansicolor';
 import ololog from 'ololog';
 import asTable from 'as-table';
@@ -12,7 +12,7 @@ const { noLocate } = ololog;
 const log = noLocate;
 
 const table = asTable.configure ({
-        delimiter: ' | '.dim,
+        delimiter: (' | ' as any).dim,
         right: true,
     });
 
@@ -22,7 +22,7 @@ const exchange = new ccxt.coinone ({
 
 let printTickersAsTable = function (exchange, tickers) {
     log (exchange.id.green, exchange.iso8601 (exchange.milliseconds ()))
-    log ('Fetched', Object.values (tickers).length.toString ().green, 'tickers:')
+    log ('Fetched', (Object.values (tickers).length.toString () as any).green, 'tickers:')
     log (table (ccxt.sortBy (Object.values (tickers), 'symbol', false)))
 }
 
