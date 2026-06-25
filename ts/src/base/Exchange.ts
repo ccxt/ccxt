@@ -3136,7 +3136,7 @@ export default class Exchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         return {};
     }
 
@@ -5852,7 +5852,7 @@ export default class Exchange {
         for (let i = 0; i < retries + 1; i++) {
             try {
                 this.setLastRestRequestTimestamp ();
-                const request = await this.sign (path, api, method, params, headers, body);
+                const request = this.sign (path, api, method, params, headers, body);
                 this.setLastRequest (request);
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
