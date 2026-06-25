@@ -1528,8 +1528,8 @@ export default class Exchange {
         }
     }
 
-    async close () {
-        // test by running ts/src/pro/test/base/test.close.ts
+    async close (cleanInstanceCache = false) {
+        // [WS]
         await this.sleep (0); // allow other futures to run
         const clients = Object.values (this.clients || {});
         const closedClients = [];
@@ -1543,7 +1543,14 @@ export default class Exchange {
             delete this.clients[client.url];
             closedClients.push (client.close ());
         }
-        return Promise.all (closedClients);
+        await Promise.all (closedClients);
+        if (cleanInstanceCache) {
+            this.cleanWsData ();
+        }
+        // [REST]
+        if (cleanInstanceCache) {
+            this.cleanRestData ();
+        }
     }
 
     async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
@@ -2616,6 +2623,36 @@ export default class Exchange {
             },
             'rollingWindowSize': 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         };
+    }
+
+    cleanRestData () {
+        this.ids = undefined;
+        this.markets = undefined;
+        this.markets_by_id = undefined;
+        this.symbols = undefined;
+        this.codes = undefined;
+        this.currencies = this.createSafeDictionary ();
+        this.currencies_by_id = undefined;
+        this.baseCurrencies = undefined;
+        this.quoteCurrencies = undefined;
+        this.last_http_response = undefined;
+        // this.last_json_response = undefined; // not unified prop
+        this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+    }
+
+    cleanWsData () {
+        this.balance = this.createSafeDictionary (true);
+        this.orderbooks = this.createSafeDictionary (true);
+        this.tickers = this.createSafeDictionary (true);
+        this.liquidations = undefined;
+        this.myLiquidations = undefined;
+        this.orders = undefined;
+        this.trades = this.createSafeDictionary (true);
+        this.transactions = this.createSafeDictionary ();
+        this.ohlcvs = this.createSafeDictionary (true);
+        this.myTrades = undefined;
+        this.positions = undefined;
     }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
