@@ -6,6 +6,13 @@ import type { Str } from '../../base/types.js';
 
 
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
+    // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+    // is impractical and the "every active market has a ticker" check doesn't apply — test
+    // fetchTickers by the outcome handle instead
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+        const predictionResult = await fetchTickersHelperTest (exchange, skippedProperties, [ symbol ]);
+        return [ predictionResult ];
+    }
     const withoutSymbol = fetchTickersHelperTest (exchange, skippedProperties, undefined);
     const withSymbol = fetchTickersHelperTest (exchange, skippedProperties, [ symbol ]);
     const results = await Promise.all ([ withoutSymbol, withSymbol ]);

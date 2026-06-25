@@ -865,6 +865,128 @@
 					]
 				]
 			}
+		],
+		"createOrder": [
+			{
+				"description": "createOrder limit buy from a POLY_1271 deposit wallet (live order-creation response)",
+				"method": "createOrder",
+				"input": [
+					"JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+					"limit",
+					"buy",
+					5,
+					0.5,
+					{
+						"signatureType": 3,
+						"funder": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
+						"tickSize": "0.01",
+						"negRisk": false,
+						"salt": "1700000000000",
+						"timestamp": "1700000000000"
+					}
+				],
+				"httpResponse": {
+					"errorMsg": "",
+					"orderID": "0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16",
+					"takingAmount": "",
+					"makingAmount": "",
+					"status": "live",
+					"success": true
+				},
+				"parsedResponse": {
+					"id": "0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16",
+					"clientOrderId": null,
+					"info": {
+						"errorMsg": "",
+						"orderID": "0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16",
+						"takingAmount": "",
+						"makingAmount": "",
+						"status": "live",
+						"success": true
+					},
+					"timestamp": null,
+					"datetime": null,
+					"lastTradeTimestamp": null,
+					"status": "open",
+					"outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+					"outcomeId": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+					"label": "Yes",
+					"market": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION",
+					"type": "limit",
+					"timeInForce": "GTC",
+					"postOnly": false,
+					"side": null,
+					"price": null,
+					"stopPrice": null,
+					"triggerPrice": null,
+					"average": null,
+					"amount": null,
+					"cost": null,
+					"filled": 0,
+					"remaining": null,
+					"fee": null,
+					"trades": [],
+					"fees": [],
+					"lastUpdateTimestamp": null,
+					"reduceOnly": null,
+					"takeProfitPrice": null,
+					"stopLossPrice": null,
+					"event": null
+				}
+			}
+		],
+		"cancelOrder": [
+			{
+				"description": "cancelOrder by id (live cancel response)",
+				"method": "cancelOrder",
+				"input": [
+					"0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16"
+				],
+				"httpResponse": {
+					"not_canceled": {},
+					"canceled": [
+						"0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16"
+					]
+				},
+				"parsedResponse": {
+					"id": "0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16",
+					"status": "canceled",
+					"info": {
+						"not_canceled": {},
+						"canceled": [
+							"0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16"
+						]
+					},
+					"fees": [],
+					"clientOrderId": null,
+					"timestamp": null,
+					"datetime": null,
+					"type": null,
+					"side": null,
+					"lastTradeTimestamp": null,
+					"lastUpdateTimestamp": null,
+					"price": null,
+					"amount": null,
+					"cost": null,
+					"average": null,
+					"filled": null,
+					"remaining": null,
+					"timeInForce": null,
+					"postOnly": null,
+					"trades": [],
+					"reduceOnly": null,
+					"stopPrice": null,
+					"triggerPrice": null,
+					"takeProfitPrice": null,
+					"stopLossPrice": null,
+					"fee": null,
+					"outcome": null,
+					"outcomeId": null,
+					"label": null,
+					"market": null,
+					"event": null
+				}
+			}
 		]
 	}
 }

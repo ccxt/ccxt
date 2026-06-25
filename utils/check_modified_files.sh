@@ -35,6 +35,10 @@ fi
 readarray -t y <<<"$diff"
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
 ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
+# prediction-market exchanges live under ts/src/prediction/ (rest) and ts/src/pro/prediction/
+# (ws) — the rest/ws patterns above can't match them because the extra path segment blocks it
+prediction_pattern='ts\/src\/prediction\/([A-Za-z0-9_-]+)\.ts'
+prediction_ws_pattern='ts\/src\/pro\/prediction\/([A-Za-z0-9_-]+)\.ts'
 pattern_static_request='ts\/src\/test\/static\/request\/([A-Za-z0-9_-]+)\.json'
 pattern_static_response='ts\/src\/test\/static\/response\/([A-Za-z0-9_-]+)\.json'
 
@@ -59,7 +63,17 @@ WS_EXCHANGES=()
 # done
 
 for file in "${y[@]}"; do
-  if [[ "$file" =~ $rest_pattern ]]; then
+  if [[ "$file" =~ $prediction_ws_pattern ]]; then
+    modified_exchange="${BASH_REMATCH[1]}"
+    if [[ ! " ${WS_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      WS_EXCHANGES+=("$modified_exchange")
+    fi
+  elif [[ "$file" =~ $prediction_pattern ]]; then
+    modified_exchange="${BASH_REMATCH[1]}"
+    if [[ ! " ${REST_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      REST_EXCHANGES+=("$modified_exchange")
+    fi
+  elif [[ "$file" =~ $rest_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
     if [[ ! " ${REST_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
       REST_EXCHANGES+=("$modified_exchange")

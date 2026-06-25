@@ -156,6 +156,7 @@ export default class kalshi extends Exchange {
                         'delete': {
                             'portfolio/orders/{order_id}': 1,
                             'portfolio/orders/batched': 1,
+                            'portfolio/events/orders/{order_id}': 1, // v2 cancel (the non-v2 paths above are 410 Gone)
                             'portfolio/order_groups/{order_group_id}': 1,
                         },
                     },
@@ -673,8 +674,18 @@ export default class kalshi extends Exchange {
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        const bidVolume = (isNo) ? this.safeNumber (raw, 'yes_ask_size_fp') : this.safeNumber (raw, 'yes_bid_size_fp');
-        const askVolume = (isNo) ? this.safeNumber (raw, 'yes_bid_size_fp') : this.safeNumber (raw, 'yes_ask_size_fp');
+        const bidSizeString = (isNo) ? this.safeString (raw, 'yes_ask_size_fp') : this.safeString (raw, 'yes_bid_size_fp');
+        const askSizeString = (isNo) ? this.safeString (raw, 'yes_bid_size_fp') : this.safeString (raw, 'yes_ask_size_fp');
+        // kalshi occasionally reports a negative size for settling/closed markets; a size
+        // can't be negative, so drop it rather than emit an invalid volume
+        let bidVolume = undefined;
+        if ((bidSizeString !== undefined) && Precise.stringGe (bidSizeString, '0')) {
+            bidVolume = this.parseNumber (bidSizeString);
+        }
+        let askVolume = undefined;
+        if ((askSizeString !== undefined) && Precise.stringGe (askSizeString, '0')) {
+            askVolume = this.parseNumber (askSizeString);
+        }
         let average = undefined;
         if ((bid !== undefined) && (ask !== undefined)) {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.numberToString (bid), this.numberToString (ask)), '2'));
@@ -1432,8 +1443,10 @@ export default class kalshi extends Exchange {
         } else {
             this.checkEvents ();
         }
-        const response = await this.kalshiPrivateDeletePortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
-        return this.parseOrder (this.safeValue (response, 'order', response));
+        // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
+        // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
+        const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': id }, params));
+        return this.parseOrder (this.safeDict (response, 'order', response));
     }
 
     /**
@@ -1451,8 +1464,9 @@ export default class kalshi extends Exchange {
         } else {
             this.checkEvents ();
         }
-        // kalshi has no "cancel all" endpoint — fetch the resting orders and
-        // batch-cancel them by id (DELETE /portfolio/orders/batched, max 20 ids/call)
+        // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
+        // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
+        // cancel them one by one via the v2 DELETE /portfolio/events/orders/{order_id}
         const request: Dict = { 'status': 'resting' };
         if (outcome !== undefined) {
             const outcomeObj = this.outcome (outcome);
@@ -1461,31 +1475,13 @@ export default class kalshi extends Exchange {
         const restingResponse = await this.kalshiPrivateGetPortfolioOrders (request);
         const restingOrders = this.safeList (restingResponse, 'orders', []);
         const restingOrdersLength = restingOrders.length;
-        const ids = [];
+        const canceledOrders = [];
         for (let i = 0; i < restingOrdersLength; i++) {
             const orderId = this.safeString (restingOrders[i], 'order_id');
             if (orderId !== undefined) {
-                ids.push (orderId);
+                const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': orderId }, params));
+                canceledOrders.push (this.safeDict (response, 'order', response));
             }
-        }
-        const idsLength = ids.length;
-        if (idsLength === 0) {
-            return [];
-        }
-        const canceledOrders = [];
-        const batchLimit = 20; // kalshi caps the batched-cancel endpoint at 20 ids per call
-        let remaining = ids;
-        let remainingLength = remaining.length;
-        while (remainingLength > 0) {
-            const batchIds = this.arraySlice (remaining, 0, batchLimit);
-            remaining = this.arraySlice (remaining, batchLimit);
-            const response = await this.kalshiPrivateDeletePortfolioOrdersBatched (this.extend ({ 'ids': batchIds }, params));
-            const batchResult = this.safeList (response, 'orders', []);
-            const batchResultLength = batchResult.length;
-            for (let j = 0; j < batchResultLength; j++) {
-                canceledOrders.push (batchResult[j]);
-            }
-            remainingLength = remaining.length;
         }
         return this.parseOrders (canceledOrders) as PredictionOrder[];
     }
