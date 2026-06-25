@@ -3,7 +3,7 @@ import ansi from 'ansicolor';
 import { Command, Option } from 'commander';
 import ololog from 'ololog';
 import clipboard from 'clipboardy';
-import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods } from './helpers.js';
+import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods, cacheEvents } from './helpers.js';
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
 import { plotOHLCVChart } from './charts/ohlcv.js';
 import { plotOrderBook } from './charts/orderbook.js';
@@ -65,6 +65,7 @@ interface CLIOptions {
     swap?: boolean;
     future?: boolean;
     option?: boolean;
+    prediction?: boolean;
     request?: boolean;
     response?: boolean;
     static?: boolean;
@@ -265,6 +266,20 @@ async function run () {
 
         const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions);
 
+        // single-entity lookups from the cached events: `<exchange> event|market|outcome <key> -p`
+        if (cliOptions.prediction && (methodName === 'event' || methodName === 'market' || methodName === 'outcome')) {
+            printPredictionEntity (exchange, methodName, params[0]);
+            if (!iMode) {
+                exchange.close ();
+                break;
+            }
+            inputArgs = await askForArgv ('[command]: ');
+            program.parse (inputArgs);
+            cliOptions = program.opts () as CLIOptions;
+            [ exchangeId, methodName, ...params ] = program.args;
+            continue;
+        }
+
         if (exchange[methodName] === undefined) {
             log.red (exchange.id + '.' + methodName + ': no such property');
             process.exit (0);
@@ -324,6 +339,26 @@ function eventFieldValue (obj: any, keys: string[]): string {
     return '-';
 }
 
+function printPredictionOutcomeNode (outcome: any, indent: string) {
+    const label = eventFieldValue (outcome, [ 'label' ]);
+    log (
+        indent + ansi.magenta ('outcome ') + eventFieldValue (outcome, [ 'outcome' ])
+        + ansi.darkGray (' (id: ' + eventFieldValue (outcome, [ 'outcomeId', 'id' ]) + ')')
+        + ((label !== '-') ? ansi.darkGray ('  [' + label + ']') : '')
+    );
+}
+
+function printPredictionMarketNode (market: any, indent: string) {
+    log (
+        indent + ansi.yellow ('market  ') + eventFieldValue (market, [ 'market', 'symbol' ])
+        + ansi.darkGray (' (id: ' + eventFieldValue (market, [ 'id' ]) + ')')
+    );
+    const outcomes = (market && market['outcomes']) ? market['outcomes'] : [];
+    for (const outcome of outcomes) {
+        printPredictionOutcomeNode (outcome, indent + '  ');
+    }
+}
+
 // pretty-prints fetchEvents results as an event -> markets -> outcomes tree, showing only the
 // handle + id at each level (the full structures are large and mostly noise when scanning)
 function printPredictionEvents (events: any[]) {
@@ -337,20 +372,137 @@ function printPredictionEvents (events: any[]) {
         );
         const markets = (event && event['markets']) ? event['markets'] : [];
         for (const market of markets) {
-            log (
-                '  ' + ansi.yellow ('market  ') + eventFieldValue (market, [ 'market', 'symbol' ])
-                + ansi.darkGray (' (id: ' + eventFieldValue (market, [ 'id' ]) + ')')
-            );
-            const outcomes = (market && market['outcomes']) ? market['outcomes'] : [];
-            for (const outcome of outcomes) {
-                const label = eventFieldValue (outcome, [ 'label' ]);
-                log (
-                    '    ' + ansi.magenta ('outcome ') + eventFieldValue (outcome, [ 'outcome' ])
-                    + ansi.darkGray (' (id: ' + eventFieldValue (outcome, [ 'outcomeId', 'id' ]) + ')')
-                    + ((label !== '-') ? ansi.darkGray ('  [' + label + ']') : '')
-                );
+            printPredictionMarketNode (market, '  ');
+        }
+    }
+}
+
+// the cached events (this.events, loaded from prediction/<id>.json) are the source of truth for
+// the `event` / `market` / `outcome` single-lookup commands
+function predictionEventList (exchange: any): any[] {
+    const events = (exchange.events !== undefined && exchange.events !== null) ? exchange.events : {};
+    return Object.keys (events).map ((key) => events[key]);
+}
+
+function findPredictionEvent (exchange: any, key: string): any {
+    for (const event of predictionEventList (exchange)) {
+        if (event['event'] === key || event['id'] === key || event['slug'] === key) {
+            return event;
+        }
+    }
+    return undefined;
+}
+
+function findPredictionMarket (exchange: any, key: string): any {
+    for (const event of predictionEventList (exchange)) {
+        const markets = (event && event['markets']) ? event['markets'] : [];
+        for (const market of markets) {
+            if (market['market'] === key || market['symbol'] === key || market['id'] === key) {
+                return market;
             }
         }
+    }
+    return undefined;
+}
+
+function findPredictionOutcome (exchange: any, key: string): any {
+    for (const event of predictionEventList (exchange)) {
+        const markets = (event && event['markets']) ? event['markets'] : [];
+        for (const market of markets) {
+            const outcomes = (market && market['outcomes']) ? market['outcomes'] : [];
+            for (const outcome of outcomes) {
+                if (outcome['outcome'] === key || outcome['outcomeId'] === key || outcome['id'] === key) {
+                    return outcome;
+                }
+            }
+        }
+    }
+    return undefined;
+}
+
+// prints the scalar (and small/array) fields of a single entity, one per line; skips the nested
+// children (printed as a tree) and the raw `info` blob
+function printEntityDetails (obj: any, indent: string) {
+    const skip = [ 'info', 'markets', 'outcomes' ];
+    const keys = Object.keys (obj);
+    let pad = 0;
+    for (const key of keys) {
+        if (key.length > pad) {
+            pad = key.length;
+        }
+    }
+    for (const key of keys) {
+        if (skip.indexOf (key) !== -1) {
+            continue;
+        }
+        let value = obj[key];
+        if (value === undefined || value === null || value === '') {
+            continue;
+        }
+        if (Array.isArray (value)) {
+            const primitives = [];
+            for (const item of value) {
+                if (typeof item !== 'object') {
+                    primitives.push (String (item));
+                }
+            }
+            if (primitives.length === 0) {
+                continue; // array of objects (handled as a tree)
+            }
+            value = primitives.join (', ');
+        } else if (typeof value === 'object') {
+            value = JSON.stringify (value); // small objects (precision / limits / fees)
+        }
+        log (indent + ansi.darkGray (key.padEnd (pad) + '  ') + String (value));
+    }
+}
+
+// handles `<exchange> event|market|outcome <key> -p`: a single-entity lookup resolved from the
+// cached events (run fetchEvents first to populate the prediction/ cache). Unlike the events tree,
+// the single-entity view also dumps the entity's own fields
+function printPredictionEntity (exchange: any, kind: string, key: string) {
+    if (key === undefined) {
+        log.red (kind + ' requires a key, e.g. "' + exchange.id + ' ' + kind + ' <handle> -p"');
+        return;
+    }
+    if (predictionEventList (exchange).length === 0) {
+        log.red ('no cached events for ' + exchange.id + ' — run "' + exchange.id + ' fetchEvents <query> -p" first');
+        return;
+    }
+    if (kind === 'event') {
+        const event = findPredictionEvent (exchange, key);
+        if (event === undefined) {
+            log.red ('event not found in cache: ' + key);
+            return;
+        }
+        const title = eventFieldValue (event, [ 'title' ]);
+        log (ansi.green ('event   ') + eventFieldValue (event, [ 'event', 'slug' ]) + ansi.darkGray (' (id: ' + eventFieldValue (event, [ 'id' ]) + ')') + ((title !== '-') ? ansi.darkGray ('  ' + title) : ''));
+        printEntityDetails (event, '  ');
+        const markets = (event['markets']) ? event['markets'] : [];
+        for (const market of markets) {
+            printPredictionMarketNode (market, '  ');
+        }
+    } else if (kind === 'market') {
+        const market = findPredictionMarket (exchange, key);
+        if (market === undefined) {
+            log.red ('market not found in cache: ' + key);
+            return;
+        }
+        log (ansi.yellow ('market  ') + eventFieldValue (market, [ 'market', 'symbol' ]) + ansi.darkGray (' (id: ' + eventFieldValue (market, [ 'id' ]) + ')'));
+        printEntityDetails (market, '  ');
+        const outcomes = (market['outcomes']) ? market['outcomes'] : [];
+        for (const outcome of outcomes) {
+            printPredictionOutcomeNode (outcome, '  ');
+        }
+    } else {
+        const outcome = findPredictionOutcome (exchange, key);
+        if (outcome === undefined) {
+            log.red ('outcome not found in cache: ' + key);
+            return;
+        }
+        const label = eventFieldValue (outcome, [ 'label' ]);
+        log (ansi.magenta ('outcome ') + eventFieldValue (outcome, [ 'outcome' ]) + ansi.darkGray (' (id: ' + eventFieldValue (outcome, [ 'outcomeId', 'id' ]) + ')') + ((label !== '-') ? ansi.darkGray ('  [' + label + ']') : ''));
+        printEntityDetails (outcome, '  ');
     }
 }
 
@@ -371,7 +523,11 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
     }
     end = exchange.milliseconds ();
 
-    if (methodName === 'fetchEvents' && Array.isArray (result) && !cliOptions.raw) {
+    const isEventsResult = (methodName === 'fetchEvents') && Array.isArray (result);
+    if (isEventsResult) {
+        await cacheEvents (exchange, result);
+    }
+    if (isEventsResult && !cliOptions.raw) {
         printPredictionEvents (result);
     } else {
         printHumanReadable (exchange, result, cliOptions);

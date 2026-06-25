@@ -385,6 +385,78 @@ async function handleMarketsLoading (
     }
 }
 
+/**
+ * Loads cached prediction events (event -> markets -> outcomes) from the prediction/ cache
+ * subfolder into the exchange, mirroring how markets/currencies are cached. Events are written
+ * by the fetchEvents command (see cacheEvents); this only reads a fresh cache so that subsequent
+ * prediction commands can resolve event handles without re-fetching.
+ * @param exchange
+ * @param forceRefresh
+ */
+async function handleEventsLoading (exchange, forceRefresh = false) {
+    const hasEvents = (exchange.has !== undefined) && (exchange.has['fetchEvents'] === true);
+    if (!hasEvents) {
+        return;
+    }
+    const eventsPath = path.join (getCacheDirectory (), 'prediction', exchange.id + '.json');
+    const cacheConfig = loadConfigFile ();
+    try {
+        if (fs.existsSync (eventsPath)) {
+            const stats = fs.statSync (eventsPath);
+            const diff = new Date ().getTime () - stats.mtime.getTime ();
+            if (!forceRefresh && (diff <= cacheConfig.refreshMarketsTimeout)) {
+                const events = JSON.parse (fs.readFileSync (eventsPath).toString ());
+                exchange.setEvents (events);
+                // the cached events carry their markets (each with nested outcomes); merge them
+                // into this.markets and rebuild the outcome lookups (setMarkets -> setOutcomes
+                // FromMarkets on prediction exchanges) so methods that require loaded outcomes
+                // (fetchOrderBook, createOrder, ...) work straight from the cache
+                const merged = {};
+                const existing = (exchange.markets !== undefined && exchange.markets !== null) ? exchange.markets : {};
+                const existingKeys = Object.keys (existing);
+                for (let i = 0; i < existingKeys.length; i++) {
+                    merged[existingKeys[i]] = existing[existingKeys[i]];
+                }
+                let added = false;
+                for (const event of events) {
+                    const eventMarkets = (event !== undefined && event !== null && event['markets']) ? event['markets'] : [];
+                    for (const market of eventMarkets) {
+                        const marketSymbol = (market['symbol'] !== undefined) ? market['symbol'] : market['market'];
+                        if (marketSymbol !== undefined) {
+                            merged[marketSymbol] = market;
+                            added = true;
+                        }
+                    }
+                }
+                if (added) {
+                    exchange.setMarkets (Object.keys (merged).map ((k) => merged[k]));
+                }
+            }
+        }
+    } catch (e) {
+        log.red ('loadEvents:', e);
+    // error loading cached events
+    }
+}
+
+/**
+ * Persists the events returned by fetchEvents under the prediction/ cache subfolder, keyed by
+ * exchange id, so they survive across CLI invocations (the markets/currencies equivalent).
+ * @param exchange
+ * @param events
+ */
+async function cacheEvents (exchange, events) {
+    if (events === undefined || events === null) {
+        return;
+    }
+    const eventsPath = path.join (getCacheDirectory (), 'prediction', exchange.id + '.json');
+    try {
+        await writeFile (eventsPath, jsonStringify (events));
+    } catch (e) {
+        log.red ('cacheEvents:', e);
+    }
+}
+
 //-----------------------------------------------------------------------------
 
 /**
@@ -549,6 +621,7 @@ async function loadSettingsAndCreateExchange (
     const no_load_markets = cliOptions.noSend ? true : cliOptions.noLoadMarkets;
     if (!no_load_markets && !printUsageOnly) {
         await handleMarketsLoading (exchange, cliOptions.refreshMarkets);
+        await handleEventsLoading (exchange, cliOptions.refreshMarkets);
     }
 
     if (cliOptions.signIn && exchange.has.signIn) {
@@ -788,6 +861,7 @@ export {
     printSavedCommand,
     printHumanReadable,
     handleMarketsLoading,
+    cacheEvents,
     setNoSend,
     parseMethodArgs,
     printUsage,

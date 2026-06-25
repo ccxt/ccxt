@@ -1782,7 +1782,10 @@ export default class hyperliquid extends Exchange {
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
-        const marketValues = Object.values (this.markets);
+        // hyperliquid has no dedicated events endpoint — events are grouped from the outcome
+        // markets, so fetch them directly rather than relying on this.markets (which may be
+        // unloaded or hold the non-prediction hyperliquid markets)
+        const marketValues = await this.fetchMarkets ();
         // Group markets by parentSymbol
         const groupMap = {};
         const lowerQueries = [];
