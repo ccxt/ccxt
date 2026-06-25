@@ -1,5 +1,5 @@
 import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
-import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
+import { inflateSync, gunzipSync } from 'fflate';
 import { Future } from './Future.js';
 
 import {
@@ -10,6 +10,11 @@ import {
 } from '../../base/functions.js';
 import { utf8 } from '@scure/base';
 import { Dictionary, Str } from '../types.js';
+
+let nodeZlib: any = undefined;
+if (isNode) {
+    import (/* webpackIgnore: true */ 'node:zlib').then ((mod) => { nodeZlib = mod; }).catch (() => {});
+}
 
 export default class Client {
     connected: Promise<any>
@@ -352,9 +357,9 @@ export default class Client {
             if (this.gunzip || this.inflate) {
                 arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
                 if (this.gunzip) {
-                    arrayBuffer = gunzipSync (arrayBuffer)
+                    arrayBuffer = (isNode && nodeZlib) ? nodeZlib.gunzipSync (arrayBuffer) : gunzipSync (arrayBuffer)
                 } else if (this.inflate) {
-                    arrayBuffer = inflateSync (arrayBuffer)
+                    arrayBuffer = (isNode && nodeZlib) ? nodeZlib.inflateRawSync (arrayBuffer) : inflateSync (arrayBuffer)
                 }
                 message = utf8.encode (arrayBuffer)
             } else {

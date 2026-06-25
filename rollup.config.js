@@ -47,6 +47,8 @@ export default [
         '@scure/starknet',
         'ws',
         'bufferutil',
+        // websocket decompression fallback for browser/non-node runtimes
+        'fflate',
         // optional proxy agents (dynamically imported)
         'socks-proxy-agent',
         'http-proxy-agent',
