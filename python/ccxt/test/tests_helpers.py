@@ -63,6 +63,8 @@ class Argv(object):
 argv = Argv()
 parser = argparse.ArgumentParser()
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
+parser.add_argument('--prediction', action='store_true', help='force the prediction-markets namespace for ids in both namespaces')
+parser.add_argument('--fundedTests', action='store_true', help='run funded order-placement tests')
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')

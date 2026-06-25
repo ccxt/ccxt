@@ -2,6 +2,10 @@ import { Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
 
 function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
+    // prediction-market structures are keyed by an outcome handle, not a `symbol`
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+        skippedProperties = exchange.extend ({ 'symbol': true }, skippedProperties);
+    }
     const format = {
         'info': { },
         'id': '12345-67890:09876/54321', // string trade id

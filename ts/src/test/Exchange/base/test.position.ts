@@ -2,6 +2,11 @@ import { Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
 
 function testPosition (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
+    // prediction positions are share holdings keyed by an outcome handle (not a `symbol`) and
+    // don't carry an opened-at timestamp
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+        skippedProperties = exchange.extend ({ 'symbol': true, 'timestamp': true, 'datetime': true }, skippedProperties);
+    }
     const format = {
         'info': {}, // or []
         'symbol': 'XYZ/USDT',

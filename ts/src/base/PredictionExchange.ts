@@ -76,7 +76,13 @@ export default class PredictionExchange extends Exchange {
             result = filtered;
         }
         result = this.filterEventsByStatus (result, this.safeString (params, 'status'));
-        if ((queries !== undefined) && (queries.length > 0)) {
+        // own-line length read so the regex transpiler treats `queries` as an array (count())
+        // and not a string (strlen()); guard undefined since the default is undefined
+        let queriesLength = 0;
+        if (queries !== undefined) {
+            queriesLength = queries.length;
+        }
+        if (queriesLength > 0) {
             result = this.filterEventsBySearchIn (result, queries, this.safeString (params, 'searchIn'));
         }
         const sort = this.safeString (params, 'sort');
@@ -120,7 +126,12 @@ export default class PredictionExchange extends Exchange {
 
     filterEventsBySearchIn (events: any[], queries: string[], searchIn: Str = undefined): any[] {
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
-        if ((searchIn === undefined) || (queries === undefined) || (queries.length === 0)) {
+        // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
+        let queriesLength = 0;
+        if (queries !== undefined) {
+            queriesLength = queries.length;
+        }
+        if ((searchIn === undefined) || (queries === undefined) || (queriesLength === 0)) {
             return events;
         }
         const checkTitle = (searchIn === 'title') || (searchIn === 'both');

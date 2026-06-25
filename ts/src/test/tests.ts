@@ -720,6 +720,12 @@ class testMainClass {
     }
 
     async testExchange (exchange, providedSymbol = undefined) {
+        // prediction-market exchanges have no spot/swap markets and address methods by an
+        // outcome handle (not a market symbol), so they take a dedicated test flow
+        if (exchange.safeBool (exchange.has, 'prediction', false)) {
+            await this.runPredictionTests (exchange);
+            return true;
+        }
         let spotSymbols: Strings = undefined;
         let swapSymbols: Strings = undefined;
         if (providedSymbol !== undefined) {
@@ -782,6 +788,179 @@ class testMainClass {
                 exchange.options['defaultType'] = 'swap';
                 await this.runPrivateTests (exchange, swapSymbols);
             }
+        }
+        return true;
+    }
+
+    async runPredictionTests (exchange) {
+        // loadMarkets (already called by loadExchange) populates the markets and their outcome
+        // tokens; resolve a tradeable outcome handle from them (works in every language since
+        // exchange.markets is typed on the base, unlike the prediction-only outcomes cache),
+        // then fetchEvents for an event id and run every method by that outcome handle
+        let outcomeSymbol = undefined;
+        const marketKeys = Object.keys (exchange.markets);
+        for (let i = 0; i < marketKeys.length; i++) {
+            const market = exchange.markets[marketKeys[i]];
+            const outcomesList = exchange.safeList (market, 'outcomes', []);
+            const outcomesListLength = outcomesList.length;
+            if (outcomesListLength > 0) {
+                outcomeSymbol = exchange.safeString (outcomesList[0], 'outcome');
+                if (outcomeSymbol !== undefined) {
+                    break;
+                }
+            }
+        }
+        if (outcomeSymbol === undefined) {
+            dump ('[TEST_FAILURE]', exchange.id, 'no tradeable outcome available in loaded markets');
+            return false;
+        }
+        // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
+        // (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
+        // inline rather than through a per-method test file
+        let eventId = undefined;
+        if (!this.wsTests) {
+            // try/catch is required: callExchangeMethodDynamically is a checked-throwing call in
+            // Java and its async lambda can't propagate (or re-throw) a checked exception
+            try {
+                const events = await callExchangeMethodDynamically (exchange, 'fetchEvents', []);
+                assert (events !== undefined, exchange.id + ' fetchEvents returned undefined');
+                // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
+                const eventsList = exchange.safeList ({ 'events': events }, 'events', []);
+                this.assertPredictionEvents (exchange, eventsList);
+                const eventsLength = eventsList.length;
+                if (eventsLength > 0) {
+                    eventId = exchange.safeString (eventsList[0], 'id');
+                }
+                if ((eventId !== undefined) && exchange.safeBool (exchange.has, 'fetchEvent', false)) {
+                    const event = await callExchangeMethodDynamically (exchange, 'fetchEvent', [ eventId ]);
+                    assert (exchange.isDictionary (event), exchange.id + ' fetchEvent should return an event structure');
+                    assert (exchange.safeString (event, 'id') !== undefined, exchange.id + ' fetchEvent returned no id');
+                }
+            } catch (e) {
+                dump ('[TEST_FAILURE]', exchange.id, 'fetchEvents/fetchEvent failed:', exceptionMessage (e));
+                return false;
+            }
+        }
+        dump ('[INFO:MAIN] Selected prediction OUTCOME:', outcomeSymbol, '| EVENT:', exchange.json (eventId));
+        let publicTests = {
+            'fetchStatus': [],
+            'fetchTime': [],
+            'fetchTradingFee': [ outcomeSymbol ],
+            'fetchOpenInterest': [ outcomeSymbol ],
+            'fetchTicker': [ outcomeSymbol ],
+            'fetchTickers': [ outcomeSymbol ],
+            'fetchOrderBook': [ outcomeSymbol ],
+            'fetchOHLCV': [ outcomeSymbol ],
+            'fetchTrades': [ outcomeSymbol ],
+        };
+        if (this.wsTests) {
+            publicTests = {
+                // @ts-ignore
+                'watchTicker': [ outcomeSymbol ],
+                'watchOrderBook': [ outcomeSymbol ],
+                'watchTrades': [ outcomeSymbol ],
+            };
+        }
+        if (!this.privateTestOnly) {
+            await this.runTests (exchange, publicTests, true);
+        }
+        if ((this.privateTest || this.privateTestOnly) && !this.wsTests) {
+            const privateTests = {
+                'fetchBalance': [],
+                'fetchPositions': [ outcomeSymbol ],
+                'fetchMyTrades': [ outcomeSymbol ],
+                'fetchOrders': [ outcomeSymbol ],
+                'fetchOpenOrders': [ outcomeSymbol ],
+                'fetchClosedOrders': [ outcomeSymbol ],
+                'fetchOrder': [ outcomeSymbol ],
+            };
+            await this.runTests (exchange, privateTests, false);
+            // order placement is real money — gated behind --fundedTests, like crypto createOrder
+            if (getCliArgValue ('--fundedTests')) {
+                await this.testPredictionCreateCancelOrder (exchange, outcomeSymbol);
+            }
+        }
+        return true;
+    }
+
+    assertPredictionEvents (exchange, events) {
+        assert (Array.isArray (events), exchange.id + ' fetchEvents/fetchEvent should return a list');
+        const eventsLength = events.length;
+        for (let i = 0; i < eventsLength; i++) {
+            const event = events[i];
+            assert (exchange.isDictionary (event), exchange.id + ' event should be a dict');
+            assert (exchange.safeString (event, 'id') !== undefined, exchange.id + ' event missing id');
+            assert (exchange.safeList (event, 'markets') !== undefined, exchange.id + ' event missing markets');
+        }
+        return true;
+    }
+
+    async testPredictionCreateCancelOrder (exchange, outcome) {
+        // place a deliberately non-marketable limit BUY (low fixed price * tiny amount), assert
+        // it, then always cancel it. Safe by construction: 5 shares @ 0.02 = 0.10 USD notional,
+        // far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
+        // createOrder/cancelOrder are invoked dynamically since they aren't on every language's
+        // typed core-exchange interface (e.g. Go's ICoreExchange).
+        if (!exchange.safeBool (exchange.has, 'createOrder', false)) {
+            return true;
+        }
+        // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
+        // and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
+        const createOrderSkip = this.getSkips (exchange, 'createOrder');
+        if (typeof createOrderSkip === 'string') {
+            dump ('[INFO] skipping prediction createOrder test', exchange.id, createOrderSkip);
+            return true;
+        }
+        const canCancel = exchange.safeBool (exchange.has, 'cancelOrder', false) || exchange.safeBool (exchange.has, 'cancelAllOrders', false);
+        if (!canCancel) {
+            dump ('[INFO] skipping prediction createOrder test', exchange.id, 'no cancelOrder/cancelAllOrders');
+            return true;
+        }
+        if (!exchange.checkRequiredCredentials (false)) {
+            dump ('[INFO] skipping prediction createOrder test', exchange.id, 'keys not found');
+            return true;
+        }
+        const price = exchange.parseToNumeric ('0.02');
+        const amount = exchange.parseToNumeric ('5');
+        dump ('[INFO:MAIN] prediction createOrder', exchange.id, outcome, 'buy 5 @ 0.02 (0.10 USD notional)');
+        // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
+        // either): record any failure, ALWAYS attempt the cancel, then report the failure
+        let order = undefined;
+        let placedId = undefined;
+        let failure = undefined;
+        try {
+            order = await callExchangeMethodDynamically (exchange, 'createOrder', [ outcome, 'limit', 'buy', amount, price ]);
+            assert (order !== undefined, 'createOrder returned undefined for ' + exchange.id);
+            assert (exchange.isDictionary (order), 'createOrder did not return an order structure for ' + exchange.id);
+            placedId = exchange.safeString (order, 'id');
+            assert (placedId !== undefined, 'createOrder returned no order id for ' + exchange.id);
+            const returnedOutcome = exchange.safeString (order, 'outcome');
+            assert ((returnedOutcome === undefined) || (returnedOutcome === outcome), 'createOrder outcome "' + exchange.json (returnedOutcome) + '" should match requested "' + outcome + '" for ' + exchange.id);
+        } catch (e) {
+            failure = exceptionMessage (e);
+        }
+        // always cancel any placed order (cancelPredictionOrder swallows its own errors)
+        await this.cancelPredictionOrder (exchange, placedId, outcome);
+        if (failure !== undefined) {
+            dump ('[TEST_FAILURE]', exchange.id, 'prediction createOrder failed:', failure);
+            return false;
+        }
+        return true;
+    }
+
+    async cancelPredictionOrder (exchange, orderId, outcome) {
+        if (orderId === undefined) {
+            return true;
+        }
+        try {
+            if (exchange.safeBool (exchange.has, 'cancelOrder', false)) {
+                await callExchangeMethodDynamically (exchange, 'cancelOrder', [ orderId, outcome ]);
+            } else {
+                await callExchangeMethodDynamically (exchange, 'cancelAllOrders', [ outcome ]);
+            }
+            dump ('[INFO:MAIN] prediction order cancelled', exchange.id, orderId);
+        } catch (e) {
+            dump ('[WARN] prediction order cancel failed', exchange.id, orderId, exceptionMessage (e));
         }
         return true;
     }
@@ -1419,11 +1598,8 @@ class testMainClass {
         }
         const exchange = initExchange (exchangeName, options);
         exchange.currencies = currencies;
-        // prediction exchanges build their outcome lookup from markets via setMarkets;
-        // the offline config injects markets directly (bypassing setMarkets), so run it here
-        if (exchange.safeBool (exchange.has, 'prediction', false)) {
-            exchange.setMarkets (markets);
-        }
+        // prediction exchanges resolve outcomes lazily from the injected markets (checkEvents ->
+        // setOutcomesFromMarkets) the first time a method is called, so no explicit setMarkets here
         // not working in python if assigned  in the config dict
         return exchange;
     }
