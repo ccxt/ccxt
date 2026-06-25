@@ -141,7 +141,7 @@ class woo extends \ccxt\async\woo {
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $method = null;
@@ -181,7 +181,7 @@ class woo extends \ccxt\async\woo {
              *
              * @param {string} $symbol unified $symbol of the $market
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $method = null;

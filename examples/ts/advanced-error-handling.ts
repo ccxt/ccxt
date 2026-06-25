@@ -2,7 +2,7 @@
 
 "use strict";
 
-const ccxt      = require ('../../ccxt.js');
+import ccxt from '../../js/ccxt.js';
 
 // instantiate the exchange
 let exchange = new ccxt.coinbaseexchange  ({

@@ -1,5 +1,9 @@
 import Exchange from './abstract/aftermath.js';
 import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction, OrderType, OrderSide, Num, NullableDict } from './base/types.js';
+/**
+ * @class aftermath
+ * @augments Exchange
+ */
 export default class aftermath extends Exchange {
     describe(): any;
     /**

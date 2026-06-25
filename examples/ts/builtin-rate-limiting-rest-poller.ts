@@ -4,6 +4,7 @@
 
 import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
+// @ts-ignore
 import { nice as ansi } from 'ansicolor';
 import asTable from 'as-table';
 
@@ -14,7 +15,7 @@ async function test (symbol) {
 
     for (let i = 0; i < repeat; i++) {
         let ticker = await exchange.fetchTicker (symbol)
-        log (exchange.id.green, exchange.iso8601 (exchange.milliseconds ()), ticker['datetime'], symbol.green, ticker['last'])
+        log ((exchange.id as any).green, exchange.iso8601 (exchange.milliseconds ()), ticker['datetime'], symbol.green, ticker['last'])
     }
 }
 

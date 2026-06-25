@@ -24,7 +24,7 @@ async function main () {
     const start = Date.now ()
 
     try {
-        const promises = Object.values (exchanges).map (exchange => (
+        const promises = Object.values (exchanges).map ((exchange: any) => (
             (async () => {
                 console.log (exchange.id)
                 try {

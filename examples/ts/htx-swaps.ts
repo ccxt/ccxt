@@ -44,7 +44,7 @@ const exchange = new ccxt.htx ({
         // canceling an order
         const cancel = await exchange.cancelOrder (order['id'], symbol)
         console.log (cancel)
-    } catch (e) {
+    } catch (e: any) {
         console.log (e.constructor.name, e.message)
     }
 
@@ -66,7 +66,7 @@ const exchange = new ccxt.htx ({
         console.log (order)
         const cancel = await exchange.cancelOrder (order['id'], symbol)
         console.log (cancel)
-    } catch (e) {
+    } catch (e: any) {
         console.log (e.constructor.name, e.message)
     }
 }) ()

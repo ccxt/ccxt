@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.59'
+__version__ = '4.5.60'
 
 # -----------------------------------------------------------------------------
 
@@ -475,11 +475,7 @@ class Exchange(object):
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
     def __del__(self):
-        if self.session:
-            try:
-                self.session.close()
-            except Exception as e:
-                pass
+        self.close()
 
     def __repr__(self):
         return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
@@ -1789,31 +1785,6 @@ class Exchange(object):
     def to_array(value):
         return list(value.values()) if type(value) is dict else value
 
-    @staticmethod
-    def check_required_version(required_version, error=True):
-        result = True
-        [major1, minor1, patch1] = required_version.split('.')
-        [major2, minor2, patch2] = __version__.split('.')
-        int_major1 = int(major1)
-        int_minor1 = int(minor1)
-        int_patch1 = int(patch1)
-        int_major2 = int(major2)
-        int_minor2 = int(minor2)
-        int_patch2 = int(patch2)
-        if int_major1 > int_major2:
-            result = False
-        if int_major1 == int_major2:
-            if int_minor1 > int_minor2:
-                result = False
-            elif int_minor1 == int_minor2 and int_patch1 > int_patch2:
-                result = False
-        if not result:
-            if error:
-                raise NotSupported('Your current version of CCXT is ' + __version__ + ', a newer version ' + required_version + ' is required, please, upgrade your version of CCXT')
-            else:
-                return error
-        return result
-
     def precision_from_string(self, str):
         # support string formats like '1e-4'
         if 'e' in str or 'E' in str:
@@ -2109,6 +2080,17 @@ class Exchange(object):
 
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
+
+    def close(self, clean_instance_data=False):
+        # ##### language-specific cleanup of REST resources #####
+        # [REST]
+        if clean_instance_data:
+            self.clean_rest_data()
+        if self.session:
+            try:
+                self.session.close()
+            except Exception as e:
+                pass
 
     def binary_length(self, binary):
         return len(binary)
@@ -2930,6 +2912,34 @@ class Exchange(object):
             },
             'rollingWindowSize': 60000,  # default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         }
+
+    def clean_rest_data(self):
+        self.ids = None
+        self.markets = None
+        self.markets_by_id = None
+        self.symbols = None
+        self.codes = None
+        self.currencies = self.create_safe_dictionary()
+        self.currencies_by_id = None
+        self.baseCurrencies = None
+        self.quoteCurrencies = None
+        self.last_http_response = None
+        # self.last_json_response = None  # not unified prop
+        self.last_response_headers = None
+        self.last_request_headers = None
+
+    def clean_ws_data(self):
+        self.balance = self.create_safe_dictionary(True)
+        self.orderbooks = self.create_safe_dictionary(True)
+        self.tickers = self.create_safe_dictionary(True)
+        self.liquidations = None
+        self.myLiquidations = None
+        self.orders = None
+        self.trades = self.create_safe_dictionary(True)
+        self.transactions = self.create_safe_dictionary()
+        self.ohlcvs = self.create_safe_dictionary(True)
+        self.myTrades = None
+        self.positions = None
 
     def safe_bool_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: bool = None):
         """

@@ -691,6 +691,10 @@ func (this *HtxCore) SpotPrivateGetV2AccountRepayment(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AccountRepayment", args...)
 }
 
+func (this *HtxCore) SpotPrivateGetV5AccountUniversalTransferRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivateGetV5AccountUniversalTransferRecords", args...)
+}
+
 func (this *HtxCore) SpotPrivateGetV1StableCoinQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1StableCoinQuote", args...)
 }

@@ -135,7 +135,7 @@ public partial class lighter : Exchange
             } },
             { "hostname", "zklighter.elliot.ai" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0" },
+                { "logo", "https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b" },
                 { "api", new Dictionary<string, object>() {
                     { "root", "https://mainnet.{hostname}" },
                     { "public", "https://mainnet.{hostname}" },
@@ -1478,7 +1478,7 @@ public partial class lighter : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

@@ -142,7 +142,7 @@ public class HyperliquidCore extends HyperliquidApi
             }} );
             put( "hostname", "hyperliquid.xyz" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b" );
+                put( "logo", "https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.{hostname}" );
                     put( "private", "https://api.{hostname}" );
@@ -1309,7 +1309,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

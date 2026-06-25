@@ -148,7 +148,7 @@ class lighter(Exchange, ImplicitAPI):
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0',
+                'logo': 'https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b',
                 'api': {
                     'root': 'https://mainnet.{hostname}',
                     'public': 'https://mainnet.{hostname}',
@@ -1244,7 +1244,7 @@ class lighter(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')

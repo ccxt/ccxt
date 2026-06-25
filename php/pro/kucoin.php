@@ -1407,7 +1407,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), default is false
              * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             //
             // https://docs.kucoin.com/#level-2-$market-data
@@ -1466,7 +1466,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), default is false
              * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $uta = false;
             list($uta, $params) = $this->handle_option_and_params($params, 'unWatchOrderBook', 'uta', $uta);
@@ -1511,7 +1511,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -1576,7 +1576,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {string[]} $symbols unified array of $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $limit = $this->safe_integer($params, 'limit');
             $params = $this->omit($params, 'limit');

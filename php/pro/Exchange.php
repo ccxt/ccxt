@@ -10,8 +10,6 @@ namespace ccxt\pro;
 
 class Exchange extends \ccxt\async\Exchange {
 
-    use ClientTrait;
-
     public static $exchanges = array();
 }
 

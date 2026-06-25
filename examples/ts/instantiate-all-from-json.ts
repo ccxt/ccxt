@@ -3,7 +3,8 @@
 
 
 import ccxt from '../../js/ccxt.js';
-import settings from './credentials.json';
+// @ts-ignore
+import settings from '../../keys.json';
 
 async function test () {
 

@@ -23,9 +23,12 @@ async function main () {
     const symbol = 'BTC/USDT'
     const type = 'STOP_LOSS_LIMIT'
     const side = 'buy'
+    // @ts-expect-error
     const amount = YOUR_AMOUNT_HERE
+    // @ts-expect-error
     const price = YOUR_PRICE_HERE
     const params = {
+        // @ts-expect-error
         'stopPrice': YOUR_STOP_PRICE_HERE,
         'timeInForce': 'GTC',
     }

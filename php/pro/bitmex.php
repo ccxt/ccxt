@@ -792,7 +792,7 @@ class bitmex extends \ccxt\async\bitmex {
         //        keys => array( 'account', 'symbol' ),
         //        types => array(
         //            account => 'long',
-        //            symbol => 'symbol',
+        //            $symbol => 'symbol',
         //            currency => 'symbol',
         //            underlying => 'symbol',
         //            quoteCurrency => 'symbol',
@@ -850,7 +850,7 @@ class bitmex extends \ccxt\async\bitmex {
         //        data => array(
         //            {
         //                account => 412475,
-        //                symbol => 'XBTUSD',
+        //                $symbol => 'XBTUSD',
         //                currency => 'XBt',
         //                underlying => 'XBT',
         //                quoteCurrency => 'USD',
@@ -912,7 +912,7 @@ class bitmex extends \ccxt\async\bitmex {
         //        data => array(
         //            {
         //                account => 412475,
-        //                symbol => 'XBTUSD',
+        //                $symbol => 'XBTUSD',
         //                currency => 'XBt',
         //                currentQty => 400,
         //                markPrice => 43772.75,
@@ -941,6 +941,26 @@ class bitmex extends \ccxt\async\bitmex {
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
             $position = $this->parse_position($rawPosition);
+            $side = $this->safe_string($position, 'side');
+            if ($side === null) {
+                // BitMEX 'update' rows are deltas and may omit homeNotional, so
+                // parsePosition returns $side = null. Carry the $side forward from
+                // the cached $position for this $symbol, otherwise appending would break
+                // the ArrayCacheBySymbolBySide index (see issue #29001).
+                $symbol = $this->safe_string($position, 'symbol');
+                $cachedBySide = $this->safe_dict($cache->hashmap, $symbol, array());
+                $cachedSides = is_array($cachedBySide) ? array_keys($cachedBySide) : array();
+                $sidesLength = count($cachedSides);
+                if ($sidesLength === 1) {
+                    $side = $cachedSides[0];
+                    $position['side'] = $side;
+                }
+            }
+            if ($side === null) {
+                // still unresolved (e.g. the very first $message is a partial without
+                // homeNotional); skip this row rather than corrupt the $cache
+                continue;
+            }
             $newPositions[] = $position;
             $cache->append ($position);
         }
@@ -1310,7 +1330,7 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
         }) ();
@@ -1326,7 +1346,7 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $table = null;
             if ($limit === null) {

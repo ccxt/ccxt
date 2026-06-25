@@ -86,7 +86,8 @@ public class AftermathCore extends AftermathApi
                 put( "1M", "1M" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807" );
+                put( "www", "https://aftermath.finance" );
+                put( "logo", "https://github.com/user-attachments/assets/f3104ea3-e9ab-4d4e-ad22-0ce772a407b7" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://aftermath.finance/api/ccxt" );
                 }} );
@@ -519,7 +520,7 @@ public class AftermathCore extends AftermathApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

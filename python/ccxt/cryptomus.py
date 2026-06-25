@@ -525,7 +525,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.level]: 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

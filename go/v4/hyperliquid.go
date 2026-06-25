@@ -137,7 +137,7 @@ func (this *HyperliquidCore) Describe() any {
 		},
 		"hostname": "hyperliquid.xyz",
 		"urls": map[string]any{
-			"logo": "https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b",
+			"logo": "https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8",
 			"api": map[string]any{
 				"public":  "https://api.{hostname}",
 				"private": "https://api.{hostname}",
@@ -1294,7 +1294,7 @@ func (this *HyperliquidCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *HyperliquidCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

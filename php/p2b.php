@@ -589,7 +589,7 @@ class p2b extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);

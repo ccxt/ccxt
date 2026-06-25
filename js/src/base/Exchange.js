@@ -49,6 +49,8 @@ let SignMode = undefined;
  * @class Exchange
  */
 export default class Exchange {
+    // this is updated by vss.js when building
+    static { this.ccxtVersion = '4.5.60'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.api = undefined;
@@ -270,7 +272,7 @@ export default class Exchange {
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //         this.userAgent = {
-        //             'User-Agent': 'ccxt/' + (Exchange as any).ccxtVersion +
+        //             'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
         //                 ' (+https://github.com/ccxt/ccxt)' +
         //                 ' Node.js/' + this.nodeVersion + ' (JavaScript)'
         //         }
@@ -416,37 +418,6 @@ export default class Exchange {
     encodeURIComponent(...args) {
         // @ts-expect-error
         return encodeURIComponent(...args);
-    }
-    checkRequiredVersion(requiredVersion, error = true) {
-        let result = true;
-        const [major1, minor1, patch1] = requiredVersion.split('.');
-        const [major2, minor2, patch2] = Exchange.ccxtVersion.split('.');
-        const intMajor1 = this.parseToInt(major1);
-        const intMinor1 = this.parseToInt(minor1);
-        const intPatch1 = this.parseToInt(patch1);
-        const intMajor2 = this.parseToInt(major2);
-        const intMinor2 = this.parseToInt(minor2);
-        const intPatch2 = this.parseToInt(patch2);
-        if (intMajor1 > intMajor2) {
-            result = false;
-        }
-        if (intMajor1 === intMajor2) {
-            if (intMinor1 > intMinor2) {
-                result = false;
-            }
-            else if (intMinor1 === intMinor2 && intPatch1 > intPatch2) {
-                result = false;
-            }
-        }
-        if (!result) {
-            if (error) {
-                throw new NotSupported('Your current version of CCXT is ' + Exchange.ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT');
-            }
-            else {
-                return error;
-            }
-        }
-        return result;
     }
     throttle(cost = undefined) {
         return this.throttler.throttle(cost);
@@ -1251,8 +1222,8 @@ export default class Exchange {
             }
         }
     }
-    async close() {
-        // test by running ts/src/pro/test/base/test.close.ts
+    async close(cleanInstanceCache = false) {
+        // [WS]
         await this.sleep(0); // allow other futures to run
         const clients = Object.values(this.clients || {});
         const closedClients = [];
@@ -1266,7 +1237,14 @@ export default class Exchange {
             delete this.clients[client.url];
             closedClients.push(client.close());
         }
-        return Promise.all(closedClients);
+        await Promise.all(closedClients);
+        if (cleanInstanceCache) {
+            this.cleanWsData();
+        }
+        // [REST]
+        if (cleanInstanceCache) {
+            this.cleanRestData();
+        }
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
@@ -2140,6 +2118,34 @@ export default class Exchange {
             },
             'rollingWindowSize': 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         };
+    }
+    cleanRestData() {
+        this.ids = undefined;
+        this.markets = undefined;
+        this.markets_by_id = undefined;
+        this.symbols = undefined;
+        this.codes = undefined;
+        this.currencies = this.createSafeDictionary();
+        this.currencies_by_id = undefined;
+        this.baseCurrencies = undefined;
+        this.quoteCurrencies = undefined;
+        this.last_http_response = undefined;
+        // this.last_json_response = undefined; // not unified prop
+        this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+    }
+    cleanWsData() {
+        this.balance = this.createSafeDictionary(true);
+        this.orderbooks = this.createSafeDictionary(true);
+        this.tickers = this.createSafeDictionary(true);
+        this.liquidations = undefined;
+        this.myLiquidations = undefined;
+        this.orders = undefined;
+        this.trades = this.createSafeDictionary(true);
+        this.transactions = this.createSafeDictionary();
+        this.ohlcvs = this.createSafeDictionary(true);
+        this.myTrades = undefined;
+        this.positions = undefined;
     }
     safeBoolN(dictionaryOrList, keys, defaultValue = undefined) {
         /**

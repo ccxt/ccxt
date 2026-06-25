@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.59'
+__version__ = '4.5.60'
 
 # -----------------------------------------------------------------------------
 
@@ -136,8 +136,17 @@ class Exchange(BaseExchange):
             self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
-    async def close(self):
-        await self.ws_close()
+    async def close(self, clean_instance_data=False):
+        # ##### language-specific cleanup of WS & REST resources #####
+        # [WS]
+        await self.close_ws_clients()
+        if clean_instance_data:
+            self.clean_ws_data()
+        # [REST]
+        if clean_instance_data:
+            await self.clean_rest_data()
+
+    async def clean_rest_data(self):
         if self.session is not None:
             if self.own_session:
                 await self.session.close()
@@ -145,6 +154,7 @@ class Exchange(BaseExchange):
         await self.close_connector()
         await self.close_proxy_sessions()
         await self.sleep(self.timeout_on_exit)
+        super().clean_rest_data()
 
     async def close_connector(self):
         if self.tcp_connector is not None:
@@ -576,7 +586,7 @@ class Exchange(BaseExchange):
             if client.url in self.clients:
                 del self.clients[client.url]
 
-    async def ws_close(self):
+    async def close_ws_clients(self):
         if self.clients:
             await asyncio.wait([asyncio.create_task(client.close()) for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
             for url in self.clients.copy():

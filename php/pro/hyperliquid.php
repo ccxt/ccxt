@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use \React\Async;
 use \React\Promise\PromiseInterface;
@@ -234,7 +235,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -263,7 +264,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?$id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?$id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1499,8 +1500,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $channel = $this->safe_string($message, 'channel', '');
         if ($channel === 'error') {
             $ret_msg = $this->safe_string($message, 'data', '');
-            $errorMsg = $this->id . ' ' . $ret_msg;
-            $client->reject ($errorMsg);
+            $error = new ExchangeError ($this->id . ' ' . $ret_msg);
+            $client->reject ($error);
             return true;
         }
         $data = $this->safe_dict($message, 'data', array());
@@ -1512,13 +1513,13 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $payload = $this->safe_dict($response, 'payload', array());
         $status = $this->safe_string($payload, 'status');
         if ($status !== null && $status !== 'ok') {
-            $errorMsg = $this->id . ' ' . $this->json($payload);
-            $client->reject ($errorMsg, $id);
+            $error = new ExchangeError ($this->id . ' ' . $this->json($payload));
+            $client->reject ($error, $id);
             return true;
         }
         $type = $this->safe_string($payload, 'type');
         if ($type === 'error') {
-            $error = $this->id . ' ' . $this->json($payload);
+            $error = new ExchangeError ($this->id . ' ' . $this->json($payload));
             $client->reject ($error, $id);
             return true;
         }

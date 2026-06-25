@@ -818,7 +818,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.aggLevel]: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)

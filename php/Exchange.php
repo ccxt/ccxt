@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.59';
+$version = '4.5.60';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,7 +63,10 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.59';
+    const VERSION = '4.5.60';
+
+    // this is updated by vss.js when building
+    public static $ccxt_version = '4.5.59';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2100,9 +2103,7 @@ class Exchange {
     }
 
     public function __destruct() {
-        if ($this->curl !== null) {
-            curl_close($this->curl);
-        }
+        $this->close();
     }
 
     public function has($feature = null) {
@@ -2415,37 +2416,6 @@ class Exchange {
         return true;
     }
 
-    public static function check_required_version($required_version, $error = true) {
-        global $version;
-        $result = true;
-        $required = explode('.', $required_version);
-        $current = explode('.', $version);
-        $intMajor1 = intval($required[0]);
-        $intMinor1 = intval($required[1]);
-        $intPatch1 = intval($required[2]);
-        $intMajor2 = intval($current[0]);
-        $intMinor2 = intval($current[1]);
-        $intPatch2 = intval($current[2]);
-        if ($intMajor1 > $intMajor2) {
-            $result = false;
-        }
-        if ($intMajor1 === $intMajor2) {
-            if ($intMinor1 > $intMinor2) {
-                $result = false;
-            } elseif ($intMinor1 === $intMinor2 && $intPatch1 > $intPatch2) {
-                $result = false;
-            }
-        }
-        if (!$result) {
-            if ($error) {
-                throw new NotSupported('Your current version of CCXT is ' . $version . ', a newer version ' . $required_version . ' is required, please, upgrade your version of CCXT');
-            } else {
-                return $error;
-            }
-        }
-        return $result;
-    }
-
     public function check_required_dependencies() {
         if (!static::has_web3()) {
             throw new ExchangeError($this->id . ' requires web3 dependencies');
@@ -2699,6 +2669,18 @@ class Exchange {
         }
         return (int)$number;
     }
+
+    public function close($cleanInstanceData = false) {
+        // ##### language-specific cleanup of WS & REST resources #####
+        // [REST]
+        if ($this->curl !== null) {
+            curl_close($this->curl);
+            $this->curl = null;
+        }
+        if ($cleanInstanceData) {
+            $this->clean_rest_data();
+        }
+   }
 
     public function binary_length($binary) {
         return strlen($binary);
@@ -3150,6 +3132,36 @@ class Exchange {
             ),
             'rollingWindowSize' => 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         );
+    }
+
+    public function clean_rest_data() {
+        $this->ids = null;
+        $this->markets = null;
+        $this->markets_by_id = null;
+        $this->symbols = null;
+        $this->codes = null;
+        $this->currencies = $this->create_safe_dictionary();
+        $this->currencies_by_id = null;
+        $this->baseCurrencies = null;
+        $this->quoteCurrencies = null;
+        $this->last_http_response = null;
+        // $this->last_json_response = null; // not unified prop
+        $this->last_response_headers = null;
+        $this->last_request_headers = null;
+    }
+
+    public function clean_ws_data() {
+        $this->balance = $this->create_safe_dictionary(true);
+        $this->orderbooks = $this->create_safe_dictionary(true);
+        $this->tickers = $this->create_safe_dictionary(true);
+        $this->liquidations = null;
+        $this->myLiquidations = null;
+        $this->orders = null;
+        $this->trades = $this->create_safe_dictionary(true);
+        $this->transactions = $this->create_safe_dictionary();
+        $this->ohlcvs = $this->create_safe_dictionary(true);
+        $this->myTrades = null;
+        $this->positions = null;
     }
 
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {

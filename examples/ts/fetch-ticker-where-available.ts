@@ -11,7 +11,7 @@ import ansicolor from 'ansicolor';
 ansicolor.nice
 
 let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'symbol'.green)
+    log ('Usage: node', process.argv[1], ('symbol' as any).green)
 }
 
 ;(async function main () {
@@ -33,7 +33,7 @@ let printUsage = function () {
 
                     if (exchange.symbols.includes (symbol)) {
 
-                        log (id.green)
+                        log ((id as any).green)
 
                         const ticker = await exchange.fetchTicker (symbol)
 
@@ -44,12 +44,12 @@ let printUsage = function () {
                             if (ticker['bid'] > 1) {
 
                                 if (ticker['baseVolume'] > ticker['quoteVolume'])
-                                log (id.bright, 'baseVolume > quoteVolume ← !'.bright)
+                                log ((id as any).bright, ('baseVolume > quoteVolume ← !' as any).bright)
 
                             } else {
 
                                 if (ticker['baseVolume'] < ticker['quoteVolume'])
-                                    log (id.bright, 'baseVolume < quoteVolume ← !'.bright)
+                                    log ((id as any).bright, ('baseVolume < quoteVolume ← !' as any).bright)
 
                             }
 
@@ -57,12 +57,12 @@ let printUsage = function () {
 
                     } else {
 
-                        log (id.yellow)
+                        log ((id as any).yellow)
                     }
 
                 } catch (e) {
 
-                    log.error (id.red, e.toString ().red)
+                    log.error ((id as any).red, e.toString ().red)
                 }
             }
         }

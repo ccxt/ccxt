@@ -147,7 +147,7 @@ public class LighterCore extends LighterApi
             }} );
             put( "hostname", "zklighter.elliot.ai" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0" );
+                put( "logo", "https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "root", "https://mainnet.{hostname}" );
                     put( "public", "https://mainnet.{hostname}" );
@@ -1600,7 +1600,7 @@ public class LighterCore extends LighterApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol2, Object... optionalArgs)
     {

@@ -134,7 +134,7 @@ class hyperliquid extends Exchange {
             ),
             'hostname' => 'hyperliquid.xyz',
             'urls' => array(
-                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b',
+                'logo' => 'https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8',
                 'api' => array(
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
@@ -1194,7 +1194,7 @@ class hyperliquid extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);

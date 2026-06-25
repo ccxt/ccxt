@@ -274,7 +274,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -309,7 +309,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -1748,8 +1748,8 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         if (Helpers.isTrue(Helpers.isEqual(channel, "error")))
         {
             Object ret_msg = this.safeString(message, "data", "");
-            Object errorMsg = Helpers.add(Helpers.add(this.id, " "), ret_msg);
-            client.reject(errorMsg);
+            var error = new ExchangeError(Helpers.add(Helpers.add(this.id, " "), ret_msg));
+            client.reject(error);
             return true;
         }
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
@@ -1763,14 +1763,14 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object status = this.safeString(payload, "status");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(status, null)) && Helpers.isTrue(!Helpers.isEqual(status, "ok"))))
         {
-            Object errorMsg = Helpers.add(Helpers.add(this.id, " "), this.json(payload));
-            client.reject(errorMsg, id);
+            var error = new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(payload)));
+            client.reject(error, id);
             return true;
         }
         Object type = this.safeString(payload, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "error")))
         {
-            Object error = Helpers.add(Helpers.add(this.id, " "), this.json(payload));
+            var error = new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(payload)));
             client.reject(error, id);
             return true;
         }

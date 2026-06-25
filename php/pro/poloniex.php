@@ -490,7 +490,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by poloniex watchOrderBook
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $watchOrderBookOptions = $this->safe_value($this->options, 'watchOrderBook');

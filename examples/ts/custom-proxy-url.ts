@@ -7,6 +7,7 @@ import ccxt from '../../js/ccxt.js';
 (async function main () {
 
     const kraken1 = new ccxt.kraken ({
+        // @ts-expect-error
         proxy: function (url) {
             return 'https://example.com/?url=' + encodeURIComponent (url)
         },
@@ -15,6 +16,7 @@ import ccxt from '../../js/ccxt.js';
     console.log (await kraken1.loadMarkets ())
 
     const kraken2 = new ccxt.kraken ({
+        // @ts-expect-error
         proxy: function (url) {
             return 'https://cors-anywhere.herokuapp.com/' + url
         },

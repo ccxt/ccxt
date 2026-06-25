@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.59';
+$version = '4.5.60';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.59';
+    const VERSION = '4.5.60';
 
     public $browser;
     public $marketsLoading = null;
@@ -87,6 +87,31 @@ class Exchange extends \ccxt\Exchange {
             'timeout' => $this->timeout,
         ), $connector_options), Loop::get());
         return $connector;
+    }
+
+    public function __destruct() {
+        $this->close();
+        // parent::__destruct(); // not needed atm
+    }
+
+    public function close($cleanInstanceData = false) {
+        // ##### language-specific cleanup of WS & REST resources #####
+        // [WS]
+        $this->close_ws_clients();
+        if ($cleanInstanceData) {
+            $this->clean_ws_data();
+        }
+        // [REST]
+        if ($this->browser) {
+            $this->browser = null;
+        }
+        if ($this->default_connector) {
+            $this->default_connector = null;
+        }
+        if ($cleanInstanceData) {
+            $this->clean_rest_data();
+            parent::clean_rest_data();
+        }
     }
 
     private $proxyDictionaries = [];
@@ -753,6 +778,36 @@ class Exchange extends \ccxt\Exchange {
             ),
             'rollingWindowSize' => 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         );
+    }
+
+    public function clean_rest_data() {
+        $this->ids = null;
+        $this->markets = null;
+        $this->markets_by_id = null;
+        $this->symbols = null;
+        $this->codes = null;
+        $this->currencies = $this->create_safe_dictionary();
+        $this->currencies_by_id = null;
+        $this->baseCurrencies = null;
+        $this->quoteCurrencies = null;
+        $this->last_http_response = null;
+        // $this->last_json_response = null; // not unified prop
+        $this->last_response_headers = null;
+        $this->last_request_headers = null;
+    }
+
+    public function clean_ws_data() {
+        $this->balance = $this->create_safe_dictionary(true);
+        $this->orderbooks = $this->create_safe_dictionary(true);
+        $this->tickers = $this->create_safe_dictionary(true);
+        $this->liquidations = null;
+        $this->myLiquidations = null;
+        $this->orders = null;
+        $this->trades = $this->create_safe_dictionary(true);
+        $this->transactions = $this->create_safe_dictionary();
+        $this->ohlcvs = $this->create_safe_dictionary(true);
+        $this->myTrades = null;
+        $this->positions = null;
     }
 
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {

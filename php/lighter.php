@@ -139,7 +139,7 @@ class lighter extends Exchange {
             ),
             'hostname' => 'zklighter.elliot.ai',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0',
+                'logo' => 'https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b',
                 'api' => array(
                     'root' => 'https://mainnet.{hostname}',
                     'public' => 'https://mainnet.{hostname}',
@@ -1321,7 +1321,7 @@ class lighter extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
