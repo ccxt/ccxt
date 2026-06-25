@@ -1806,9 +1806,22 @@ export default class hyperliquid extends Exchange {
                 const description = this.safeString (info, 'description', '').toLowerCase ();
                 const parentSymbolOrEmpty = (parentSymbol !== undefined) ? parentSymbol : '';
                 const symLower = parentSymbolOrEmpty.toLowerCase ();
+                // the parentSymbol uses hyphens (BTC-ABOVE-...), so match the haystack word-by-word
+                // and require every word of a query to appear, letting "BTC above" match BTC-ABOVE
+                const haystack = description + ' ' + symLower;
                 let matches = false;
                 for (let qi = 0; qi < lowerQueries.length; qi++) {
-                    if (description.indexOf (lowerQueries[qi]) > -1 || symLower.indexOf (lowerQueries[qi]) > -1) {
+                    const words = lowerQueries[qi].split (' ');
+                    const wordsLength = words.length;
+                    let allWords = true;
+                    for (let wi = 0; wi < wordsLength; wi++) {
+                        const word = words[wi];
+                        if ((word !== '') && (haystack.indexOf (word) === -1)) {
+                            allWords = false;
+                            break;
+                        }
+                    }
+                    if (allWords) {
                         matches = true;
                         break;
                     }
