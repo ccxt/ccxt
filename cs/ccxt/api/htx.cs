@@ -866,6 +866,11 @@ public partial class htx : Exchange
         return await this.callAsync ("spotPrivateGetV2AccountRepayment",parameters);
     }
 
+    public async Task<object> spotPrivateGetV5AccountUniversalTransferRecords (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetV5AccountUniversalTransferRecords",parameters);
+    }
+
     public async Task<object> spotPrivateGetV1StableCoinQuote (object parameters = null)
     {
         return await this.callAsync ("spotPrivateGetV1StableCoinQuote",parameters);
@@ -1471,11 +1476,6 @@ public partial class htx : Exchange
         return await this.callAsync ("contractPublicGetLinearSwapExMarketHistoryTrade",parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapRiskInfo (object parameters = null)
-    {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapRiskInfo",parameters);
-    }
-
     public async Task<object> contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund (object parameters = null)
     {
         return await this.callAsync ("contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund",parameters);
@@ -1511,16 +1511,6 @@ public partial class htx : Exchange
         return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapApiState",parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapCrossTransferState (object parameters = null)
-    {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapCrossTransferState",parameters);
-    }
-
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapCrossTradeState (object parameters = null)
-    {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapCrossTradeState",parameters);
-    }
-
     public async Task<object> contractPublicGetLinearSwapApiV1SwapEliteAccountRatio (object parameters = null)
     {
         return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapEliteAccountRatio",parameters);
@@ -1529,11 +1519,6 @@ public partial class htx : Exchange
     public async Task<object> contractPublicGetLinearSwapApiV1SwapElitePositionRatio (object parameters = null)
     {
         return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapElitePositionRatio",parameters);
-    }
-
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapLiquidationOrders (object parameters = null)
-    {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapLiquidationOrders",parameters);
     }
 
     public async Task<object> contractPublicGetLinearSwapApiV1SwapSettlementRecords (object parameters = null)
@@ -1629,46 +1614,6 @@ public partial class htx : Exchange
     public async Task<object> contractPrivateGetSwapApiV1SwapApiTradingStatus (object parameters = null)
     {
         return await this.callAsync ("contractPrivateGetSwapApiV1SwapApiTradingStatus",parameters);
-    }
-
-    public async Task<object> contractPrivateGetLinearSwapApiV1SwapSubAuthList (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV1SwapSubAuthList",parameters);
-    }
-
-    public async Task<object> contractPrivateGetLinearSwapApiV1SwapApiTradingStatus (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV1SwapApiTradingStatus",parameters);
-    }
-
-    public async Task<object> contractPrivateGetLinearSwapApiV1SwapCrossPositionSide (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV1SwapCrossPositionSide",parameters);
-    }
-
-    public async Task<object> contractPrivateGetLinearSwapApiV1SwapPositionSide (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV1SwapPositionSide",parameters);
-    }
-
-    public async Task<object> contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV3UnifiedAccountInfo",parameters);
-    }
-
-    public async Task<object> contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord",parameters);
-    }
-
-    public async Task<object> contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType",parameters);
-    }
-
-    public async Task<object> contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo",parameters);
     }
 
     public async Task<object> contractPrivateGetV5AccountAssetMode (object parameters = null)
@@ -2314,201 +2259,6 @@ public partial class htx : Exchange
     public async Task<object> contractPrivatePostSwapApiV1SwapTrackHisorders (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostSwapApiV1SwapTrackHisorders",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapBalanceValuation (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapBalanceValuation",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAuth (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAuth",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAccountList (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAccountList",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAccountInfo (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAccountInfo",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubPositionInfo (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubPositionInfo",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapFinancialRecord (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapFinancialRecord",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOrderLimit (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapOrderLimit",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapFee (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapFee",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTransferLimit (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTransferLimit",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapPositionLimit (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapPositionLimit",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTransferInner (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTransferInner",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapFinancialRecord (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapFinancialRecord",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossMatchresults (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossMatchresults",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1LinearCancelAfter (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1LinearCancelAfter",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapCrossMatchresults (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapCrossMatchresults",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV3FixPositionMarginChange (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3FixPositionMarginChange",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapSwitchAccountType (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapSwitchAccountType",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder",parameters);
-    }
-
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder (object parameters = null)
-    {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder",parameters);
     }
 
     public async Task<object> contractPrivatePostV5AccountAssetMode (object parameters = null)

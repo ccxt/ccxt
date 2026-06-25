@@ -137,7 +137,7 @@ func (this *HyperliquidCore) Describe() any {
 		},
 		"hostname": "hyperliquid.xyz",
 		"urls": map[string]any{
-			"logo": "https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b",
+			"logo": "https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8",
 			"api": map[string]any{
 				"public":  "https://api.{hostname}",
 				"private": "https://api.{hostname}",

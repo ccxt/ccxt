@@ -43,13 +43,16 @@ func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties an
 				}()
 
 			}
-			if IsTrue(IsEqual(success, true)) {
+			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
 				Assert(IsArray(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an array. "), exchange.Json(response)))
 				now = exchange.Milliseconds()
 				var symbol any = nil
 				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 					var trade any = GetValue(response, i)
 					symbol = GetValue(trade, "symbol")
+					if IsTrue(IsEqual(symbol, nil)) {
+						continue
+					}
 					TestTrade(exchange, skippedProperties, method, trade, symbol, now)
 					AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols)
 					if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {

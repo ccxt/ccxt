@@ -541,7 +541,7 @@ export default class ascendex extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const networkEtnry = chains[j];
             const networkId = this.safeString (networkEtnry, 'chainName');
-            const networkCode = this.networkCodeToId (networkId, code);
+            const networkCode = this.networkCodeToId ((networkId as string), code);
             networks[networkCode] = {
                 'fee': this.safeNumber (networkEtnry, 'withdrawFee'),
                 'active': undefined,
@@ -1225,7 +1225,7 @@ export default class ascendex extends Exchange {
         let market: Market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeString (symbols, 0);
-            market = this.market (symbol);
+            market = this.market ((symbol as string));
             const marketIds = this.marketIds (symbols);
             request['symbol'] = marketIds.join (',');
         }
@@ -1446,7 +1446,7 @@ export default class ascendex extends Exchange {
             'Canceled': 'canceled',
             'Rejected': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1596,7 +1596,7 @@ export default class ascendex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
+        const triggerPrice = this.omitZero ((this.safeString (order, 'stopPrice') as string));
         let reduceOnly: Bool = undefined;
         const execInst = this.safeStringLower (order, 'execInst');
         if (execInst === 'reduceonly') {
@@ -1916,10 +1916,10 @@ export default class ascendex extends Exchange {
                     }
                 }
             }
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         let accountCategory = this.safeString (accountsByType, market['type'], 'cash');
         if (marginMode !== undefined) {
@@ -2575,7 +2575,7 @@ export default class ascendex extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         const tagId = this.safeString (depositAddress, 'tagId');
-        const tag = this.safeString (depositAddress, tagId);
+        const tag = this.safeString (depositAddress, (tagId as string));
         this.checkAddress (address);
         const code = (currency === undefined) ? undefined : currency['code'];
         const chainName = this.safeString (depositAddress, 'blockchain');
@@ -2603,7 +2603,7 @@ export default class ascendex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const networkCode = this.safeString2 (params, 'network', 'chainName');
-        const networkId = this.networkCodeToId (networkCode, currency['code']);
+        const networkId = this.networkCodeToId ((networkCode as string), currency['code']);
         params = this.omit (params, [ 'chainName' ]);
         const request: Dict = {
             'asset': currency['id'],
@@ -2768,7 +2768,7 @@ export default class ascendex extends Exchange {
             'confirmed': 'ok',
             'rejected': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

@@ -74,7 +74,8 @@ public partial class aftermath : Exchange
                 { "1M", "1M" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807" },
+                { "www", "https://aftermath.finance" },
+                { "logo", "https://github.com/user-attachments/assets/f3104ea3-e9ab-4d4e-ad22-0ce772a407b7" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://aftermath.finance/api/ccxt" },
                 } },
@@ -737,7 +738,7 @@ public partial class aftermath : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object accountNumber = null;
         var accountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "accountNumber");
         accountNumber = ((IList<object>)accountNumberparametersVariable)[0];
@@ -922,7 +923,7 @@ public partial class aftermath : Exchange
         {
             object order = this.clone(getValue(orders, i));
             object symbol = this.safeString(order, "symbol");
-            object market = this.market(symbol);
+            object market = this.market(((string)symbol));
             object price = this.safeString(order, "price");
             object amount = this.safeString(order, "amount");
             object orderParams = this.safeDict(order, "params", new Dictionary<string, object>() {});
@@ -936,9 +937,9 @@ public partial class aftermath : Exchange
             ((IDictionary<string,object>)order)["chId"] = getValue(market, "id");
             if (isTrue(!isEqual(price, null)))
             {
-                ((IDictionary<string,object>)order)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+                ((IDictionary<string,object>)order)["price"] = this.parseToNumeric(this.priceToPrecision(((string)symbol), price));
             }
-            ((IDictionary<string,object>)order)["amount"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            ((IDictionary<string,object>)order)["amount"] = this.parseToNumeric(this.amountToPrecision(((string)symbol), amount));
             ((IList<object>)ordersRequest).Add(order);
         }
         object account = null;
@@ -1014,7 +1015,7 @@ public partial class aftermath : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object account = null;
         var accountparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "account");
         account = ((IList<object>)accountparametersVariable)[0];
@@ -1403,7 +1404,7 @@ public partial class aftermath : Exchange
             throw new NotSupported ((string)add(this.id, " only support hex encoding private key, please transform bech32 encoding private key")) ;
         }
         object signingDigest = this.safeString(tx, "signingDigest");
-        object digest = this.base64ToBinary(signingDigest);
+        object digest = this.base64ToBinary(((string)signingDigest));
         object privateKey = this.base16ToBinary(this.privateKey);
         object signature = eddsa(digest, privateKey, ed25519);
         object hexPublicKey = this.safeString(this.options, "publicKey");

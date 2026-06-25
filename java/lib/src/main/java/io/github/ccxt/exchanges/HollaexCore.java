@@ -367,8 +367,8 @@ public class HollaexCore extends HollaexApi
                 Object market = Helpers.GetValue(pairs, key);
                 Object baseId = this.safeString(market, "pair_base");
                 Object quoteId = this.safeString(market, "pair_2");
-                Object base = this.commonCurrencyCode(((String)baseId).toUpperCase());
-                Object quote = this.commonCurrencyCode(((String)quoteId).toUpperCase());
+                Object base = this.commonCurrencyCode(((String)((String)baseId)).toUpperCase());
+                Object quote = this.commonCurrencyCode(((String)((String)quoteId)).toUpperCase());
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", HollaexCore.this.safeString(market, "name") );
@@ -648,7 +648,7 @@ public class HollaexCore extends HollaexApi
             //         // ...
             //     }
             //
-            Object orderbook = this.safeValue(response, Helpers.GetValue(market, "id"));
+            Object orderbook = this.safeValue(response, ((String)Helpers.GetValue(market, "id")));
             Object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp);
         });
@@ -845,7 +845,7 @@ public class HollaexCore extends HollaexApi
             //         ]
             //     }
             //
-            Object trades = this.safeList(response, Helpers.GetValue(market, "id"), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object trades = this.safeList(response, ((String)Helpers.GetValue(market, "id")), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -963,12 +963,12 @@ public class HollaexCore extends HollaexApi
             Object makerFees = this.safeValue(fees, "maker", new java.util.HashMap<String, Object>() {{}});
             Object takerFees = this.safeValue(fees, "taker", new java.util.HashMap<String, Object>() {{}});
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(((Object)this.symbols), i);
                 Object market = this.market(symbol);
-                Object makerString = this.safeString(makerFees, Helpers.GetValue(market, "id"));
-                Object takerString = this.safeString(takerFees, Helpers.GetValue(market, "id"));
+                Object makerString = this.safeString(makerFees, ((String)Helpers.GetValue(market, "id")));
+                Object takerString = this.safeString(takerFees, ((String)Helpers.GetValue(market, "id")));
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fees );
         put( "symbol", symbol );
@@ -1366,7 +1366,7 @@ public class HollaexCore extends HollaexApi
             put( "filled", "closed" );
             put( "canceled", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)

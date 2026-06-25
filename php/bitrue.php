@@ -924,10 +924,10 @@ class bitrue extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        $id = $this->safe_string($market, 'symbol');
+        $id = $this->safe_string($market, 'symbol', '');
         $lowercaseId = $this->safe_string_lower($market, 'symbol');
         $side = $this->safe_integer($market, 'side'); // 1 linear, 0 inverse, null spot
-        $type = null;
+        $type = 'spot';
         $isLinear = null;
         $isInverse = null;
         if ($side === null) {
@@ -1223,7 +1223,7 @@ class bitrue extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $response = null;
+        $response = array();
         if ($market['swap']) {
             $request = array(
                 'contractName' => $market['id'],
@@ -1368,7 +1368,7 @@ class bitrue extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $response = null;
-        $data = null;
+        $data = array();
         if ($market['swap']) {
             $request = array(
                 'contractName' => $market['id'],
@@ -1448,7 +1448,7 @@ class bitrue extends Exchange {
         $market = $this->market($symbol);
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $response = null;
-        $data = null;
+        $data = array();
         if ($market['swap']) {
             $timeframesFuture = $this->safe_dict($timeframes, 'future', array());
             $request = array(
@@ -1618,7 +1618,7 @@ class bitrue extends Exchange {
         //     }
         //
         $data = array();
-        $data[$market['id']] = $response;
+        $data[($market['id'])] = $response;
         return $this->parse_tickers($data, $symbols);
     }
 
@@ -1637,7 +1637,7 @@ class bitrue extends Exchange {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $response = null;
-        $data = null;
+        $data = array();
         $request = array();
         $type = null;
         if ($symbols !== null) {
@@ -1704,7 +1704,7 @@ class bitrue extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->safe_dict($data, $i, array());
             $market = $this->safe_market($this->safe_string($ticker, 'symbol'));
-            $tickers[$market['id']] = $ticker;
+            $tickers[($market['id'])] = $ticker;
         }
         return $this->parse_tickers($tickers, $symbols);
     }
@@ -1817,7 +1817,7 @@ class bitrue extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $response = null;
+        $response = array();
         if ($market['spot']) {
             $request = array(
                 'symbol' => $market['id'],
@@ -1953,7 +1953,7 @@ class bitrue extends Exchange {
         if ($type === 'limit_maker') {
             $type = 'limit';
         }
-        $triggerPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'stopPrice')));
+        $triggerPrice = $this->parse_number($this->omit_zero(($this->safe_string($order, 'stopPrice'))));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2028,7 +2028,7 @@ class bitrue extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $response = null;
-        $data = null;
+        $data = array();
         $uppercaseType = strtoupper($type);
         $request = array(
             'side' => strtoupper($side),
@@ -2154,7 +2154,7 @@ class bitrue extends Exchange {
         $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
         $response = null;
-        $data = null;
+        $data = array();
         $request = array();
         if ($origClientOrderId === null) {
             $request['orderId'] = $id;
@@ -2305,7 +2305,7 @@ class bitrue extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $response = null;
-        $data = null;
+        $data = array();
         $request = array();
         if ($market['swap']) {
             $request['contractName'] = $market['id'];
@@ -2392,7 +2392,7 @@ class bitrue extends Exchange {
         $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
         $response = null;
-        $data = null;
+        $data = array();
         $request = array();
         if ($origClientOrderId === null) {
             $request['orderId'] = $id;
@@ -2456,7 +2456,7 @@ class bitrue extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $response = null;
-        $data = null;
+        $data = array();
         if ($market['swap']) {
             $request = array(
                 'contractName' => $market['id'],
@@ -2501,7 +2501,7 @@ class bitrue extends Exchange {
         }
         $market = $this->market($symbol);
         $response = null;
-        $data = null;
+        $data = array();
         $request = array();
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2708,7 +2708,7 @@ class bitrue extends Exchange {
         return $this->parse_transactions($data, $currency);
     }
 
-    public function parse_transaction_status_by_type($status, $type = null) {
+    public function parse_transaction_status_by_type($status, ?string $type = null) {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -2963,7 +2963,7 @@ class bitrue extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //     fetchTransfers
         //
@@ -3114,7 +3114,7 @@ class bitrue extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $response = null;
+        $response = array();
         $request = array(
             'contractName' => $market['id'],
             'leverage' => $leverage,
@@ -3130,7 +3130,7 @@ class bitrue extends Exchange {
         return $response;
     }
 
-    public function parse_margin_modification($data, $market = null): array {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         // setMargin
         //

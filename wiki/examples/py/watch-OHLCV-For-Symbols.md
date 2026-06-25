@@ -8,7 +8,6 @@ import asyncio
 import ccxt.pro as ccxt  # noqa: E402
 
 
-# AUTO-TRANSPILE #
 async def example():
     binance = ccxt.binance({})
     subscriptions = [['BTC/USDT', '5m'], ['ETH/USDT', '5m'], ['BTC/USDT', '1h']]

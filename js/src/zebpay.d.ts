@@ -1,7 +1,7 @@
 import Exchange from './abstract/zebpay.js';
 import type { Balances, Currencies, Currency, Dict, Int, int, Leverage, Leverages, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
 /**
- * @class
+ * @class zebpay
  * @augments Exchange
  */
 export default class zebpay extends Exchange {

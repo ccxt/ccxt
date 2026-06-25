@@ -7,6 +7,10 @@ var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class kucoinfutures
+ * @augments kucoin
+ */
 class kucoinfutures extends kucoin["default"] {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -132,7 +132,7 @@ class htx extends Exchange {
                 'fetchTransactionFee' => null,
                 'fetchTransactionFees' => null,
                 'fetchTransactions' => null,
-                'fetchTransfers' => null,
+                'fetchTransfers' => true,
                 'fetchWithdrawAddresses' => true,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
@@ -457,6 +457,8 @@ class htx extends Exchange {
                             'v1/cross-margin/loan-orders' => 1,
                             'v1/cross-margin/accounts/balance' => 1,
                             'v2/account/repayment' => 5,
+                            // Universal Transfer
+                            'v5/account/universal_transfer_records' => 4, // 5 requests per 2 seconds
                             // Stable Coin Exchange
                             'v1/stable-coin/quote' => 1,
                             'v1/stable_coin/exchange_rate' => 1,
@@ -585,7 +587,7 @@ class htx extends Exchange {
                             'swap-api/v3/swap_liquidation_orders' => 1,
                             'index/market/history/swap_estimated_rate_kline' => 1,
                             'index/market/history/swap_basis' => 1,
-                            // Swap Market Data interface
+                            // Linear Swap Market Data interface
                             'linear-swap-api/v1/swap_contract_info' => 1,
                             'linear-swap-api/v1/swap_index' => 1,
                             'linear-swap-api/v1/swap_query_elements' => 1,
@@ -599,7 +601,6 @@ class htx extends Exchange {
                             'v2/linear-swap-ex/market/detail/batch_merged' => 1,
                             'linear-swap-ex/market/trade' => 1,
                             'linear-swap-ex/market/history/trade' => 1,
-                            'linear-swap-api/v1/swap_risk_info' => 1,
                             'swap-api/v1/linear-swap-api/v1/swap_insurance_fund' => 1,
                             'linear-swap-api/v1/swap_adjustfactor' => 1,
                             'linear-swap-api/v1/swap_cross_adjustfactor' => 1,
@@ -607,11 +608,8 @@ class htx extends Exchange {
                             'linear-swap-api/v1/swap_ladder_margin' => 1,
                             'linear-swap-api/v1/swap_cross_ladder_margin' => 1,
                             'linear-swap-api/v1/swap_api_state' => 1,
-                            'linear-swap-api/v1/swap_cross_transfer_state' => 1,
-                            'linear-swap-api/v1/swap_cross_trade_state' => 1,
                             'linear-swap-api/v1/swap_elite_account_ratio' => 1,
                             'linear-swap-api/v1/swap_elite_position_ratio' => 1,
-                            'linear-swap-api/v1/swap_liquidation_orders' => 1,
                             'linear-swap-api/v1/swap_settlement_records' => 1,
                             'linear-swap-api/v3/swap_liquidation_orders' => 1,
                             'index/market/history/linear_swap_premium_index_kline' => 1,
@@ -637,15 +635,7 @@ class htx extends Exchange {
                             // Swap Account Interface
                             'swap-api/v1/swap_sub_auth_list' => 1,
                             'swap-api/v1/swap_api_trading_status' => 1,
-                            // Swap Account Interface
-                            'linear-swap-api/v1/swap_sub_auth_list' => 1,
-                            'linear-swap-api/v1/swap_api_trading_status' => 1,
-                            'linear-swap-api/v1/swap_cross_position_side' => 1,
-                            'linear-swap-api/v1/swap_position_side' => 1,
-                            'linear-swap-api/v3/unified_account_info' => 1,
-                            'linear-swap-api/v3/fix_position_margin_change_record' => 1,
-                            'linear-swap-api/v3/swap_unified_account_type' => 1,
-                            'linear-swap-api/v3/linear_swap_overview_account_info' => 1,
+                            // Linear Swap Interface
                             'v5/account/asset_mode' => 0.20834, // 48 requests per second = 1000ms / ( 100 * 0.20834)
                             'v5/account/balance' => 0.20834,
                             'v5/account/bills' => 0.20834,
@@ -783,49 +773,8 @@ class htx extends Exchange {
                             'swap-api/v1/swap_track_cancelall' => 1,
                             'swap-api/v1/swap_track_openorders' => 1,
                             'swap-api/v1/swap_track_hisorders' => 1,
-                            // Swap Account Interface
-                            'linear-swap-api/v1/swap_lever_position_limit' => 1,
-                            'linear-swap-api/v1/swap_cross_lever_position_limit' => 1,
-                            'linear-swap-api/v1/swap_balance_valuation' => 1,
-                            'linear-swap-api/v1/swap_sub_auth' => 1,
-                            'linear-swap-api/v1/swap_sub_account_list' => 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_list' => 1,
-                            'linear-swap-api/v1/swap_sub_account_info_list' => 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_info_list' => 1,
-                            'linear-swap-api/v1/swap_sub_account_info' => 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_info' => 1,
-                            'linear-swap-api/v1/swap_sub_position_info' => 1,
-                            'linear-swap-api/v1/swap_cross_sub_position_info' => 1,
-                            'linear-swap-api/v1/swap_financial_record' => 1,
-                            'linear-swap-api/v1/swap_financial_record_exact' => 1,
-                            'linear-swap-api/v1/swap_user_settlement_records' => 1,
-                            'linear-swap-api/v1/swap_cross_user_settlement_records' => 1,
-                            'linear-swap-api/v1/swap_available_level_rate' => 1,
-                            'linear-swap-api/v1/swap_cross_available_level_rate' => 1,
-                            'linear-swap-api/v1/swap_order_limit' => 1,
-                            'linear-swap-api/v1/swap_fee' => 1,
-                            'linear-swap-api/v1/swap_transfer_limit' => 1,
-                            'linear-swap-api/v1/swap_cross_transfer_limit' => 1,
-                            'linear-swap-api/v1/swap_position_limit' => 1,
-                            'linear-swap-api/v1/swap_cross_position_limit' => 1,
-                            'linear-swap-api/v1/swap_master_sub_transfer' => 1,
-                            'linear-swap-api/v1/swap_master_sub_transfer_record' => 1,
-                            'linear-swap-api/v1/swap_transfer_inner' => 1,
-                            'linear-swap-api/v3/swap_financial_record' => 1,
-                            'linear-swap-api/v3/swap_financial_record_exact' => 1,
-                            // Swap Trade Interface
-                            'linear-swap-api/v1/swap_cross_matchresults' => 1,
-                            'linear-swap-api/v1/swap_cross_matchresults_exact' => 1,
-                            'linear-swap-api/v1/linear-cancel-after' => 1,
-                            'linear-swap-api/v3/swap_cross_matchresults' => 1,
-                            'linear-swap-api/v3/swap_cross_matchresults_exact' => 1,
-                            'linear-swap-api/v3/fix_position_margin_change' => 1,
-                            'linear-swap-api/v3/swap_switch_account_type' => 1,
-                            'linear-swap-api/v3/linear_swap_fee_switch' => 1,
-                            // Swap Strategy Order Interface
-                            'linear-swap-api/v1/swap_relation_tpsl_order' => 1,
-                            'linear-swap-api/v1/swap_cross_relation_tpsl_order' => 1,
-                            'v5/account/asset_mode' => 100, // 0.1 requests per second = 1000ms / ( 100 * 100)
+                            // Linear Swap Interface
+                            'v5/account/asset_mode' => 100, // 0.1 requests per second = 1000ms / (100 * 100)
                             'v5/trade/order' => 0.41679,
                             'v5/trade/batch_orders' => 0.41679,
                             'v5/trade/cancel_order' => 0.41679,
@@ -1172,6 +1121,9 @@ class htx extends Exchange {
                     'grid-trading' => 'grid-trading',
                     'deposit-earning' => 'deposit-earning',
                     'otc-options' => 'otc-options',
+                    'linear-swap' => 'swap',
+                    'swap' => 'swap',
+                    'futures' => 'future',
                 ),
                 'typesByAccount' => array(
                     'pro' => 'spot',
@@ -3601,29 +3553,32 @@ class htx extends Exchange {
              *
              * @see https://huobiapi.github.io/docs/spot/v1/en/#get-$account-$balance-of-a-specific-$account
              * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
-             * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
              * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
              * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-$account-information
              * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->subType] $linear or $future
-             * @param {bool} [$params->uta] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
+             * @param {string} [$params->type] $spot, $margin, $future or $swap
+             * @param {string} [$params->subType] $linear or $inverse
              * @param {bool} [$params->multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
              * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
              */
             Async\await($this->load_markets());
+            $isUnifiedAccount = null;
+            list($isUnifiedAccount, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'unified', 'uta', false);
+            if ($isUnifiedAccount) {
+                throw new NotSupported($this->id . ' fetchBalance() unified $account has been deprecated on htx');
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             $subType = null;
-            $isUnifiedAccount = null;
             $isMultiAssetMode = null;
             list($subType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
-            list($isUnifiedAccount, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'unified', 'uta', false);
             list($isMultiAssetMode, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'multiAssetMode', false);
             $request = array();
             $spot = ($type === 'spot');
             $future = ($type === 'future');
+            $swap = ($type === 'swap');
             $inverse = ($subType === 'inverse');
             $linear = ($subType === 'linear');
             $marginMode = null;
@@ -3632,7 +3587,7 @@ class htx extends Exchange {
             $cross = ($marginMode === 'cross');
             $margin = ($type === 'margin') || ($spot && ($cross || $isolated));
             $response = null;
-            if ($isMultiAssetMode) {
+            if ($isMultiAssetMode || ($linear && ($swap || $future))) {
                 $response = Async\await($this->contractPrivateGetV5AccountBalance ($this->extend($request, $params)));
             } elseif ($spot || $margin) {
                 if ($margin) {
@@ -3647,10 +3602,6 @@ class htx extends Exchange {
                     $request['account-id'] = $accountId;
                     $response = Async\await($this->spotPrivateGetV1AccountAccountsAccountIdBalance ($this->extend($request, $params)));
                 }
-            } elseif ($linear) {
-                $response = Async\await($this->contractPrivateGetV5AccountBalance ($this->extend($request, $params)));
-            } elseif ($isUnifiedAccount) {
-                $response = Async\await($this->contractPrivateGetLinearSwapApiV3UnifiedAccountInfo ($this->extend($request, $params)));
             } elseif ($inverse) {
                 if ($future) {
                     $response = Async\await($this->contractPrivatePostApiV1ContractAccountInfo ($this->extend($request, $params)));
@@ -3729,7 +3680,7 @@ class htx extends Exchange {
             //         )
             //     }
             //
-            // $future, swap $isolated
+            // $future, $swap $isolated
             //
             //     {
             //         "status" => "ok",
@@ -3749,7 +3700,7 @@ class htx extends Exchange {
             //                 "adjust_factor" => 0.025000000000000000,
             //                 "margin_static" => 0,
             //                 "is_debit" => 0, // $future only
-            //                 "contract_code" => "BTC-USD", // swap only
+            //                 "contract_code" => "BTC-USD", // $swap only
             //                 "margin_asset" => "USDT", // $linear only
             //                 "margin_mode" => "isolated", // $linear only
             //                 "margin_account" => "BTC-USDT" // $linear only
@@ -3759,7 +3710,7 @@ class htx extends Exchange {
             //         "ts" => 1637644827566
             //     }
             //
-            // $linear swap and multi asset mode
+            // $linear $swap and multi asset mode
             //
             //     {
             //         "code" => 200,
@@ -3802,14 +3753,15 @@ class htx extends Exchange {
             $finalResponse = $response;
             $result = array( 'info' => $finalResponse );
             $data = $this->safe_value($response, 'data');
-            if ($isMultiAssetMode) {
+            if ($isMultiAssetMode || ($linear && ($swap || $future))) {
                 $details = $this->safe_list($data, 'details', array());
                 for ($i = 0; $i < count($details); $i++) {
                     $balance = $details[$i];
                     $currencyId = $this->safe_string($balance, 'currency');
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
-                    $account['free'] = $this->safe_string($balance, 'withdraw_available');
+                    $account['free'] = $this->safe_string($balance, 'available_margin');
+                    $account['total'] = $this->safe_string($balance, 'equity');
                     $result[$code] = $account;
                 }
                 $result = $this->safe_balance($result);
@@ -3837,43 +3789,6 @@ class htx extends Exchange {
                         $result[$code] = $this->parse_margin_balance_helper($balance, $code, $result);
                     }
                     $result = $this->safe_balance($result);
-                }
-            } elseif ($linear) {
-                $details = $this->safe_list($data, 'details', array());
-                for ($i = 0; $i < count($details); $i++) {
-                    $balance = $details[$i];
-                    $currencyId = $this->safe_string($balance, 'currency');
-                    $code = $this->safe_currency_code($currencyId);
-                    $account = $this->account();
-                    $account['free'] = $this->safe_string($balance, 'withdraw_available');
-                    $result[$code] = $account;
-                }
-                $result = $this->safe_balance($result);
-            } elseif ($isUnifiedAccount) {
-                for ($i = 0; $i < count($data); $i++) {
-                    $entry = $data[$i];
-                    $marginAsset = $this->safe_string($entry, 'margin_asset');
-                    $currencyCode = $this->safe_currency_code($marginAsset);
-                    if ($isolated) {
-                        $isolated_swap = $this->safe_value($entry, 'isolated_swap', array());
-                        for ($j = 0; $j < count($isolated_swap); $j++) {
-                            $balance = $isolated_swap[$j];
-                            $marketId = $this->safe_string($balance, 'contract_code');
-                            $subBalance = array(
-                                'code' => $currencyCode,
-                                'free' => $this->safe_number($balance, 'margin_available'),
-                            );
-                            $symbol = $this->safe_symbol($marketId);
-                            $result[$symbol] = $subBalance;
-                            $result = $this->safe_balance($result);
-                        }
-                    } else {
-                        $account = $this->account();
-                        $account['free'] = $this->safe_string($entry, 'margin_static');
-                        $account['used'] = $this->safe_string($entry, 'margin_frozen');
-                        $result[$currencyCode] = $account;
-                        $result = $this->safe_balance($result);
-                    }
                 }
             } elseif ($inverse) {
                 for ($i = 0; $i < count($data); $i++) {
@@ -7021,18 +6936,50 @@ class htx extends Exchange {
         //         "status" => "ok"
         //     }
         //
-        $id = $this->safe_string($transfer, 'data');
-        $code = $this->safe_currency_code(null, $currency);
+        // fetchTransfers
+        //
+        //     {
+        //         "id" => 12345,
+        //         "transfer_id" => "12345",
+        //         "amount" => "10",
+        //         "currency" => "USDT",
+        //         "status" => "success",
+        //         "from_account_type" => "spot",
+        //         "to_account_type" => "margin",
+        //         "from_asset_type" => "",
+        //         "to_asset_type" => "ETHUSDT",
+        //         "transfer_time" => 1770357494000
+        //     }
+        //
+        $accountsById = $this->safe_dict($this->options, 'accountsById', array());
+        $id = $this->safe_string_2($transfer, 'transfer_id', 'data');
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $amount = $this->safe_number($transfer, 'amount');
+        $timestamp = $this->safe_integer($transfer, 'transfer_time');
+        $fromAccountRaw = $this->safe_string($transfer, 'from_account_type');
+        $toAccountRaw = $this->safe_string($transfer, 'to_account_type');
+        $fromAccount = $this->safe_string($accountsById, $fromAccountRaw, $fromAccountRaw);
+        $toAccount = $this->safe_string($accountsById, $toAccountRaw, $toAccountRaw);
+        $statusRaw = $this->safe_string($transfer, 'status');
+        $status = null;
+        if ($statusRaw === 'success') {
+            $status = 'ok';
+        } elseif ($statusRaw === 'pending') {
+            $status = 'pending';
+        } elseif ($statusRaw === 'failed') {
+            $status = 'failed';
+        }
         return array(
             'info' => $transfer,
             'id' => $id,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
-            'amount' => null,
-            'fromAccount' => null,
-            'toAccount' => null,
-            'status' => null,
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $status,
         );
     }
 
@@ -7125,6 +7072,67 @@ class htx extends Exchange {
             //    }
             //
             return $this->parse_transfer($response, $currency);
+        }) ();
+    }
+
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch a history of internal transfers made on an account
+             *
+             * @see https://www.huobi.com/en-us/opend/newApiPages/
+             *
+             * @param {string} [$code] unified $currency $code of the $currency transferred
+             * @param {int} [$since] the earliest time in ms to fetch transfers for
+             * @param {int} [$limit] the maximum number of transfer structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->status] transfer status => 'success', 'pending', 'failed'
+             * @param {int} [$params->from] the starting ID for pagination
+             * @param {string} [$params->direct] pagination direction => 'prev' or 'next', default 'next'
+             * @param {int} [$params->until] the latest time in ms to fetch transfers for
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+             */
+            Async\await($this->load_markets());
+            $currency = null;
+            $request = array();
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['start_time'] = $since;
+            }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['end_time'] = $until;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->spotPrivateGetV5AccountUniversalTransferRecords ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => 200,
+            //         "message" => "Success",
+            //         "data" => array(
+            //             {
+            //                 "id" => 12345,
+            //                 "transfer_id" => "12345",
+            //                 "amount" => "10",
+            //                 "currency" => "USDT",
+            //                 "status" => "success",
+            //                 "from_account_type" => "spot",
+            //                 "to_account_type" => "margin",
+            //                 "from_asset_type" => "",
+            //                 "to_asset_type" => "ETHUSDT",
+            //                 "transfer_time" => 1770357494000
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_transfers($data, $currency, $since, $limit);
         }) ();
     }
 
@@ -7863,61 +7871,64 @@ class htx extends Exchange {
             /**
              * fetch the history of funding payments paid and received on this account
              *
-             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-$query-account-financial-records-via-multiple-fields-new   // linear swaps
-             * @see https://huobiapi.github.io/docs/dm/v1/en/#$query-financial-records-via-multiple-fields-new                          // coin-m futures
-             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#$query-financial-records-via-multiple-fields-new          // coin-m swaps
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            list($marketType, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
             $request = array(
                 'type' => '30,31',
             );
+            list($request, $params) = $this->handle_until_option('end_time', $request, $params);
             if ($since !== null) {
-                $request['start_date'] = $since;
+                if ($market['linear']) {
+                    $request['start_time'] = $since;
+                } else {
+                    $request['start_date'] = $since;
+                }
             }
             $response = null;
             if ($marketType === 'swap') {
-                $request['contract'] = $market['id'];
                 if ($market['linear']) {
-                    //
-                    //    {
-                    //        "status" => "ok",
-                    //        "data" => array(
-                    //           "financial_record" => array(
-                    //               array(
-                    //                   "id" => "1320088022",
-                    //                   "type" => "30",
-                    //                   "amount" => "0.004732510000000000",
-                    //                   "ts" => "1641168019321",
-                    //                   "contract_code" => "BTC-USDT",
-                    //                   "asset" => "USDT",
-                    //                   "margin_account" => "BTC-USDT",
-                    //                   "face_margin_account" => ''
-                    //               ),
-                    //           ),
-                    //           "remain_size" => "0",
-                    //           "next_id" => null
-                    //        ),
-                    //        "ts" => "1641189898425"
-                    //    }
-                    //
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchFundingHistory', $params);
                     $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-                    if ($marginMode === 'isolated') {
-                        $request['mar_acct'] = $market['id'];
-                    } else {
-                        $request['mar_acct'] = $market['quoteId'];
+                    $request['margin_mode'] = $marginMode;
+                    $request['contract_code'] = $market['id'];
+                    if ($limit !== null) {
+                        $request['limit'] = $limit;
                     }
-                    $response = Async\await($this->contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact ($this->extend($request, $query)));
+                    $response = Async\await($this->contractPrivateGetV5AccountBills ($this->extend($request, $params)));
+                    //
+                    //     {
+                    //         "code" => 200,
+                    //         "message" => "Success",
+                    //         "data" => array(
+                    //             array(
+                    //                 "id" => "2194774775",
+                    //                 "type" => "30",
+                    //                 "currency" => "USDT",
+                    //                 "amount" => "0.000433432461821856",
+                    //                 "contract_code" => "BTC-USDT",
+                    //                 "margin_mode" => "cross",
+                    //                 "created_time" => "1780963213165"
+                    //             ),
+                    //         ),
+                    //         "ts" => 1781772448836
+                    //     }
+                    //
                 } else {
+                    $request['contract'] = $market['id'];
                     //
                     //     {
                     //         "code" => 200,
@@ -7938,11 +7949,11 @@ class htx extends Exchange {
                     //         "ts" => 1604312615051
                     //     }
                     //
-                    $response = Async\await($this->contractPrivatePostSwapApiV3SwapFinancialRecordExact ($this->extend($request, $query)));
+                    $response = Async\await($this->contractPrivatePostSwapApiV3SwapFinancialRecordExact ($this->extend($request, $params)));
                 }
             } else {
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->contractPrivatePostApiV3ContractFinancialRecordExact ($this->extend($request, $query)));
+                $response = Async\await($this->contractPrivatePostApiV3ContractFinancialRecordExact ($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_incomes($data, $market, $since, $limit);
@@ -8037,12 +8048,24 @@ class htx extends Exchange {
         //       "contract_code" => "BTC-USD"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id" => "2194774775",
+        //         "type" => "30",
+        //         "currency" => "USDT",
+        //         "amount" => "0.000433432461821856",
+        //         "contract_code" => "BTC-USDT",
+        //         "margin_mode" => "cross",
+        //         "created_time" => "1780963213165"
+        //     }
+        //
         $marketId = $this->safe_string($income, 'contract_code');
         $symbol = $this->safe_symbol($marketId, $market);
         $amount = $this->safe_number($income, 'amount');
-        $timestamp = $this->safe_integer($income, 'ts');
+        $timestamp = $this->safe_integer_2($income, 'ts', 'created_time');
         $id = $this->safe_string($income, 'id');
-        $currencyId = $this->safe_string_2($income, 'symbol', 'asset');
+        $currencyId = $this->safe_string_n($income, array( 'symbol', 'asset', 'currency' ));
         $code = $this->safe_currency_code($currencyId);
         return array(
             'info' => $income,
@@ -9286,7 +9309,7 @@ class htx extends Exchange {
              *
              * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
              * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
-             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the settlement history for
              * @param {int} [$since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
@@ -9300,8 +9323,6 @@ class htx extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
             }
-            $until = $this->safe_integer($params, 'until');
-            $params = $this->omit($params, array( 'until' ));
             $market = $this->market($symbol);
             $request = array();
             if ($market['future']) {
@@ -9309,19 +9330,21 @@ class htx extends Exchange {
             } else {
                 $request['contract_code'] = $market['id'];
             }
-            if ($since !== null) {
-                $request['start_at'] = $since;
-            }
             if ($limit !== null) {
-                $request['page_size'] = $limit;
+                if ($market['linear'] && $market['swap']) {
+                    $request['limit'] = $limit;
+                } else {
+                    $request['page_size'] = $limit;
+                }
             }
-            if ($until !== null) {
-                $request['end_at'] = $until;
+            if ($since !== null) {
+                $request['start_time'] = $since;
             }
+            list($request, $params) = $this->handle_until_option('end_time', $request, $params);
             $response = null;
             if ($market['swap']) {
                 if ($market['linear']) {
-                    $response = Async\await($this->contractPublicGetLinearSwapApiV1SwapSettlementRecords ($this->extend($request, $params)));
+                    $response = Async\await($this->contractPublicGetV5MarketSettlementHistory ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->contractPublicGetSwapApiV1SwapSettlementRecords ($this->extend($request, $params)));
                 }
@@ -9329,7 +9352,7 @@ class htx extends Exchange {
                 $response = Async\await($this->contractPublicGetApiV1ContractSettlementRecords ($this->extend($request, $params)));
             }
             //
-            // linear swap, coin-m swap
+            // coin-m swap
             //
             //    {
             //        "status" => "ok",
@@ -9380,6 +9403,28 @@ class htx extends Exchange {
             //        }
             //    }
             //
+            // linear swap
+            //
+            //     {
+            //         "code" => 200,
+            //         "message" => "Success",
+            //         "data" => array(
+            //             array(
+            //                 "id" => "14900",
+            //                 "contract_code" => "BTC-USDT",
+            //                 "settlement_time" => "1781827200000",
+            //                 "clawback_ratio" => "0",
+            //                 "settlement_price" => "62933.747161774209291325"
+            //             ),
+            //         ),
+            //         "ts" => 1781853150623
+            //     }
+            //
+            if ($market['linear']) {
+                $dataLinear = $this->safe_list($response, 'data', array());
+                $settlementsLinear = $this->parse_settlements($dataLinear, $market);
+                return $this->sort_by($settlementsLinear, 'timestamp');
+            }
             $data = $this->safe_value($response, 'data');
             $settlementRecord = $this->safe_value($data, 'settlement_record');
             $settlements = $this->parse_settlements($settlementRecord, $market);
@@ -9510,7 +9555,7 @@ class htx extends Exchange {
 
     public function parse_settlements($settlements, $market) {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    array(
         //        array(
@@ -9545,11 +9590,26 @@ class htx extends Exchange {
         //        ),
         //    )
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     array(
+        //         {
+        //             "id" => "14900",
+        //             "contract_code" => "BTC-USDT",
+        //             "settlement_time" => "1781827200000",
+        //             "clawback_ratio" => "0",
+        //             "settlement_price" => "62933.747161774209291325"
+        //         }
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $settlement = $settlements[$i];
             $list = $this->safe_value($settlement, 'list');
-            if ($list !== null) {
+            if ($market['linear']) {
+                $parsedSettlement = $this->parse_settlement($settlement, $market);
+                $result[] = $parsedSettlement;
+            } elseif ($list !== null) {
                 $timestamp = $this->safe_integer($settlement, 'settlement_time');
                 $timestampDetails = array(
                     'timestamp' => $timestamp,
@@ -9569,7 +9629,7 @@ class htx extends Exchange {
 
     public function parse_settlement($settlement, $market) {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    {
         //        "symbol" => "ADA",
@@ -9591,6 +9651,16 @@ class htx extends Exchange {
         //        "settlement_type" => "settlement"
         //    }
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     {
+        //         "id" => "14900",
+        //         "contract_code" => "BTC-USDT",
+        //         "settlement_time" => "1781827200000",
+        //         "clawback_ratio" => "0",
+        //         "settlement_price" => "62933.747161774209291325"
+        //     }
+        //
         $timestamp = $this->safe_integer($settlement, 'settlement_time');
         $marketId = $this->safe_string($settlement, 'contract_code');
         return array(
@@ -9607,7 +9677,7 @@ class htx extends Exchange {
             /**
              * retrieves the public liquidations of a trading pair
              *
-             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
              * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
              * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
              *
@@ -9616,25 +9686,51 @@ class htx extends Exchange {
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the huobi api endpoint
              * @param {int} [$params->until] timestamp in ms of the latest liquidation
-             * @param {int} [$params->tradeType] default 0, linear swap 0 => all liquidated orders, 5 => liquidated longs; 6 => liquidated shorts, inverse swap and future 0 => filled liquidated orders, 5 => liquidated close orders, 6 => liquidated open orders
+             * @param {int} [$params->tradeType] *not supported for linear swap* default 0 => filled liquidated orders, 5 => liquidated close orders, 6 => liquidated open orders
              * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $tradeType = $this->safe_integer($params, 'trade_type', 0);
-            $request = array(
-                'trade_type' => $tradeType,
-            );
+            $tradeType = $this->safe_integer_2($params, 'trade_type', 'tradeType', 0);
+            $request = array();
+            if (!$market['linear']) {
+                $request['trade_type'] = $tradeType;
+            }
+            $params = $this->omit($params, array( 'trade_type', 'tradeType' ));
             if ($since !== null) {
                 $request['start_time'] = $since;
             }
             list($request, $params) = $this->handle_until_option('end_time', $request, $params);
             $response = null;
             if ($market['swap']) {
-                $request['contract'] = $market['id'];
                 if ($market['linear']) {
-                    $response = Async\await($this->contractPublicGetLinearSwapApiV3SwapLiquidationOrders ($this->extend($request, $params)));
+                    $request['contract_code'] = $market['id'];
+                    if ($limit !== null) {
+                        $request['limit'] = $limit;
+                    }
+                    $response = Async\await($this->contractPublicGetV5MarketLiquidationOrders ($this->extend($request, $params)));
+                    //
+                    //     {
+                    //         "code" => 200,
+                    //         "message" => "Success",
+                    //         "data" => array(
+                    //             {
+                    //                 "id" => "150153038758",
+                    //                 "contract_code" => "BTC-USDT",
+                    //                 "liquidation_time" => "1781849094165",
+                    //                 "side" => "buy",
+                    //                 "position_side" => "short",
+                    //                 "volume" => "2",
+                    //                 "amount" => "2",
+                    //                 "bankrupt_price" => "62978.5",
+                    //                 "trade_turnover" => "125.957"
+                    //             }
+                    //         ),
+                    //         "ts" => 1781854869221
+                    //     }
+                    //
                 } else {
+                    $request['contract'] = $market['id'];
                     $response = Async\await($this->contractPublicGetSwapApiV3SwapLiquidationOrders ($this->extend($request, $params)));
                 }
             } elseif ($market['future']) {
@@ -9688,15 +9784,29 @@ class htx extends Exchange {
         //         "pair" => "BTC-USDT"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id" => "150153038758",
+        //         "contract_code" => "BTC-USDT",
+        //         "liquidation_time" => "1781849094165",
+        //         "side" => "buy",
+        //         "position_side" => "short",
+        //         "volume" => "2",
+        //         "amount" => "2",
+        //         "bankrupt_price" => "62978.5",
+        //         "trade_turnover" => "125.957"
+        //     }
+        //
         $marketId = $this->safe_string($liquidation, 'contract_code');
-        $timestamp = $this->safe_integer($liquidation, 'created_at');
+        $timestamp = $this->safe_integer_2($liquidation, 'created_at', 'liquidation_time');
         return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->safe_number($liquidation, 'volume'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
-            'price' => $this->safe_number($liquidation, 'price'),
-            'side' => $this->safe_string_lower($liquidation, 'direction'),
+            'price' => $this->safe_number_2($liquidation, 'price', 'bankrupt_price'),
+            'side' => $this->safe_string_lower_2($liquidation, 'direction', 'side'),
             'baseValue' => $this->safe_number($liquidation, 'amount'),
             'quoteValue' => $this->safe_number($liquidation, 'trade_turnover'),
             'timestamp' => $timestamp,

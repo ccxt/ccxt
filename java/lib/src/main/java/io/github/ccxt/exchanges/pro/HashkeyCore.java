@@ -171,13 +171,13 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object parameters = this.safeDict(message, "params");
         Object klineType = this.safeString(parameters, "klineType");
         Object timeframe = this.findTimeframe(klineType);
-        if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe))))
+        if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object candle = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
@@ -266,8 +266,8 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object ticker = this.parseTicker(this.safeDict(data, 0));
         Object symbol = Helpers.GetValue(ticker, "symbol");
         Object messageHash = Helpers.add("ticker:", symbol);
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
-        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
+        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
+        client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
     }
 
     /**
@@ -563,18 +563,18 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             put( "side", finalSide );
             put( "price", HashkeyCore.this.safeString(order, "p") );
             put( "average", HashkeyCore.this.safeString(order, "V") );
-            put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "q")) );
+            put( "amount", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "q"))) );
             put( "filled", HashkeyCore.this.safeString(order, "z") );
             put( "remaining", HashkeyCore.this.safeString(order, "r") );
             put( "stopPrice", null );
             put( "triggerPrice", null );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
-            put( "cost", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "Z")) );
+            put( "cost", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "Z"))) );
             put( "trades", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", HashkeyCore.this.safeCurrencyCode(HashkeyCore.this.safeString(order, "N")) );
-                put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "n")) );
+                put( "amount", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "n"))) );
             }} );
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );

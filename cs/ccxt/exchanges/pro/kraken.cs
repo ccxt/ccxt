@@ -916,13 +916,16 @@ public partial class kraken : ccxt.kraken
         {
             marketsByWsName = new Dictionary<string, object>() {};
             object symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            if (isTrue(!isEqual(symbols, null)))
             {
-                object symbol = getValue(symbols, i);
-                object market = getValue(this.markets, symbol);
-                object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
-                object wsName = ((string)this.safeString(info, "wsname"));
-                ((IDictionary<string,object>)marketsByWsName)[(string)wsName] = market;
+                for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+                {
+                    object symbol = getValue(symbols, i);
+                    object market = getValue(this.markets, symbol);
+                    object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+                    object wsName = ((string)this.safeString(info, "wsname"));
+                    ((IDictionary<string,object>)marketsByWsName)[(string)wsName] = market;
+                }
             }
             ((IDictionary<string,object>)this.options)["marketsByWsName"] = marketsByWsName;
         }
@@ -1556,6 +1559,10 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         // symbols are required
         symbols = this.marketSymbols(symbols, null, false, true, false);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            return null;
+        }
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {

@@ -117,7 +117,7 @@ public partial class htx : Exchange
                 { "fetchTransactionFee", null },
                 { "fetchTransactionFees", null },
                 { "fetchTransactions", null },
-                { "fetchTransfers", null },
+                { "fetchTransfers", true },
                 { "fetchWithdrawAddresses", true },
                 { "fetchWithdrawal", null },
                 { "fetchWithdrawals", true },
@@ -405,6 +405,7 @@ public partial class htx : Exchange
                             { "v1/cross-margin/loan-orders", 1 },
                             { "v1/cross-margin/accounts/balance", 1 },
                             { "v2/account/repayment", 5 },
+                            { "v5/account/universal_transfer_records", 4 },
                             { "v1/stable-coin/quote", 1 },
                             { "v1/stable_coin/exchange_rate", 1 },
                             { "v2/etp/transactions", 5 },
@@ -534,7 +535,6 @@ public partial class htx : Exchange
                             { "v2/linear-swap-ex/market/detail/batch_merged", 1 },
                             { "linear-swap-ex/market/trade", 1 },
                             { "linear-swap-ex/market/history/trade", 1 },
-                            { "linear-swap-api/v1/swap_risk_info", 1 },
                             { "swap-api/v1/linear-swap-api/v1/swap_insurance_fund", 1 },
                             { "linear-swap-api/v1/swap_adjustfactor", 1 },
                             { "linear-swap-api/v1/swap_cross_adjustfactor", 1 },
@@ -542,11 +542,8 @@ public partial class htx : Exchange
                             { "linear-swap-api/v1/swap_ladder_margin", 1 },
                             { "linear-swap-api/v1/swap_cross_ladder_margin", 1 },
                             { "linear-swap-api/v1/swap_api_state", 1 },
-                            { "linear-swap-api/v1/swap_cross_transfer_state", 1 },
-                            { "linear-swap-api/v1/swap_cross_trade_state", 1 },
                             { "linear-swap-api/v1/swap_elite_account_ratio", 1 },
                             { "linear-swap-api/v1/swap_elite_position_ratio", 1 },
-                            { "linear-swap-api/v1/swap_liquidation_orders", 1 },
                             { "linear-swap-api/v1/swap_settlement_records", 1 },
                             { "linear-swap-api/v3/swap_liquidation_orders", 1 },
                             { "index/market/history/linear_swap_premium_index_kline", 1 },
@@ -570,14 +567,6 @@ public partial class htx : Exchange
                             { "api/v1/contract_api_trading_status", 1 },
                             { "swap-api/v1/swap_sub_auth_list", 1 },
                             { "swap-api/v1/swap_api_trading_status", 1 },
-                            { "linear-swap-api/v1/swap_sub_auth_list", 1 },
-                            { "linear-swap-api/v1/swap_api_trading_status", 1 },
-                            { "linear-swap-api/v1/swap_cross_position_side", 1 },
-                            { "linear-swap-api/v1/swap_position_side", 1 },
-                            { "linear-swap-api/v3/unified_account_info", 1 },
-                            { "linear-swap-api/v3/fix_position_margin_change_record", 1 },
-                            { "linear-swap-api/v3/swap_unified_account_type", 1 },
-                            { "linear-swap-api/v3/linear_swap_overview_account_info", 1 },
                             { "v5/account/asset_mode", 0.20834 },
                             { "v5/account/balance", 0.20834 },
                             { "v5/account/bills", 0.20834 },
@@ -709,45 +698,6 @@ public partial class htx : Exchange
                             { "swap-api/v1/swap_track_cancelall", 1 },
                             { "swap-api/v1/swap_track_openorders", 1 },
                             { "swap-api/v1/swap_track_hisorders", 1 },
-                            { "linear-swap-api/v1/swap_lever_position_limit", 1 },
-                            { "linear-swap-api/v1/swap_cross_lever_position_limit", 1 },
-                            { "linear-swap-api/v1/swap_balance_valuation", 1 },
-                            { "linear-swap-api/v1/swap_sub_auth", 1 },
-                            { "linear-swap-api/v1/swap_sub_account_list", 1 },
-                            { "linear-swap-api/v1/swap_cross_sub_account_list", 1 },
-                            { "linear-swap-api/v1/swap_sub_account_info_list", 1 },
-                            { "linear-swap-api/v1/swap_cross_sub_account_info_list", 1 },
-                            { "linear-swap-api/v1/swap_sub_account_info", 1 },
-                            { "linear-swap-api/v1/swap_cross_sub_account_info", 1 },
-                            { "linear-swap-api/v1/swap_sub_position_info", 1 },
-                            { "linear-swap-api/v1/swap_cross_sub_position_info", 1 },
-                            { "linear-swap-api/v1/swap_financial_record", 1 },
-                            { "linear-swap-api/v1/swap_financial_record_exact", 1 },
-                            { "linear-swap-api/v1/swap_user_settlement_records", 1 },
-                            { "linear-swap-api/v1/swap_cross_user_settlement_records", 1 },
-                            { "linear-swap-api/v1/swap_available_level_rate", 1 },
-                            { "linear-swap-api/v1/swap_cross_available_level_rate", 1 },
-                            { "linear-swap-api/v1/swap_order_limit", 1 },
-                            { "linear-swap-api/v1/swap_fee", 1 },
-                            { "linear-swap-api/v1/swap_transfer_limit", 1 },
-                            { "linear-swap-api/v1/swap_cross_transfer_limit", 1 },
-                            { "linear-swap-api/v1/swap_position_limit", 1 },
-                            { "linear-swap-api/v1/swap_cross_position_limit", 1 },
-                            { "linear-swap-api/v1/swap_master_sub_transfer", 1 },
-                            { "linear-swap-api/v1/swap_master_sub_transfer_record", 1 },
-                            { "linear-swap-api/v1/swap_transfer_inner", 1 },
-                            { "linear-swap-api/v3/swap_financial_record", 1 },
-                            { "linear-swap-api/v3/swap_financial_record_exact", 1 },
-                            { "linear-swap-api/v1/swap_cross_matchresults", 1 },
-                            { "linear-swap-api/v1/swap_cross_matchresults_exact", 1 },
-                            { "linear-swap-api/v1/linear-cancel-after", 1 },
-                            { "linear-swap-api/v3/swap_cross_matchresults", 1 },
-                            { "linear-swap-api/v3/swap_cross_matchresults_exact", 1 },
-                            { "linear-swap-api/v3/fix_position_margin_change", 1 },
-                            { "linear-swap-api/v3/swap_switch_account_type", 1 },
-                            { "linear-swap-api/v3/linear_swap_fee_switch", 1 },
-                            { "linear-swap-api/v1/swap_relation_tpsl_order", 1 },
-                            { "linear-swap-api/v1/swap_cross_relation_tpsl_order", 1 },
                             { "v5/account/asset_mode", 100 },
                             { "v5/trade/order", 0.41679 },
                             { "v5/trade/batch_orders", 0.41679 },
@@ -1074,6 +1024,9 @@ public partial class htx : Exchange
                     { "grid-trading", "grid-trading" },
                     { "deposit-earning", "deposit-earning" },
                     { "otc-options", "otc-options" },
+                    { "linear-swap", "swap" },
+                    { "swap", "swap" },
+                    { "futures", "future" },
                 } },
                 { "typesByAccount", new Dictionary<string, object>() {
                     { "pro", "spot" },
@@ -3606,13 +3559,12 @@ public partial class htx : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] linear or future
-     * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {string} [params.type] spot, margin, future or swap
+     * @param {string} [params.subType] linear or inverse
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -3620,25 +3572,30 @@ public partial class htx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object isUnifiedAccount = null;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchBalance() unified account has been deprecated on htx")) ;
+        }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
-        object isUnifiedAccount = null;
         object isMultiAssetMode = null;
         var subTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType", "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        var isUnifiedAccountparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
-        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
-        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
         var isMultiAssetModeparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
         isMultiAssetMode = ((IList<object>)isMultiAssetModeparametersVariable)[0];
         parameters = ((IList<object>)isMultiAssetModeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         object spot = (isEqual(type, "spot"));
         object future = (isEqual(type, "future"));
+        object swap = (isEqual(type, "swap"));
         object inverse = (isEqual(subType, "inverse"));
         object linear = (isEqual(subType, "linear"));
         object marginMode = null;
@@ -3649,7 +3606,7 @@ public partial class htx : Exchange
         object cross = (isEqual(marginMode, "cross"));
         object margin = isTrue((isEqual(type, "margin"))) || isTrue((isTrue(spot) && isTrue((isTrue(cross) || isTrue(isolated)))));
         object response = null;
-        if (isTrue(isMultiAssetMode))
+        if (isTrue(isTrue(isMultiAssetMode) || isTrue((isTrue(linear) && isTrue((isTrue(swap) || isTrue(future)))))))
         {
             response = await this.contractPrivateGetV5AccountBalance(this.extend(request, parameters));
         } else if (isTrue(isTrue(spot) || isTrue(margin)))
@@ -3670,12 +3627,6 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["account-id"] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, parameters));
             }
-        } else if (isTrue(linear))
-        {
-            response = await this.contractPrivateGetV5AccountBalance(this.extend(request, parameters));
-        } else if (isTrue(isUnifiedAccount))
-        {
-            response = await this.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(this.extend(request, parameters));
         } else if (isTrue(inverse))
         {
             if (isTrue(future))
@@ -3832,7 +3783,7 @@ public partial class htx : Exchange
             { "info", finalResponse },
         });
         object data = this.safeValue(response, "data");
-        if (isTrue(isMultiAssetMode))
+        if (isTrue(isTrue(isMultiAssetMode) || isTrue((isTrue(linear) && isTrue((isTrue(swap) || isTrue(future)))))))
         {
             object details = this.safeList(data, "details", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
@@ -3841,7 +3792,8 @@ public partial class htx : Exchange
                 object currencyId = this.safeString(balance, "currency");
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
-                ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "withdraw_available");
+                ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available_margin");
+                ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "equity");
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
             result = this.safeBalance(result);
@@ -3875,50 +3827,6 @@ public partial class htx : Exchange
                     ((IDictionary<string,object>)result)[(string)code] = this.parseMarginBalanceHelper(balance, code, result);
                 }
                 result = this.safeBalance(result);
-            }
-        } else if (isTrue(linear))
-        {
-            object details = this.safeList(data, "details", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
-            {
-                object balance = getValue(details, i);
-                object currencyId = this.safeString(balance, "currency");
-                object code = this.safeCurrencyCode(currencyId);
-                object account = this.account();
-                ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "withdraw_available");
-                ((IDictionary<string,object>)result)[(string)code] = account;
-            }
-            result = this.safeBalance(result);
-        } else if (isTrue(isUnifiedAccount))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
-            {
-                object entry = getValue(data, i);
-                object marginAsset = this.safeString(entry, "margin_asset");
-                object currencyCode = this.safeCurrencyCode(marginAsset);
-                if (isTrue(isolated))
-                {
-                    object isolated_swap = this.safeValue(entry, "isolated_swap", new Dictionary<string, object>() {});
-                    for (object j = 0; isLessThan(j, getArrayLength(isolated_swap)); postFixIncrement(ref j))
-                    {
-                        object balance = getValue(isolated_swap, j);
-                        object marketId = this.safeString(balance, "contract_code");
-                        object subBalance = new Dictionary<string, object>() {
-                            { "code", currencyCode },
-                            { "free", this.safeNumber(balance, "margin_available") },
-                        };
-                        object symbol = this.safeSymbol(marketId);
-                        ((IDictionary<string,object>)result)[(string)symbol] = subBalance;
-                        result = this.safeBalance(result);
-                    }
-                } else
-                {
-                    object account = this.account();
-                    ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "margin_static");
-                    ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "margin_frozen");
-                    ((IDictionary<string,object>)result)[(string)currencyCode] = account;
-                    result = this.safeBalance(result);
-                }
             }
         } else if (isTrue(inverse))
         {
@@ -7319,18 +7227,53 @@ public partial class htx : Exchange
         //         "status": "ok"
         //     }
         //
-        object id = this.safeString(transfer, "data");
-        object code = this.safeCurrencyCode(null, currency);
+        // fetchTransfers
+        //
+        //     {
+        //         "id": 12345,
+        //         "transfer_id": "12345",
+        //         "amount": "10",
+        //         "currency": "USDT",
+        //         "status": "success",
+        //         "from_account_type": "spot",
+        //         "to_account_type": "margin",
+        //         "from_asset_type": "",
+        //         "to_asset_type": "ETHUSDT",
+        //         "transfer_time": 1770357494000
+        //     }
+        //
+        object accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
+        object id = this.safeString2(transfer, "transfer_id", "data");
+        object currencyId = this.safeString(transfer, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        object amount = this.safeNumber(transfer, "amount");
+        object timestamp = this.safeInteger(transfer, "transfer_time");
+        object fromAccountRaw = this.safeString(transfer, "from_account_type");
+        object toAccountRaw = this.safeString(transfer, "to_account_type");
+        object fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
+        object toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
+        object statusRaw = this.safeString(transfer, "status");
+        object status = null;
+        if (isTrue(isEqual(statusRaw, "success")))
+        {
+            status = "ok";
+        } else if (isTrue(isEqual(statusRaw, "pending")))
+        {
+            status = "pending";
+        } else if (isTrue(isEqual(statusRaw, "failed")))
+        {
+            status = "failed";
+        }
         return new Dictionary<string, object>() {
             { "info", transfer },
             { "id", id },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "currency", code },
-            { "amount", null },
-            { "fromAccount", null },
-            { "toAccount", null },
-            { "status", null },
+            { "amount", amount },
+            { "fromAccount", fromAccount },
+            { "toAccount", toAccount },
+            { "status", status },
         };
     }
 
@@ -7438,6 +7381,71 @@ public partial class htx : Exchange
         //    }
         //
         return this.parseTransfer(response, currency);
+    }
+
+    /**
+     * @method
+     * @name htx#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.huobi.com/en-us/opend/newApiPages/
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.status] transfer status: 'success', 'pending', 'failed'
+     * @param {int} [params.from] the starting ID for pagination
+     * @param {string} [params.direct] pagination direction: 'prev' or 'next', default 'next'
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_time"] = since;
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["end_time"] = until;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.spotPrivateGetV5AccountUniversalTransferRecords(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": 12345,
+        //                 "transfer_id": "12345",
+        //                 "amount": "10",
+        //                 "currency": "USDT",
+        //                 "status": "success",
+        //                 "from_account_type": "spot",
+        //                 "to_account_type": "margin",
+        //                 "from_asset_type": "",
+        //                 "to_asset_type": "ETHUSDT",
+        //                 "transfer_time": 1770357494000
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTransfers(data, currency, since, limit);
     }
 
     /**
@@ -8194,13 +8202,14 @@ public partial class htx : Exchange
      * @method
      * @name htx#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          // coin-m swaps
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -8208,59 +8217,46 @@ public partial class htx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "type", "30,31" },
         };
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["start_date"] = since;
+            if (isTrue(getValue(market, "linear")))
+            {
+                ((IDictionary<string,object>)request)["start_time"] = since;
+            } else
+            {
+                ((IDictionary<string,object>)request)["start_date"] = since;
+            }
         }
         object response = null;
         if (isTrue(isEqual(marketType, "swap")))
         {
-            ((IDictionary<string,object>)request)["contract"] = getValue(market, "id");
             if (isTrue(getValue(market, "linear")))
             {
-                //
-                //    {
-                //        "status": "ok",
-                //        "data": {
-                //           "financial_record": [
-                //               {
-                //                   "id": "1320088022",
-                //                   "type": "30",
-                //                   "amount": "0.004732510000000000",
-                //                   "ts": "1641168019321",
-                //                   "contract_code": "BTC-USDT",
-                //                   "asset": "USDT",
-                //                   "margin_account": "BTC-USDT",
-                //                   "face_margin_account": ''
-                //               },
-                //           ],
-                //           "remain_size": "0",
-                //           "next_id": null
-                //        },
-                //        "ts": "1641189898425"
-                //    }
-                //
                 object marginMode = null;
                 var marginModeparametersVariable = this.handleMarginModeAndParams("fetchFundingHistory", parameters);
                 marginMode = ((IList<object>)marginModeparametersVariable)[0];
                 parameters = ((IList<object>)marginModeparametersVariable)[1];
                 marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
-                if (isTrue(isEqual(marginMode, "isolated")))
+                ((IDictionary<string,object>)request)["margin_mode"] = marginMode;
+                ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
+                if (isTrue(!isEqual(limit, null)))
                 {
-                    ((IDictionary<string,object>)request)["mar_acct"] = getValue(market, "id");
-                } else
-                {
-                    ((IDictionary<string,object>)request)["mar_acct"] = getValue(market, "quoteId");
+                    ((IDictionary<string,object>)request)["limit"] = limit;
                 }
-                response = await this.contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(this.extend(request, query));
+                response = await this.contractPrivateGetV5AccountBills(this.extend(request, parameters));
             } else
             {
+                ((IDictionary<string,object>)request)["contract"] = getValue(market, "id");
                 //
                 //     {
                 //         "code": 200,
@@ -8281,12 +8277,12 @@ public partial class htx : Exchange
                 //         "ts": 1604312615051
                 //     }
                 //
-                response = await this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, query));
+                response = await this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, parameters));
             }
         } else
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            response = await this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, query));
+            response = await this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, parameters));
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseIncomes(data, market, since, limit);
@@ -8365,12 +8361,24 @@ public partial class htx : Exchange
         //       "contract_code": "BTC-USD"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id": "2194774775",
+        //         "type": "30",
+        //         "currency": "USDT",
+        //         "amount": "0.000433432461821856",
+        //         "contract_code": "BTC-USDT",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780963213165"
+        //     }
+        //
         object marketId = this.safeString(income, "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         object amount = this.safeNumber(income, "amount");
-        object timestamp = this.safeInteger(income, "ts");
+        object timestamp = this.safeInteger2(income, "ts", "created_time");
         object id = this.safeString(income, "id");
-        object currencyId = this.safeString2(income, "symbol", "asset");
+        object currencyId = this.safeStringN(income, new List<object>() {"symbol", "asset", "currency"});
         object code = this.safeCurrencyCode(currencyId);
         return new Dictionary<string, object>() {
             { "info", income },
@@ -9463,7 +9471,7 @@ public partial class htx : Exchange
      * @description Fetches historical settlement records
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
      * @param {string} symbol unified symbol of the market to fetch the settlement history for
      * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
      * @param {int} [limit] page items, default 20, shall not exceed 50
@@ -9480,8 +9488,6 @@ public partial class htx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
         }
-        object until = this.safeInteger(parameters, "until");
-        parameters = this.omit(parameters, new List<object>() {"until"});
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         if (isTrue(getValue(market, "future")))
@@ -9491,24 +9497,29 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
         }
-        if (isTrue(!isEqual(since, null)))
-        {
-            ((IDictionary<string,object>)request)["start_at"] = since;
-        }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["page_size"] = limit;
+            if (isTrue(isTrue(getValue(market, "linear")) && isTrue(getValue(market, "swap"))))
+            {
+                ((IDictionary<string,object>)request)["limit"] = limit;
+            } else
+            {
+                ((IDictionary<string,object>)request)["page_size"] = limit;
+            }
         }
-        if (isTrue(!isEqual(until, null)))
+        if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["end_at"] = until;
+            ((IDictionary<string,object>)request)["start_time"] = since;
         }
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
             if (isTrue(getValue(market, "linear")))
             {
-                response = await this.contractPublicGetLinearSwapApiV1SwapSettlementRecords(this.extend(request, parameters));
+                response = await this.contractPublicGetV5MarketSettlementHistory(this.extend(request, parameters));
             } else
             {
                 response = await this.contractPublicGetSwapApiV1SwapSettlementRecords(this.extend(request, parameters));
@@ -9518,7 +9529,7 @@ public partial class htx : Exchange
             response = await this.contractPublicGetApiV1ContractSettlementRecords(this.extend(request, parameters));
         }
         //
-        // linear swap, coin-m swap
+        // coin-m swap
         //
         //    {
         //        "status": "ok",
@@ -9569,6 +9580,29 @@ public partial class htx : Exchange
         //        }
         //    }
         //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "14900",
+        //                 "contract_code": "BTC-USDT",
+        //                 "settlement_time": "1781827200000",
+        //                 "clawback_ratio": "0",
+        //                 "settlement_price": "62933.747161774209291325"
+        //             },
+        //         ],
+        //         "ts": 1781853150623
+        //     }
+        //
+        if (isTrue(getValue(market, "linear")))
+        {
+            object dataLinear = this.safeList(response, "data", new List<object>() {});
+            object settlementsLinear = this.parseSettlements(dataLinear, market);
+            return this.sortBy(settlementsLinear, "timestamp");
+        }
         object data = this.safeValue(response, "data");
         object settlementRecord = this.safeValue(data, "settlement_record");
         object settlements = this.parseSettlements(settlementRecord, market);
@@ -9703,7 +9737,7 @@ public partial class htx : Exchange
     public virtual object parseSettlements(object settlements, object market)
     {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    [
         //        {
@@ -9738,12 +9772,28 @@ public partial class htx : Exchange
         //        },
         //    ]
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     [
+        //         {
+        //             "id": "14900",
+        //             "contract_code": "BTC-USDT",
+        //             "settlement_time": "1781827200000",
+        //             "clawback_ratio": "0",
+        //             "settlement_price": "62933.747161774209291325"
+        //         }
+        //     ]
+        //
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             object settlement = getValue(settlements, i);
             object list = this.safeValue(settlement, "list");
-            if (isTrue(!isEqual(list, null)))
+            if (isTrue(getValue(market, "linear")))
+            {
+                object parsedSettlement = this.parseSettlement(settlement, market);
+                ((IList<object>)result).Add(parsedSettlement);
+            } else if (isTrue(!isEqual(list, null)))
             {
                 object timestamp = this.safeInteger(settlement, "settlement_time");
                 object timestampDetails = new Dictionary<string, object>() {
@@ -9767,7 +9817,7 @@ public partial class htx : Exchange
     public virtual object parseSettlement(object settlement, object market)
     {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    {
         //        "symbol": "ADA",
@@ -9789,6 +9839,16 @@ public partial class htx : Exchange
         //        "settlement_type": "settlement"
         //    }
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     {
+        //         "id": "14900",
+        //         "contract_code": "BTC-USDT",
+        //         "settlement_time": "1781827200000",
+        //         "clawback_ratio": "0",
+        //         "settlement_price": "62933.747161774209291325"
+        //     }
+        //
         object timestamp = this.safeInteger(settlement, "settlement_time");
         object marketId = this.safeString(settlement, "contract_code");
         return new Dictionary<string, object>() {
@@ -9804,7 +9864,7 @@ public partial class htx : Exchange
      * @method
      * @name htx#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
      * @param {string} symbol unified CCXT market symbol
@@ -9812,7 +9872,7 @@ public partial class htx : Exchange
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the huobi api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @param {int} [params.tradeType] default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+     * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     public async override Task<object> fetchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
@@ -9820,10 +9880,13 @@ public partial class htx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object tradeType = this.safeInteger(parameters, "trade_type", 0);
-        object request = new Dictionary<string, object>() {
-            { "trade_type", tradeType },
-        };
+        object tradeType = this.safeInteger2(parameters, "trade_type", "tradeType", 0);
+        object request = new Dictionary<string, object>() {};
+        if (!isTrue(getValue(market, "linear")))
+        {
+            ((IDictionary<string,object>)request)["trade_type"] = tradeType;
+        }
+        parameters = this.omit(parameters, new List<object>() {"trade_type", "tradeType"});
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
@@ -9834,12 +9897,17 @@ public partial class htx : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            ((IDictionary<string,object>)request)["contract"] = getValue(market, "id");
             if (isTrue(getValue(market, "linear")))
             {
-                response = await this.contractPublicGetLinearSwapApiV3SwapLiquidationOrders(this.extend(request, parameters));
+                ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
+                if (isTrue(!isEqual(limit, null)))
+                {
+                    ((IDictionary<string,object>)request)["limit"] = limit;
+                }
+                response = await this.contractPublicGetV5MarketLiquidationOrders(this.extend(request, parameters));
             } else
             {
+                ((IDictionary<string,object>)request)["contract"] = getValue(market, "id");
                 response = await this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(request, parameters));
             }
         } else if (isTrue(getValue(market, "future")))
@@ -9895,15 +9963,29 @@ public partial class htx : Exchange
         //         "pair": "BTC-USDT"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id": "150153038758",
+        //         "contract_code": "BTC-USDT",
+        //         "liquidation_time": "1781849094165",
+        //         "side": "buy",
+        //         "position_side": "short",
+        //         "volume": "2",
+        //         "amount": "2",
+        //         "bankrupt_price": "62978.5",
+        //         "trade_turnover": "125.957"
+        //     }
+        //
         object marketId = this.safeString(liquidation, "contract_code");
-        object timestamp = this.safeInteger(liquidation, "created_at");
+        object timestamp = this.safeInteger2(liquidation, "created_at", "liquidation_time");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", this.safeSymbol(marketId, market) },
             { "contracts", this.safeNumber(liquidation, "volume") },
             { "contractSize", this.safeNumber(market, "contractSize") },
-            { "price", this.safeNumber(liquidation, "price") },
-            { "side", this.safeStringLower(liquidation, "direction") },
+            { "price", this.safeNumber2(liquidation, "price", "bankrupt_price") },
+            { "side", this.safeStringLower2(liquidation, "direction", "side") },
             { "baseValue", this.safeNumber(liquidation, "amount") },
             { "quoteValue", this.safeNumber(liquidation, "trade_turnover") },
             { "timestamp", timestamp },

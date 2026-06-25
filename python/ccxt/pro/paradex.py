@@ -57,7 +57,7 @@ class paradex(ccxt.async_support.paradex):
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             token = await self.authenticateRest()
-            request: dict = {
+            request = {
                 'jsonrpc': '2.0',
                 'id': self.request_id(),
                 'method': 'auth',
@@ -103,7 +103,7 @@ class paradex(ccxt.async_support.paradex):
         else:
             messageHash += 'ALL'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -162,7 +162,7 @@ class paradex(ccxt.async_support.paradex):
         market = self.market(symbol)
         messageHash = 'order_book.' + market['id'] + '.snapshot@15@100ms'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -210,7 +210,7 @@ class paradex(ccxt.async_support.paradex):
         symbol = market['symbol']
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
-        orderbookData: dict = {
+        orderbookData = {
             'bids': [],
             'asks': [],
         }
@@ -245,7 +245,7 @@ class paradex(ccxt.async_support.paradex):
         symbol = self.symbol(symbol)
         channel = 'markets_summary'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -269,14 +269,14 @@ class paradex(ccxt.async_support.paradex):
         symbols = self.market_symbols(symbols)
         channel = 'markets_summary'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
                 'channel': channel,
             },
         }
-        messageHashes: List[Any] = []
+        messageHashes = []
         if symbols is not None and isinstance(symbols, list):
             for i in range(0, len(symbols)):
                 messageHash = channel + '.' + symbols[i]
@@ -285,7 +285,7 @@ class paradex(ccxt.async_support.paradex):
             messageHashes.append(channel)
         newTicker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -314,7 +314,7 @@ class paradex(ccxt.async_support.paradex):
         else:
             channel += 'ALL'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -420,7 +420,7 @@ class paradex(ccxt.async_support.paradex):
         symbol = self.symbol(symbol)
         channel = 'funding_data'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -444,14 +444,14 @@ class paradex(ccxt.async_support.paradex):
         symbols = self.market_symbols(symbols)
         channel = 'funding_data'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
                 'channel': channel,
             },
         }
-        messageHashes: List[Any] = []
+        messageHashes = []
         if symbols is not None:
             symbolsLength = len(symbols)
             if symbolsLength > 0:
@@ -464,7 +464,7 @@ class paradex(ccxt.async_support.paradex):
             messageHashes.append(channel)
         newFundingRates = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newFundingRates['symbol']] = newFundingRates
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbols)
@@ -602,7 +602,7 @@ class paradex(ccxt.async_support.paradex):
             channel = self.safe_string(data, 'channel')
             parts = channel.split('.')
             name = self.safe_string(parts, 0)
-            methods: dict = {
+            methods = {
                 'trades': self.handle_trade,
                 'order_book': self.handle_order_book,
                 'markets_summary': self.handle_ticker,

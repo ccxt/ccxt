@@ -291,16 +291,16 @@ function helper_test_properties() {
     // instance dynamic cache
     //
     // todo: remove initialization from GO
-    assert_deep_equal($exchange, array(), 'balance', $exchange->balance, array());
-    assert_deep_equal($exchange, array(), 'bidsasks', $exchange->bidsasks, array());
-    assert_deep_equal($exchange, array(), 'orderbooks', $exchange->orderbooks, array());
-    assert_deep_equal($exchange, array(), 'tickers', $exchange->tickers, array());
+    assert_deep_equal($exchange, array(), 'balance', $exchange->balance, $exchange->create_safe_dictionary(true));
+    assert_deep_equal($exchange, array(), 'bidsasks', $exchange->bidsasks, $exchange->create_safe_dictionary(true));
+    assert_deep_equal($exchange, array(), 'orderbooks', $exchange->orderbooks, $exchange->create_safe_dictionary(true));
+    assert_deep_equal($exchange, array(), 'tickers', $exchange->tickers, $exchange->create_safe_dictionary(true));
     assert($exchange->liquidations === null, 'liquidations should be undefined');
-    assert($exchange->orders === null, 'orders should be undefined');
-    assert_deep_equal($exchange, array(), 'trades', $exchange->trades, array());
-    assert_deep_equal($exchange, array(), 'transactions', $exchange->transactions, array());
-    assert_deep_equal($exchange, array(), 'ohlcvs', $exchange->ohlcvs, array());
     assert(exchange_prop($exchange, 'myLiquidations') === null);
+    assert($exchange->orders === null, 'orders should be undefined');
+    assert_deep_equal($exchange, array(), 'trades', $exchange->trades, $exchange->create_safe_dictionary(true));
+    assert_deep_equal($exchange, array(), 'transactions', $exchange->transactions, $exchange->create_safe_dictionary());
+    assert_deep_equal($exchange, array(), 'ohlcvs', $exchange->ohlcvs, $exchange->create_safe_dictionary(true));
     assert(exchange_prop($exchange, 'myTrades') === null);
     assert($exchange->positions === null, 'positions should be undefined');
     //

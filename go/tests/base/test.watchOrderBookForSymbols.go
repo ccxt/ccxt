@@ -46,14 +46,14 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 				}()
 
 			}
-			if IsTrue(IsEqual(success, true)) {
+			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
 				// [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
 				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an object. "), exchange.Json(response)))
 				now = exchange.Milliseconds()
 				AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
 				TestOrderBook(exchange, skippedProperties, method, response, nil)
 				var symbol any = GetValue(response, "symbol")
-				if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {
+				if IsTrue(IsTrue((!IsEqual(symbol, nil))) && !IsTrue(exchange.InArray(symbol, returnedSymbols))) {
 					AppendToArray(&returnedSymbols, symbol)
 				}
 			}

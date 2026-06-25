@@ -5,6 +5,10 @@ import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, L
 import { eddsa } from './base/functions/crypto.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
 
+/**
+ * @class aftermath
+ * @augments Exchange
+ */
 export default class aftermath extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
@@ -74,7 +78,8 @@ export default class aftermath extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807',
+                'www': 'https://aftermath.finance',
+                'logo': 'https://github.com/user-attachments/assets/f3104ea3-e9ab-4d4e-ad22-0ce772a407b7',
                 'api': {
                     'rest': 'https://aftermath.finance/api/ccxt',
                 },

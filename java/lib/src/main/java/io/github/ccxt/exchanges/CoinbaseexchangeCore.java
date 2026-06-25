@@ -531,7 +531,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 Object market = Helpers.GetValue(response, i);
                 Object id = this.safeString(market, "id");
-                var baseIdquoteIdVariable = Helpers.split(id, "-");
+                var baseIdquoteIdVariable = Helpers.split(((String)id), "-");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
@@ -1162,9 +1162,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object maker = this.safeNumber(response, "maker_fee_rate");
             Object taker = this.safeNumber(response, "taker_fee_rate");
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(((Object)this.symbols), i);
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -1315,7 +1315,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             put( "canceled", "canceled" );
             put( "canceling", "open" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -2078,7 +2078,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     Object account_id = this.safeString(Helpers.GetValue(response, i), "account_id");
-                    Object account = this.safeValue(this.accountsById, account_id);
+                    Object account = this.safeValue(this.accountsById, ((String)account_id));
                     Object codeInner = this.safeString(account, "code");
                     Helpers.addElementToObject(Helpers.GetValue(response, i), "currency", codeInner);
                 }

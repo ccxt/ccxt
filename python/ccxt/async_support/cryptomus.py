@@ -413,9 +413,9 @@ class cryptomus(Exchange, ImplicitAPI):
 
     def parse_currency(self, rawCurrency: dict) -> Currency:
         # currency here is array of networks
-        id: Str = None  # all entried have same id, were grouped by
-        code: Str = None
-        networks: dict = {}
+        id = None  # all entried have same id, were grouped by
+        code = None
+        networks = {}
         for i in range(0, len(rawCurrency)):
             networkEntry = rawCurrency[i]
             # set ID on first loop
@@ -529,7 +529,7 @@ class cryptomus(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currencyPair': market['id'],
         }
         level = 0
@@ -573,7 +573,7 @@ class cryptomus(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currencyPair': market['id'],
         }
         response = await self.publicGetV1ExchangeMarketTradesCurrencyPair(self.extend(request, params))
@@ -635,7 +635,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         response = await self.privateGetV2UserApiExchangeAccountBalance(self.extend(request, params))
         #
         #     {
@@ -659,7 +659,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #         "held": "0.00000000"
         #     }
         #
-        result: dict = {
+        result = {
             'info': balance,
         }
         for i in range(0, len(balance)):
@@ -691,7 +691,7 @@ class cryptomus(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'direction': side,
             'tag': 'ccxt',
@@ -703,7 +703,7 @@ class cryptomus(Exchange, ImplicitAPI):
         sideBuy = side == 'buy'
         amountToString = self.number_to_string(amount)
         priceToString = self.number_to_string(price)
-        cost: Str = None
+        cost = None
         cost, params = self.handle_param_string(params, 'cost')
         response: dict
         if type == 'market':
@@ -748,7 +748,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         request['orderId'] = id
         response = await self.privateDeleteV2UserApiExchangeOrdersOrderId(self.extend(request, params))
         #
@@ -776,8 +776,8 @@ class cryptomus(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {}
-        market: Market = None
+        request = {}
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -824,7 +824,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_list(response, 'result', [])
-        orders: List = []
+        orders = []
         for i in range(0, len(result)):
             order = result[i]
             orders.append(self.parse_order(order, market))
@@ -848,10 +848,10 @@ class cryptomus(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
         }
         if market is not None:
             request['market'] = market['id']
@@ -946,7 +946,7 @@ class cryptomus(Exchange, ImplicitAPI):
         side = self.safe_string(order, 'direction')
         price = self.safe_number(order, 'price')
         transaction = self.safe_list(deal, 'transactions', [])
-        fee: Fee = None
+        fee = None
         firstTx = self.safe_dict(transaction, 0)
         feeCurrency = self.safe_string(firstTx, 'feeCurrency')
         if feeCurrency is not None:
@@ -1061,10 +1061,13 @@ class cryptomus(Exchange, ImplicitAPI):
         makerFee = Precise.string_div(makerFee, '100')
         takerFee = Precise.string_div(takerFee, '100')
         feeTiers = self.safe_list(data, 'tariff_steps', [])
-        result: dict = {}
+        result = {}
         tiers = self.parse_fee_tiers(feeTiers)
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        if symbols is None:
+            return result
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1077,8 +1080,8 @@ class cryptomus(Exchange, ImplicitAPI):
         return result
 
     def parse_fee_tiers(self, feeTiers, market: Market = None):
-        takerFees: List = []
-        makerFees: List = []
+        takerFees = []
+        makerFees = []
         for i in range(0, len(feeTiers)):
             tier = feeTiers[i]
             turnover = self.safe_number(tier, 'from_turnover')

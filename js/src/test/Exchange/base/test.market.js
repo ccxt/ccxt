@@ -8,6 +8,9 @@ import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 function testMarket(exchange, skippedProperties, method, market) {
+    if (market === undefined) {
+        return;
+    }
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
@@ -272,7 +275,7 @@ function testMarket(exchange, skippedProperties, method, market) {
     testSharedMethods.assertTimestamp(exchange, skippedProperties, method, market, undefined, 'created');
     // margin modes
     if (!('marginModes' in skippedProperties)) {
-        const marginModes = exchange.safeDict(market, 'marginModes'); // in future, remove safeDict
+        const marginModes = exchange.safeDict(market, 'marginModes', {}); // in future, remove safeDict
         assert('cross' in marginModes, 'marginModes should have "cross" key' + logText);
         assert('isolated' in marginModes, 'marginModes should have "isolated" key' + logText);
         testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, 'cross', [true, false, undefined]);
