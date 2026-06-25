@@ -579,6 +579,14 @@ class Transpiler {
             [ /\~([\]\[\|@\.\s+\:\/#()\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /(\s+ \* @(param|return) {[^}]*)array\(\)([^}]*}.*)/g, '$1[]$3' ], // docstring type conversion
             [ /(\s+ \* @(param|return) {[^}]*)object([^}]*}.*)/g, '$1array$3' ], // docstring type conversion
+            // a method call directly on a $this property, e.g. this.orders.append (x): since
+            // "orders" is not a tracked local variable, variablePropertiesRegexes never turns
+            // the trailing ".append" into "->append", so do it here. "$this->" already exists
+            // (this. was rewritten above) and this runs after the specific .slice/.split/...
+            // conversions, so it only catches leftover property method calls. Transpiled
+            // concatenation always uses " . " with spaces, so the spaceless "." here is always
+            // member access, never a concat. Also drops the space before "(".
+            [ /(\$this->[A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\s*\(/g, '$1->$2(' ],
         ])
     }
 
@@ -1186,13 +1194,7 @@ class Transpiler {
         // same idea for dynamic constructor calls, e.g. new $broad[$broadKey] ($error);
         // the variable only gets its "$" from phpVariablesRegexes below, so handle it here.
         const noSpaceBeforeDynamicNewParen = [ /new (\$[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])*) \(/g, 'new $1(' ]
-        // a method call directly on a $this property, e.g. this.orders.append (x) which only
-        // becomes "$this->orders" here (not a tracked local var, so variablePropertiesRegexes
-        // misses the trailing ".append"): turn $this->prop.method ( into $this->prop->method(.
-        // Transpiled concatenation always uses " . " with spaces, so the spaceless "." here is
-        // always member access, never a concat.
-        const objectPropertyMethodCall = [ /(\$this->[A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\s*\(/g, '$1->$2(' ]
-        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ objectPropertyMethodCall, noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
+        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
         // indent async php
         if (async && js.indexOf (' await ') > -1) {
             const closure = variables && variables.length ? ' use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
