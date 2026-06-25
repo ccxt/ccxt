@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.59';
+$version = '4.5.60';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,7 +63,10 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.59';
+    const VERSION = '4.5.60';
+
+    // this is updated by vss.js when building
+    public static $ccxt_version = '4.5.59';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2395,37 +2398,6 @@ class Exchange {
         // PHP version of this function does nothing, as most of its
         // dependencies are lightweight and don't eat a lot
         return true;
-    }
-
-    public static function check_required_version($required_version, $error = true) {
-        global $version;
-        $result = true;
-        $required = explode('.', $required_version);
-        $current = explode('.', $version);
-        $intMajor1 = intval($required[0]);
-        $intMinor1 = intval($required[1]);
-        $intPatch1 = intval($required[2]);
-        $intMajor2 = intval($current[0]);
-        $intMinor2 = intval($current[1]);
-        $intPatch2 = intval($current[2]);
-        if ($intMajor1 > $intMajor2) {
-            $result = false;
-        }
-        if ($intMajor1 === $intMajor2) {
-            if ($intMinor1 > $intMinor2) {
-                $result = false;
-            } elseif ($intMinor1 === $intMinor2 && $intPatch1 > $intPatch2) {
-                $result = false;
-            }
-        }
-        if (!$result) {
-            if ($error) {
-                throw new NotSupported('Your current version of CCXT is ' . $version . ', a newer version ' . $required_version . ' is required, please, upgrade your version of CCXT');
-            } else {
-                return $error;
-            }
-        }
-        return $result;
     }
 
     public function check_required_dependencies() {
