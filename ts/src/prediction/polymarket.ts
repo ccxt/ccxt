@@ -31,6 +31,12 @@ export default class polymarket extends Exchange {
             'rateLimit': 100,
             'certified': false,
             'pro': true,
+            'streaming': {
+                // Polymarket's CLOB ws (market + user channels) has no protocol-level ping-pong;
+                // it requires a text "PING" every 10s and replies "PONG" (see @see in describe)
+                'ping': this.ping,
+                'keepAlive': 10000,
+            },
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -2531,6 +2537,12 @@ export default class polymarket extends Exchange {
             return;
         }
         throw new AuthenticationError (this.id + ' requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them');
+    }
+
+    ping (client: any) {
+        // Polymarket keeps the ws alive with a plain-text "PING" (the server replies "PONG"); the
+        // keepAlive interval set in describe.streaming sends it on both the market and user channels
+        return 'PING';
     }
 
     handleMessage (client: any, message: any) {
