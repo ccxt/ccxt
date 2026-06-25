@@ -1565,7 +1565,7 @@ export default class nado extends nadoRest {
         }
         const id = this.safeString (message, 'id');
         const hasResult = ('result' in message);
-        const result = message['result'];
+        const result = this.safeValue (message, 'result');
         if ((id !== undefined) && hasResult) {
             const authentication = this.safeValue (client.subscriptions, 'authentication:' + id);
             if (authentication !== undefined) {
@@ -1577,7 +1577,7 @@ export default class nado extends nadoRest {
                 this.handleSubscription (client, message);
                 return;
             }
-            if (result === null) {
+            if (result === undefined) {
                 this.handleUnsubscription (client, message);
                 return;
             }
