@@ -2048,10 +2048,9 @@ class Transpiler {
             // rsa/jwt are synchronous in php; revert the `this.`-mapped calls back to
             // the bare module-level rsa/jwt wrappers defined in the php header.
             [ /\$this->(rsa|jwt) ?\(/g, '$1(' ],
-            // php has no `async` keyword, but the awaiting base init runs
-            // `Async\await(test_cryptography())`, so the function must return a promise.
-            // wrap the body in a React async closure (matches the other base tests).
-            [ /(?:async )?function (test_cryptography) \(\) \{([\s\S]*)\}\s*$/, 'function $1 () {\n    return \\React\\Async\\async(function () {$2}) ();\n}\n' ],
+            // php has no `async` keyword; the base init calls test_cryptography()
+            // synchronously (it is NOT awaited), so just drop `async` -> plain sync fn.
+            [ /\basync function (test_cryptography) /g, 'function $1 ' ],
         ])
 
         const pythonHeader = [
