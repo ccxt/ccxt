@@ -9,11 +9,10 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class onetrading extends \ccxt\async\onetrading {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -81,7 +80,7 @@ class onetrading extends \ccxt\async\onetrading {
         ));
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -107,7 +106,7 @@ class onetrading extends \ccxt\async\onetrading {
             );
             $request = $this->deep_extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
-        }) ();
+        })();
     }
 
     public function handle_balance_snapshot($client, $message) {
@@ -141,10 +140,10 @@ class onetrading extends \ccxt\async\onetrading {
         //
         $this->balance = $this->parse_balance($message);
         $messageHash = 'balance';
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -170,10 +169,10 @@ class onetrading extends \ccxt\async\onetrading {
                 ),
             );
             return Async\await($this->watch_many($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -202,7 +201,7 @@ class onetrading extends \ccxt\async\onetrading {
             );
             $tickers = Async\await($this->watch_many($messageHash, $request, $subscriptionHash, $symbols, $params));
             return $this->filter_by_array($tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -232,9 +231,9 @@ class onetrading extends \ccxt\async\onetrading {
             $timestamp = $this->parse8601($datetime);
             $this->tickers[$symbol]['timestamp'] = $timestamp;
             $this->tickers[$symbol]['datetime'] = $this->iso8601($timestamp);
-            $client->resolve ($this->tickers[$symbol], 'ticker.' . $symbol);
+            $client->resolve($this->tickers[$symbol], 'ticker.' . $symbol);
         }
-        $client->resolve ($this->tickers, 'tickers');
+        $client->resolve($this->tickers, 'tickers');
     }
 
     public function parse_ws_ticker($ticker, $market = null) {
@@ -274,7 +273,7 @@ class onetrading extends \ccxt\async\onetrading {
         ), $market);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -310,7 +309,7 @@ class onetrading extends \ccxt\async\onetrading {
             $request = $this->deep_extend($subscribe, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             $trades = $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
             $numTrades = count($trades);
@@ -318,10 +317,10 @@ class onetrading extends \ccxt\async\onetrading {
                 return Async\await($this->watch_my_trades($symbol, $since, $limit, $params));
             }
             return $trades;
-        }) ();
+        })();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
@@ -352,8 +351,8 @@ class onetrading extends \ccxt\async\onetrading {
                 ),
             );
             $orderbook = Async\await($this->watch_many($messageHash, $request, $subscriptionHash, array( $symbol ), $params));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -361,14 +360,14 @@ class onetrading extends \ccxt\async\onetrading {
         //  $snapshot
         //     {
         //         "instrument_code" => "ETH_BTC",
-        //         "bids" => [
+        //         "bids" => array(
         //             ['0.053595', "4.5352"],
         //             ...
-        //         ],
-        //         "asks" => [
+        //         ),
+        //         "asks" => array(
         //             ['0.055455', "0.2821"],
         //             ...
-        //         ],
+        //         ),
         //         "channel_name" => "ORDER_BOOK",
         //         "type" => "ORDER_BOOK_SNAPSHOT",
         //         "time" => "2022-06-23T15:38:02.196282Z"
@@ -377,9 +376,9 @@ class onetrading extends \ccxt\async\onetrading {
         //  update
         //     {
         //         "instrument_code" => "ETH_BTC",
-        //         "changes" => [
+        //         "changes" => array(
         //             ["BUY", '0.053593', "8.0587"]
-        //         ],
+        //         ),
         //         "channel_name" => "ORDER_BOOK",
         //         "type" => "ORDER_BOOK_UPDATE",
         //         "time" => "2022-06-23T15:38:02.751301Z"
@@ -397,7 +396,7 @@ class onetrading extends \ccxt\async\onetrading {
         }
         if ($type === 'ORDER_BOOK_SNAPSHOT') {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks');
-            $orderbook->reset ($snapshot);
+            $orderbook->reset($snapshot);
         } elseif ($type === 'ORDER_BOOK_UPDATE') {
             $changes = $this->safe_value($message, 'changes', array());
             $this->handle_deltas($orderbook, $changes);
@@ -408,7 +407,7 @@ class onetrading extends \ccxt\async\onetrading {
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $channel);
+        $client->resolve($orderbook, $channel);
     }
 
     public function handle_delta($orderbook, $delta) {
@@ -419,10 +418,10 @@ class onetrading extends \ccxt\async\onetrading {
         $type = $this->safe_string($delta, 0);
         if ($type === 'BUY') {
             $bids = $orderbook['bids'];
-            $bids->storeArray ($bidAsk);
+            $bids->storeArray($bidAsk);
         } elseif ($type === 'SELL') {
             $asks = $orderbook['asks'];
-            $asks->storeArray ($bidAsk);
+            $asks->storeArray($bidAsk);
         } else {
             throw new NotSupported($this->id . ' watchOrderBook () received unknown change $type ' . $this->json($delta));
         }
@@ -440,7 +439,7 @@ class onetrading extends \ccxt\async\onetrading {
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -477,7 +476,7 @@ class onetrading extends \ccxt\async\onetrading {
             $request = $this->deep_extend($subscribe, $params);
             $orders = Async\await($this->watch($url, $messageHash, $request, $subscribeHash, $request));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             $orders = $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
             $numOrders = count($orders);
@@ -485,7 +484,7 @@ class onetrading extends \ccxt\async\onetrading {
                 return Async\await($this->watch_orders($symbol, $since, $limit, $params));
             }
             return $orders;
-        }) ();
+        })();
     }
 
     public function handle_trading(Client $client, $message) {
@@ -535,13 +534,13 @@ class onetrading extends \ccxt\async\onetrading {
         //
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $order = $this->parse_trading_order($message);
         $orders = $this->orders;
-        $orders->append ($order);
-        $client->resolve ($this->orders, 'orders:' . $order['symbol']);
-        $client->resolve ($this->orders, 'orders');
+        $orders->append($order);
+        $client->resolve($this->orders, 'orders:' . $order['symbol']);
+        $client->resolve($this->orders, 'orders');
     }
 
     public function parse_trading_order($order, $market = null) {
@@ -728,11 +727,11 @@ class onetrading extends \ccxt\async\onetrading {
         //
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
         $rawOrders = $this->safe_value($message, 'orders', array());
         $rawOrdersLength = count($rawOrders);
@@ -743,18 +742,18 @@ class onetrading extends \ccxt\async\onetrading {
         for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $this->parse_order($rawOrders[$i]);
             $symbol = $this->safe_string($order, 'symbol', '');
-            $orders->append ($order);
-            $client->resolve ($this->orders, 'orders:' . $symbol);
+            $orders->append($order);
+            $client->resolve($this->orders, 'orders:' . $symbol);
             $rawTrades = $this->safe_value($rawOrders[$i], 'trades', array());
             for ($ii = 0; $ii < count($rawTrades); $ii++) {
                 $trade = $this->parse_trade($rawTrades[$ii]);
                 $symbol = $this->safe_string($trade, 'symbol', $symbol);
-                $this->myTrades.append ($trade);
-                $client->resolve ($this->myTrades, 'myTrades:' . $symbol);
+                $this->myTrades->append($trade);
+                $client->resolve($this->myTrades, 'myTrades:' . $symbol);
             }
         }
-        $client->resolve ($this->orders, 'orders');
-        $client->resolve ($this->myTrades, 'myTrades');
+        $client->resolve($this->orders, 'orders');
+        $client->resolve($this->myTrades, 'myTrades');
     }
 
     public function handle_account_update(Client $client, $message) {
@@ -981,11 +980,11 @@ class onetrading extends \ccxt\async\onetrading {
         //
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
         $symbol = null;
         $orders = $this->orders;
@@ -1009,14 +1008,14 @@ class onetrading extends \ccxt\async\onetrading {
                 'timestamp' => $this->parse8601($datetime),
                 'datetime' => $datetime,
             );
-            $orders->append ($orderObject);
+            $orders->append($orderObject);
         } else {
             $parsed = $this->parse_order($update);
             $symbol = $this->safe_string($parsed, 'symbol', '');
-            $orders->append ($parsed);
+            $orders->append($parsed);
         }
-        $client->resolve ($this->orders, 'orders:' . $symbol);
-        $client->resolve ($this->orders, 'orders');
+        $client->resolve($this->orders, 'orders:' . $symbol);
+        $client->resolve($this->orders, 'orders');
         // $update balance
         $balanceKeys = array( 'locked', 'unlocked', 'spent', 'spent_on_fees', 'credited', 'deducted' );
         for ($i = 0; $i < count($balanceKeys); $i++) {
@@ -1025,15 +1024,15 @@ class onetrading extends \ccxt\async\onetrading {
                 $this->update_balance($newBalance);
             }
         }
-        $client->resolve ($this->balance, 'balance');
+        $client->resolve($this->balance, 'balance');
         // $update trades
         if ($updateType === 'TRADE_SETTLED') {
             $parsed = $this->parse_trade($update);
             $symbol = $this->safe_string($parsed, 'symbol', '');
             $myTrades = $this->myTrades;
-            $myTrades->append ($parsed);
-            $client->resolve ($this->myTrades, 'myTrades:' . $symbol);
-            $client->resolve ($this->myTrades, 'myTrades');
+            $myTrades->append($parsed);
+            $client->resolve($this->myTrades, 'myTrades:' . $symbol);
+            $client->resolve($this->myTrades, 'myTrades');
         }
     }
 
@@ -1064,7 +1063,7 @@ class onetrading extends \ccxt\async\onetrading {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1135,10 +1134,10 @@ class onetrading extends \ccxt\async\onetrading {
             );
             $ohlcv = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $subscriptionHash, $subscription));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -1195,11 +1194,11 @@ class onetrading extends \ccxt\async\onetrading {
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp ($limit);
+            $stored = new ArrayCacheByTimestamp($limit);
         }
-        $stored->append ($parsed);
+        $stored->append($parsed);
         $this->ohlcvs[$symbol][$timeframe] = $stored;
-        $client->resolve ($stored, $channel);
+        $client->resolve($stored, $channel);
     }
 
     public function find_timeframe($timeframe, $timeframes = null) {
@@ -1324,12 +1323,12 @@ class onetrading extends \ccxt\async\onetrading {
         //
         $future = $this->safe_value($client->futures, 'authenticated');
         if ($future !== null) {
-            $future->resolve (true);
+            $future->resolve(true);
         }
         return $message;
     }
 
-    public function watch_many($messageHash, $request, $subscriptionHash, ?array $symbols = [], $params = array ()) {
+    public function watch_many($messageHash, $request, $subscriptionHash, ?array $symbols = array(), $params = array()) {
         return Async\async(function () use ($messageHash, $request, $subscriptionHash, $symbols, $params) {
             $marketIds = array();
             $numSymbols = count($symbols);
@@ -1364,15 +1363,15 @@ class onetrading extends \ccxt\async\onetrading {
             $request['type'] = $type;
             $request['channels'][0]['instrument_codes'] = is_array($subscription) ? array_keys($subscription) : array();
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $subscriptionHash, $subscription));
-        }) ();
+        })();
     }
 
-    public function authenticate($params = array ()) {
+    public function authenticate($params = array()) {
         return Async\async(function () use ($params) {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->reusableFuture ('authenticated');
+            $future = $client->reusableFuture('authenticated');
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();
@@ -1383,6 +1382,6 @@ class onetrading extends \ccxt\async\onetrading {
                 $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
             }
             return Async\await($future);
-        }) ();
+        })();
     }
 }

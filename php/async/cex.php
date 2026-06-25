@@ -11,12 +11,11 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NullResponse;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 
 class cex extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cex',
@@ -311,7 +310,7 @@ class cex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -322,7 +321,7 @@ class cex extends Exchange {
              * @return {dict} an associative dictionary of currencies
              */
             $promises = array();
-            $promises[] = $this->publicPostGetCurrenciesInfo ($params);
+            $promises[] = $this->publicPostGetCurrenciesInfo($params);
             //
             //    {
             //        "ok" => "ok",
@@ -337,7 +336,7 @@ class cex extends Exchange {
             //            ),
             //            ...
             //
-            $promises[] = $this->publicPostGetProcessingInfo ($params);
+            $promises[] = $this->publicPostGetProcessingInfo($params);
             //
             //    {
             //        "ok" => "ok",
@@ -365,7 +364,7 @@ class cex extends Exchange {
             $currenciesIndexed = $this->index_by($dataCurrencies, 'currency');
             $data = $this->deep_extend($currenciesIndexed, $dataNetworks);
             return $this->parse_currencies($this->to_array($data));
-        }) ();
+        })();
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -429,7 +428,7 @@ class cex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for ace
@@ -439,7 +438,7 @@ class cex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
-            $response = Async\await($this->publicPostGetPairsInfo ($params));
+            $response = Async\await($this->publicPostGetPairsInfo($params));
             //
             //    {
             //        "ok" => "ok",
@@ -463,7 +462,7 @@ class cex extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_markets($data);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -527,14 +526,14 @@ class cex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer $timestamp in milliseconds from the exchange server
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer $timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicPostGetServerTime ($params));
+            $response = Async\await($this->publicPostGetServerTime($params));
             //
             //    {
             //        "ok" => "ok",
@@ -547,10 +546,10 @@ class cex extends Exchange {
             $data = $this->safe_dict($response, 'data');
             $timestamp = $this->safe_integer($data, 'timestamp');
             return $timestamp;
-        }) ();
+        })();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -564,10 +563,10 @@ class cex extends Exchange {
             Async\await($this->load_markets());
             $response = Async\await($this->fetch_tickers(array( $symbol ), $params));
             return $this->safe_dict($response, $symbol, array());
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -583,7 +582,7 @@ class cex extends Exchange {
             if ($symbols !== null) {
                 $request['pairs'] = $this->market_ids($symbols);
             }
-            $response = Async\await($this->publicPostGetTicker ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostGetTicker($this->extend($request, $params)));
             //
             //    {
             //        "ok" => "ok",
@@ -612,7 +611,7 @@ class cex extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_tickers($data, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -641,7 +640,7 @@ class cex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -669,9 +668,9 @@ class cex extends Exchange {
                 $request['toDateISO'] = $this->iso8601($until);
             }
             if ($limit !== null) {
-                $request['pageSize'] = min ($limit, 10000); // has a bug, still returns more $trades
+                $request['pageSize'] = min($limit, 10000); // has a bug, still returns more $trades
             }
-            $response = Async\await($this->publicPostGetTradeHistory ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostGetTradeHistory($this->extend($request, $params)));
             //
             //    {
             //        "ok" => "ok",
@@ -690,7 +689,7 @@ class cex extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $trades = $this->safe_list($data, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -725,7 +724,7 @@ class cex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -742,7 +741,7 @@ class cex extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicPostGetOrderBook ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostGetOrderBook($this->extend($request, $params)));
             //
             //    {
             //        "ok" => "ok",
@@ -750,8 +749,8 @@ class cex extends Exchange {
             //            "timestamp" => "1728636922648",
             //            "currency1" => "BTC",
             //            "currency2" => "USDT",
-            //            "bids" => array(
-            //                [
+            //            "bids" => [
+            //                array(
             //                    "60694.1",
             //                    "13.12849761"
             //                ),
@@ -764,10 +763,10 @@ class cex extends Exchange {
             $orderBook = $this->safe_dict($response, 'data', array());
             $timestamp = $this->safe_integer($orderBook, 'timestamp');
             return $this->parse_order_book($orderBook, $market['symbol'], $timestamp);
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -813,7 +812,7 @@ class cex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicPostGetCandles ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostGetCandles($this->extend($request, $params)));
             //
             //    {
             //        "ok" => "ok",
@@ -833,7 +832,7 @@ class cex extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -847,7 +846,7 @@ class cex extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
+    public function fetch_trading_fees($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets
@@ -858,7 +857,7 @@ class cex extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostGetMyCurrentFee ($params));
+            $response = Async\await($this->privatePostGetMyCurrentFee($params));
             //
             //    {
             //        "ok" => "ok",
@@ -872,7 +871,7 @@ class cex extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $fees = $this->safe_dict($data, 'tradingFee', array());
             return $this->parse_trading_fees($fees, true);
-        }) ();
+        })();
     }
 
     public function parse_trading_fees($response, $useKeyAsId = false): array {
@@ -908,10 +907,10 @@ class cex extends Exchange {
         );
     }
 
-    public function fetch_accounts($params = array ()): PromiseInterface {
+    public function fetch_accounts($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostGetMyAccountStatusV3 ($params));
+            $response = Async\await($this->privatePostGetMyAccountStatusV3($params));
             //
             //    {
             //        "ok" => "ok",
@@ -936,7 +935,7 @@ class cex extends Exchange {
             $balances = $this->safe_dict($data, 'balancesPerAccounts', array());
             $arrays = $this->to_array($balances);
             return $this->parse_accounts($arrays, $params);
-        }) ();
+        })();
     }
 
     public function parse_account(array $account): array {
@@ -948,7 +947,7 @@ class cex extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -966,7 +965,7 @@ class cex extends Exchange {
             list($method, $params) = $this->handle_param_string($params, 'method', 'privatePostGetMyWalletBalance');
             $accountBalance = null;
             if ($method === 'privatePostGetMyAccountStatusV3') {
-                $response = Async\await($this->privatePostGetMyAccountStatusV3 ($params));
+                $response = Async\await($this->privatePostGetMyAccountStatusV3($params));
                 //
                 //    {
                 //        "ok" => "ok",
@@ -984,7 +983,7 @@ class cex extends Exchange {
                 $balances = $this->safe_dict($data, 'balancesPerAccounts', array());
                 $accountBalance = $this->safe_dict($balances, $accountName, array());
             } else {
-                $response = Async\await($this->privatePostGetMyWalletBalance ($params));
+                $response = Async\await($this->privatePostGetMyWalletBalance($params));
                 //
                 //    {
                 //        "ok" => "ok",
@@ -1000,7 +999,7 @@ class cex extends Exchange {
                 $accountBalance = $this->safe_dict($response, 'data', array());
             }
             return $this->parse_balance($accountBalance);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1021,7 +1020,7 @@ class cex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1061,7 +1060,7 @@ class cex extends Exchange {
             if ($until !== null) {
                 $request['serverCreateTimestampTo'] = $until;
             }
-            $response = Async\await($this->privatePostGetMyOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetMyOrders($this->extend($request, $params)));
             //
             // if called without `pair`
             //
@@ -1104,10 +1103,10 @@ class cex extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -1121,10 +1120,10 @@ class cex extends Exchange {
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -1138,10 +1137,10 @@ class cex extends Exchange {
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('open', $symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an open order made by the user
@@ -1159,10 +1158,10 @@ class cex extends Exchange {
             );
             $result = Async\await($this->fetch_open_orders($symbol, null, null, $this->extend($request, $params)));
             return $result[0];
-        }) ();
+        })();
     }
 
-    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an closed order made by the user
@@ -1180,7 +1179,7 @@ class cex extends Exchange {
             );
             $result = Async\await($this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params)));
             return $result[0];
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -1278,7 +1277,7 @@ class cex extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1324,7 +1323,7 @@ class cex extends Exchange {
                 $request['type'] = 'Stop Limit';
                 $request['stopPrice'] = $triggerPrice;
             }
-            $response = Async\await($this->privatePostDoMyNewOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostDoMyNewOrder($this->extend($request, $params)));
             //
             // on success
             //
@@ -1375,10 +1374,10 @@ class cex extends Exchange {
             //
             $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1396,16 +1395,16 @@ class cex extends Exchange {
                 'cancelRequestId' => 'c_' . (string) ($this->milliseconds()),
                 'timestamp' => $this->milliseconds(),
             );
-            $response = Async\await($this->privatePostDoCancelMyOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostDoCancelMyOrder($this->extend($request, $params)));
             //
             //      array("ok":"ok","data":array())
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open $orders in a market
@@ -1417,7 +1416,7 @@ class cex extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostDoCancelAllOrders ($params));
+            $response = Async\await($this->privatePostDoCancelAllOrders($params));
             //
             //    {
             //        "ok" => "ok",
@@ -1436,10 +1435,10 @@ class cex extends Exchange {
                 $orders[] = array( 'clientOrderId' => $id );
             }
             return $this->parse_orders($orders);
-        }) ();
+        })();
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -1471,7 +1470,7 @@ class cex extends Exchange {
             if ($until !== null) {
                 $request['dateTo'] = $until;
             }
-            $response = Async\await($this->privatePostGetMyTransactionHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetMyTransactionHistory($this->extend($request, $params)));
             //
             //    {
             //        "ok" => "ok",
@@ -1489,7 +1488,7 @@ class cex extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ledger($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -1535,7 +1534,7 @@ class cex extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1565,7 +1564,7 @@ class cex extends Exchange {
             if ($until !== null) {
                 $request['dateTo'] = $until;
             }
-            $response = Async\await($this->privatePostGetMyFundingHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetMyFundingHistory($this->extend($request, $params)));
             //
             //    {
             //        "ok" => "ok",
@@ -1586,7 +1585,7 @@ class cex extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1632,7 +1631,7 @@ class cex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer currency internally between wallets on the same account
@@ -1658,10 +1657,10 @@ class cex extends Exchange {
                 $transfer['toAccount'] = $toAccount;
             }
             return $transfer;
-        }) ();
+        })();
     }
 
-    public function transfer_between_main_and_sub_account(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer_between_main_and_sub_account(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1676,9 +1675,9 @@ class cex extends Exchange {
             );
             $response = null;
             if ($fromMain) {
-                $response = Async\await($this->privatePostDoDepositFundsFromWallet ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostDoDepositFundsFromWallet($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostDoWithdrawalFundsToWallet ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostDoWithdrawalFundsToWallet($this->extend($request, $params)));
             }
             // both endpoints return the same structure, the only difference is that
             // the "accountId" is filled with the "subAccount"
@@ -1695,10 +1694,10 @@ class cex extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transfer($data, $currency);
-        }) ();
+        })();
     }
 
-    public function transfer_between_sub_accounts(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer_between_sub_accounts(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1708,7 +1707,7 @@ class cex extends Exchange {
                 'fromAccountId' => $fromAccount,
                 'toAccountId' => $toAccount,
             );
-            $response = Async\await($this->privatePostDoMyInternalTransfer ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostDoMyInternalTransfer($this->extend($request, $params)));
             //
             //    {
             //        "ok" => "ok",
@@ -1719,7 +1718,7 @@ class cex extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transfer($data, $currency);
-        }) ();
+        })();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -1760,7 +1759,7 @@ class cex extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1786,7 +1785,7 @@ class cex extends Exchange {
                 'currency' => $currency['id'], // documentation is wrong about this param
                 'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
             );
-            $response = Async\await($this->privatePostGetDepositAddress ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetDepositAddress($this->extend($request, $params)));
             //
             //    {
             //        "ok" => "ok",
@@ -1800,7 +1799,7 @@ class cex extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_deposit_address($data, $currency);
-        }) ();
+        })();
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -1817,7 +1816,7 @@ class cex extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
