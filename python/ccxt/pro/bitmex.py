@@ -896,6 +896,23 @@ class bitmex(ccxt.async_support.bitmex):
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)
+            side = self.safe_string(position, 'side')
+            if side is None:
+                # BitMEX 'update' rows are deltas and may omit homeNotional, so
+                # parsePosition returns side = None. Carry the side forward from
+                # the cached position for self symbol, otherwise appending would break
+                # the ArrayCacheBySymbolBySide index(see issue  #29001).
+                symbol = self.safe_string(position, 'symbol')
+                cachedBySide = self.safe_dict(cache.hashmap, symbol, {})
+                cachedSides = list(cachedBySide.keys())
+                sidesLength = len(cachedSides)
+                if sidesLength == 1:
+                    side = cachedSides[0]
+                    position['side'] = side
+            if side is None:
+                # still unresolved(e.g. the very first message is a partial without
+                # homeNotional); skip self row rather than corrupt the cache
+                continue
             newPositions.append(position)
             cache.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')
