@@ -314,6 +314,46 @@ async function run () {
 }
 // ----------------------------------------------------------------------------
 
+function eventFieldValue (obj: any, keys: string[]): string {
+    for (const key of keys) {
+        const value = (obj === undefined || obj === null) ? undefined : obj[key];
+        if (value !== undefined && value !== null && value !== '') {
+            return String (value);
+        }
+    }
+    return '-';
+}
+
+// pretty-prints fetchEvents results as an event -> markets -> outcomes tree, showing only the
+// handle + id at each level (the full structures are large and mostly noise when scanning)
+function printPredictionEvents (events: any[]) {
+    log (ansi.cyan (String (events.length) + ' event(s)'));
+    for (const event of events) {
+        const title = eventFieldValue (event, [ 'title' ]);
+        log (
+            ansi.green ('event   ') + eventFieldValue (event, [ 'event', 'slug' ])
+            + ansi.darkGray (' (id: ' + eventFieldValue (event, [ 'id' ]) + ')')
+            + ((title !== '-') ? ansi.darkGray ('  ' + title) : '')
+        );
+        const markets = (event && event['markets']) ? event['markets'] : [];
+        for (const market of markets) {
+            log (
+                '  ' + ansi.yellow ('market  ') + eventFieldValue (market, [ 'market', 'symbol' ])
+                + ansi.darkGray (' (id: ' + eventFieldValue (market, [ 'id' ]) + ')')
+            );
+            const outcomes = (market && market['outcomes']) ? market['outcomes'] : [];
+            for (const outcome of outcomes) {
+                const label = eventFieldValue (outcome, [ 'label' ]);
+                log (
+                    '    ' + ansi.magenta ('outcome ') + eventFieldValue (outcome, [ 'outcome' ])
+                    + ansi.darkGray (' (id: ' + eventFieldValue (outcome, [ 'outcomeId', 'id' ]) + ')')
+                    + ((label !== '-') ? ansi.darkGray ('  [' + label + ']') : '')
+                );
+            }
+        }
+    }
+}
+
 async function executeCCXTCommand (exchange, params:any, methodName: string, cliOptions: any, i: number) {
     const isWsMethod = methodName.startsWith ('watch');
     let start = exchange.milliseconds ();
@@ -331,7 +371,11 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
     }
     end = exchange.milliseconds ();
 
-    printHumanReadable (exchange, result, cliOptions);
+    if (methodName === 'fetchEvents' && Array.isArray (result) && !cliOptions.raw) {
+        printPredictionEvents (result);
+    } else {
+        printHumanReadable (exchange, result, cliOptions);
+    }
     if (!isWsMethod && !cliOptions.raw) {
         log (
             exchange.iso8601 (end),

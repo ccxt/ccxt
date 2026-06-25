@@ -68,6 +68,7 @@ export default class PredictionExchange extends Exchange {
         if ((query === undefined) && (queries.length === 0) && (tags.length === 0) && (eventId === undefined) && (slug === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search');
         }
+        return undefined;
     }
 
     applyEventFetchParams (events: any[], params = {}, queries: string[] = undefined): any[] {
