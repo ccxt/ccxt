@@ -363,7 +363,7 @@ export default class Exchange {
     onConnected(client: any, message?: any): void;
     onError(client: any, error: any): void;
     onClose(client: any, error: any): void;
-    close(): Promise<any[]>;
+    close(cleanInstanceCache?: boolean): Promise<void>;
     loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: string): string[];
@@ -423,6 +423,8 @@ export default class Exchange {
     setLastRestRequestTimestamp(): void;
     setLastRequest(request: any): void;
     describe(): any;
+    cleanRestData(): void;
+    cleanWsData(): void;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionaryOrList: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
     safeBool(dictionaryOrList: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
