@@ -1118,7 +1118,7 @@ class Exchange {
 
     public static function is_json_encoded_object($input) {
         try {
-            return ('string' === gettype($input)) &&
+            return isset($input[0]) &&
                 // (strlen($input) >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193
                 (('{' === $input[0]) || ('[' === $input[0]));
         } catch (\Throwable $e) {

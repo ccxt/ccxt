@@ -73,6 +73,8 @@ jobs:
         done
     - name: Post-transpile (syntax check)
       run: npm run check-php-syntax
+    - name: Post-transpile (style check)
+      run: npm run check-php-style
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-php
