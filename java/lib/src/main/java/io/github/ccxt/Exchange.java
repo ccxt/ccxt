@@ -541,13 +541,19 @@ public class Exchange {
         this.wss_proxy = v;
     }
 
-    public void addFetchCache(Map<String, Object> data) {
+    public void addFetchCache(Object data) {
         if (fetchHistoryCacheSize <= 0) {
             return;
         }
-        fetchHistoryCache.offer(data);
-        while (fetchHistoryCache.size() > fetchHistoryCacheSize)
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> mapData = (Map<String, Object>) data;
+        
+        fetchHistoryCache.offer(mapData);
+        
+        while (fetchHistoryCache.size() > fetchHistoryCacheSize) {
             fetchHistoryCache.poll(); // drops oldest
+        }
     }
 
     public List<Map<String, Object>> getFetchCache() {
