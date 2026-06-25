@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2763789f61038d3270b8df986ccdcc88",
+    "content-hash": "cdf169c2db0f8d56949557b870b22546",
     "packages": [
         {
             "name": "clue/http-proxy-react",

@@ -282,6 +282,6 @@
         ]
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.0"
+        "friendsofphp/php-cs-fixer": "3.95.11"
     }
 }
