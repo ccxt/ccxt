@@ -2926,6 +2926,34 @@ class Exchange(object):
             'rollingWindowSize': 60000,  # default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         }
 
+    def clean_rest_data(self):
+        self.ids = None
+        self.markets = None
+        self.markets_by_id = None
+        self.symbols = None
+        self.codes = None
+        self.currencies = self.create_safe_dictionary()
+        self.currencies_by_id = None
+        self.baseCurrencies = None
+        self.quoteCurrencies = None
+        self.last_http_response = None
+        # self.last_json_response = None  # not unified prop
+        self.last_response_headers = None
+        self.last_request_headers = None
+
+    def clean_ws_data(self):
+        self.balance = self.create_safe_dictionary(True)
+        self.orderbooks = self.create_safe_dictionary(True)
+        self.tickers = self.create_safe_dictionary(True)
+        self.liquidations = None
+        self.myLiquidations = None
+        self.orders = None
+        self.trades = self.create_safe_dictionary(True)
+        self.transactions = self.create_safe_dictionary()
+        self.ohlcvs = self.create_safe_dictionary(True)
+        self.myTrades = None
+        self.positions = None
+
     def safe_bool_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: bool = None):
         """
  @ignore
