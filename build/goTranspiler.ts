@@ -3,7 +3,7 @@ import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
-import { writeOverloadStrippedFile, removeOverloadStrippedFile, patchTranspileByPathWithSyncSign } from "./stripOverloads.js";
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
 import fs from 'fs';
@@ -764,9 +764,6 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig());
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
-        // sign (+ crypto helpers) is async only in JS; in Go it is synchronous, so make
-        // every byPath transpile strip sign->sync first (originals restored afterwards).
-        patchTranspileByPathWithSyncSign (this.transpiler, 'transpileGoByPath');
     }
 
     createGeneratedHeader() {

@@ -12,7 +12,6 @@ import {unCamelCase, precisionConstants, safeString, unique} from "../ts/src/bas
 import Exchange from '../ts/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
-import { SIGN_SYNC_METHODS, SIGN_SYNC_FUNCTIONS } from './stripOverloads.js'
 import errorHierarchy from '../ts/src/base/errorHierarchy.js'
 import { platform } from 'process'
 import os from 'os'
@@ -41,17 +40,6 @@ const exchangeIds = exchanges.ids;
 const exchangesWsIds = exchanges.ws;
 
 let shouldTranspileTests = true
-
-// `sign` + its crypto helpers are async ONLY in JS (crypto.subtle); in every transpiled
-// language they're synchronous. The canonical list lives in build/stripOverloads.ts (also
-// used by the AST transpilers). Here, for the Python/PHP regex transpiler, we derive:
-//  - JS_ONLY_ASYNC_CALL_RE: matches a call to any of them (camelCase, body form) so the
-//    `await` before it can be stripped in getCommonRegexes below;
-//  - JS_ONLY_ASYNC_METHODS_SNAKE: their snake_case method names, used to keep the methods
-//    sync (no `async def` / no PHP Async\async wrap).
-const JS_ONLY_ASYNC_CALL_RE = '(?:' + SIGN_SYNC_METHODS.concat (SIGN_SYNC_FUNCTIONS).join ('|') + ')';
-const JS_ONLY_ASYNC_METHODS_SNAKE = SIGN_SYNC_METHODS.map ((m) => unCamelCase (m));
-
 
 // let buildPython = true;
 // let buildPHP = true;
@@ -125,10 +113,6 @@ class Transpiler {
 
         return [
             [ /(?<!assert|equals|verify)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
-            // sign + its crypto helpers are async only in JS (crypto.subtle). Everywhere
-            // else rsa/jwt are synchronous, so strip `await` from calls to these methods
-            // so they transpile to plain synchronous calls (and the methods stay sync).
-            [ new RegExp ('\\bawait (this\\.' + JS_ONLY_ASYNC_CALL_RE + '\\s*\\()', 'g'), '$1' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.featuresGenerator/g, '.features_generator'],
             [ /\.featuresMapper/g, '.features_mapper'],
@@ -1126,7 +1110,7 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileJavaScriptToPHP ({ js, variables, methodName }: any, async = false) {
+    transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
 
         // match all local variables (let, const or var)
         let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
@@ -1176,11 +1160,7 @@ class Transpiler {
         const phpRegexes = this.getPHPRegexes ()
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
         // indent async php
-        // `sign` (and its crypto helpers) are async ONLY in JS because crypto.subtle
-        // is async. In every transpiled language rsa/jwt are synchronous, so these
-        // methods are emitted as plain sync functions (never promise-wrapped), and
-        // their awaited call-sites are stripped in getCommonRegexes / getPHPRegexes.
-        if (async && js.indexOf (' await ') > -1 && JS_ONLY_ASYNC_METHODS_SNAKE.indexOf (methodName) === -1) {
+        if (async && js.indexOf (' await ') > -1) {
             const closure = variables && variables.length ? 'use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
             phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
         }
@@ -1765,7 +1745,7 @@ class Transpiler {
             let js = lines.slice (1, -1).join ("\n")
 
             // transpile everything
-            let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, methodName: method, removeEmptyLines: true })
+            let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
             if (this.buildPython) {
                 // compile the final Python code for the method signature
@@ -1784,10 +1764,7 @@ class Transpiler {
 
                 // compile signature + body for Python async
                 python3.push ('');
-                // sign + crypto helpers stay synchronous outside JS, so emit `def`
-                // (not `async def`) even though the TS method is async.
-                const python3Keyword = (JS_ONLY_ASYNC_METHODS_SNAKE.indexOf (method) !== -1) ? '' : keyword;
-                python3.push ('    ' + python3Keyword + pythonString);
+                python3.push ('    ' + keyword + pythonString);
                 python3.push (python3Body);
             }
 
@@ -2038,23 +2015,6 @@ class Transpiler {
 
         python2Body = this.regexAll (python2Body, [
             [ /function (\w+)\(\) \{/g, 'def $1():' ],
-            // the base init calls test_cryptography() synchronously (it is NOT awaited),
-            // so emit a plain `def` (rsa/jwt are synchronous in python anyway). Without
-            // this the `async def` coroutine would never be awaited and silently skip.
-            [ /\basync def (test_cryptography)/g, 'def $1' ],
-            // rsa/jwt are async in TS (crypto.subtle), so `await rsa (...)` no longer
-            // sits behind the `assert (` lookbehind and gets turned into `self.rsa`.
-            // python's rsa/jwt are synchronous, so revert to the bare module bindings.
-            [ /self\.(rsa|jwt) ?\(/g, '$1(' ],
-        ])
-
-        phpBody = this.regexAll (phpBody, [
-            // rsa/jwt are synchronous in php; revert the `this.`-mapped calls back to
-            // the bare module-level rsa/jwt wrappers defined in the php header.
-            [ /\$this->(rsa|jwt) ?\(/g, '$1(' ],
-            // php has no `async` keyword; the base init calls test_cryptography()
-            // synchronously (it is NOT awaited), so just drop `async` -> plain sync fn.
-            [ /\basync function (test_cryptography) /g, 'function $1 ' ],
         ])
 
         const pythonHeader = [

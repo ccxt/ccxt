@@ -15,7 +15,7 @@
 
 import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
-import { writeOverloadStrippedFile, removeOverloadStrippedFile, stripSignAsyncForAst } from './stripOverloads.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
@@ -190,9 +190,6 @@ const WATCH_ZERO_ARG_WHITELIST = new Set([
 function parseMethodsFromTS(): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
     const strippedBaseFile = writeOverloadStrippedFile (TS_BASE_FILE);
-    // sign is synchronous in Java, so strip its async/await before reading method types
-    // (otherwise a bogus CompletableFuture signAsync wrapper would be generated).
-    fs.writeFileSync (strippedBaseFile, stripSignAsyncForAst (fs.readFileSync (strippedBaseFile, 'utf8')));
     const baseFile: any = transpiler.transpileJavaByPath(strippedBaseFile);
     removeOverloadStrippedFile (strippedBaseFile, TS_BASE_FILE);
     const methodsTypes = baseFile.methodsTypes || [];

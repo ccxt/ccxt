@@ -4,7 +4,7 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
-import { writeOverloadStrippedFile, removeOverloadStrippedFile, patchTranspileByPathWithSyncSign, withSyncSignBaseFiles } from './stripOverloads.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
 import { writeFile } from 'fs/promises';
 import { platform } from 'process'
 import fs from 'fs'
@@ -403,9 +403,6 @@ class NewTranspiler {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
-        // sign (+ crypto helpers) is async only in JS; in Java it is synchronous, so make
-        // every byPath transpile strip sign->sync first (originals restored afterwards).
-        patchTranspileByPathWithSyncSign (this.transpiler, 'transpileJavaByPath');
     }
 
     createGeneratedHeader() {
@@ -3074,23 +3071,18 @@ async function runMain() {
     if (!child && !multiprocess) {
         log.bright.green({ force })
     }
-    // sign is synchronous in Java; the AST transpiler resolves the base Exchange.ts +
-    // rsa.ts to infer override async-ness, so they're stripped on disk while transpiling
-    // (child processes inherit the parent's already-stripped files).
-    await withSyncSignBaseFiles (child, async () => {
-        const transpiler = new NewTranspiler();
-        if (baseClassOnly) {
-            transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
-        } else if (ws) {
-            await transpiler.transpileWS(force)
-        } else if (test) {
-            transpiler.transpileTests()
-        } else if (multiprocess) {
-            await parallelizeTranspiling(exchangeIds)
-        } else {
-            await transpiler.transpileEverything(force, child, baseOnly, examples)
-        }
-    });
+    const transpiler = new NewTranspiler();
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
+    } else if (ws) {
+        await transpiler.transpileWS(force)
+    } else if (test) {
+        transpiler.transpileTests()
+    } else if (multiprocess) {
+        await parallelizeTranspiling(exchangeIds)
+    } else {
+        await transpiler.transpileEverything(force, child, baseOnly, examples)
+    }
 }
 
 if (isMainEntry(metaUrl)) {
