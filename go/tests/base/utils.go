@@ -467,7 +467,13 @@ func InitExchange(exchangeId any, options ...any) ccxt.ICoreExchange {
 	var instance ccxt.ICoreExchange
 	var success bool = true
 	if ws {
-		instance, success = ccxtPro.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+		// prediction exchanges carry their watch* methods on the prediction package (go/v4/prediction),
+		// there is no prediction-pro variant, so under --prediction route WS there too
+		if GetCliArgValue("--prediction") {
+			instance, success = ccxtPrediction.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+		} else {
+			instance, success = ccxtPro.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+		}
 	} else {
 		// the --prediction flag forces the prediction-markets package (go/v4/prediction) for
 		// ids present in both (e.g. hyperliquid); otherwise regular ccxt wins, prediction is fallback

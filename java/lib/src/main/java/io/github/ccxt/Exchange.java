@@ -3540,10 +3540,13 @@ public class Exchange {
         try {
             Class<?> clazz;
             if (forcePrediction) {
-                // the --prediction flag prefers the prediction-markets package for ids present in both (e.g. hyperliquid)
+                // the --prediction flag prefers the prediction-markets package; prediction exchanges
+                // carry their watch* methods on the main prediction class (no .pro variant), so use the
+                // non-pro package even for ws
+                String predictionNonPro = EXCHANGES_PKG_PREDICTION + name;
                 try {
-                    clazz = Class.forName(predictionFqcn);
-                    fqcn = predictionFqcn;
+                    clazz = Class.forName(predictionNonPro);
+                    fqcn = predictionNonPro;
                 } catch (ClassNotFoundException predictionMiss) {
                     clazz = Class.forName(fqcn);
                 }

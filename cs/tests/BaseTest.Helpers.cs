@@ -37,13 +37,14 @@ public partial class testMainClass : BaseTest
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
     public static Exchange initExchange(object exchangeId, object exchangeArgs = null, bool isWs = false)
     {
-        if (isWs)
+        // the --prediction flag forces the prediction-markets namespace; prediction exchanges carry
+        // their watch* methods on the main prediction class (no ccxt.pro variant), so keep the bare id
+        var forcePrediction = getCliArgValue("--prediction");
+        if (isWs && !forcePrediction)
         {
             // var binance = new ccxt.binance();
             exchangeId = "ccxt.pro." + (string)exchangeId;// + "Ws";
         }
-        // the --prediction flag forces the prediction-markets namespace for ids present in both (e.g. hyperliquid)
-        var forcePrediction = getCliArgValue("--prediction");
         var exchange = Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs, false, forcePrediction);
         return exchange;
     }
