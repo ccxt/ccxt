@@ -254,7 +254,6 @@
     "open": "^10.2.0",
     "ora": "^9.0.0",
     "piscina": "^4.9.3",
-    "protobufjs": "^7.5.3",
     "replace-in-file": "^6.3.5",
     "rollup": "^2.70.1",
     "rollup-plugin-execute": "1.1.1",
@@ -367,5 +366,13 @@
   },
   "optionalDependencies": {
     "bufferutil": "4.1.0"
+  },
+  "peerDependencies": {
+    "protobufjs": "^7.5.3"
+  },
+  "peerDependenciesMeta": {
+    "protobufjs": {
+      "optional": true
+    }
   }
 }
