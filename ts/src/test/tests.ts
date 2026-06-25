@@ -826,7 +826,14 @@ class testMainClass {
             // try/catch is required: callExchangeMethodDynamically is a checked-throwing call in
             // Java and its async lambda can't propagate (or re-throw) a checked exception
             try {
-                const events = await callExchangeMethodDynamically (exchange, 'fetchEvents', []);
+                // some venues require fetchEvents to be scoped (e.g. hyperliquid's requireEventQuery);
+                // a skip-tests.json preferredEventQuery supplies a query that matches their markets
+                const eventQuery = exchange.safeString (this.skippedSettingsForExchange, 'preferredEventQuery');
+                const eventParams = {};
+                if (eventQuery !== undefined) {
+                    eventParams['query'] = eventQuery;
+                }
+                const events = await callExchangeMethodDynamically (exchange, 'fetchEvents', [ eventParams ]);
                 assert (events !== undefined, exchange.id + ' fetchEvents returned undefined');
                 // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
                 const eventsList = exchange.safeList ({ 'events': events }, 'events', []);
