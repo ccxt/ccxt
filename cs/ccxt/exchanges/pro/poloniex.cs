@@ -947,13 +947,13 @@ public partial class poloniex : ccxt.poloniex
                         ((IDictionary<string,object>)previousOrder)["fee"] = new Dictionary<string, object>() {
                             { "rate", null },
                             { "cost", 0 },
-                            { "currency", getValue(getValue(trade, "fee"), "currency") },
+                            { "currency", this.safeString(getValue(trade, "fee"), "currency") },
                         };
                     }
-                    if (isTrue(isTrue((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null))) && isTrue((!isEqual(getValue(getValue(trade, "fee"), "cost"), null)))))
+                    if (isTrue(isTrue((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null))) && isTrue((!isEqual(this.safeNumber(getValue(trade, "fee"), "cost"), null)))))
                     {
                         object stringOrderCost = this.numberToString(getValue(getValue(previousOrder, "fee"), "cost"));
-                        object stringTradeCost = this.numberToString(getValue(getValue(trade, "fee"), "cost"));
+                        object stringTradeCost = this.numberToString(this.safeNumber(getValue(trade, "fee"), "cost"));
                         ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }
                     object rawState = this.safeString(order, "state");

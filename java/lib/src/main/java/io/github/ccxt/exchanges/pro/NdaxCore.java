@@ -328,7 +328,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                     Helpers.addElementToObject(Helpers.GetValue(updates, marketId), timeframe, true);
                 } else
                 {
-                    if (Helpers.isTrue(Helpers.isTrue(length) && Helpers.isTrue((Helpers.isLessThan(Helpers.GetValue(parsed, 0), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))))
+                    if (Helpers.isTrue(Helpers.isTrue(length) && Helpers.isTrue((Helpers.isLessThan(this.parseToInt(Helpers.GetValue(parsed, 0)), this.parseToInt(Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0)))))))
                     {
                         continue;
                     } else

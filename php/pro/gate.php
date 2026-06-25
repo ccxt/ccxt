@@ -673,7 +673,7 @@ class gate extends \ccxt\async\gate {
         for ($i = 0; $i < count($bidAsks); $i++) {
             $bidAsk = $bidAsks[$i];
             if ((gettype($bidAsk) === 'array' && array_keys($bidAsk) === array_keys(array_keys($bidAsk)))) {
-                $bookSide->storeArray ($this->parse_bid_ask($bidAsk));
+                $bookSide->storeArray ($this->parse_order_book_bid_ask($bidAsk));
             } else {
                 $price = $this->safe_float($bidAsk, 'p');
                 $amount = $this->safe_float($bidAsk, 's');
@@ -1752,7 +1752,7 @@ class gate extends \ccxt\async\gate {
         $client->resolve ($newLiquidations, 'myLiquidations');
     }
 
-    public function parse_ws_liquidation($liquidation, $market = null) {
+    public function parse_ws_liquidation($liquidation, ?array $market = null) {
         //
         // future / delivery
         //    {
@@ -1800,7 +1800,7 @@ class gate extends \ccxt\async\gate {
         ));
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //    {
         //        "time" => 1647274664,

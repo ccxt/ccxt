@@ -4,13 +4,11 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-/* eslint-disable max-classes-per-file */
-// @ts-nocheck
 class BaseCache extends Array {
     constructor(maxSize = undefined) {
         super();
         Object.defineProperty(this, 'maxSize', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: maxSize,
             writable: true,
         });
@@ -24,32 +22,32 @@ class ArrayCache extends BaseCache {
         super(maxSize);
         this.hashmap = {};
         Object.defineProperty(this, 'nestedNewUpdatesBySymbol', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: false,
             writable: true,
         });
         Object.defineProperty(this, 'newUpdatesBySymbol', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
             writable: true,
         });
         Object.defineProperty(this, 'clearUpdatesBySymbol', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
             writable: true,
         });
         Object.defineProperty(this, 'allNewUpdates', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: 0,
             writable: true,
         });
         Object.defineProperty(this, 'clearAllUpdates', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: false,
             writable: true,
         });
         Object.defineProperty(this, 'hashmap', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
             writable: true,
             enumerable: false,
@@ -102,22 +100,22 @@ class ArrayCacheByTimestamp extends BaseCache {
     constructor(maxSize = undefined) {
         super(maxSize);
         Object.defineProperty(this, 'hashmap', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
             writable: true,
         });
         Object.defineProperty(this, 'sizeTracker', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: new Set(),
             writable: true,
         });
         Object.defineProperty(this, 'newUpdates', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: 0,
             writable: true,
         });
         Object.defineProperty(this, 'clearUpdates', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: false,
             writable: true,
         });
@@ -213,7 +211,7 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         super();
         this.nestedNewUpdatesBySymbol = true;
         Object.defineProperty(this, 'hashmap', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
             writable: true,
         });

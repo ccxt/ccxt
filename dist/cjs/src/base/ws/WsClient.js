@@ -46,6 +46,10 @@ class WsClient extends Client["default"] {
             this.options['headers'] = Object.assign(this.options['headers'] || {}, connectionHeaders);
         }
         if (platform.isNode) {
+            // this patch yields the event loop between messages
+            // which prevents starving futures with multiple synchronous message events
+            this.options = this.options || {};
+            this.options['allowSynchronousEvents'] = false;
             this.connection = new WebSocketPlatform(this.url, this.protocols, this.options);
         }
         else {

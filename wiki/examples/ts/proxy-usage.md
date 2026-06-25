@@ -1,11 +1,6 @@
-- [Proxy Usage](./examples/ts/)
+```javascript
 
-
- ```javascript
- 
 import ccxt from '../../js/ccxt.js';
-
-// AUTO-TRANSPILE //
 
 // 1) ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/README?id=proxy
 // 2) in python, uncomment the below:
@@ -54,14 +49,13 @@ await example_httpProxy ();
 
 
 /*
-
 Note, in some languages you can also set your custom agent like, eg:
 
 
 ############################ JAVASCRIPT ############################
 
 const SocksProxyAgent = require ('socks-proxy-agent');
-const socks = 'socks://127.0.0.1:1080';
+const socks = 'socks5h://127.0.0.1:1080';
 const myAgent = new SocksProxyAgent (socks);
 const exchange = new ccxt.binance ({
     'httpsAgent': myAgent,
@@ -99,5 +93,5 @@ async def test():
 
 asyncio.run(test())
 
-*/ 
+*/
 ```

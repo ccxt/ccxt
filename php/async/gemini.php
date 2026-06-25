@@ -459,7 +459,7 @@ class gemini extends Exchange {
         $networkId = $this->safe_string($rawCurrency, 9);
         $networkCode = null;
         if ($networkId !== null) {
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'info' => $rawCurrency,
                 'id' => $networkId,
@@ -1978,7 +1978,7 @@ class gemini extends Exchange {
             if ($networkCode === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddresses() requires a network parameter');
             }
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $currency['code']);
             $request = array(
                 'network' => $networkId,
             );
@@ -1988,7 +1988,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {

@@ -375,7 +375,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "futurePublic");
             } else
             {
-                Object marketIdLowercase = ((String)Helpers.GetValue(market, "id")).toLowerCase();
+                Object marketIdLowercase = this.safeStringLower(market, "id");
                 channel = Helpers.add(Helpers.add("market_", marketIdLowercase), "_simple_depth_step0");
                 cbId = marketIdLowercase;
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
@@ -526,7 +526,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol2, Object... optionalArgs)
     {
@@ -780,7 +780,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
      * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol2, Object... optionalArgs)
     {

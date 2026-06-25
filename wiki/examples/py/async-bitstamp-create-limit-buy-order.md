@@ -1,8 +1,5 @@
-- [Async Bitstamp Create Limit Buy Order](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -46,5 +43,5 @@ async def test():
 
 
 print(asyncio.run(test()))
- 
+
 ```

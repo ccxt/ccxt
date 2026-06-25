@@ -59,7 +59,7 @@ class gemini(ccxt.async_support.gemini):
         market = self.market(symbol)
         messageHash = 'trades:' + market['symbol']
         marketId = market['id']
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -230,7 +230,7 @@ class gemini(ccxt.async_support.gemini):
     def handle_trades_for_multidata(self, client: Client, trades, timestamp: Int):
         if trades is not None:
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            storesForSymbols: dict = {}
+            storesForSymbols = {}
             for i in range(0, len(trades)):
                 marketId = trades[i]['symbol']
                 market = self.safe_market(marketId.lower())
@@ -267,13 +267,13 @@ class gemini(ccxt.async_support.gemini):
         await self.load_markets()
         market = self.market(symbol)
         timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'subscriptions': [
                 {
                     'name': 'candles_' + timeframeId,
                     'symbols': [
-                        market['id'].upper(),
+                        self.safe_string_upper(market, 'id'),
                     ],
                 },
             ],
@@ -353,7 +353,7 @@ class gemini(ccxt.async_support.gemini):
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         marketId = market['id']
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -601,7 +601,7 @@ class gemini(ccxt.async_support.gemini):
         """
         url = self.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked'
         await self.load_markets()
-        authParams: dict = {
+        authParams = {
             'url': url,
         }
         await self.authenticate(authParams)
@@ -735,7 +735,7 @@ class gemini(ccxt.async_support.gemini):
         }, market)
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             'accepted': 'open',
             'booked': 'open',
             'fill': 'closed',
@@ -746,7 +746,7 @@ class gemini(ccxt.async_support.gemini):
         return self.safe_string(statuses, status, status)
 
     def parse_ws_order_type(self, type):
-        types: dict = {
+        types = {
             'exchange limit': 'limit',
             'market buy': 'market',
             'market sell': 'market',
@@ -805,7 +805,7 @@ class gemini(ccxt.async_support.gemini):
         reason = self.safe_string(message, 'reason')
         if reason == 'error':
             self.handle_error(client, message)
-        methods: dict = {
+        methods = {
             'l2_updates': self.handle_l2_updates,
             'trade': self.handle_trade,
             'subscription_ack': self.handle_subscription,
@@ -859,13 +859,13 @@ class gemini(ccxt.async_support.gemini):
         urlLength = len(url)
         endIndex = urlParamsIndex if (urlParamsIndex >= 0) else urlLength
         request = url[startIndex:endIndex]
-        payload: dict = {
+        payload = {
             'request': request,
             'nonce': self.nonce(),
         }
         b64 = self.string_to_base64(self.json(payload))
         signature = self.hmac(self.encode(b64), self.encode(self.secret), hashlib.sha384, 'hex')
-        defaultOptions: dict = {
+        defaultOptions = {
             'ws': {
                 'options': {
                     'headers': {},
@@ -875,7 +875,7 @@ class gemini(ccxt.async_support.gemini):
         # self.options = self.extend(defaultOptions, self.options)
         self.extend_exchange_options(defaultOptions)
         originalHeaders = self.options['ws']['options']['headers']
-        headers: dict = {
+        headers = {
             'X-GEMINI-APIKEY': self.apiKey,
             'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,

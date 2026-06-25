@@ -1853,7 +1853,7 @@ func (this *BitoproCore) ParseTransaction(transaction any, optionalArgs ...any) 
 		"txid":        this.SafeString(transaction, "txid"),
 		"type":        nil,
 		"currency":    code,
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"amount":      this.SafeNumber(transaction, "total"),
 		"status":      this.ParseTransactionStatus(status),
 		"timestamp":   timestamp,

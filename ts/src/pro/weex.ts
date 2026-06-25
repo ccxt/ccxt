@@ -1,9 +1,9 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import weexRest from '../weex.js';
 import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -909,7 +909,7 @@ export default class weex extends weexRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta);
+        const bidAsk = this.parseOrderBookBidAsk (delta);
         bookside.storeArray (bidAsk);
     }
 
@@ -1037,8 +1037,8 @@ export default class weex extends weexRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let marketType = undefined;
-        let market = undefined;
+        let marketType: Str = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1073,7 +1073,7 @@ export default class weex extends weexRest {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.');
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('unWatchMyTrades', undefined, params);
         const isContract = (marketType !== 'spot');
         const subHash = isContract ? 'myContractTrades' : 'myTrades';
@@ -1240,12 +1240,12 @@ export default class weex extends weexRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const isContract = (marketType !== 'spot');
         let messageHash = isContract ? 'contractOrders' : 'orders';
@@ -1275,7 +1275,7 @@ export default class weex extends weexRest {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.');
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('unWatchOrders', undefined, params);
         const isContract = (marketType !== 'spot');
         const subHash = isContract ? 'contractOrders' : 'orders';
@@ -1482,8 +1482,8 @@ export default class weex extends weexRest {
         const rawStatus = this.safeStringLower (order, 'status');
         const rawType = this.safeString (order, 'type');
         const triggerPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
-        let stopLossPrice = undefined;
-        let takeProfitPrice = undefined;
+        let stopLossPrice: Str = undefined;
+        let takeProfitPrice: Str = undefined;
         if (rawType === 'TAKE_PROFIT_MARKET' || rawType === 'TAKE_PROFIT') {
             takeProfitPrice = triggerPrice;
         } else if (rawType === 'STOP_LOSS' || rawType === 'STOP' || rawType === 'STOP_MARKET') {
@@ -1530,7 +1530,7 @@ export default class weex extends weexRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const isContract = (type !== 'spot');
         const urlType = isContract ? 'contract' : 'spot';

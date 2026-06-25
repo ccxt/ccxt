@@ -21,10 +21,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		apexItf := NewApexCore()
 		apexItf.Init(exchangeArgs)
 		return apexItf, true
-	case "arkham":
-		arkhamItf := NewArkhamCore()
-		arkhamItf.Init(exchangeArgs)
-		return arkhamItf, true
 	case "ascendex":
 		ascendexItf := NewAscendexCore()
 		ascendexItf.Init(exchangeArgs)
@@ -173,10 +169,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		coinbaseItf := NewCoinbaseCore()
 		coinbaseItf.Init(exchangeArgs)
 		return coinbaseItf, true
-	case "coinbaseadvanced":
-		coinbaseadvancedItf := NewCoinbaseadvancedCore()
-		coinbaseadvancedItf.Init(exchangeArgs)
-		return coinbaseadvancedItf, true
 	case "coinbaseexchange":
 		coinbaseexchangeItf := NewCoinbaseexchangeCore()
 		coinbaseexchangeItf.Init(exchangeArgs)
@@ -249,6 +241,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		exmoItf := NewExmoCore()
 		exmoItf.Init(exchangeArgs)
 		return exmoItf, true
+	case "extended":
+		extendedItf := NewExtendedCore()
+		extendedItf.Init(exchangeArgs)
+		return extendedItf, true
 	case "fmfwio":
 		fmfwioItf := NewFmfwioCore()
 		fmfwioItf.Init(exchangeArgs)
@@ -289,10 +285,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		htxItf := NewHtxCore()
 		htxItf.Init(exchangeArgs)
 		return htxItf, true
-	case "huobi":
-		huobiItf := NewHuobiCore()
-		huobiItf.Init(exchangeArgs)
-		return huobiItf, true
 	case "hyperliquid":
 		hyperliquidItf := NewHyperliquidCore()
 		hyperliquidItf.Init(exchangeArgs)
@@ -409,10 +401,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		upbitItf := NewUpbitCore()
 		upbitItf.Init(exchangeArgs)
 		return upbitItf, true
-	case "wavesexchange":
-		wavesexchangeItf := NewWavesexchangeCore()
-		wavesexchangeItf.Init(exchangeArgs)
-		return wavesexchangeItf, true
 	case "weex":
 		weexItf := NewWeexCore()
 		weexItf.Init(exchangeArgs)
@@ -433,10 +421,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		xtItf := NewXtCore()
 		xtItf.Init(exchangeArgs)
 		return xtItf, true
-	case "yobit":
-		yobitItf := NewYobitCore()
-		yobitItf.Init(exchangeArgs)
-		return yobitItf, true
 	case "zaif":
 		zaifItf := NewZaifCore()
 		zaifItf.Init(exchangeArgs)

@@ -1187,7 +1187,7 @@ public partial class bitmart : Exchange
                     { "type", ((bool) isTrue(isNtf)) ? "other" : "crypto" },
                 };
             }
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, currencyCode);
             object withdraw = this.safeBool(currency, "withdraw_enabled");
             object deposit = this.safeBool(currency, "deposit_enabled");
             ((IDictionary<string,object>)getValue(entry, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
@@ -2842,7 +2842,7 @@ public partial class bitmart : Exchange
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", this.safeString(market, "id") },
             { "orderParams", ordersRequests },
         };
         object response = await this.privatePostSpotV4BatchOrders(request);
@@ -3900,7 +3900,7 @@ public partial class bitmart : Exchange
             {
                 ((IDictionary<string,object>)request)["type"] = orderType;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             ((IDictionary<string,object>)request)["order_id"] = id;
             response = await this.privateGetContractPrivateOrder(this.extend(request, parameters));
         }
@@ -4033,11 +4033,12 @@ public partial class bitmart : Exchange
         }
         object address = this.safeString(depositAddress, "address");
         currency = this.safeCurrency(currencyId, currency);
+        object code = this.safeString(currency, "code");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeString(currency, "code") },
-            { "network", this.networkIdToCode(network) },
+            { "currency", code },
+            { "network", this.networkIdToCode(network, code) },
             { "address", address },
             { "tag", this.safeString2(depositAddress, "address_memo", "memo") },
         };
@@ -4364,7 +4365,7 @@ public partial class bitmart : Exchange
             { "id", id },
             { "currency", code },
             { "amount", amount },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressFrom", null },
             { "addressTo", null },
@@ -5294,7 +5295,7 @@ public partial class bitmart : Exchange
         if (isTrue(isEqual(symbolsLength, 1)))
         {
             // only supports symbols as undefined or sending one symbol
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = await this.privateGetContractPrivatePositionV2(this.extend(request, parameters));
         //

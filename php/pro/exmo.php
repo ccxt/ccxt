@@ -584,7 +584,7 @@ class exmo extends \ccxt\async\exmo {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray ($bidAsk);
     }
 

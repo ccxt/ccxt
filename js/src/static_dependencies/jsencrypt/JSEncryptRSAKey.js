@@ -187,7 +187,7 @@ export class JSEncryptRSAKey extends RSAKey {
     getPublicBaseKey() {
         const first_sequence = new KJUR.asn1.DERSequence({
             array: [
-                new KJUR.asn1.DERObjectIdentifier({ oid: "1.2.840.113549.1.1.1" }),
+                new KJUR.asn1.DERObjectIdentifier({ oid: "1.2.840.113549.1.1.1" }), // RSA Encryption pkcs #1 oid
                 new KJUR.asn1.DERNull(),
             ],
         });

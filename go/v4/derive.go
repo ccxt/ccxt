@@ -1387,7 +1387,7 @@ func (this *DeriveCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		var result any = this.SafeDict(response, "result")
 		var rawOrder any = this.SafeDict(result, "raw_data")
 		if IsTrue(IsEqual(rawOrder, nil)) {
-			rawOrder = this.SafeDict(result, "order")
+			rawOrder = this.SafeDict(result, "order", map[string]any{})
 		}
 		var order any = this.ParseOrder(rawOrder, market)
 		AddElementToObject(order, "type", typeVar)
@@ -1561,7 +1561,7 @@ func (this *DeriveCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		//   }
 		//
 		var result any = this.SafeDict(response, "result")
-		var rawOrder any = this.SafeDict(result, "order")
+		var rawOrder any = this.SafeDict(result, "order", map[string]any{})
 		var order any = this.ParseOrder(rawOrder, market)
 
 		ch <- order
@@ -1677,7 +1677,7 @@ func (this *DeriveCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		var extendParams any = map[string]any{
 			"symbol": symbol,
 		}
-		var order any = this.SafeDict(response, "result")
+		var order any = this.SafeDict(response, "result", map[string]any{})
 		if IsTrue(isByClientOrder) {
 			AddElementToObject(extendParams, "client_order_id", clientOrderIdExchangeSpecific)
 		}
@@ -1872,14 +1872,14 @@ func (this *DeriveCore) FetchOrders(optionalArgs ...any) <-chan any {
 		var page any = this.SafeInteger(params, "page")
 		if IsTrue(!IsEqual(page, nil)) {
 			var pagination any = this.SafeDict(data, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages")
+			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
 			if IsTrue(IsGreaterThan(page, currentPage)) {
 
 				ch <- []any{}
 				return nil
 			}
 		}
-		var orders any = this.SafeList(data, "orders")
+		var orders any = this.SafeList(data, "orders", []any{})
 
 		ch <- this.ParseOrders(orders, market, since, limit)
 		return nil
@@ -2096,7 +2096,7 @@ func (this *DeriveCore) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(marketId, nil)) {
 		market = this.SafeMarket(marketId, market)
 	}
-	var symbol any = GetValue(market, "symbol")
+	var symbol any = this.SafeString(market, "symbol")
 	var price any = this.SafeString(order, "limit_price")
 	var average any = this.SafeString(order, "average_price")
 	var amount any = this.SafeString(order, "desired_amount")
@@ -2357,7 +2357,7 @@ func (this *DeriveCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var page any = this.SafeInteger(params, "page")
 		if IsTrue(!IsEqual(page, nil)) {
 			var pagination any = this.SafeDict(result, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages")
+			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
 			if IsTrue(IsGreaterThan(page, currentPage)) {
 
 				ch <- []any{}
@@ -2627,7 +2627,7 @@ func (this *DeriveCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		var page any = this.SafeInteger(params, "page")
 		if IsTrue(!IsEqual(page, nil)) {
 			var pagination any = this.SafeDict(result, "pagination")
-			var currentPage any = this.SafeInteger(pagination, "num_pages")
+			var currentPage any = this.SafeInteger(pagination, "num_pages", 0)
 			if IsTrue(IsGreaterThan(page, currentPage)) {
 
 				ch <- []any{}
@@ -2839,7 +2839,7 @@ func (this *DeriveCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		//
 		var currency any = this.SafeCurrency(code)
 		var result any = this.SafeDict(response, "result", map[string]any{})
-		var events any = this.SafeList(result, "events")
+		var events any = this.SafeList(result, "events", []any{})
 
 		ch <- this.ParseTransactions(events, currency, since, limit, params)
 		return nil
@@ -2909,7 +2909,7 @@ func (this *DeriveCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		//
 		var currency any = this.SafeCurrency(code)
 		var result any = this.SafeDict(response, "result", map[string]any{})
-		var events any = this.SafeList(result, "events")
+		var events any = this.SafeList(result, "events", []any{})
 
 		ch <- this.ParseTransactions(events, currency, since, limit, params)
 		return nil

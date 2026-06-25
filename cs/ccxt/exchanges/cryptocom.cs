@@ -535,7 +535,7 @@ public partial class cryptocom : Exchange
         } catch(Exception e)
         {
             object erString = this.exceptionMessage(e);
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(erString, "\"msg\":\"SYS_ERROR\""), 0)))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(erString, "SYS_ERROR"), 0)))
             {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
@@ -760,7 +760,7 @@ public partial class cryptocom : Exchange
             object strike = this.safeString(market, "strike");
             object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
             object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
-            object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
+            object expiryString = this.omitZero(((string)this.safeString(market, "expiry_timestamp_ms")));
             object expiry = ((bool) isTrue((!isEqual(expiryString, null)))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
             object type = null;
@@ -1363,7 +1363,7 @@ public partial class cryptocom : Exchange
         object uppercaseType = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
         if (isTrue(isTrue(isTrue((isEqual(uppercaseType, "LIMIT"))) || isTrue((isEqual(uppercaseType, "STOP_LIMIT")))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
@@ -1555,7 +1555,7 @@ public partial class cryptocom : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
+            object orderRequest = this.createAdvancedOrderRequest(((string)marketId), ((string)type), side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         object contigency = this.safeString(parameters, "contingency_type", "LIST");
@@ -1628,7 +1628,7 @@ public partial class cryptocom : Exchange
         object uppercaseType = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
         };
         if (isTrue(isTrue(isTrue((isEqual(uppercaseType, "LIMIT"))) || isTrue((isEqual(uppercaseType, "STOP_LIMIT")))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
@@ -1946,10 +1946,10 @@ public partial class cryptocom : Exchange
             object order = getValue(orders, i);
             object id = this.safeString(order, "id");
             object symbol = this.safeString(order, "symbol");
-            object market = this.market(symbol);
+            object market = this.market(((string)symbol));
             object orderItem = new Dictionary<string, object>() {
                 { "instrument_name", getValue(market, "id") },
-                { "order_id", ((object)id).ToString() },
+                { "order_id", ((object)((string)id)).ToString() },
             };
             ((IList<object>)orderRequests).Add(orderItem);
         }
@@ -2118,7 +2118,7 @@ public partial class cryptocom : Exchange
             var addressrawTagVariable = ((string)addressString).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
             address = ((IList<object>)addressrawTagVariable)[0];
             rawTag = ((IList<object>)addressrawTagVariable)[1];
-            object splitted = ((string)rawTag).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
+            object splitted = ((string)((string)rawTag)).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
             tag = getValue(splitted, 1);
         } else
         {
@@ -2160,7 +2160,7 @@ public partial class cryptocom : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(((string)networkCode), code);
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["network_id"] = networkId;
@@ -2269,9 +2269,9 @@ public partial class cryptocom : Exchange
         object network = this.safeStringUpper(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
         object depositAddresses = await this.fetchDepositAddressesByNetwork(code, parameters);
-        if (isTrue(inOp(depositAddresses, network)))
+        if (isTrue(inOp(depositAddresses, ((string)network))))
         {
-            return getValue(depositAddresses, network);
+            return getValue(depositAddresses, ((string)network));
         }
         object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
         return getValue(depositAddresses, getValue(keys, 0));
@@ -2559,7 +2559,7 @@ public partial class cryptocom : Exchange
             { "REJECTED", "rejected" },
             { "EXPIRED", "expired" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseTimeInForce(object timeInForce)
@@ -2569,7 +2569,7 @@ public partial class cryptocom : Exchange
             { "IMMEDIATE_OR_CANCEL", "IOC" },
             { "FILL_OR_KILL", "FOK" },
         };
-        return this.safeString(timeInForces, timeInForce, timeInForce);
+        return this.safeString(timeInForces, ((string)timeInForce), timeInForce);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -3613,9 +3613,9 @@ public partial class cryptocom : Exchange
             object objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
             paramsKeys = this.sort(objectKeys);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(paramsKeys)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(paramsKeys))); postFixIncrement(ref i))
         {
-            object key = getValue(paramsKeys, i);
+            object key = getValue((IList<string>)(paramsKeys), i);
             returnString = add(returnString, key);
             object value = getValue(obj, key);
             if (isTrue(isEqual(value, "undefined")))
@@ -3767,9 +3767,9 @@ public partial class cryptocom : Exchange
         //
         object result = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)result)["info"] = response;
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(((object)this.symbols), i);
             object market = this.market(symbol);
             object isSwap = getValue(market, "swap");
             object takerFeeKey = ((bool) isTrue(isSwap)) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
@@ -3815,7 +3815,7 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         object type = this.safeString(api, 0);
         object access = this.safeString(api, 1);
-        object url = add(add(getValue(getValue(this.urls, "api"), type), "/"), path);
+        object url = add(add(getValue(getValue(this.urls, "api"), ((string)type)), "/"), path);
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(access, "public")))
         {

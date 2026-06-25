@@ -230,6 +230,7 @@ class coinbaseexchange extends Exchange {
                         'funding/repay',
                         'orders',
                         'position/close',
+                        'profiles',
                         'profiles/margin-transfer',
                         'profiles/transfer',
                         'reports',
@@ -245,6 +246,10 @@ class coinbaseexchange extends Exchange {
                         'orders',
                         'orders/client:{client_oid}',
                         'orders/{id}',
+                    ),
+                    'put' => array(
+                        'profiles/{id}/deactivate',
+                        'profiles/{id}',
                     ),
                 ),
             ),
@@ -458,7 +463,7 @@ class coinbaseexchange extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -522,7 +527,7 @@ class coinbaseexchange extends Exchange {
         for ($j = 0; $j < count($supportedNetworks); $j++) {
             $network = $supportedNetworks[$j];
             $networkId = $this->safe_string($network, 'id');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'name' => $this->safe_string($network, 'name'),
@@ -1156,8 +1161,8 @@ class coinbaseexchange extends Exchange {
         $maker = $this->safe_number($response, 'maker_fee_rate');
         $taker = $this->safe_number($response, 'taker_fee_rate');
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        for ($i = 0; $i < count(($this->symbols)); $i++) {
+            $symbol = ($this->symbols)[$i];
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -1851,7 +1856,6 @@ class coinbaseexchange extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = null;
         if ($id === null) {
             $response = $this->privateGetTransfers ($this->extend($request, $params));
             //
@@ -2034,7 +2038,7 @@ class coinbaseexchange extends Exchange {
             'txid' => $this->safe_string($details, 'crypto_transaction_hash'),
             'type' => $type,
             'currency' => $code,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'amount' => $amount,
             'status' => $this->parse_transaction_status($transaction),
             'timestamp' => $timestamp,
@@ -2091,7 +2095,7 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {

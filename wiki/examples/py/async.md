@@ -1,8 +1,5 @@
-- [Async](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import functools
@@ -27,12 +24,12 @@ async def main():
         'bitfinex',
         'poloniex',
         'kraken',
-        'bittrex',
+        'kucoin',
         'hitbtc',
     ]])
 
 
 if __name__ == '__main__':
     asyncio.run(main())
- 
+
 ```

@@ -673,7 +673,7 @@ class ndax extends Exchange {
                 $newNonce = $this->safe_integer($level, 0);
                 $nonce = max ($nonce, $newNonce);
             }
-            $bidask = $this->parse_bid_ask($level, $priceKey, $amountKey);
+            $bidask = $this->parse_order_book_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
             $side = $levelSide ? $asksKey : $bidsKey;
             $resultSide = $result[$side];
@@ -2584,7 +2584,7 @@ class ndax extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {

@@ -150,7 +150,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta, "price", "qty");
+        Object bidAsk = this.parseOrderBookBidAsk(delta, "price", "qty");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -221,9 +221,9 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object ticker = this.parseWsTicker(data);
         Object symbol = Helpers.GetValue(ticker, "symbol");
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         Object messageHash = Helpers.add("ticker:", symbol);
-        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
+        client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
     }
 
     public Object parseWsTicker(Object ticker, Object... optionalArgs)
@@ -347,12 +347,12 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object trade = this.parseWsTrade(data);
         Object symbol = Helpers.GetValue(trade, "symbol");
-        Object stored = this.safeValue(this.trades, symbol);
+        Object stored = this.safeValue(this.trades, ((String)symbol));
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
         Helpers.callDynamically(stored, "append", new Object[]{trade});
         Object messageHash = Helpers.add("trade:", symbol);
@@ -438,7 +438,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         }
         if (Helpers.isTrue(Helpers.isEqual(type, "DATA")))
         {
-            Object topic = this.safeString(message, "channel", "");
+            Object topic = ((String)this.safeString(message, "channel", ""));
             Object methods = new java.util.HashMap<String, Object>() {{
                 put( "ORDERBOOK", "handleOrderBook");
                 put( "TICKER", "handleTicker");

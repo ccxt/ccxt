@@ -622,7 +622,7 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta);
+        $bidAsk = $this->parse_order_book_bid_ask($delta);
         $bookside->storeArray ($bidAsk);
     }
 
@@ -1224,7 +1224,7 @@ class toobit extends \ccxt\async\toobit {
         return $this->urls['api']['ws']['common'] . '/api/v1/ws/' . $this->options['ws']['listenKey'];
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //    {
         //        "code" => '-100010',

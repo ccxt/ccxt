@@ -380,7 +380,7 @@ class zebpay(Exchange, ImplicitAPI):
         name = self.safe_string(rawCurrency, 'name')
         precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision')))
         chains = self.safe_list(rawCurrency, 'chains', [])
-        networks: dict = {}
+        networks = {}
         minWithdrawFeeString = None
         minWithdrawString = None
         minDepositString = None
@@ -389,7 +389,7 @@ class zebpay(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             chain = chains[j]
             networkId = self.safe_string(chain, 'chainId')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             depositAllowed = self.safe_bool(chain, 'isDepositEnabled') is True
             deposit = depositAllowed if (depositAllowed) else deposit
             withdrawAllowed = self.safe_bool(chain, 'isWithdrawEnabled') is True
@@ -466,7 +466,7 @@ class zebpay(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = None
         data
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if market['spot']:
@@ -536,7 +536,7 @@ class zebpay(Exchange, ImplicitAPI):
         # }
         #
         fees = self.safe_list(response, 'data', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
             symbol = fee['symbol']
@@ -557,7 +557,7 @@ class zebpay(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = None
@@ -597,7 +597,7 @@ class zebpay(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = None
@@ -683,7 +683,7 @@ class zebpay(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 100  # default is 200
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if market['spot']:
@@ -757,7 +757,7 @@ class zebpay(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if market['spot'] and limit is not None:
@@ -827,7 +827,7 @@ class zebpay(Exchange, ImplicitAPI):
         if type != 'spot':
             raise NotSupported(self.id + ' fetchOrderTrades() does not support ' + type + ' markets')
         await self.load_markets()
-        request: dict = {
+        request = {
             'orderId': id,
         }
         response = await self.privateSpotGetV2ExOrderFills(self.extend(request, params))
@@ -975,7 +975,7 @@ class zebpay(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         params = self.omit(params, ['marginAsset', 'takeProfitPrice', 'takeProfitPrice'])
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': side.upper(),
         }
@@ -1051,7 +1051,7 @@ class zebpay(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         response = None
-        request: dict = {}
+        request = {}
         if market['spot']:
             request['orderId'] = id
             response = await self.privateSpotDeleteV2ExOrder(self.extend(request, params))
@@ -1116,7 +1116,7 @@ class zebpay(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = None
@@ -1179,7 +1179,7 @@ class zebpay(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         response = None
         if market['spot']:
             request['orderId'] = id
@@ -1212,7 +1212,7 @@ class zebpay(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        responseData = self.safe_dict(response, 'data')
+        responseData = self.safe_dict(response, 'data', {})
         return self.parse_order(responseData, market)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -1287,7 +1287,7 @@ class zebpay(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.privateSwapPostV1TradePositionClose(self.extend(request, params))
@@ -1333,8 +1333,8 @@ class zebpay(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id'].upper(),
+        request = {
+            'symbol': self.safe_string_upper(market, 'id'),
         }
         response = await self.privateSwapGetV1TradeUserLeverage(self.extend(request, params))
         #
@@ -1360,7 +1360,7 @@ class zebpay(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'leverage': leverage,
             'symbol': market['id'],
         }
@@ -1417,7 +1417,7 @@ class zebpay(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'amount': amount,
         }
@@ -1461,7 +1461,7 @@ class zebpay(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'amount': amount,
         }
@@ -1628,7 +1628,7 @@ class zebpay(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -1776,7 +1776,7 @@ class zebpay(Exchange, ImplicitAPI):
         timestamp = self.milliseconds()
         return {
             'info': info,
-            'symbol': market['id'],
+            'symbol': self.safe_string(market, 'id'),
             'type': None,
             'marginMode': None,
             'amount': self.safe_number(info, 'amount'),
@@ -1787,7 +1787,7 @@ class zebpay(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         params = self.omit(params, 'defaultType')
         isV1 = path.find('v1/') > -1
         marketType = 'swap' if isV1 else 'spot'

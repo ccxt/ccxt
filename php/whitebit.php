@@ -565,7 +565,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -578,7 +578,7 @@ class whitebit extends Exchange {
         //
         // {
         //   BTC => array(
-        //     $name => "Bitcoin",
+        //     name => "Bitcoin",
         //     unified_cryptoasset_id => "1",
         //     can_withdraw => true,
         //     can_deposit => true,
@@ -588,7 +588,7 @@ class whitebit extends Exchange {
         //     taker_fee => "0.1",
         //     min_deposit => "0.0001",
         //     max_deposit => "0",
-        //     $networks => array(
+        //     networks => array(
         //         deposits => array( "BTC", ),
         //         withdraws => array( "BTC", ),
         //         default => "BTC",
@@ -608,7 +608,7 @@ class whitebit extends Exchange {
         //     is_memo => false,
         //   ),
         //   USD => {
-        //         $name => "United States Dollar",
+        //         name => "United States Dollar",
         //         unified_cryptoasset_id => "6955",
         //         can_withdraw => true,
         //         can_deposit => true,
@@ -618,7 +618,7 @@ class whitebit extends Exchange {
         //         taker_fee => "0.1",
         //         min_deposit => "10",
         //         max_deposit => "10000",
-        //         $networks => array(
+        //         networks => array(
         //           deposits => array( "USD", ),
         //           withdraws => array( "USD", ),
         //           default => "USD",
@@ -640,76 +640,75 @@ class whitebit extends Exchange {
         //   }
         // }
         //
-        $ids = is_array($response) ? array_keys($response) : array();
-        $result = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $currency = $response[$id];
-            // $name = $this->safe_string($currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
-            $code = $this->safe_currency_code($id);
-            $hasProvider = (is_array($currency) && array_key_exists('providers', $currency));
-            $networks = array();
-            $rawNetworks = $this->safe_dict($currency, 'networks', array());
-            $depositsNetworks = $this->safe_list($rawNetworks, 'deposits', array());
-            $withdrawsNetworks = $this->safe_list($rawNetworks, 'withdraws', array());
-            $networkLimits = $this->safe_dict($currency, 'limits', array());
-            $depositLimits = $this->safe_dict($networkLimits, 'deposit', array());
-            $withdrawLimits = $this->safe_dict($networkLimits, 'withdraw', array());
-            $allNetworks = $this->array_concat($depositsNetworks, $withdrawsNetworks);
-            for ($j = 0; $j < count($allNetworks); $j++) {
-                $networkId = $allNetworks[$j];
-                $networkCode = $this->network_id_to_code($networkId);
-                $networkDepositLimits = $this->safe_dict($depositLimits, $networkId, array());
-                $networkWithdrawLimits = $this->safe_dict($withdrawLimits, $networkId, array());
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => $this->in_array($networkId, $depositsNetworks),
-                    'withdraw' => $this->in_array($networkId, $withdrawsNetworks),
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => $this->safe_number($networkDepositLimits, 'min'),
-                            'max' => $this->safe_number($networkDepositLimits, 'max'),
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($networkWithdrawLimits, 'min'),
-                            'max' => $this->safe_number($networkWithdrawLimits, 'max'),
-                        ),
-                    ),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency, // the original payload
-                'name' => null, // see the comment above
+        $enhancedArray = $this->add_key_in_array_items($response, '_coin_id');
+        return $this->parse_currencies($enhancedArray);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        // $name = $this->safe_string(currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
+        $id = $this->safe_string($rawCurrency, '_coin_id');
+        $code = $this->safe_currency_code($id);
+        $hasProvider = (is_array($rawCurrency) && array_key_exists('providers', $rawCurrency));
+        $networks = array();
+        $rawNetworks = $this->safe_dict($rawCurrency, 'networks', array());
+        $depositsNetworks = $this->safe_list($rawNetworks, 'deposits', array());
+        $withdrawsNetworks = $this->safe_list($rawNetworks, 'withdraws', array());
+        $networkLimits = $this->safe_dict($rawCurrency, 'limits', array());
+        $depositLimits = $this->safe_dict($networkLimits, 'deposit', array());
+        $withdrawLimits = $this->safe_dict($networkLimits, 'withdraw', array());
+        $allNetworks = $this->array_concat($depositsNetworks, $withdrawsNetworks);
+        for ($j = 0; $j < count($allNetworks); $j++) {
+            $networkId = $allNetworks[$j];
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networkDepositLimits = $this->safe_dict($depositLimits, $networkId, array());
+            $networkWithdrawLimits = $this->safe_dict($withdrawLimits, $networkId, array());
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
                 'active' => null,
-                'deposit' => $this->safe_bool($currency, 'can_deposit'),
-                'withdraw' => $this->safe_bool($currency, 'can_withdraw'),
+                'deposit' => $this->in_array($networkId, $depositsNetworks),
+                'withdraw' => $this->in_array($networkId, $withdrawsNetworks),
                 'fee' => null,
-                'networks' => $networks,
-                'type' => $hasProvider ? 'fiat' : 'crypto',
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'currency_precision'))),
+                'precision' => null,
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkDepositLimits, 'min'),
+                        'max' => $this->safe_number($networkDepositLimits, 'max'),
                     ),
                     'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'min_withdraw'),
-                        'max' => $this->safe_number($currency, 'max_withdraw'),
-                    ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($currency, 'min_deposit'),
-                        'max' => $this->safe_number($currency, 'max_deposit'),
+                        'min' => $this->safe_number($networkWithdrawLimits, 'min'),
+                        'max' => $this->safe_number($networkWithdrawLimits, 'max'),
                     ),
                 ),
-            ));
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency, // the original payload
+            'name' => null, // see the comment above
+            'active' => null,
+            'deposit' => $this->safe_bool($rawCurrency, 'can_deposit'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'can_withdraw'),
+            'fee' => null,
+            'networks' => $networks,
+            'type' => $hasProvider ? 'fiat' : 'crypto',
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'currency_precision'))),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawCurrency, 'min_withdraw'),
+                    'max' => $this->safe_number($rawCurrency, 'max_withdraw'),
+                ),
+                'deposit' => array(
+                    'min' => $this->safe_number($rawCurrency, 'min_deposit'),
+                    'max' => $this->safe_number($rawCurrency, 'max_deposit'),
+                ),
+            ),
+        ));
     }
 
     public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
@@ -826,7 +825,7 @@ class whitebit extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes);
     }
 
-    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
         //
         //    {
         //        "1INCH" => {
@@ -900,7 +899,7 @@ class whitebit extends Exchange {
                 if ($networkId !== null) {
                     $networkLength = count($networkId);
                     $networkId = mb_substr($networkId, 1, $networkLength - 1 - 1);
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     $depositWithdrawFees[$code]['networks'][$networkCode] = array(
                         'withdraw' => $withdrawResult,
                         'deposit' => $depositResult,
@@ -1496,7 +1495,6 @@ class whitebit extends Exchange {
                 $method = 'v4PublicGetTicker';
             }
         }
-        $response = null;
         if ($method === 'v4PublicGetTicker') {
             //
             //      "BCH_RUB" => array(
@@ -2006,7 +2004,6 @@ class whitebit extends Exchange {
         }
         $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
         $useCollateralEndpoint = $marginMode !== null || $marketType === 'swap';
-        $response = null;
         if ($isStopOrder) {
             $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($isLimitOrder) {
@@ -2273,7 +2270,7 @@ class whitebit extends Exchange {
             $id = $balanceKeys[$i];
             $code = $this->safe_currency_code($id);
             $balance = $response[$id];
-            if (gettype($balance) === 'array' && $balance !== null) {
+            if ($balance !== null && $this->is_dictionary($balance)) {
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'available', 'main_balance');
                 $account['used'] = $this->safe_string($balance, 'freeze');
@@ -2301,7 +2298,6 @@ class whitebit extends Exchange {
         $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $response = null;
         if ($marketType === 'swap') {
             $response = $this->v4PrivatePostCollateralAccountBalance ($params);
         } else {
@@ -2734,7 +2730,6 @@ class whitebit extends Exchange {
         $request = array(
             'ticker' => $currency['id'],
         );
-        $response = null;
         if ($this->is_fiat($code)) {
             $provider = $this->safe_string($params, 'provider');
             if ($provider === null) {
@@ -3529,7 +3524,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories($contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -4114,7 +4109,7 @@ class whitebit extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $this->safe_value($api, 0);
         $accessibility = $this->safe_value($api, 1);
@@ -4123,7 +4118,7 @@ class whitebit extends Exchange {
         }
         $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         $pathWithParams = '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'][$version][$accessibility] . $pathWithParams;
+        $url = ($this->urls['api'])[$version][$accessibility] . $pathWithParams;
         if ($accessibility === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);

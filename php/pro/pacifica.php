@@ -1213,7 +1213,7 @@ class pacifica extends \ccxt\async\pacifica {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
         // array("id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":array("r":1245,"q":1250,"t":56))

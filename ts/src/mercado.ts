@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -461,7 +461,7 @@ export default class mercado extends Exchange {
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'amount', 'quantity');
         const feeCost = this.safeString (trade, 'fee_rate');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -636,7 +636,7 @@ export default class mercado extends Exchange {
         //
         const responseData = this.safeValue (response, 'response_data', {});
         const order = this.safeDict (responseData, 'order', {});
-        return this.parseOrder (order, market);
+        return this.parseOrder (order as Dict, market);
     }
 
     parseOrderStatus (status: Str) {
@@ -676,7 +676,7 @@ export default class mercado extends Exchange {
         //
         const id = this.safeString (order, 'order_id');
         const order_type = this.safeString (order, 'order_type');
-        let side = undefined;
+        let side: Str = undefined;
         if ('order_type' in order) {
             side = (order_type === '1') ? 'buy' : 'sell';
         }
@@ -743,7 +743,7 @@ export default class mercado extends Exchange {
         const response = await this.privatePostGetOrder (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
         const order = this.safeDict (responseData, 'order');
-        return this.parseOrder (order, market);
+        return this.parseOrder (order as Dict, market);
     }
 
     /**
@@ -809,7 +809,7 @@ export default class mercado extends Exchange {
         //
         const responseData = this.safeValue (response, 'response_data', {});
         const withdrawal = this.safeDict (responseData, 'withdrawal');
-        return this.parseTransaction (withdrawal, currency);
+        return this.parseTransaction (withdrawal as Dict, currency);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -985,7 +985,7 @@ export default class mercado extends Exchange {
         return result;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/';
         const query = this.omit (params, this.extractParams (path));
         if ((api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet')) {

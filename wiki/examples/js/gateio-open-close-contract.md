@@ -1,55 +1,43 @@
-- [Gateio Open Close Contract](./examples/js/)
-
-
- ```javascript
- const ccxt = require ('../../ccxt');
-
-
-const exchange = new ccxt.gate ({
+```javascript
+// @NO_AUTO_TRANSPILE
+import ccxt from '../../js/ccxt.js';
+const exchange = new ccxt.gate({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
     'options': {
         'defaultType': 'swap',
         'marginMode': 'cross'
     },
-})
-
-
-;(async () => {
-
+});
+(async () => {
     // exchange.setSandboxMode (true)
-    
-    const markets = await exchange.loadMarkets ()
-
+    const markets = await exchange.loadMarkets();
     // exchange.verbose = true // uncomment for debugging purposes if necessary
-
     // Example: creating and closing a contract
-    let symbol = 'LTC/USDT:USDT'
-    let type = 'market'
-    let side = 'buy'
-    let amount = 1
-    let price = undefined
-
+    let symbol = 'LTC/USDT:USDT';
+    let type = 'market';
+    let side = 'buy';
+    let amount = 1;
+    let price = undefined;
     try {
         // fetching current balance
-        const balance = await exchange.fetchBalance()
-        console.log(balance)
-
+        const balance = await exchange.fetchBalance();
+        console.log(balance);
         // placing an order / opening contract position
-        const order = await exchange.createOrder (symbol, type, side, amount, price)
-        console.log (order)
-
+        const order = await exchange.createOrder(symbol, type, side, amount, price);
+        console.log(order);
         // closing it by issuing an oposite contract 
         // and therefore close our previous position
-        side = 'sell'
-        type = 'market'
-        reduce_only = true
-        params = {'reduce_only': reduce_only}
-        const opositeOrder = await exchange.createOrder (symbol, type, side, amount, price, params)
-        console.log (opositeOrder)
-    } catch (e) {
-        console.log (e.constructor.name, e.message)
+        side = 'sell';
+        type = 'market';
+        const reduce_only = true;
+        const params = { 'reduce_only': reduce_only };
+        const opositeOrder = await exchange.createOrder(symbol, type, side, amount, price, params);
+        console.log(opositeOrder);
     }
-}) ()
- 
+    catch (e) {
+        console.log(e.constructor.name, e.message);
+    }
+})();
+
 ```

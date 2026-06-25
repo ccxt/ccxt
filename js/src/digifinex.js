@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/digifinex.js';
 import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class digifinex
@@ -22,7 +22,7 @@ export default class digifinex extends Exchange {
             'name': 'DigiFinex',
             'countries': ['SG'],
             'version': 'v3',
-            'rateLimit': 900,
+            'rateLimit': 900, // 300 for posts
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -268,7 +268,7 @@ export default class digifinex extends Exchange {
                     'fetchMyTrades': {
                         'marginMode': true,
                         'limit': 500,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': 30,
                         'symbolRequired': false,
                     },
@@ -289,7 +289,7 @@ export default class digifinex extends Exchange {
                     'fetchOrders': {
                         'marginMode': true,
                         'limit': 100,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': 30,
                         'trigger': false,
                         'trailing': false,
@@ -312,7 +312,7 @@ export default class digifinex extends Exchange {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': 100000, // todo
                     },
                     'fetchOrder': {
@@ -439,8 +439,8 @@ export default class digifinex extends Exchange {
                     'POLYGON': 'Polygon',
                     'MATIC': 'Polygon',
                     'RIPPLE': 'XRP',
-                    'SOL': 'SOL',
-                    'XLM': 'Stella',
+                    'SOL': 'SOL', // SOL & SPL
+                    'XLM': 'Stella', // STELLAR
                     'TERRACLASSIC': 'TerraClassic',
                     'TERRA': 'Terra',
                     'TON': 'Ton',
@@ -531,7 +531,7 @@ export default class digifinex extends Exchange {
         for (let j = 0; j < networkEntries.length; j++) {
             const networkEntry = networkEntries[j];
             const networkId = this.safeString2(networkEntry, 'chain', 'currency');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -1510,23 +1510,23 @@ export default class digifinex extends Exchange {
         //         0.029927
         //     ]
         //
-        if (market['swap']) {
+        if (this.safeBool(market, 'swap')) {
             return [
                 this.safeInteger(ohlcv, 0),
-                this.safeNumber(ohlcv, 1),
-                this.safeNumber(ohlcv, 2),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
+                this.safeNumber(ohlcv, 1), // open
+                this.safeNumber(ohlcv, 2), // high
+                this.safeNumber(ohlcv, 3), // low
+                this.safeNumber(ohlcv, 4), // close
                 this.safeNumber(ohlcv, 5), // volume
             ];
         }
         else {
             return [
                 this.safeTimestamp(ohlcv, 0),
-                this.safeNumber(ohlcv, 5),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
-                this.safeNumber(ohlcv, 2),
+                this.safeNumber(ohlcv, 5), // open
+                this.safeNumber(ohlcv, 3), // high
+                this.safeNumber(ohlcv, 4), // low
+                this.safeNumber(ohlcv, 2), // close
                 this.safeNumber(ohlcv, 1), // volume
             ];
         }
@@ -1950,7 +1950,7 @@ export default class digifinex extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
             }
-            request['instrument_id'] = market['id'];
+            request['instrument_id'] = this.safeString(market, 'id');
         }
         else {
             request['market'] = marketType;
@@ -2008,8 +2008,8 @@ export default class digifinex extends Exchange {
         }
     }
     parseCancelOrders(response) {
-        const success = this.safeList(response, 'success');
-        const error = this.safeList(response, 'error');
+        const success = this.safeList(response, 'success', []);
+        const error = this.safeList(response, 'error', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
             const order = success[i];
@@ -2066,7 +2066,7 @@ export default class digifinex extends Exchange {
     parseOrderStatus(status) {
         const statuses = {
             '0': 'open',
-            '1': 'open',
+            '1': 'open', // partially filled
             '2': 'closed',
             '3': 'canceled',
             '4': 'canceled', // partially filled and canceled
@@ -2569,7 +2569,7 @@ export default class digifinex extends Exchange {
         }
         const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
         if (symbol !== undefined) {
-            request[marketIdRequest] = market['id'];
+            request[marketIdRequest] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2918,9 +2918,9 @@ export default class digifinex extends Exchange {
         // deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
         // withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
         const statuses = {
-            '1': 'pending',
-            '2': 'pending',
-            '3': 'ok',
+            '1': 'pending', // in Progress
+            '2': 'pending', // to be confirmed
+            '3': 'ok', // Completed
             '4': 'failed', // Rejected
         };
         return this.safeString(statuses, status, status);
@@ -3201,7 +3201,7 @@ export default class digifinex extends Exchange {
             'symbol': symbol,
             'currency': currency,
             'interest': undefined,
-            'interestRate': 0.001,
+            'interestRate': 0.001, // all interest rates on digifinex are 0.1%
             'amountBorrowed': this.parseNumber(amountBorrowed),
             'marginMode': undefined,
             'timestamp': undefined,
@@ -3293,7 +3293,7 @@ export default class digifinex extends Exchange {
         const currencyId = this.safeString(info, 'currency');
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'rate': 0.001,
+            'rate': 0.001, // all interest rates on digifinex are 0.1%
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -4176,7 +4176,7 @@ export default class digifinex extends Exchange {
                     'percentage': undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
@@ -4275,7 +4275,7 @@ export default class digifinex extends Exchange {
             'marginMode': 'isolated',
             'amount': this.safeNumber(data, 'amount'),
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString(market, 'settle'),
             'status': undefined,
             'timestamp': undefined,
             'datetime': undefined,

@@ -505,7 +505,6 @@ public partial class xt : Exchange
                     { "BEP20", "BNB Smart Chain" },
                     { "BEP2", "BNB-BEP2" },
                     { "ETH", "Ethereum" },
-                    { "BNB", "BNB Smart Chain" },
                     { "AVAX", "AVAX C-Chain" },
                     { "GAL", "GAL(FT)" },
                     { "ALEO", "ALEO(IOU)" },
@@ -1496,7 +1495,8 @@ public partial class xt : Exchange
         //         "v": "702461.58895"
         //     }
         //
-        object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? "v" : "a";
+        object isInverse = this.safeBool(market, "inverse");
+        object volumeIndex = ((bool) isTrue((isInverse))) ? "v" : "a";
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)};
     }
 

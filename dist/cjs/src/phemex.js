@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var phemex$1 = require('./abstract/phemex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class phemex extends phemex$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'phemex',
             'name': 'Phemex',
-            'countries': ['CN'],
+            'countries': ['CN'], // China
             'rateLimit': 120.5,
             'version': 'v1',
             'certified': false,
@@ -155,30 +155,30 @@ class phemex extends phemex$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'cfg/v2/products': 5,
+                        'cfg/v2/products': 5, // spot + contracts
                         'cfg/fundingRates': 5,
-                        'products': 5,
-                        'nomics/trades': 5,
-                        'md/kline': 5,
-                        'md/v2/kline/list': 5,
-                        'md/v2/kline': 5,
-                        'md/v2/kline/last': 5,
-                        'md/orderbook': 5,
-                        'md/trade': 5,
-                        'md/spot/ticker/24hr': 5,
+                        'products': 5, // contracts only
+                        'nomics/trades': 5, // ?market=<symbol>&since=<since>
+                        'md/kline': 5, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list': 5, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline': 5, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/v2/kline/last': 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/orderbook': 5, // ?symbol=<symbol>
+                        'md/trade': 5, // ?symbol=<symbol>
+                        'md/spot/ticker/24hr': 5, // ?symbol=<symbol>
                         'exchange/public/cfg/chain-settings': 5, // ?currency=<currency>
                     },
                 },
                 'v1': {
                     'get': {
-                        'md/fullbook': 5,
-                        'md/orderbook': 5,
-                        'md/trade': 5,
-                        'md/ticker/24hr': 5,
-                        'md/ticker/24hr/all': 5,
-                        'md/spot/ticker/24hr': 5,
-                        'md/spot/ticker/24hr/all': 5,
-                        'exchange/public/products': 5,
+                        'md/fullbook': 5, // ?symbol=<symbol>
+                        'md/orderbook': 5, // ?symbol=<symbol>
+                        'md/trade': 5, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr/all': 5, // ?id=<id>
+                        'md/spot/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
+                        'md/spot/ticker/24hr/all': 5, // ?symbol=<symbol>&id=<id>
+                        'exchange/public/products': 5, // contracts only
                         'api-data/public/data/funding-rate-history': 5,
                     },
                 },
@@ -186,72 +186,72 @@ class phemex extends phemex$1["default"] {
                     'get': {
                         'public/products': 5,
                         'public/products-plus': 5,
-                        'md/v2/orderbook': 5,
-                        'md/v2/trade': 5,
-                        'md/v2/ticker/24hr': 5,
-                        'md/v2/ticker/24hr/all': 5,
+                        'md/v2/orderbook': 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade': 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all': 5, // ?id=<id>
                         'api-data/public/data/funding-rate-history': 5,
                     },
                 },
                 'private': {
                     'get': {
                         // spot
-                        'spot/orders/active': 1,
+                        'spot/orders/active': 1, // ?symbol=<symbol>&orderID=<orderID>
                         // 'spot/orders/active': 5, // ?symbol=<symbol>&clOrDID=<clOrdID>
-                        'spot/orders': 1,
-                        'spot/wallets': 5,
-                        'exchange/spot/order': 5,
-                        'exchange/spot/order/trades': 5,
-                        'exchange/order/v2/orderList': 5,
-                        'exchange/order/v2/tradingList': 5,
+                        'spot/orders': 1, // ?symbol=<symbol>
+                        'spot/wallets': 5, // ?currency=<currency>
+                        'exchange/spot/order': 5, // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/spot/order/trades': 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/order/v2/orderList': 5, // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
+                        'exchange/order/v2/tradingList': 5, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         // swap
-                        'accounts/accountPositions': 1,
-                        'g-accounts/accountPositions': 1,
-                        'g-accounts/positions': 25,
+                        'accounts/accountPositions': 1, // ?currency=<currency>
+                        'g-accounts/accountPositions': 1, // ?currency=<currency>
+                        'g-accounts/positions': 25, // ?currency=<currency>
                         'g-accounts/risk-unit': 1,
-                        'api-data/futures/funding-fees': 5,
-                        'api-data/g-futures/funding-fees': 5,
-                        'api-data/futures/orders': 5,
-                        'api-data/g-futures/orders': 5,
-                        'api-data/futures/orders/by-order-id': 5,
-                        'api-data/g-futures/orders/by-order-id': 5,
-                        'api-data/futures/trades': 5,
-                        'api-data/g-futures/trades': 5,
-                        'api-data/futures/trading-fees': 5,
-                        'api-data/g-futures/trading-fees': 5,
-                        'api-data/futures/v2/tradeAccountDetail': 5,
+                        'api-data/futures/funding-fees': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/funding-fees': 5, // ?symbol=<symbol>
+                        'api-data/futures/orders': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/orders': 5, // ?symbol=<symbol>
+                        'api-data/futures/orders/by-order-id': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/orders/by-order-id': 5, // ?symbol=<symbol>
+                        'api-data/futures/trades': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/trades': 5, // ?symbol=<symbol>
+                        'api-data/futures/trading-fees': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/trading-fees': 5, // ?symbol=<symbol>
+                        'api-data/futures/v2/tradeAccountDetail': 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'api-data/g-futures/closedPosition': 5,
-                        'g-orders/activeList': 1,
-                        'orders/activeList': 1,
-                        'exchange/order/list': 5,
-                        'exchange/order': 5,
+                        'g-orders/activeList': 1, // ?symbol=<symbol>
+                        'orders/activeList': 1, // ?symbol=<symbol>
+                        'exchange/order/list': 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
+                        'exchange/order': 5, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
                         // 'exchange/order': 5, // ?symbol=<symbol>&clOrdID=<clOrdID5,clOrdID2>
-                        'exchange/order/trade': 5,
-                        'phemex-user/users/children': 5,
-                        'phemex-user/wallets/v2/depositAddress': 5,
-                        'phemex-user/wallets/tradeAccountDetail': 5,
-                        'phemex-deposit/wallets/api/depositAddress': 5,
-                        'phemex-deposit/wallets/api/depositHist': 5,
-                        'phemex-deposit/wallets/api/chainCfg': 5,
-                        'phemex-withdraw/wallets/api/withdrawHist': 5,
-                        'phemex-withdraw/wallets/api/asset/info': 5,
-                        'phemex-user/order/closedPositionList': 5,
-                        'exchange/margins/transfer': 5,
-                        'exchange/wallets/confirm/withdraw': 5,
-                        'exchange/wallets/withdrawList': 5,
-                        'exchange/wallets/depositList': 5,
-                        'exchange/wallets/v2/depositAddress': 5,
-                        'api-data/spots/funds': 5,
-                        'api-data/spots/orders': 5,
-                        'api-data/spots/orders/by-order-id': 5,
+                        'exchange/order/trade': 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'phemex-user/users/children': 5, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-user/wallets/v2/depositAddress': 5, // ?_t=1592722635531&currency=USDT
+                        'phemex-user/wallets/tradeAccountDetail': 5, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-deposit/wallets/api/depositAddress': 5, // ?currency=<currency>&chainName=<chainName>
+                        'phemex-deposit/wallets/api/depositHist': 5, // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-deposit/wallets/api/chainCfg': 5, // ?currency=<currency>
+                        'phemex-withdraw/wallets/api/withdrawHist': 5, // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-withdraw/wallets/api/asset/info': 5, // ?currency=<currency>&amount=<amount>
+                        'phemex-user/order/closedPositionList': 5, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
+                        'exchange/margins/transfer': 5, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'exchange/wallets/confirm/withdraw': 5, // ?code=<withdrawConfirmCode>
+                        'exchange/wallets/withdrawList': 5, // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'exchange/wallets/depositList': 5, // ?currency=<currency>&offset=<offset>&limit=<limit>
+                        'exchange/wallets/v2/depositAddress': 5, // ?currency=<currency>
+                        'api-data/spots/funds': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'api-data/spots/orders': 5, // ?symbol=<symbol>
+                        'api-data/spots/orders/by-order-id': 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
                         'api-data/spots/pnls': 5,
-                        'api-data/spots/trades': 5,
-                        'api-data/spots/trades/by-order-id': 5,
-                        'assets/convert': 5,
+                        'api-data/spots/trades': 5, // ?symbol=<symbol>
+                        'api-data/spots/trades/by-order-id': 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'assets/convert': 5, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         // transfer
-                        'assets/transfer': 5,
-                        'assets/spots/sub-accounts/transfer': 5,
-                        'assets/futures/sub-accounts/transfer': 5,
+                        'assets/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote': 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
                     },
@@ -261,47 +261,47 @@ class phemex extends phemex$1["default"] {
                         // swap
                         'orders': 1,
                         'g-orders': 1,
-                        'positions/assign': 5,
+                        'positions/assign': 5, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
                         'exchange/wallets/transferOut': 5,
                         'exchange/wallets/transferIn': 5,
                         'exchange/margins': 5,
-                        'exchange/wallets/createWithdraw': 5,
+                        'exchange/wallets/createWithdraw': 5, // ?otpCode=<otpCode>
                         'exchange/wallets/cancelWithdraw': 5,
-                        'exchange/wallets/createWithdrawAddress': 5,
+                        'exchange/wallets/createWithdrawAddress': 5, // ?otpCode={optCode}
                         // transfer
                         'assets/transfer': 5,
-                        'assets/spots/sub-accounts/transfer': 5,
-                        'assets/futures/sub-accounts/transfer': 5,
-                        'assets/universal-transfer': 5,
+                        'assets/spots/sub-accounts/transfer': 5, // for sub-account only
+                        'assets/futures/sub-accounts/transfer': 5, // for sub-account only
+                        'assets/universal-transfer': 5, // for Main account only
                         'assets/convert': 5,
                         // withdraw
-                        'phemex-withdraw/wallets/api/createWithdraw': 5,
+                        'phemex-withdraw/wallets/api/createWithdraw': 5, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
                         'phemex-withdraw/wallets/api/cancelWithdraw': 5, // ?id=<id>
                     },
                     'put': {
                         // spot
-                        'spot/orders/create': 1,
-                        'spot/orders': 1,
+                        'spot/orders/create': 1, // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
+                        'spot/orders': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
-                        'orders/replace': 1,
-                        'g-orders/replace': 1,
+                        'orders/replace': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
                         'g-orders/create': 1,
-                        'positions/leverage': 5,
-                        'g-positions/leverage': 5,
-                        'g-positions/switch-pos-mode-sync': 5,
+                        'positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/switch-pos-mode-sync': 5, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
                         'positions/riskLimit': 5, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
                     },
                     'delete': {
                         // spot
-                        'spot/orders': 2,
-                        'spot/orders/all': 2,
+                        'spot/orders': 2, // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all': 2, // ?symbol=<symbol>&untriggered=<untriggered>
                         // 'spot/orders': 5, // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
-                        'orders/cancel': 1,
-                        'orders': 1,
-                        'orders/all': 3,
-                        'g-orders/cancel': 1,
-                        'g-orders': 1,
+                        'orders/cancel': 1, // ?symbol=<symbol>&orderID=<orderID>
+                        'orders': 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'orders/all': 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel': 1, // ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders': 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
                         'g-orders/all': 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     },
                 },
@@ -328,8 +328,8 @@ class phemex extends phemex$1["default"] {
                             'index': true,
                         },
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -350,7 +350,7 @@ class phemex extends phemex$1["default"] {
                         'marginMode': false,
                         'limit': 200,
                         'daysBack': 100000,
-                        'untilDays': 2,
+                        'untilDays': 2, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -430,170 +430,170 @@ class phemex extends phemex$1["default"] {
             'exceptions': {
                 'exact': {
                     // not documented
-                    '401': errors.AuthenticationError,
-                    '412': errors.BadRequest,
-                    '6001': errors.BadRequest,
+                    '401': errors.AuthenticationError, // {"code":"401","msg":"401 Failed to load API KEY."}
+                    '412': errors.BadRequest, // {"code":412,"msg":"Missing parameter - resolution","data":null}
+                    '6001': errors.BadRequest, // {"error":{"code":6001,"message":"invalid argument"},"id":null,"result":null}
                     // documented
-                    '19999': errors.BadRequest,
-                    '10001': errors.DuplicateOrderId,
-                    '10002': errors.OrderNotFound,
-                    '10003': errors.CancelPending,
-                    '10004': errors.CancelPending,
-                    '10005': errors.CancelPending,
-                    '11001': errors.InsufficientFunds,
-                    '11002': errors.InvalidOrder,
-                    '11003': errors.InsufficientFunds,
-                    '11004': errors.InvalidOrder,
-                    '11005': errors.InsufficientFunds,
-                    '11006': errors.ExchangeError,
-                    '11007': errors.ExchangeError,
-                    '11008': errors.ExchangeError,
-                    '11009': errors.ExchangeError,
-                    '11010': errors.InsufficientFunds,
-                    '11011': errors.InvalidOrder,
-                    '11012': errors.InvalidOrder,
-                    '11013': errors.InvalidOrder,
-                    '11014': errors.InvalidOrder,
-                    '11015': errors.InvalidOrder,
-                    '11016': errors.BadRequest,
-                    '11017': errors.ExchangeError,
-                    '11018': errors.ExchangeError,
-                    '11019': errors.ExchangeError,
-                    '11020': errors.ExchangeError,
-                    '11021': errors.ExchangeError,
-                    '11022': errors.AccountSuspended,
-                    '11023': errors.ExchangeError,
-                    '11024': errors.ExchangeError,
-                    '11025': errors.BadRequest,
-                    '11026': errors.ExchangeError,
-                    '11027': errors.BadSymbol,
-                    '11028': errors.BadSymbol,
-                    '11029': errors.ExchangeError,
-                    '11030': errors.ExchangeError,
-                    '11031': errors.DDoSProtection,
-                    '11032': errors.DDoSProtection,
-                    '11033': errors.DuplicateOrderId,
-                    '11034': errors.InvalidOrder,
-                    '11035': errors.InvalidOrder,
-                    '11036': errors.InvalidOrder,
-                    '11037': errors.InvalidOrder,
-                    '11038': errors.InvalidOrder,
-                    '11039': errors.InvalidOrder,
-                    '11040': errors.InvalidOrder,
-                    '11041': errors.InvalidOrder,
-                    '11042': errors.InvalidOrder,
-                    '11043': errors.InvalidOrder,
-                    '11044': errors.InvalidOrder,
-                    '11045': errors.InvalidOrder,
-                    '11046': errors.InvalidOrder,
-                    '11047': errors.InvalidOrder,
-                    '11048': errors.InvalidOrder,
-                    '11049': errors.InvalidOrder,
-                    '11050': errors.InvalidOrder,
-                    '11051': errors.InvalidOrder,
-                    '11052': errors.InvalidOrder,
-                    '11053': errors.InvalidOrder,
-                    '11054': errors.InvalidOrder,
-                    '11055': errors.InvalidOrder,
-                    '11056': errors.InvalidOrder,
-                    '11057': errors.InvalidOrder,
-                    '11058': errors.InvalidOrder,
-                    '11059': errors.InvalidOrder,
-                    '11060': errors.InvalidOrder,
-                    '11061': errors.CancelPending,
-                    '11062': errors.InvalidOrder,
-                    '11063': errors.InvalidOrder,
-                    '11064': errors.InvalidOrder,
-                    '11065': errors.InvalidOrder,
-                    '11066': errors.InvalidOrder,
-                    '11067': errors.InvalidOrder,
-                    '11068': errors.InvalidOrder,
-                    '11069': errors.ExchangeError,
-                    '11070': errors.BadSymbol,
-                    '11071': errors.InvalidOrder,
-                    '11072': errors.InvalidOrder,
-                    '11073': errors.InvalidOrder,
-                    '11074': errors.InvalidOrder,
-                    '11075': errors.InvalidOrder,
-                    '11076': errors.InvalidOrder,
-                    '11077': errors.InvalidOrder,
-                    '11078': errors.InvalidOrder,
-                    '11079': errors.InvalidOrder,
-                    '11080': errors.InvalidOrder,
-                    '11081': errors.InvalidOrder,
-                    '11082': errors.InsufficientFunds,
-                    '11083': errors.InvalidOrder,
-                    '11084': errors.InvalidOrder,
-                    '11085': errors.DuplicateOrderId,
-                    '11086': errors.InvalidOrder,
-                    '11087': errors.InvalidOrder,
-                    '11088': errors.InvalidOrder,
-                    '11089': errors.InvalidOrder,
-                    '11090': errors.InvalidOrder,
-                    '11091': errors.InvalidOrder,
-                    '11092': errors.InvalidOrder,
-                    '11093': errors.InvalidOrder,
-                    '11094': errors.InvalidOrder,
-                    '11095': errors.InvalidOrder,
-                    '11096': errors.InvalidOrder,
-                    '11097': errors.BadRequest,
-                    '11098': errors.BadRequest,
-                    '11099': errors.ExchangeError,
-                    '11100': errors.InsufficientFunds,
-                    '11101': errors.InsufficientFunds,
-                    '11102': errors.BadRequest,
-                    '11103': errors.BadRequest,
-                    '11104': errors.BadRequest,
-                    '11105': errors.InsufficientFunds,
-                    '11106': errors.InsufficientFunds,
-                    '11107': errors.ExchangeError,
-                    '11108': errors.InvalidOrder,
-                    '11109': errors.InvalidOrder,
-                    '11110': errors.InvalidOrder,
-                    '11111': errors.InvalidOrder,
-                    '11112': errors.InvalidOrder,
-                    '11113': errors.BadRequest,
-                    '11114': errors.InvalidOrder,
-                    '11115': errors.InvalidOrder,
-                    '11116': errors.InvalidOrder,
-                    '11117': errors.InvalidOrder,
-                    '11118': errors.InvalidOrder,
-                    '11119': errors.InvalidOrder,
-                    '11120': errors.InvalidOrder,
-                    '11121': errors.InvalidOrder,
-                    '11122': errors.InvalidOrder,
-                    '11123': errors.InvalidOrder,
-                    '11124': errors.InvalidOrder,
-                    '11125': errors.InvalidOrder,
-                    '11126': errors.InvalidOrder,
-                    '11128': errors.InvalidOrder,
-                    '11129': errors.InvalidOrder,
-                    '11130': errors.InvalidOrder,
-                    '11131': errors.InvalidOrder,
-                    '11132': errors.InvalidOrder,
-                    '11133': errors.InvalidOrder,
-                    '11134': errors.InvalidOrder,
+                    '19999': errors.BadRequest, // REQUEST_IS_DUPLICATED Duplicated request ID
+                    '10001': errors.DuplicateOrderId, // OM_DUPLICATE_ORDERID Duplicated order ID
+                    '10002': errors.OrderNotFound, // OM_ORDER_NOT_FOUND Cannot find order ID
+                    '10003': errors.CancelPending, // OM_ORDER_PENDING_CANCEL Cannot cancel while order is already in pending cancel status
+                    '10004': errors.CancelPending, // OM_ORDER_PENDING_REPLACE Cannot cancel while order is already in pending cancel status
+                    '10005': errors.CancelPending, // OM_ORDER_PENDING Cannot cancel while order is already in pending cancel status
+                    '11001': errors.InsufficientFunds, // TE_NO_ENOUGH_AVAILABLE_BALANCE Insufficient available balance
+                    '11002': errors.InvalidOrder, // TE_INVALID_RISK_LIMIT Invalid risk limit value
+                    '11003': errors.InsufficientFunds, // TE_NO_ENOUGH_BALANCE_FOR_NEW_RISK_LIMIT Insufficient available balance
+                    '11004': errors.InvalidOrder, // TE_INVALID_LEVERAGE invalid input or new leverage is over maximum allowed leverage
+                    '11005': errors.InsufficientFunds, // TE_NO_ENOUGH_BALANCE_FOR_NEW_LEVERAGE Insufficient available balance
+                    '11006': errors.ExchangeError, // TE_CANNOT_CHANGE_POSITION_MARGIN_WITHOUT_POSITION Position size is zero. Cannot change margin
+                    '11007': errors.ExchangeError, // TE_CANNOT_CHANGE_POSITION_MARGIN_FOR_CROSS_MARGIN Cannot change margin under CrossMargin
+                    '11008': errors.ExchangeError, // TE_CANNOT_REMOVE_POSITION_MARGIN_MORE_THAN_ADDED exceeds the maximum removable Margin
+                    '11009': errors.ExchangeError, // TE_CANNOT_REMOVE_POSITION_MARGIN_DUE_TO_UNREALIZED_PNL exceeds the maximum removable Margin
+                    '11010': errors.InsufficientFunds, // TE_CANNOT_ADD_POSITION_MARGIN_DUE_TO_NO_ENOUGH_AVAILABLE_BALANCE Insufficient available balance
+                    '11011': errors.InvalidOrder, // TE_REDUCE_ONLY_ABORT Cannot accept reduce only order
+                    '11012': errors.InvalidOrder, // TE_REPLACE_TO_INVALID_QTY Order quantity Error
+                    '11013': errors.InvalidOrder, // TE_CONDITIONAL_NO_POSITION Position size is zero. Cannot determine conditional order's quantity
+                    '11014': errors.InvalidOrder, // TE_CONDITIONAL_CLOSE_POSITION_WRONG_SIDE Close position conditional order has the same side
+                    '11015': errors.InvalidOrder, // TE_CONDITIONAL_TRIGGERED_OR_CANCELED
+                    '11016': errors.BadRequest, // TE_ADL_NOT_TRADING_REQUESTED_ACCOUNT Request is routed to the wrong trading engine
+                    '11017': errors.ExchangeError, // TE_ADL_CANNOT_FIND_POSITION Cannot find requested position on current account
+                    '11018': errors.ExchangeError, // TE_NO_NEED_TO_SETTLE_FUNDING The current account does not need to pay a funding fee
+                    '11019': errors.ExchangeError, // TE_FUNDING_ALREADY_SETTLED The current account already pays the funding fee
+                    '11020': errors.ExchangeError, // TE_CANNOT_TRANSFER_OUT_DUE_TO_BONUS Withdraw to wallet needs to remove all remaining bonus. However if bonus is used by position or order cost, withdraw fails.
+                    '11021': errors.ExchangeError, // TE_INVALID_BONOUS_AMOUNT // Grpc command cannot be negative number Invalid bonus amount
+                    '11022': errors.AccountSuspended, // TE_REJECT_DUE_TO_BANNED Account is banned
+                    '11023': errors.ExchangeError, // TE_REJECT_DUE_TO_IN_PROCESS_OF_LIQ Account is in the process of liquidation
+                    '11024': errors.ExchangeError, // TE_REJECT_DUE_TO_IN_PROCESS_OF_ADL Account is in the process of auto-deleverage
+                    '11025': errors.BadRequest, // TE_ROUTE_ERROR Request is routed to the wrong trading engine
+                    '11026': errors.ExchangeError, // TE_UID_ACCOUNT_MISMATCH
+                    '11027': errors.BadSymbol, // TE_SYMBOL_INVALID Invalid number ID or name
+                    '11028': errors.BadSymbol, // TE_CURRENCY_INVALID Invalid currency ID or name
+                    '11029': errors.ExchangeError, // TE_ACTION_INVALID Unrecognized request type
+                    '11030': errors.ExchangeError, // TE_ACTION_BY_INVALID
+                    '11031': errors.DDoSProtection, // TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
+                    '11032': errors.DDoSProtection, // TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
+                    '11033': errors.DuplicateOrderId, // TE_ORDER_ID_DUPLICATE Duplicated order ID
+                    '11034': errors.InvalidOrder, // TE_SIDE_INVALID Invalid side
+                    '11035': errors.InvalidOrder, // TE_ORD_TYPE_INVALID Invalid OrderType
+                    '11036': errors.InvalidOrder, // TE_TIME_IN_FORCE_INVALID Invalid TimeInForce
+                    '11037': errors.InvalidOrder, // TE_EXEC_INST_INVALID Invalid ExecType
+                    '11038': errors.InvalidOrder, // TE_TRIGGER_INVALID Invalid trigger type
+                    '11039': errors.InvalidOrder, // TE_STOP_DIRECTION_INVALID Invalid stop direction type
+                    '11040': errors.InvalidOrder, // TE_NO_MARK_PRICE Cannot get valid mark price to create conditional order
+                    '11041': errors.InvalidOrder, // TE_NO_INDEX_PRICE Cannot get valid index price to create conditional order
+                    '11042': errors.InvalidOrder, // TE_NO_LAST_PRICE Cannot get valid last market price to create conditional order
+                    '11043': errors.InvalidOrder, // TE_RISING_TRIGGER_DIRECTLY Conditional order would be triggered immediately
+                    '11044': errors.InvalidOrder, // TE_FALLING_TRIGGER_DIRECTLY Conditional order would be triggered immediately
+                    '11045': errors.InvalidOrder, // TE_TRIGGER_PRICE_TOO_LARGE Conditional order trigger price is too high
+                    '11046': errors.InvalidOrder, // TE_TRIGGER_PRICE_TOO_SMALL Conditional order trigger price is too low
+                    '11047': errors.InvalidOrder, // TE_BUY_TP_SHOULD_GT_BASE TakeProfile BUY conditional order trigger price needs to be greater than reference price
+                    '11048': errors.InvalidOrder, // TE_BUY_SL_SHOULD_LT_BASE StopLoss BUY condition order price needs to be less than the reference price
+                    '11049': errors.InvalidOrder, // TE_BUY_SL_SHOULD_GT_LIQ StopLoss BUY condition order price needs to be greater than liquidation price or it will not trigger
+                    '11050': errors.InvalidOrder, // TE_SELL_TP_SHOULD_LT_BASE TakeProfile SELL conditional order trigger price needs to be less than reference price
+                    '11051': errors.InvalidOrder, // TE_SELL_SL_SHOULD_LT_LIQ StopLoss SELL condition order price needs to be less than liquidation price or it will not trigger
+                    '11052': errors.InvalidOrder, // TE_SELL_SL_SHOULD_GT_BASE StopLoss SELL condition order price needs to be greater than the reference price
+                    '11053': errors.InvalidOrder, // TE_PRICE_TOO_LARGE
+                    '11054': errors.InvalidOrder, // TE_PRICE_WORSE_THAN_BANKRUPT Order price cannot be more aggressive than bankrupt price if this order has instruction to close a position
+                    '11055': errors.InvalidOrder, // TE_PRICE_TOO_SMALL Order price is too low
+                    '11056': errors.InvalidOrder, // TE_QTY_TOO_LARGE Order quantity is too large
+                    '11057': errors.InvalidOrder, // TE_QTY_NOT_MATCH_REDUCE_ONLY Does not allow ReduceOnly order without position
+                    '11058': errors.InvalidOrder, // TE_QTY_TOO_SMALL Order quantity is too small
+                    '11059': errors.InvalidOrder, // TE_TP_SL_QTY_NOT_MATCH_POS Position size is zero. Cannot accept any TakeProfit or StopLoss order
+                    '11060': errors.InvalidOrder, // TE_SIDE_NOT_CLOSE_POS TakeProfit or StopLoss order has wrong side. Cannot close position
+                    '11061': errors.CancelPending, // TE_ORD_ALREADY_PENDING_CANCEL Repeated cancel request
+                    '11062': errors.InvalidOrder, // TE_ORD_ALREADY_CANCELED Order is already canceled
+                    '11063': errors.InvalidOrder, // TE_ORD_STATUS_CANNOT_CANCEL Order is not able to be canceled under current status
+                    '11064': errors.InvalidOrder, // TE_ORD_ALREADY_PENDING_REPLACE Replace request is rejected because order is already in pending replace status
+                    '11065': errors.InvalidOrder, // TE_ORD_REPLACE_NOT_MODIFIED Replace request does not modify any parameters of the order
+                    '11066': errors.InvalidOrder, // TE_ORD_STATUS_CANNOT_REPLACE Order is not able to be replaced under current status
+                    '11067': errors.InvalidOrder, // TE_CANNOT_REPLACE_PRICE Market conditional order cannot change price
+                    '11068': errors.InvalidOrder, // TE_CANNOT_REPLACE_QTY Condtional order for closing position cannot change order quantity, since the order quantity is determined by position size already
+                    '11069': errors.ExchangeError, // TE_ACCOUNT_NOT_IN_RANGE The account ID in the request is not valid or is not in the range of the current process
+                    '11070': errors.BadSymbol, // TE_SYMBOL_NOT_IN_RANGE The symbol is invalid
+                    '11071': errors.InvalidOrder, // TE_ORD_STATUS_CANNOT_TRIGGER
+                    '11072': errors.InvalidOrder, // TE_TKFR_NOT_IN_RANGE The fee value is not valid
+                    '11073': errors.InvalidOrder, // TE_MKFR_NOT_IN_RANGE The fee value is not valid
+                    '11074': errors.InvalidOrder, // TE_CANNOT_ATTACH_TP_SL Order request cannot contain TP/SL parameters when the account already has positions
+                    '11075': errors.InvalidOrder, // TE_TP_TOO_LARGE TakeProfit price is too large
+                    '11076': errors.InvalidOrder, // TE_TP_TOO_SMALL TakeProfit price is too small
+                    '11077': errors.InvalidOrder, // TE_TP_TRIGGER_INVALID Invalid trigger type
+                    '11078': errors.InvalidOrder, // TE_SL_TOO_LARGE StopLoss price is too large
+                    '11079': errors.InvalidOrder, // TE_SL_TOO_SMALL StopLoss price is too small
+                    '11080': errors.InvalidOrder, // TE_SL_TRIGGER_INVALID Invalid trigger type
+                    '11081': errors.InvalidOrder, // TE_RISK_LIMIT_EXCEEDS Total potential position breaches current risk limit
+                    '11082': errors.InsufficientFunds, // TE_CANNOT_COVER_ESTIMATE_ORDER_LOSS The remaining balance cannot cover the potential unrealized PnL for this new order
+                    '11083': errors.InvalidOrder, // TE_TAKE_PROFIT_ORDER_DUPLICATED TakeProfit order already exists
+                    '11084': errors.InvalidOrder, // TE_STOP_LOSS_ORDER_DUPLICATED StopLoss order already exists
+                    '11085': errors.DuplicateOrderId, // TE_CL_ORD_ID_DUPLICATE ClOrdId is duplicated
+                    '11086': errors.InvalidOrder, // TE_PEG_PRICE_TYPE_INVALID PegPriceType is invalid
+                    '11087': errors.InvalidOrder, // TE_BUY_TS_SHOULD_LT_BASE The trailing order's StopPrice should be less than the current last price
+                    '11088': errors.InvalidOrder, // TE_BUY_TS_SHOULD_GT_LIQ The traling order's StopPrice should be greater than the current liquidation price
+                    '11089': errors.InvalidOrder, // TE_SELL_TS_SHOULD_LT_LIQ The traling order's StopPrice should be greater than the current last price
+                    '11090': errors.InvalidOrder, // TE_SELL_TS_SHOULD_GT_BASE The traling order's StopPrice should be less than the current liquidation price
+                    '11091': errors.InvalidOrder, // TE_BUY_REVERT_VALUE_SHOULD_LT_ZERO The PegOffset should be less than zero
+                    '11092': errors.InvalidOrder, // TE_SELL_REVERT_VALUE_SHOULD_GT_ZERO The PegOffset should be greater than zero
+                    '11093': errors.InvalidOrder, // TE_BUY_TTP_SHOULD_ACTIVATE_ABOVE_BASE The activation price should be greater than the current last price
+                    '11094': errors.InvalidOrder, // TE_SELL_TTP_SHOULD_ACTIVATE_BELOW_BASE The activation price should be less than the current last price
+                    '11095': errors.InvalidOrder, // TE_TRAILING_ORDER_DUPLICATED A trailing order exists already
+                    '11096': errors.InvalidOrder, // TE_CLOSE_ORDER_CANNOT_ATTACH_TP_SL An order to close position cannot have trailing instruction
+                    '11097': errors.BadRequest, // TE_CANNOT_FIND_WALLET_OF_THIS_CURRENCY This crypto is not supported
+                    '11098': errors.BadRequest, // TE_WALLET_INVALID_ACTION Invalid action on wallet
+                    '11099': errors.ExchangeError, // TE_WALLET_VID_UNMATCHED Wallet operation request has a wrong wallet vid
+                    '11100': errors.InsufficientFunds, // TE_WALLET_INSUFFICIENT_BALANCE Wallet has insufficient balance
+                    '11101': errors.InsufficientFunds, // TE_WALLET_INSUFFICIENT_LOCKED_BALANCE Locked balance in wallet is not enough for unlock/withdraw request
+                    '11102': errors.BadRequest, // TE_WALLET_INVALID_DEPOSIT_AMOUNT Deposit amount must be greater than zero
+                    '11103': errors.BadRequest, // TE_WALLET_INVALID_WITHDRAW_AMOUNT Withdraw amount must be less than zero
+                    '11104': errors.BadRequest, // TE_WALLET_REACHED_MAX_AMOUNT Deposit makes wallet exceed max amount allowed
+                    '11105': errors.InsufficientFunds, // TE_PLACE_ORDER_INSUFFICIENT_BASE_BALANCE Insufficient funds in base wallet
+                    '11106': errors.InsufficientFunds, // TE_PLACE_ORDER_INSUFFICIENT_QUOTE_BALANCE Insufficient funds in quote wallet
+                    '11107': errors.ExchangeError, // TE_CANNOT_CONNECT_TO_REQUEST_SEQ TradingEngine failed to connect with CrossEngine
+                    '11108': errors.InvalidOrder, // TE_CANNOT_REPLACE_OR_CANCEL_MARKET_ORDER Cannot replace/amend market order
+                    '11109': errors.InvalidOrder, // TE_CANNOT_REPLACE_OR_CANCEL_IOC_ORDER Cannot replace/amend ImmediateOrCancel order
+                    '11110': errors.InvalidOrder, // TE_CANNOT_REPLACE_OR_CANCEL_FOK_ORDER Cannot replace/amend FillOrKill order
+                    '11111': errors.InvalidOrder, // TE_MISSING_ORDER_ID OrderId is missing
+                    '11112': errors.InvalidOrder, // TE_QTY_TYPE_INVALID QtyType is invalid
+                    '11113': errors.BadRequest, // TE_USER_ID_INVALID UserId is invalid
+                    '11114': errors.InvalidOrder, // TE_ORDER_VALUE_TOO_LARGE Order value is too large
+                    '11115': errors.InvalidOrder, // TE_ORDER_VALUE_TOO_SMALL Order value is too small
+                    '11116': errors.InvalidOrder, // TE_BO_NUM_EXCEEDS Details: the total count of brakcet orders should equal or less than 5
+                    '11117': errors.InvalidOrder, // TE_BO_CANNOT_HAVE_BO_WITH_DIFF_SIDE Details: all bracket orders should have the same Side.
+                    '11118': errors.InvalidOrder, // TE_BO_TP_PRICE_INVALID Details: bracker order take profit price is invalid
+                    '11119': errors.InvalidOrder, // TE_BO_SL_PRICE_INVALID Details: bracker order stop loss price is invalid
+                    '11120': errors.InvalidOrder, // TE_BO_SL_TRIGGER_PRICE_INVALID Details: bracker order stop loss trigger price is invalid
+                    '11121': errors.InvalidOrder, // TE_BO_CANNOT_REPLACE Details: cannot replace bracket order.
+                    '11122': errors.InvalidOrder, // TE_BO_BOTP_STATUS_INVALID Details: bracket take profit order status is invalid
+                    '11123': errors.InvalidOrder, // TE_BO_CANNOT_PLACE_BOTP_OR_BOSL_ORDER Details: cannot place bracket take profit order
+                    '11124': errors.InvalidOrder, // TE_BO_CANNOT_REPLACE_BOTP_OR_BOSL_ORDER Details: cannot place bracket stop loss order
+                    '11125': errors.InvalidOrder, // TE_BO_CANNOT_CANCEL_BOTP_OR_BOSL_ORDER Details: cannot cancel bracket sl/tp order
+                    '11126': errors.InvalidOrder, // TE_BO_DONOT_SUPPORT_API Details: doesn't support bracket order via API
+                    '11128': errors.InvalidOrder, // TE_BO_INVALID_EXECINST Details: ExecInst value is invalid
+                    '11129': errors.InvalidOrder, // TE_BO_MUST_BE_SAME_SIDE_AS_POS Details: bracket order should have the same side as position's side
+                    '11130': errors.InvalidOrder, // TE_BO_WRONG_SL_TRIGGER_TYPE Details: bracket stop loss order trigger type is invalid
+                    '11131': errors.InvalidOrder, // TE_BO_WRONG_TP_TRIGGER_TYPE Details: bracket take profit order trigger type is invalid
+                    '11132': errors.InvalidOrder, // TE_BO_ABORT_BOSL_DUE_BOTP_CREATE_FAILED Details: cancel bracket stop loss order due failed to create take profit order.
+                    '11133': errors.InvalidOrder, // TE_BO_ABORT_BOSL_DUE_BOPO_CANCELED Details: cancel bracket stop loss order due main order canceled.
+                    '11134': errors.InvalidOrder, // TE_BO_ABORT_BOTP_DUE_BOPO_CANCELED Details: cancel bracket take profit order due main order canceled.
                     // not documented
-                    '30000': errors.BadRequest,
-                    '30018': errors.BadRequest,
-                    '34003': errors.PermissionDenied,
-                    '35104': errors.InsufficientFunds,
-                    '39995': errors.RateLimitExceeded,
-                    '39996': errors.PermissionDenied,
+                    '30000': errors.BadRequest, // {"code":30000,"msg":"Please double check input arguments","data":null}
+                    '30018': errors.BadRequest, // {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
+                    '34003': errors.PermissionDenied, // {"code":34003,"msg":"Access forbidden","data":null}
+                    '35104': errors.InsufficientFunds, // {"code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null}
+                    '39995': errors.RateLimitExceeded, // {"code": "39995","msg": "Too many requests."}
+                    '39996': errors.PermissionDenied, // {"code": "39996","msg": "Access denied."}
                     '39997': errors.BadSymbol, // {"code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null}
                 },
                 'broad': {
-                    '401 Insufficient privilege': errors.PermissionDenied,
-                    '401 Request IP mismatch': errors.PermissionDenied,
-                    'Failed to find api-key': errors.AuthenticationError,
-                    'Missing required parameter': errors.BadRequest,
-                    'API Signature verification failed': errors.AuthenticationError,
+                    '401 Insufficient privilege': errors.PermissionDenied, // {"code": "401","msg": "401 Insufficient privilege."}
+                    '401 Request IP mismatch': errors.PermissionDenied, // {"code": "401","msg": "401 Request IP mismatch."}
+                    'Failed to find api-key': errors.AuthenticationError, // {"msg":"Failed to find api-key 1c5ec63fd-660d-43ea-847a-0d3ba69e106e","code":10500}
+                    'Missing required parameter': errors.BadRequest, // {"msg":"Missing required parameter","code":10500}
+                    'API Signature verification failed': errors.AuthenticationError, // {"msg":"API Signature verification failed.","code":10500}
                     'Api key not found': errors.AuthenticationError, // {"msg":"Api key not found 698dc9e3-6faa-4910-9476-12857e79e198","code":"10500"}
                 },
             },
             'options': {
-                'brokerId': 'CCXT123456',
-                'x-phemex-request-expiry': 60,
+                'brokerId': 'CCXT123456', // updated from CCXT to CCXT123456
+                'x-phemex-request-expiry': 60, // in seconds
                 'createOrderByQuoteRequiresPrice': true,
                 'networks': {
                     'TRC20': 'TRX',
@@ -1238,7 +1238,7 @@ class phemex extends phemex$1["default"] {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let response = undefined;
+        let response;
         const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
         if (market['linear'] && isStableSettled) {
             response = await this.v2GetMdV2Orderbook(this.extend(request, params));
@@ -1394,7 +1394,7 @@ class phemex extends phemex$1["default"] {
             limit = maxLimit;
         }
         request['limit'] = Math.min(limit, maxLimit);
-        let response = undefined;
+        let response;
         if (market['linear'] || isStableSettled) {
             if ((until !== undefined) || (since !== undefined)) {
                 const candleDuration = this.parseTimeframe(timeframe);
@@ -1531,7 +1531,7 @@ class phemex extends phemex$1["default"] {
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': undefined,
+            'previousClose': undefined, // previous day close
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -1556,7 +1556,7 @@ class phemex extends phemex$1["default"] {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let response = undefined;
+        let response;
         if (market['swap']) {
             if (market['inverse'] || market['settle'] === 'USD') {
                 response = await this.v1GetMdTicker24hr(this.extend(request, params));
@@ -1638,7 +1638,7 @@ class phemex extends phemex$1["default"] {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params);
         const query = this.omit(params, 'type');
-        let response = undefined;
+        let response;
         if (type === 'spot') {
             response = await this.v1GetMdSpotTicker24hrAll(query);
         }
@@ -1669,7 +1669,7 @@ class phemex extends phemex$1["default"] {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let response = undefined;
+        let response;
         const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
         if (market['linear'] && isStableSettled) {
             response = await this.v2GetMdV2Trade(this.extend(request, params));
@@ -2119,7 +2119,7 @@ class phemex extends phemex$1["default"] {
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const code = this.safeString(params, 'code');
         params = this.omit(params, ['code']);
-        let response = undefined;
+        let response;
         const request = {};
         if ((type !== 'spot') && (type !== 'swap')) {
             throw new errors.BadRequest(this.id + ' does not support ' + type + ' markets, only spot and swap');
@@ -2661,7 +2661,7 @@ class phemex extends phemex$1["default"] {
         const request = {
             // common
             'symbol': market['id'],
-            'side': requestSide,
+            'side': requestSide, // Sell, Buy
             'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched (additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             // 'stopPxEp': this.toEp (stopPx, market), // for conditional orders
             // 'priceEp': this.toEp (price, market), // required for limit orders
@@ -2876,7 +2876,7 @@ class phemex extends phemex$1["default"] {
             }
             params = this.omit(params, 'stopLossPrice');
         }
-        let response = undefined;
+        let response;
         if (isStableSettled) {
             response = await this.privatePostGOrders(this.extend(request, params));
         }
@@ -3027,7 +3027,7 @@ class phemex extends phemex$1["default"] {
             }
         }
         params = this.omit(params, ['triggerPrice', 'stopPx', 'stopPrice']);
-        let response = undefined;
+        let response;
         if (isStableSettled) {
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
@@ -3072,7 +3072,7 @@ class phemex extends phemex$1["default"] {
         else {
             request['orderID'] = id;
         }
-        let response = undefined;
+        let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
@@ -3114,7 +3114,7 @@ class phemex extends phemex$1["default"] {
         if (trigger) {
             request['untriggerred'] = trigger;
         }
-        let response = undefined;
+        let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             response = await this.privateDeleteGOrdersAll(this.extend(request, params));
             //
@@ -3180,7 +3180,7 @@ class phemex extends phemex$1["default"] {
         else {
             request['orderID'] = id;
         }
-        let response = undefined;
+        let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, params));
         }
@@ -3236,7 +3236,7 @@ class phemex extends phemex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             request['currency'] = market['settle'];
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, params));
@@ -3274,7 +3274,7 @@ class phemex extends phemex$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         try {
             if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
                 response = await this.privateGetGOrdersActiveList(this.extend(request, params));
@@ -3332,12 +3332,12 @@ class phemex extends phemex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if ((symbol === undefined) || (this.safeString(market, 'settle') === 'USDT')) {
             request['currency'] = this.safeString(params, 'settle', 'USDT');
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, params));
         }
-        else if (market['swap']) {
+        else if (market !== undefined && market['swap']) {
             response = await this.privateGetExchangeOrderList(this.extend(request, params));
         }
         else {
@@ -3422,13 +3422,13 @@ class phemex extends phemex$1["default"] {
                 request['limit'] = 200;
             }
         }
-        else if (symbol !== undefined) {
+        else if (symbol !== undefined && market !== undefined) {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['start'] = since;
         }
-        let response = undefined;
+        let response;
         if (isUSDTSettled) {
             response = await this.privateGetExchangeOrderV2TradingList(this.extend(request, params));
         }
@@ -3543,7 +3543,7 @@ class phemex extends phemex$1["default"] {
         //     }
         // }
         //
-        let data = undefined;
+        let data;
         if (isUSDTSettled) {
             data = this.safeValue(response, 'data', []);
         }
@@ -3809,7 +3809,7 @@ class phemex extends phemex$1["default"] {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -3871,7 +3871,7 @@ class phemex extends phemex$1["default"] {
         const request = {
             'currency': currency['id'],
         };
-        let response = undefined;
+        let response;
         if (isUSDTSettled) {
             let method = undefined;
             [method, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
@@ -4182,7 +4182,7 @@ class phemex extends phemex$1["default"] {
             'liquidationPrice': liquidationPrice,
             'collateral': this.parseNumber(collateral),
             'notional': this.parseNumber(notionalString),
-            'markPrice': this.parseNumber(markPriceString),
+            'markPrice': this.parseNumber(markPriceString), // markPrice lags a bit ¯\_(ツ)_/¯
             'lastPrice': undefined,
             'entryPrice': this.parseNumber(entryPriceString),
             'exitPrice': this.safeNumber(position, 'closePrice'),
@@ -4230,7 +4230,7 @@ class phemex extends phemex$1["default"] {
             }
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
         if (isStableSettled) {
             response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, params));
@@ -4281,7 +4281,7 @@ class phemex extends phemex$1["default"] {
         return result;
     }
     parseFundingFeeToPrecision(value, market = undefined, currencyCode = undefined) {
-        if (value === undefined || currencyCode === undefined) {
+        if (value === undefined || currencyCode === undefined || market === undefined) {
             return value;
         }
         // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
@@ -4716,7 +4716,7 @@ class phemex extends phemex$1["default"] {
                 headers['Content-Type'] = 'application/json';
             }
             const auth = requestPath + queryString + expiryString + payload;
-            headers['x-phemex-request-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            headers['x-phemex-request-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
         url = this.implodeHostname(this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -4751,7 +4751,7 @@ class phemex extends phemex$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             if (!isHedged && longLeverageRr === undefined && shortLeverageRr === undefined) {
                 request['leverageRr'] = leverage;
@@ -4968,9 +4968,9 @@ class phemex extends phemex$1["default"] {
     }
     parseTransferStatus(status) {
         const statuses = {
-            '3': 'rejected',
-            '6': 'canceled',
-            '10': 'ok',
+            '3': 'rejected', // 'Rejected',
+            '6': 'canceled', // 'Got error and wait for recovery',
+            '10': 'ok', // 'Success',
             '11': 'failed', // 'Failed',
         };
         return this.safeString(statuses, status, status);
@@ -5020,7 +5020,7 @@ class phemex extends phemex$1["default"] {
             request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        let response = undefined;
+        let response;
         if (isUsdtSettled) {
             response = await this.v2GetApiDataPublicDataFundingRateHistory(this.extend(request, params));
         }
@@ -5082,7 +5082,7 @@ class phemex extends phemex$1["default"] {
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         let networkId = undefined;
         if (networkCode !== undefined) {
-            networkId = this.networkCodeToId(networkCode);
+            networkId = this.networkCodeToId(networkCode, code);
         }
         const stableCoins = this.safeValue(this.options, 'stableCoins');
         if (networkId === undefined) {
@@ -5200,7 +5200,7 @@ class phemex extends phemex$1["default"] {
             'info': interest,
             'symbol': this.safeSymbol(id, market),
             'baseVolume': this.safeString(interest, 'volumeRq'),
-            'quoteVolume': undefined,
+            'quoteVolume': undefined, // deprecated
             'openInterestAmount': this.safeString(interest, 'openInterestRv'),
             'openInterestValue': undefined,
             'timestamp': timestamp,
@@ -5470,7 +5470,7 @@ class phemex extends phemex$1["default"] {
         const request = {
             'currency': currency['id'],
         };
-        let response = undefined;
+        let response;
         if (isUSDTSettled) {
             let method = undefined;
             [method, params] = this.handleOptionAndParams(params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions');

@@ -1668,7 +1668,7 @@ public partial class foxbit : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["network_code"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["network_code"] = this.networkCodeToId(networkCode, code);
         }
         object response = await this.v3PrivatePostWithdrawals(this.extend(request, parameters));
         // {
@@ -1791,7 +1791,7 @@ public partial class foxbit : Exchange
     {
         return new Dictionary<string, object>() {
             { "info", entry },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "maker", this.safeNumber(entry, "maker") },
             { "taker", this.safeNumber(entry, "taker") },
             { "percentage", true },
@@ -1856,7 +1856,7 @@ public partial class foxbit : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "order", null },
             { "type", null },
             { "side", side },

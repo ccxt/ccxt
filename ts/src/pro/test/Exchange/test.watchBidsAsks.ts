@@ -4,7 +4,7 @@ import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { ArgumentsRequired } from '../../../base/errors.js';
 import { Ticker } from '../../../base/types.js';
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 
 async function testWatchBidsAsks (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testWatchBidsAsksHelper (exchange, skippedProperties, undefined);
@@ -42,7 +42,7 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             return false;
         }
         if (success === true) {
-            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
+            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
             const values = Object.values (response);
             let checkedSymbol = undefined;
             if (argSymbols !== undefined && argSymbols.length === 1) {

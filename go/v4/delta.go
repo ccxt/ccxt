@@ -546,7 +546,7 @@ func (this *DeltaCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = GetValue(chains, j)
 		var networkId any = this.SafeString(chain, "network")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"id":       networkId,
 			"network":  networkCode,
@@ -912,7 +912,7 @@ func (this *DeltaCore) FetchMarkets(optionalArgs ...any) <-chan any {
 				"settleId":       settleId,
 				"type":           typeVar,
 				"spot":           spot,
-				"margin":         Ternary(IsTrue(spot), nil, false),
+				"margin":         false,
 				"swap":           swap,
 				"future":         future,
 				"option":         option,
@@ -2926,11 +2926,12 @@ func (this *DeltaCore) ParseDepositAddress(depositAddress any, optionalArgs ...a
 	var address any = this.SafeString(depositAddress, "address")
 	var marketId any = this.SafeString(depositAddress, "asset_symbol")
 	var networkId any = this.SafeString(depositAddress, "network")
+	var code any = this.SafeCurrencyCode(marketId, currency)
 	this.CheckAddress(address)
 	return map[string]any{
 		"info":     depositAddress,
-		"currency": this.SafeCurrencyCode(marketId, currency),
-		"network":  this.NetworkIdToCode(networkId),
+		"currency": code,
+		"network":  this.NetworkIdToCode(networkId, code),
 		"address":  address,
 		"tag":      this.SafeString(depositAddress, "memo"),
 	}
@@ -2953,8 +2954,8 @@ func (this *DeltaCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes26538 := (<-this.LoadMarkets())
-		PanicOnError(retRes26538)
+		retRes26548 := (<-this.LoadMarkets())
+		PanicOnError(retRes26548)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -3038,8 +3039,8 @@ func (this *DeltaCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes27218 := (<-this.LoadMarkets())
-		PanicOnError(retRes27218)
+		retRes27228 := (<-this.LoadMarkets())
+		PanicOnError(retRes27228)
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{
 			"contract_types": "perpetual_futures",
@@ -3191,9 +3192,9 @@ func (this *DeltaCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes285815 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes285815)
-		ch <- retRes285815
+		retRes285915 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes285915)
+		ch <- retRes285915
 		return nil
 
 	}()
@@ -3218,9 +3219,9 @@ func (this *DeltaCore) ReduceMargin(symbol any, amount any, optionalArgs ...any)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes287215 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes287215)
-		ch <- retRes287215
+		retRes287315 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+		PanicOnError(retRes287315)
+		ch <- retRes287315
 		return nil
 
 	}()
@@ -3234,8 +3235,8 @@ func (this *DeltaCore) ModifyMarginHelper(symbol any, amount any, typeVar any, o
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes28768 := (<-this.LoadMarkets())
-		PanicOnError(retRes28768)
+		retRes28778 := (<-this.LoadMarkets())
+		PanicOnError(retRes28778)
 		var market any = this.Market(symbol)
 		amount = ToString(amount)
 		if IsTrue(IsEqual(typeVar, "reduce")) {
@@ -3335,8 +3336,8 @@ func (this *DeltaCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes29618 := (<-this.LoadMarkets())
-		PanicOnError(retRes29618)
+		retRes29628 := (<-this.LoadMarkets())
+		PanicOnError(retRes29628)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
@@ -3490,8 +3491,8 @@ func (this *DeltaCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes31008 := (<-this.LoadMarkets())
-		PanicOnError(retRes31008)
+		retRes31018 := (<-this.LoadMarkets())
+		PanicOnError(retRes31018)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"product_id": GetValue(market, "numericId"),
@@ -3557,16 +3558,16 @@ func (this *DeltaCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes31498 := (<-this.LoadMarkets())
-		PanicOnError(retRes31498)
+		retRes31508 := (<-this.LoadMarkets())
+		PanicOnError(retRes31508)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"product_id": GetValue(market, "numericId"),
 			"leverage":   leverage,
 		}
 
-		retRes316615 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params)))
-		PanicOnError(retRes316615)
+		retRes316715 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params)))
+		PanicOnError(retRes316715)
 		//
 		//     {
 		//         "result": {
@@ -3578,7 +3579,7 @@ func (this *DeltaCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any
 		//         "success": true
 		//     }
 		//
-		ch <- retRes316615
+		ch <- retRes316715
 		return nil
 
 	}()
@@ -3610,8 +3611,8 @@ func (this *DeltaCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes31818 := (<-this.LoadMarkets())
-		PanicOnError(retRes31818)
+		retRes31828 := (<-this.LoadMarkets())
+		PanicOnError(retRes31828)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3687,7 +3688,7 @@ func (this *DeltaCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		var settlements any = this.ParseSettlements(result, market)
 		var sorted any = this.SortBy(settlements, "timestamp")
 
-		ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+		ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 		return nil
 
 	}()
@@ -3782,8 +3783,8 @@ func (this *DeltaCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes33408 := (<-this.LoadMarkets())
-		PanicOnError(retRes33408)
+		retRes33418 := (<-this.LoadMarkets())
+		PanicOnError(retRes33418)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3925,7 +3926,7 @@ func (this *DeltaCore) ParseGreeks(greeks any, optionalArgs ...any) any {
 		"bidPrice":              this.SafeNumber(quotes, "best_bid"),
 		"askPrice":              this.SafeNumber(quotes, "best_ask"),
 		"markPrice":             this.SafeNumber(greeks, "mark_price"),
-		"lastPrice":             nil,
+		"lastPrice":             this.SafeNumber(greeks, "last_price"),
 		"underlyingPrice":       this.SafeNumber(greeks, "spot_price"),
 		"info":                  greeks,
 	}
@@ -3948,8 +3949,8 @@ func (this *DeltaCore) CloseAllPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes34908 := (<-this.LoadMarkets())
-		PanicOnError(retRes34908)
+		retRes34918 := (<-this.LoadMarkets())
+		PanicOnError(retRes34918)
 		var request any = map[string]any{
 			"close_all_portfolio": true,
 			"close_all_isolated":  true,
@@ -3986,8 +3987,8 @@ func (this *DeltaCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes35148 := (<-this.LoadMarkets())
-		PanicOnError(retRes35148)
+		retRes35158 := (<-this.LoadMarkets())
+		PanicOnError(retRes35158)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4097,8 +4098,8 @@ func (this *DeltaCore) FetchOption(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes36098 := (<-this.LoadMarkets())
-		PanicOnError(retRes36098)
+		retRes36108 := (<-this.LoadMarkets())
+		PanicOnError(retRes36108)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4226,7 +4227,7 @@ func (this *DeltaCore) ParseOption(chain any, optionalArgs ...any) any {
 	var timestamp any = this.SafeIntegerProduct(chain, "timestamp", 0.001)
 	return map[string]any{
 		"info":              chain,
-		"currency":          nil,
+		"currency":          this.SafeString(chain, "currency"),
 		"symbol":            GetValue(market, "symbol"),
 		"timestamp":         timestamp,
 		"datetime":          this.Iso8601(timestamp),
@@ -4236,12 +4237,12 @@ func (this *DeltaCore) ParseOption(chain any, optionalArgs ...any) any {
 		"askPrice":          this.SafeNumber(quotes, "best_ask"),
 		"midPrice":          this.SafeNumber(quotes, "impact_mid_price"),
 		"markPrice":         this.SafeNumber(chain, "mark_price"),
-		"lastPrice":         nil,
+		"lastPrice":         this.SafeNumber(chain, "last_price"),
 		"underlyingPrice":   this.SafeNumber(chain, "spot_price"),
-		"change":            nil,
-		"percentage":        nil,
+		"change":            this.SafeNumber(chain, "change"),
+		"percentage":        this.SafeNumber(chain, "percentage"),
 		"baseVolume":        this.SafeNumber(chain, "volume"),
-		"quoteVolume":       nil,
+		"quoteVolume":       this.SafeNumber(chain, "quote_volume"),
 	}
 }
 
@@ -4264,8 +4265,8 @@ func (this *DeltaCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes37568 := (<-this.LoadMarkets())
-		PanicOnError(retRes37568)
+		retRes37578 := (<-this.LoadMarkets())
+		PanicOnError(retRes37578)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
 		response := (<-this.PrivateGetPositionsMargined(params))
@@ -4636,7 +4637,7 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
+	headers := GetArg(optionalArgs, 3, map[string]any{})
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body

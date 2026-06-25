@@ -27,7 +27,7 @@ public class TestFetchLastPrices extends BaseTest {
             response = (exchange.fetchLastPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
             checkedSymbol = symbol;
         }
-        Assert(((true)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " must return an object. "), exchange.json(response)));
+        Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " must return a dict. "), exchange.json(response)));
         Object values = Helpers.objectValues(response);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         Object atLeastOnePassed = false;

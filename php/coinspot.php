@@ -661,7 +661,7 @@ class coinspot extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
-        $method = 'privatePostMy' . $this->capitalize($side);
+        $sideUpper = strtoupper($side);
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
@@ -671,8 +671,19 @@ class coinspot extends Exchange {
             'amount' => $amount,
             'rate' => $price,
         );
-        $response = $this->$method ($this->extend($request, $params));
-        return $this->parse_order($response);
+        if ($sideUpper === 'BUY') {
+            $response = $this->privatePostMyBuy ($this->extend($request, $params));
+        } elseif ($sideUpper === 'SELL') {
+            $response = $this->privatePostMySell ($this->extend($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' createOrder only support buy/sell side');
+        }
+        //
+        // status - ok, error
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -695,7 +706,6 @@ class coinspot extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = null;
         if ($side === 'buy') {
             $response = $this->privatePostMyBuyCancel ($this->extend($request, $params));
         } else {
@@ -709,7 +719,19 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+        if (!$response) {
+            return null; // fallback to default error handler
+        }
+        $status = $this->safe_string($response, 'status');
+        if ($status === 'error') {
+            $feedback = $this->id . ' ' . $this->json($response);
+            throw new ExchangeError($feedback);
+        }
+        return null;
+    }
+
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
         $version = $isVersionedApi ? $api[0] : null;
         $accessType = $isVersionedApi ? $api[1] : $api;

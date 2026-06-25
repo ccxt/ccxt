@@ -660,7 +660,7 @@ func (this *BitvavoCore) ParseCurrency(rawCurrency any) any {
 	// btw, absolutely all of them have 1 network atm
 	for j := 0; IsLessThan(j, GetArrayLength(networksArray)); j++ {
 		var networkId any = GetValue(networksArray, j)
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"info":      rawCurrency,
 			"id":        networkId,
@@ -1378,7 +1378,7 @@ func (this *BitvavoCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
  * @description fetch all the accounts associated with a profile
  * @param {object} [params] extra parameters specific to the bitvavo api endpoint
- * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
  */
 func (this *BitvavoCore) FetchAccounts(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1437,7 +1437,7 @@ func (this *BitvavoCore) ParseAccount(account any) any {
  * @param {object} [params] extra parameters specific to the bitvavo api endpoint
  * @param {string} [params.subaccountId] the unique identifier for the subaccount
  * @param {string} [params.clientRequestId] client defined unique id
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BitvavoCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1511,7 +1511,7 @@ func (this *BitvavoCore) Transfer(code any, amount any, fromAccount any, toAccou
  * @param {object} [params] extra parameters specific to the bitvavo api endpoint
  * @param {string} [params.subaccountId] the unique identifier for the subaccount
  * @param {int} [params.until] the latest time in ms to fetch transfers for
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BitvavoCore) FetchTransfers(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1587,7 +1587,7 @@ func (this *BitvavoCore) FetchTransfers(optionalArgs ...any) <-chan any {
  * @param {string} id transfer id
  * @param {string} [code] unified currency code of the currency transferred
  * @param {object} [params] extra parameters specific to the bitvavo api endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BitvavoCore) FetchTransfer(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

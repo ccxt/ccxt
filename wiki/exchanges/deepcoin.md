@@ -68,7 +68,7 @@ retrieves data on all markets for okcoin
 
 
 ```javascript
-deepcoin.fetchMarkets ([params])
+deepcoin.fetchMarkets (params?)
 ```
 
 
@@ -90,7 +90,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-deepcoin.fetchOrderBook (symbol[, limit, params])
+deepcoin.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -122,7 +122,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-deepcoin.fetchOHLCV (symbol, timeframe[, since, limit, params])
+deepcoin.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -143,7 +143,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-deepcoin.fetchTickers ([symbols, params])
+deepcoin.fetchTickers (symbols?, params?)
 ```
 
 
@@ -166,7 +166,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-deepcoin.fetchTrades (symbol[, since, limit, params])
+deepcoin.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -187,7 +187,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-deepcoin.fetchBalance ([params])
+deepcoin.fetchBalance (params?)
 ```
 
 
@@ -212,7 +212,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-deepcoin.fetchDeposits (code[, since, limit, params])
+deepcoin.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -237,7 +237,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-deepcoin.fetchWithdrawals (code[, since, limit, params])
+deepcoin.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -258,7 +258,7 @@ fetch deposit addresses for multiple currencies and chain types
 
 
 ```javascript
-deepcoin.fetchDepositAddresses (codes[, params])
+deepcoin.fetchDepositAddresses (codes, params?)
 ```
 
 
@@ -280,7 +280,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-deepcoin.fetchDepositAddress (code[, params])
+deepcoin.fetchDepositAddress (code, params?)
 ```
 
 
@@ -305,7 +305,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-deepcoin.fetchLedger ([code, since, limit, params])
+deepcoin.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -330,7 +330,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-deepcoin.transfer (code, amount, fromAccount, toAccount[, params])
+deepcoin.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -369,7 +369,7 @@ create a trade order
 
 
 ```javascript
-deepcoin.createOrder (symbol, type, side, amount[, price, params])
+deepcoin.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -391,7 +391,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-deepcoin.createMarketOrderWithCost (symbol, side, cost[, params])
+deepcoin.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -412,7 +412,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-deepcoin.createMarketBuyOrderWithCost (symbol, cost[, params])
+deepcoin.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -433,7 +433,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-deepcoin.createMarketSellOrderWithCost (symbol, cost[, params])
+deepcoin.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -455,7 +455,7 @@ fetches information on a closed order made by the user
 
 
 ```javascript
-deepcoin.fetchClosedOrder (id, symbol[, params])
+deepcoin.fetchClosedOrder (id, symbol, params?)
 ```
 
 
@@ -477,7 +477,7 @@ fetch an open order by it's id
 
 
 ```javascript
-deepcoin.fetchOpenOrder (id, symbol[, params])
+deepcoin.fetchOpenOrder (id, symbol, params?)
 ```
 
 
@@ -509,7 +509,7 @@ fetches information on multiple canceled and closed orders made by the user
 
 
 ```javascript
-deepcoin.fetchCanceledAndClosedOrders ([symbol, since, limit, params])
+deepcoin.fetchCanceledAndClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -533,7 +533,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-deepcoin.fetchCanceledOrders (symbol[, since, limit, params])
+deepcoin.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -557,7 +557,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-deepcoin.fetchClosedOrders (symbol[, since, limit, params])
+deepcoin.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -587,7 +587,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-deepcoin.fetchOpenOrders (symbol[, since, limit, params])
+deepcoin.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -610,7 +610,7 @@ cancels an open order
 
 
 ```javascript
-deepcoin.cancelOrder (id, symbol[, params])
+deepcoin.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -633,7 +633,7 @@ cancel all open orders in a market
 
 
 ```javascript
-deepcoin.cancelAllOrders (symbol[, params])
+deepcoin.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -665,7 +665,7 @@ edit a trade order
 
 
 ```javascript
-deepcoin.editOrder (id[, symbol, type, side, amount, price, params])
+deepcoin.editOrder (id, symbol?, type?, side?, amount?, price?, params?)
 ```
 
 
@@ -686,7 +686,7 @@ cancel multiple orders
 
 
 ```javascript
-deepcoin.cancelOrders (ids[, symbol, params])
+deepcoin.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -707,7 +707,7 @@ fetch all open positions for specific symbol
 
 
 ```javascript
-deepcoin.fetchPositionsForSymbol (symbol[, params])
+deepcoin.fetchPositionsForSymbol (symbol, params?)
 ```
 
 
@@ -728,7 +728,7 @@ fetch all open positions
 
 
 ```javascript
-deepcoin.fetchPositions ([symbols, params])
+deepcoin.fetchPositions (symbols?, params?)
 ```
 
 
@@ -752,7 +752,7 @@ set the level of leverage for a market
 
 
 ```javascript
-deepcoin.setLeverage (leverage, symbol[, params])
+deepcoin.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -774,7 +774,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-deepcoin.fetchFundingRates (symbols[, params])
+deepcoin.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -795,7 +795,7 @@ fetch the current funding rate
 
 
 ```javascript
-deepcoin.fetchFundingRate (symbol[, params])
+deepcoin.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -819,7 +819,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-deepcoin.fetchFundingRateHistory (symbol[, since, limit, params])
+deepcoin.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -845,7 +845,7 @@ fetch all trades made by the user
 
 
 ```javascript
-deepcoin.fetchMyTrades (symbol[, since, limit, params])
+deepcoin.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -870,7 +870,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-deepcoin.fetchOrderTrades (id, symbol[, since, limit, params])
+deepcoin.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -898,7 +898,7 @@ closes open positions for a market
 
 
 ```javascript
-deepcoin.closePosition (symbol[, side, params])
+deepcoin.closePosition (symbol, side?, params?)
 ```
 
 
@@ -919,7 +919,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-deepcoin.watchTicker (symbol[, params])
+deepcoin.watchTicker (symbol, params?)
 ```
 
 
@@ -940,7 +940,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-deepcoin.unWatchTicker (symbol[, params])
+deepcoin.unWatchTicker (symbol, params?)
 ```
 
 
@@ -963,7 +963,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-deepcoin.watchTrades (symbol[, since, limit, params])
+deepcoin.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -984,7 +984,7 @@ unWatches the list of most recent trades for a particular symbol
 
 
 ```javascript
-deepcoin.unWatchTrades (symbol[, params])
+deepcoin.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1008,7 +1008,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-deepcoin.watchOHLCV (symbol[, timeframe, since, limit, params])
+deepcoin.watchOHLCV (symbol, timeframe?, since?, limit?, params?)
 ```
 
 
@@ -1030,7 +1030,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-deepcoin.unWatchOHLCV (symbol[, timeframe, params])
+deepcoin.unWatchOHLCV (symbol, timeframe?, params?)
 ```
 
 
@@ -1052,7 +1052,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-deepcoin.watchOrderBook (symbol[, limit, params])
+deepcoin.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1073,7 +1073,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-deepcoin.unWatchOrderBook (symbol[, params])
+deepcoin.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1096,7 +1096,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-deepcoin.watchMyTrades (symbol[, since, limit, params])
+deepcoin.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1119,7 +1119,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-deepcoin.watchOrders (symbol[, since, limit, params])
+deepcoin.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1142,6 +1142,6 @@ watch all open positions
 
 
 ```javascript
-deepcoin.watchPositions ([symbols, since, limit, params])
+deepcoin.watchPositions (symbols?, since?, limit?, params)
 ```
 

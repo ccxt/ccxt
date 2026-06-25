@@ -807,7 +807,7 @@ func (this *HitbtcCore) ParseCurrency(currency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(rawNetworks)); j++ {
 		var rawNetwork any = GetValue(rawNetworks, j)
 		var networkId any = this.SafeString2(rawNetwork, "protocol", "network")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		networkCode = Ternary(IsTrue((!IsEqual(networkCode, nil))), ToUpper(networkCode), code) // as hitbtc is white label, ensure we safeguard from possible bugs
 		AddElementToObject(networks, networkCode, map[string]any{
 			"info":      rawNetwork,
@@ -4039,7 +4039,7 @@ func (this *HitbtcCore) ParseMarginModification(data any, optionalArgs ...any) a
 	var datetime any = this.SafeString(data, "updated_at")
 	return map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
 		"marginMode": "isolated",
 		"amount":     nil,
@@ -4357,7 +4357,8 @@ func (this *HitbtcCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) an
 	for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
 		var networkEntry any = GetValue(networks, j)
 		var networkId any = this.SafeString(networkEntry, "network")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var code any = this.SafeString(currency, "code")
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		networkCode = Ternary(IsTrue((!IsEqual(networkCode, nil))), ToUpper(networkCode), nil)
 		var withdrawFee any = this.SafeNumber(networkEntry, "payout_fee")
 		var isDefault any = this.SafeValue(networkEntry, "default")
@@ -4401,8 +4402,8 @@ func (this *HitbtcCore) ClosePosition(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes37288 := (<-this.LoadMarkets())
-		PanicOnError(retRes37288)
+		retRes37298 := (<-this.LoadMarkets())
+		PanicOnError(retRes37298)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("closePosition", params, "cross")
 		marginMode = GetValue(marginModeparamsVariable, 0)

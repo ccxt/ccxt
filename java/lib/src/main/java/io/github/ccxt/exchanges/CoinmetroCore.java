@@ -480,7 +480,7 @@ public class CoinmetroCore extends CoinmetroApi
             {
                 Object market = this.parseMarket(Helpers.GetValue(response, i));
                 // there are several broken (unavailable info) markets
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "base"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "quote"), null))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(this.safeString(market, "base"), null)) || Helpers.isTrue(Helpers.isEqual(this.safeString(market, "quote"), null))))
                 {
                     continue;
                 }
@@ -983,7 +983,7 @@ public class CoinmetroCore extends CoinmetroApi
 
     }
 
-    public Object parseBidsAsks(Object bidasks, Object... optionalArgs)
+    public Object parseOrderBookBidsAsks(Object bidasks, Object... optionalArgs)
     {
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
@@ -995,7 +995,7 @@ public class CoinmetroCore extends CoinmetroApi
             Object priceString = this.safeString(prices, i);
             Object price = this.safeNumber(prices, i);
             Object volume = this.safeNumber(bidasks, priceString);
-            ((java.util.List<Object>)result).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, volume)));
+            ((java.util.List<Object>)(result)).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, volume)));
         }
         return result;
     }
@@ -1600,7 +1600,7 @@ public class CoinmetroCore extends CoinmetroApi
             //         "takerQty": 0.002
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder(response);
         });
 
     }
@@ -2258,7 +2258,7 @@ public class CoinmetroCore extends CoinmetroApi
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
+        Object headers = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object request = this.omit(parameters, this.extractParams(path));
         Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));

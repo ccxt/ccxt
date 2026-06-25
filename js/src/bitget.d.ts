@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -20,7 +20,7 @@ export default class bitget extends Exchange {
      * @param enabled
      */
     enableDemoTrading(enabled: boolean): void;
-    handleProductTypeAndParams(market?: any, params?: {}): {}[];
+    handleProductTypeAndParams(market?: Market, params?: {}): [Str, Dict];
     /**
      * @method
      * @name bitget#fetchTime
@@ -861,7 +861,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -881,7 +881,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -901,7 +901,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -920,7 +920,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -929,7 +929,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -1128,10 +1128,10 @@ export default class bitget extends Exchange {
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     nonce(): number;
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: any;
+        headers: Dict;
     };
 }

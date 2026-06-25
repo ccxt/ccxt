@@ -604,7 +604,7 @@ class deribit extends Exchange {
         return $this->safe_integer($response, 'result');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -1326,7 +1326,7 @@ class deribit extends Exchange {
         //         "testnet" => false
         //     }
         //
-        $result = $this->safe_dict($response, 'result');
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_ticker($result, $market);
     }
 
@@ -2009,7 +2009,7 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_dict($response, 'result');
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_order($result, $market);
     }
 
@@ -2784,7 +2784,7 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_dict($response, 'result');
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_position($result);
     }
 
@@ -3612,7 +3612,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_option(string $symbol, $params = array ()): Option {
+    public function fetch_option(string $symbol, $params = array ()): array {
         /**
          * fetches option data that is commonly found in an option $chain
          *
@@ -3665,7 +3665,7 @@ class deribit extends Exchange {
         return $this->parse_option($chain, null, $market);
     }
 
-    public function fetch_option_chain(string $code, $params = array ()): OptionChain {
+    public function fetch_option_chain(string $code, $params = array ()): array {
         /**
          * fetches data for an underlying asset that is commonly found in an option chain
          *
@@ -3718,7 +3718,7 @@ class deribit extends Exchange {
         return $this->parse_option_chain($result, 'base_currency', 'instrument_name');
     }
 
-    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
         //         "mid_price" => 0.04025,
@@ -3873,7 +3873,7 @@ class deribit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $request = '/' . 'api/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {

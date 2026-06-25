@@ -5,12 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
+import { md5 } from '@noble/hashes/legacy.js';
 import Exchange from './abstract/btcbox.js';
 import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class btcbox
@@ -153,7 +153,7 @@ export default class btcbox extends Exchange {
             },
             'options': {
                 'fetchMarkets': {
-                    'webApiEnable': true,
+                    'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 3,
                 },
                 'amountPrecision': '0.0001', // exchange has only few pairs and all of them
@@ -224,12 +224,12 @@ export default class btcbox extends Exchange {
                 '104': AuthenticationError,
                 '105': PermissionDenied,
                 '106': InvalidNonce,
-                '107': InvalidOrder,
+                '107': InvalidOrder, // price should be an integer
                 '200': InsufficientFunds,
-                '201': InvalidOrder,
-                '202': InvalidOrder,
+                '201': InvalidOrder, // amount too small
+                '202': InvalidOrder, // price should be [0 : 1000000]
                 '203': OrderNotFound,
-                '401': OrderNotFound,
+                '401': OrderNotFound, // cancel canceled, closed or non-existent order
                 '402': DDoSProtection,
             },
         });
@@ -490,7 +490,7 @@ export default class btcbox extends Exchange {
         //
         //      {
         //          "date":"0",
-        //          "price":3,
+        //          "price":4,
         //          "amount":0.1,
         //          "tid":"1",
         //          "type":"buy"
@@ -613,10 +613,10 @@ export default class btcbox extends Exchange {
     parseOrderStatus(status) {
         const statuses = {
             // TODO: complete list
-            'part': 'open',
-            'all': 'closed',
+            'part': 'open', // partially or not at all executed
+            'all': 'closed', // fully executed
             'cancelled': 'canceled',
-            'closed': 'closed',
+            'closed': 'closed', // never encountered, seems to be bug in the doc
             'no': 'closed', // not clarified in the docs...
         };
         return this.safeString(statuses, status, status);
@@ -719,7 +719,7 @@ export default class btcbox extends Exchange {
         // a special case for btcbox – default symbol is BTC/JPY
         const market = this.market(symbol);
         const request = {
-            'type': type,
+            'type': type, // 'open' or 'all'
             'coin': market['baseId'],
         };
         const response = await this.privatePostTradeList(this.extend(request, params));

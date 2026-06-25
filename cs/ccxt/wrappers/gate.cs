@@ -75,10 +75,10 @@ public partial class gate
         var res = await this.fetchOptionMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public async Task<List<Dictionary<string, object>>> FetchOptionUnderlyings()
+    public async Task<List<string>> FetchOptionUnderlyings()
     {
         var res = await this.fetchOptionUnderlyings();
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => (item as string)).ToList();
     }
     /// <summary>
     /// fetch the current funding rate
@@ -418,6 +418,54 @@ public partial class gate
         var res = await this.fetchBalance(parameters);
         return new Balances(res);
     }
+    /// <summary>
+    /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#options-contract-market-candlestick-chart"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.price</term>
+    /// <description>
+    /// string : "mark" or "index" for mark price and index price candles
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency).</returns>
     public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1699,10 +1747,10 @@ public partial class gate
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchUnderlyingAssets(Dictionary<string, object> parameters = null)
+    public async Task<List<string>> FetchUnderlyingAssets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchUnderlyingAssets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => (item as string)).ToList();
     }
     /// <summary>
     /// retrieves the public liquidations of a trading pair

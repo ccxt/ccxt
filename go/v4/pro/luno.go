@@ -276,8 +276,8 @@ func  (this *LunoCore) CustomParseOrderBook(orderbook any, symbol any, optionalA
     _ = amountKey
     countOrIdKey := ccxt.GetArg(optionalArgs, 5, 2)
     _ = countOrIdKey
-    var bids any = this.ParseBidsAsks(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
-    var asks any = this.ParseBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
+    var bids any = this.ParseOrderBookBidsAsks(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
+    var asks any = this.ParseOrderBookBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
     return map[string]any {
         "symbol": symbol,
         "bids": this.SortBy(bids, 0, true),
@@ -287,7 +287,7 @@ func  (this *LunoCore) CustomParseOrderBook(orderbook any, symbol any, optionalA
         "nonce": nil,
     }
 }
-func  (this *LunoCore) ParseBidsAsks(bidasks any, optionalArgs ...any) any  {
+func  (this *LunoCore) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any  {
     priceKey := ccxt.GetArg(optionalArgs, 0, "price")
     _ = priceKey
     amountKey := ccxt.GetArg(optionalArgs, 1, "volume")

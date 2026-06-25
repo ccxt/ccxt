@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.56'
+__version__ = '4.5.59'
 
 # -----------------------------------------------------------------------------
 
@@ -67,7 +67,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.async_support.aftermath import aftermath                              # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.apex import apex                                        # noqa: F401
-from ccxt.async_support.arkham import arkham                                    # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
 from ccxt.async_support.aster import aster                                      # noqa: F401
 from ccxt.async_support.backpack import backpack                                # noqa: F401
@@ -105,7 +104,6 @@ from ccxt.async_support.bybiteu import bybiteu                                  
 from ccxt.async_support.bydfi import bydfi                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
-from ccxt.async_support.coinbaseadvanced import coinbaseadvanced                # noqa: F401
 from ccxt.async_support.coinbaseexchange import coinbaseexchange                # noqa: F401
 from ccxt.async_support.coinbaseinternational import coinbaseinternational      # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
@@ -124,6 +122,7 @@ from ccxt.async_support.derive import derive                                    
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
 from ccxt.async_support.dydx import dydx                                        # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
+from ccxt.async_support.extended import extended                                # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
@@ -134,7 +133,6 @@ from ccxt.async_support.hibachi import hibachi                                  
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
 from ccxt.async_support.htx import htx                                          # noqa: F401
-from ccxt.async_support.huobi import huobi                                      # noqa: F401
 from ccxt.async_support.hyperliquid import hyperliquid                          # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
@@ -164,13 +162,11 @@ from ccxt.async_support.poloniex import poloniex                                
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.toobit import toobit                                    # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
-from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
 from ccxt.async_support.weex import weex                                        # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
 from ccxt.async_support.woofipro import woofipro                                # noqa: F401
 from ccxt.async_support.xt import xt                                            # noqa: F401
-from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
 from ccxt.async_support.zebpay import zebpay                                    # noqa: F401
 
@@ -178,7 +174,6 @@ exchanges = [
     'aftermath',
     'alpaca',
     'apex',
-    'arkham',
     'ascendex',
     'aster',
     'backpack',
@@ -216,7 +211,6 @@ exchanges = [
     'bydfi',
     'cex',
     'coinbase',
-    'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
@@ -235,6 +229,7 @@ exchanges = [
     'digifinex',
     'dydx',
     'exmo',
+    'extended',
     'fmfwio',
     'foxbit',
     'gate',
@@ -245,7 +240,6 @@ exchanges = [
     'hitbtc',
     'hollaex',
     'htx',
-    'huobi',
     'hyperliquid',
     'independentreserve',
     'indodax',
@@ -275,13 +269,11 @@ exchanges = [
     'tokocrypto',
     'toobit',
     'upbit',
-    'wavesexchange',
     'weex',
     'whitebit',
     'woo',
     'woofipro',
     'xt',
-    'yobit',
     'zaif',
     'zebpay',
 ]

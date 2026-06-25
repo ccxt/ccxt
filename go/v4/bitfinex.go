@@ -1124,7 +1124,7 @@ func (this *BitfinexCore) ConvertDerivativesId(currency any, typeVar any) any {
 	var currencyId any = nil
 	if IsTrue(IsEqual(typeVar, "derivatives")) {
 		currencyId = this.SafeString(underlying, 0, transferId)
-		var start any = Subtract(GetArrayLength(currencyId), 2)
+		var start any = Subtract(GetLength(currencyId), 2)
 		var isDerivativeCode any = IsEqual(Slice(currencyId, start, nil), "F0")
 		if !IsTrue(isDerivativeCode) {
 			currencyId = Add(currencyId, "F0")
@@ -2888,13 +2888,13 @@ func (this *BitfinexCore) ParseTransaction(transaction any, optionalArgs ...any)
 		tag = this.SafeString(data, 3)
 		typeVar = "withdrawal"
 		var networkId any = this.SafeString(data, 2)
-		network = this.NetworkIdToCode(ToUpper(networkId)) // withdraw returns in lowercase
+		network = this.NetworkIdToCode(ToUpper(networkId), code) // withdraw returns in lowercase
 	} else if IsTrue(IsEqual(transactionLength, 22)) {
 		id = this.SafeString(transaction, 0)
 		var currencyId any = this.SafeString(transaction, 1)
 		code = this.SafeCurrencyCode(currencyId, currency)
 		var networkId any = this.SafeString(transaction, 2)
-		network = this.NetworkIdToCode(networkId)
+		network = this.NetworkIdToCode(networkId, code)
 		timestamp = this.SafeInteger(transaction, 5)
 		updated = this.SafeInteger(transaction, 6)
 		status = this.ParseTransactionStatus(this.SafeString(transaction, 9))
@@ -4415,7 +4415,7 @@ func (this *BitfinexCore) ParseMarginModification(data any, optionalArgs ...any)
 	var marginStatus any = Ternary(IsTrue((IsEqual(marginStatusRaw, 1))), "ok", "failed")
 	return map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
 		"marginMode": "isolated",
 		"amount":     nil,

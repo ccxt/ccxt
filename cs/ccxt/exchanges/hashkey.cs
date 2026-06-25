@@ -1161,7 +1161,7 @@ public partial class hashkey : Exchange
         {
             object network = getValue(networks, j);
             object networkId = this.safeString(network, "chainType");
-            object networkCode = this.networkCodeToId(networkId);
+            object networkCode = this.networkCodeToId(networkId, code);
             ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },
@@ -1362,7 +1362,7 @@ public partial class hashkey : Exchange
             {
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             if (isTrue(!isEqual(accountId, null)))
             {
                 ((IDictionary<string,object>)request)["subAccountId"] = accountId;
@@ -1521,7 +1521,7 @@ public partial class hashkey : Exchange
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000);
         }
         object market = this.market(symbol);
-        timeframe = this.safeString(this.timeframes, timeframe, timeframe);
+        timeframe = ((string)this.safeString(this.timeframes, timeframe, timeframe));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "interval", timeframe },
@@ -2090,7 +2090,7 @@ public partial class hashkey : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
         }
         object response = await this.privatePostApiV1AccountWithdraw(this.extend(request, parameters));
         //
@@ -3347,7 +3347,7 @@ public partial class hashkey : Exchange
             {
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             object isTrigger = false;
             var isTriggerparametersVariable = this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
             isTrigger = ((IList<object>)isTriggerparametersVariable)[0];
@@ -3516,7 +3516,7 @@ public partial class hashkey : Exchange
         {
             type = "market";
         }
-        object price = this.omitZero(this.safeString(order, "price"));
+        object price = this.omitZero(((string)this.safeString(order, "price")));
         if (isTrue(isEqual(type, "STOP")))
         {
             if (isTrue(isEqual(price, null)))
@@ -3533,7 +3533,7 @@ public partial class hashkey : Exchange
         type = ((IList<object>)typetimeInForcepostOnlyVariable)[0];
         timeInForce = ((IList<object>)typetimeInForcepostOnlyVariable)[1];
         postOnly = ((IList<object>)typetimeInForcepostOnlyVariable)[2];
-        object average = this.omitZero(this.safeString(order, "avgPrice"));
+        object average = this.omitZero(((string)this.safeString(order, "avgPrice")));
         if (isTrue(isEqual(price, null)))
         {
             price = average;
@@ -3562,17 +3562,17 @@ public partial class hashkey : Exchange
             { "side", side },
             { "price", price },
             { "average", average },
-            { "amount", this.omitZero(this.safeString(order, "origQty")) },
+            { "amount", this.omitZero(((string)this.safeString(order, "origQty"))) },
             { "filled", this.safeString(order, "executedQty") },
             { "remaining", null },
-            { "triggerPrice", this.omitZero(this.safeString(order, "stopPrice")) },
+            { "triggerPrice", this.omitZero(((string)this.safeString(order, "stopPrice"))) },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
-            { "cost", this.omitZero(this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) },
+            { "cost", this.omitZero(((string)this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty"))) },
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(feeCurrncyId) },
-                { "amount", this.omitZero(this.safeString(order, "feeAmount")) },
+                { "amount", this.omitZero(((string)this.safeString(order, "feeAmount"))) },
             } },
             { "reduceOnly", reduceOnly },
             { "postOnly", postOnly },
@@ -3947,7 +3947,7 @@ public partial class hashkey : Exchange
         object leverageValue = this.safeNumber(leverage, "leverage");
         return new Dictionary<string, object>() {
             { "info", leverage },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginMode },
             { "longLeverage", leverageValue },
             { "shortLeverage", leverageValue },
@@ -4183,7 +4183,7 @@ public partial class hashkey : Exchange
         {
             object fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsedFee = this.parseTradingFee(fee);
-            ((IDictionary<string,object>)result)[(string)getValue(parsedFee, "symbol")] = parsedFee;
+            ((IDictionary<string,object>)result)[(string)((string)getValue(parsedFee, "symbol"))] = parsedFee;
         }
         return result;
     }

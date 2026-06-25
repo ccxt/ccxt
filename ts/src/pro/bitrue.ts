@@ -3,7 +3,7 @@
 import bitrueRest from '../bitrue.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Balances, Dict, Trade, Ticker, OHLCV } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -317,9 +317,9 @@ export default class bitrue extends bitrueRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        let url = undefined;
-        let channel = undefined;
-        let cbId = undefined;
+        let url: Str = undefined;
+        let channel: Str = undefined;
+        let cbId: Str = undefined;
         if (market['swap']) {
             const baseIdLower = this.safeStringLower (market, 'baseId');
             const quoteIdLower = this.safeStringLower (market, 'quoteId');
@@ -328,7 +328,7 @@ export default class bitrue extends bitrueRest {
             cbId = wsId;
             url = this.urls['api']['ws']['futurePublic'];
         } else {
-            const marketIdLowercase = market['id'].toLowerCase ();
+            const marketIdLowercase = this.safeStringLower (market, 'id');
             channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
             cbId = marketIdLowercase;
             url = this.urls['api']['ws']['public'];
@@ -381,7 +381,7 @@ export default class bitrue extends bitrueRest {
         const parts = channel.split ('_');
         const channelKind = this.safeString (parts, 1);
         const isFutures = (channelKind === 'e');
-        let market = undefined;
+        let market: Market = undefined;
         if (isFutures) {
             const wsBaseQuote = this.safeStringLower (parts, 2);
             market = this.findSwapMarketByWsBaseQuote (wsBaseQuote);
@@ -460,7 +460,7 @@ export default class bitrue extends bitrueRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -676,7 +676,7 @@ export default class bitrue extends bitrueRest {
      * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();

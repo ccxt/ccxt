@@ -68,7 +68,7 @@ retrieves data on all markets for bitmex
 
 
 ```javascript
-oxfun.fetchMarkets ([params])
+oxfun.fetchMarkets (params?)
 ```
 
 
@@ -88,7 +88,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-oxfun.fetchCurrencies ([params])
+oxfun.fetchCurrencies (params?)
 ```
 
 
@@ -109,7 +109,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-oxfun.fetchTickers (symbols[, params])
+oxfun.fetchTickers (symbols, params?)
 ```
 
 
@@ -130,7 +130,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-oxfun.fetchTicker (symbol[, params])
+oxfun.fetchTicker (symbol, params?)
 ```
 
 
@@ -155,7 +155,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-oxfun.fetchOHLCV (symbol, timeframe[, since, limit, params])
+oxfun.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -177,7 +177,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-oxfun.fetchOrderBook (symbol[, limit, params])
+oxfun.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -198,7 +198,7 @@ fetch the current funding rates for multiple markets
 
 
 ```javascript
-oxfun.fetchFundingRates (symbols[, params])
+oxfun.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -219,7 +219,7 @@ fetch the current funding rates for a symbol
 
 
 ```javascript
-oxfun.fetchFundingRate (symbol[, params])
+oxfun.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -243,7 +243,7 @@ Fetches the history of funding rates
 
 
 ```javascript
-oxfun.fetchFundingRateHistory (symbol[, since, limit, params])
+oxfun.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -267,7 +267,7 @@ fetches the history of funding payments
 
 
 ```javascript
-oxfun.fetchFundingHistory (symbol[, since, limit, params])
+oxfun.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -288,7 +288,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-oxfun.fetchLeverageTiers ([symbols, params])
+oxfun.fetchLeverageTiers (symbols?, params?)
 ```
 
 
@@ -312,7 +312,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-oxfun.fetchTrades (symbol[, since, limit, params])
+oxfun.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -336,7 +336,7 @@ fetch all trades made by the user
 
 
 ```javascript
-oxfun.fetchMyTrades (symbol[, since, limit, params])
+oxfun.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -358,7 +358,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-oxfun.fetchBalance ([params])
+oxfun.fetchBalance (params?)
 ```
 
 
@@ -378,7 +378,7 @@ fetch subaccounts associated with a profile
 
 
 ```javascript
-oxfun.fetchAccounts ([params])
+oxfun.fetchAccounts (params?)
 ```
 
 
@@ -402,7 +402,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-oxfun.transfer (code, amount, fromAccount, toAccount[, params])
+oxfun.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -426,7 +426,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-oxfun.fetchTransfers (code[, since, limit, params])
+oxfun.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -448,7 +448,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-oxfun.fetchDepositAddress (code[, params])
+oxfun.fetchDepositAddress (code, params?)
 ```
 
 
@@ -472,7 +472,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-oxfun.fetchDeposits (code[, since, limit, params])
+oxfun.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -496,7 +496,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-oxfun.fetchWithdrawals (code[, since, limit, params])
+oxfun.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -524,7 +524,7 @@ make a withdrawal
 
 
 ```javascript
-oxfun.withdraw (code, amount, address, tag[, params])
+oxfun.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -546,7 +546,7 @@ fetch all open positions
 
 
 ```javascript
-oxfun.fetchPositions (symbols[, params])
+oxfun.fetchPositions (symbols, params?)
 ```
 
 
@@ -582,7 +582,7 @@ create a trade order
 
 
 ```javascript
-oxfun.createOrder (symbol, type, side, amount[, price, params])
+oxfun.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -606,7 +606,7 @@ create a list of trade orders
 
 
 ```javascript
-oxfun.createOrders (orders[, params])
+oxfun.createOrders (orders, params?)
 ```
 
 
@@ -628,7 +628,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-oxfun.createMarketBuyOrderWithCost (symbol, cost[, params])
+oxfun.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -651,7 +651,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-oxfun.fetchOrder (id[, symbol, params])
+oxfun.fetchOrder (id, symbol?, params?)
 ```
 
 
@@ -676,7 +676,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-oxfun.fetchOpenOrders (symbol[, since, limit, params])
+oxfun.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -702,7 +702,7 @@ cancels an open order
 
 
 ```javascript
-oxfun.cancelOrder (id, symbol[, params])
+oxfun.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -723,7 +723,7 @@ cancel all open orders
 
 
 ```javascript
-oxfun.cancelAllOrders (symbol[, params])
+oxfun.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -748,7 +748,7 @@ cancel multiple orders
 
 
 ```javascript
-oxfun.cancelOrders (ids[, symbol, params])
+oxfun.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -772,7 +772,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-oxfun.watchTrades (symbol[, since, limit, params])
+oxfun.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -796,7 +796,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-oxfun.watchTradesForSymbols (symbols[, since, limit, params])
+oxfun.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -821,7 +821,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-oxfun.watchOHLCV (symbol, timeframe[, since, limit, params])
+oxfun.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -845,7 +845,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-oxfun.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+oxfun.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -871,7 +871,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-oxfun.watchOrderBook (symbol[, limit, params])
+oxfun.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -898,7 +898,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-oxfun.watchOrderBookForSymbols (symbols[, limit, params])
+oxfun.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -920,7 +920,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-oxfun.watchTicker (symbol[, params])
+oxfun.watchTicker (symbol, params?)
 ```
 
 
@@ -942,7 +942,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-oxfun.watchTickers ([symbols, params])
+oxfun.watchTickers (symbols?, params?)
 ```
 
 
@@ -963,7 +963,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-oxfun.watchBidsAsks (symbols[, params])
+oxfun.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -984,7 +984,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-oxfun.watchBalance ([params])
+oxfun.watchBalance (params?)
 ```
 
 
@@ -1008,7 +1008,7 @@ watch all open positions
 
 
 ```javascript
-oxfun.watchPositions ([symbols, since, limit, params])
+oxfun.watchPositions (symbols?, since?, limit?, params?)
 ```
 
 
@@ -1032,7 +1032,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-oxfun.watchOrders (symbol[, since, limit, params])
+oxfun.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1067,7 +1067,7 @@ create a trade order
 
 
 ```javascript
-oxfun.createOrderWs (symbol, type, side, amount[, price, params])
+oxfun.createOrderWs (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -1095,7 +1095,7 @@ edit a trade order
 
 
 ```javascript
-oxfun.editOrderWs (id, symbol, type, side, amount[, price, params])
+oxfun.editOrderWs (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -1117,7 +1117,7 @@ cancels an open order
 
 
 ```javascript
-oxfun.cancelOrderWs (id, symbol[, params])
+oxfun.cancelOrderWs (id, symbol, params?)
 ```
 
 
@@ -1139,6 +1139,6 @@ cancel multiple orders
 
 
 ```javascript
-oxfun.cancelOrdersWs (ids, symbol[, params])
+oxfun.cancelOrdersWs (ids, symbol, params?)
 ```
 

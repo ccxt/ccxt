@@ -287,7 +287,7 @@ func  (this *IndependentreserveCore) ValueToChecksum(value any) any  {
     return result
 }
 func  (this *IndependentreserveCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta, "Price", "Volume")
+    var bidAsk any = this.ParseOrderBookBidAsk(delta, "Price", "Volume")
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func  (this *IndependentreserveCore) HandleDeltas(bookside any, deltas any)  {

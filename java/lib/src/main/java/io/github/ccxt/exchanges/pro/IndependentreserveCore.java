@@ -292,7 +292,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta, "Price", "Volume");
+        Object bidAsk = this.parseOrderBookBidAsk(delta, "Price", "Volume");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 

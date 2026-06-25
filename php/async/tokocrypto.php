@@ -918,9 +918,8 @@ class tokocrypto extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
-            $response = null;
             if ($market['quote'] === 'USDT') {
-                $request['symbol'] = $market['baseId'] . $market['quoteId'];
+                $request['symbol'] = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
                 $response = Async\await($this->binanceGetDepth ($this->extend($request, $params)));
             } else {
                 $request['symbol'] = $market['id'];
@@ -1340,7 +1339,7 @@ class tokocrypto extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['baseId'] . $market['quoteId'],
+                'symbol' => $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''),
             );
             $response = Async\await($this->binanceGetTicker24hr ($this->extend($request, $params)));
             if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
@@ -2530,7 +2529,7 @@ class tokocrypto extends Exchange {
                 $request['addressTag'] = $tag;
             }
             list($networkCode, $query) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $code);
             if ($networkId !== null) {
                 $request['network'] = strtoupper($networkId);
             }
@@ -2549,7 +2548,7 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
         if (!(is_array($this->urls['api']['rest']) && array_key_exists($api, $this->urls['api']['rest']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
         }

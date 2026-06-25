@@ -411,7 +411,7 @@ class hollaex extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -504,7 +504,7 @@ class hollaex extends Exchange {
         for ($j = 0; $j < count($networkIds); $j++) {
             $networkId = $networkIds[$j];
             $networkEntry = $this->safe_dict($rawNetworks, $networkId);
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -548,7 +548,7 @@ class hollaex extends Exchange {
         ));
     }
 
-    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): OrderBooks {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          *
@@ -882,8 +882,8 @@ class hollaex extends Exchange {
         $makerFees = $this->safe_value($fees, 'maker', array());
         $takerFees = $this->safe_value($fees, 'taker', array());
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        for ($i = 0; $i < count(($this->symbols)); $i++) {
+            $symbol = ($this->symbols)[$i];
             $market = $this->market($symbol);
             $makerString = $this->safe_string($makerFees, $market['id']);
             $takerString = $this->safe_string($takerFees, $market['id']);
@@ -2010,7 +2010,7 @@ class hollaex extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (($method === 'GET') || ($method === 'DELETE')) {

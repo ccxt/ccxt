@@ -258,7 +258,7 @@ public partial class zebpay : Exchange
 
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -399,7 +399,7 @@ public partial class zebpay : Exchange
         {
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "chainId");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object depositAllowed = isEqual(this.safeBool(chain, "isDepositEnabled"), true);
             deposit = ((bool) isTrue((depositAllowed))) ? depositAllowed : deposit;
             object withdrawAllowed = isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
@@ -531,7 +531,7 @@ public partial class zebpay : Exchange
 
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1368,7 +1368,7 @@ public partial class zebpay : Exchange
         //         }
         //     }
         //
-        object responseData = this.safeDict(response, "data");
+        object responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(responseData, market);
     }
 
@@ -1501,7 +1501,7 @@ public partial class zebpay : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "symbol", ((string)getValue(market, "id")).ToUpper() },
+            { "symbol", this.safeStringUpper(market, "id") },
         };
         object response = await this.privateSwapGetV1TradeUserLeverage(this.extend(request, parameters));
         //
@@ -1582,7 +1582,7 @@ public partial class zebpay : Exchange
 
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -1629,7 +1629,7 @@ public partial class zebpay : Exchange
 
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.
@@ -1983,7 +1983,7 @@ public partial class zebpay : Exchange
         object timestamp = this.milliseconds();
         return new Dictionary<string, object>() {
             { "info", info },
-            { "symbol", getValue(market, "id") },
+            { "symbol", this.safeString(market, "id") },
             { "type", null },
             { "marginMode", null },
             { "amount", this.safeNumber(info, "amount") },

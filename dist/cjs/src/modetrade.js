@@ -2,14 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
+var sha3_js = require('@noble/hashes/sha3.js');
+var secp256k1_js = require('@noble/curves/secp256k1.js');
 var modetrade$1 = require('./abstract/modetrade.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var crypto = require('./base/functions/crypto.js');
-var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
-var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
-var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -22,7 +22,7 @@ class modetrade extends modetrade$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'modetrade',
             'name': 'Mode Trade',
-            'countries': ['KY'],
+            'countries': ['KY'], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
             'certified': false,
@@ -305,8 +305,8 @@ class modetrade extends modetrade$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo by triggerPrice
+                        'takeProfitPrice': false, // todo by triggerPrice
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -316,7 +316,7 @@ class modetrade extends modetrade$1["default"] {
                         },
                         'hedged': false,
                         'trailing': true,
-                        'leverage': true,
+                        'leverage': true, // todo implement
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
@@ -389,29 +389,29 @@ class modetrade extends modetrade$1["default"] {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-1000': errors.ExchangeError,
-                    '-1001': errors.AuthenticationError,
-                    '-1002': errors.AuthenticationError,
-                    '-1003': errors.RateLimitExceeded,
-                    '-1004': errors.BadRequest,
-                    '-1005': errors.BadRequest,
-                    '-1006': errors.InvalidOrder,
-                    '-1007': errors.BadRequest,
-                    '-1008': errors.InvalidOrder,
-                    '-1009': errors.InsufficientFunds,
-                    '-1011': errors.NetworkError,
-                    '-1012': errors.BadRequest,
-                    '-1101': errors.InsufficientFunds,
-                    '-1102': errors.InvalidOrder,
-                    '-1103': errors.InvalidOrder,
-                    '-1104': errors.InvalidOrder,
-                    '-1105': errors.InvalidOrder,
-                    '-1201': errors.BadRequest,
-                    '-1202': errors.BadRequest,
-                    '29': errors.BadRequest,
-                    '9': errors.AuthenticationError,
-                    '3': errors.AuthenticationError,
-                    '2': errors.BadRequest,
+                    '-1000': errors.ExchangeError, // UNKNOWN The data does not exist
+                    '-1001': errors.AuthenticationError, // INVALID_SIGNATURE The api key or secret is in wrong format.
+                    '-1002': errors.AuthenticationError, // UNAUTHORIZED API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked.
+                    '-1003': errors.RateLimitExceeded, // TOO_MANY_REQUEST Rate limit exceed.
+                    '-1004': errors.BadRequest, // UNKNOWN_PARAM An unknown parameter was sent.
+                    '-1005': errors.BadRequest, // INVALID_PARAM Some parameters are in wrong format for api.
+                    '-1006': errors.InvalidOrder, // RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise this error.
+                    '-1007': errors.BadRequest, // DUPLICATE_REQUEST The data is already exists or your request is duplicated.
+                    '-1008': errors.InvalidOrder, // QUANTITY_TOO_HIGH The quantity of settlement is too high than you can request.
+                    '-1009': errors.InsufficientFunds, // CAN_NOT_WITHDRAWAL Can not request withdrawal settlement, you need to deposit other arrears first.
+                    '-1011': errors.NetworkError, // RPC_NOT_CONNECT Can not place/cancel orders, it may because internal network error. Please try again in a few seconds.
+                    '-1012': errors.BadRequest, // RPC_REJECT The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds.
+                    '-1101': errors.InsufficientFunds, // RISK_TOO_HIGH The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure.
+                    '-1102': errors.InvalidOrder, // MIN_NOTIONAL The order value (price * size) is too small.
+                    '-1103': errors.InvalidOrder, // PRICE_FILTER The order price is not following the tick size rule for the symbol.
+                    '-1104': errors.InvalidOrder, // SIZE_FILTER The order quantity is not following the step size rule for the symbol.
+                    '-1105': errors.InvalidOrder, // PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
+                    '-1201': errors.BadRequest, // LIQUIDATION_REQUEST_RATIO_TOO_SMALL total notional < 10000, least req ratio should = 1
+                    '-1202': errors.BadRequest, // LIQUIDATION_STATUS_ERROR No need to liquidation because user margin is enough.
+                    '29': errors.BadRequest, // {"success":false,"code":29,"message":"Verify contract is invalid"}
+                    '9': errors.AuthenticationError, // {"success":false,"code":9,"message":"Address and signature do not match"}
+                    '3': errors.AuthenticationError, // {"success":false,"code":3,"message":"Signature error"}
+                    '2': errors.BadRequest, // {"success":false,"code":2,"message":"Timestamp expired"}
                     '15': errors.BadRequest, // {"success":false,"code":15,"message":"BrokerId is not exist"}
                 },
                 'broad': {},
@@ -659,7 +659,7 @@ class modetrade extends modetrade$1["default"] {
     }
     parseCurrency(rawCurrency) {
         const currencyId = this.safeString(rawCurrency, 'token');
-        const networks = this.safeList(rawCurrency, 'chain_details');
+        const networks = this.safeList(rawCurrency, 'chain_details', []);
         const code = this.safeCurrencyCode(currencyId);
         let minPrecision = undefined;
         const resultingNetworks = {};
@@ -1377,7 +1377,7 @@ class modetrade extends modetrade$1["default"] {
             'symbol': symbol,
             'type': this.parseOrderType(orderType),
             'timeInForce': this.parseTimeInForce(orderType),
-            'postOnly': undefined,
+            'postOnly': undefined, // TO_DO
             'reduceOnly': this.safeBool(order, 'reduce_only'),
             'side': side,
             'price': price,
@@ -1387,7 +1387,7 @@ class modetrade extends modetrade$1["default"] {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': remaining, // TO_DO
             'cost': cost,
             'trades': transactions,
             'fee': {
@@ -1598,7 +1598,7 @@ class modetrade extends modetrade$1["default"] {
             // }
             //
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         data['timestamp'] = this.safeInteger(response, 'timestamp');
         const order = this.parseOrder(data, market);
         order['type'] = type;
@@ -1769,12 +1769,12 @@ class modetrade extends modetrade$1["default"] {
             market = this.market(symbol);
         }
         const request = {
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
         };
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response;
         if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
@@ -2358,7 +2358,7 @@ class modetrade extends modetrade$1["default"] {
     }
     parseLedgerEntryType(type) {
         const types = {
-            'BALANCE': 'transaction',
+            'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
         return this.safeString(types, type, type);
@@ -2502,10 +2502,10 @@ class modetrade extends modetrade$1["default"] {
         return this.safeNumber(data, 'withdraw_nonce');
     }
     hashMessage(message) {
-        return '0x' + this.hash(message, sha3.keccak_256, 'hex');
+        return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
-        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1.secp256k1, undefined);
+        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v']));
@@ -2598,7 +2598,7 @@ class modetrade extends modetrade$1["default"] {
         const leverageValue = this.safeInteger(leverage, 'max_leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -2909,7 +2909,7 @@ class modetrade extends modetrade$1["default"] {
                 const parts = secret.split('ed25519:');
                 secret = parts[1];
             }
-            const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519.ed25519);
+            const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519_js.ed25519);
             headers['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

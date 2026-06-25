@@ -995,7 +995,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object cost = Precise.stringMul(price, amount);
         Object side = this.safeStringLower(trade, "side");
         Object timestamp = this.safeInteger(trade, "timestamp");
-        Object maker = this.safeBool(trade, "marker");
+        Object maker = this.safeBool(trade, "maker");
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
         {

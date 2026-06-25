@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var index$1 = require('../scure-bip32/index.js');
-var index = require('../scure-bip39/index.js');
-var english = require('../scure-bip39/wordlists/english.js');
+var bip32 = require('@scure/bip32');
+var bip39 = require('@scure/bip39');
+var english_js = require('@scure/bip39/wordlists/english.js');
 
 // ----------------------------------------------------------------------------
 /**
@@ -21,7 +21,7 @@ var english = require('../scure-bip39/wordlists/english.js');
  * @returns Mnemonic and priv/pub keys
  */
 const exportMnemonicAndPrivateKey = (entropy, path = "m/44'/118'/0'/0/0") => {
-    const mnemonic = index.entropyToMnemonic(entropy, english.wordlist);
+    const mnemonic = bip39.entropyToMnemonic(entropy, english_js.wordlist);
     const { privateKey, publicKey } = deriveHDKeyFromMnemonic(mnemonic, path);
     return {
         mnemonic,
@@ -43,8 +43,8 @@ const exportMnemonicAndPrivateKey = (entropy, path = "m/44'/118'/0'/0/0") => {
  * @returns Priv/pub keys
  */
 const deriveHDKeyFromMnemonic = (mnemonic, path = "m/44'/118'/0'/0/0") => {
-    const seed = index.mnemonicToSeedSync(mnemonic);
-    const hdkey = index$1.HDKey.fromMasterSeed(seed);
+    const seed = bip39.mnemonicToSeedSync(mnemonic);
+    const hdkey = bip32.HDKey.fromMasterSeed(seed);
     const derivedHdkey = hdkey.derive(path);
     if (!hdkey.privateKey) {
         throw new Error('null hd key');

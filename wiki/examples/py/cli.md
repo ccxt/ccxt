@@ -1,8 +1,5 @@
-- [Cli](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import argparse
 import os
@@ -247,5 +244,5 @@ async def main():
 
 if __name__ ==  '__main__':
     asyncio.run(main())
- 
+
 ```

@@ -344,7 +344,7 @@ func (this *LunoCore) ParseCurrency(rawCurrency any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(rawCurrency)); i++ {
 		var networkEntry any = GetValue(rawCurrency, i)
 		var networkId any = this.SafeString(networkEntry, "name")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"id":      networkId,
 			"network": networkCode,
@@ -1090,12 +1090,12 @@ func (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCost any = nil
 	if IsTrue(!IsEqual(feeBaseString, nil)) {
 		if !IsTrue(Precise.StringEquals(feeBaseString, "0.0")) {
-			feeCurrency = GetValue(market, "base")
+			feeCurrency = this.SafeString(market, "base")
 			feeCost = feeBaseString
 		}
 	} else if IsTrue(!IsEqual(feeCounterString, nil)) {
 		if !IsTrue(Precise.StringEquals(feeCounterString, "0.0")) {
-			feeCurrency = GetValue(market, "quote")
+			feeCurrency = this.SafeString(market, "quote")
 			feeCost = feeCounterString
 		}
 	}
@@ -1105,7 +1105,7 @@ func (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"id":           id,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       this.SafeString(market, "symbol"),
 		"order":        orderId,
 		"type":         nil,
 		"side":         side,

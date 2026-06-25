@@ -297,8 +297,7 @@ public partial class htx
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195898804f0"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-match-results"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -328,7 +327,7 @@ public partial class htx
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
@@ -484,11 +483,8 @@ public partial class htx
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account"/>  <br/>
     /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information"/>  <br/>
     /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -498,15 +494,15 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.subType</term>
+    /// <term>params.type</term>
     /// <description>
-    /// string : linear or future
+    /// string : spot, margin, future or swap
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.uta</term>
+    /// <term>params.subType</term>
     /// <description>
-    /// bool : provide this parameter if you have a recent account with unified cross+isolated margin account
+    /// string : linear or inverse
     /// </description>
     /// </item>
     /// <item>
@@ -529,15 +525,50 @@ public partial class htx
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-196a8401f83"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market the order was made in
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// bool : *linear only* set to true if you want to fetch a trigger order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossTakeProfit</term>
+    /// <description>
+    /// bool : *linear only* set to true if you want to fetch a stop-loss take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// bool : *linear only* set to true if you want to fetch a stop-loss order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// bool : *linear only* set to true if you want to fetch a take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : *linear only* set to true if you want to fetch a trailing order
     /// </description>
     /// </item>
     /// </list>
@@ -589,8 +620,8 @@ public partial class htx
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new"/>  <br/>
     /// <list type="table">
@@ -613,27 +644,39 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.trigger</term>
-    /// <description>
-    /// bool : *contract only* if the orders are trigger trigger orders or not
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.stopLossTakeProfit</term>
-    /// <description>
-    /// bool : *contract only* if the orders are stop-loss or take-profit orders
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params.until</term>
     /// <description>
     /// int : the latest time in ms to fetch entries for
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// bool : *contract only* if the orders are trigger trigger orders or not
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.trailing</term>
     /// <description>
-    /// boolean : *contract only* set to true if you want to fetch trailing stop orders
+    /// bool : *contract only* set to true if you want to fetch trailing stop orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossTakeProfit</term>
+    /// <description>
+    /// bool : *contract only* if the orders are stop-loss and take-profit orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// bool : *contract only* set to true if you want to fetch stop loss orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// bool : *contract only* set to true if you want to fetch take profit orders
     /// </description>
     /// </item>
     /// </list>
@@ -647,13 +690,64 @@ public partial class htx
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// fetches information on multiple canceled orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new"/>  <br/>
     /// <list type="table">
@@ -702,8 +796,8 @@ public partial class htx
     /// </summary>
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589587da5"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b9754d736"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -736,9 +830,21 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// bool : *linear swap contract only* if the orders are stop-loss orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// bool : *linear swap contract only* if the orders are take-profit orders
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.trailing</term>
     /// <description>
-    /// boolean : *contract only* set to true if you want to fetch trailing stop orders
+    /// bool : *contract only* set to true if you want to fetch trailing stop orders
     /// </description>
     /// </item>
     /// </list>
@@ -872,6 +978,18 @@ public partial class htx
     /// float : *contract only* the price to trigger a trailing order, default uses the price argument
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// object : *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// object : *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> request to be sent to the exchange.</returns>
@@ -888,10 +1006,8 @@ public partial class htx
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588768fe7"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b933812c9"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#place-an-order"/>  <br/>
@@ -987,6 +1103,30 @@ public partial class htx
     /// bool : *contract only* true for hedged mode, false for one way mode, default is false
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : linear swap supports 'cross' and 'isolated', 'cross' is the default
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.position_side</term>
+    /// <description>
+    /// string : linear swap supports 'long', 'short' and 'both', 'both' is the default
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// object : *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// object : *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
@@ -1003,8 +1143,7 @@ public partial class htx
     /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958935dae1"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1024,6 +1163,8 @@ public partial class htx
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958947efe6"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b935d4997"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1034,19 +1175,31 @@ public partial class htx
     /// <item>
     /// <term>params.trigger</term>
     /// <description>
-    /// boolean : *contract only* if the order is a trigger trigger order or not
+    /// bool : *contract only* if the order is a trigger trigger order or not
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.stopLossTakeProfit</term>
     /// <description>
-    /// boolean : *contract only* if the order is a stop-loss or take-profit order
+    /// bool : *contract only* if the order is a stop-loss or take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// bool : *contract only* if the order is a stop-loss order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// bool : *contract only* if the order is a take-profit order
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.trailing</term>
     /// <description>
-    /// boolean : *contract only* set to true if you want to cancel a trailing order
+    /// bool : *contract only* set to true if you want to cancel a trailing order
     /// </description>
     /// </item>
     /// </list>
@@ -1061,6 +1214,7 @@ public partial class htx
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894d0de8"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1092,6 +1246,7 @@ public partial class htx
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894f0cf6"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1317,6 +1472,70 @@ public partial class htx
         return new TransferEntry(res);
     }
     /// <summary>
+    /// fetch a history of internal transfers made on an account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.huobi.com/en-us/opend/newApiPages/"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code of the currency transferred
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch transfers for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of transfer structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.status</term>
+    /// <description>
+    /// string : transfer status: 'success', 'pending', 'failed'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.from</term>
+    /// <description>
+    /// int : the starting ID for pagination
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.direct</term>
+    /// <description>
+    /// string : pagination direction: 'prev' or 'next', default 'next'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch transfers for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchTransfers(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
+    }
+    /// <summary>
     /// fetch the borrow interest rates of all currencies
     /// </summary>
     /// <remarks>
@@ -1340,19 +1559,20 @@ public partial class htx
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97ea5941"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : not used by huobi, but filtered internally by ccxt
+    /// int : the earliest time in ms to fetch funding rate history for
     /// </description>
     /// </item>
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : not used by huobi, but filtered internally by ccxt
+    /// int : the maximum number of structures to retrieve
     /// </description>
     /// </item>
     /// <item>
@@ -1364,7 +1584,7 @@ public partial class htx
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
@@ -1382,7 +1602,7 @@ public partial class htx
     /// </summary>
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97d0c0bf"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1402,7 +1622,6 @@ public partial class htx
     /// fetch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1458,7 +1677,7 @@ public partial class htx
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new"/>  <br/>
     /// <list type="table">
@@ -1480,6 +1699,12 @@ public partial class htx
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
@@ -1494,8 +1719,7 @@ public partial class htx
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959439f997"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage"/>  <br/>
     /// <list type="table">
@@ -1503,6 +1727,12 @@ public partial class htx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.position_side</term>
+    /// <description>
+    /// string : linear swap supports 'long', 'short' and 'both', 'both' is the default
     /// </description>
     /// </item>
     /// </list>
@@ -1517,8 +1747,7 @@ public partial class htx
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information"/>  <br/>
     /// <list type="table">
@@ -1558,8 +1787,7 @@ public partial class htx
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions"/>  <br/>
     /// <list type="table">
@@ -1702,7 +1930,6 @@ public partial class htx
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1724,7 +1951,7 @@ public partial class htx
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97fb53f2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1746,7 +1973,7 @@ public partial class htx
     /// <remarks>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1818,7 +2045,7 @@ public partial class htx
     /// retrieves the public liquidations of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new"/>  <br/>
     /// <list type="table">
@@ -1849,7 +2076,7 @@ public partial class htx
     /// <item>
     /// <term>params.tradeType</term>
     /// <description>
-    /// int : default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+    /// int : *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
     /// </description>
     /// </item>
     /// </list>
@@ -1866,8 +2093,7 @@ public partial class htx
     /// set hedged to true or false
     /// </summary>
     /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959443cae3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1899,8 +2125,7 @@ public partial class htx
     /// fetches the auto deleveraging rank and risk percentage for a list of symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8"/>  <br/>
     /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003"/>  <br/>
     /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003"/>  <br/>
     /// <list type="table">

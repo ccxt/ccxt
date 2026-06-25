@@ -1081,7 +1081,7 @@
                                     }
                                 }
                             },
-                            "BTC": {
+                            "BRC20": {
                                 "info": {
                                     "name": "BTC",
                                     "addr": "aaaaa000000111111xxx00000xxx000111",
@@ -1090,7 +1090,7 @@
                                     "deposit_disabled": true
                                 },
                                 "id": "BTC",
-                                "network": "BTC",
+                                "network": "BRC20",
                                 "active": null,
                                 "deposit": false,
                                 "withdraw": false,

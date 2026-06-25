@@ -4,9 +4,9 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { HDKey } from '../scure-bip32/index.js';
-import { entropyToMnemonic, mnemonicToSeedSync } from '../scure-bip39/index.js';
-import { wordlist } from '../scure-bip39/wordlists/english.js';
+import { HDKey } from '@scure/bip32';
+import { entropyToMnemonic, mnemonicToSeedSync } from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english.js';
 /**
  * @description Get Mnemonic and priv/pub keys from privateKeyBytes and BIP44 HD path
  *

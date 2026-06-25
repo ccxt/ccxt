@@ -928,8 +928,10 @@ func (this *BullishCore) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *BullishCore) ParseMarketType(typeVar any, optionalArgs ...any) any {
-	defaultType := GetArg(optionalArgs, 0, nil)
+func (this *BullishCore) ParseMarketType(optionalArgs ...any) any {
+	typeVar := GetArg(optionalArgs, 0, nil)
+	_ = typeVar
+	defaultType := GetArg(optionalArgs, 1, nil)
 	_ = defaultType
 	var types any = map[string]any{
 		"SPOT":         "spot",
@@ -2625,7 +2627,7 @@ func (this *BullishCore) Withdraw(code any, amount any, address any, optionalArg
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			AddElementToObject(request, "network", this.NetworkCodeToId(networkCode))
+			AddElementToObject(request, "network", this.NetworkCodeToId(networkCode, code))
 		} else {
 			panic(ArgumentsRequired(Add(this.Id, " withdraw() requires a network parameter")))
 		}
@@ -2707,7 +2709,7 @@ func (this *BullishCore) ParseTransaction(transaction any, optionalArgs ...any) 
 		"txid":        txid,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(network),
+		"network":     this.NetworkIdToCode(network, code),
 		"addressFrom": sourceAddress,
 		"address":     address,
 		"addressTo":   address,
@@ -2948,7 +2950,7 @@ func (this *BullishCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 				for i := 0; IsLessThan(i, GetArrayLength(safeResponse)); i++ {
 					var entry any = this.SafeDict(safeResponse, i, map[string]any{})
 					var networkId any = this.SafeString(entry, "network")
-					var networkCode any = this.NetworkIdToCode(networkId)
+					var networkCode any = this.NetworkIdToCode(networkId, code)
 					if IsTrue(IsEqual(network, networkCode)) {
 						data = entry
 						break
@@ -2971,10 +2973,11 @@ func (this *BullishCore) ParseDepositAddress(depositAddress any, optionalArgs ..
 	_ = currency
 	var id any = this.SafeString(depositAddress, "symbol")
 	var network any = this.SafeString(depositAddress, "network")
+	var code any = this.SafeCurrencyCode(id, currency)
 	return map[string]any{
 		"info":     depositAddress,
-		"currency": this.SafeCurrencyCode(id, currency),
-		"network":  this.NetworkIdToCode(network),
+		"currency": code,
+		"network":  this.NetworkIdToCode(network, code),
 		"address":  this.SafeString(depositAddress, "address"),
 		"tag":      nil,
 	}
@@ -2999,8 +3002,8 @@ func (this *BullishCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes24358 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes24358)
+		retRes24368 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes24368)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3091,8 +3094,8 @@ func (this *BullishCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes25048 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes25048)
+		retRes25058 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes25058)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3224,8 +3227,8 @@ func (this *BullishCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes26148 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes26148)
+		retRes26158 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes26158)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3237,9 +3240,9 @@ func (this *BullishCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		if IsTrue(paginate) {
 			params = this.HandlePaginationParams("fetchTransfers", since, params)
 
-			retRes262119 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
-			PanicOnError(retRes262119)
-			ch <- retRes262119
+			retRes262219 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
+			PanicOnError(retRes262219)
+			ch <- retRes262219
 			return nil
 		}
 		var request any = map[string]any{
@@ -3309,8 +3312,8 @@ func (this *BullishCore) Transfer(code any, amount any, fromAccount any, toAccou
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes26748 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes26748)
+		retRes26758 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes26758)
 		// todo check this method properly
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3422,8 +3425,8 @@ func (this *BullishCore) FetchBorrowRateHistory(code any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes27688 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
-		PanicOnError(retRes27688)
+		retRes27698 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+		PanicOnError(retRes27698)
 
 		tradingAccountId := (<-this.LoadAccount(params))
 		PanicOnError(tradingAccountId)
@@ -3514,8 +3517,8 @@ func (this *BullishCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes28418 := (<-this.LoadMarkets())
-		PanicOnError(retRes28418)
+		retRes28428 := (<-this.LoadMarkets())
+		PanicOnError(retRes28428)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3665,12 +3668,14 @@ func (this *BullishCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		if IsTrue(IsEqual(path, "v1/users/hmac/login")) {
+			headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
 			AddElementToObject(headers, "BX-PUBLIC-KEY", this.ApiKey)
 		} else {
 			var token any = this.Token
 			if IsTrue((IsEqual(token, nil))) {
 				panic(AuthenticationError(Add(this.Id, " requires a token, please call signIn() first")))
 			}
+			headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
 			AddElementToObject(headers, "Authorization", Add("Bearer ", token))
 		}
 	}
@@ -3737,9 +3742,9 @@ func (this *BullishCore) HandleToken(optionalArgs ...any) <-chan any {
 		var tokenExpires any = this.SafeInteger(this.Options, "tokenExpires")
 		if IsTrue(IsTrue(IsTrue((IsEqual(token, nil))) || IsTrue((IsEqual(tokenExpires, nil)))) || IsTrue((IsGreaterThan(now, tokenExpires)))) {
 
-			retRes302319 := (<-this.SignIn())
-			PanicOnError(retRes302319)
-			ch <- retRes302319
+			retRes302619 := (<-this.SignIn())
+			PanicOnError(retRes302619)
+			ch <- retRes302619
 			return nil
 		} else {
 

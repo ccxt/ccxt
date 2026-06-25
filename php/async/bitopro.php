@@ -1613,7 +1613,7 @@ class bitopro extends Exchange {
             'txid' => $this->safe_string($transaction, 'txid'),
             'type' => null,
             'currency' => $code,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'amount' => $this->safe_number($transaction, 'total'),
             'status' => $this->parse_transaction_status($status),
             'timestamp' => $timestamp,
@@ -1901,7 +1901,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($headers === null) {

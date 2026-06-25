@@ -586,7 +586,7 @@ class delta extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -931,7 +931,7 @@ class delta extends Exchange {
                     'settleId' => $settleId,
                     'type' => $type,
                     'spot' => $spot,
-                    'margin' => $spot ? null : false,
+                    'margin' => false,
                     'swap' => $swap,
                     'future' => $future,
                     'option' => $option,
@@ -2675,11 +2675,12 @@ class delta extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $marketId = $this->safe_string($depositAddress, 'asset_symbol');
         $networkId = $this->safe_string($depositAddress, 'network');
+        $code = $this->safe_currency_code($marketId, $currency);
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($marketId, $currency),
-            'network' => $this->network_id_to_code($networkId),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );
@@ -3313,7 +3314,7 @@ class delta extends Exchange {
             $result = $this->safe_list($response, 'result', array());
             $settlements = $this->parse_settlements($result, $market);
             $sorted = $this->sort_by($settlements, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+            return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
         }) ();
     }
 
@@ -3536,7 +3537,7 @@ class delta extends Exchange {
             'bidPrice' => $this->safe_number($quotes, 'best_bid'),
             'askPrice' => $this->safe_number($quotes, 'best_ask'),
             'markPrice' => $this->safe_number($greeks, 'mark_price'),
-            'lastPrice' => null,
+            'lastPrice' => $this->safe_number($greeks, 'last_price'),
             'underlyingPrice' => $this->safe_number($greeks, 'spot_price'),
             'info' => $greeks,
         );
@@ -3653,7 +3654,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -3739,7 +3740,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
         //         "close" => 6793.0,
@@ -3795,7 +3796,7 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($chain, 'timestamp', 0.001);
         return array(
             'info' => $chain,
-            'currency' => null,
+            'currency' => $this->safe_string($chain, 'currency'),
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -3805,12 +3806,12 @@ class delta extends Exchange {
             'askPrice' => $this->safe_number($quotes, 'best_ask'),
             'midPrice' => $this->safe_number($quotes, 'impact_mid_price'),
             'markPrice' => $this->safe_number($chain, 'mark_price'),
-            'lastPrice' => null,
+            'lastPrice' => $this->safe_number($chain, 'last_price'),
             'underlyingPrice' => $this->safe_number($chain, 'spot_price'),
-            'change' => null,
-            'percentage' => null,
+            'change' => $this->safe_number($chain, 'change'),
+            'percentage' => $this->safe_number($chain, 'percentage'),
             'baseVolume' => $this->safe_number($chain, 'volume'),
-            'quoteVolume' => null,
+            'quoteVolume' => $this->safe_number($chain, 'quote_volume'),
         );
     }
 
@@ -4183,7 +4184,7 @@ class delta extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = array (), mixed $body = null) {
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));

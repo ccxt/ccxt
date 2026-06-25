@@ -1,9 +1,10 @@
 import hitbtcRest from '../hitbtc.js';
 import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
+import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 export default class hitbtc extends hitbtcRest {
     describe(): any;
+    describeData(): any;
     /**
      * @ignore
      * @method

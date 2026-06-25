@@ -278,7 +278,6 @@ def helper_test_properties():
     assert exchange.timeout == 10000, 'timeout should be 10000'
     assert exchange.verbose is False, 'verbose should be false'
     # assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); # todo WS
-    # assert (exchange.requiresEddsa === false);
     assert not test_shared_methods.exchange_prop(exchange, 'reloadingMarkets'), 'reloadingMarkets should be false'
     assert test_shared_methods.exchange_prop(exchange, 'marketsLoading') is None, 'marketsLoading should be undefined'
     # undefined or false

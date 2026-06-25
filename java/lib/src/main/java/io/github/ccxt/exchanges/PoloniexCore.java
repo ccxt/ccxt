@@ -1637,7 +1637,7 @@ public class PoloniexCore extends PoloniexApi
             }
             if (Helpers.isTrue(Helpers.isTrue(isContract) && Helpers.isTrue(!Helpers.isEqual(symbol, null))))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             var requestparametersVariable = this.handleUntilOption(endKey, request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
@@ -3469,7 +3469,7 @@ public class PoloniexCore extends PoloniexApi
                     {
                         Object networkId = Helpers.GetValue(childChains, j);
                         networkId = Helpers.replace((String)networkId, (String)code, (String)"");
-                        Object networkCode = this.networkIdToCode(networkId);
+                        Object networkCode = this.networkIdToCode(networkId, Helpers.GetValue(currency, "code"));
                         Object networkInfo = this.safeValue(response, networkId);
                         Object networkObject = new java.util.HashMap<String, Object>() {{}};
                         Object withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
@@ -3510,7 +3510,7 @@ public class PoloniexCore extends PoloniexApi
         }};
         Helpers.addElementToObject(depositWithdrawFee, "withdraw", withdrawResult);
         Helpers.addElementToObject(depositWithdrawFee, "deposit", depositResult);
-        Object networkCode = this.networkIdToCode(networkId);
+        Object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
         Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
@@ -3791,7 +3791,7 @@ public class PoloniexCore extends PoloniexApi
         Object longLeverage = null;
         Object marketId = null;
         Object marginMode = null;
-        Object data = this.safeList(leverage, "data");
+        Object data = this.safeList(leverage, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object entry = Helpers.GetValue(data, i);

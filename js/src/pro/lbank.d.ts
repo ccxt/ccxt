@@ -1,5 +1,5 @@
 import lbankRest from '../lbank.js';
-import type { Balances, Int, Str, Trade, OrderBook, Order, OHLCV, Ticker } from '../base/types.js';
+import type { Balances, Int, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class lbank extends lbankRest {
     describe(): any;

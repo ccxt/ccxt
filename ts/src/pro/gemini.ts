@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
+import { sha384 } from '@noble/hashes/sha2.js';
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
-import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
@@ -286,7 +286,7 @@ export default class gemini extends geminiRest {
                 {
                     'name': 'candles_' + timeframeId,
                     'symbols': [
-                        market['id'].toUpperCase (),
+                        this.safeStringUpper (market, 'id'),
                     ],
                 },
             ],

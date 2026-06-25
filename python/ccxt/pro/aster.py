@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -160,7 +160,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -171,7 +171,7 @@ class aster(ccxt.async_support.aster):
             messageHashes.append('ticker:' + market['symbol'])
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -202,7 +202,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -271,7 +271,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -314,7 +314,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -429,7 +429,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -468,7 +468,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -503,7 +503,7 @@ class aster(ccxt.async_support.aster):
         messageHash = 'bidask:' + symbol
         client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, message, market=None):
+    def parse_ws_bid_ask(self, message, market: Market = None):
         timestamp = self.safe_integer(message, 'T')
         return self.safe_ticker({
             'symbol': market['symbol'],
@@ -575,7 +575,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
             'id': 1,
@@ -617,7 +617,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -656,7 +656,7 @@ class aster(ccxt.async_support.aster):
         stored.append(parsed)
         client.resolve(stored, 'trade::' + symbol)
 
-    def parse_ws_trade(self, trade, market=None) -> Trade:
+    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
         #
         # public watchTrades(spot)
         #
@@ -859,7 +859,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -900,7 +900,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -1016,7 +1016,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -1060,7 +1060,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -1123,7 +1123,7 @@ class aster(ccxt.async_support.aster):
         resolveData = [symbol, timeframe, stored]
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),
@@ -1223,7 +1223,7 @@ class aster(ccxt.async_support.aster):
             self.balance[type] = {}
 
     async def load_balance_snapshot(self, client, messageHash, type):
-        params: dict = {
+        params = {
             'type': type,
         }
         response = await self.fetch_balance(params)
@@ -1432,7 +1432,7 @@ class aster(ccxt.async_support.aster):
                 client.resolve(position, symbolMessageHash)
             client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         #
         #     {
         #         "s": "BTCUSDT",  # Symbol
@@ -1705,7 +1705,7 @@ class aster(ccxt.async_support.aster):
             client.resolve(cache, symbolMessageHash)
             client.resolve(cache, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         executionType = self.safe_string(order, 'x')
         marketId = self.safe_string(order, 's')
         market = self.safe_market(marketId, market)
@@ -1776,7 +1776,7 @@ class aster(ccxt.async_support.aster):
     def handle_message(self, client: Client, message):
         messageInner = self.safe_dict(message, 'data', message)  # can be either wrapped in 'data' or full object itself
         event = self.safe_string(messageInner, 'e')
-        methods: dict = {
+        methods = {
             '24hrTicker': self.handle_ticker,
             'aggTrade': self.handle_trade,
             'depthUpdate': self.handle_order_book,

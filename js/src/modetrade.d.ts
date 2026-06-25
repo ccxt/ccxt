@@ -1,5 +1,5 @@
 import Exchange from './abstract/modetrade.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int } from './base/types.js';
 /**
  * @class modetrade
  * @augments Exchange
@@ -51,7 +51,7 @@ export default class modetrade extends Exchange {
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): Currency;
-    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): any;
+    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): Dict;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -487,11 +487,11 @@ export default class modetrade extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     nonce(): number;
-    sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: any;
+        headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

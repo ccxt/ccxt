@@ -541,7 +541,7 @@ class digifinex extends Exchange {
         for ($j = 0; $j < count($networkEntries); $j++) {
             $networkEntry = $networkEntries[$j];
             $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -1532,7 +1532,7 @@ class digifinex extends Exchange {
         //         0.029927
         //     )
         //
-        if ($market['swap']) {
+        if ($this->safe_bool($market, 'swap')) {
             return array(
                 $this->safe_integer($ohlcv, 0),
                 $this->safe_number($ohlcv, 1), // open
@@ -1963,7 +1963,7 @@ class digifinex extends Exchange {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
                 }
-                $request['instrument_id'] = $market['id'];
+                $request['instrument_id'] = $this->safe_string($market, 'id');
             } else {
                 $request['market'] = $marketType;
             }
@@ -2018,8 +2018,8 @@ class digifinex extends Exchange {
     }
 
     public function parse_cancel_orders($response) {
-        $success = $this->safe_list($response, 'success');
-        $error = $this->safe_list($response, 'error');
+        $success = $this->safe_list($response, 'success', array());
+        $error = $this->safe_list($response, 'error', array());
         $result = array();
         for ($i = 0; $i < count($success); $i++) {
             $order = $success[$i];
@@ -2572,7 +2572,7 @@ class digifinex extends Exchange {
             }
             $marketIdRequest = ($marketType === 'swap') ? 'instrument_id' : 'symbol';
             if ($symbol !== null) {
-                $request[$marketIdRequest] = $market['id'];
+                $request[$marketIdRequest] = $this->safe_string($market, 'id');
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -4106,7 +4106,7 @@ class digifinex extends Exchange {
         return $tiers;
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -4228,7 +4228,7 @@ class digifinex extends Exchange {
                     'percentage' => null,
                 );
                 if ($networkId !== null) {
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     $depositWithdrawFees[$code]['networks'][$networkCode] = array(
                         'withdraw' => $withdrawResult,
                         'deposit' => $depositResult,
@@ -4336,7 +4336,7 @@ class digifinex extends Exchange {
             'marginMode' => 'isolated',
             'amount' => $this->safe_number($data, 'amount'),
             'total' => null,
-            'code' => $market['settle'],
+            'code' => $this->safe_string($market, 'settle'),
             'status' => null,
             'timestamp' => null,
             'datetime' => null,
@@ -4442,7 +4442,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $pathPart = ($endpoint === 'spot') ? '/v3' : '/swap/v2';

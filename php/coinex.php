@@ -679,7 +679,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -1096,7 +1096,6 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = null;
         if ($market['swap']) {
             $response = $this->v2PublicGetFuturesTicker ($this->extend($request, $params));
         } else {
@@ -1275,7 +1274,6 @@ class coinex extends Exchange {
             'limit' => $limit,
             'interval' => '0',
         );
-        $response = null;
         if ($market['swap']) {
             $response = $this->v2PublicGetFuturesDepth ($this->extend($request, $params));
             //
@@ -1433,7 +1431,6 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 1000);
         }
-        $response = null;
         if ($market['swap']) {
             $response = $this->v2PublicGetFuturesDeals ($this->extend($request, $params));
         } else {
@@ -1475,7 +1472,6 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = null;
         if ($market['spot']) {
             $response = $this->v2PublicGetSpotMarket ($this->extend($request, $params));
             //
@@ -1540,7 +1536,6 @@ class coinex extends Exchange {
         $this->load_markets();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
-        $response = null;
         if ($type === 'swap') {
             $response = $this->v2PublicGetFuturesMarket ($params);
             //
@@ -1658,7 +1653,6 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = null;
         if ($market['swap']) {
             $response = $this->v2PublicGetFuturesKline ($this->extend($request, $params));
         } else {
@@ -2697,7 +2691,6 @@ class coinex extends Exchange {
                 }
             }
             $innerData = $this->safe_dict($entry, 'data', array());
-            $order = null;
             if ($market['spot'] && !$isTriggerOrder) {
                 $entry['status'] = $status;
                 $order = $this->parse_order($entry, $market);
@@ -3962,7 +3955,7 @@ class coinex extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a "network" parameter');
         }
-        $request['chain'] = $this->network_code_to_id($networkCode); // required for on-chain, not required for inter-user transfer
+        $request['chain'] = $this->network_code_to_id($networkCode, $currency['code']); // required for on-chain, not required for inter-user transfer
         $response = $this->v2PrivateGetAssetsDepositAddress ($this->extend($request, $params));
         //
         //     {
@@ -4128,7 +4121,6 @@ class coinex extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = null;
         if ($defaultMethod === 'v2PrivateGetFuturesPendingPosition') {
             $response = $this->v2PrivateGetFuturesPendingPosition ($this->extend($request, $params));
         } else {
@@ -4614,7 +4606,7 @@ class coinex extends Exchange {
             'marginMode' => 'isolated',
             'amount' => $this->parse_number(Precise::string_abs($change)),
             'total' => $this->safe_number($data, 'margin_avbl'),
-            'code' => $market['quote'],
+            'code' => $this->safe_string($market, 'quote'),
             'status' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -4903,7 +4895,7 @@ class coinex extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = $this->network_code_to_id($networkCode); // required for on-chain, not required for inter-user transfer
+            $request['chain'] = $this->network_code_to_id($networkCode, $currency['code']); // required for on-chain, not required for inter-user transfer
         }
         $response = $this->v2PrivatePostAssetsWithdraw ($this->extend($request, $params));
         //
@@ -5113,7 +5105,7 @@ class coinex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -5830,7 +5822,9 @@ class coinex extends Exchange {
                 $result['withdraw']['percentage'] = false;
                 $networkId = $this->safe_string($entry, 'chain');
                 if ($networkId) {
-                    $networkCode = $this->network_id_to_code($networkId, $this->safe_string($asset, 'ccy'));
+                    $currencyId = $this->safe_string($asset, 'ccy');
+                    $feeCode = $this->safe_currency_code($currencyId, $currency);
+                    $networkCode = $this->network_id_to_code($networkId, $feeCode);
                     $result['networks'][$networkCode] = array(
                         'withdraw' => array(
                             'fee' => $this->safe_number($entry, 'withdrawal_fee'),
@@ -6047,7 +6041,7 @@ class coinex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -6070,7 +6064,7 @@ class coinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $path = $this->implode_params($path, $params);
         $version = $api[0];
         $requestUrl = $api[1];

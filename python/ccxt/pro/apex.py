@@ -248,7 +248,7 @@ class apex(ccxt.async_support.apex):
                 newTopicsCount = newTopicsCount + 1
         message = None
         if newTopicsCount > 0:
-            request: dict = {
+            request = {
                 'op': 'subscribe',
                 'args': newTopics,
             }
@@ -334,7 +334,7 @@ class apex(ccxt.async_support.apex):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):
@@ -384,7 +384,7 @@ class apex(ccxt.async_support.apex):
             messageHashes.append(messageHash)
         ticker = await self.watch_topics(url, messageHashes, topics, params)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -660,7 +660,7 @@ class apex(ccxt.async_support.apex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
-        symbols: dict = {}
+        symbols = {}
         for i in range(0, len(lists)):
             rawTrade = lists[i]
             parsed = None
@@ -710,7 +710,7 @@ class apex(ccxt.async_support.apex):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        symbols: dict = {}
+        symbols = {}
         for i in range(0, len(lists)):
             parsed = None
             parsed = self.parse_order(lists[i])
@@ -922,7 +922,7 @@ class apex(ccxt.async_support.apex):
         if self.handle_error_message(client, message):
             return
         topic = self.safe_string_2(message, 'topic', 'op', '')
-        methods: dict = {
+        methods = {
             'ws_zk_accounts_v3': self.handle_account,
             'orderBook': self.handle_order_book,
             'depth': self.handle_order_book,

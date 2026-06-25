@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class hollaex extends hollaexRest {
     describe() {
@@ -21,7 +21,7 @@ export default class hollaex extends hollaexRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
             },
@@ -47,7 +47,7 @@ export default class hollaex extends hollaexRest {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': BadSymbol,
+                        'Bearer or HMAC authentication required': BadSymbol, // { error: 'Bearer or HMAC authentication required' }
                         'Error: wrong input': BadRequest, // { error: 'Error: wrong input' }
                     },
                 },
@@ -476,7 +476,7 @@ export default class hollaex extends hollaexRest {
                 return false;
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         //

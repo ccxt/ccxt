@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var btcmarkets$1 = require('./abstract/btcmarkets.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,8 +19,8 @@ class btcmarkets extends btcmarkets$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'btcmarkets',
             'name': 'BTC Markets',
-            'countries': ['AU'],
-            'rateLimit': 1000,
+            'countries': ['AU'], // Australia
+            'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'version': 'v3',
             'has': {
                 'CORS': undefined,
@@ -195,7 +195,7 @@ class btcmarkets extends btcmarkets$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo: check
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -211,7 +211,7 @@ class btcmarkets extends btcmarkets$1["default"] {
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: check
                         'trailing': false,
                         'iceberg': false,
                     },
@@ -626,10 +626,10 @@ class btcmarkets extends btcmarkets$1["default"] {
         //
         return [
             this.parse8601(this.safeString(ohlcv, 0)),
-            this.safeNumber(ohlcv, 1),
-            this.safeNumber(ohlcv, 2),
-            this.safeNumber(ohlcv, 3),
-            this.safeNumber(ohlcv, 4),
+            this.safeNumber(ohlcv, 1), // open
+            this.safeNumber(ohlcv, 2), // high
+            this.safeNumber(ohlcv, 3), // low
+            this.safeNumber(ohlcv, 4), // close
             this.safeNumber(ohlcv, 5), // volume
         ];
     }
@@ -1380,7 +1380,7 @@ class btcmarkets extends btcmarkets$1["default"] {
                 body = this.json(query);
                 auth += body;
             }
-            const signature = this.hmac(this.encode(auth), secret, sha512.sha512, 'base64');
+            const signature = this.hmac(this.encode(auth), secret, sha2_js.sha512, 'base64');
             headers = {
                 'Accept': 'application/json',
                 'Accept-Charset': 'UTF-8',

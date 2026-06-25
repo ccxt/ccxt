@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/zebpay.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, InsufficientFunds } from './base/errors.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -195,13 +195,13 @@ export default class zebpay extends Exchange {
             'exceptions': {
                 'exact': {
                     '77': InvalidOrder,
-                    '400': BadRequest,
-                    '401': AuthenticationError,
-                    '403': NotSupported,
-                    '404': NotSupported,
-                    '429': RateLimitExceeded,
-                    '500': ExchangeNotAvailable,
-                    '503': ExchangeNotAvailable,
+                    '400': BadRequest, // Bad Request -- Invalid request format
+                    '401': AuthenticationError, // Unauthorized -- Invalid API Key
+                    '403': NotSupported, // Forbidden -- The request is forbidden
+                    '404': NotSupported, // Not Found -- The specified resource could not be found
+                    '429': RateLimitExceeded, // Too Many Requests -- Access limit breached
+                    '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                    '503': ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
                     '3013': OrderNotFound,
                     'Order quantity is out of range': InvalidOrder,
                     'Invalid trade order type': InvalidOrder,
@@ -261,7 +261,7 @@ export default class zebpay extends Exchange {
     }
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -386,7 +386,7 @@ export default class zebpay extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'chainId');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const depositAllowed = this.safeBool(chain, 'isDepositEnabled') === true;
             deposit = (depositAllowed) ? depositAllowed : deposit;
             const withdrawAllowed = this.safeBool(chain, 'isWithdrawEnabled') === true;
@@ -510,7 +510,7 @@ export default class zebpay extends Exchange {
     }
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1267,7 +1267,7 @@ export default class zebpay extends Exchange {
         //         }
         //     }
         //
-        const responseData = this.safeDict(response, 'data');
+        const responseData = this.safeDict(response, 'data', {});
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {
@@ -1389,7 +1389,7 @@ export default class zebpay extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id'].toUpperCase(),
+            'symbol': this.safeStringUpper(market, 'id'),
         };
         const response = await this.privateSwapGetV1TradeUserLeverage(this.extend(request, params));
         //
@@ -1461,7 +1461,7 @@ export default class zebpay extends Exchange {
     }
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -1505,7 +1505,7 @@ export default class zebpay extends Exchange {
     }
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.
@@ -1836,7 +1836,7 @@ export default class zebpay extends Exchange {
         const timestamp = this.milliseconds();
         return {
             'info': info,
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
             'type': undefined,
             'marginMode': undefined,
             'amount': this.safeNumber(info, 'amount'),

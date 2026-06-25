@@ -604,12 +604,12 @@ public partial class toobit : Exchange
         object id = this.safeString(rawCurrency, "coinId");
         object code = this.safeCurrencyCode(id);
         object networks = new Dictionary<string, object>() {};
-        object rawNetworks = this.safeList(rawCurrency, "chainTypes");
+        object rawNetworks = this.safeList(rawCurrency, "chainTypes", new List<object>() {});
         for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
         {
             object rawNetwork = getValue(rawNetworks, j);
             object networkId = this.safeString(rawNetwork, "chainType");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },
@@ -2669,7 +2669,7 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() : param[\"network\"] is required")) ;
         }
-        ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode);
+        ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode, code);
         object response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted));
         //
         //     {

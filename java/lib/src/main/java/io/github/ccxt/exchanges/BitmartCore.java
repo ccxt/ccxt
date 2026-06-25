@@ -1233,7 +1233,7 @@ public class BitmartCore extends BitmartApi
                         put( "type", ((Helpers.isTrue(isNtf))) ? "other" : "crypto" );
                     }};
                 }
-                Object networkCode = this.networkIdToCode(networkId);
+                Object networkCode = this.networkIdToCode(networkId, currencyCode);
                 Object withdraw = this.safeBool(currency, "withdraw_enabled");
                 Object deposit = this.safeBool(currency, "deposit_enabled");
                 final Object finalNetworkId = networkId;
@@ -3011,7 +3011,7 @@ public class BitmartCore extends BitmartApi
             }
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(finalMarket, "id") );
+                put( "symbol", BitmartCore.this.safeString(finalMarket, "id") );
                 put( "orderParams", ordersRequests );
             }};
             Object response = (this.privatePostSpotV4BatchOrders(request)).join();
@@ -4130,7 +4130,7 @@ public class BitmartCore extends BitmartApi
                 {
                     Helpers.addElementToObject(request, "type", orderType);
                 }
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Helpers.addElementToObject(request, "order_id", id);
                 response = (this.privateGetContractPrivateOrder(this.extend(request, parameters))).join();
             }
@@ -4272,13 +4272,13 @@ public class BitmartCore extends BitmartApi
         }
         Object address = this.safeString(depositAddress, "address");
         currency = this.safeCurrency(currencyId, currency);
+        Object code = this.safeString(currency, "code");
         this.checkAddress(address);
-        final Object finalCurrency = currency;
         final Object finalNetwork = network;
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", BitmartCore.this.safeString(finalCurrency, "code") );
-            put( "network", BitmartCore.this.networkIdToCode(finalNetwork) );
+            put( "currency", code );
+            put( "network", BitmartCore.this.networkIdToCode(finalNetwork, code) );
             put( "address", address );
             put( "tag", BitmartCore.this.safeString2(depositAddress, "address_memo", "memo") );
         }};
@@ -4657,7 +4657,7 @@ public class BitmartCore extends BitmartApi
             put( "id", finalId );
             put( "currency", code );
             put( "amount", amount );
-            put( "network", BitmartCore.this.networkIdToCode(finalNetworkId) );
+            put( "network", BitmartCore.this.networkIdToCode(finalNetworkId, code) );
             put( "address", address );
             put( "addressFrom", null );
             put( "addressTo", null );
@@ -5674,7 +5674,7 @@ public class BitmartCore extends BitmartApi
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
             {
                 // only supports symbols as undefined or sending one symbol
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             Object response = (this.privateGetContractPrivatePositionV2(this.extend(request, parameters))).join();
             //

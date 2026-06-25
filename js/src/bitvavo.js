@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
 /**
  * @class bitvavo
@@ -20,8 +20,8 @@ export default class bitvavo extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bitvavo',
             'name': 'Bitvavo',
-            'countries': ['NL'],
-            'rateLimit': 60,
+            'countries': ['NL'], // Netherlands
+            'rateLimit': 60, // 1000 requests per minute
             'version': 'v2',
             'certified': false,
             'pro': true,
@@ -333,85 +333,85 @@ export default class bitvavo extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '101': ExchangeError,
-                    '102': BadRequest,
-                    '103': RateLimitExceeded,
-                    '104': RateLimitExceeded,
-                    '105': RateLimitExceeded,
-                    '107': ExchangeNotAvailable,
-                    '108': ExchangeNotAvailable,
-                    '109': ExchangeNotAvailable,
-                    '110': BadRequest,
-                    '200': BadRequest,
-                    '201': BadRequest,
-                    '202': BadRequest,
-                    '203': BadSymbol,
-                    '204': BadRequest,
-                    '205': BadRequest,
-                    '206': BadRequest,
-                    '210': InvalidOrder,
-                    '211': InvalidOrder,
-                    '212': InvalidOrder,
-                    '213': InvalidOrder,
-                    '214': InvalidOrder,
-                    '215': InvalidOrder,
-                    '216': InsufficientFunds,
-                    '217': InvalidOrder,
-                    '230': ExchangeError,
-                    '231': ExchangeError,
-                    '232': BadRequest,
-                    '233': InvalidOrder,
-                    '234': InvalidOrder,
-                    '235': ExchangeError,
-                    '236': BadRequest,
-                    '240': OrderNotFound,
-                    '300': AuthenticationError,
-                    '301': AuthenticationError,
-                    '302': AuthenticationError,
-                    '303': AuthenticationError,
-                    '304': AuthenticationError,
+                    '101': ExchangeError, // Unknown error. Operation may or may not have succeeded.
+                    '102': BadRequest, // Invalid JSON.
+                    '103': RateLimitExceeded, // You have been rate limited. Please observe the Bitvavo-Ratelimit-AllowAt header to see when you can send requests again. Failure to respect this limit will result in an IP ban. The default value is 1000 weighted requests per minute. Please contact support if you wish to increase this limit.
+                    '104': RateLimitExceeded, // You have been rate limited by the number of new orders. The default value is 100 new orders per second or 100.000 new orders per day. Please update existing orders instead of cancelling and creating orders. Please contact support if you wish to increase this limit.
+                    '105': RateLimitExceeded, // Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}.
+                    '107': ExchangeNotAvailable, // The matching engine is overloaded. Please wait 500ms and resubmit your order.
+                    '108': ExchangeNotAvailable, // The matching engine could not process your order in time. Please consider increasing the access window or resubmit your order.
+                    '109': ExchangeNotAvailable, // The matching engine did not respond in time. Operation may or may not have succeeded.
+                    '110': BadRequest, // Invalid endpoint. Please check url and HTTP method.
+                    '200': BadRequest, // ${param} url parameter is not supported. Please note that parameters are case-sensitive and use body parameters for PUT and POST requests.
+                    '201': BadRequest, // ${param} body parameter is not supported. Please note that parameters are case-sensitive and use url parameters for GET and DELETE requests.
+                    '202': BadRequest, // ${param} order parameter is not supported. Please note that certain parameters are only allowed for market or limit orders.
+                    '203': BadSymbol, // {"errorCode":203,"error":"symbol parameter is required."}
+                    '204': BadRequest, // ${param} parameter is not supported.
+                    '205': BadRequest, // ${param} parameter is invalid.
+                    '206': BadRequest, // Use either ${paramA} or ${paramB}. The usage of both parameters at the same time is not supported.
+                    '210': InvalidOrder, // Amount exceeds the maximum allowed amount (1000000000).
+                    '211': InvalidOrder, // Price exceeds the maximum allowed amount (100000000000).
+                    '212': InvalidOrder, // Amount is below the minimum allowed amount for this asset.
+                    '213': InvalidOrder, // Price is below the minimum allowed amount (0.000000000000001).
+                    '214': InvalidOrder, // Price is too detailed
+                    '215': InvalidOrder, // Price is too detailed. A maximum of 15 digits behind the decimal point are allowed.
+                    '216': InsufficientFunds, // {"errorCode":216,"error":"You do not have sufficient balance to complete this operation."}
+                    '217': InvalidOrder, // {"errorCode":217,"error":"Minimum order size in quote currency is 5 EUR or 0.001 BTC."}
+                    '230': ExchangeError, // The order is rejected by the matching engine.
+                    '231': ExchangeError, // The order is rejected by the matching engine. TimeInForce must be GTC when markets are paused.
+                    '232': BadRequest, // You must change at least one of amount, amountRemaining, price, timeInForce, selfTradePrevention or postOnly.
+                    '233': InvalidOrder, // {"errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."}
+                    '234': InvalidOrder, // Market orders cannot be updated.
+                    '235': ExchangeError, // You can only have 100 open orders on each book.
+                    '236': BadRequest, // You can only update amount or amountRemaining, not both.
+                    '240': OrderNotFound, // {"errorCode":240,"error":"No order found. Please be aware that simultaneously updating the same order may return this error."}
+                    '300': AuthenticationError, // Authentication is required for this endpoint.
+                    '301': AuthenticationError, // {"errorCode":301,"error":"API Key must be of length 64."}
+                    '302': AuthenticationError, // Timestamp is invalid. This must be a timestamp in ms. See Bitvavo-Access-Timestamp header or timestamp parameter for websocket.
+                    '303': AuthenticationError, // Window must be between 100 and 60000 ms.
+                    '304': AuthenticationError, // Request was not received within acceptable window (default 30s, or custom with Bitvavo-Access-Window header) of Bitvavo-Access-Timestamp header (or timestamp parameter for websocket).
                     // "304": AuthenticationError, // Authentication is required for this endpoint.
-                    '305': AuthenticationError,
-                    '306': AuthenticationError,
-                    '307': PermissionDenied,
-                    '308': AuthenticationError,
-                    '309': AuthenticationError,
-                    '310': PermissionDenied,
-                    '311': PermissionDenied,
-                    '312': PermissionDenied,
-                    '315': BadRequest,
-                    '317': AccountSuspended,
-                    '400': ExchangeError,
-                    '401': ExchangeError,
-                    '402': PermissionDenied,
-                    '403': PermissionDenied,
-                    '404': OnMaintenance,
-                    '405': ExchangeError,
-                    '406': BadRequest,
-                    '407': ExchangeError,
-                    '408': InsufficientFunds,
-                    '409': InvalidAddress,
-                    '410': ExchangeError,
-                    '411': BadRequest,
-                    '412': InvalidAddress,
-                    '413': InvalidAddress,
+                    '305': AuthenticationError, // {"errorCode":305,"error":"No active API key found."}
+                    '306': AuthenticationError, // No active API key found. Please ensure that you have confirmed the API key by e-mail.
+                    '307': PermissionDenied, // This key does not allow access from this IP.
+                    '308': AuthenticationError, // {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
+                    '309': AuthenticationError, // {"errorCode":309,"error":"The signature is invalid."}
+                    '310': PermissionDenied, // This key does not allow trading actions.
+                    '311': PermissionDenied, // This key does not allow showing account information.
+                    '312': PermissionDenied, // This key does not allow withdrawal of funds.
+                    '315': BadRequest, // Websocket connections may not be used in a browser. Please use REST requests for this.
+                    '317': AccountSuspended, // This account is locked. Please contact support.
+                    '400': ExchangeError, // Unknown error. Please contact support with a copy of your request.
+                    '401': ExchangeError, // Deposits for this asset are not available at this time.
+                    '402': PermissionDenied, // You need to verify your identitiy before you can deposit and withdraw digital assets.
+                    '403': PermissionDenied, // You need to verify your phone number before you can deposit and withdraw digital assets.
+                    '404': OnMaintenance, // Could not complete this operation, because our node cannot be reached. Possibly under maintenance.
+                    '405': ExchangeError, // You cannot withdraw digital assets during a cooldown period. This is the result of newly added bank accounts.
+                    '406': BadRequest, // {"errorCode":406,"error":"Your withdrawal is too small."}
+                    '407': ExchangeError, // Internal transfer is not possible.
+                    '408': InsufficientFunds, // {"errorCode":408,"error":"You do not have sufficient balance to complete this operation."}
+                    '409': InvalidAddress, // {"errorCode":409,"error":"This is not a verified bank account."}
+                    '410': ExchangeError, // Withdrawals for this asset are not available at this time.
+                    '411': BadRequest, // You can not transfer assets to yourself.
+                    '412': InvalidAddress, // {"errorCode":412,"error":"eth_address_invalid."}
+                    '413': InvalidAddress, // This address violates the whitelist.
                     '414': ExchangeError, // You cannot withdraw assets within 2 minutes of logging in.
                 },
                 'broad': {
-                    'start parameter is invalid': BadRequest,
-                    'symbol parameter is invalid': BadSymbol,
-                    'amount parameter is invalid': InvalidOrder,
+                    'start parameter is invalid': BadRequest, // {"errorCode":205,"error":"start parameter is invalid."}
+                    'symbol parameter is invalid': BadSymbol, // {"errorCode":205,"error":"symbol parameter is invalid."}
+                    'amount parameter is invalid': InvalidOrder, // {"errorCode":205,"error":"amount parameter is invalid."}
                     'orderId parameter is invalid': InvalidOrder, // {"errorCode":205,"error":"orderId parameter is invalid."}
                 },
             },
             'options': {
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'BITVAVO-ACCESS-WINDOW': 10000,
+                'BITVAVO-ACCESS-WINDOW': 10000, // default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
-                'operatorId': undefined,
+                'operatorId': undefined, // this will be required soon for order-related endpoints
                 'fiatCurrencies': ['EUR'], // only fiat atm
             },
             'precisionMode': TICK_SIZE,
@@ -627,7 +627,7 @@ export default class bitvavo extends Exchange {
         // btw, absolutely all of them have 1 network atm
         for (let j = 0; j < networksArray.length; j++) {
             const networkId = networksArray[j];
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'info': rawCurrency,
                 'id': networkId,
@@ -747,7 +747,7 @@ export default class bitvavo extends Exchange {
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': undefined,
+            'previousClose': undefined, // previous day close
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -1184,7 +1184,7 @@ export default class bitvavo extends Exchange {
      * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
      * @description fetch all the accounts associated with a profile
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccounts(params = {}) {
         await this.loadMarkets();
@@ -1227,7 +1227,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {string} [params.clientRequestId] client defined unique id
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets();
@@ -1288,7 +1288,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {int} [params.until] the latest time in ms to fetch transfers for
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1340,7 +1340,7 @@ export default class bitvavo extends Exchange {
      * @param {string} id transfer id
      * @param {string} [code] unified currency code of the currency transferred
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfer(id, code = undefined, params = {}) {
         await this.loadMarkets();

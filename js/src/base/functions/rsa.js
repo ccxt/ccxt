@@ -5,17 +5,19 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
-import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
+import { utf8ToBytes } from '@noble/hashes/utils.js';
+import { hex as base16, utf8 } from '@scure/base';
 import { urlencodeBase64, base16ToBinary, base64ToBinary, base64ToBase64Url } from './encode.js';
 import { eddsa, hmac } from './crypto.js';
-import { P256 } from '../../static_dependencies/noble-curves/p256.js';
+import { p256 as P256 } from '@noble/curves/nist.js';
 import { ecdsa } from '../../base/functions/crypto.js';
-import { ed25519 } from "../../static_dependencies/noble-curves/ed25519.js";
+import { ed25519 } from "@noble/curves/ed25519.js";
 function rsa(request, secret, hash) {
     const RSA = new JSEncrypt();
-    const digester = (input) => base16.encode(hash(input));
+    const digester = (input) => base16.encode(hash((typeof input === 'string') ? utf8ToBytes(input) : input));
     RSA.setPrivateKey(secret);
-    const name = (hash.create()).constructor.name.toLowerCase();
+    // @noble/hashes v2 renamed the digest classes from SHA256 to _SHA256, etc
+    const name = (hash.create()).constructor.name.toLowerCase().replace('_', '');
     return RSA.sign(request, digester, name);
 }
 function jwt(request, secret, hash, isRSA = false, opts = {}) {

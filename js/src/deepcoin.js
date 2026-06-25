@@ -5,9 +5,9 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 // ---------------------------------------------------------------------------
@@ -20,8 +20,8 @@ export default class deepcoin extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'deepcoin',
             'name': 'DeepCoin',
-            'countries': ['SG'],
-            'rateLimit': 200,
+            'countries': ['SG'], // Singapore
+            'rateLimit': 200, // 5 times per second
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -321,8 +321,8 @@ export default class deepcoin extends Exchange {
                     'types': ['spot', 'swap'], // spot, swap,
                 },
                 'timeInForce': {
-                    'GTC': 'GTC',
-                    'IOC': 'IOC',
+                    'GTC': 'GTC', // Good Till Cancel
+                    'IOC': 'IOC', // Immediate Or Cancel
                     'PO': 'PO', // Post Only
                 },
                 'exchangeType': {
@@ -343,22 +343,22 @@ export default class deepcoin extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '24': OrderNotFound,
-                    '31': InsufficientFunds,
-                    '36': InsufficientFunds,
-                    '44': BadRequest,
-                    '49': InvalidOrder,
-                    '194': InvalidOrder,
-                    '195': InvalidOrder,
-                    '199': BadRequest,
-                    '100010': InsufficientFunds,
+                    '24': OrderNotFound, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
+                    '31': InsufficientFunds, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
+                    '36': InsufficientFunds, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
+                    '44': BadRequest, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
+                    '49': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"49","sMsg":"PriceOutOfUpperLimit:Price\u003eUpperLimitPrice[0.28422]"}}
+                    '194': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
+                    '195': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
+                    '199': BadRequest, // {"code":"0","msg":"","data":{"instId":"","lever":"","mgnMode":"","mrgPosition":"","sCode":"199","sMsg":"LeverageTooHigh:Amount[10000.0]\u003eLeverage[75.1880]"}}
+                    '100010': InsufficientFunds, // {"code":"0","msg":"","data":{"retCode":100010,"retMsg":"Balance is insufficient, please deposit first.","retData":{}}}
                     'unsupportedAction': BadRequest,
                     'localIDNotExist': BadRequest,
                 },
                 'broad': {
-                    'no available': NotSupported,
-                    'field is required': ArgumentsRequired,
-                    'not in acceptable range': BadRequest,
+                    'no available': NotSupported, // orderbook does not exist: ETHUSD_0.1, no available orderbook data
+                    'field is required': ArgumentsRequired, // {"code":"51","msg":"The productGroup field is required","data":null}
+                    'not in acceptable range': BadRequest, // {"code":"51","msg":"The instType value `spot` is not in acceptable range: SPOT,SWAP","data":null}
                     'subscription cluster does not "exist"': BadRequest,
                     'must be equal or lesser than': BadRequest, // {"code":"51","msg":"The Size value `100` must be equal or lesser than 50","data":null}
                 },
@@ -817,7 +817,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 2000);
+            request['limit'] = Math.min(limit, 500);
         }
         const productGroup = this.getProductGroupFromMarket(market);
         request['productGroup'] = productGroup;
@@ -827,8 +827,8 @@ export default class deepcoin extends Exchange {
     }
     getProductGroupFromMarket(market) {
         let productGroup = 'Spot';
-        if (market['swap']) {
-            if (market['linear']) {
+        if (this.safeBool(market, 'swap')) {
+            if (this.safeBool(market, 'linear')) {
                 productGroup = 'SwapU';
             }
             else {
@@ -1067,7 +1067,7 @@ export default class deepcoin extends Exchange {
         const amount = this.safeNumber(transaction, 'amount');
         const timestamp = this.safeTimestamp(transaction, 'createTime');
         const networkId = this.safeString(transaction, 'chainName');
-        const network = this.networkIdToCode(networkId);
+        const network = this.networkIdToCode(networkId, code);
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         return {
             'info': transaction,
@@ -1214,10 +1214,11 @@ export default class deepcoin extends Exchange {
         const chain = this.safeString(response, 'chain');
         const address = this.safeString(response, 'address');
         this.checkAddress(address);
+        const code = this.safeString(currency, 'code');
         return {
             'info': response,
             'currency': undefined,
-            'network': this.networkIdToCode(chain),
+            'network': this.networkIdToCode(chain, code),
             'address': address,
             'tag': this.safeString(response, 'memo'),
         };

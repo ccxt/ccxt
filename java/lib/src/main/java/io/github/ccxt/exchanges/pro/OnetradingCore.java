@@ -455,7 +455,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        Object bidAsk = this.parseBidAsk(delta, 1, 2);
+        Object bidAsk = this.parseOrderBookBidAsk(delta, 1, 2);
         Object type = this.safeString(delta, 0);
         if (Helpers.isTrue(Helpers.isEqual(type, "BUY")))
         {

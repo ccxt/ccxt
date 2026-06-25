@@ -2023,7 +2023,7 @@ public class LatokenCore extends LatokenApi
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object request = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));

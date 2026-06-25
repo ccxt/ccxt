@@ -1,5 +1,5 @@
 import Exchange from './abstract/foxbit.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
 /**
  * @class foxbit
  * @augments Exchange
@@ -343,11 +343,11 @@ export default class foxbit extends Exchange {
             currency: string;
         };
     };
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

@@ -100,7 +100,7 @@ class bydfi(ccxt.async_support.bydfi):
     async def watch_public(self, messageHashes, channels, params={}, subscription={}):
         url = self.urls['api']['ws']
         id = self.request_id()
-        subscriptionParams: dict = {
+        subscriptionParams = {
             'id': id,
         }
         unsubscribe = self.safe_bool(params, 'unsubscribe', False)
@@ -110,7 +110,7 @@ class bydfi(ccxt.async_support.bydfi):
             params = self.omit(params, 'unsubscribe')
             subscriptionParams['unsubscribe'] = True
             subscriptionParams['messageHashes'] = messageHashes
-        message: dict = {
+        message = {
             'id': id,
             'method': method,
             'params': channels,
@@ -123,13 +123,13 @@ class bydfi(ccxt.async_support.bydfi):
         subHash = 'private'
         client = self.client(url)
         privateSubscription = self.safe_value(client.subscriptions, subHash)
-        subscription: dict = {}
+        subscription = {}
         if privateSubscription is None:
             id = self.request_id()
             timestamp = str(self.milliseconds())
             payload = self.apiKey + timestamp
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
-            request: dict = {
+            request = {
                 'id': id,
                 'method': 'LOGIN',
                 'params': {
@@ -216,7 +216,7 @@ class bydfi(ccxt.async_support.bydfi):
         messageHash = 'unsubscribe::ticker::'
         channels = []
         channel = '@ticker'
-        subscription: dict = {
+        subscription = {
             'topic': 'ticker',
         }
         if symbols is None:
@@ -364,7 +364,7 @@ class bydfi(ccxt.async_support.bydfi):
             channels.append(market['id'] + '@kline_' + interval)
             messageHashes.append('unsubscribe::ohlcv::' + market['symbol'] + '::' + interval)
         params = self.extend(params, {'unsubscribe': True})
-        subscription: dict = {
+        subscription = {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': symbolsAndTimeframes,
         }
@@ -485,7 +485,7 @@ class bydfi(ccxt.async_support.bydfi):
             market = self.market(symbol)
             channels.append(market['id'] + '@depth' + depth + channelSuffix)
             messageHashes.append('unsubscribe::orderbook::' + symbol)
-        subscription: dict = {
+        subscription = {
             'topic': 'orderbook',
             'symbols': symbols,
         }
@@ -847,7 +847,7 @@ class bydfi(ccxt.async_support.bydfi):
                 self.spawn(self.load_balance_snapshot, client, messageHash)
 
     async def load_balance_snapshot(self, client, messageHash):
-        params: dict = {
+        params = {
             'type': 'swap',
         }
         response = await self.fetch_balance(params)
@@ -903,7 +903,7 @@ class bydfi(ccxt.async_support.bydfi):
             data = self.safe_dict(message, 'a', {})
             balances = self.safe_list(data, 'B', [])
             timestamp = self.safe_integer(message, 'T')
-            result: dict = {
+            result = {
                 'info': message,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),

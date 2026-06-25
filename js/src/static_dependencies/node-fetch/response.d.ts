@@ -45,7 +45,7 @@ export default class Response extends Body {
         highWaterMark: any;
     };
 }
-import Body from "./body.js";
-import Headers from "./headers.js";
+import Body from './body.js';
+import Headers from './headers.js';
 declare const INTERNALS: unique symbol;
 export {};

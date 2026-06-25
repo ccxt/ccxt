@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InvalidAddress, InvalidNonce, InvalidOrder, InsufficientFunds, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bullish
@@ -21,7 +21,7 @@ export default class bullish extends Exchange {
             'name': 'Bullish',
             'countries': ['DE'],
             'version': 'v3',
-            'rateLimit': 20,
+            'rateLimit': 20, // 50 requests per second
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -235,8 +235,8 @@ export default class bullish extends Exchange {
             'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'BTC': 'BTC',
                     'EOS': 'EOS',
@@ -355,88 +355,88 @@ export default class bullish extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '1': BadRequest,
-                    '5': InvalidOrder,
-                    '6': DuplicateOrderId,
-                    '13': BadRequest,
-                    '15': BadRequest,
-                    '18': BadRequest,
-                    '1002': BadRequest,
-                    '2001': BadRequest,
-                    '2002': BadRequest,
-                    '2003': BadRequest,
-                    '2004': BadRequest,
-                    '2005': ExchangeError,
-                    '2006': BadRequest,
-                    '2007': BadRequest,
-                    '2008': BadRequest,
-                    '2009': BadSymbol,
-                    '2010': AuthenticationError,
-                    '2011': AuthenticationError,
-                    '2012': BadRequest,
-                    '2013': InvalidOrder,
-                    '2015': OperationRejected,
-                    '2016': BadRequest,
-                    '2017': BadRequest,
-                    '2018': BadRequest,
-                    '2020': PermissionDenied,
-                    '2021': OperationRejected,
-                    '2029': InvalidNonce,
-                    '2035': InvalidNonce,
-                    '3001': InsufficientFunds,
-                    '3002': OrderNotFound,
-                    '3003': PermissionDenied,
-                    '3004': InsufficientFunds,
-                    '3005': InsufficientFunds,
-                    '3006': InsufficientFunds,
-                    '3007': DuplicateOrderId,
-                    '3031': BadRequest,
-                    '3032': BadRequest,
-                    '3033': PermissionDenied,
-                    '3034': RateLimitExceeded,
-                    '3035': RateLimitExceeded,
-                    '3047': OperationRejected,
-                    '3048': OperationRejected,
-                    '3049': OperationRejected,
-                    '3051': InsufficientFunds,
-                    '3052': InsufficientFunds,
-                    '3063': BadRequest,
-                    '3064': OrderNotFillable,
-                    '3065': MarketClosed,
-                    '3066': ExchangeError,
-                    '3067': MarketClosed,
-                    '6007': InvalidOrder,
-                    '6011': InvalidOrder,
-                    '6012': InvalidOrder,
-                    '6013': InvalidOrder,
-                    '8301': ExchangeError,
-                    '8305': ExchangeError,
-                    '8306': ExchangeError,
-                    '8307': ExchangeError,
-                    '8310': InvalidAddress,
-                    '8311': BadRequest,
-                    '8313': BadRequest,
-                    '8315': OperationRejected,
-                    '8316': OperationRejected,
-                    '8317': OperationRejected,
-                    '8318': NotSupported,
-                    '8319': NotSupported,
-                    '8320': InvalidAddress,
-                    '8322': BadRequest,
-                    '8327': AuthenticationError,
-                    '8329': ExchangeError,
-                    '8331': InvalidAddress,
-                    '8332': BadRequest,
-                    '8333': BadRequest,
-                    '8334': BadRequest,
-                    '8335': InvalidAddress,
-                    '8336': InvalidAddress,
+                    '1': BadRequest, // Unknown symbol
+                    '5': InvalidOrder, // Unknown order
+                    '6': DuplicateOrderId, // Duplicate order
+                    '13': BadRequest, // Incorrect quantity
+                    '15': BadRequest, // Invalid account
+                    '18': BadRequest, // Invalid price
+                    '1002': BadRequest, // Unable to place request
+                    '2001': BadRequest, // Bad incoming request
+                    '2002': BadRequest, // Invalid user's client id
+                    '2003': BadRequest, // Invalid handle
+                    '2004': BadRequest, // Invalid quantity
+                    '2005': ExchangeError, // Unknown error
+                    '2006': BadRequest, // Invalid account type, //  account must be spot
+                    '2007': BadRequest, // Account already exist
+                    '2008': BadRequest, // Invalid side, //  side must me from buy or sell
+                    '2009': BadSymbol, // Invalid market
+                    '2010': AuthenticationError, // Account doesn't exist
+                    '2011': AuthenticationError, // Account types are different
+                    '2012': BadRequest, // Invalid price
+                    '2013': InvalidOrder, // Invalid order type, //  type must be from limit, //  market, //  stop-limit
+                    '2015': OperationRejected, // Exceeded maximum amount of allowed open margin orders
+                    '2016': BadRequest, // Unknown request type
+                    '2017': BadRequest, // Invalid order id
+                    '2018': BadRequest, // Unknown time in force option
+                    '2020': PermissionDenied, // Margin trading is not allowed
+                    '2021': OperationRejected, // Exceeded maximum amount of allowed open spot orders
+                    '2029': InvalidNonce, // Invalid request id
+                    '2035': InvalidNonce, // Invalid nonce
+                    '3001': InsufficientFunds, // Account doesn't have sufficient balance
+                    '3002': OrderNotFound, // Order is not found
+                    '3003': PermissionDenied, // Borrowing is unavailable
+                    '3004': InsufficientFunds, // Unable to adjust balance
+                    '3005': InsufficientFunds, // Insufficient balance
+                    '3006': InsufficientFunds, // Insufficient collateral
+                    '3007': DuplicateOrderId, // Duplicated order id
+                    '3031': BadRequest, // Price is out of range
+                    '3032': BadRequest, // Order is either closed or rejected
+                    '3033': PermissionDenied, // Leverage increase not permitted
+                    '3034': RateLimitExceeded, // Rate limit exceeded
+                    '3035': RateLimitExceeded, // Global rate limit exceeded
+                    '3047': OperationRejected, // Leverage increase not permitted
+                    '3048': OperationRejected, // Reached max borrowing
+                    '3049': OperationRejected, // No more open loans available
+                    '3051': InsufficientFunds, // Insufficient iou balance
+                    '3052': InsufficientFunds, // Insufficient uoi balance
+                    '3063': BadRequest, // Missing request id
+                    '3064': OrderNotFillable, // Incoming order failed to make or take
+                    '3065': MarketClosed, // Market open interest limit exceeded
+                    '3066': ExchangeError, // Account concentration limit exceeded
+                    '3067': MarketClosed, // MarketClosed
+                    '6007': InvalidOrder, // Self cross prevention
+                    '6011': InvalidOrder, // Self cross prevention amend
+                    '6012': InvalidOrder, // Stop limit amend
+                    '6013': InvalidOrder, // Partially filled
+                    '8301': ExchangeError, // Unexpected Error
+                    '8305': ExchangeError, // Withdraw assertion failed
+                    '8306': ExchangeError, // Custody bad user
+                    '8307': ExchangeError, // Unexpected withdraw exception
+                    '8310': InvalidAddress, // Cannot find withdrawal destination
+                    '8311': BadRequest, // Missing fields in withdraw
+                    '8313': BadRequest, // Unsupported coin
+                    '8315': OperationRejected, // Crypto deposit not found
+                    '8316': OperationRejected, // Unable to allocate deposit address
+                    '8317': OperationRejected, // Swift code is on the restricted list
+                    '8318': NotSupported, // Unsupported operation
+                    '8319': NotSupported, // Custody operation has been disabled
+                    '8320': InvalidAddress, // Address failed validation
+                    '8322': BadRequest, // Bad withdrawal amount
+                    '8327': AuthenticationError, // Invalid Login
+                    '8329': ExchangeError, // Unexpected destination exception
+                    '8331': InvalidAddress, // Invalid Destination
+                    '8332': BadRequest, // Bad network specified
+                    '8333': BadRequest, // Bad symbol specified
+                    '8334': BadRequest, // Bad authentication type
+                    '8335': InvalidAddress, // Withdrawal destination does not belong to user
+                    '8336': InvalidAddress, // Withdrawal destination not whitelisted
                     '8399': ExchangeError, // Unknown error
                 },
                 'broad': {
                     'HttpInvalidParameterException': BadRequest,
-                    'UNAUTHORIZED_COMMAND': AuthenticationError,
-                    'QUERY_FILTER_ERROR': BadRequest,
+                    'UNAUTHORIZED_COMMAND': AuthenticationError, // {"message":"Unauthorized to execute command","raw":null,"errorCode":6105,"errorCodeName":"UNAUTHORIZED_COMMAND"}
+                    'QUERY_FILTER_ERROR': BadRequest, // {"message":"Field 'settlementDatetime' cannot be filtered","errorCode":23001,"errorCodeName":"QUERY_FILTER_ERROR"}
                     'INVALID_SYMBOL': BadSymbol, // {"message":"Invalid symbol provided","errorCode":28004,"errorCodeName":"INVALID_SYMBOL"}
                 },
             },
@@ -887,7 +887,7 @@ export default class bullish extends Exchange {
             'info': market,
         });
     }
-    parseMarketType(type, defaultType = undefined) {
+    parseMarketType(type = undefined, defaultType = undefined) {
         const types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
@@ -1011,7 +1011,7 @@ export default class bullish extends Exchange {
             request['symbol'] = market['id'];
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
-        let response = undefined;
+        let response;
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, params));
         }
@@ -2100,7 +2100,7 @@ export default class bullish extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId(networkCode);
+            request['network'] = this.networkCodeToId(networkCode, code);
         }
         else {
             throw new ArgumentsRequired(this.id + ' withdraw() requires a network parameter');
@@ -2174,7 +2174,7 @@ export default class bullish extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(network),
+            'network': this.networkIdToCode(network, code),
             'addressFrom': sourceAddress,
             'address': address,
             'addressTo': address,
@@ -2371,7 +2371,7 @@ export default class bullish extends Exchange {
                 for (let i = 0; i < safeResponse.length; i++) {
                     const entry = this.safeDict(safeResponse, i, {});
                     const networkId = this.safeString(entry, 'network');
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     if (network === networkCode) {
                         data = entry;
                         break;
@@ -2387,10 +2387,11 @@ export default class bullish extends Exchange {
     parseDepositAddress(depositAddress, currency = undefined) {
         const id = this.safeString(depositAddress, 'symbol');
         const network = this.safeString(depositAddress, 'network');
+        const code = this.safeCurrencyCode(id, currency);
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode(id, currency),
-            'network': this.networkIdToCode(network),
+            'currency': code,
+            'network': this.networkIdToCode(network, code),
             'address': this.safeString(depositAddress, 'address'),
             'tag': undefined,
         };
@@ -2933,6 +2934,7 @@ export default class bullish extends Exchange {
                 }
             }
             if (path === 'v1/users/hmac/login') {
+                headers = (headers === undefined) ? {} : headers;
                 headers['BX-PUBLIC-KEY'] = this.apiKey;
             }
             else {
@@ -2940,6 +2942,7 @@ export default class bullish extends Exchange {
                 if ((token === undefined)) {
                     throw new AuthenticationError(this.id + ' requires a token, please call signIn() first');
                 }
+                headers = (headers === undefined) ? {} : headers;
                 headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }

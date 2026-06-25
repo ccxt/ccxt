@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -89,7 +89,7 @@ class grvt(ccxt.async_support.grvt):
         #
         if self.handle_error_message(client, message):
             return
-        methods: dict = {
+        methods = {
             'v1.ticker.s': self.handle_ticker,
             'v1.ticker.d': self.handle_ticker,
             'v1.mini.d': self.handle_ticker,
@@ -112,7 +112,7 @@ class grvt(ccxt.async_support.grvt):
             method(client, message)
 
     async def subscribe_multiple(self, messageHashes: List[str], request: dict, rawHashes: List[str], publicOrPrivate=True) -> Any:
-        payload: dict = {
+        payload = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': request,
@@ -175,7 +175,7 @@ class grvt(ccxt.async_support.grvt):
         }
         ticker = await self.subscribe_multiple(messageHashes, self.extend(params, request), rawHashes)
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -258,7 +258,7 @@ class grvt(ccxt.async_support.grvt):
         #    }
         #
         data = self.safe_dict(message, 'feed', {})
-        selector = self.safe_string(message, 'selector')
+        selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
         market = self.safe_market(marketId, None)
@@ -267,7 +267,7 @@ class grvt(ccxt.async_support.grvt):
         self.tickers[symbol] = ticker
         client.resolve(ticker, 'ticker::' + symbol)
 
-    def parse_ws_ticker(self, message, market=None):
+    def parse_ws_ticker(self, message, market: Market = None):
         # same dict api
         return self.parse_ticker(message, market)
 
@@ -344,7 +344,7 @@ class grvt(ccxt.async_support.grvt):
         #    }
         #
         data = self.safe_dict(message, 'feed', {})
-        selector = self.safe_string(message, 'selector')
+        selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
         market = self.safe_market(marketId, None)
@@ -357,7 +357,7 @@ class grvt(ccxt.async_support.grvt):
         stored.append(parsed)
         client.resolve(stored, 'trade::' + symbol)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         # same api
         return self.parse_trade(trade, market)
 
@@ -436,12 +436,12 @@ class grvt(ccxt.async_support.grvt):
         #    }
         #
         data = self.safe_dict(message, 'feed', {})
-        selector = self.safe_string(message, 'selector')
+        selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
         market = self.safe_market(marketId, None)
         symbol = market['symbol']
-        secondPart = self.safe_string(parts, 1)
+        secondPart = self.safe_string(parts, 1, '')
         timeframeId = secondPart.replace('-TRADE', '')
         timeframe = self.find_timeframe(timeframeId)
         messageHash = 'ohlcv::' + symbol + '::' + timeframe
@@ -455,7 +455,7 @@ class grvt(ccxt.async_support.grvt):
         resolveData = [symbol, timeframe, stored]
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         # same api
         return self.parse_ohlcv(ohlcv, market)
 
@@ -543,7 +543,7 @@ class grvt(ccxt.async_support.grvt):
         #    }
         #
         data = self.safe_dict(message, 'feed', {})
-        selector = self.safe_string(message, 'selector')
+        selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
         market = self.safe_market(marketId, None)
@@ -552,7 +552,7 @@ class grvt(ccxt.async_support.grvt):
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
-        sequenceNumber = self.safe_integer(message, 'sequence_number')
+        sequenceNumber = self.safe_integer(message, 'sequence_number', 0)
         stream = self.safe_string(message, 'stream')
         isSnapshotChannel = stream == 'v1.book.s'
         isSnapshotMessage = sequenceNumber <= 0
@@ -582,14 +582,14 @@ class grvt(ccxt.async_support.grvt):
     async def authenticate(self, params={}):
         self.check_required_credentials()
         await self.sign_in()
-        wsOptions: dict = self.safe_dict(self.options, 'ws', {})
+        wsOptions = self.safe_dict(self.options, 'ws', {})
         authenticated = self.safe_string(wsOptions, 'token')
         if authenticated is None:
             accountId = self.safe_string(self.options, 'AuthAccountId')
             cookieValue = self.safe_string(self.options, 'AuthCookieValue')
             if cookieValue is None or accountId is None:
                 raise AuthenticationError(self.id + ' : at first, you need to authenticate with exchange using signIn() method.')
-            defaultOptions: dict = {
+            defaultOptions = {
                 'ws': {
                     'options': {
                         'headers': {
@@ -681,7 +681,7 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(self.myTrades, 'myTrades::' + trade['symbol'])
         client.resolve(self.myTrades, 'myTrades')
 
-    def parse_ws_my_trade(self, trade, market=None):
+    def parse_ws_my_trade(self, trade, market: Market = None):
         return self.parse_trade(trade, market)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
@@ -760,7 +760,7 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(newPositions, 'positions::' + symbol)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         # same api
         return self.parse_position(position, market)
 
@@ -871,7 +871,7 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(self.orders, 'orders')
         client.resolve(self.orders, 'order::' + order['symbol'])
 
-    def parse_ws_order(self, order, market=None) -> Order:
+    def parse_ws_order(self, order, market: Market = None) -> Order:
         # same api
         return self.parse_order(order, market)
 

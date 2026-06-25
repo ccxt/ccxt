@@ -72,14 +72,13 @@ Full public and private HTTP REST APIs for all exchanges are implemented in Java
 - [Instantiation](#instantiation)
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
-<!--- init list -->The CCXT library currently supports the following 107 cryptocurrency exchange markets and trading APIs:
+<!--- init list -->The CCXT library currently supports the following 105 cryptocurrency exchange markets and trading APIs:
 
 |logo                                                                                                                                                                                                 |id                     |name                                                                                         |ver                                                                                                                                               |type                                                                                                    |certified                                                                                                                    |pro                                                                                                |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|---------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
 | [![aftermath](https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807)](undefined)                                                                                          | aftermath             | [AftermathFinance](undefined)                                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](undefined)                                                                          | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![alpaca](https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b)](https://alpaca.markets)                                                                                | alpaca                | [Alpaca](https://alpaca.markets)                                                            | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://alpaca.markets/docs/)                                                       | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![apex](https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00)](https://omni.apex.exchange/trade)                                                                        | apex                  | [Apex](https://omni.apex.exchange/trade)                                                    | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api-docs.pro.apex.exchange)                                                 | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![arkham](https://github.com/user-attachments/assets/5cefdcfb-2c10-445b-835c-fa21317bf5ac)](https://arkm.com/register?ref=ccxt)                                                                    | arkham                | [ARKHAM](https://arkm.com/register?ref=ccxt)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://arkm.com/limits-api)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
+| [![apex](https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00)](https://omni.apex.exchange/trade)                                                                        | apex                  | [Apex](https://omni.apex.exchange/trade)                                                    | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api-docs.omni.apex.exchange)                                                | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![ascendex](https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1)](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                                             | ascendex              | [AscendEX](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                         | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation)        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![aster](https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609)](https://www.asterdex.com/en/referral/aA1c2B)                                                            | aster                 | [Aster](https://www.asterdex.com/en/referral/aA1c2B)                                        | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/asterdex/api-docs)                                               | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![backpack](https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f)](https://backpack.exchange/join/ccxt)                                                                 | backpack              | [Backpack](https://backpack.exchange/join/ccxt)                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.backpack.exchange/)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
@@ -133,18 +132,19 @@ Full public and private HTTP REST APIs for all exchanges are implemented in Java
 | [![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)](https://www.deribit.com/reg-1189.4038)                                            | deribit               | [Deribit](https://www.deribit.com/reg-1189.4038)                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.deribit.com/v2)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![derive](https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c)](https://www.derive.xyz/invite/3VB0B)                                                                   | derive                | [derive](https://www.derive.xyz/invite/3VB0B)                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.derive.xyz/docs/)                                                      | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![digifinex](https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg)](https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp)                | digifinex             | [DigiFinex](https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp)                 | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.digifinex.com)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
-| [![dydx](https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1)](dydx.trade?ref=ccxt)                                                                                     | dydx                  | [dYdX](dydx.trade?ref=ccxt)                                                                 | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://docs.dydx.xyz)                                                              | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
+| [![dydx](https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1)](https://dydx.trade?ref=ccxt)                                                                             | dydx                  | [dYdX](https://dydx.trade?ref=ccxt)                                                         | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://docs.dydx.xyz)                                                              | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![exmo](https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg)](https://exmo.me/?ref=131685)                                                         | exmo                  | [EXMO](https://exmo.me/?ref=131685)                                                         | [![API Version 1.1](https://img.shields.io/badge/1.1-lightgray)](https://exmo.me/en/api_doc?ref=131685)                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
+| [![extended](https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299)](https://app.{hostname})                                                                              | extended              | [Extended](https://app.{hostname})                                                          | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.docs.{hostname})                                                        | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![fmfwio](https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg)](https://fmfw.io/referral/da948b21d6c92d69)                                        | fmfwio                | [FMFW.io](https://fmfw.io/referral/da948b21d6c92d69)                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.fmfw.io/)                                                               | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![foxbit](https://github.com/user-attachments/assets/1f8faca2-ae2f-4222-b33e-5671e7d873dd)](https://app.foxbit.com.br)                                                                             | foxbit                | [Foxbit](https://app.foxbit.com.br)                                                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.foxbit.com.br)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![gate](https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85)](https://www.gate.com/share/CCXTGATE)                                                                     | gate                  | [Gate](https://www.gate.com/share/CCXTGATE)                                                 | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://www.gate.com/docs/developers/apiv4/en)                                      | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)](https://gemini.com/)                                                               | gemini                | [Gemini](https://gemini.com/)                                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.gemini.com/rest-api)                                                   | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![grvt](https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6)](https://grvt.io/?ref=WBLS9D1)                                                                            | grvt                  | [GRVT](https://grvt.io/?ref=WBLS9D1)                                                        | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api-docs.grvt.io/)                                                          | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![hashkey](https://github.com/user-attachments/assets/6dd6127b-cc19-4a13-9b29-a98d81f80e98)](https://global.hashkey.com/en-US/register/invite?invite_code=82FQUN)                                  | hashkey               | [HashKey Global](https://global.hashkey.com/en-US/register/invite?invite_code=82FQUN)       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://hashkeyglobal-apidoc.readme.io/)                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![hibachi](https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973)](hibachi.xyz/r/ZBL2YFWIHU)                                                                             | hibachi               | [Hibachi](hibachi.xyz/r/ZBL2YFWIHU)                                                         | [![API Version *](https://img.shields.io/badge/*-lightgray)](undefined)                                                                          | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             |                                                                                                   |
+| [![hibachi](https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973)](https://hibachi.xyz/r/ZBL2YFWIHU)                                                                     | hibachi               | [Hibachi](https://hibachi.xyz/r/ZBL2YFWIHU)                                                 | [![API Version *](https://img.shields.io/badge/*-lightgray)](undefined)                                                                          | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             |                                                                                                   |
 | [![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                          | hitbtc                | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                          | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.hitbtc.com)                                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![hollaex](https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg)](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                           | hollaex               | [HollaEx](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://apidocs.hollaex.com)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![htx](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223)                          | htx                   | [HTX](https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223)                          | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/en/)                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
+| [![htx](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223)                             | htx                   | [HTX](https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223)                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/en/)                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![hyperliquid](https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b)](https://app.hyperliquid.xyz/)                                                                   | hyperliquid           | [Hyperliquid](https://app.hyperliquid.xyz/)                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api)                 | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![independentreserve](https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg)](https://www.independentreserve.com)                                   | independentreserve    | [Independent Reserve](https://www.independentreserve.com)                                   | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.independentreserve.com/API)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![indodax](https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg)](https://indodax.com/ref/testbitcoincoid/1)                                       | indodax               | [INDODAX](https://indodax.com/ref/testbitcoincoid/1)                                        | [![API Version 2.0](https://img.shields.io/badge/2.0-lightgray)](https://github.com/btcid/indodax-official-api-docs)                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
@@ -154,7 +154,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented in Java
 | [![kucoinfutures](https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg)](https://futures.kucoin.com/?rcode=E5wkqe)                                  | kucoinfutures         | [KuCoin Futures](https://futures.kucoin.com/?rcode=E5wkqe)                                  | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.kucoin.com)                                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![latoken](https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg)](https://latoken.com/invite?r=mvgp2djk)                                            | latoken               | [Latoken](https://latoken.com/invite?r=mvgp2djk)                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.latoken.com)                                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbank.com/login/?icode=7QCY)                                            | lbank                 | [LBank](https://www.lbank.com/login/?icode=7QCY)                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.lbank.com/en-US/docs/index.html)                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![lighter](https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0)](app.lighter.xyz/?referral=715955W9)                                                                   | lighter               | [Lighter](app.lighter.xyz/?referral=715955W9)                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://apidocs.lighter.xyz/)                                                       | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
+| [![lighter](https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0)](https://app.lighter.xyz/?referral=715955W9)                                                           | lighter               | [Lighter](https://app.lighter.xyz/?referral=715955W9)                                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://apidocs.lighter.xyz/)                                                       | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                                  | luno                  | [luno](https://www.luno.com/invite/44893A)                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.luno.com/en/api)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                                | mercado               | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mercadobitcoin.com.br/api-doc)                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                             | mexc                  | [MEXC Global](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                       | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://mexcdevelop.github.io/apidocs/)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
@@ -174,13 +174,11 @@ Full public and private HTTP REST APIs for all exchanges are implemented in Java
 | [![tokocrypto](https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg)](https://tokocrypto.com)                                                       | tokocrypto            | [Tokocrypto](https://tokocrypto.com)                                                        | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.tokocrypto.com/apidocs/)                                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![toobit](https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e)](https://www.toobit.com/en-US/r?i=IFFPy0)                                                               | toobit                | [Toobit](https://www.toobit.com/en-US/r?i=IFFPy0)                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://toobit-docs.github.io/apidocs/spot/v1/en/)                                  | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                                  | upbit                 | [Upbit](https://upbit.com)                                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.upbit.com/kr)                                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![wavesexchange](https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg)](https://wx.network)                                                         | wavesexchange         | [Waves.Exchange](https://wx.network)                                                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.wx.network)                                                            | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             |                                                                                                   |
 | [![weex](https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936)](https://www.weex.com/register?vipCode=qfyh)                                                              | weex                  | [Weex](https://www.weex.com/register?vipCode=qfyh)                                          | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.weex.com/api-doc)                                                       | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)              | whitebit              | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)              | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://woox.io/register?ref=DIJT0CNL)                                               | woo                   | [WOO X](https://woox.io/register?ref=DIJT0CNL)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woox.io/)                                                              | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![woofipro](https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1)](https://dex.woo.org/en/trade?ref=CCXT)                                                               | woofipro              | [WOOFI PRO](https://dex.woo.org/en/trade?ref=CCXT)                                          | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-omnichain/building-on-evm)                    | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![xt](https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg)](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                 | xt                    | [XT](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                   | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://doc.xt.com/)                                                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                              | yobit                 | [YoBit](https://www.yobit.net)                                                              | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.yobit.net/en/api/)                                                      | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                     | zaif                  | [Zaif](https://zaif.jp)                                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![zebpay](https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad)](https://www.zebpay.com)                                                                                | zebpay                | [Zebpay](https://www.zebpay.com)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/zebpay/zebpay-api-references)                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 <!--- end list -->
@@ -210,6 +208,21 @@ print (ccxt.exchanges)
 include 'ccxt.php';
 var_dump (\ccxt\Exchange::$exchanges);
 ```
+#### **Go**
+```go
+import (
+    "fmt"
+    "github.com/ccxt/ccxt/go/v4"
+)
+
+fmt.Println(ccxt.Exchanges)
+```
+#### **C#**
+```csharp
+using ccxt;
+
+Console.WriteLine(string.Join(", ", ccxt.Exchange.exchanges));
+```
 #### **Java**
 ```java
 import io.github.ccxt.Exchange;
@@ -226,8 +239,8 @@ const ccxt = require ('ccxt')
 let exchange = new ccxt.kraken () // default id
 let kraken1 = new ccxt.kraken ({ id: 'kraken1' })
 let kraken2 = new ccxt.kraken ({ id: 'kraken2' })
-let id = 'coinbasepro'
-let coinbasepro = new ccxt[id] ();
+let id = 'coinbaseexchange'
+let coinbaseexchange = new ccxt[id] ();
 
 // from variable id
 const exchangeId = 'binance'
@@ -245,7 +258,7 @@ okcoin1 = ccxt.okcoin ({ 'id': 'okcoin1' })
 okcoin2 = ccxt.okcoin ({ 'id': 'okcoin2' })
 id = 'btcchina'
 btcchina = eval ('ccxt.%s ()' % id)
-coinbasepro = getattr (ccxt, 'coinbasepro') ()
+coinbaseexchange = getattr (ccxt, 'coinbaseexchange') ()
 
 # from variable id
 exchange_id = 'binance'
@@ -263,9 +276,7 @@ The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are r
 // PHP
 date_default_timezone_set('UTC');
 include 'ccxt.php';
-$bitfinex = new \ccxt\bitfinex(); // default id
-$bitfinex1 = new \ccxt\bitfinex(array('id' => 'bitfinex1'));
-$bitfinex2 = new \ccxt\bitfinex(array('id' => 'bitfinex2'));
+$bitfinex = new \ccxt\bitfinex();
 $id = 'kraken';
 $exchange = '\\ccxt\\' . $id;
 $kraken = new $exchange();
@@ -277,6 +288,32 @@ $exchange = new $exchange_class(array(
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
 ));
+```
+#### **Go**
+```go
+import (
+    "github.com/ccxt/ccxt/go/v4"
+)
+
+bitfinex := ccxt.NewBitfinex(nil) // default id
+
+// from variable id
+exchange := ccxt.CreateExchange("binance", map[string]interface{}{
+    "apiKey": "YOUR_API_KEY",
+    "secret": "YOUR_SECRET",
+})
+```
+#### **C#**
+```csharp
+using ccxt;
+
+var kraken = new Kraken(); // default id
+
+// with config
+var binance = new Binance(new Dictionary<string, object>() {
+    { "apiKey", "YOUR_API_KEY" },
+    { "secret", "YOUR_SECRET" },
+});
 ```
 #### **Java**
 ```java
@@ -445,6 +482,32 @@ $exchange = new $exchange_class(array(
 ));
 $exchange->options['adjustForTimeDifference'] = false;
 ```
+#### **Go**
+```go
+exchange := ccxt.NewBinance(map[string]interface{}{
+    "rateLimit": 10000, // unified exchange property
+    "headers": map[string]interface{}{
+        "YOUR_CUSTOM_HTTP_HEADER": "YOUR_CUSTOM_VALUE",
+    },
+    "options": map[string]interface{}{
+        "adjustForTimeDifference": true, // exchange-specific option
+    },
+})
+exchange.Options.Store("adjustForTimeDifference", false)
+```
+#### **C#**
+```csharp
+var exchange = new Binance(new Dictionary<string, object>() {
+    { "rateLimit", 10000 }, // unified exchange property
+    { "headers", new Dictionary<string, object>() {
+        { "YOUR_CUSTOM_HTTP_HEADER", "YOUR_CUSTOM_VALUE" },
+    } },
+    { "options", new Dictionary<string, object>() {
+        { "adjustForTimeDifference", true }, // exchange-specific option
+    } },
+});
+exchange.options["adjustForTimeDifference"] = false;
+```
 #### **Java**
 ```java
 Map<String, Object> config = new HashMap<>();
@@ -517,6 +580,16 @@ exchange.set_sandbox_mode(True)  # enable sandbox mode
 ```php
 $exchange = new \ccxt\binance($config);
 $exchange->set_sandbox_mode(true); // enable sandbox mode
+```
+#### **Go**
+```go
+exchange := ccxt.NewBinance(config)
+exchange.SetSandboxMode(true) // enable sandbox mode
+```
+#### **C#**
+```csharp
+var exchange = new Binance(config);
+exchange.setSandboxMode(true); // enable sandbox mode
 ```
 #### **Java**
 ```java
@@ -769,6 +842,24 @@ $exchange = new \ccxt\bitfinex (array (
 // or switch the built-in rate-limiter on or off later after instantiation
 $exchange->enableRateLimit = true; // enable
 $exchange->enableRateLimit = false; // disable
+```
+#### **Go**
+```go
+// enable built-in rate limiting upon instantiation of the exchange
+exchange := ccxt.NewBitfinex(nil) // enabled by default
+
+// or switch the built-in rate-limiter on or off later after instantiation
+exchange.EnableRateLimit = true  // enable
+exchange.EnableRateLimit = false // disable
+```
+#### **C#**
+```csharp
+// enable built-in rate limiting upon instantiation of the exchange
+var exchange = new Bitfinex(); // enabled by default
+
+// or switch the built-in rate-limiter on or off later after instantiation
+exchange.enableRateLimit = true;  // enable
+exchange.enableRateLimit = false; // disable
 ```
 #### **Java**
 ```java
@@ -1167,6 +1258,16 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
 ```
 
+#### **Go**
+```go
+func (this *Exchange) DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) any
+```
+
+#### **C#**
+```csharp
+public static string DecimalToPrecision(object x, object roundingMode, object numPrecisionDigits, object countingMode = null, object paddingMode = null)
+```
+
 #### **Java**
 ```java
 String formattedAmount = exchange.getExchange().amountToPrecision(symbol, amount);
@@ -1207,6 +1308,20 @@ function amount_to_precision($symbol, $amount)
 function price_to_precision($symbol, $price)
 function cost_to_precision($symbol, $cost)
 function currency_to_precision($code, $amount)
+```
+#### **Go**
+```go
+func (this *Exchange) AmountToPrecision(symbol any, amount any) any
+func (this *Exchange) PriceToPrecision(symbol any, price any) any
+func (this *Exchange) CostToPrecision(symbol any, cost any) any
+func (this *Exchange) CurrencyToPrecision(code any, fee any, optionalArgs ...any) any
+```
+#### **C#**
+```csharp
+public virtual object amountToPrecision(object symbol, object amount)
+public virtual object priceToPrecision(object symbol, object price)
+public virtual object costToPrecision(object symbol, object cost)
+public virtual object currencyToPrecision(object code, object fee, object networkCode = null)
 ```
 #### **Java**
 ```java
@@ -1255,6 +1370,26 @@ $price = 87654.321; // price in quote currency USDT
 $formatted_amount = $exchange->amount_to_precision($symbol, $amount);
 $formatted_price = $exchange->price_to_precision($symbol, $price);
 echo $formatted_amount, " ", $formatted_price, "\n";
+```
+#### **Go**
+```go
+exchange.LoadMarkets()
+symbol := "BTC/USDT"
+amount := 1.2345678 // amount in base currency BTC
+price := 87654.321  // price in quote currency USDT
+formattedAmount := exchange.AmountToPrecision(symbol, amount)
+formattedPrice := exchange.PriceToPrecision(symbol, price)
+fmt.Println(formattedAmount, formattedPrice)
+```
+#### **C#**
+```csharp
+await exchange.LoadMarkets();
+var symbol = "BTC/USDT";
+var amount = 1.2345678; // amount in base currency BTC
+var price = 87654.321;  // price in quote currency USDT
+var formattedAmount = exchange.amountToPrecision(symbol, amount);
+var formattedPrice = exchange.priceToPrecision(symbol, price);
+Console.WriteLine(formattedAmount + " " + formattedPrice);
 ```
 #### **Java**
 ```java
@@ -1323,11 +1458,29 @@ print(okcoin.id, markets)
 
 #### **PHP**
 ```php
-$id = 'huobipro';
+$id = 'htx';
 $exchange = '\\ccxt\\' . $id;
-$huobipro = new $exchange();
-$markets = $huobipro->load_markets();
-var_dump($huobipro->id, $markets);
+$htx = new $exchange();
+$markets = $htx->load_markets();
+var_dump($htx->id, $markets);
+```
+
+#### **Go**
+```go
+kraken := ccxt.NewKraken(nil)
+markets, err := kraken.LoadMarkets()
+if err != nil {
+    fmt.Println(err)
+    return
+}
+fmt.Println(kraken.GetId(), len(markets))
+```
+
+#### **C#**
+```csharp
+var kraken = new Kraken();
+var markets = await kraken.LoadMarkets();
+Console.WriteLine(kraken.id + " " + markets.Count + " markets");
 ```
 
 #### **Java**
@@ -1584,6 +1737,29 @@ $okcoin->markets_by_id['btc_usd'][0];              // id → market (get market 
 $okcoin->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
 $okcoin->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
 ```
+#### **Go**
+```go
+exchange := ccxt.NewKraken(nil)
+exchange.LoadMarkets()
+
+btcUsd := exchange.Market("BTC/USD")          // get market structure by symbol
+marketId := exchange.MarketId("BTC/USD")      // get market id by symbol
+
+symbols := exchange.GetSymbols()              // get a list of symbols
+fmt.Println(exchange.GetId(), symbols)        // print all symbols
+fmt.Println(btcUsd, marketId)
+```
+#### **C#**
+```csharp
+var exchange = new Kraken();
+await exchange.LoadMarkets();
+
+var btcUsd = exchange.market("BTC/USD");       // symbol → market (get market by symbol)
+var marketId = exchange.marketId("BTC/USD");   // symbol → id (get market id by symbol)
+
+var symbols = exchange.symbols;                // get a list of symbols
+Console.WriteLine(exchange.id + " " + string.Join(", ", symbols)); // print all symbols
+```
 #### **Java**
 ```java
 Kraken exchange = new Kraken();
@@ -1818,6 +1994,22 @@ $reloadedMarkets = $bitfinex->load_markets(true); // force HTTP reload = true
 var_dump($bitfinex->markets['XRP/BTC']);
 ```
 
+#### **Go**
+```go
+kraken := ccxt.NewKraken(map[string]interface{}{"verbose": true}) // log HTTP requests
+kraken.LoadMarkets()       // request markets
+kraken.LoadMarkets()       // return a locally cached version, no reload
+kraken.LoadMarkets(true)   // force HTTP reload = true
+```
+
+#### **C#**
+```csharp
+var kraken = new Kraken(new Dictionary<string, object>() { { "verbose", true } }); // log HTTP requests
+await kraken.LoadMarkets();       // request markets
+await kraken.LoadMarkets();       // return a locally cached version, no reload
+await kraken.loadMarkets(true);   // force HTTP reload = true
+```
+
 #### **Java**
 ```java
 Kraken kraken = new Kraken();
@@ -1973,6 +2165,34 @@ while (true) {
 ```
 
 See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
+
+#### **Go**
+
+In Go every networking method is synchronous and returns a `(value, error)` pair — there is no async variant. Always check the returned `error` before using the value:
+
+```go
+// Go
+
+exchange := ccxt.NewKraken(nil)
+ticker, err := exchange.FetchTicker("ETH/BTC")
+if err != nil {
+    fmt.Println(err)
+    return
+}
+fmt.Println(exchange.GetId(), ticker.Last)
+```
+
+#### **C#**
+
+In C# every networking method is asynchronous and returns a `Task<T>` that you `await`. The unified methods use native `async`/`await`:
+
+```csharp
+// C#
+
+var exchange = new Kraken();
+var ticker = await exchange.FetchTicker("ETH/BTC");
+Console.WriteLine(exchange.id + " " + ticker.last);
+```
 
 #### **Java**
 
@@ -2183,6 +2403,28 @@ $params = array (
 $result = $exchange->fetch_order_book ($symbol, $length, $params);
 ```
 
+#### **Go**
+```go
+params := map[string]interface{}{
+    "foo":   "bar",     // exchange-specific overrides in unified queries
+    "Hello": "World!",  // see their docs for more details on parameter names
+}
+
+// overrides go into the options of the unified call ↓ HERE
+result, err := exchange.FetchOrderBook(symbol, ccxt.WithFetchOrderBookParams(params))
+```
+
+#### **C#**
+```csharp
+var parameters = new Dictionary<string, object>() {
+    { "foo", "bar" },       // exchange-specific overrides in unified queries
+    { "Hello", "World!" },  // see their docs for more details on parameter names
+};
+
+// overrides go into the last argument to the unified call ↓ HERE
+var result = await exchange.FetchOrderBook(symbol, length, parameters);
+```
+
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("foo", "bar");
@@ -2337,6 +2579,46 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
+#### **Go**
+```go
+since := exchange.Milliseconds() - 86400000 // -1 day from now
+allTrades := []ccxt.Trade{}
+for since < exchange.Milliseconds() {
+    symbol := "BTC/USDT" // change for your symbol
+    trades, err := exchange.FetchTrades(symbol, ccxt.WithFetchTradesSince(since), ccxt.WithFetchTradesLimit(20))
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    if len(trades) > 0 {
+        since = *trades[len(trades)-1].Timestamp + 1
+        allTrades = append(allTrades, trades...)
+    } else {
+        break
+    }
+}
+```
+
+#### **C#**
+```csharp
+var since = exchange.milliseconds() - 86400000; // -1 day from now
+var allTrades = new List<Trade>();
+while (since < exchange.milliseconds())
+{
+    var symbol = "BTC/USDT"; // change for your symbol
+    var trades = await exchange.FetchTrades(symbol, since, 20);
+    if (trades.Count > 0)
+    {
+        since = (Int64)trades[trades.Count - 1].Timestamp + 1;
+        allTrades.AddRange(trades);
+    }
+    else
+    {
+        break;
+    }
+}
+```
+
 #### **Java**
 ```java
 long since = System.currentTimeMillis() - 86400000; // -1 day
@@ -2426,6 +2708,52 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
+#### **Go**
+```go
+fromId := "abc123" // all ids are strings
+allTrades := []ccxt.Trade{}
+for {
+    symbol := "BTC/USDT" // change for your symbol
+    params := map[string]interface{}{
+        "from_id": fromId, // exchange-specific non-unified parameter name
+    }
+    trades, err := exchange.FetchTrades(symbol, ccxt.WithFetchTradesLimit(20), ccxt.WithFetchTradesParams(params))
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    if len(trades) > 0 {
+        fromId = *trades[len(trades)-1].Id
+        allTrades = append(allTrades, trades...)
+    } else {
+        break
+    }
+}
+```
+
+#### **C#**
+```csharp
+var fromId = "abc123"; // all ids are strings
+var allTrades = new List<Trade>();
+while (true)
+{
+    var symbol = "BTC/USDT"; // change for your symbol
+    var parameters = new Dictionary<string, object>() {
+        { "from_id", fromId }, // exchange-specific non-unified parameter name
+    };
+    var trades = await exchange.FetchTrades(symbol, null, 20, parameters);
+    if (trades.Count > 0)
+    {
+        fromId = trades[trades.Count - 1].Id;
+        allTrades.AddRange(trades);
+    }
+    else
+    {
+        break;
+    }
+}
+```
+
 #### **Java**
 ```java
 String fromId = "abc123";
@@ -2451,7 +2779,7 @@ while (true) {
 
 The user supplies a page number or an *initial "cursor"* value. The exchange returns a page of results and the *next "cursor"* value, to proceed from. Most of exchanges that implement this type of pagination will either return the next cursor within the response itself or will return the next cursor values within HTTP response headers.
 
-See an example implementation here: https://github.com/ccxt/ccxt/blob/master/examples/py/coinbasepro-fetch-my-trades-pagination.py
+See an example implementation here: https://github.com/ccxt/ccxt/blob/master/examples/py/coinbaseexchange-fetch-my-trades-pagination.py
 
 Upon each iteration of the loop the user has to take the next cursor and put it into the overrided params for the next query (on the following iteration):
 <!-- tabs:start -->
@@ -2523,6 +2851,52 @@ if ($exchange->has['fetchMyTrades']) {
         } else {
             break;
         }
+    }
+}
+```
+
+#### **Go**
+```go
+page := 0 // exchange-specific type and value
+allTrades := []ccxt.Trade{}
+for {
+    symbol := "BTC/USDT" // change for your symbol
+    params := map[string]interface{}{
+        "page": page, // exchange-specific non-unified parameter name
+    }
+    trades, err := exchange.FetchTrades(symbol, ccxt.WithFetchTradesLimit(20), ccxt.WithFetchTradesParams(params))
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    if len(trades) > 0 {
+        page++ // or extract cursor from response
+        allTrades = append(allTrades, trades...)
+    } else {
+        break
+    }
+}
+```
+
+#### **C#**
+```csharp
+var page = 0; // exchange-specific type and value
+var allTrades = new List<Trade>();
+while (true)
+{
+    var symbol = "BTC/USDT"; // change for your symbol
+    var parameters = new Dictionary<string, object>() {
+        { "page", page }, // exchange-specific non-unified parameter name
+    };
+    var trades = await exchange.FetchTrades(symbol, null, 20, parameters);
+    if (trades.Count > 0)
+    {
+        page++; // or extract cursor from response
+        allTrades.AddRange(trades);
+    }
+    else
+    {
+        break;
     }
 }
 ```
@@ -2636,6 +3010,31 @@ foreach ($exchange->markets as $symbol => $market) {
 }
 ```
 
+#### **Go**
+```go
+exchange := ccxt.NewBinance(nil)
+exchange.LoadMarkets()
+for _, symbol := range exchange.GetSymbols() {
+    ob, err := exchange.FetchOrderBook(symbol)
+    if err != nil {
+        fmt.Println(err)
+        continue
+    }
+    fmt.Println(symbol, "bids:", len(ob.Bids), "asks:", len(ob.Asks))
+}
+```
+
+#### **C#**
+```csharp
+var exchange = new Binance();
+await exchange.LoadMarkets();
+foreach (string symbol in exchange.symbols)
+{
+    var ob = await exchange.FetchOrderBook(symbol);
+    Console.WriteLine(symbol + " bids: " + ob.bids.Count + " asks: " + ob.asks.Count);
+}
+```
+
 #### **Java**
 ```java
 Binance exchange = new Binance();
@@ -2721,6 +3120,32 @@ $limit = 20;
 var_dump ($exchange->fetch_order_book ('BTC/USD', $limit));
 ```
 
+#### **Go**
+```go
+exchange := ccxt.NewBitfinex(nil)
+limit := 5
+orders, err := exchange.FetchOrderBook("BTC/USD", ccxt.WithFetchOrderBookLimit(int64(limit)), ccxt.WithFetchOrderBookParams(map[string]interface{}{
+    // this parameter is exchange-specific, all extra params have unique names per exchange
+    "group": 1, // 1 = orders are grouped by price, 0 = orders are separate
+}))
+if err != nil {
+    fmt.Println(err)
+    return
+}
+fmt.Println(orders.Bids, orders.Asks)
+```
+
+#### **C#**
+```csharp
+var exchange = new Bitfinex();
+var limit = 5;
+var orders = await exchange.FetchOrderBook("BTC/USD", limit, new Dictionary<string, object>() {
+    // this parameter is exchange-specific, all extra params have unique names per exchange
+    { "group", 1 }, // 1 = orders are grouped by price, 0 = orders are separate
+});
+Console.WriteLine("bids: " + orders.bids.Count + " asks: " + orders.asks.Count);
+```
+
 #### **Java**
 ```java
 OrderBook ob = exchange.fetchOrderBook("BTC/USDT", 5L, null);
@@ -2773,6 +3198,35 @@ $spread = ($bid && $ask) ? $ask - $bid : null;
 $result = array ('bid' => $bid, 'ask' => $ask, 'spread' => $spread);
 var_dump ($exchange->id, 'market price', $result);
 ```
+#### **Go**
+```go
+orderbook, err := exchange.FetchOrderBook(exchange.GetSymbols()[0])
+if err != nil {
+    fmt.Println(err)
+    return
+}
+var bid, ask, spread float64
+if len(orderbook.Bids) > 0 {
+    bid = orderbook.Bids[0][0]
+}
+if len(orderbook.Asks) > 0 {
+    ask = orderbook.Asks[0][0]
+}
+if bid > 0 && ask > 0 {
+    spread = ask - bid
+}
+fmt.Println(exchange.GetId(), "market price", "bid:", bid, "ask:", ask, "spread:", spread)
+```
+
+#### **C#**
+```csharp
+var orderbook = await exchange.FetchOrderBook(exchange.symbols[0].ToString());
+double? bid = orderbook.bids.Count > 0 ? orderbook.bids[0][0] : null;
+double? ask = orderbook.asks.Count > 0 ? orderbook.asks[0][0] : null;
+double? spread = (bid != null && ask != null) ? ask - bid : null;
+Console.WriteLine(exchange.id + " market price bid=" + bid + " ask=" + ask + " spread=" + spread);
+```
+
 #### **Java**
 ```java
 OrderBook ob = exchange.fetchOrderBook("BTC/USDT");
@@ -2911,6 +3365,20 @@ if ($exchange->has['fetchTicker']) {
     var_dump ($exchange->fetch_ticker ($symbols[$random])); // ticker for a random symbol
 }
 ```
+#### **Go**
+```go
+ticker, err := exchange.FetchTicker("BTC/USDT")
+if err != nil {
+    fmt.Println(err)
+    return
+}
+fmt.Println(ticker.Symbol, "last=", ticker.Last, "bid=", ticker.Bid, "ask=", ticker.Ask)
+```
+#### **C#**
+```csharp
+var ticker = await exchange.FetchTicker("BTC/USDT");
+Console.WriteLine(ticker.symbol + " last=" + ticker.last + " bid=" + ticker.bid + " ask=" + ticker.ask);
+```
 #### **Java**
 ```java
 Ticker ticker = exchange.fetchTicker("BTC/USDT");
@@ -2938,6 +3406,25 @@ if (exchange.has['fetchTickers']):
 ```php
 if ($exchange->has['fetchTickers']) {
     var_dump ($exchange->fetch_tickers ()); // all tickers indexed by their symbols
+}
+```
+#### **Go**
+```go
+tickers, err := exchange.FetchTickers()
+if err != nil {
+    fmt.Println(err)
+    return
+}
+for symbol, ticker := range tickers.Tickers {
+    fmt.Println(symbol, "last=", ticker.Last)
+}
+```
+#### **C#**
+```csharp
+var tickers = await exchange.FetchTickers();
+foreach (var entry in tickers.tickers)
+{
+    Console.WriteLine(entry.Key + " last=" + entry.Value.last);
 }
 ```
 #### **Java**
@@ -2971,6 +3458,20 @@ if (exchange.has['fetchTickers']):
 if ($exchange->has['fetchTickers']) {
     var_dump ($exchange->fetch_tickers (array ('ETH/BTC', 'LTC/BTC'))); // listed tickers indexed by their symbols
 }
+```
+#### **Go**
+```go
+tickers, err := exchange.FetchTickers(ccxt.WithFetchTickersSymbols([]string{"ETH/BTC", "LTC/BTC"}))
+if err != nil {
+    fmt.Println(err)
+    return
+}
+fmt.Println(len(tickers.Tickers)) // listed tickers indexed by their symbols
+```
+#### **C#**
+```csharp
+var tickers = await exchange.FetchTickers(new List<string>() { "ETH/BTC", "LTC/BTC" }); // listed tickers indexed by their symbols
+Console.WriteLine(tickers.tickers.Count);
 ```
 #### **Java**
 ```java
@@ -3037,6 +3538,25 @@ if ($exchange->has['fetchOHLCV']) {
         usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
     }
+}
+```
+#### **Go**
+```go
+candles, err := exchange.FetchOHLCV("BTC/USDT", ccxt.WithFetchOHLCVTimeframe("1h"), ccxt.WithFetchOHLCVLimit(10))
+if err != nil {
+    fmt.Println(err)
+    return
+}
+for _, c := range candles {
+    fmt.Println(c.Timestamp, "O=", c.Open, "H=", c.High, "L=", c.Low, "C=", c.Close)
+}
+```
+#### **C#**
+```csharp
+var candles = await exchange.FetchOHLCV("BTC/USDT", "1h", null, 10);
+foreach (var c in candles)
+{
+    Console.WriteLine(c.timestamp + " O=" + c.open + " H=" + c.high + " L=" + c.low + " C=" + c.close);
 }
 ```
 #### **Java**
@@ -3160,7 +3680,7 @@ The list of candles is returned sorted in ascending (historical/chronological) o
 
 ### Mark, Index and PremiumIndex Candlestick Charts
 
-To obtain historical Mark, Index Price and Premium Index candlesticks pass the `'price'` [params-override](overriding-unified-api-params) to `fetchOHLCV`. The `'price'` parameter accepts one of the following values:
+To obtain historical Mark, Index Price and Premium Index candlesticks pass the `'price'` [params-override](#overriding-unified-api-params) to `fetchOHLCV`. The `'price'` parameter accepts one of the following values:
 
 - `'mark'`
 - `'index'`
@@ -3204,6 +3724,35 @@ mark_klines = exchange.fetch_mark_ohlcv('ADA/USDT', '1h')
 index_klines = exchange.fetch_index_ohlcv('ADA/USDT', '1h')
 pprint(mark_klines)
 pprint(index_klines)
+```
+#### **PHP**
+```php
+$exchange = new \ccxt\binanceusdm();
+// Convenience methods
+$mark_klines = $exchange->fetch_mark_ohlcv('ADA/USDT', '1h');
+$index_klines = $exchange->fetch_index_ohlcv('ADA/USDT', '1h');
+var_dump($mark_klines);
+var_dump($index_klines);
+```
+#### **Go**
+```go
+exchange := ccxt.NewBinanceusdm(nil)
+// Convenience methods
+markKlines, err := exchange.FetchMarkOHLCV("ADA/USDT", ccxt.WithFetchMarkOHLCVTimeframe("1h"))
+if err != nil {
+    fmt.Println(err)
+    return
+}
+indexKlines, _ := exchange.FetchIndexOHLCV("ADA/USDT", ccxt.WithFetchIndexOHLCVTimeframe("1h"))
+fmt.Println(markKlines, indexKlines)
+```
+#### **C#**
+```csharp
+var exchange = new Binanceusdm();
+// Convenience methods
+var markKlines = await exchange.FetchMarkOHLCV("ADA/USDT", "1h");
+var indexKlines = await exchange.FetchIndexOHLCV("ADA/USDT", "1h");
+Console.WriteLine(markKlines.Count + " " + indexKlines.Count);
 ```
 #### **Java**
 ```java
@@ -3249,6 +3798,25 @@ if ($exchange->has['fetchTrades']) {
     foreach ($exchange->markets as $symbol => $market) {
         var_dump ($exchange->fetch_trades ($symbol));
     }
+}
+```
+#### **Go**
+```go
+trades, err := exchange.FetchTrades("BTC/USDT", ccxt.WithFetchTradesLimit(20))
+if err != nil {
+    fmt.Println(err)
+    return
+}
+for _, t := range trades {
+    fmt.Println(t.Datetime, t.Side, t.Amount, "@", t.Price)
+}
+```
+#### **C#**
+```csharp
+var trades = await exchange.FetchTrades("BTC/USDT", null, 20);
+foreach (var t in trades)
+{
+    Console.WriteLine(t.datetime + " " + t.side + " " + t.amount + " @ " + t.price);
 }
 ```
 #### **Java**
@@ -3551,7 +4119,7 @@ In the example above:
 - a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
 - stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
 
-**Note for Huobi users:** Huobi uses both leverage and amount to determine maintenance margin rates: https://www.huobi.com/support/en-us/detail/900000089903
+**Note for htx users:** htx uses both leverage and amount to determine maintenance margin rates: https://www.htx.com/support/en-us/detail/900000089903
 
 ## Funding Rate
 
@@ -4180,16 +4748,28 @@ exchange.checkRequiredCredentials() // throw AuthenticationError
 #### **Python**
 ```python
 import ccxt
-exchange = ccxt.coinbasepro()
+exchange = ccxt.coinbaseexchange()
 print(exchange.requiredCredentials)  # prints required credentials
 exchange.check_required_credentials()  # raises AuthenticationError
 ```
 #### **PHP**
 ```php
 include 'ccxt.php';
-$exchange = new \ccxt\bittrex ();
+$exchange = new \ccxt\coinbase ();
 var_dump($exchange->requiredCredentials); // prints required credentials
 $exchange->check_required_credentials(); // throws AuthenticationError
+```
+#### **Go**
+```go
+exchange := ccxt.NewBinance(nil)
+fmt.Println(exchange.RequiredCredentials)  // prints required credentials
+exchange.CheckRequiredCredentials()        // throws AuthenticationError
+```
+#### **C#**
+```csharp
+var exchange = new Binance();
+Console.WriteLine(exchange.requiredCredentials); // prints required credentials
+exchange.checkRequiredCredentials();             // throws AuthenticationError
 ```
 #### **Java**
 ```java
@@ -4271,6 +4851,30 @@ $exchange = new $exchange_class (array (
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
 ));
+```
+#### **Go**
+```go
+// upon instantiation
+exchange := ccxt.NewBinance(map[string]interface{}{
+    "apiKey": "YOUR_API_KEY",
+    "secret": "YOUR_SECRET",
+})
+
+// or set later
+exchange.ApiKey = "YOUR_API_KEY"
+exchange.Secret = "YOUR_SECRET"
+```
+#### **C#**
+```csharp
+// upon instantiation
+var exchange = new Binance(new Dictionary<string, object>() {
+    { "apiKey", "YOUR_API_KEY" },
+    { "secret", "YOUR_SECRET" },
+});
+
+// or set later
+exchange.apiKey = "YOUR_API_KEY";
+exchange.secret = "YOUR_SECRET";
 ```
 #### **Java**
 ```java
@@ -4357,7 +4961,7 @@ In Python and PHP you can do the same by subclassing and overriding nonce functi
 # Python
 
 # 1: the shortest
-coinbasepro = ccxt.coinbasepro({'nonce': ccxt.Exchange.milliseconds})
+coinbaseexchange = ccxt.coinbaseexchange({'nonce': ccxt.Exchange.milliseconds})
 
 # 2: custom nonce
 class MyKraken(ccxt.kraken):
@@ -4520,6 +5124,22 @@ print (exchange.fetch_balance ())
 ```php
 var_dump ($exchange->fetch_balance ());
 ```
+#### **Go**
+```go
+balance, err := exchange.FetchBalance()
+if err != nil {
+    fmt.Println(err)
+    return
+}
+fmt.Println("BTC free:", balance.Free["BTC"])
+fmt.Println("USDT total:", balance.Total["USDT"])
+```
+#### **C#**
+```csharp
+var balance = await exchange.FetchBalance();
+Console.WriteLine("BTC free: " + balance.free["BTC"]);
+Console.WriteLine("USDT total: " + balance.total["USDT"]);
+```
 #### **Java**
 ```java
 Balances balance = exchange.fetchBalance();
@@ -4577,6 +5197,16 @@ print(exchange.has)
 ```php
 $exchange = new \ccxt\bitfinex();
 print_r ($exchange->has); // or var_dump
+```
+#### **Go**
+```go
+exchange := ccxt.NewBitfinex(nil)
+fmt.Println(exchange.Has)
+```
+#### **C#**
+```csharp
+var exchange = new Bitfinex();
+Console.WriteLine(exchange.has);
 ```
 #### **Java**
 ```java
@@ -4704,6 +5334,25 @@ if exchange.has['fetchOrder']:
 if ($exchange->has['fetchOrder']) {
     $order = $exchange->fetch_order($id);
     var_dump($order);
+}
+```
+#### **Go**
+```go
+if exchange.Has["fetchOrder"] == true {
+    order, err := exchange.FetchOrder(id)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    fmt.Println("Order", order.Id, "status=", order.Status, "filled=", order.Filled)
+}
+```
+#### **C#**
+```csharp
+if ((bool)exchange.has["fetchOrder"])
+{
+    var order = await exchange.FetchOrder(id);
+    Console.WriteLine("Order " + order.id + " status=" + order.status + " filled=" + order.filled);
 }
 ```
 #### **Java**
@@ -4835,8 +5484,8 @@ Parameters
   - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
 - **type** a string literal type of order
   **Unified types:**
-  - [market](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details
-  - [limit](limit-orders)
+  - [market](#market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details
+  - [limit](#limit-orders)
   - see #custom-order-params and #other-order-types for non-unified types
 - **amount**, how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
 - **price** the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
@@ -4882,7 +5531,7 @@ number_contracts = round((0.5 * 1) / market['contractSize'])
 
 #### Limit Orders
 
-Limit orders placed on the order book of the exchange for a price specified by the trader. They are fullfilled(closed) when there are no orders in the same market at a better price, and another trader creates a [market order](market-orders) or an opposite order for a price that matches or exceeds the price of the limit order.
+Limit orders placed on the order book of the exchange for a price specified by the trader. They are fullfilled(closed) when there are no orders in the same market at a better price, and another trader creates a [market order](#market-orders) or an opposite order for a price that matches or exceeds the price of the limit order.
 
 Limit orders may not be fully filled. This happens when the filling order is for a smaller amount than the amount specified by the limit order.
 
@@ -4959,6 +5608,25 @@ if exchange.has['createMarketOrder']:
 ```php
 if ($exchange->has['createMarketOrder']) {
     ...
+}
+```
+#### **Go**
+```go
+if exchange.Has["createMarketOrder"] == true {
+    // All order types are supported through CreateOrder
+    order, err := exchange.CreateMarketBuyOrder("BTC/USDT", 0.001)
+    if err != nil {
+        fmt.Println(err)
+    }
+    fmt.Println(order)
+}
+```
+#### **C#**
+```csharp
+if ((bool)exchange.has["createMarketOrder"])
+{
+    // All order types are supported through CreateOrder
+    var order = await exchange.CreateMarketBuyOrder("BTC/USDT", 0.001);
 }
 ```
 #### **Java**
@@ -5116,6 +5784,20 @@ $params = {
 }
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params)
 ```
+#### **Go**
+```go
+params := map[string]interface{}{
+    "triggerPrice": 1700,
+}
+order, err := exchange.CreateOrder("ETH/USDT", "market", "buy", 0.1, ccxt.WithCreateOrderPrice(1500), ccxt.WithCreateOrderParams(params))
+```
+#### **C#**
+```csharp
+var parameters = new Dictionary<string, object>() {
+    { "triggerPrice", 1700 },
+};
+var order = await exchange.CreateOrder("ETH/USDT", "market", "buy", 0.1, 1500, parameters);
+```
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("triggerPrice", 1700);
@@ -5217,6 +5899,22 @@ $params = {
 
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
+#### **Go**
+```go
+// for a stop loss order
+params := map[string]interface{}{
+    "stopLossPrice": 55.45, // your stop loss price
+}
+order, err := exchange.CreateOrder(symbol, typeVar, side, amount, ccxt.WithCreateOrderPrice(price), ccxt.WithCreateOrderParams(params))
+```
+#### **C#**
+```csharp
+// for a stop loss order
+var parameters = new Dictionary<string, object>() {
+    { "stopLossPrice", 55.45 }, // your stop loss price
+};
+var order = await exchange.CreateOrder(symbol, type, side, amount, price, parameters);
+```
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("stopLossPrice", 55.45);
@@ -5305,6 +6003,22 @@ $params = {
 
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
+#### **Go**
+```go
+// for a take profit order
+params := map[string]interface{}{
+    "takeProfitPrice": 120.45, // your take profit price
+}
+order, err := exchange.CreateOrder(symbol, typeVar, side, amount, ccxt.WithCreateOrderPrice(price), ccxt.WithCreateOrderParams(params))
+```
+#### **C#**
+```csharp
+// for a take profit order
+var parameters = new Dictionary<string, object>() {
+    { "takeProfitPrice", 120.45 }, // your take profit price
+};
+var order = await exchange.CreateOrder(symbol, type, side, amount, price, parameters);
+```
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("takeProfitPrice", 120.45);
@@ -5363,6 +6077,32 @@ $params = [
     ]
 ]
 $order = $exchange->create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, $params);
+```
+#### **Go**
+```go
+params := map[string]interface{}{
+    "stopLoss": map[string]interface{}{
+        "triggerPrice": 12.34, // at what price it will trigger
+        "price":        12.00, // if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
+    },
+    "takeProfit": map[string]interface{}{
+        // similar params here
+    },
+}
+order, err := exchange.CreateOrder("SOL/USDT", "limit", "buy", 0.5, ccxt.WithCreateOrderPrice(13), ccxt.WithCreateOrderParams(params))
+```
+#### **C#**
+```csharp
+var parameters = new Dictionary<string, object>() {
+    { "stopLoss", new Dictionary<string, object>() {
+        { "triggerPrice", 12.34 }, // at what price it will trigger
+        { "price", 12.00 }, // if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
+    } },
+    { "takeProfit", new Dictionary<string, object>() {
+        // similar params here
+    } },
+};
+var order = await exchange.CreateOrder("SOL/USDT", "limit", "buy", 0.5, 13, parameters);
 ```
 #### **Java**
 ```java
@@ -5446,6 +6186,34 @@ $params = {
 }
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
+#### **Go**
+```go
+symbol := "BTC/USDT:USDT"
+typeVar := "market"
+side := "sell"
+amount := 1.0
+params := map[string]interface{}{
+    "trailingPercent": 1.0, // percentage away from the current market price 1.0 is equal to 1%
+    // "trailingAmount": 100.0, // quote amount away from the current market price
+    // "trailingTriggerPrice": 44500.0, // the price to trigger activating a trailing stop order
+    // "reduceOnly": true, // set to true if you want to close a position, set to false if you want to open a new position
+}
+order, err := exchange.CreateOrder(symbol, typeVar, side, amount, ccxt.WithCreateOrderParams(params))
+```
+#### **C#**
+```csharp
+var symbol = "BTC/USDT:USDT";
+var type = "market";
+var side = "sell";
+var amount = 1.0;
+var parameters = new Dictionary<string, object>() {
+    { "trailingPercent", 1.0 }, // percentage away from the current market price 1.0 is equal to 1%
+    // { "trailingAmount", 100.0 }, // quote amount away from the current market price
+    // { "trailingTriggerPrice", 44500.0 }, // the price to trigger activating a trailing stop order
+    // { "reduceOnly", true }, // set to true if you want to close a position, set to false if you want to open a new position
+};
+var order = await exchange.CreateOrder(symbol, type, side, amount, null, parameters);
+```
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("trailingPercent", 1.0);
@@ -5472,6 +6240,20 @@ kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 ```php
 // add custom user id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+```
+#### **Go**
+```go
+// use a custom order type
+order, err := bitfinex.CreateLimitSellOrder("BTC/USD", 1, 10, ccxt.WithCreateLimitSellOrderParams(map[string]interface{}{
+    "type": "trailing-stop",
+}))
+```
+#### **C#**
+```csharp
+// use a custom order type
+var order = await bitfinex.CreateLimitSellOrder("BTC/USD", 1, 10, new Dictionary<string, object>() {
+    { "type", "trailing-stop" },
+});
 ```
 #### **Java**
 ```java
@@ -5508,6 +6290,18 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
     'clientOrderId' => 'Foobar',
 ))
 ```
+#### **Go**
+```go
+exchange.CreateOrder(symbol, typeVar, side, amount, ccxt.WithCreateOrderPrice(price), ccxt.WithCreateOrderParams(map[string]interface{}{
+    "clientOrderId": "Hello",
+}))
+```
+#### **C#**
+```csharp
+await exchange.CreateOrder(symbol, type, side, amount, price, new Dictionary<string, object>() {
+    { "clientOrderId", "Foobar" },
+});
+```
 #### **Java**
 ```java
 Order order = exchange.createOrder("BTC/USDT", "limit", "buy", 0.001, 50000.0,
@@ -5539,8 +6333,8 @@ Parameters
   - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
 - **type** (String) *required* type of order
   **Unified types:**
-  - [`market`](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details
-  - [`limit`](limit-orders)
+  - [`market`](#market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details
+  - [`limit`](#limit-orders)
   - see #custom-order-params and #other-order-types for non-unified types
 - **amount** (Number) *required* how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
 - **price** (Float) the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
@@ -5748,6 +6542,27 @@ if ($exchange->has['fetchMyTrades']) {
     $trades = $exchange->fetch_my_trades($symbol, $since, $limit, $params);
 }
 ```
+#### **Go**
+```go
+if exchange.Has["fetchMyTrades"] == true {
+    trades, err := exchange.FetchMyTrades(ccxt.WithFetchMyTradesSymbol("BTC/USDT"), ccxt.WithFetchMyTradesLimit(20))
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    for _, t := range trades {
+        fmt.Println(t.Datetime, t.Side, t.Amount, "@", t.Price)
+    }
+}
+```
+#### **C#**
+```csharp
+var myTrades = await exchange.FetchMyTrades("BTC/USDT", null, 20);
+foreach (var t in myTrades)
+{
+    Console.WriteLine(t.datetime + " " + t.side + " " + t.amount + " @ " + t.price);
+}
+```
 #### **Java**
 ```java
 List<Trade> myTrades = exchange.fetchMyTrades("BTC/USDT", null, 20L, null);
@@ -5820,6 +6635,25 @@ if exchange.has['fetchOrderTrades']:
 
 if ($exchange->has['fetchOrderTrades']) {
     $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
+}
+```
+#### **Go**
+```go
+if exchange.Has["fetchOrderTrades"] == true {
+    trades, err := exchange.FetchOrderTrades(orderId, ccxt.WithFetchOrderTradesSymbol(symbol))
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    fmt.Println(trades)
+}
+```
+#### **C#**
+```csharp
+if ((bool)exchange.has["fetchOrderTrades"])
+{
+    var trades = await exchange.FetchOrderTrades(orderId, symbol);
+    Console.WriteLine(trades.Count);
 }
 ```
 #### **Java**
@@ -6040,6 +6874,14 @@ withdraw(code, amount, address, tag=None, params={})
 ```php
 withdraw ($code, $amount, $address, $tag = null, $params = array ())
 ```
+#### **Go**
+```go
+func (this *Binance) Withdraw(code string, amount float64, address string, options ...ccxt.WithdrawOptions) (ccxt.Transaction, error)
+```
+#### **C#**
+```csharp
+public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
+```
 #### **Java**
 ```java
 Transaction tx = exchange.withdraw("BTC", 0.5, "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", null, null);
@@ -6106,6 +6948,14 @@ withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
 #### **PHP**
 ```php
 withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
+```
+#### **Go**
+```go
+exchange.Withdraw(code, amount, address, ccxt.WithWithdrawTag(tag), ccxt.WithWithdrawParams(map[string]interface{}{"network": "ETH"}))
+```
+#### **C#**
+```csharp
+await exchange.Withdraw(code, amount, address, tag, new Dictionary<string, object>() { { "network", "ETH" } });
 ```
 #### **Java**
 ```java
@@ -6202,6 +7052,25 @@ if ($exchange->has['fetchDeposits']) {
     throw new Exception ($exchange->id . ' does not have the fetch_deposits method');
 }
 ```
+#### **Go**
+```go
+if exchange.Has["fetchDeposits"] == true {
+    deposits, err := exchange.FetchDeposits(ccxt.WithFetchDepositsCode(code))
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    fmt.Println(deposits)
+}
+```
+#### **C#**
+```csharp
+if ((bool)exchange.has["fetchDeposits"])
+{
+    var deposits = await exchange.FetchDeposits(code);
+    Console.WriteLine(deposits.Count);
+}
+```
 #### **Java**
 ```java
 List<Transaction> deposits = exchange.fetchDeposits("BTC", null, null, null);
@@ -6240,6 +7109,25 @@ if ($exchange->has['fetchWithdrawals']) {
     throw new Exception ($exchange->id . ' does not have the fetch_withdrawals method');
 }
 ```
+#### **Go**
+```go
+if exchange.Has["fetchWithdrawals"] == true {
+    withdrawals, err := exchange.FetchWithdrawals(ccxt.WithFetchWithdrawalsCode(code))
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    fmt.Println(withdrawals)
+}
+```
+#### **C#**
+```csharp
+if ((bool)exchange.has["fetchWithdrawals"])
+{
+    var withdrawals = await exchange.FetchWithdrawals(code);
+    Console.WriteLine(withdrawals.Count);
+}
+```
 #### **Java**
 ```java
 List<Transaction> withdrawals = exchange.fetchWithdrawals("BTC", null, null, null);
@@ -6276,6 +7164,25 @@ if ($exchange->has['fetchTransactions']) {
     $transactions = $exchange->fetch_transactions ($code, $since, $limit, $params);
 } else {
     throw new Exception ($exchange->id . ' does not have the fetch_transactions method');
+}
+```
+#### **Go**
+```go
+if exchange.Has["fetchTransactions"] == true {
+    transactions, err := exchange.FetchTransactions(ccxt.WithFetchTransactionsCode(code))
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    fmt.Println(transactions)
+}
+```
+#### **C#**
+```csharp
+if ((bool)exchange.has["fetchTransactions"])
+{
+    var transactions = await exchange.FetchTransactions(code);
+    Console.WriteLine(transactions.Count);
 }
 ```
 #### **Java**
@@ -6922,6 +7829,20 @@ $params = {
 }
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params);
 ```
+#### **Go**
+```go
+params := map[string]interface{}{
+    "marginMode": "isolated", // or "cross"
+}
+order, err := exchange.CreateOrder("ETH/USDT", "market", "buy", 0.1, ccxt.WithCreateOrderPrice(1500), ccxt.WithCreateOrderParams(params))
+```
+#### **C#**
+```csharp
+var parameters = new Dictionary<string, object>() {
+    { "marginMode", "isolated" }, // or "cross"
+};
+var order = await exchange.CreateOrder("ETH/USDT", "market", "buy", 0.1, 1500, parameters);
+```
 #### **Java**
 ```java
 Map<String, Object> params = Map.of("marginMode", "isolated");
@@ -7539,6 +8460,11 @@ $ex->number = 'strval'; // 'strval' | 'floatval'
 var ex = new ccxt.coinbase();
 ex.number = typeof(String); // typeof(String) | typeof(float)
 ```
+#### **Go**
+```go
+ex := ccxt.NewCoinbase(nil)
+ex.Number = "String" // "String" | "Number"
+```
 <!-- tabs:end -->
 
 
@@ -7612,6 +8538,53 @@ try {
     // retry or whatever
 } catch (Exception $e) {
     echo $exchange->id . ' fetch_trades failed with: ' . $e->getMessage () . "\n";
+    // retry or whatever
+}
+```
+#### **Go**
+```go
+// in Go networking methods return a (value, error) pair instead of throwing.
+// ccxt errors are *ccxt.Error values whose Type field identifies the category
+ticker, err := exchange.FetchTicker("ETH/BTC")
+if err != nil {
+    if ccxtError, ok := err.(*ccxt.Error); ok {
+        switch ccxtError.Type {
+        case ccxt.NetworkErrorErrType:
+            fmt.Println(exchange.GetId(), "fetchTicker failed due to a network error:", ccxtError.Message)
+            // retry or whatever
+        case ccxt.ExchangeErrorErrType:
+            fmt.Println(exchange.GetId(), "fetchTicker failed due to exchange error:", ccxtError.Message)
+            // retry or whatever
+        default:
+            fmt.Println(exchange.GetId(), "fetchTicker failed with:", ccxtError.Message)
+            // retry or whatever
+        }
+    }
+} else {
+    fmt.Println(ticker)
+}
+```
+#### **C#**
+```csharp
+// try to call a unified method
+try
+{
+    var response = await exchange.FetchTicker("ETH/BTC");
+    Console.WriteLine(response);
+}
+catch (NetworkError e)
+{
+    Console.WriteLine(exchange.id + " fetchTicker failed due to a network error: " + e.Message);
+    // retry or whatever
+}
+catch (ExchangeError e)
+{
+    Console.WriteLine(exchange.id + " fetchTicker failed due to exchange error: " + e.Message);
+    // retry or whatever
+}
+catch (Exception e)
+{
+    Console.WriteLine(exchange.id + " fetchTicker failed with: " + e.Message);
     // retry or whatever
 }
 ```
@@ -7699,6 +8672,20 @@ class BaseError (Exception):
 #### **PHP**
 ```php
 class BaseError extends \Exception {}
+```
+#### **Go**
+```go
+// in Go all ccxt errors are represented by a single *ccxt.Error value
+// whose Type field carries the error category (e.g. "ExchangeError")
+type Error struct {
+    Type    ErrorType
+    Message string
+    Stack   string
+}
+```
+#### **C#**
+```csharp
+public class BaseError : Exception { }
 ```
 <!-- tabs:end -->
 

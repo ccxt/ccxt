@@ -699,11 +699,15 @@ public class UpbitCore extends UpbitApi
             Object ids = null;
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                ids = String.join((String)",", (java.util.List<String>)this.ids);
+                Object allIds = this.ids;
+                if (Helpers.isTrue(!Helpers.isEqual(allIds, null)))
+                {
+                    ids = String.join((String)",", (java.util.List<String>)allIds);
+                }
             } else
             {
-                ids = this.marketIds(symbols);
-                ids = String.join((String)",", (java.util.List<String>)ids);
+                Object marketIds = this.marketIds(symbols);
+                ids = String.join((String)",", (java.util.List<String>)marketIds);
             }
             final Object finalIds = ids;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -751,8 +755,8 @@ public class UpbitCore extends UpbitApi
                 Object timestamp = this.safeInteger(orderbook, "timestamp");
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "symbol", symbol );
-        put( "bids", UpbitCore.this.sortBy(UpbitCore.this.parseBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true) );
-        put( "asks", UpbitCore.this.sortBy(UpbitCore.this.parseBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0) );
+        put( "bids", UpbitCore.this.sortBy(UpbitCore.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true) );
+        put( "asks", UpbitCore.this.sortBy(UpbitCore.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0) );
         put( "timestamp", timestamp );
         put( "datetime", UpbitCore.this.iso8601(timestamp) );
         put( "nonce", null );
@@ -2548,7 +2552,7 @@ public class UpbitCore extends UpbitApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
-            put( "network", UpbitCore.this.networkIdToCode(networkId) );
+            put( "network", UpbitCore.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "tag", tag );
         }};

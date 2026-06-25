@@ -5,7 +5,7 @@ import * as ccxt from 'ccxt';
 const log = require('ololog');
 
 const symbol = 'BTC/USD';
-const exchanges = ['coinbasepro', 'gemini', 'kraken'];
+const exchanges = ['coinbaseexchange', 'gemini', 'kraken'];
 
 const fetchTickers = async (symbol: string) => {
     const result = await Promise.all(exchanges.map(async (id: string): Promise<ccxt.Exchange> => {

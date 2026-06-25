@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class hollaex
@@ -177,8 +177,8 @@ export default class hollaex extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -199,7 +199,7 @@ export default class hollaex extends Exchange {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -218,8 +218,8 @@ export default class hollaex extends Exchange {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -227,9 +227,9 @@ export default class hollaex extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -507,7 +507,7 @@ export default class hollaex extends Exchange {
         for (let j = 0; j < networkIds.length; j++) {
             const networkId = networkIds[j];
             const networkEntry = this.safeDict(rawNetworks, networkId);
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,

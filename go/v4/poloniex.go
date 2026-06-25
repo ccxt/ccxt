@@ -1690,7 +1690,7 @@ func (this *PoloniexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "limit", limit)
 		}
 		if IsTrue(IsTrue(isContract) && IsTrue(!IsEqual(symbol, nil))) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		requestparamsVariable := this.HandleUntilOption(endKey, request, params)
 		request = GetValue(requestparamsVariable, 0)
@@ -3634,7 +3634,7 @@ func (this *PoloniexCore) ParseDepositWithdrawFees(response any, optionalArgs ..
 				for j := 0; IsLessThan(j, GetArrayLength(childChains)); j++ {
 					var networkId any = GetValue(childChains, j)
 					networkId = Replace(networkId, code, "")
-					var networkCode any = this.NetworkIdToCode(networkId)
+					var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
 					var networkInfo any = this.SafeValue(response, networkId)
 					var networkObject any = map[string]any{}
 					var withdrawFee any = this.SafeNumber(networkInfo, "withdrawalFee")
@@ -3672,7 +3672,7 @@ func (this *PoloniexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) 
 	}
 	AddElementToObject(depositWithdrawFee, "withdraw", withdrawResult)
 	AddElementToObject(depositWithdrawFee, "deposit", depositResult)
-	var networkCode any = this.NetworkIdToCode(networkId)
+	var networkCode any = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 	AddElementToObject(GetValue(depositWithdrawFee, "networks"), networkCode, map[string]any{
 		"withdraw": withdrawResult,
 		"deposit":  depositResult,
@@ -3962,7 +3962,7 @@ func (this *PoloniexCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var longLeverage any = nil
 	var marketId any = nil
 	var marginMode any = nil
-	var data any = this.SafeList(leverage, "data")
+	var data any = this.SafeList(leverage, "data", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
 		marketId = this.SafeString(entry, "symbol")

@@ -8,16 +8,19 @@ import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 function testMarket(exchange, skippedProperties, method, market) {
+    if (market === undefined) {
+        return;
+    }
     const format = {
-        'id': 'btcusd',
-        'symbol': 'BTC/USD',
-        'base': 'BTC',
-        'quote': 'USD',
-        'taker': exchange.parseNumber('0.0011'),
-        'maker': exchange.parseNumber('0.0009'),
-        'baseId': 'btc',
-        'quoteId': 'usd',
-        'active': false,
+        'id': 'btcusd', // string literal for referencing within an exchange
+        'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
+        'base': 'BTC', // unified uppercase string, base currency, 3 or more letters
+        'quote': 'USD', // unified uppercase string, quote currency, 3 or more letters
+        'taker': exchange.parseNumber('0.0011'), // taker fee, for example, 0.0011 = 0.11%
+        'maker': exchange.parseNumber('0.0009'), // maker fee, for example, 0.0009 = 0.09%
+        'baseId': 'btc', // exchange-specific base currency id
+        'quoteId': 'usd', // exchange-specific quote currency id
+        'active': false, // boolean, market status
         'type': 'spot',
         'linear': false,
         'inverse': false,
@@ -36,23 +39,23 @@ function testMarket(exchange, skippedProperties, method, market) {
         'settleId': 'Xyz',
         'precision': {
             // todo : handle precision types after another PR is merged
-            'price': exchange.parseNumber('0.001'),
-            'amount': exchange.parseNumber('0.001'),
+            'price': exchange.parseNumber('0.001'), // integer or fraction
+            'amount': exchange.parseNumber('0.001'), // integer or fraction
             'cost': exchange.parseNumber('0.001'), // integer or fraction
         },
         // value limits when placing orders on this market
         'limits': {
             'amount': {
-                'min': exchange.parseNumber('0.01'),
+                'min': exchange.parseNumber('0.01'), // order amount should be > min
                 'max': exchange.parseNumber('1000'), // order amount should be < max
             },
             'price': {
-                'min': exchange.parseNumber('0.01'),
+                'min': exchange.parseNumber('0.01'), // order price should be > min
                 'max': exchange.parseNumber('1000'), // order price should be < max
             },
             // order cost = price * amount
             'cost': {
-                'min': exchange.parseNumber('0.01'),
+                'min': exchange.parseNumber('0.01'), // order cost should be > min
                 'max': exchange.parseNumber('1000'), // order cost should be < max
             },
         },
@@ -272,7 +275,7 @@ function testMarket(exchange, skippedProperties, method, market) {
     testSharedMethods.assertTimestamp(exchange, skippedProperties, method, market, undefined, 'created');
     // margin modes
     if (!('marginModes' in skippedProperties)) {
-        const marginModes = exchange.safeDict(market, 'marginModes'); // in future, remove safeDict
+        const marginModes = exchange.safeDict(market, 'marginModes', {}); // in future, remove safeDict
         assert('cross' in marginModes, 'marginModes should have "cross" key' + logText);
         assert('isolated' in marginModes, 'marginModes should have "isolated" key' + logText);
         testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, 'cross', [true, false, undefined]);

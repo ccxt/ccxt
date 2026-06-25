@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseexchangeRest from '../coinbaseexchange.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
 
@@ -62,7 +62,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
 
     async subscribe (name, symbol = undefined, messageHashStart = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         let messageHash = messageHashStart;
         const productIds = [];
         if (symbol !== undefined) {
@@ -88,7 +88,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
 
     async subscribeMultiple (name, symbols = [], messageHashStart = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         symbols = this.marketSymbols (symbols);
         const messageHashes = [];
         const productIds = [];
@@ -176,7 +176,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
 
     /**
      * @method
-     * @name coinbase#watchTradesForSymbols
+     * @name coinbaseexchange#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -437,7 +437,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // private trades
         // {
@@ -489,7 +489,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         //     "order_type": "limit"
         // }
         const parsed = super.parseTrade (trade);
-        let feeRate = undefined;
+        let feeRate: Str = undefined;
         let isMaker = false;
         if ('maker_fee_rate' in trade) {
             isMaker = true;
@@ -510,7 +510,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         parsed['order'] = this.safeString (trade, idKey);
         market = this.market (parsed['symbol']);
         const feeCurrency = market['quote'];
-        let feeCost = undefined;
+        let feeCost: Str = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
             const cost = this.safeString (parsed, 'cost');
             feeCost = Precise.stringMul (cost, feeRate);
@@ -668,11 +668,11 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         if (previousOrder['fee'] === undefined) {
                             previousOrder['fee'] = {
                                 'cost': 0,
-                                'currency': trade['fee']['currency'],
+                                'currency': this.safeString (trade['fee'], 'currency'),
                             };
                         }
-                        if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                            previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], trade['fee']['cost']);
+                        if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
+                            previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], this.safeNumber (trade['fee'], 'cost'));
                             const previousOrderFee = this.safeDict (previousOrder, 'fee');
                             const tradeFee = this.safeDict (trade, 'fee');
                             previousOrder['fee']['cost'] = this.parseNumber (Precise.stringAdd (this.safeString (previousOrderFee, 'cost'), this.safeString (tradeFee, 'cost')));
@@ -700,7 +700,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_oid');
         const marketId = this.safeString (order, 'product_id');
@@ -715,7 +715,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const orderType = this.safeString (order, 'order_type');
         let remaining = this.safeString (order, 'remaining_size');
         const type = this.safeString (order, 'type');
-        let filled = undefined;
+        let filled: Str = undefined;
         if ((amount !== undefined) && (remaining !== undefined)) {
             filled = Precise.stringSub (amount, remaining);
         } else if (type === 'received') {
@@ -783,7 +783,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "type": "ticker",

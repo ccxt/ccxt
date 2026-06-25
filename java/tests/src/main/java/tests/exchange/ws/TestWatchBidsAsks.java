@@ -64,7 +64,7 @@ public class TestWatchBidsAsks extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
-                Assert(((true)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
+                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
                 Object values = Helpers.objectValues(response);
                 Object checkedSymbol = null;
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))

@@ -2021,7 +2021,7 @@ func (this *FoxbitCore) Withdraw(code any, amount any, address any, optionalArgs
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			AddElementToObject(request, "network_code", this.NetworkCodeToId(networkCode))
+			AddElementToObject(request, "network_code", this.NetworkCodeToId(networkCode, code))
 		}
 
 		response := (<-this.V3PrivatePostWithdrawals(this.Extend(request, params)))
@@ -2164,7 +2164,7 @@ func (this *FoxbitCore) ParseTradingFee(entry any, optionalArgs ...any) any {
 	_ = market
 	return map[string]any{
 		"info":       entry,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"maker":      this.SafeNumber(entry, "maker"),
 		"taker":      this.SafeNumber(entry, "taker"),
 		"percentage": true,
@@ -2229,7 +2229,7 @@ func (this *FoxbitCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       this.SafeString(market, "symbol"),
 		"order":        nil,
 		"type":         nil,
 		"side":         side,

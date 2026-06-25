@@ -132,7 +132,7 @@ class coinone extends \ccxt\async\coinone {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 'price', 'qty');
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 'price', 'qty');
         $bookside->storeArray ($bidAsk);
     }
 
@@ -366,7 +366,7 @@ class coinone extends \ccxt\async\coinone {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     {
         //         "response_type" => "ERROR",

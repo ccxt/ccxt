@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitopro$1 = require('../bitopro.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -358,7 +358,7 @@ class bitopro extends bitopro$1["default"] {
         //
         const marketId = this.safeString(message, 'pair');
         // market-ids are lowercase in REST API and uppercase in WS API
-        const market = this.safeMarket(marketId.toLowerCase(), undefined, '_');
+        const market = this.safeMarket(marketId !== undefined ? marketId.toLowerCase() : undefined, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
         const messageHash = event + ':' + symbol;
@@ -381,7 +381,7 @@ class bitopro extends bitopro$1["default"] {
             'identity': this.login,
         });
         const payload = this.stringToBase64(rawData);
-        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
+        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
         const defaultOptions = {
             'ws': {
                 'options': {

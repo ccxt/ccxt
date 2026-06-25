@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitbns$1 = require('./abstract/bitbns.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class bitbns extends bitbns$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bitbns',
             'name': 'Bitbns',
-            'countries': ['IN'],
+            'countries': ['IN'], // India
             'rateLimit': 1000,
             'certified': false,
             'version': 'v2',
@@ -27,10 +27,10 @@ class bitbns extends bitbns$1["default"] {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // has but unimplemented
                 'swap': false,
                 'future': false,
-                'option': undefined,
+                'option': undefined, // coming soon
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -92,7 +92,7 @@ class bitbns extends bitbns$1["default"] {
                         'order/fetchTickers',
                         'order/fetchOrderbook',
                         'order/getTickerWithVolume',
-                        'exchangeData/ohlc',
+                        'exchangeData/ohlc', // ?coin=${coin_name}&page=${page}
                         'exchangeData/orderBook',
                         'exchangeData/tradedetails',
                     ],
@@ -155,8 +155,8 @@ class bitbns extends bitbns$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo with triggerPrice
+                        'takeProfitPrice': false, // todo with triggerPrice
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -165,7 +165,7 @@ class bitbns extends bitbns$1["default"] {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': false,
+                        'trailing': false, // todo recheck
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,
@@ -212,9 +212,9 @@ class bitbns extends bitbns$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    '400': errors.BadRequest,
-                    '409': errors.BadSymbol,
-                    '416': errors.InsufficientFunds,
+                    '400': errors.BadRequest, // {"msg":"Invalid Request","status":-1,"code":400}
+                    '409': errors.BadSymbol, // {"data":"","status":0,"error":"coin name not supplied or not yet supported","code":409}
+                    '416': errors.InsufficientFunds, // {"data":"Oops ! Not sufficient currency to sell","status":0,"error":null,"code":416}
                     '417': errors.OrderNotFound, // {"data":[],"status":0,"error":"Nothing to show","code":417}
                 },
                 'broad': {},
@@ -440,7 +440,7 @@ class bitbns extends bitbns$1["default"] {
             'open': this.safeString(ticker, 'open'),
             'close': last,
             'last': last,
-            'previousClose': this.safeString(ticker, 'previousClose'),
+            'previousClose': this.safeString(ticker, 'previousClose'), // previous day close
             'change': this.safeString(ticker, 'change'),
             'percentage': this.safeString(ticker, 'percentage'),
             'average': this.safeString(ticker, 'average'),
@@ -1106,12 +1106,12 @@ class bitbns extends bitbns$1["default"] {
                 '1': 'ok',
             },
             'withdrawal': {
-                '0': 'pending',
-                '1': 'canceled',
-                '2': 'pending',
-                '3': 'failed',
-                '4': 'pending',
-                '5': 'failed',
+                '0': 'pending', // Email Sent
+                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+                '2': 'pending', // Awaiting Approval
+                '3': 'failed', // Rejected
+                '4': 'pending', // Processing
+                '5': 'failed', // Failure
                 '6': 'ok', // Completed
             },
         };
@@ -1258,7 +1258,8 @@ class bitbns extends bitbns$1["default"] {
                 'body': body,
             };
             const payload = this.stringToBase64(this.json(auth));
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha512);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha512);
+            headers = (headers === undefined) ? {} : headers;
             headers['X-BITBNS-PAYLOAD'] = payload;
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';

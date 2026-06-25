@@ -1,8 +1,9 @@
 {
     "BTC": {
-        "info": [
-            {
-                "BSC": {
+        "info": {
+            "_coin_id": "BTC",
+            "_tokens_by_id": [
+                {
                     "token": "BSC_BTCB",
                     "fullname": "Bitcoin",
                     "network": "BSC",
@@ -10,11 +11,11 @@
                     "delisted": false,
                     "balance_token": "BTC",
                     "created_time": "1710123395",
-                    "updated_time": "1746529501",
+                    "updated_time": "1774489662",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "BTC": {
+                {
                     "token": "BTC",
                     "fullname": "Bitcoin",
                     "network": "BTC",
@@ -22,11 +23,11 @@
                     "delisted": false,
                     "balance_token": "BTC",
                     "created_time": "1710123395",
-                    "updated_time": "1727868193",
+                    "updated_time": "1764745874",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "MERLIN": {
+                {
                     "token": "MERLIN_BTC",
                     "fullname": "Bitcoin",
                     "network": "MERLIN",
@@ -34,68 +35,68 @@
                     "delisted": false,
                     "balance_token": "BTC",
                     "created_time": "1713518913",
-                    "updated_time": "1745313781",
+                    "updated_time": "1763699354",
                     "can_collateral": true,
                     "can_short": true
                 }
-            },
-            {
-                "BTC": {
+            ],
+            "_networks_by_id": [
+                {
                     "protocol": "BTC",
                     "network": "BTC",
                     "token": "BTC",
                     "name": "Bitcoin",
-                    "minimum_withdrawal": "0.00050000",
+                    "minimum_withdrawal": "0.00010000",
                     "withdrawal_fee": "0.00025000",
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "BSC": {
+                {
                     "protocol": "BEP20",
                     "network": "BSC",
                     "token": "BTC",
                     "name": "BNB Smart Chain (BEP20)",
-                    "minimum_withdrawal": "0.00001100",
-                    "withdrawal_fee": "0.00000550",
+                    "minimum_withdrawal": "0.00001800",
+                    "withdrawal_fee": "0.00000900",
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "MERLIN": {
+                {
                     "protocol": "MERLIN",
                     "network": "MERLIN",
                     "token": "BTC",
                     "name": "Merlin",
-                    "minimum_withdrawal": "0.00000600",
-                    "withdrawal_fee": "0.00000300",
+                    "minimum_withdrawal": "0.00004000",
+                    "withdrawal_fee": "0.00002000",
                     "allow_deposit": "1",
                     "allow_withdraw": "0"
                 }
-            }
-        ],
+            ]
+        },
         "id": "BTC",
         "numericId": null,
         "code": "BTC",
         "precision": 1e-8,
         "type": "crypto",
         "name": null,
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.000003,
+        "fee": 0.000009,
         "fees": {},
         "networks": {
             "BTC": {
                 "id": "BTC",
                 "currencyNetworkId": "BTC",
                 "network": "BTC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.00025,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.0005,
+                        "min": 0.0001,
                         "max": null
                     },
                     "deposit": {
@@ -103,18 +104,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BTC",
                         "network": "BTC",
                         "token": "BTC",
                         "name": "Bitcoin",
-                        "minimum_withdrawal": "0.00050000",
+                        "minimum_withdrawal": "0.00010000",
                         "withdrawal_fee": "0.00025000",
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BTC",
                         "fullname": "Bitcoin",
                         "network": "BTC",
@@ -122,24 +123,24 @@
                         "delisted": false,
                         "balance_token": "BTC",
                         "created_time": "1710123395",
-                        "updated_time": "1727868193",
+                        "updated_time": "1764745874",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "BEP20": {
                 "id": "BSC",
                 "currencyNetworkId": "BSC_BTCB",
                 "network": "BEP20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0000055,
+                "fee": 0.000009,
                 "precision": 1e-18,
                 "limits": {
                     "withdraw": {
-                        "min": 0.000011,
+                        "min": 0.000018,
                         "max": null
                     },
                     "deposit": {
@@ -147,18 +148,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BEP20",
                         "network": "BSC",
                         "token": "BTC",
                         "name": "BNB Smart Chain (BEP20)",
-                        "minimum_withdrawal": "0.00001100",
-                        "withdrawal_fee": "0.00000550",
+                        "minimum_withdrawal": "0.00001800",
+                        "withdrawal_fee": "0.00000900",
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BSC_BTCB",
                         "fullname": "Bitcoin",
                         "network": "BSC",
@@ -166,24 +167,24 @@
                         "delisted": false,
                         "balance_token": "BTC",
                         "created_time": "1710123395",
-                        "updated_time": "1746529501",
+                        "updated_time": "1774489662",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "MERLIN": {
                 "id": "MERLIN",
                 "currencyNetworkId": "MERLIN_BTC",
                 "network": "MERLIN",
-                "active": false,
+                "active": null,
                 "deposit": true,
                 "withdraw": false,
-                "fee": 0.000003,
+                "fee": 0.00002,
                 "precision": 1e-18,
                 "limits": {
                     "withdraw": {
-                        "min": 0.000006,
+                        "min": 0.00004,
                         "max": null
                     },
                     "deposit": {
@@ -191,18 +192,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "MERLIN",
                         "network": "MERLIN",
                         "token": "BTC",
                         "name": "Merlin",
-                        "minimum_withdrawal": "0.00000600",
-                        "withdrawal_fee": "0.00000300",
+                        "minimum_withdrawal": "0.00004000",
+                        "withdrawal_fee": "0.00002000",
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "MERLIN_BTC",
                         "fullname": "Bitcoin",
                         "network": "MERLIN",
@@ -210,11 +211,11 @@
                         "delisted": false,
                         "balance_token": "BTC",
                         "created_time": "1713518913",
-                        "updated_time": "1745313781",
+                        "updated_time": "1763699354",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -223,15 +224,16 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.000006,
+                "min": 0.000018,
                 "max": null
             }
         }
     },
     "USDT": {
-        "info": [
-            {
-                "Arbitrum": {
+        "info": {
+            "_coin_id": "USDT",
+            "_tokens_by_id": [
+                {
                     "token": "ARB_USDT",
                     "fullname": "Tether USD",
                     "network": "Arbitrum",
@@ -239,11 +241,11 @@
                     "delisted": false,
                     "balance_token": "USDT",
                     "created_time": "1710123394",
-                    "updated_time": "1746528421",
+                    "updated_time": "1770878502",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "AVAXC": {
+                {
                     "token": "AVAXC_USDT",
                     "fullname": "Tether",
                     "network": "AVAXC",
@@ -251,11 +253,11 @@
                     "delisted": false,
                     "balance_token": "USDT",
                     "created_time": "1710123395",
-                    "updated_time": "1746528541",
+                    "updated_time": "1771555122",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "BSC": {
+                {
                     "token": "BSC_USDT",
                     "fullname": "Tether",
                     "network": "BSC",
@@ -267,7 +269,7 @@
                     "can_collateral": true,
                     "can_short": true
                 },
-                "ETH": {
+                {
                     "token": "ETH_USDT",
                     "fullname": "Tether",
                     "network": "ETH",
@@ -275,11 +277,11 @@
                     "delisted": false,
                     "balance_token": "USDT",
                     "created_time": "1710123398",
-                    "updated_time": "1746528481",
+                    "updated_time": "1764507674",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "MATIC": {
+                {
                     "token": "MATIC_USDT",
                     "fullname": "Tether",
                     "network": "MATIC",
@@ -287,11 +289,11 @@
                     "delisted": false,
                     "balance_token": "USDT",
                     "created_time": "1710123399",
-                    "updated_time": "1746528541",
+                    "updated_time": "1779419123",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "OP": {
+                {
                     "token": "OP_USDT",
                     "fullname": "Tether USD",
                     "network": "OP",
@@ -299,11 +301,11 @@
                     "delisted": false,
                     "balance_token": "USDT",
                     "created_time": "1710123399",
-                    "updated_time": "1746528661",
+                    "updated_time": "1773743922",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "SOL": {
+                {
                     "token": "SOL_USDT",
                     "fullname": "Tether",
                     "network": "SOL",
@@ -311,11 +313,11 @@
                     "delisted": false,
                     "balance_token": "USDT",
                     "created_time": "1710123400",
-                    "updated_time": "1724143818",
+                    "updated_time": "1770176128",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "TRX": {
+                {
                     "token": "TRON_USDT",
                     "fullname": "Tether",
                     "network": "TRX",
@@ -323,11 +325,11 @@
                     "delisted": false,
                     "balance_token": "USDT",
                     "created_time": "1710123400",
-                    "updated_time": "1734269454",
+                    "updated_time": "1772700222",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "TON": {
+                {
                     "token": "TON_USDT",
                     "fullname": "Tether",
                     "network": "TON",
@@ -335,13 +337,13 @@
                     "delisted": false,
                     "balance_token": "USDT",
                     "created_time": "1730426329",
-                    "updated_time": "1746528601",
+                    "updated_time": "1778486903",
                     "can_collateral": true,
                     "can_short": true
                 }
-            },
-            {
-                "ETH": {
+            ],
+            "_networks_by_id": [
+                {
                     "protocol": "ERC20",
                     "network": "ETH",
                     "token": "USDT",
@@ -351,7 +353,7 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "TRX": {
+                {
                     "protocol": "TRC20",
                     "network": "TRX",
                     "token": "USDT",
@@ -361,27 +363,27 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "Arbitrum": {
+                {
                     "protocol": "Arbitrum",
                     "network": "Arbitrum",
                     "token": "USDT",
-                    "name": "Arbitrum One ",
+                    "name": "Arbitrum",
                     "minimum_withdrawal": "10.00000000",
                     "withdrawal_fee": "0.50000000",
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "AVAXC": {
+                {
                     "protocol": "C Chain",
                     "network": "AVAXC",
                     "token": "USDT",
-                    "name": "AVAX C-Chain",
+                    "name": "C-Chain",
                     "minimum_withdrawal": "10.00000000",
                     "withdrawal_fee": "0.50000000",
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "BSC": {
+                {
                     "protocol": "BEP20",
                     "network": "BSC",
                     "token": "USDT",
@@ -391,7 +393,7 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "MATIC": {
+                {
                     "protocol": "Polygon",
                     "network": "MATIC",
                     "token": "USDT",
@@ -401,7 +403,7 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "OP": {
+                {
                     "protocol": "Optimism",
                     "network": "OP",
                     "token": "USDT",
@@ -411,7 +413,7 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "SOL": {
+                {
                     "protocol": "SOL",
                     "network": "SOL",
                     "token": "USDT",
@@ -421,7 +423,7 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "TON": {
+                {
                     "protocol": "TON",
                     "network": "TON",
                     "token": "USDT",
@@ -431,15 +433,15 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 }
-            }
-        ],
+            ]
+        },
         "id": "USDT",
         "numericId": null,
         "code": "USDT",
         "precision": 0.000001,
         "type": "crypto",
         "name": null,
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 0.1,
@@ -449,7 +451,7 @@
                 "id": "ETH",
                 "currencyNetworkId": "ETH_USDT",
                 "network": "ERC20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 2,
@@ -464,8 +466,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "ERC20",
                         "network": "ETH",
                         "token": "USDT",
@@ -475,7 +477,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ETH_USDT",
                         "fullname": "Tether",
                         "network": "ETH",
@@ -483,17 +485,17 @@
                         "delisted": false,
                         "balance_token": "USDT",
                         "created_time": "1710123398",
-                        "updated_time": "1746528481",
+                        "updated_time": "1764507674",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "TRC20": {
                 "id": "TRX",
                 "currencyNetworkId": "TRON_USDT",
                 "network": "TRC20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 4.5,
@@ -508,8 +510,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "TRC20",
                         "network": "TRX",
                         "token": "USDT",
@@ -519,7 +521,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "TRON_USDT",
                         "fullname": "Tether",
                         "network": "TRX",
@@ -527,17 +529,17 @@
                         "delisted": false,
                         "balance_token": "USDT",
                         "created_time": "1710123400",
-                        "updated_time": "1734269454",
+                        "updated_time": "1772700222",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "ARB": {
                 "id": "Arbitrum",
                 "currencyNetworkId": "ARB_USDT",
                 "network": "ARB",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -552,18 +554,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Arbitrum",
                         "network": "Arbitrum",
                         "token": "USDT",
-                        "name": "Arbitrum One ",
+                        "name": "Arbitrum",
                         "minimum_withdrawal": "10.00000000",
                         "withdrawal_fee": "0.50000000",
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ARB_USDT",
                         "fullname": "Tether USD",
                         "network": "Arbitrum",
@@ -571,17 +573,17 @@
                         "delisted": false,
                         "balance_token": "USDT",
                         "created_time": "1710123394",
-                        "updated_time": "1746528421",
+                        "updated_time": "1770878502",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "AVAXC": {
                 "id": "AVAXC",
                 "currencyNetworkId": "AVAXC_USDT",
                 "network": "AVAXC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -596,18 +598,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "C Chain",
                         "network": "AVAXC",
                         "token": "USDT",
-                        "name": "AVAX C-Chain",
+                        "name": "C-Chain",
                         "minimum_withdrawal": "10.00000000",
                         "withdrawal_fee": "0.50000000",
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "AVAXC_USDT",
                         "fullname": "Tether",
                         "network": "AVAXC",
@@ -615,17 +617,17 @@
                         "delisted": false,
                         "balance_token": "USDT",
                         "created_time": "1710123395",
-                        "updated_time": "1746528541",
+                        "updated_time": "1771555122",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "BEP20": {
                 "id": "BSC",
                 "currencyNetworkId": "BSC_USDT",
                 "network": "BEP20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -640,8 +642,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BEP20",
                         "network": "BSC",
                         "token": "USDT",
@@ -651,7 +653,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BSC_USDT",
                         "fullname": "Tether",
                         "network": "BSC",
@@ -663,13 +665,13 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "MATIC": {
                 "id": "MATIC",
                 "currencyNetworkId": "MATIC_USDT",
                 "network": "MATIC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -684,8 +686,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Polygon",
                         "network": "MATIC",
                         "token": "USDT",
@@ -695,7 +697,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "MATIC_USDT",
                         "fullname": "Tether",
                         "network": "MATIC",
@@ -703,17 +705,17 @@
                         "delisted": false,
                         "balance_token": "USDT",
                         "created_time": "1710123399",
-                        "updated_time": "1746528541",
+                        "updated_time": "1779419123",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "OP": {
                 "id": "OP",
                 "currencyNetworkId": "OP_USDT",
                 "network": "OP",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -728,8 +730,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Optimism",
                         "network": "OP",
                         "token": "USDT",
@@ -739,7 +741,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "OP_USDT",
                         "fullname": "Tether USD",
                         "network": "OP",
@@ -747,17 +749,17 @@
                         "delisted": false,
                         "balance_token": "USDT",
                         "created_time": "1710123399",
-                        "updated_time": "1746528661",
+                        "updated_time": "1773743922",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "SOL": {
                 "id": "SOL",
                 "currencyNetworkId": "SOL_USDT",
                 "network": "SOL",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 4,
@@ -772,8 +774,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "SOL",
                         "network": "SOL",
                         "token": "USDT",
@@ -783,7 +785,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "SOL_USDT",
                         "fullname": "Tether",
                         "network": "SOL",
@@ -791,17 +793,17 @@
                         "delisted": false,
                         "balance_token": "USDT",
                         "created_time": "1710123400",
-                        "updated_time": "1724143818",
+                        "updated_time": "1770176128",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "TON": {
                 "id": "TON",
                 "currencyNetworkId": "TON_USDT",
                 "network": "TON",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.1,
@@ -816,8 +818,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "TON",
                         "network": "TON",
                         "token": "USDT",
@@ -827,7 +829,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "TON_USDT",
                         "fullname": "Tether",
                         "network": "TON",
@@ -835,11 +837,11 @@
                         "delisted": false,
                         "balance_token": "USDT",
                         "created_time": "1730426329",
-                        "updated_time": "1746528601",
+                        "updated_time": "1778486903",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -854,9 +856,10 @@
         }
     },
     "LTC": {
-        "info": [
-            {
-                "LTC": {
+        "info": {
+            "_coin_id": "LTC",
+            "_tokens_by_id": [
+                {
                     "token": "LTC",
                     "fullname": "Litecoin",
                     "network": "LTC",
@@ -864,13 +867,13 @@
                     "delisted": false,
                     "balance_token": "LTC",
                     "created_time": "1710123399",
-                    "updated_time": "1746500401",
+                    "updated_time": "1770065008",
                     "can_collateral": true,
                     "can_short": true
                 }
-            },
-            {
-                "LTC": {
+            ],
+            "_networks_by_id": [
+                {
                     "protocol": "LTC",
                     "network": "LTC",
                     "token": "LTC",
@@ -880,15 +883,15 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 }
-            }
-        ],
+            ]
+        },
         "id": "LTC",
         "numericId": null,
         "code": "LTC",
         "precision": 1e-8,
         "type": "crypto",
         "name": null,
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 0.008,
@@ -898,7 +901,7 @@
                 "id": "LTC",
                 "currencyNetworkId": "LTC",
                 "network": "LTC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.008,
@@ -913,8 +916,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "LTC",
                         "network": "LTC",
                         "token": "LTC",
@@ -924,7 +927,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "LTC",
                         "fullname": "Litecoin",
                         "network": "LTC",
@@ -932,11 +935,11 @@
                         "delisted": false,
                         "balance_token": "LTC",
                         "created_time": "1710123399",
-                        "updated_time": "1746500401",
+                        "updated_time": "1770065008",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -951,9 +954,10 @@
         }
     },
     "ETH": {
-        "info": [
-            {
-                "BASE": {
+        "info": {
+            "_coin_id": "ETH",
+            "_tokens_by_id": [
+                {
                     "token": "BASE_ETH",
                     "fullname": "Ethereum",
                     "network": "BASE",
@@ -961,11 +965,11 @@
                     "delisted": false,
                     "balance_token": "ETH",
                     "created_time": "1710123395",
-                    "updated_time": "1731982712",
+                    "updated_time": "1773101082",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "BSC": {
+                {
                     "token": "BSC_ETH",
                     "fullname": "Ethereum",
                     "network": "BSC",
@@ -973,11 +977,11 @@
                     "delisted": false,
                     "balance_token": "ETH",
                     "created_time": "1710123395",
-                    "updated_time": "1747198681",
+                    "updated_time": "1773384522",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "ETH": {
+                {
                     "token": "ETH",
                     "fullname": "Ethereum",
                     "network": "ETH",
@@ -985,11 +989,11 @@
                     "delisted": false,
                     "balance_token": "ETH",
                     "created_time": "1710123395",
-                    "updated_time": "1746528421",
+                    "updated_time": "1764507674",
                     "can_collateral": true,
                     "can_short": true
                 },
-                "Arbitrum": {
+                {
                     "token": "ETH-AETH",
                     "fullname": "Ethereum",
                     "network": "Arbitrum",
@@ -1001,7 +1005,7 @@
                     "can_collateral": true,
                     "can_short": true
                 },
-                "OP": {
+                {
                     "token": "OP_ETH",
                     "fullname": "Ethereum",
                     "network": "OP",
@@ -1009,13 +1013,13 @@
                     "delisted": false,
                     "balance_token": "ETH",
                     "created_time": "1710123399",
-                    "updated_time": "1746530281",
+                    "updated_time": "1771913742",
                     "can_collateral": true,
                     "can_short": true
                 }
-            },
-            {
-                "ETH": {
+            ],
+            "_networks_by_id": [
+                {
                     "protocol": "ERC20",
                     "network": "ETH",
                     "token": "ETH",
@@ -1025,7 +1029,7 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "BASE": {
+                {
                     "protocol": "BASE",
                     "network": "BASE",
                     "token": "ETH",
@@ -1033,29 +1037,29 @@
                     "minimum_withdrawal": "0.00040000",
                     "withdrawal_fee": "0.00020000",
                     "allow_deposit": "1",
-                    "allow_withdraw": "1"
+                    "allow_withdraw": "0"
                 },
-                "BSC": {
+                {
                     "protocol": "BEP20",
                     "network": "BSC",
                     "token": "ETH",
                     "name": "BNB Smart Chain (BEP20)",
-                    "minimum_withdrawal": "0.00040000",
-                    "withdrawal_fee": "0.00020000",
+                    "minimum_withdrawal": "0.00050000",
+                    "withdrawal_fee": "0.00025000",
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "Arbitrum": {
+                {
                     "protocol": "Arbitrum",
                     "network": "Arbitrum",
                     "token": "ETH",
-                    "name": "Arbitrum One ",
+                    "name": "Arbitrum",
                     "minimum_withdrawal": "0.00040000",
                     "withdrawal_fee": "0.00020000",
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "OP": {
+                {
                     "protocol": "Optimism",
                     "network": "OP",
                     "token": "ETH",
@@ -1063,17 +1067,17 @@
                     "minimum_withdrawal": "0.00020000",
                     "withdrawal_fee": "0.00010000",
                     "allow_deposit": "1",
-                    "allow_withdraw": "1"
+                    "allow_withdraw": "0"
                 }
-            }
-        ],
+            ]
+        },
         "id": "ETH",
         "numericId": null,
         "code": "ETH",
         "precision": 1e-18,
         "type": "crypto",
         "name": null,
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 0.0001,
@@ -1083,7 +1087,7 @@
                 "id": "ETH",
                 "currencyNetworkId": "ETH",
                 "network": "ETH",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.001,
@@ -1098,8 +1102,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "ERC20",
                         "network": "ETH",
                         "token": "ETH",
@@ -1109,7 +1113,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ETH",
                         "fullname": "Ethereum",
                         "network": "ETH",
@@ -1117,19 +1121,19 @@
                         "delisted": false,
                         "balance_token": "ETH",
                         "created_time": "1710123395",
-                        "updated_time": "1746528421",
+                        "updated_time": "1764507674",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "BASE": {
                 "id": "BASE",
                 "currencyNetworkId": "BASE_ETH",
                 "network": "BASE",
-                "active": true,
+                "active": null,
                 "deposit": true,
-                "withdraw": true,
+                "withdraw": false,
                 "fee": 0.0002,
                 "precision": 1e-18,
                 "limits": {
@@ -1142,8 +1146,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BASE",
                         "network": "BASE",
                         "token": "ETH",
@@ -1151,9 +1155,9 @@
                         "minimum_withdrawal": "0.00040000",
                         "withdrawal_fee": "0.00020000",
                         "allow_deposit": "1",
-                        "allow_withdraw": "1"
+                        "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "BASE_ETH",
                         "fullname": "Ethereum",
                         "network": "BASE",
@@ -1161,24 +1165,24 @@
                         "delisted": false,
                         "balance_token": "ETH",
                         "created_time": "1710123395",
-                        "updated_time": "1731982712",
+                        "updated_time": "1773101082",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "BEP20": {
                 "id": "BSC",
                 "currencyNetworkId": "BSC_ETH",
                 "network": "BEP20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0002,
+                "fee": 0.00025,
                 "precision": 1e-18,
                 "limits": {
                     "withdraw": {
-                        "min": 0.0004,
+                        "min": 0.0005,
                         "max": null
                     },
                     "deposit": {
@@ -1186,18 +1190,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BEP20",
                         "network": "BSC",
                         "token": "ETH",
                         "name": "BNB Smart Chain (BEP20)",
-                        "minimum_withdrawal": "0.00040000",
-                        "withdrawal_fee": "0.00020000",
+                        "minimum_withdrawal": "0.00050000",
+                        "withdrawal_fee": "0.00025000",
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BSC_ETH",
                         "fullname": "Ethereum",
                         "network": "BSC",
@@ -1205,17 +1209,17 @@
                         "delisted": false,
                         "balance_token": "ETH",
                         "created_time": "1710123395",
-                        "updated_time": "1747198681",
+                        "updated_time": "1773384522",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "ARB": {
                 "id": "Arbitrum",
                 "currencyNetworkId": "ETH-AETH",
                 "network": "ARB",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0002,
@@ -1230,18 +1234,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Arbitrum",
                         "network": "Arbitrum",
                         "token": "ETH",
-                        "name": "Arbitrum One ",
+                        "name": "Arbitrum",
                         "minimum_withdrawal": "0.00040000",
                         "withdrawal_fee": "0.00020000",
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ETH-AETH",
                         "fullname": "Ethereum",
                         "network": "Arbitrum",
@@ -1253,15 +1257,15 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "OP": {
                 "id": "OP",
                 "currencyNetworkId": "OP_ETH",
                 "network": "OP",
-                "active": true,
+                "active": null,
                 "deposit": true,
-                "withdraw": true,
+                "withdraw": false,
                 "fee": 0.0001,
                 "precision": 1e-18,
                 "limits": {
@@ -1274,8 +1278,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Optimism",
                         "network": "OP",
                         "token": "ETH",
@@ -1283,9 +1287,9 @@
                         "minimum_withdrawal": "0.00020000",
                         "withdrawal_fee": "0.00010000",
                         "allow_deposit": "1",
-                        "allow_withdraw": "1"
+                        "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "OP_ETH",
                         "fullname": "Ethereum",
                         "network": "OP",
@@ -1293,11 +1297,11 @@
                         "delisted": false,
                         "balance_token": "ETH",
                         "created_time": "1710123399",
-                        "updated_time": "1746530281",
+                        "updated_time": "1771913742",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -1312,9 +1316,10 @@
         }
     },
     "ADA": {
-        "info": [
-            {
-                "ADA": {
+        "info": {
+            "_coin_id": "ADA",
+            "_tokens_by_id": [
+                {
                     "token": "ADA",
                     "fullname": "Cardano",
                     "network": "ADA",
@@ -1322,13 +1327,13 @@
                     "delisted": false,
                     "balance_token": "ADA",
                     "created_time": "1710123394",
-                    "updated_time": "1737297110",
+                    "updated_time": "1770013588",
                     "can_collateral": true,
                     "can_short": true
                 }
-            },
-            {
-                "ADA": {
+            ],
+            "_networks_by_id": [
+                {
                     "protocol": "ADA",
                     "network": "ADA",
                     "token": "ADA",
@@ -1338,15 +1343,15 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 }
-            }
-        ],
+            ]
+        },
         "id": "ADA",
         "numericId": null,
         "code": "ADA",
         "precision": 0.000001,
         "type": "crypto",
         "name": null,
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 12,
@@ -1356,7 +1361,7 @@
                 "id": "ADA",
                 "currencyNetworkId": "ADA",
                 "network": "ADA",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 12,
@@ -1371,8 +1376,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "ADA",
                         "network": "ADA",
                         "token": "ADA",
@@ -1382,7 +1387,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ADA",
                         "fullname": "Cardano",
                         "network": "ADA",
@@ -1390,11 +1395,11 @@
                         "delisted": false,
                         "balance_token": "ADA",
                         "created_time": "1710123394",
-                        "updated_time": "1737297110",
+                        "updated_time": "1770013588",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -1409,9 +1414,10 @@
         }
     },
     "XRP": {
-        "info": [
-            {
-                "XRP": {
+        "info": {
+            "_coin_id": "XRP",
+            "_tokens_by_id": [
+                {
                     "token": "XRP",
                     "fullname": "Ripple",
                     "network": "XRP",
@@ -1419,13 +1425,13 @@
                     "delisted": false,
                     "balance_token": "XRP",
                     "created_time": "1710123400",
-                    "updated_time": "1736692310",
+                    "updated_time": "1765800074",
                     "can_collateral": true,
                     "can_short": true
                 }
-            },
-            {
-                "XRP": {
+            ],
+            "_networks_by_id": [
+                {
                     "protocol": "XRP",
                     "network": "XRP",
                     "token": "XRP",
@@ -1435,15 +1441,15 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 }
-            }
-        ],
+            ]
+        },
         "id": "XRP",
         "numericId": null,
         "code": "XRP",
         "precision": 0.000001,
         "type": "crypto",
         "name": null,
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 1.2,
@@ -1453,7 +1459,7 @@
                 "id": "XRP",
                 "currencyNetworkId": "XRP",
                 "network": "XRP",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1.2,
@@ -1468,8 +1474,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "XRP",
                         "network": "XRP",
                         "token": "XRP",
@@ -1479,7 +1485,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "XRP",
                         "fullname": "Ripple",
                         "network": "XRP",
@@ -1487,11 +1493,11 @@
                         "delisted": false,
                         "balance_token": "XRP",
                         "created_time": "1710123400",
-                        "updated_time": "1736692310",
+                        "updated_time": "1765800074",
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -1506,9 +1512,10 @@
         }
     },
     "USDC": {
-        "info": [
-            {
-                "Arbitrum (Bridged)": {
+        "info": {
+            "_coin_id": "USDC",
+            "_tokens_by_id": [
+                {
                     "token": "ARB_USDC",
                     "fullname": "USD Coin",
                     "network": "Arbitrum (Bridged)",
@@ -1520,7 +1527,7 @@
                     "can_collateral": true,
                     "can_short": false
                 },
-                "Arbitrum (Native)": {
+                {
                     "token": "ARB_USDCNATIVE",
                     "fullname": "USD Coin",
                     "network": "Arbitrum (Native)",
@@ -1528,11 +1535,11 @@
                     "delisted": false,
                     "balance_token": "USDC",
                     "created_time": "1710123394",
-                    "updated_time": "1746529201",
+                    "updated_time": "1762327394",
                     "can_collateral": true,
                     "can_short": false
                 },
-                "C-Chain (Native)": {
+                {
                     "token": "AVAXC_USDC2",
                     "fullname": "USD Coin",
                     "network": "C-Chain (Native)",
@@ -1540,11 +1547,11 @@
                     "delisted": false,
                     "balance_token": "USDC",
                     "created_time": "1710123395",
-                    "updated_time": "1746529261",
+                    "updated_time": "1776309683",
                     "can_collateral": true,
                     "can_short": false
                 },
-                "BSC": {
+                {
                     "token": "BSC_USDC",
                     "fullname": "USD Coin",
                     "network": "BSC",
@@ -1552,11 +1559,11 @@
                     "delisted": false,
                     "balance_token": "USDC",
                     "created_time": "1710123395",
-                    "updated_time": "1746529261",
+                    "updated_time": "1780565543",
                     "can_collateral": true,
                     "can_short": false
                 },
-                "ETH": {
+                {
                     "token": "ETH_USDC",
                     "fullname": "USD Coin",
                     "network": "ETH",
@@ -1564,11 +1571,11 @@
                     "delisted": false,
                     "balance_token": "USDC",
                     "created_time": "1710123398",
-                    "updated_time": "1746528481",
+                    "updated_time": "1764507674",
                     "can_collateral": true,
                     "can_short": false
                 },
-                "MATIC_BRIDGED": {
+                {
                     "token": "MATIC_USDC",
                     "fullname": "USD Coin",
                     "network": "MATIC_BRIDGED",
@@ -1576,11 +1583,11 @@
                     "delisted": false,
                     "balance_token": "USDC",
                     "created_time": "1710123399",
-                    "updated_time": "1738508512",
+                    "updated_time": "1779419123",
                     "can_collateral": true,
                     "can_short": false
                 },
-                "MATIC_NATIVE": {
+                {
                     "token": "MATIC_USDCNATIVE",
                     "fullname": "USD Coin",
                     "network": "MATIC_NATIVE",
@@ -1588,11 +1595,11 @@
                     "delisted": false,
                     "balance_token": "USDC",
                     "created_time": "1710123399",
-                    "updated_time": "1746529321",
+                    "updated_time": "1780472723",
                     "can_collateral": true,
                     "can_short": false
                 },
-                "OP_BRIDGED": {
+                {
                     "token": "OP_USDC",
                     "fullname": "USD Coin",
                     "network": "OP_BRIDGED",
@@ -1604,7 +1611,7 @@
                     "can_collateral": true,
                     "can_short": false
                 },
-                "OP_NATIVE": {
+                {
                     "token": "OP_USDC_NATIVE",
                     "fullname": "Optimism (Native)",
                     "network": "OP_NATIVE",
@@ -1612,11 +1619,11 @@
                     "delisted": false,
                     "balance_token": "USDC",
                     "created_time": "1710123399",
-                    "updated_time": "1746529321",
+                    "updated_time": "1780040663",
                     "can_collateral": true,
                     "can_short": false
                 },
-                "SOL": {
+                {
                     "token": "SOL_USDC",
                     "fullname": "USD Coin",
                     "network": "SOL",
@@ -1624,11 +1631,11 @@
                     "delisted": false,
                     "balance_token": "USDC",
                     "created_time": "1710123400",
-                    "updated_time": "1727690713",
+                    "updated_time": "1773662682",
                     "can_collateral": true,
                     "can_short": false
                 },
-                "BASE": {
+                {
                     "token": "BASE_USDC",
                     "fullname": "USD Coin",
                     "network": "BASE",
@@ -1636,13 +1643,13 @@
                     "delisted": false,
                     "balance_token": "USDC",
                     "created_time": "1718079191",
-                    "updated_time": "1731982712",
+                    "updated_time": "1776861023",
                     "can_collateral": true,
                     "can_short": false
                 }
-            },
-            {
-                "ETH": {
+            ],
+            "_networks_by_id": [
+                {
                     "protocol": "ERC20",
                     "network": "ETH",
                     "token": "USDC",
@@ -1652,27 +1659,27 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "Arbitrum (Bridged)": {
+                {
                     "protocol": "Arbitrum",
                     "network": "Arbitrum (Bridged)",
                     "token": "USDC",
-                    "name": "Arbitrum One (Bridged)",
+                    "name": "Arbitrum (Bridged)",
                     "minimum_withdrawal": "10.00000000",
                     "withdrawal_fee": "2.00000000",
                     "allow_deposit": "1",
                     "allow_withdraw": "0"
                 },
-                "Arbitrum (Native)": {
+                {
                     "protocol": "Arbitrum",
                     "network": "Arbitrum (Native)",
                     "token": "USDC",
-                    "name": "Arbitrum One (Native)",
+                    "name": "Arbitrum (Native)",
                     "minimum_withdrawal": "10.00000000",
                     "withdrawal_fee": "0.50000000",
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "C-Chain (Native)": {
+                {
                     "protocol": "C Chain",
                     "network": "C-Chain (Native)",
                     "token": "USDC",
@@ -1682,27 +1689,27 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "BSC": {
+                {
                     "protocol": "BEP20",
                     "network": "BSC",
                     "token": "USDC",
                     "name": "BNB Smart Chain (BEP20)",
-                    "minimum_withdrawal": "10.00000000",
+                    "minimum_withdrawal": "1.00000000",
                     "withdrawal_fee": "0.50000000",
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "MATIC_BRIDGED": {
+                {
                     "protocol": "Polygon",
                     "network": "MATIC_BRIDGED",
                     "token": "USDC",
-                    "name": "Polygon (Bridged)",
+                    "name": "Polygon (Brigded)",
                     "minimum_withdrawal": "10.00000000",
                     "withdrawal_fee": "5.00000000",
                     "allow_deposit": "1",
                     "allow_withdraw": "0"
                 },
-                "MATIC_NATIVE": {
+                {
                     "protocol": "Polygon",
                     "network": "MATIC_NATIVE",
                     "token": "USDC",
@@ -1710,9 +1717,9 @@
                     "minimum_withdrawal": "10.00000000",
                     "withdrawal_fee": "0.50000000",
                     "allow_deposit": "1",
-                    "allow_withdraw": "1"
+                    "allow_withdraw": "0"
                 },
-                "OP_BRIDGED": {
+                {
                     "protocol": "Optimism",
                     "network": "OP_BRIDGED",
                     "token": "USDC",
@@ -1722,7 +1729,7 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "0"
                 },
-                "OP_NATIVE": {
+                {
                     "protocol": "Optimism",
                     "network": "OP_NATIVE",
                     "token": "USDC",
@@ -1732,7 +1739,7 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "SOL": {
+                {
                     "protocol": "SOL",
                     "network": "SOL",
                     "token": "USDC",
@@ -1742,7 +1749,7 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 },
-                "BASE": {
+                {
                     "protocol": "BASE",
                     "network": "BASE",
                     "token": "USDC",
@@ -1752,15 +1759,15 @@
                     "allow_deposit": "1",
                     "allow_withdraw": "1"
                 }
-            }
-        ],
+            ]
+        },
         "id": "USDC",
         "numericId": null,
         "code": "USDC",
         "precision": 0.000001,
         "type": "crypto",
         "name": null,
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 0.5,
@@ -1770,7 +1777,7 @@
                 "id": "ETH",
                 "currencyNetworkId": "ETH_USDC",
                 "network": "ERC20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 2,
@@ -1785,8 +1792,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "ERC20",
                         "network": "ETH",
                         "token": "USDC",
@@ -1796,7 +1803,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ETH_USDC",
                         "fullname": "USD Coin",
                         "network": "ETH",
@@ -1804,17 +1811,17 @@
                         "delisted": false,
                         "balance_token": "USDC",
                         "created_time": "1710123398",
-                        "updated_time": "1746528481",
+                        "updated_time": "1764507674",
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "Arbitrum (Bridged)": {
                 "id": "Arbitrum (Bridged)",
                 "currencyNetworkId": "ARB_USDC",
                 "network": "Arbitrum (Bridged)",
-                "active": false,
+                "active": null,
                 "deposit": true,
                 "withdraw": false,
                 "fee": 2,
@@ -1829,18 +1836,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Arbitrum",
                         "network": "Arbitrum (Bridged)",
                         "token": "USDC",
-                        "name": "Arbitrum One (Bridged)",
+                        "name": "Arbitrum (Bridged)",
                         "minimum_withdrawal": "10.00000000",
                         "withdrawal_fee": "2.00000000",
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "ARB_USDC",
                         "fullname": "USD Coin",
                         "network": "Arbitrum (Bridged)",
@@ -1852,13 +1859,13 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "Arbitrum (Native)": {
                 "id": "Arbitrum (Native)",
                 "currencyNetworkId": "ARB_USDCNATIVE",
                 "network": "Arbitrum (Native)",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -1873,18 +1880,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Arbitrum",
                         "network": "Arbitrum (Native)",
                         "token": "USDC",
-                        "name": "Arbitrum One (Native)",
+                        "name": "Arbitrum (Native)",
                         "minimum_withdrawal": "10.00000000",
                         "withdrawal_fee": "0.50000000",
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ARB_USDCNATIVE",
                         "fullname": "USD Coin",
                         "network": "Arbitrum (Native)",
@@ -1892,17 +1899,17 @@
                         "delisted": false,
                         "balance_token": "USDC",
                         "created_time": "1710123394",
-                        "updated_time": "1746529201",
+                        "updated_time": "1762327394",
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "C-Chain (Native)": {
                 "id": "C-Chain (Native)",
                 "currencyNetworkId": "AVAXC_USDC2",
                 "network": "C-Chain (Native)",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -1917,8 +1924,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "C Chain",
                         "network": "C-Chain (Native)",
                         "token": "USDC",
@@ -1928,7 +1935,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "AVAXC_USDC2",
                         "fullname": "USD Coin",
                         "network": "C-Chain (Native)",
@@ -1936,24 +1943,24 @@
                         "delisted": false,
                         "balance_token": "USDC",
                         "created_time": "1710123395",
-                        "updated_time": "1746529261",
+                        "updated_time": "1776309683",
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "BEP20": {
                 "id": "BSC",
                 "currencyNetworkId": "BSC_USDC",
                 "network": "BEP20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
                 "precision": 1e-18,
                 "limits": {
                     "withdraw": {
-                        "min": 10,
+                        "min": 1,
                         "max": null
                     },
                     "deposit": {
@@ -1961,18 +1968,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BEP20",
                         "network": "BSC",
                         "token": "USDC",
                         "name": "BNB Smart Chain (BEP20)",
-                        "minimum_withdrawal": "10.00000000",
+                        "minimum_withdrawal": "1.00000000",
                         "withdrawal_fee": "0.50000000",
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BSC_USDC",
                         "fullname": "USD Coin",
                         "network": "BSC",
@@ -1980,17 +1987,17 @@
                         "delisted": false,
                         "balance_token": "USDC",
                         "created_time": "1710123395",
-                        "updated_time": "1746529261",
+                        "updated_time": "1780565543",
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "MATIC_BRIDGED": {
                 "id": "MATIC_BRIDGED",
                 "currencyNetworkId": "MATIC_USDC",
                 "network": "MATIC_BRIDGED",
-                "active": false,
+                "active": null,
                 "deposit": true,
                 "withdraw": false,
                 "fee": 5,
@@ -2005,18 +2012,18 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Polygon",
                         "network": "MATIC_BRIDGED",
                         "token": "USDC",
-                        "name": "Polygon (Bridged)",
+                        "name": "Polygon (Brigded)",
                         "minimum_withdrawal": "10.00000000",
                         "withdrawal_fee": "5.00000000",
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "MATIC_USDC",
                         "fullname": "USD Coin",
                         "network": "MATIC_BRIDGED",
@@ -2024,19 +2031,19 @@
                         "delisted": false,
                         "balance_token": "USDC",
                         "created_time": "1710123399",
-                        "updated_time": "1738508512",
+                        "updated_time": "1779419123",
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "MATIC_NATIVE": {
                 "id": "MATIC_NATIVE",
                 "currencyNetworkId": "MATIC_USDCNATIVE",
                 "network": "MATIC_NATIVE",
-                "active": true,
+                "active": null,
                 "deposit": true,
-                "withdraw": true,
+                "withdraw": false,
                 "fee": 0.5,
                 "precision": 0.000001,
                 "limits": {
@@ -2049,8 +2056,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Polygon",
                         "network": "MATIC_NATIVE",
                         "token": "USDC",
@@ -2058,9 +2065,9 @@
                         "minimum_withdrawal": "10.00000000",
                         "withdrawal_fee": "0.50000000",
                         "allow_deposit": "1",
-                        "allow_withdraw": "1"
+                        "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "MATIC_USDCNATIVE",
                         "fullname": "USD Coin",
                         "network": "MATIC_NATIVE",
@@ -2068,17 +2075,17 @@
                         "delisted": false,
                         "balance_token": "USDC",
                         "created_time": "1710123399",
-                        "updated_time": "1746529321",
+                        "updated_time": "1780472723",
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "OP_BRIDGED": {
                 "id": "OP_BRIDGED",
                 "currencyNetworkId": "OP_USDC",
                 "network": "OP_BRIDGED",
-                "active": false,
+                "active": null,
                 "deposit": true,
                 "withdraw": false,
                 "fee": 1,
@@ -2093,8 +2100,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Optimism",
                         "network": "OP_BRIDGED",
                         "token": "USDC",
@@ -2104,7 +2111,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "OP_USDC",
                         "fullname": "USD Coin",
                         "network": "OP_BRIDGED",
@@ -2116,13 +2123,13 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "OP_NATIVE": {
                 "id": "OP_NATIVE",
                 "currencyNetworkId": "OP_USDC_NATIVE",
                 "network": "OP_NATIVE",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -2137,8 +2144,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Optimism",
                         "network": "OP_NATIVE",
                         "token": "USDC",
@@ -2148,7 +2155,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "OP_USDC_NATIVE",
                         "fullname": "Optimism (Native)",
                         "network": "OP_NATIVE",
@@ -2156,17 +2163,17 @@
                         "delisted": false,
                         "balance_token": "USDC",
                         "created_time": "1710123399",
-                        "updated_time": "1746529321",
+                        "updated_time": "1780040663",
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "SOL": {
                 "id": "SOL",
                 "currencyNetworkId": "SOL_USDC",
                 "network": "SOL",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 4,
@@ -2181,8 +2188,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "SOL",
                         "network": "SOL",
                         "token": "USDC",
@@ -2192,7 +2199,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "SOL_USDC",
                         "fullname": "USD Coin",
                         "network": "SOL",
@@ -2200,17 +2207,17 @@
                         "delisted": false,
                         "balance_token": "USDC",
                         "created_time": "1710123400",
-                        "updated_time": "1727690713",
+                        "updated_time": "1773662682",
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "BASE": {
                 "id": "BASE",
                 "currencyNetworkId": "BASE_USDC",
                 "network": "BASE",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
@@ -2225,8 +2232,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BASE",
                         "network": "BASE",
                         "token": "USDC",
@@ -2236,7 +2243,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BASE_USDC",
                         "fullname": "USD Coin",
                         "network": "BASE",
@@ -2244,11 +2251,11 @@
                         "delisted": false,
                         "balance_token": "USDC",
                         "created_time": "1718079191",
-                        "updated_time": "1731982712",
+                        "updated_time": "1776861023",
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -2257,7 +2264,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 10,
+                "min": 1,
                 "max": null
             }
         }

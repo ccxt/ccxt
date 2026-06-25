@@ -466,12 +466,12 @@ public partial class Exchange
          * @returns {object | undefined}
          */
         object value = this.safeValue(dictionaryOrList, key1);
-        if (isTrue(isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(this.isDictionary(value)))
         {
             return value;
         }
         object value2 = this.safeValue(dictionaryOrList, key2);
-        if (isTrue(isTrue(isTrue((!isEqual(value2, null))) && isTrue(((value2 is IDictionary<string, object>)))) && !isTrue(((value2 is IList<object>) || (value2.GetType().IsGenericType && value2.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(this.isDictionary(value2)))
         {
             return value2;
         }
@@ -564,7 +564,7 @@ public partial class Exchange
         countOrIdKey ??= 2;
         for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
-            object bidAsk = this.parseBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
+            object bidAsk = this.parseOrderBookBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
             (bookSide as ccxt.pro.IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -1670,7 +1670,7 @@ public partial class Exchange
 
     public virtual object featuresMapper(object initialFeatures, object marketType, object subType = null)
     {
-        object featuresObj = ((bool) isTrue((!isEqual(subType, null)))) ? getValue(getValue(initialFeatures, marketType), subType) : getValue(initialFeatures, marketType);
+        object featuresObj = ((bool) isTrue((!isEqual(subType, null)))) ? getValue(getValue(initialFeatures, ((string)marketType)), subType) : getValue(initialFeatures, ((string)marketType));
         // if exchange does not have that market-type (eg. future>inverse)
         if (isTrue(isEqual(featuresObj, null)))
         {
@@ -2781,7 +2781,7 @@ public partial class Exchange
         cost = Precise.stringMul(cost, rate);
         return new Dictionary<string, object>() {
             { "type", takerOrMaker },
-            { "currency", getValue(market, key) },
+            { "currency", getValue(market, ((string)key)) },
             { "rate", this.parseNumber(rate) },
             { "cost", this.parseNumber(cost) },
         };
@@ -3540,7 +3540,7 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object parseBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public virtual object parseOrderBookBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;
@@ -3549,7 +3549,7 @@ public partial class Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseBidAsk(getValue(bidasks, i), priceKey, amountKey, countOrIdKey));
+            ((IList<object>)result).Add(this.parseOrderBookBidAsk(getValue(bidasks, i), priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -3856,8 +3856,8 @@ public partial class Exchange
         priceKey ??= 0;
         amountKey ??= 1;
         countOrIdKey ??= 2;
-        object bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
-        object asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
         return ((object)new Dictionary<string, object>() {
             { "symbol", symbol },
             { "bids", this.sortBy(bids, 0, true) },
@@ -4370,11 +4370,9 @@ public partial class Exchange
         {
             try
             {
-                this.lastRestRequestTimestamp = this.milliseconds();
+                this.setLastRestRequestTimestamp();
                 object request = this.sign(path, api, method, parameters, headers, body);
-                this.last_request_headers = getValue(request, "headers");
-                this.last_request_body = getValue(request, "body");
-                this.last_request_url = getValue(request, "url");
+                this.setLastRequest(request);
                 return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
             } catch(Exception e)
             {
@@ -4624,7 +4622,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchLedgerEntry() is not supported yet")) ;
     }
 
-    public virtual object parseBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public virtual object parseOrderBookBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;
@@ -4646,7 +4644,7 @@ public partial class Exchange
         {
             return currency;
         }
-        if (isTrue(isTrue(isTrue((!isEqual(this.currencies_by_id, null))) && isTrue((inOp(this.currencies_by_id, currencyId)))) && isTrue((!isEqual(getValue(this.currencies_by_id, currencyId), null)))))
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(currencyId, null))) && isTrue((!isEqual(this.currencies_by_id, null)))) && isTrue((inOp(this.currencies_by_id, currencyId)))) && isTrue((!isEqual(getValue(this.currencies_by_id, currencyId), null)))))
         {
             return getValue(this.currencies_by_id, currencyId);
         }
@@ -6329,7 +6327,7 @@ public partial class Exchange
             for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
             {
                 object market = getValue(markets, i);
-                if (isTrue(getValue(market, defaultType)))
+                if (isTrue(getValue(market, ((string)defaultType))))
                 {
                     return market;
                 }
@@ -6990,7 +6988,7 @@ public partial class Exchange
             object item = getValue(info, i);
             object borrowRate = this.parseIsolatedBorrowRate(item);
             object symbol = this.safeString(borrowRate, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = borrowRate;
+            ((IDictionary<string,object>)result)[(string)((string)symbol)] = borrowRate;
         }
         return ((object)result);
     }
@@ -7525,7 +7523,7 @@ public partial class Exchange
             object code = this.safeString(currency, "code");
             if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
             {
-                ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(dictionary, currency);
+                ((IDictionary<string,object>)depositWithdrawFees)[(string)((string)code)] = this.parseDepositWithdrawFee(dictionary, currency);
             }
         }
         return depositWithdrawFees;
@@ -7809,7 +7807,7 @@ public partial class Exchange
                     errors = 0;
                     result = this.arrayConcat(result, response);
                     object last = this.safeValue(response, subtract(responseLength, 1));
-                    paginationTimestamp = add(this.safeInteger(last, "timestamp"), 1);
+                    paginationTimestamp = add(this.safeInteger(last, "timestamp", 0), 1);
                     if (isTrue(isTrue((!isEqual(until, null))) && isTrue((isGreaterThanOrEqual(paginationTimestamp, until)))))
                     {
                         break;
@@ -7954,7 +7952,7 @@ public partial class Exchange
                     {
                         cursorValue = add(this.parseToInt(cursorValue), cursorIncrement);
                     }
-                    ((IDictionary<string,object>)parameters)[(string)cursorSent] = cursorValue;
+                    ((IDictionary<string,object>)parameters)[(string)((string)cursorSent)] = cursorValue;
                 }
                 object response = null;
                 if (isTrue(isEqual(method, "fetchAccounts")))
@@ -8044,7 +8042,7 @@ public partial class Exchange
         {
             try
             {
-                ((IDictionary<string,object>)parameters)[(string)pageKey] = add(i, 1);
+                ((IDictionary<string,object>)parameters)[(string)((string)pageKey)] = add(i, 1);
                 object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequest, parameters }));
                 errors = 0;
                 object responseLength = getArrayLength(response);
@@ -8627,9 +8625,9 @@ public partial class Exchange
                 object timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if (isTrue(isTrue((!isEqual(this.ohlcvs, null))) && isTrue((inOp(this.ohlcvs, symbol)))))
                 {
-                    if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+                    if (isTrue(inOp(getValue(this.ohlcvs, ((string)symbol)), timeframe)))
                     {
-                        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
+                        ((IDictionary<string,object>)getValue(this.ohlcvs, ((string)symbol))).Remove((string)((string)timeframe));
                     }
                 }
             }

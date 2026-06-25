@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var deepcoin$1 = require('./abstract/deepcoin.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 
@@ -19,8 +19,8 @@ class deepcoin extends deepcoin$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'deepcoin',
             'name': 'DeepCoin',
-            'countries': ['SG'],
-            'rateLimit': 200,
+            'countries': ['SG'], // Singapore
+            'rateLimit': 200, // 5 times per second
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -320,8 +320,8 @@ class deepcoin extends deepcoin$1["default"] {
                     'types': ['spot', 'swap'], // spot, swap,
                 },
                 'timeInForce': {
-                    'GTC': 'GTC',
-                    'IOC': 'IOC',
+                    'GTC': 'GTC', // Good Till Cancel
+                    'IOC': 'IOC', // Immediate Or Cancel
                     'PO': 'PO', // Post Only
                 },
                 'exchangeType': {
@@ -342,22 +342,22 @@ class deepcoin extends deepcoin$1["default"] {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '24': errors.OrderNotFound,
-                    '31': errors.InsufficientFunds,
-                    '36': errors.InsufficientFunds,
-                    '44': errors.BadRequest,
-                    '49': errors.InvalidOrder,
-                    '194': errors.InvalidOrder,
-                    '195': errors.InvalidOrder,
-                    '199': errors.BadRequest,
-                    '100010': errors.InsufficientFunds,
+                    '24': errors.OrderNotFound, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
+                    '31': errors.InsufficientFunds, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
+                    '36': errors.InsufficientFunds, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
+                    '44': errors.BadRequest, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
+                    '49': errors.InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"49","sMsg":"PriceOutOfUpperLimit:Price\u003eUpperLimitPrice[0.28422]"}}
+                    '194': errors.InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
+                    '195': errors.InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
+                    '199': errors.BadRequest, // {"code":"0","msg":"","data":{"instId":"","lever":"","mgnMode":"","mrgPosition":"","sCode":"199","sMsg":"LeverageTooHigh:Amount[10000.0]\u003eLeverage[75.1880]"}}
+                    '100010': errors.InsufficientFunds, // {"code":"0","msg":"","data":{"retCode":100010,"retMsg":"Balance is insufficient, please deposit first.","retData":{}}}
                     'unsupportedAction': errors.BadRequest,
                     'localIDNotExist': errors.BadRequest,
                 },
                 'broad': {
-                    'no available': errors.NotSupported,
-                    'field is required': errors.ArgumentsRequired,
-                    'not in acceptable range': errors.BadRequest,
+                    'no available': errors.NotSupported, // orderbook does not exist: ETHUSD_0.1, no available orderbook data
+                    'field is required': errors.ArgumentsRequired, // {"code":"51","msg":"The productGroup field is required","data":null}
+                    'not in acceptable range': errors.BadRequest, // {"code":"51","msg":"The instType value `spot` is not in acceptable range: SPOT,SWAP","data":null}
                     'subscription cluster does not "exist"': errors.BadRequest,
                     'must be equal or lesser than': errors.BadRequest, // {"code":"51","msg":"The Size value `100` must be equal or lesser than 50","data":null}
                 },
@@ -816,7 +816,7 @@ class deepcoin extends deepcoin$1["default"] {
             'instId': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 2000);
+            request['limit'] = Math.min(limit, 500);
         }
         const productGroup = this.getProductGroupFromMarket(market);
         request['productGroup'] = productGroup;
@@ -826,8 +826,8 @@ class deepcoin extends deepcoin$1["default"] {
     }
     getProductGroupFromMarket(market) {
         let productGroup = 'Spot';
-        if (market['swap']) {
-            if (market['linear']) {
+        if (this.safeBool(market, 'swap')) {
+            if (this.safeBool(market, 'linear')) {
                 productGroup = 'SwapU';
             }
             else {
@@ -1066,7 +1066,7 @@ class deepcoin extends deepcoin$1["default"] {
         const amount = this.safeNumber(transaction, 'amount');
         const timestamp = this.safeTimestamp(transaction, 'createTime');
         const networkId = this.safeString(transaction, 'chainName');
-        const network = this.networkIdToCode(networkId);
+        const network = this.networkIdToCode(networkId, code);
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         return {
             'info': transaction,
@@ -1213,10 +1213,11 @@ class deepcoin extends deepcoin$1["default"] {
         const chain = this.safeString(response, 'chain');
         const address = this.safeString(response, 'address');
         this.checkAddress(address);
+        const code = this.safeString(currency, 'code');
         return {
             'info': response,
             'currency': undefined,
-            'network': this.networkIdToCode(chain),
+            'network': this.networkIdToCode(chain, code),
             'address': address,
             'tag': this.safeString(response, 'memo'),
         };
@@ -2976,7 +2977,7 @@ class deepcoin extends deepcoin$1["default"] {
                 headers['Content-Type'] = 'application/json';
                 payload += body;
             }
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             headers['DC-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

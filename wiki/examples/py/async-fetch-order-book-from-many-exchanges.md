@@ -1,8 +1,5 @@
-- [Async Fetch Order Book From Many Exchanges](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -13,7 +10,7 @@ from pprint import pprint
 import ccxt.async_support as ccxt  # noqa: E402
 
 
-exchange_ids = [ 'binance', 'kucoin', 'huobipro' ]
+exchange_ids = [ 'binance', 'kucoin', 'htx' ]
 symbol = 'ETH/BTC'
 
 async def loop(exchange_id, symbol):
@@ -50,5 +47,5 @@ for result in results:
         'top bid', bids[0], 'of', len(bids), 'bids,',
         'top ask', asks[0], 'of', len(asks), 'asks'
     )
- 
+
 ```

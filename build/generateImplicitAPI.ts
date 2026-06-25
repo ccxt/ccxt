@@ -1,6 +1,6 @@
 import ccxt, { Dict, Exchange } from '../ts/ccxt.js';
-import { promisify } from 'util';
 import fs from 'fs';
+import { writeFile, unlink } from 'fs/promises';
 import log from 'ololog'
 
 // const JS_PATH = './js/src/abstract/';
@@ -13,7 +13,6 @@ const GO_PATH = './go/v4/'
 const JAVA_PATH = './java/lib/src/main/java/io/github/ccxt/api/'
 const IDEN = '    ';
 
-
 let storedCamelCaseMethods: Dict = {};
 let storedUnderscoreMethods: Dict = {};
 let storedTypeScriptMethods: Dict = {};
@@ -23,7 +22,6 @@ let storedPhpMethods: Dict = {};
 let storedPyMethods: Dict = {};
 let storedGoMethods: Dict = {};
 let storedJavaMethods: Dict = {};
-
 
 const [,, ...args] = process.argv
 const langKeys = {
@@ -35,10 +33,6 @@ const langKeys = {
     '--go': false,
     '--java': false,
 }
-
-
-const promisedWriteFile = promisify (fs.writeFile);
-const promisedUnlinkFile = promisify (fs.unlink)
 
 function isHttpMethod(method: string): boolean {
     return ['get', 'post', 'put', 'delete', 'patch'].includes (method);
@@ -262,8 +256,8 @@ function createImplicitMethodsGo(){
 
         const methods = methodNames.map(method=> {
             return [
-                `func (this *${capitalize(exchange)}Core) ${capitalize(method)} (args ...any) <-chan any {`,
-                `   return this.callEndpointAsync("${method}", args...)`,
+                `func (this *${capitalize(exchange)}Core) ${capitalize(method)}(args ...any) <-chan any {`,
+                `\treturn this.callEndpointAsync("${method}", args...)`,
                 `}`,
                 ``,
             ].join('\n')
@@ -286,7 +280,7 @@ function createImplicitMethodsGo(){
 async function editFiles (path: string, methods: Dict, extension: string) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
-    await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
+    await Promise.all (files.map ((path, idx) => writeFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
     // await unlinkFiles (path, extension)
 }
 
@@ -294,7 +288,7 @@ async function unlinkFiles (path: string, extension: string) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const abstract = fs.readdirSync (path)
     const ext = new RegExp (extension + '$')
-    await Promise.all (abstract.filter (file => file !== '__init__.py' && file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => promisedUnlinkFile (path + basename)))
+    await Promise.all (abstract.filter (file => file !== '__init__.py' && file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => unlink (path + basename)))
 }
 
 // -------------------------------------------------------------------------
@@ -302,7 +296,7 @@ async function unlinkFiles (path: string, extension: string) {
 async function editAPIFilesCSharp(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     const files = exchanges.map(ex => CSHARP_PATH + ex + '.cs');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
 }
 
 // -------------------------------------------------------------------------
@@ -310,7 +304,7 @@ async function editAPIFilesCSharp(){
 async function editAPIFilesGo(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     const files = exchanges.map(ex => GO_PATH + ex + '_api.go');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
 }
 
 async function editAPIFilesJava(){
@@ -321,7 +315,7 @@ async function editAPIFilesJava(){
     // the dir is already populated (CI rebuild) or empty (first run).
     fs.mkdirSync(JAVA_PATH, { recursive: true });
     const files = exchanges.map(ex => JAVA_PATH + capitalize(ex) + 'Api.java');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
 }
 
 //-------------------------------------------------------------------------
@@ -379,7 +373,10 @@ function createGoHeader(exchange: Exchange, parent: string){
 // -------------------------------------------------------------------------
 
 function createJavaHeader(exchange: Exchange, parent: string){
-    const capParent = capitalize(parent);
+    // When the parent is another exchange, extend its untyped Core class
+    // (CompletableFuture<Object> methods) — extending the typed wrapper would
+    // shadow the Core signatures and break the generated typed wrapper subclass.
+    const capParent = parent === 'Exchange' ? 'Exchange' : `${capitalize(parent)}Core`;
     const parentImport = parent === 'Exchange' ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
     const namespace = `package io.github.ccxt.api;\n${parentImport};`;
     const constructor = [
@@ -391,7 +388,7 @@ function createJavaHeader(exchange: Exchange, parent: string){
         `${IDEN}${IDEN}super(options);`,
         `${IDEN}}`,
     ].join('\n');
-    const header = `public class ${capitalize(exchange.id)}Api extends ${capitalize(parent)}\n{\n`;
+    const header = `public class ${capitalize(exchange.id)}Api extends ${capParent}\n{\n`;
     storedJavaMethods[exchange.id] = [ getPreamble(), namespace, '', header, constructor, ''];
 }
 

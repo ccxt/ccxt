@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitstamp$1 = require('./abstract/bitstamp.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -524,16 +524,16 @@ class bitstamp extends bitstamp$1["default"] {
                     'Your account is frozen': errors.PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': errors.PermissionDenied,
                     'Order not found.': errors.OrderNotFound,
-                    "Bitstamp.net is under scheduled maintenance. We'll be back soon.": errors.OnMaintenance,
-                    'Order could not be placed.': errors.ExchangeNotAvailable,
+                    "Bitstamp.net is under scheduled maintenance. We'll be back soon.": errors.OnMaintenance, // { "error": "Bitstamp.net is under scheduled maintenance. We'll be back soon." }
+                    'Order could not be placed.': errors.ExchangeNotAvailable, // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.': errors.BadRequest,
                     'Trading is currently unavailable for your account.': errors.AccountSuspended, // {"status": "error", "reason": {"__all__": ["Trading is currently unavailable for your account."]}, "response_code": "403.004"}
                 },
                 'broad': {
-                    'Minimum order size is': errors.InvalidOrder,
+                    'Minimum order size is': errors.InvalidOrder, // Minimum order size is 5.0 EUR.
                     'Price is more than': errors.InvalidOrder,
-                    'Check your account balance for details.': errors.InsufficientFunds,
-                    'Ensure this value has at least': errors.InvalidAddress,
+                    'Check your account balance for details.': errors.InsufficientFunds, // You have only 0.00100000 BTC available. Check your account balance for details.
+                    'Ensure this value has at least': errors.InvalidAddress, // Ensure this value has at least 25 characters (it has 4).
                     'Ensure that there are no more than': errors.InvalidOrder, // {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
                 },
             },
@@ -746,7 +746,7 @@ class bitstamp extends bitstamp$1["default"] {
         return {
             'id': id,
             'code': code,
-            'info': originalPayload,
+            'info': originalPayload, // the original payload
             'type': currencyType,
             'name': name,
             'active': true,
@@ -1138,14 +1138,14 @@ class bitstamp extends bitstamp$1["default"] {
             market = this.getMarketFromTrade(trade);
         }
         const feeCostString = this.safeString(trade, 'fee');
-        const feeCurrency = market['quote'];
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['id'];
+        const feeCurrency = this.safeString(market, 'quote');
+        const priceId = (rawMarketId !== undefined) ? rawMarketId : this.safeString(market, 'id');
         priceString = this.safeString(trade, priceId, priceString);
-        amountString = this.safeString(trade, market['baseId'], amountString);
-        costString = this.safeString(trade, market['quoteId'], costString);
+        amountString = this.safeString(trade, this.safeString(market, 'baseId'), amountString);
+        costString = this.safeString(trade, this.safeString(market, 'quoteId'), costString);
         // this endpoint is not aligned with "markets" endpoint
-        const baseIdLower = market['baseId'].toLowerCase();
-        const quoteIdLower = market['quoteId'].toLowerCase();
+        const baseIdLower = this.safeStringLower(market, 'baseId');
+        const quoteIdLower = this.safeStringLower(market, 'quoteId');
         const dashedIdLower = baseIdLower + '_' + quoteIdLower;
         if (priceString === undefined) {
             priceString = this.safeString(trade, dashedIdLower);
@@ -1156,7 +1156,7 @@ class bitstamp extends bitstamp$1["default"] {
         if (costString === undefined) {
             costString = this.safeString(trade, quoteIdLower);
         }
-        symbol = market['symbol'];
+        symbol = this.safeString(market, 'symbol');
         const datetimeString = this.safeString2(trade, 'date', 'datetime');
         let timestamp = undefined;
         if (datetimeString !== undefined) {
@@ -1536,10 +1536,11 @@ class bitstamp extends bitstamp$1["default"] {
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
         const result = this.depositWithdrawFee(fee);
+        const code = this.safeString(currency, 'code');
         for (let j = 0; j < fee.length; j++) {
             const networkEntry = fee[j];
             const networkId = this.safeString(networkEntry, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const withdrawFee = this.safeNumber(networkEntry, 'fee');
             result['withdraw'] = {
                 'fee': withdrawFee,
@@ -2118,10 +2119,10 @@ class bitstamp extends bitstamp$1["default"] {
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         //
         const statuses = {
-            '0': 'pending',
-            '1': 'pending',
-            '2': 'ok',
-            '3': 'canceled',
+            '0': 'pending', // Open
+            '1': 'pending', // In process
+            '2': 'ok', // Finished
+            '3': 'canceled', // Canceled
             '4': 'failed', // Failed
         };
         return this.safeString(statuses, status, status);
@@ -2277,7 +2278,7 @@ class bitstamp extends bitstamp$1["default"] {
                 'referenceId': parsedTrade['order'],
                 'referenceAccount': undefined,
                 'type': type,
-                'currency': market['base'],
+                'currency': this.safeString(market, 'base'),
                 'amount': parsedTrade['amount'],
                 'before': undefined,
                 'after': undefined,
@@ -2633,7 +2634,7 @@ class bitstamp extends bitstamp$1["default"] {
             }
             const authBody = body ? body : '';
             const auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             headers['X-Auth-Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

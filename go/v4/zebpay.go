@@ -276,7 +276,7 @@ func (this *ZebpayCore) FetchStatus(optionalArgs ...any) <-chan any {
 
 /**
  * @method
- * @name zebpayfutures#fetchTime
+ * @name zebpay#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
  * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -443,7 +443,7 @@ func (this *ZebpayCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = GetValue(chains, j)
 		var networkId any = this.SafeString(chain, "chainId")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var depositAllowed any = IsEqual(this.SafeBool(chain, "isDepositEnabled"), true)
 		deposit = Ternary(IsTrue((depositAllowed)), depositAllowed, deposit)
 		var withdrawAllowed any = IsEqual(this.SafeBool(chain, "isWithdrawEnabled"), true)
@@ -585,7 +585,7 @@ func (this *ZebpayCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan 
 
 /**
  * @method
- * @name zebpay(futures)#fetchTradingFees
+ * @name zebpay#fetchTradingFees
  * @description fetch the trading fees for multiple markets
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1607,7 +1607,7 @@ func (this *ZebpayCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		var responseData any = this.SafeDict(response, "data")
+		var responseData any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseOrder(responseData, market)
 		return nil
@@ -1781,7 +1781,7 @@ func (this *ZebpayCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		PanicOnError(retRes13938)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
-			"symbol": ToUpper(GetValue(market, "id")),
+			"symbol": this.SafeStringUpper(market, "id"),
 		}
 
 		response := (<-this.PrivateSwapGetV1TradeUserLeverage(this.Extend(request, params)))
@@ -1897,7 +1897,7 @@ func (this *ZebpayCore) FetchPositions(optionalArgs ...any) <-chan any {
 
 /**
  * @method
- * @name zebpayfutures#addMargin
+ * @name zebpay#addMargin
  * @description add margin
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
  * @param {string} symbol unified market symbol
@@ -1957,7 +1957,7 @@ func (this *ZebpayCore) AddMargin(symbol any, amount any, optionalArgs ...any) <
 
 /**
  * @method
- * @name zebpayfutures#reduceMargin
+ * @name zebpay#reduceMargin
  * @description add margin
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
  * @param {string} symbol unified market symbol.
@@ -2339,7 +2339,7 @@ func (this *ZebpayCore) ParseMarginModification(info any, optionalArgs ...any) a
 	var timestamp any = this.Milliseconds()
 	return map[string]any{
 		"info":       info,
-		"symbol":     GetValue(market, "id"),
+		"symbol":     this.SafeString(market, "id"),
 		"type":       nil,
 		"marginMode": nil,
 		"amount":     this.SafeNumber(info, "amount"),

@@ -1594,7 +1594,7 @@ public partial class grvt : Exchange
 
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
      * @param {string} [code] unified currency code of the currency transferred
@@ -1780,6 +1780,8 @@ public partial class grvt : Exchange
         object networkCode = null;
         object addressFrom = this.safeString(transaction, "from_account_id");
         object addressTo = this.safeString(transaction, "to_account_id");
+        object currencyId = this.safeString(transaction, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
         if (isTrue(inOp(transaction, "transfer_metadata")))
         {
             object metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
@@ -1788,7 +1790,7 @@ public partial class grvt : Exchange
                 object parsedMeta = this.parseJson(metaData);
                 direction = this.safeStringLower(parsedMeta, "direction");
                 txId = this.safeString(parsedMeta, "provider_tx_id");
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"));
+                networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"), code);
                 if (isTrue(isEqual(direction, "withdrawal")))
                 {
                     addressTo = this.safeString(parsedMeta, "endpoint");
@@ -1799,8 +1801,6 @@ public partial class grvt : Exchange
             }
         }
         object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
-        object currencyId = this.safeString(transaction, "currency");
-        object code = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", null },
@@ -2144,7 +2144,7 @@ public partial class grvt : Exchange
         var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(isEqual(networkId, null)))
         {
             throw new BadRequest ((string)add(this.id, " withdraw() requires a network parameter")) ;
@@ -3281,7 +3281,7 @@ public partial class grvt : Exchange
         object price = null;
         object filled = null;
         object avgPrice = null;
-        object legs = this.safeList(order, "legs");
+        object legs = this.safeList(order, "legs", new List<object>() {});
         object metadata = this.safeDict(order, "metadata", new Dictionary<string, object>() {});
         object stateObj = this.safeDict(order, "state", new Dictionary<string, object>() {});
         object filledAmounts = this.safeList(stateObj, "traded_size", new List<object>() {});
@@ -3310,7 +3310,7 @@ public partial class grvt : Exchange
             { "lastTradeTimeStamp", null },
             { "lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001) },
             { "status", this.parseOrderStatus(this.safeString(stateObj, "status")) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", orderType },
             { "timeInForce", timeInForce },
             { "postOnly", isPostOnly },

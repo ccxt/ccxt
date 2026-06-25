@@ -1,4 +1,4 @@
-import { base16, base64 } from "../../../scure-base/index.js";
+import { hex as base16, base64 } from "@scure/base";
 
 export function hex2b64(h:string) {
     return base64.encode (base16.decode (h))
@@ -14,7 +14,7 @@ export function b64toBA(s:string) {
     // piggyback on b64tohex for now, optimize later
     const h = b64tohex(s);
     let i;
-    const a = [];
+    const a: number[] = [];
     for (i = 0; 2 * i < h.length; ++i) {
         a[i] = parseInt(h.substring(2 * i, 2 * i + 2), 16);
     }

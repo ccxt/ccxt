@@ -513,7 +513,7 @@ class hollaex extends Exchange {
         for ($j = 0; $j < count($networkIds); $j++) {
             $networkId = $networkIds[$j];
             $networkEntry = $this->safe_dict($rawNetworks, $networkId);
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -902,8 +902,8 @@ class hollaex extends Exchange {
             $makerFees = $this->safe_value($fees, 'maker', array());
             $takerFees = $this->safe_value($fees, 'taker', array());
             $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
+            for ($i = 0; $i < count(($this->symbols)); $i++) {
+                $symbol = ($this->symbols)[$i];
                 $market = $this->market($symbol);
                 $makerString = $this->safe_string($makerFees, $market['id']);
                 $takerString = $this->safe_string($takerFees, $market['id']);
@@ -2065,7 +2065,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (($method === 'GET') || ($method === 'DELETE')) {

@@ -647,11 +647,15 @@ public partial class upbit : Exchange
         object ids = null;
         if (isTrue(isEqual(symbols, null)))
         {
-            ids = String.Join(",", ((IList<object>)this.ids).ToArray());
+            object allIds = this.ids;
+            if (isTrue(!isEqual(allIds, null)))
+            {
+                ids = String.Join(",", ((IList<object>)allIds).ToArray());
+            }
         } else
         {
-            ids = this.marketIds(symbols);
-            ids = String.Join(",", ((IList<object>)ids).ToArray());
+            object marketIds = this.marketIds(symbols);
+            ids = String.Join(",", ((IList<object>)marketIds).ToArray());
         }
         object request = new Dictionary<string, object>() {
             { "markets", ids },
@@ -698,8 +702,8 @@ public partial class upbit : Exchange
             object timestamp = this.safeInteger(orderbook, "timestamp");
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "symbol", symbol },
-                { "bids", this.sortBy(this.parseBidsAsks(getValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true) },
-                { "asks", this.sortBy(this.parseBidsAsks(getValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0) },
+                { "bids", this.sortBy(this.parseOrderBookBidsAsks(getValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true) },
+                { "asks", this.sortBy(this.parseOrderBookBidsAsks(getValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0) },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "nonce", null },
@@ -2331,7 +2335,7 @@ public partial class upbit : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", code },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "tag", tag },
         };

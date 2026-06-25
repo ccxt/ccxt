@@ -576,7 +576,7 @@ class bittrade extends \ccxt\async\bittrade {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     {
         //         "ts" => 1586323747018,
@@ -606,7 +606,7 @@ class bittrade extends \ccxt\async\bittrade {
             }
             return false;
         }
-        return $message;
+        return true;
     }
 
     public function handle_message(Client $client, $message) {

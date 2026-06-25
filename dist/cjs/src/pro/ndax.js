@@ -61,9 +61,9 @@ class ndax extends ndax$1["default"] {
             // 'Symbol': market['info']['symbol'], // conditionally optional
         };
         const request = {
-            'm': 0,
-            'i': requestId,
-            'n': name,
+            'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+            'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
+            'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
             'o': this.json(payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend(request, params);
@@ -126,13 +126,13 @@ class ndax extends ndax$1["default"] {
         const requestId = this.requestId();
         const payload = {
             'OMSId': omsId,
-            'InstrumentId': parseInt(market['id']),
+            'InstrumentId': parseInt(market['id']), // conditionally optional
             'IncludeLastCount': 100, // the number of previous trades to retrieve in the immediate snapshot, 100 by default
         };
         const request = {
-            'm': 0,
-            'i': requestId,
-            'n': name,
+            'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+            'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
+            'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
             'o': this.json(payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend(request, params);
@@ -209,14 +209,14 @@ class ndax extends ndax$1["default"] {
         const requestId = this.requestId();
         const payload = {
             'OMSId': omsId,
-            'InstrumentId': parseInt(market['id']),
+            'InstrumentId': parseInt(market['id']), // conditionally optional
             'Interval': parseInt(this.safeString(this.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         };
         const request = {
-            'm': 0,
-            'i': requestId,
-            'n': name,
+            'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+            'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
+            'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
             'o': this.json(payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend(request, params);
@@ -289,7 +289,7 @@ class ndax extends ndax$1["default"] {
                     updates[marketId][timeframe] = true;
                 }
                 else {
-                    if (length && (parsed[0] < stored[length - 1][0])) {
+                    if (length && (this.parseToInt(parsed[0]) < this.parseToInt(stored[length - 1][0]))) {
                         continue;
                     }
                     else {
@@ -341,14 +341,14 @@ class ndax extends ndax$1["default"] {
         limit = (limit === undefined) ? 100 : limit;
         const payload = {
             'OMSId': omsId,
-            'InstrumentId': parseInt(market['id']),
+            'InstrumentId': parseInt(market['id']), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
             'Depth': limit, // default 100
         };
         const request = {
-            'm': 0,
-            'i': requestId,
-            'n': name,
+            'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+            'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
+            'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
             'o': this.json(payload), // JSON-formatted string containing the data being sent with the message
         };
         const subscription = {

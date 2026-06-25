@@ -875,7 +875,7 @@ class weex extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chain, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'info' => $chain,
                 'id' => $networkId,
@@ -1131,7 +1131,7 @@ class weex extends Exchange {
             }
             $request = array();
             if ($symbolsLength === 1) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             $response = null;
             if ($marketType === 'spot') {
@@ -1582,8 +1582,11 @@ class weex extends Exchange {
         $timestamp = $this->safe_integer($trade, 'time');
         $isBuyer = $this->safe_bool($trade, 'isBuyer');
         $side = $this->safe_string_lower($trade, 'side');
+        $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
         if ($isBuyer !== null) {
             $side = $isBuyer ? 'buy' : 'sell';
+        } elseif ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
         }
         $isSpot = true;
         if ($market === null) {
@@ -1616,6 +1619,8 @@ class weex extends Exchange {
         $takerOrMaker = null;
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        } elseif ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1697,7 +1702,7 @@ class weex extends Exchange {
             $request = array();
             if ($symbolsLength === 1) {
                 $market = $this->get_market_from_symbols($symbols);
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             $response = Async\await($this->contractGetCapiV3MarketPremiumIndex ($this->extend($request, $params)));
             //
@@ -2468,7 +2473,7 @@ class weex extends Exchange {
             }
             $request = array();
             if ($symbol !== null) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             $response = null;
             if ($isSpot) {
@@ -2741,7 +2746,7 @@ class weex extends Exchange {
             }
             $request = array();
             if ($symbol !== null) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -3035,7 +3040,7 @@ class weex extends Exchange {
             }
             $request = array();
             if ($symbol !== null) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -3849,12 +3854,12 @@ class weex extends Exchange {
         $timestamp = $this->safe_integer($data, 'requestTime');
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
-            'code' => $market['settle'],
+            'code' => $this->safe_string($market, 'settle'),
             'status' => $status,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -3895,7 +3900,7 @@ class weex extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);

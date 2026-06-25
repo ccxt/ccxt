@@ -959,7 +959,7 @@ public partial class kraken : Exchange
         };
     }
 
-    public override object parseBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public override object parseOrderBookBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;
@@ -1752,7 +1752,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        object result = this.safeDict(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)result)["usingCost"] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
@@ -1811,7 +1811,7 @@ public partial class kraken : Exchange
         object response = null;
         object request = new Dictionary<string, object>() {
             { "orders", ordersRequests },
-            { "pair", getValue(market, "id") },
+            { "pair", this.safeString(market, "id") },
         };
         request = this.extend(request, parameters);
         response = await this.privatePostAddOrderBatch(request);
@@ -2335,6 +2335,7 @@ public partial class kraken : Exchange
         if (isTrue(!isEqual(close, null)))
         {
             close = this.extend(new Dictionary<string, object>() {}, close);
+            close = ((bool) isTrue((isEqual(close, null)))) ? new Dictionary<string, object>() {} : close;
             object closePrice = this.safeValue(close, "price");
             if (isTrue(!isEqual(closePrice, null)))
             {

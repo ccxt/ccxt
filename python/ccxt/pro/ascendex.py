@@ -56,7 +56,7 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'id': str(id),
             'op': 'sub',
         }
@@ -66,7 +66,7 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_public_multiple(self, messageHashes, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'id': str(id),
             'op': 'sub',
         }
@@ -79,7 +79,7 @@ class ascendex(ccxt.async_support.ascendex):
         url = self.urls['api']['ws']['private']
         url = self.implode_params(url, {'accountGroup': accountGroup})
         id = self.nonce()
-        request: dict = {
+        request = {
             'id': str(id),
             'op': 'sub',
             'ch': channel,
@@ -878,7 +878,7 @@ class ascendex(ccxt.async_support.ascendex):
         # }
         #
         subject = self.safe_string(message, 'm')
-        methods: dict = {
+        methods = {
             'ping': self.handle_ping,
             'auth': self.handle_authenticate,
             'sub': self.handle_subscription_status,
@@ -952,7 +952,7 @@ class ascendex(ccxt.async_support.ascendex):
             auth = timestamp + '+' + version + '/' + path
             secret = self.base64_to_binary(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64')
-            request: dict = {
+            request = {
                 'op': 'auth',
                 'id': str(self.nonce()),
                 't': timestamp,

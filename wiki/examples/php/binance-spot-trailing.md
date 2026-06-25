@@ -1,8 +1,5 @@
-- [Binance Spot Trailing](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -75,5 +72,5 @@ function main($exchange) {
 main($exchange)
 
 ?>
- 
+
 ```

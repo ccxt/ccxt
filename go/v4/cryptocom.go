@@ -553,7 +553,7 @@ func (this *CryptocomCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 						ret_ = func(this *CryptocomCore) any {
 							// catch block:
 							var erString any = this.ExceptionMessage(e)
-							if IsTrue(IsGreaterThanOrEqual(GetIndexOf(erString, "\"msg\":\"SYS_ERROR\""), 0)) {
+							if IsTrue(IsGreaterThanOrEqual(GetIndexOf(erString, "SYS_ERROR"), 0)) {
 
 								// sub-accounts can't access this endpoint
 								// {"code":"10001","msg":"SYS_ERROR"}
@@ -2378,7 +2378,7 @@ func (this *CryptocomCore) Withdraw(code any, amount any, address any, optionalA
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
-		var networkId any = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, code)
 		if IsTrue(!IsEqual(networkId, nil)) {
 			AddElementToObject(request, "network_id", networkId)
 		}

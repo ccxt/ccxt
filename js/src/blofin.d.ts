@@ -1,5 +1,5 @@
 import Exchange from './abstract/blofin.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, NullableDict } from './base/types.js';
 /**
  * @class blofin
  * @augments Exchange
@@ -460,10 +460,10 @@ export default class blofin extends Exchange {
     fetchPositionsADLRank(symbols?: Strings, params?: {}): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
 }

@@ -620,7 +620,7 @@ class coinbase extends Exchange {
         $accounts = $this->safe_list($response, 'data', array());
         $length = count($accounts);
         $lastIndex = $length - 1;
-        $last = $this->safe_dict($accounts, $lastIndex);
+        $last = $this->safe_dict($accounts, $lastIndex, array());
         if (($cursor !== null) && ($cursor !== '')) {
             $last['next_starting_after'] = $cursor;
             $accounts[$lastIndex] = $last;
@@ -674,7 +674,7 @@ class coinbase extends Exchange {
         $cursor = $this->safe_string($response, 'cursor');
         if (($accountsLength > 0) && ($cursor !== null) && ($cursor !== '')) {
             $lastIndex = $accountsLength - 1;
-            $last = $this->safe_dict($accounts, $lastIndex);
+            $last = $this->safe_dict($accounts, $lastIndex, array());
             $last['cursor'] = $cursor;
             $accounts[$lastIndex] = $last;
         }
@@ -1166,13 +1166,14 @@ class coinbase extends Exchange {
         $toObject = $this->safe_dict($transaction, 'to');
         $addressTo = $this->safe_string($toObject, 'address');
         $networkId = $this->safe_string($network, 'network_name');
+        $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $this->safe_string($network, 'hash', $id),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $addressTo,
             'addressTo' => $addressTo,
             'addressFrom' => null,
@@ -1181,7 +1182,7 @@ class coinbase extends Exchange {
             'tagFrom' => null,
             'type' => $type,
             'amount' => $this->parse_number($amountStringAbs),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $code,
             'status' => $status,
             'updated' => $this->parse8601($this->safe_string($transaction, 'updated_at')),
             'fee' => array(
@@ -1913,7 +1914,7 @@ class coinbase extends Exchange {
         return $this->safe_dict($this->options, 'fetchCurrencies', array());
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -3642,7 +3643,7 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
-        $first = $this->safe_dict($orders, 0);
+        $first = $this->safe_dict($orders, 0, array());
         $cursor = $this->safe_string($response, 'cursor');
         if (($cursor !== null) && ($cursor !== '')) {
             $first['cursor'] = $cursor;
@@ -3719,7 +3720,7 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
-        $first = $this->safe_dict($orders, 0);
+        $first = $this->safe_dict($orders, 0, array());
         $cursor = $this->safe_string($response, 'cursor');
         if (($cursor !== null) && ($cursor !== '')) {
             $first['cursor'] = $cursor;
@@ -4010,7 +4011,7 @@ class coinbase extends Exchange {
         //     }
         //
         $trades = $this->safe_list($response, 'fills', array());
-        $first = $this->safe_dict($trades, 0);
+        $first = $this->safe_dict($trades, 0, array());
         $cursor = $this->safe_string($response, 'cursor');
         if (($cursor !== null) && ($cursor !== '')) {
             $first['cursor'] = $cursor;
@@ -4995,17 +4996,17 @@ class coinbase extends Exchange {
         //
         $data = $this->safe_dict($response, 'fee_tier', array());
         $taker_fee = $this->safe_number($data, 'taker_fee_rate');
-        $marker_fee = $this->safe_number($data, 'maker_fee_rate');
+        $maker_fee = $this->safe_number($data, 'maker_fee_rate');
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        for ($i = 0; $i < count(($this->symbols)); $i++) {
+            $symbol = ($this->symbols)[$i];
             $market = $this->market($symbol);
             if (($isSpot && $market['spot']) || (!$isSpot && !$market['spot'])) {
                 $result[$symbol] = array(
                     'info' => $response,
                     'symbol' => $symbol,
-                    'maker' => $taker_fee,
-                    'taker' => $marker_fee,
+                    'maker' => $maker_fee,
+                    'taker' => $taker_fee,
                     'percentage' => true,
                 );
             }
@@ -5126,7 +5127,7 @@ class coinbase extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
         $isV3 = $version === 'v3';

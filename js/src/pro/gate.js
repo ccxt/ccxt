@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha512 } from '@noble/hashes/sha2.js';
 import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class gate extends gateRest {
@@ -108,16 +108,16 @@ export default class gate extends gateRest {
                     'name': 'tickers', // or book_ticker
                 },
                 'watchOrderBook': {
-                    'snapshotDelay': 10,
+                    'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries': 3,
                     'checksum': true,
                 },
                 'watchBalance': {
-                    'settle': 'usdt',
+                    'settle': 'usdt', // or btc
                     'spot': 'spot.balances', // spot.margin_balances, spot.funding_balances or spot.cross_balances
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -637,7 +637,7 @@ export default class gate extends gateRest {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = bidAsks[i];
             if (Array.isArray(bidAsk)) {
-                bookSide.storeArray(this.parseBidAsk(bidAsk));
+                bookSide.storeArray(this.parseOrderBookBidAsk(bidAsk));
             }
             else {
                 const price = this.safeFloat(bidAsk, 'p');

@@ -54,7 +54,7 @@ export default class kucoin extends kucoinRest {
             'options': {
                 'utaToken': undefined,
                 'utaTokenLastUpdate': 0,
-                'utaTokenRefreshInterval': 1000 * 60 * 60 * 24,
+                'utaTokenRefreshInterval': 1000 * 60 * 60 * 24, // 24 hours
                 'tradesLimit': 1000,
                 'watchTicker': {
                     'spotMethod': '/market/snapshot', // '/market/ticker'
@@ -62,23 +62,23 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBook': {
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
-                    'utaDepth': 'increment',
-                    'spotMethod': '/market/level2',
+                    'utaDepth': 'increment', // '1', '5', '50' or 'increment'
+                    'spotMethod': '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
                     'contractMethod': '/contractMarket/level2', // '/contractMarket/level2Depth5' or '/contractMarket/level2Depth20'
                 },
                 'watchMyTrades': {
                     'spotMethod': '/spotMarket/tradeOrders', // or '/spot/tradeFills'
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // or false
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchPosition': {
-                    'fetchPositionSnapshot': true,
+                    'fetchPositionSnapshot': true, // or false
                     'awaitPositionSnapshot': true, // whether to wait for the position snapshot before providing updates
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': true,
+                    'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -109,7 +109,7 @@ export default class kucoin extends kucoinRest {
         return await future;
     }
     async negotiateHelper(privateChannel, connectId, params = {}) {
-        let response = undefined;
+        let response;
         try {
             if (connectId === 'private') {
                 response = await this.privatePostBulletPrivate(params);
@@ -447,7 +447,7 @@ export default class kucoin extends kucoinRest {
             }
         }
         const url = await this.negotiate(false, isFuturesMethod);
-        let tickers = undefined;
+        let tickers;
         if (symbols === undefined) {
             const allTopic = method + ':all';
             tickers = await this.subscribe(url, messageHash, allTopic, params);
@@ -1754,7 +1754,7 @@ export default class kucoin extends kucoinRest {
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk(bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk(bidAsks[i]);
             bookSide.storeArray(bidAsk);
         }
     }

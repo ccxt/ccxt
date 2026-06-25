@@ -529,7 +529,7 @@ func (this *HollaexCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
 		var networkId any = GetValue(networkIds, j)
 		var networkEntry any = this.SafeDict(rawNetworks, networkId)
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"id":        networkId,
 			"network":   networkCode,

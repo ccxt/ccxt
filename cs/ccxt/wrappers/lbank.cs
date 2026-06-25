@@ -689,12 +689,12 @@ public partial class lbank
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchPrivateDepositWithdrawFees(object codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchPrivateDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPrivateDepositWithdrawFees(codes, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchPublicDepositWithdrawFees(object codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchPublicDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPublicDepositWithdrawFees(codes, parameters);
         return ((Dictionary<string, object>)res);

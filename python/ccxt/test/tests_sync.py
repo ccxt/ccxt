@@ -83,7 +83,8 @@ class testMainClass:
             dump(self.add_padding('[INFO] skipping alias', 25))
             exit_script(0)
         self.import_files(exchange)
-        assert len(list(self.test_files.keys())) > 0, 'Test files were not loaded'  # ensure test files are found & filled
+        # ensure test files are found & filled
+        assert len(list(self.test_files.keys())) > 0, 'Test files were not loaded'
         self.expand_settings(exchange)
         self.check_if_specific_test_is_chosen(method_argv)
         self.start_test(exchange, symbol_argv)
@@ -147,7 +148,7 @@ class testMainClass:
                 key = setting_keys[i]
                 if exchange_settings[key]:
                     final_value = None
-                    if isinstance(exchange_settings[key], dict):
+                    if exchange.is_dictionary(exchange_settings[key]):
                         existing = get_exchange_prop(exchange, key, {})
                         final_value = exchange.deep_extend(existing, exchange_settings[key])
                     else:
@@ -496,7 +497,7 @@ class testMainClass:
             values_length = len(values)
             if values_length > 0:
                 first = values[0]
-                if first is not None:
+                if first:
                     symbol = first['symbol']
         return symbol
 
@@ -577,6 +578,7 @@ class testMainClass:
             'fetchTransactions': [code],
             'fetchDeposits': [code],
             'fetchWithdrawals': [code],
+            'fetchTransfers': [code],
             'fetchBorrowInterest': [code, symbol],
             'cancelAllOrders': [symbol],
             'fetchCanceledOrders': [symbol],
@@ -674,6 +676,7 @@ class testMainClass:
         # this.testReturnResponseHeaders (exchange);
         if self.sandbox or get_exchange_prop(exchange, 'sandbox'):
             exchange.set_sandbox_mode(True)
+        self.test_has_props(exchange)
         try:
             result = self.load_exchange(exchange)
             if not result:
@@ -691,6 +694,16 @@ class testMainClass:
             if not is_sync():
                 close(exchange)
             raise e
+
+    def test_has_props(self, exchange):
+        watch_order_book_skips = self.get_skips(exchange, 'watchOrderBook')
+        fetch_order_book_skips = self.get_skips(exchange, 'fetchOrderBook')
+        if self.ws_tests and not exchange.safe_bool(exchange.has, 'watchOrderBook', False) and not isinstance(watch_order_book_skips, str):
+            dump('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange')
+            exit_script(1)
+        elif not self.ws_tests and not exchange.safe_bool(exchange.has, 'fetchOrderBook', False) and not isinstance(fetch_order_book_skips, str):
+            dump('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange')
+            exit_script(1)
 
     def assert_static_error(self, cond, message, calculated_output, stored_output, key=None):
         #  -----------------------------------------------------------------------------
@@ -780,7 +793,7 @@ class testMainClass:
         if (isinstance(stored_output, str)) and (isinstance(new_output, str)) and stored_output.startswith('{') and new_output.startswith('{'):
             stored_output = json_parse(stored_output)
             new_output = json_parse(new_output)
-        if (isinstance(stored_output, dict)) and (isinstance(new_output, dict)):
+        if exchange.is_dictionary(stored_output) and exchange.is_dictionary(new_output):
             stored_output_keys = list(stored_output.keys())
             new_output_keys = list(new_output.keys())
             stored_keys_length = len(stored_output_keys)

@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/paymium.js';
 import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class paymium
@@ -134,17 +134,17 @@ export default class paymium extends Exchange {
                         'hedged': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': true, // todo
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': undefined,
-                    'fetchOrder': undefined,
-                    'fetchOpenOrders': undefined,
-                    'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchOrder': undefined, // todo
+                    'fetchOpenOrders': undefined, // todo
+                    'fetchOrders': undefined, // todo
+                    'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': undefined, // todo
                 },
                 'swap': {

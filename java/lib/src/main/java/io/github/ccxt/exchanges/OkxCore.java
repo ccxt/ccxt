@@ -1078,9 +1078,11 @@ public class OkxCore extends OkxApi
                     put( "TRX", "TRC20" );
                     put( "TRC20", "TRC20" );
                     put( "CRC20", "Crypto" );
+                    put( "CRONOS", "Crypto" );
                     put( "ACA", "Acala" );
                     put( "ALGO", "Algorand" );
                     put( "APT", "Aptos" );
+                    put( "SONIC", "Sonic" );
                     put( "SCROLL", "Scroll" );
                     put( "ARBONE", "Arbitrum One" );
                     put( "AVAXC", "Avalanche C-Chain" );
@@ -1089,14 +1091,17 @@ public class OkxCore extends OkxApi
                     put( "SUI", "SUI" );
                     put( "ZKSYNCERA", "zkSync Era" );
                     put( "LINEA", "Linea" );
+                    put( "VAULTA", "Vaulta" );
                     put( "AR", "Arweave" );
                     put( "ASTR", "Astar" );
                     put( "BCH", "BitcoinCash" );
                     put( "BSV", "Bitcoin SV" );
                     put( "ADA", "Cardano" );
                     put( "CSPR", "Casper" );
+                    put( "CANTON", "Canton Network" );
                     put( "CELO", "CELO" );
                     put( "XCH", "Chia" );
+                    put( "BABY", "Babylon" );
                     put( "ATOM", "Cosmos" );
                     put( "DGB", "Digibyte" );
                     put( "DOGE", "Dogecoin" );
@@ -1107,11 +1112,10 @@ public class OkxCore extends OkxApi
                     put( "ETC", "Ethereum Classic" );
                     put( "ETHW", "EthereumPow" );
                     put( "FIL", "Filecoin" );
-                    put( "ONE", "Harmony" );
                     put( "HBAR", "Hedera" );
-                    put( "ICX", "ICON" );
+                    put( "HYPER", "HyperEVM" );
                     put( "ICP", "Dfinity" );
-                    put( "IOST", "IOST" );
+                    put( "PI", "PI" );
                     put( "IOTA", "MIOTA" );
                     put( "KLAY", "Klaytn" );
                     put( "KSM", "Kusama" );
@@ -1126,8 +1130,7 @@ public class OkxCore extends OkxApi
                     put( "NULS", "NULS" );
                     put( "OASYS", "OASYS" );
                     put( "ONT", "Ontology" );
-                    put( "OPTIMISM", "Optimism" );
-                    put( "LAT", "PlatON" );
+                    put( "OP", "Optimism" );
                     put( "DOT", "Polkadot" );
                     put( "MATIC", "Polygon" );
                     put( "RVN", "Ravencoin" );
@@ -1141,6 +1144,24 @@ public class OkxCore extends OkxApi
                     put( "THETA", "Theta" );
                     put( "WAX", "Wax" );
                     put( "ZIL", "Zilliqa" );
+                    put( "ZEC", "Zcash" );
+                    put( "ZETA", "ZetaChain" );
+                    put( "TIA", "Celestia" );
+                    put( "SEI", "SEI" );
+                    put( "QUANTUM", "Quantum" );
+                    put( "PHAROS", "Pharos" );
+                    put( "RONIN", "Ronin" );
+                    put( "MEGAETH", "MegaETH" );
+                    put( "INJ", "INJ" );
+                    put( "FOGO", "Fogo" );
+                    put( "FLR", "Flare" );
+                    put( "FLOW", "FLOW" );
+                    put( "DYDX", "DYDX" );
+                    put( "AELF", "AELF" );
+                    put( "BERA", "Berachain" );
+                    put( "TEMPO", "Tempo" );
+                    put( "MONAD", "Monad" );
+                    put( "PLASMA", "Plasma" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "ERC20", "ERC20" );
@@ -1460,7 +1481,19 @@ public class OkxCore extends OkxApi
         Object market = Helpers.getArg(optionalArgs, 1, null);
         Object delimiter = Helpers.getArg(optionalArgs, 2, null);
         Object marketType = Helpers.getArg(optionalArgs, 3, null);
-        Object isOption = Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), Helpers.opNeg(1)))) || Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), Helpers.opNeg(1))))));
+        Object isOption = false;
+        if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+        {
+            Object parts = Helpers.split(marketId, "-");
+            Object partsLength = Helpers.getArrayLength(parts);
+            // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
+            // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
+            // BTC/USD:USD-260611-54000-C (4 parts). Requiring more than 3 dash-separated parts avoids
+            // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
+            // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
+            // on the missing expiry.
+            isOption = Helpers.isTrue((Helpers.isGreaterThan(partsLength, 3))) && Helpers.isTrue((Helpers.isTrue(((String)marketId).endsWith(((String)"-C"))) || Helpers.isTrue(((String)marketId).endsWith(((String)"-P")))));
+        }
         if (Helpers.isTrue(Helpers.isTrue(isOption) && !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
         {
             // handle expired option contracts
@@ -1960,6 +1993,11 @@ public class OkxCore extends OkxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(dataResponse)); i++)
             {
                 Object data = Helpers.GetValue(dataResponse, i);
+                Object instId = this.safeString(data, "instId", "");
+                if (Helpers.isTrue(Helpers.isEqual(instId, "")))
+                {
+                    continue;
+                }
                 if (Helpers.isTrue(this.isSandboxModeEnabled))
                 {
                     Object instFamily = this.safeString(data, "instFamily", "");
@@ -8377,7 +8415,7 @@ public class OkxCore extends OkxApi
             ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
                 put( "tier", OkxCore.this.safeInteger(tier, "tier") );
                 put( "symbol", OkxCore.this.safeSymbol(marketId, market) );
-                put( "currency", Helpers.GetValue(market, "quote") );
+                put( "currency", OkxCore.this.safeString(market, "quote") );
                 put( "minNotional", OkxCore.this.safeNumber(tier, "minSz") );
                 put( "maxNotional", OkxCore.this.safeNumber(tier, "maxSz") );
                 put( "maintenanceMarginRate", OkxCore.this.safeNumber(tier, "mmr") );

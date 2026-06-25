@@ -2,12 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var upbit$1 = require('./abstract/upbit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
 // ----------------------------------------------------------------------------
@@ -94,7 +93,7 @@ class upbit extends upbit$1["default"] {
                 '1M': 'months',
                 '1y': 'years',
             },
-            'hostname': 'api.upbit.com',
+            'hostname': 'api.upbit.com', // 'api.upbit.com' for KR, '{countryCode}-api.upbit.com' for ID, SG, TH
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
                 'api': {
@@ -110,7 +109,7 @@ class upbit extends upbit$1["default"] {
                 // cost = 1000 / (rateLimit * RPS)
                 'public': {
                     'get': {
-                        'market/all': 2,
+                        'market/all': 2, // RPS: 10
                         'candles/{timeframe}': 2,
                         'candles/{timeframe}/{unit}': 2,
                         'candles/seconds': 2,
@@ -136,7 +135,7 @@ class upbit extends upbit$1["default"] {
                 },
                 'private': {
                     'get': {
-                        'accounts': 0.67,
+                        'accounts': 0.67, // RPS: 30
                         'orders/chance': 0.67,
                         'order': 0.67,
                         'orders/closed': 0.67,
@@ -156,19 +155,19 @@ class upbit extends upbit$1["default"] {
                         'api_keys': 0.67, // Upbit KR only
                     },
                     'post': {
-                        'orders': 2.5,
-                        'orders/test': 2.5,
-                        'orders/cancel_and_new': 2.5,
+                        'orders': 2.5, // RPS: 8
+                        'orders/test': 2.5, // RPS: 8
+                        'orders/cancel_and_new': 2.5, // RPS: 8
                         'withdraws/coin': 0.67,
-                        'withdraws/krw': 0.67,
-                        'deposits/krw': 0.67,
+                        'withdraws/krw': 0.67, // Upbit KR only.
+                        'deposits/krw': 0.67, // Upbit KR only.
                         'deposits/generate_coin_address': 0.67,
-                        'travel_rule/deposit/uuid': 0.67,
+                        'travel_rule/deposit/uuid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
                     },
                     'delete': {
                         'order': 0.67,
-                        'orders/open': 40,
+                        'orders/open': 40, // RPS: 0.5
                         'orders/uuids': 0.67,
                         'withdraws/coin': 0.67,
                     },
@@ -228,7 +227,7 @@ class upbit extends upbit$1["default"] {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': undefined, // todo
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
@@ -630,11 +629,14 @@ class upbit extends upbit$1["default"] {
         await this.loadMarkets();
         let ids = undefined;
         if (symbols === undefined) {
-            ids = this.ids.join(',');
+            const allIds = this.ids;
+            if (allIds !== undefined) {
+                ids = allIds.join(',');
+            }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join(',');
+            const marketIds = this.marketIds(symbols);
+            ids = marketIds.join(',');
         }
         const request = {
             'markets': ids,
@@ -680,8 +682,8 @@ class upbit extends upbit$1["default"] {
             const timestamp = this.safeInteger(orderbook, 'timestamp');
             result[symbol] = {
                 'symbol': symbol,
-                'bids': this.sortBy(this.parseBidsAsks(orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
-                'asks': this.sortBy(this.parseBidsAsks(orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
+                'bids': this.sortBy(this.parseOrderBookBidsAsks(orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
+                'asks': this.sortBy(this.parseOrderBookBidsAsks(orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
                 'nonce': undefined,
@@ -1104,7 +1106,7 @@ class upbit extends upbit$1["default"] {
             'timeframe': timeframeValue,
             'count': limit,
         };
-        let response = undefined;
+        let response;
         if (since !== undefined) {
             // convert `since` to `to` value
             request['to'] = this.iso8601(this.sum(since, timeframePeriod * limit * 1000));
@@ -1277,7 +1279,7 @@ class upbit extends upbit$1["default"] {
         if (request['ord_type'] === 'best' && timeInForce === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a timeInForce parameter for best type orders');
         }
-        let response = undefined;
+        let response;
         params = this.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test']);
         if (test) {
             response = await this.privatePostOrdersTest(this.extend(request, params));
@@ -1649,13 +1651,13 @@ class upbit extends upbit$1["default"] {
     }
     parseTransactionStatus(status) {
         const statuses = {
-            'submitting': 'pending',
-            'submitted': 'pending',
-            'almost_accepted': 'pending',
-            'rejected': 'failed',
-            'accepted': 'ok',
-            'processing': 'pending',
-            'done': 'ok',
+            'submitting': 'pending', // 처리 중
+            'submitted': 'pending', // 처리 완료
+            'almost_accepted': 'pending', // 출금대기중
+            'rejected': 'failed', // 거부
+            'accepted': 'ok', // 승인됨
+            'processing': 'pending', // 처리 중
+            'done': 'ok', // 완료
             'canceled': 'canceled', // 취소됨
         };
         return this.safeString(statuses, status, status);
@@ -2170,7 +2172,7 @@ class upbit extends upbit$1["default"] {
         return {
             'info': depositAddress,
             'currency': code,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': tag,
         };
@@ -2267,7 +2269,7 @@ class upbit extends upbit$1["default"] {
         const request = {
             'amount': amount,
         };
-        let response = undefined;
+        let response;
         if (code !== 'KRW') {
             this.checkAddress(address);
             // 2023-05-23 Change to required parameters for digital assets
@@ -2336,11 +2338,11 @@ class upbit extends upbit$1["default"] {
                 auth = this.rawencode(query);
             }
             if (auth !== undefined) {
-                const hash = this.hash(this.encode(auth), sha512.sha512);
+                const hash = this.hash(this.encode(auth), sha2_js.sha512);
                 request['query_hash'] = hash;
                 request['query_hash_alg'] = 'SHA512';
             }
-            const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256);
+            const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
             headers['Authorization'] = 'Bearer ' + token;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -267,7 +267,7 @@ public partial class independentreserve : ccxt.independentreserve
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, "Price", "Volume");
+        object bidAsk = this.parseOrderBookBidAsk(delta, "Price", "Volume");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 

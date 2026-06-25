@@ -374,7 +374,7 @@ class cryptomus extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -421,7 +421,7 @@ class cryptomus extends Exchange {
                 $code = $this->safe_currency_code($id);
             }
             $networkId = $this->safe_string($networkEntry, 'network_code');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -614,7 +614,7 @@ class cryptomus extends Exchange {
             'id' => $this->safe_string($trade, 'trade_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'side' => $this->safe_string($trade, 'type'),
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'quote_volume'), // quote_volume is amount
@@ -714,7 +714,6 @@ class cryptomus extends Exchange {
         $priceToString = $this->number_to_string($price);
         $cost = null;
         list($cost, $params) = $this->handle_param_string($params, 'cost');
-        $response = null;
         if ($type === 'market') {
             if ($sideBuy) {
                 $createMarketBuyOrderRequiresPrice = true;
@@ -1030,7 +1029,7 @@ class cryptomus extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
         $response = $this->privateGetV2UserApiExchangeAccountTariffs ($params);
         //
@@ -1090,8 +1089,12 @@ class cryptomus extends Exchange {
         $feeTiers = $this->safe_list($data, 'tariff_steps', array());
         $result = array();
         $tiers = $this->parse_fee_tiers($feeTiers);
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        if ($symbols === null) {
+            return $result;
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -1124,7 +1127,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;

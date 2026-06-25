@@ -572,8 +572,8 @@ func (this *IndodaxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var symbol any = this.SafeSymbol(nil, market)
 	var timestamp any = this.SafeTimestamp(ticker, "server_time")
-	var baseVolume any = Add("vol_", ToLower(GetValue(market, "baseId")))
-	var quoteVolume any = Add("vol_", ToLower(GetValue(market, "quoteId")))
+	var baseVolume any = Add("vol_", this.SafeStringLower(market, "baseId"))
+	var quoteVolume any = Add("vol_", this.SafeStringLower(market, "quoteId"))
 	var last any = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1349,9 +1349,9 @@ func (this *IndodaxCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan an
 		PanicOnError(retRes11138)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
-			var startTime any = Slice(this.Iso8601(since), 0, 10)
+			var startTime any = this.Yyyymmdd(since)
 			AddElementToObject(request, "start", startTime)
-			AddElementToObject(request, "end", Slice(this.Iso8601(this.Milliseconds()), 0, 10))
+			AddElementToObject(request, "end", this.Yyyymmdd(this.Milliseconds()))
 		}
 
 		response := (<-this.PrivatePostTransHistory(this.Extend(request, params)))
@@ -1678,10 +1678,10 @@ func (this *IndodaxCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 						network = []any{}
 						var networkIds any = Split(networkId, ",")
 						for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
-							AppendToArray(&network, ToUpper(this.NetworkIdToCode(GetValue(networkIds, j))))
+							AppendToArray(&network, ToUpper(this.NetworkIdToCode(GetValue(networkIds, j), code)))
 						}
 					} else {
-						network = ToUpper(this.NetworkIdToCode(networkId))
+						network = ToUpper(this.NetworkIdToCode(networkId, code))
 					}
 				}
 				var finalNetwork any = network // java req

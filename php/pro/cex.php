@@ -1086,7 +1086,7 @@ class cex extends \ccxt\async\cex {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray ($bidAsk);
     }
 
@@ -1507,7 +1507,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     {
         //         "e" => "get-balance",

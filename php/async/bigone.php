@@ -538,7 +538,7 @@ class bigone extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'gateway_name');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
             $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
             $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
@@ -1047,7 +1047,6 @@ class bigone extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $response = null;
             if ($market['contract']) {
                 $request = array(
                     'symbol' => $market['id'],
@@ -1222,6 +1221,8 @@ class bigone extends Exchange {
             'cost' => null,
             'info' => $trade,
         );
+        $makerCurrencyCode = null;
+        $takerCurrencyCode = null;
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
@@ -1446,7 +1447,6 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
             $type = $this->safe_string($params, 'type', '');
             $params = $this->omit($params, 'type');
-            $response = null;
             if ($type === 'funding' || $type === 'fund') {
                 $response = Async\await($this->privateGetFundAccounts ($params));
             } else {
@@ -1963,7 +1963,7 @@ class bigone extends Exchange {
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
@@ -2045,7 +2045,7 @@ class bigone extends Exchange {
             return array(
                 'info' => $response,
                 'currency' => $code,
-                'network' => $this->network_id_to_code($selectedNetworkId),
+                'network' => $this->network_id_to_code($selectedNetworkId, $code),
                 'address' => $address,
                 'tag' => $tag,
             );
@@ -2367,7 +2367,7 @@ class bigone extends Exchange {
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             if ($networkCode !== null) {
-                $request['gateway_name'] = $this->network_code_to_id($networkCode);
+                $request['gateway_name'] = $this->network_code_to_id($networkCode, $currency['code']);
             }
             // requires write permission on the wallet
             $response = Async\await($this->privatePostWithdrawals ($this->extend($request, $params)));

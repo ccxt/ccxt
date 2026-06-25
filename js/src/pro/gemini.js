@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha384 } from '@noble/hashes/sha2.js';
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
-import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
@@ -282,7 +282,7 @@ export default class gemini extends geminiRest {
                 {
                     'name': 'candles_' + timeframeId,
                     'symbols': [
-                        market['id'].toUpperCase(),
+                        this.safeStringUpper(market, 'id'),
                     ],
                 },
             ],

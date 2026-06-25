@@ -1430,7 +1430,7 @@ public class DeribitCore extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
         });
 
@@ -2227,7 +2227,7 @@ public class DeribitCore extends DeribitApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         });
 
@@ -3140,7 +3140,7 @@ public class DeribitCore extends DeribitApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parsePosition(result);
         });
 

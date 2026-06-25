@@ -995,7 +995,7 @@ public partial class weex : ccxt.weex
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta);
+        object bidAsk = this.parseOrderBookBidAsk(delta);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 

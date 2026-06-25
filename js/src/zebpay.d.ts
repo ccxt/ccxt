@@ -1,5 +1,5 @@
 import Exchange from './abstract/zebpay.js';
-import type { Balances, Currencies, Currency, Dict, Int, int, Leverage, Leverages, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, int, Leverage, Leverages, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
 /**
  * @class
  * @augments Exchange
@@ -20,11 +20,11 @@ export default class zebpay extends Exchange {
         updated: any;
         eta: any;
         url: any;
-        info: any;
+        info: Dict;
     }>;
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -66,7 +66,7 @@ export default class zebpay extends Exchange {
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -298,7 +298,7 @@ export default class zebpay extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -311,7 +311,7 @@ export default class zebpay extends Exchange {
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.
@@ -352,11 +352,11 @@ export default class zebpay extends Exchange {
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseMarginModification(info: any, market?: Market): MarginModification;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

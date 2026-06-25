@@ -625,7 +625,7 @@ public class CoinsphCore extends CoinsphApi
         {
             Object networkItem = Helpers.GetValue(networkList, j);
             Object network = this.safeString(networkItem, "network");
-            Object networkCode = this.networkIdToCode(network);
+            Object networkCode = this.networkIdToCode(network, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", networkItem );
     put( "id", network );

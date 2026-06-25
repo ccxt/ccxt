@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/digifinex.js';
 import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, DepositAddress, BorrowInterest, Position } from './base/types.js';
+import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -533,7 +533,7 @@ export default class digifinex extends Exchange {
         for (let j = 0; j < networkEntries.length; j++) {
             const networkEntry = networkEntries[j];
             const networkId = this.safeString2 (networkEntry, 'chain', 'currency');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -673,8 +673,8 @@ export default class digifinex extends Exchange {
             const swap = !spot;
             const margin = (marginMode !== undefined) ? true : undefined;
             let symbol = base + '/' + quote;
-            let isInverse = undefined;
-            let isLinear = undefined;
+            let isInverse: Bool = undefined;
+            let isLinear: Bool = undefined;
             if (swap) {
                 type = 'swap';
                 symbol = base + '/' + quote + ':' + settle;
@@ -869,7 +869,7 @@ export default class digifinex extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let response = undefined;
@@ -989,7 +989,7 @@ export default class digifinex extends Exchange {
         //         }
         //     }
         //
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         let orderBook = undefined;
         if (marketType === 'swap') {
             orderBook = this.safeValue (response, 'data', {});
@@ -1015,11 +1015,11 @@ export default class digifinex extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const first = this.safeString (symbols, 0);
-        let market = undefined;
+        let market: Market = undefined;
         if (first !== undefined) {
             market = this.market (first);
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request: Dict = {};
         let response = undefined;
@@ -1313,8 +1313,8 @@ export default class digifinex extends Exchange {
         }
         let timestamp = this.safeTimestamp2 (trade, 'date', 'timestamp');
         let side = this.safeString2 (trade, 'type', 'side');
-        let type = undefined;
-        let takerOrMaker = undefined;
+        let type: Str = undefined;
+        let takerOrMaker: Str = undefined;
         if (market['type'] === 'swap') {
             timestamp = this.safeInteger (trade, 'trade_time');
             const orderType = this.safeString (trade, 'order_type');
@@ -1357,7 +1357,7 @@ export default class digifinex extends Exchange {
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
-            let feeCurrencyCode = undefined;
+            let feeCurrencyCode: Str = undefined;
             if (feeCurrencyId !== undefined) {
                 feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             }
@@ -1510,7 +1510,7 @@ export default class digifinex extends Exchange {
         //         0.029927
         //     ]
         //
-        if (market['swap']) {
+        if (this.safeBool (market, 'swap')) {
             return [
                 this.safeInteger (ohlcv, 0),
                 this.safeNumber (ohlcv, 1), // open
@@ -1699,7 +1699,7 @@ export default class digifinex extends Exchange {
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
         const ordersRequests = [];
-        let symbol = undefined;
+        let symbol: Str = undefined;
         let marginMode = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1796,7 +1796,7 @@ export default class digifinex extends Exchange {
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrderRequest', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrderRequest', params);
@@ -1810,11 +1810,11 @@ export default class digifinex extends Exchange {
         const marketIdRequest = swap ? 'instrument_id' : 'symbol';
         request[marketIdRequest] = market['id'];
         let postOnly = this.isPostOnly (isMarketOrder, false, params);
-        let postOnlyParsed = undefined;
+        let postOnlyParsed: Int = undefined;
         if (swap) {
             const reduceOnly = this.safeBool (params, 'reduceOnly', false);
             const timeInForce = this.safeString (params, 'timeInForce');
-            let orderType = undefined;
+            let orderType: Int = undefined;
             if (side === 'buy') {
                 const requestType = (reduceOnly) ? 4 : 1;
                 request['type'] = requestType;
@@ -1851,7 +1851,7 @@ export default class digifinex extends Exchange {
             }
             request['type'] = side + suffix;
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
-            let quantity = undefined;
+            let quantity: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
             [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
             if (isMarketOrder && (side === 'buy')) {
@@ -1920,12 +1920,12 @@ export default class digifinex extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         id = id.toString ();
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const request: Dict = {
             'order_id': id,
@@ -1934,7 +1934,7 @@ export default class digifinex extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
             }
-            request['instrument_id'] = market['id'];
+            request['instrument_id'] = this.safeString (market, 'id');
         } else {
             request['market'] = marketType;
         }
@@ -1988,8 +1988,8 @@ export default class digifinex extends Exchange {
     }
 
     parseCancelOrders (response) {
-        const success = this.safeList (response, 'success');
-        const error = this.safeList (response, 'error');
+        const success = this.safeList (response, 'success', []);
+        const error = this.safeList (response, 'error', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
             const order = success[i];
@@ -2120,10 +2120,10 @@ export default class digifinex extends Exchange {
         //         "time_stamp": 1668134664828
         //     }
         //
-        let timestamp = undefined;
-        let lastTradeTimestamp = undefined;
-        let timeInForce = undefined;
-        let type = undefined;
+        let timestamp: Int = undefined;
+        let lastTradeTimestamp: Int = undefined;
+        let timeInForce: Str = undefined;
+        let type: Str = undefined;
         let side = this.safeString (order, 'type');
         const marketId = this.safeString2 (order, 'symbol', 'instrument_id');
         const symbol = this.safeSymbol (marketId, market);
@@ -2210,11 +2210,11 @@ export default class digifinex extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         const request: Dict = {};
@@ -2313,11 +2313,11 @@ export default class digifinex extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', params);
         const request: Dict = {};
@@ -2417,11 +2417,11 @@ export default class digifinex extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
         const request: Dict = {
@@ -2515,12 +2515,12 @@ export default class digifinex extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (marketType === 'swap') {
@@ -2535,7 +2535,7 @@ export default class digifinex extends Exchange {
         }
         const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
         if (symbol !== undefined) {
-            request[marketIdRequest] = market['id'];
+            request[marketIdRequest] = this.safeString (market, 'id');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2671,7 +2671,7 @@ export default class digifinex extends Exchange {
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchLedger', params);
         if (marketType === 'swap') {
@@ -2685,7 +2685,7 @@ export default class digifinex extends Exchange {
             }
         }
         const currencyIdRequest = (marketType === 'swap') ? 'currency' : 'currency_mark';
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request[currencyIdRequest] = currency['id'];
@@ -2808,7 +2808,7 @@ export default class digifinex extends Exchange {
 
     async fetchTransactionsByType (type, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {
             // 'currency': currency['id'],
             // 'from': 'fromId', // When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
@@ -2928,7 +2928,7 @@ export default class digifinex extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const amount = this.safeNumber (transaction, 'amount');
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
@@ -2993,8 +2993,8 @@ export default class digifinex extends Exchange {
         //         "timestamp": 1666505659000
         //     }
         //
-        let fromAccount = undefined;
-        let toAccount = undefined;
+        let fromAccount: Str = undefined;
+        let toAccount: Str = undefined;
         const data = this.safeDict (transfer, 'data', transfer);
         const type = this.safeInteger (data, 'type');
         if (type === 1) {
@@ -3114,7 +3114,7 @@ export default class digifinex extends Exchange {
     async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -3523,10 +3523,10 @@ export default class digifinex extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
-        let market = undefined;
-        let marketType = undefined;
+        let market: Market = undefined;
+        let marketType: Str = undefined;
         if (symbols !== undefined) {
-            let symbol = undefined;
+            let symbol: Str = undefined;
             if (Array.isArray (symbols)) {
                 const symbolsLength = symbols.length;
                 if (symbolsLength > 1) {
@@ -3631,7 +3631,7 @@ export default class digifinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {};
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchPosition', params);
         if (marginMode !== undefined) {
@@ -4038,7 +4038,7 @@ export default class digifinex extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
@@ -4048,7 +4048,7 @@ export default class digifinex extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {
@@ -4159,7 +4159,7 @@ export default class digifinex extends Exchange {
                     'percentage': undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkCode = this.networkIdToCode (networkId);
+                    const networkCode = this.networkIdToCode (networkId, code);
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
@@ -4261,7 +4261,7 @@ export default class digifinex extends Exchange {
             'marginMode': 'isolated',
             'amount': this.safeNumber (data, 'amount'),
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString (market, 'settle'),
             'status': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -4284,7 +4284,7 @@ export default class digifinex extends Exchange {
         await this.loadMarkets ();
         let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('end_timestamp', request, params);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_id'] = market['id'];
@@ -4363,7 +4363,7 @@ export default class digifinex extends Exchange {
         return await this.privateSwapPostAccountPositionMode (this.extend (request, params));
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = (endpoint === 'spot') ? '/v3' : '/swap/v2';
@@ -4371,15 +4371,15 @@ export default class digifinex extends Exchange {
         const payload = pathPart + request;
         let url = this.urls['api']['rest'] + payload;
         const query = this.omit (params, this.extractParams (path));
-        let urlencoded = undefined;
+        let urlencoded: Str = undefined;
         if (signed && (pathPart === '/swap/v2') && (method === 'POST')) {
             urlencoded = JSON.stringify (params);
         } else {
             urlencoded = this.urlencode (this.keysort (query));
         }
         if (signed) {
-            let auth = undefined;
-            let nonce = undefined;
+            let auth: Str = undefined;
+            let nonce: Str = undefined;
             if (pathPart === '/swap/v2') {
                 nonce = this.milliseconds ().toString ();
                 auth = nonce + method + payload;

@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbaseexchange$1 = require('./abstract/coinbaseexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -59,7 +59,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -172,7 +172,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
-                        'products/spark-lines',
+                        'products/spark-lines', // experimental,
                         'products/volume-summary',
                     ],
                 },
@@ -235,6 +235,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         'funding/repay',
                         'orders',
                         'position/close',
+                        'profiles',
                         'profiles/margin-transfer',
                         'profiles/transfer',
                         'reports',
@@ -251,6 +252,10 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         'orders/client:{client_oid}',
                         'orders/{id}',
                     ],
+                    'put': [
+                        'profiles/{id}/deactivate',
+                        'profiles/{id}',
+                    ],
                 },
             },
             'commonCurrencies': {
@@ -259,9 +264,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'fees': {
                 'trading': {
-                    'tierBased': true,
+                    'tierBased': true, // complicated tier system per coin
                     'percentage': true,
-                    'maker': this.parseNumber('0.004'),
+                    'maker': this.parseNumber('0.004'), // highest fee of all tiers
                     'taker': this.parseNumber('0.006'), // highest fee of all tiers
                 },
                 'funding': {
@@ -293,8 +298,8 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -525,7 +530,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         for (let j = 0; j < supportedNetworks.length; j++) {
             const network = supportedNetworks[j];
             const networkId = this.safeString(network, 'id');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'name': this.safeString(network, 'name'),
@@ -1671,10 +1676,10 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
     }
     parseLedgerEntryType(type) {
         const types = {
-            'transfer': 'transfer',
-            'match': 'trade',
-            'fee': 'fee',
-            'rebate': 'rebate',
+            'transfer': 'transfer', // Funds moved between portfolios
+            'match': 'trade', // Funds moved as a result of a trade
+            'fee': 'fee', // Fee as a result of a trade
+            'rebate': 'rebate', // Fee rebate
             'conversion': 'trade', // Funds converted between fiat currency and a stablecoin
         };
         return this.safeString(types, type, type);
@@ -1840,7 +1845,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (id === undefined) {
             response = await this.privateGetTransfers(this.extend(request, params));
             //
@@ -2022,7 +2027,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             'txid': this.safeString(details, 'crypto_transaction_hash'),
             'type': type,
             'currency': code,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'amount': amount,
             'status': this.parseTransactionStatus(transaction),
             'timestamp': timestamp,
@@ -2104,7 +2109,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             catch (e) {
                 throw new errors.AuthenticationError(this.id + ' sign() invalid base64 secret');
             }
-            const signature = this.hmac(this.encode(what), secret, sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(what), secret, sha2_js.sha256, 'base64');
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': signature,

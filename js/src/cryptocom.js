@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/cryptocom.js';
 import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder, RequestTimeout, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 /**
  * @class cryptocom
  * @augments Exchange
@@ -21,7 +21,7 @@ export default class cryptocom extends Exchange {
             'name': 'Crypto.com',
             'countries': ['MT'],
             'version': 'v2',
-            'rateLimit': 10,
+            'rateLimit': 10, // 100 requests per second
             'certified': true,
             'pro': true,
             'has': {
@@ -190,7 +190,7 @@ export default class cryptocom extends Exchange {
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
-                            'private/amend-order': 4 / 3,
+                            'private/amend-order': 4 / 3, // no description of rate limit
                             'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-order-list': 10 / 3,
@@ -398,7 +398,7 @@ export default class cryptocom extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'trailing': false,
                         'iceberg': false,
                         'leverage': false,
@@ -481,13 +481,13 @@ export default class cryptocom extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '213': InvalidOrder,
+                    '213': InvalidOrder, // { "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" }
                     '219': InvalidOrder,
-                    '306': InsufficientFunds,
-                    '314': InvalidOrder,
-                    '315': InvalidOrder,
-                    '325': InvalidOrder,
-                    '415': InvalidOrder,
+                    '306': InsufficientFunds, // { "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : { "client_oid" : "1753xxx", "order_id" : "6530xxx" } }
+                    '314': InvalidOrder, // { "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : { "client_oid" : "1700xxx", "order_id" : "6530xxx" } }
+                    '315': InvalidOrder, // { "id" : 1769xxx, "method" : "private/create-order", "code" : 315, "message" : "FAR_AWAY_LIMIT_PRICE", "result" : { "client_oid" : "1769xxx", "order_id" : "6530xxx" } }
+                    '325': InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
+                    '415': InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,
@@ -499,7 +499,7 @@ export default class cryptocom extends Exchange {
                     '10009': BadRequest,
                     '20001': BadRequest,
                     '20002': InsufficientFunds,
-                    '20005': AccountNotEnabled,
+                    '20005': AccountNotEnabled, // {"id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND"}
                     '30003': BadSymbol,
                     '30004': BadRequest,
                     '30005': BadRequest,
@@ -523,17 +523,17 @@ export default class cryptocom extends Exchange {
                     '40006': BadRequest,
                     '40007': BadRequest,
                     '40101': AuthenticationError,
-                    '40102': InvalidNonce,
-                    '40103': AuthenticationError,
-                    '40104': AuthenticationError,
-                    '40107': BadRequest,
+                    '40102': InvalidNonce, // Nonce value differs by more than 60 seconds from server
+                    '40103': AuthenticationError, // IP address not whitelisted
+                    '40104': AuthenticationError, // Disallowed based on user tier
+                    '40107': BadRequest, // Session subscription limit has been exceeded
                     '40401': OrderNotFound,
                     '40801': RequestTimeout,
                     '42901': RateLimitExceeded,
-                    '43005': InvalidOrder,
-                    '43003': InvalidOrder,
-                    '43004': InvalidOrder,
-                    '43012': BadRequest,
+                    '43005': InvalidOrder, // Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43003': InvalidOrder, // FOK order has not been filled and cancelled
+                    '43004': InvalidOrder, // IOC order has not been filled and cancelled
+                    '43012': BadRequest, // Canceled due to Self Trade Prevention
                     '50001': ExchangeError,
                     '9010001': OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
@@ -566,7 +566,7 @@ export default class cryptocom extends Exchange {
         }
         catch (e) {
             const erString = this.exceptionMessage(e);
-            if (erString.indexOf('"msg":"SYS_ERROR"') >= 0) {
+            if (erString.indexOf('SYS_ERROR') >= 0) {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
                 return {};
@@ -664,7 +664,7 @@ export default class cryptocom extends Exchange {
                     'max': undefined,
                 },
             },
-            'type': 'crypto',
+            'type': 'crypto', // only crypto now
             'networks': networks,
         });
     }
@@ -1500,7 +1500,7 @@ export default class cryptocom extends Exchange {
         }
         const contigency = this.safeString(params, 'contingency_type', 'LIST');
         const request = {
-            'contingency_type': contigency,
+            'contingency_type': contigency, // or OCO
             'order_list': ordersRequests,
         };
         const response = await this.v1PrivatePostPrivateCreateOrderList(this.extend(request, params));
@@ -2020,7 +2020,7 @@ export default class cryptocom extends Exchange {
         }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }

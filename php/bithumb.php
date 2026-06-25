@@ -343,7 +343,7 @@ class bithumb extends Exchange {
             $quote = $quotes[$i];
             $quoteId = $quote;
             $response = $results[$i];
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             $extension = $this->safe_dict($quoteCurrencies, $quote, array());
             $currencyIds = is_array($data) ? array_keys($data) : array();
             for ($j = 0; $j < count($currencyIds); $j++) {
@@ -1129,7 +1129,7 @@ class bithumb extends Exchange {
         $request = array(
             'side' => $order['side'],
         );
-        return $this->cancel_order($order['id'], $order['symbol'], $this->extend($request, $params));
+        return $this->cancel_order(($order['id']), $order['symbol'], $this->extend($request, $params));
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
@@ -1216,7 +1216,7 @@ class bithumb extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$api]) . $endpoint;
         $query = $this->omit($params, $this->extract_params($path));

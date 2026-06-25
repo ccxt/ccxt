@@ -881,7 +881,7 @@ public partial class bingx : Exchange
         {
             object rawNetwork = getValue(networkList, j);
             object network = this.safeString(rawNetwork, "network");
-            object networkCode = this.networkIdToCode(network);
+            object networkCode = this.networkIdToCode(network, code);
             object limits = new Dictionary<string, object>() {
                 { "withdraw", new Dictionary<string, object>() {
                     { "min", this.safeNumber(rawNetwork, "withdrawMin") },
@@ -1021,7 +1021,7 @@ public partial class bingx : Exchange
 
     public override object parseMarket(object market)
     {
-        object id = this.safeString(market, "symbol");
+        object id = ((string)this.safeString(market, "symbol"));
         object symbolParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object baseId = getValue(symbolParts, 0);
         object quoteId = getValue(symbolParts, 1);
@@ -2867,7 +2867,7 @@ public partial class bingx : Exchange
         //         "totalFunding": "-2.921461693902908"
         //     }
         //
-        object marketId = this.safeString(position, "symbol", "");
+        object marketId = ((string)this.safeString(position, "symbol", ""));
         marketId = ((string)marketId).Replace((string)"/", (string)"-"); // standard return different format
         object isolated = this.safeBool(position, "isolated");
         object marginMode = null;
@@ -2983,7 +2983,7 @@ public partial class bingx : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "type", type },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
         };
         object isMarketOrder = isEqual(type, "MARKET");
         object isSpot = isEqual(marketType, "spot");
@@ -3864,7 +3864,7 @@ public partial class bingx : Exchange
             }
             takeProfitPrice = this.omitZero(this.safeString(takeProfit, "stopPrice"));
         }
-        object rawType = this.safeStringLower2(order, "type", "o");
+        object rawType = ((string)this.safeStringLower2(order, "type", "o"));
         object stopPrice = this.omitZero(this.safeString2(order, "StopPrice", "stopPrice"));
         object triggerPrice = stopPrice;
         if (isTrue(!isEqual(stopPrice, null)))
@@ -4937,7 +4937,7 @@ public partial class bingx : Exchange
         object statuses = new Dictionary<string, object>() {
             { "CONFIRMED", "ok" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     /**
@@ -5232,7 +5232,7 @@ public partial class bingx : Exchange
             { "txid", this.safeString(transaction, "txId") },
             { "type", type },
             { "currency", code },
-            { "network", this.networkIdToCode(network) },
+            { "network", this.networkIdToCode(network, code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
             { "timestamp", timestamp },
@@ -5397,7 +5397,7 @@ public partial class bingx : Exchange
         object type = this.safeString(data, "type");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", this.safeString(market, "symbol") },
+            { "symbol", ((string)this.safeString(market, "symbol")) },
             { "type", ((bool) isTrue((isEqual(type, "1")))) ? "add" : "reduce" },
             { "marginMode", "isolated" },
             { "amount", this.safeNumber(data, "amount") },
@@ -5719,7 +5719,7 @@ public partial class bingx : Exchange
         object network = this.safeStringUpper(parameters, "network");
         if (isTrue(!isEqual(network, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(network);
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(network, getValue(currency, "code"));
         }
         if (isTrue(!isEqual(tag, null)))
         {
@@ -6382,7 +6382,7 @@ public partial class bingx : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             object tier = this.safeDict(info, i);
-            object tierString = this.safeString(tier, "tier");
+            object tierString = ((string)this.safeString(tier, "tier"));
             object tierParts = ((string)tierString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             object marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market, null, "swap");

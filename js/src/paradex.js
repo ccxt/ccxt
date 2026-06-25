@@ -5,13 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class paradex
@@ -340,14 +340,14 @@ export default class paradex extends Exchange {
                     'BATCH_SIZE_OUT_OF_RANGE': OperationRejected,
                     'ISOLATED_MARKET_ACCOUNT_MISMATCH': OperationRejected,
                     'POINTS_SUMMARY_NOT_FOUND': OperationRejected,
-                    '-32700': BadRequest,
-                    '-32600': BadRequest,
-                    '-32601': BadRequest,
-                    '-32602': BadRequest,
-                    '-32603': ExchangeError,
-                    '100': BadRequest,
-                    '40110': AuthenticationError,
-                    '40111': AuthenticationError,
+                    '-32700': BadRequest, // Parse error
+                    '-32600': BadRequest, // Invalid request
+                    '-32601': BadRequest, // Method not found
+                    '-32602': BadRequest, // Invalid parameterss
+                    '-32603': ExchangeError, // Internal error
+                    '100': BadRequest, // Method error
+                    '40110': AuthenticationError, // Malformed Bearer Token
+                    '40111': AuthenticationError, // Invalid Bearer Token
                     '40112': PermissionDenied, // Geo IP blocked
                 },
                 'broad': {
@@ -357,7 +357,7 @@ export default class paradex extends Exchange {
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {},
             'options': {
-                'paradexAccount': undefined,
+                'paradexAccount': undefined, // add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard (optional)", "address": "copy Paradex Address from UI"}
                 'broker': 'CCXT',
             },
             'features': {
@@ -367,10 +367,10 @@ export default class paradex extends Exchange {
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,
-                        'triggerDirection': true,
+                        'triggerDirection': true, // todo
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -383,7 +383,7 @@ export default class paradex extends Exchange {
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -391,9 +391,9 @@ export default class paradex extends Exchange {
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'limit': 100, // todo
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -404,7 +404,7 @@ export default class paradex extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -412,13 +412,13 @@ export default class paradex extends Exchange {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': {
                         'limit': undefined, // todo by from/to
                     },
@@ -1532,7 +1532,7 @@ export default class paradex extends Exchange {
         const request = {
             'market': market['id'],
             'side': orderSide,
-            'type': orderType,
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
             'instruction': 'GTC',
         };
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
@@ -1858,7 +1858,7 @@ export default class paradex extends Exchange {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        let response = undefined;
+        let response;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateDeleteOrdersByClientIdClientId(this.extend(request, params));
@@ -1995,7 +1995,7 @@ export default class paradex extends Exchange {
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        let response = undefined;
+        let response;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateGetOrdersByClientIdClientId(this.extend(request, params));
@@ -2768,7 +2768,7 @@ export default class paradex extends Exchange {
         const marginMode = this.safeStringLower(rawMarginMode, 'margin_type');
         return {
             'info': rawMarginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
         };
     }

@@ -5,14 +5,17 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class hitbtc extends hitbtcRest {
     describe() {
-        return this.deepExtend(super.describe(), {
+        return this.deepExtend(super.describe(), this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'watchTicker': true,
@@ -74,7 +77,7 @@ export default class hitbtc extends hitbtcRest {
             'streaming': {
                 'keepAlive': 4000,
             },
-        });
+        };
     }
     /**
      * @ignore

@@ -7,7 +7,7 @@ import type {
   PromiseWithResolvers,
   ProxyPromise,
   SubscribedPromise,
-} from "./types";
+} from "./types.js";
 
 /** Memory safe (weakmapped) cache of the ProxyPromise for each Promise,
  * which is retained for the lifetime of the original Promise.

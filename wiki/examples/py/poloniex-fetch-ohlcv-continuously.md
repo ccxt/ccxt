@@ -1,8 +1,5 @@
-- [Poloniex Fetch Ohlcv Continuously](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -68,5 +65,5 @@ coroutine = fetch_all_ohlcvs_continuously(exchange_id, timeframe, symbols, fetch
 results = asyncio.run(coroutine)
 pprint(results)
 # results  # if you run this code in Jupyter then uncomment thisline to see the output result
- 
+
 ```

@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/weex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class weex
@@ -20,8 +20,8 @@ export default class weex extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'weex',
             'name': 'Weex',
-            'countries': ['SG'],
-            'rateLimit': 20,
+            'countries': ['SG'], // Singapore
+            'rateLimit': 20, // 10 requests per second for public endpoints, 500 requests per 10 seconds for private endpoints
             'version': 'v3',
             'certified': false,
             'pro': true,
@@ -78,7 +78,7 @@ export default class weex extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchCanceledAndClosedOrders': true,
+                'fetchCanceledAndClosedOrders': true, // contracts only
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
@@ -140,10 +140,10 @@ export default class weex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true,
+                'fetchOrders': true, // spot only
                 'fetchOrdersByStatus': false,
                 'fetchOrderTrades': true,
-                'fetchOrderWithClientOrderId': true,
+                'fetchOrderWithClientOrderId': true, // spot only
                 'fetchPosition': true,
                 'fetchPositionADLRank': false,
                 'fetchPositionHistory': false,
@@ -189,7 +189,7 @@ export default class weex extends Exchange {
                 'withdraw': false,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936',
+                'logo': 'https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936', // todo
                 'api': {
                     'public': 'https://api-spot.weex.com',
                     'private': 'https://api-spot.weex.com',
@@ -206,102 +206,102 @@ export default class weex extends Exchange {
                 'public': {
                     // multiply public endpoints weight by 5
                     'get': {
-                        'api/v3/time': 5,
-                        'api/v3/coins': 25,
-                        'api/v3/exchangeInfo': 100,
-                        'api/v3/ping': 5,
-                        'api/v3/apiTradingSymbols': 25,
-                        'api/v3/market/ticker/price': 20,
-                        'api/v3/market/ticker/24hr': 10,
-                        'api/v3/market/trades': 125,
-                        'api/v3/market/klines': 10,
-                        'api/v3/market/depth': 25,
+                        'api/v3/time': 5, // done
+                        'api/v3/coins': 25, // done
+                        'api/v3/exchangeInfo': 100, // done
+                        'api/v3/ping': 5, // done
+                        'api/v3/apiTradingSymbols': 25, // not unified
+                        'api/v3/market/ticker/price': 20, // not unified
+                        'api/v3/market/ticker/24hr': 10, // done
+                        'api/v3/market/trades': 125, // done
+                        'api/v3/market/klines': 10, // done
+                        'api/v3/market/depth': 25, // done
                         'api/v3/market/ticker/bookTicker': 20, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v3/account/': 5,
-                        'api/v3/account/transferRecords': 3,
-                        'api/v3/order': 2,
-                        'api/v3/openOrders': 3,
-                        'api/v3/allOrders': 10,
-                        'api/v3/myTrades': 5,
-                        'api/v3/rebate/affiliate/getAffiliateUIDs': 20,
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': 20,
-                        'api/v3/rebate/affiliate/getAffiliateCommission': 20,
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': 100,
-                        'api/v3/rebate/affiliate/querySubChannelTransactions': 10,
-                        'api/v3/agency/verifyReferrals': 20,
-                        'api/v3/agency/getAssert': 20,
+                        'api/v3/account/': 5, // done
+                        'api/v3/account/transferRecords': 3, // done
+                        'api/v3/order': 2, // done
+                        'api/v3/openOrders': 3, // done
+                        'api/v3/allOrders': 10, // done
+                        'api/v3/myTrades': 5, // done
+                        'api/v3/rebate/affiliate/getAffiliateUIDs': 20, // not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': 20, // not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission': 20, // not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': 100, // not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions': 10, // not unified
+                        'api/v3/agency/verifyReferrals': 20, // not unified
+                        'api/v3/agency/getAssert': 20, // not unified
                         'api/v3/agency/getDealData': 20, // not unified
                     },
                     'post': {
-                        'api/v3/account/bills': 5,
-                        'api/v3/account/fundingBills': 5,
-                        'api/v3/order': 5,
-                        'api/v3/order/batch': 50,
+                        'api/v3/account/bills': 5, // done
+                        'api/v3/account/fundingBills': 5, // done
+                        'api/v3/order': 5, // done
+                        'api/v3/order/batch': 50, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
                         'api/v3/rebate/affiliate/internalWithdrawal': 100, // not unified
                     },
                     'delete': {
-                        'api/v3/order': 1,
-                        'api/v3/openOrders': 1,
+                        'api/v3/order': 1, // done
+                        'api/v3/openOrders': 1, // done
                         'api/v3/order/batch': 10, // done
                     },
                 },
                 'contract': {
                     // multiply public endpoints weight by 5
                     'get': {
-                        'capi/v3/market/time': 5,
-                        'capi/v3/market/exchangeInfo': 5,
-                        'capi/v3/market/depth': 5,
-                        'capi/v3/market/ticker/24hr': 200,
-                        'capi/v3/market/ticker/bookTicker': 5,
-                        'capi/v3/market/trades': 25,
-                        'capi/v3/market/klines': 5,
-                        'capi/v3/market/indexPriceKlines': 5,
-                        'capi/v3/market/markPriceKlines': 5,
-                        'capi/v3/market/historyKlines': 25,
-                        'capi/v3/market/symbolPrice': 5,
-                        'capi/v3/market/openInterest': 10,
-                        'capi/v3/market/premiumIndex': 5,
-                        'capi/v3/market/fundingRate': 25,
+                        'capi/v3/market/time': 5, // done
+                        'capi/v3/market/exchangeInfo': 5, // done
+                        'capi/v3/market/depth': 5, // done
+                        'capi/v3/market/ticker/24hr': 200, // done
+                        'capi/v3/market/ticker/bookTicker': 5, // done
+                        'capi/v3/market/trades': 25, // done
+                        'capi/v3/market/klines': 5, // done
+                        'capi/v3/market/indexPriceKlines': 5, // done
+                        'capi/v3/market/markPriceKlines': 5, // done
+                        'capi/v3/market/historyKlines': 25, // done
+                        'capi/v3/market/symbolPrice': 5, // not unified
+                        'capi/v3/market/openInterest': 10, // done
+                        'capi/v3/market/premiumIndex': 5, // done
+                        'capi/v3/market/fundingRate': 25, // done
                         'capi/v3/market/apiTradingSymbols': 25, // not unified
                     },
                 },
                 'contractPrivate': {
                     'get': {
-                        'capi/v3/account/balance': 10,
-                        'capi/v3/account/commissionRate': 10,
-                        'capi/v3/account/accountConfig': 10,
-                        'capi/v3/account/symbolConfig': 10,
-                        'capi/v3/account/position/allPosition': 15,
-                        'capi/v3/account/position/singlePosition': 3,
-                        'capi/v3/order': 3,
-                        'capi/v3/openOrders': 5,
-                        'capi/v3/order/history': 10,
-                        'capi/v3/userTrades': 5,
-                        'capi/v3/openAlgoOrders': 3,
+                        'capi/v3/account/balance': 10, // done
+                        'capi/v3/account/commissionRate': 10, // done
+                        'capi/v3/account/accountConfig': 10, // not unified
+                        'capi/v3/account/symbolConfig': 10, // done
+                        'capi/v3/account/position/allPosition': 15, // done
+                        'capi/v3/account/position/singlePosition': 3, // done
+                        'capi/v3/order': 3, // done
+                        'capi/v3/openOrders': 5, // done
+                        'capi/v3/order/history': 10, // done
+                        'capi/v3/userTrades': 5, // done
+                        'capi/v3/openAlgoOrders': 3, // done
                         'capi/v3/allAlgoOrders': 10, // not unified - capi/v3/order/history returns both regular and algo orders
                     },
                     'post': {
-                        'capi/v3/account/income': 5,
-                        'capi/v3/account/marginType': 50,
-                        'capi/v3/account/leverage': 20,
-                        'capi/v3/account/positionMargin': 30,
-                        'capi/v3/account/modifyAutoAppendMargin': 30,
-                        'capi/v3/order': 5,
-                        'capi/v3/batchOrders': 10,
-                        'capi/v3/closePositions': 50,
-                        'capi/v3/algoOrder': 5,
-                        'capi/v3/placeTpSlOrder': 5,
+                        'capi/v3/account/income': 5, // done
+                        'capi/v3/account/marginType': 50, // done
+                        'capi/v3/account/leverage': 20, // done
+                        'capi/v3/account/positionMargin': 30, // done
+                        'capi/v3/account/modifyAutoAppendMargin': 30, // not unified
+                        'capi/v3/order': 5, // done
+                        'capi/v3/batchOrders': 10, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'capi/v3/closePositions': 50, // done
+                        'capi/v3/algoOrder': 5, // done
+                        'capi/v3/placeTpSlOrder': 5, // not unified
                         'capi/v3/modifyTpSlOrder': 5, // not unified
                     },
                     'delete': {
-                        'capi/v3/order': 3,
-                        'capi/v3/batchOrders': 10,
-                        'capi/v3/allOpenOrders': 10,
-                        'capi/v3/algoOrder': 3,
+                        'capi/v3/order': 3, // done
+                        'capi/v3/batchOrders': 10, // done
+                        'capi/v3/allOpenOrders': 10, // done
+                        'capi/v3/algoOrder': 3, // done
                         'capi/v3/algoOpenOrders': 10, // done
                     },
                 },
@@ -329,53 +329,53 @@ export default class weex extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '-1000': ExchangeError,
-                    '-1054': ExchangeError,
-                    '-1040': AuthenticationError,
-                    '-1041': AuthenticationError,
-                    '-1042': AuthenticationError,
-                    '-1043': AuthenticationError,
-                    '-1044': AuthenticationError,
-                    '-1045': BadRequest,
-                    '-1046': BadRequest,
-                    '-1047': AuthenticationError,
-                    '-1049': AuthenticationError,
-                    '-1050': PermissionDenied,
-                    '-1051': PermissionDenied,
-                    '-1052': PermissionDenied,
-                    '-1053': PermissionDenied,
-                    '-1055': PermissionDenied,
-                    '-1056': PermissionDenied,
-                    '-1057': PermissionDenied,
-                    '-1058': PermissionDenied,
-                    '-1115': InvalidOrder,
-                    '-1116': InvalidOrder,
-                    '-1117': InvalidOrder,
-                    '-1121': BadSymbol,
-                    '-1128': BadRequest,
-                    '-1135': BadRequest,
-                    '-1140': BadRequest,
-                    '-1141': ArgumentsRequired,
-                    '-1142': BadRequest,
-                    '-1150': BadRequest,
-                    '-1160': BadRequest,
-                    '-1170': BadRequest,
-                    '-1171': BadRequest,
-                    '-1180': InvalidOrder,
-                    '-1190': PermissionDenied,
-                    '-2007': BadSymbol,
-                    '-2200': OrderNotFound,
-                    '-3006': InvalidOrder,
-                    '-3007': InvalidOrder,
-                    '-3200': InvalidOrder,
-                    '-3235': PermissionDenied,
-                    '-3236': PermissionDenied,
-                    '-3313': InvalidOrder,
-                    '-3613': ExchangeError,
+                    '-1000': ExchangeError, // UNKNOWN_ERROR An unknown error occurred.
+                    '-1054': ExchangeError, // SYSTEM_ERROR System error, please retry later.
+                    '-1040': AuthenticationError, // ACCESS_KEY_EMPTY ACCESS_KEY header is required.
+                    '-1041': AuthenticationError, // ACCESS_SIGN_EMPTY ACCESS_SIGN header is required.
+                    '-1042': AuthenticationError, // ACCESS_TIMESTAMP_EMPTY ACCESS_TIMESTAMP header is required.
+                    '-1043': AuthenticationError, // INVALID_ACCESS_TIMESTAMP Invalid ACCESS_TIMESTAMP.
+                    '-1044': AuthenticationError, // INVALID_ACCESS_KEY Invalid ACCESS_KEY.
+                    '-1045': BadRequest, // INVALID_CONTENT_TYPE Invalid Content-Type, please use application/json.
+                    '-1046': BadRequest, // ACCESS_TIMESTAMP_EXPIRED Request timestamp expired.
+                    '-1047': AuthenticationError, // API_AUTH_ERROR API authentication failed.
+                    '-1049': AuthenticationError, // API_KEY_OR_PASSPHRASE_INCORRECT API key or passphrase incorrect.
+                    '-1050': PermissionDenied, // USER_STATUS_FORBIDDEN User status is abnormal.
+                    '-1051': PermissionDenied, // PERMISSION_DENIED Permission denied.
+                    '-1052': PermissionDenied, // INSUFFICIENT_PERMISSIONS Insufficient permissions for this action.
+                    '-1053': PermissionDenied, // PERMISSION_VALIDATION_FAILED Permission validation failed.
+                    '-1055': PermissionDenied, // USER_AUTH_NOT_SAFE User must bind phone or Google authenticator.
+                    '-1056': PermissionDenied, // ILLEGAL_IP Invalid IP address.
+                    '-1057': PermissionDenied, // USER_LOCKED User account is locked.
+                    '-1058': PermissionDenied, // NO_PERMISSION_TRADE_PAIR No permission for this trading pair.
+                    '-1115': InvalidOrder, // INVALID_TIME_IN_FORCE Invalid timeInForce.
+                    '-1116': InvalidOrder, // INVALID_ORDER_TYPE Invalid order type.
+                    '-1117': InvalidOrder, // INVALID_SIDE Invalid side.
+                    '-1121': BadSymbol, // INVALID_SYMBOL Invalid symbol.
+                    '-1128': BadRequest, // INVALID_PARAM_COMBINATION Combination of optional parameters invalid.
+                    '-1135': BadRequest, // INVALID_JSON Invalid JSON request.
+                    '-1140': BadRequest, // PARAM_VALIDATE_ERROR Parameter validation failed. limit must be between  and .
+                    '-1141': ArgumentsRequired, // PARAM_EMPTY Parameter cannot be empty.
+                    '-1142': BadRequest, // PARAM_ERROR Parameter is invalid.
+                    '-1150': BadRequest, // REQUEST_METHOD_NOT_SUPPORTED Request method not supported.
+                    '-1160': BadRequest, // DECIMAL_PRECISION_ERROR Decimal precision error.
+                    '-1170': BadRequest, // QUERY_TIME_OUT_OF_RANGE startTime must be within the last days. Time range cannot exceed days.
+                    '-1171': BadRequest, // START_TIME_AFTER_END_TIME startTime cannot be greater than endTime.
+                    '-1180': InvalidOrder, // CLIENT_OID_LENGTH_ERROR client_oid length must not exceed 40 and must not contain special characters.
+                    '-1190': PermissionDenied, // FORBIDDEN_ACCESS Access forbidden. Please contact support.
+                    '-2007': BadSymbol, // SPOT_SYMBOL_NOT_EXIST Symbol does not exist.
+                    '-2200': OrderNotFound, // SPOT_ORDER_NOT_EXIST Order does not exist.
+                    '-3006': InvalidOrder, // CONTRACT_DOES_NOT_SUPPORT_CONTRACT_UNITS Contract does not support ordering by contract units.
+                    '-3007': InvalidOrder, // CONTRACT_MAX_ORDER_QUANTITY_EXCEEDED Maximum contract order quantity exceeded.
+                    '-3200': InvalidOrder, // CONTRACT_ORDER_NOT_EXIST Order does not exist.
+                    '-3235': PermissionDenied, // CONTRACT_NO_PERMISSION_TRADE_PAIR No permission for this trading pair.
+                    '-3236': PermissionDenied, // CONTRACT_NO_PERMISSION_API No permission to access this API.
+                    '-3313': InvalidOrder, // CONTRACT_LEVERAGE_ERROR Leverage exceeds maximum limit.
+                    '-3613': ExchangeError, // CONTRACT_FATAL_TOKEN_NOT_SUPPORT Fatal: token ID not supported for symbol.
                     'FAILED_ORDER_NOT_FOUND': OrderNotFound, // {"orderId":121231,"status":"FAILED","errorMsg":"FAILED_ORDER_NOT_FOUND"}
                 },
                 'broad': {
-                    'amount not enough': InsufficientFunds,
+                    'amount not enough': InsufficientFunds, // {"code":-1054,"msg":"FAILED_PRECONDITION: Move margin available amount not enough. Move out available amount is 6.98296375, move out amount is 200.00000000"}
                     'INVALID_ARGUMENT': BadRequest, // {"result":false,"id":1,"msg":"INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"}
                 },
             },
@@ -479,8 +479,8 @@ export default class weex extends Exchange {
             },
             'options': {
                 'partner': 'b-WEEX111125',
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'accountsByType': {
                     'spot': 'spot',
                     'trading': 'spot',
@@ -862,7 +862,7 @@ export default class weex extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = this.safeDict(chains, j);
             const networkId = this.safeString(chain, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'info': chain,
                 'id': networkId,
@@ -1114,7 +1114,7 @@ export default class weex extends Exchange {
         }
         const request = {};
         if (symbolsLength === 1) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         let response = undefined;
         if (marketType === 'spot') {
@@ -1553,8 +1553,12 @@ export default class weex extends Exchange {
         const timestamp = this.safeInteger(trade, 'time');
         const isBuyer = this.safeBool(trade, 'isBuyer');
         let side = this.safeStringLower(trade, 'side');
+        const isBuyerMaker = this.safeBool(trade, 'isBuyerMaker');
         if (isBuyer !== undefined) {
             side = isBuyer ? 'buy' : 'sell';
+        }
+        else if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
         }
         let isSpot = true;
         if (market === undefined) {
@@ -1589,6 +1593,9 @@ export default class weex extends Exchange {
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        else if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade({
             'info': trade,
@@ -1664,7 +1671,7 @@ export default class weex extends Exchange {
         const request = {};
         if (symbolsLength === 1) {
             const market = this.getMarketFromSymbols(symbols);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         const response = await this.contractGetCapiV3MarketPremiumIndex(this.extend(request, params));
         //
@@ -2416,7 +2423,7 @@ export default class weex extends Exchange {
         }
         let request = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         let response = undefined;
         if (isSpot) {
@@ -2681,7 +2688,7 @@ export default class weex extends Exchange {
         }
         let request = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2966,7 +2973,7 @@ export default class weex extends Exchange {
         }
         let request = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -3727,12 +3734,12 @@ export default class weex extends Exchange {
         const timestamp = this.safeInteger(data, 'requestTime');
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString(market, 'settle'),
             'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

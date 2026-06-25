@@ -23,19 +23,19 @@ func TestAfterConstruct(exchange ccxt.ICoreExchange, skippedProperties any) <-ch
 func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 	if !IsTrue((InOp(skippedProperties, "networks"))) {
 		// only allow these whitelisted unified networkCodes to be repeated
-		var allowedUnifiedAliases any = []any{"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "POLYGON", "MATIC"}
+		var allowedUnifiedAliases any = []any{"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SPL", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA"}
 		var networks any = GetValue(exchange.GetOptions(), "networks")
 		if IsTrue(IsEqual(networks, nil)) {
 			return
 		}
 		// 1) ensure 'networks' dictionary exists in options
-		Assert(exchange.IsDictionary(networks), "exchange.options[\"networks\"] is not an object")
+		Assert(exchange.IsDictionary(networks), "exchange.options[\"networks\"] is not a dict")
 		if IsTrue(IsEqual(GetArrayLength(ObjectKeys(networks)), 0)) {
 			return
 		}
 		// 2) ensure 'networksById' dictionary exists in options
 		Assert(InOp(exchange.GetOptions(), "networksById"), "exchange.options[\"networksById\"] is not set")
-		Assert(exchange.IsDictionary(GetValue(exchange.GetOptions(), "networksById")), "exchange.options[\"networksById\"] is not an object")
+		Assert(exchange.IsDictionary(GetValue(exchange.GetOptions(), "networksById")), "exchange.options[\"networksById\"] is not a dict")
 		//
 		var networkCodes any = ObjectKeys(GetValue(exchange.GetOptions(), "networks"))
 		// 3) ensure that the same network-id is not assigned to multiple networkCodes

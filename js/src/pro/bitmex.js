@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bitmex extends bitmexRest {
     describe() {
@@ -43,7 +43,7 @@ export default class bitmex extends bitmexRest {
             //     'ws': '0.2.0',
             // },
             'options': {
-                'watchOrderBookLevel': 'orderBookL2',
+                'watchOrderBookLevel': 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
             },
@@ -1468,8 +1468,8 @@ export default class bitmex extends bitmexRest {
             const symbol = market['symbol'];
             const messageHash = table + ':' + market['id'];
             const result = [
-                this.parse8601(this.safeString(candle, 'timestamp')) - duration * 1000,
-                undefined,
+                this.parseToInt(this.parse8601(this.safeString(candle, 'timestamp'))) - duration * 1000,
+                undefined, // set open price to undefined, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 this.safeFloat(candle, 'high'),
                 this.safeFloat(candle, 'low'),
                 this.safeFloat(candle, 'close'),

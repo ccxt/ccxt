@@ -63,7 +63,7 @@ remove margin from a position
 
 
 ```javascript
-exmo.reduceMargin (symbol, amount[, params])
+exmo.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -85,7 +85,7 @@ add margin
 
 
 ```javascript
-exmo.addMargin (symbol, amount[, params])
+exmo.addMargin (symbol, amount, params?)
 ```
 
 
@@ -109,7 +109,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-exmo.fetchTradingFees ([params])
+exmo.fetchTradingFees (params?)
 ```
 
 
@@ -132,7 +132,7 @@ please use fetchDepositWithdrawFees instead
 
 
 ```javascript
-exmo.fetchTransactionFees (codes[, params])
+exmo.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -153,7 +153,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-exmo.fetchDepositWithdrawFees (codes[, params])
+exmo.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -177,7 +177,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-exmo.fetchCurrencies ([params])
+exmo.fetchCurrencies (params?)
 ```
 
 
@@ -197,7 +197,7 @@ retrieves data on all markets for exmo
 
 
 ```javascript
-exmo.fetchMarkets ([params])
+exmo.fetchMarkets (params?)
 ```
 
 
@@ -222,7 +222,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-exmo.fetchOHLCV (symbol, timeframe[, since, limit, params])
+exmo.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -247,7 +247,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-exmo.fetchBalance ([params])
+exmo.fetchBalance (params?)
 ```
 
 
@@ -269,7 +269,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-exmo.fetchOrderBook (symbol[, limit, params])
+exmo.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -291,7 +291,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-exmo.fetchOrderBooks (symbols[, limit, params])
+exmo.fetchOrderBooks (symbols, limit?, params?)
 ```
 
 
@@ -312,7 +312,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-exmo.fetchTickers (symbols[, params])
+exmo.fetchTickers (symbols, params?)
 ```
 
 
@@ -333,7 +333,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-exmo.fetchTicker (symbol[, params])
+exmo.fetchTicker (symbol, params?)
 ```
 
 
@@ -356,7 +356,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-exmo.fetchTrades (symbol[, since, limit, params])
+exmo.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -384,7 +384,7 @@ fetch all trades made by the user
 
 
 ```javascript
-exmo.fetchMyTrades (symbol[, since, limit, params])
+exmo.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -407,7 +407,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-exmo.createMarketOrderWithCost (symbol, side, cost[, params])
+exmo.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -429,7 +429,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-exmo.createMarketBuyOrderWithCost (symbol, cost[, params])
+exmo.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -451,7 +451,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-exmo.createMarketSellOrderWithCost (symbol, cost[, params])
+exmo.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -485,7 +485,7 @@ create a trade order
 
 
 ```javascript
-exmo.createOrder (symbol, type, side, amount[, price, params])
+exmo.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -514,7 +514,7 @@ cancels an open order
 
 
 ```javascript
-exmo.cancelOrder (id, symbol[, params])
+exmo.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -536,7 +536,7 @@ exmo.cancelOrder (id, symbol[, params])
 
 
 ```javascript
-exmo.fetchOrder (id, symbol[, params])
+exmo.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -565,7 +565,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-exmo.fetchOrderTrades (id, symbol[, since, limit, params])
+exmo.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -593,7 +593,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-exmo.fetchOpenOrders (symbol[, since, limit, params])
+exmo.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -621,7 +621,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-exmo.fetchCanceledOrders (symbol[, since, limit, params])
+exmo.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -652,7 +652,7 @@ exmo.fetchCanceledOrders (symbol[, since, limit, params])
 
 
 ```javascript
-exmo.editOrder (id, symbol, type, side[, amount, price, params])
+exmo.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -673,7 +673,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-exmo.fetchDepositAddress (code[, params])
+exmo.fetchDepositAddress (code, params?)
 ```
 
 
@@ -697,7 +697,7 @@ make a withdrawal
 
 
 ```javascript
-exmo.withdraw (code, amount, address, tag[, params])
+exmo.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -720,7 +720,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-exmo.fetchDepositsWithdrawals ([code, since, limit, params])
+exmo.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -743,7 +743,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-exmo.fetchWithdrawals (code[, since, limit, params])
+exmo.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -765,7 +765,7 @@ fetch data on a currency withdrawal via the withdrawal id
 
 
 ```javascript
-exmo.fetchWithdrawal (id, code[, params])
+exmo.fetchWithdrawal (id, code, params?)
 ```
 
 
@@ -787,7 +787,7 @@ fetch information on a deposit
 
 
 ```javascript
-exmo.fetchDeposit (id, code[, params])
+exmo.fetchDeposit (id, code, params?)
 ```
 
 
@@ -810,7 +810,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-exmo.fetchDeposits (code[, since, limit, params])
+exmo.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -829,7 +829,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-exmo.watchBalance ([params])
+exmo.watchBalance (params?)
 ```
 
 
@@ -850,7 +850,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-exmo.watchTicker (symbol[, params])
+exmo.watchTicker (symbol, params?)
 ```
 
 
@@ -871,7 +871,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-exmo.watchTickers ([symbols, params])
+exmo.watchTickers (symbols?, params?)
 ```
 
 
@@ -893,7 +893,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-exmo.watchTrades (symbol[, since, limit, params])
+exmo.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -915,7 +915,7 @@ get the list of trades associated with the user
 
 
 ```javascript
-exmo.watchMyTrades (symbol[, since, limit, params])
+exmo.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -936,7 +936,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-exmo.watchOrderBook (symbol[, limit, params])
+exmo.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -963,6 +963,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-exmo.watchOrders (symbol[, since, limit, params])
+exmo.watchOrders (symbol, since?, limit?, params?)
 ```
 

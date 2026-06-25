@@ -3097,7 +3097,7 @@ public partial class coinex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() requires a \"network\" parameter")) ;
         }
-        ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
+        ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, getValue(currency, "code")); // required for on-chain, not required for inter-user transfer
         object response = await this.v2PrivateGetAssetsDepositAddress(this.extend(request, parameters));
         //
         //     {
@@ -3741,7 +3741,7 @@ public partial class coinex : Exchange
             { "marginMode", "isolated" },
             { "amount", this.parseNumber(Precise.stringAbs(change)) },
             { "total", this.safeNumber(data, "margin_avbl") },
-            { "code", getValue(market, "quote") },
+            { "code", this.safeString(market, "quote") },
             { "status", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -4061,7 +4061,7 @@ public partial class coinex : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
+            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, getValue(currency, "code")); // required for on-chain, not required for inter-user transfer
         }
         object response = await this.v2PrivatePostAssetsWithdraw(this.extend(request, parameters));
         //
@@ -4292,7 +4292,7 @@ public partial class coinex : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
@@ -5062,7 +5062,9 @@ public partial class coinex : Exchange
                 object networkId = this.safeString(entry, "chain");
                 if (isTrue(networkId))
                 {
-                    object networkCode = this.networkIdToCode(networkId, this.safeString(asset, "ccy"));
+                    object currencyId = this.safeString(asset, "ccy");
+                    object feeCode = this.safeCurrencyCode(currencyId, currency);
+                    object networkCode = this.networkIdToCode(networkId, feeCode);
                     ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "fee", this.safeNumber(entry, "withdrawal_fee") },

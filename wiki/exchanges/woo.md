@@ -92,7 +92,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-woo.fetchStatus ([params])
+woo.fetchStatus (params?)
 ```
 
 
@@ -112,7 +112,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-woo.fetchTime ([params])
+woo.fetchTime (params?)
 ```
 
 
@@ -132,7 +132,7 @@ retrieves data on all markets for woo
 
 
 ```javascript
-woo.fetchMarkets ([params])
+woo.fetchMarkets (params?)
 ```
 
 
@@ -155,7 +155,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-woo.fetchTrades (symbol[, since, limit, params])
+woo.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -178,7 +178,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-woo.fetchTradingFee (symbol[, params])
+woo.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -198,7 +198,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-woo.fetchTradingFees ([params])
+woo.fetchTradingFees (params?)
 ```
 
 
@@ -218,7 +218,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-woo.fetchCurrencies ([params])
+woo.fetchCurrencies (params?)
 ```
 
 
@@ -240,7 +240,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-woo.createMarketBuyOrderWithCost (symbol, cost[, params])
+woo.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -262,7 +262,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-woo.createMarketSellOrderWithCost (symbol, cost[, params])
+woo.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -289,7 +289,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 
 
 ```javascript
-woo.createTrailingAmountOrder (symbol, type, side, amount[, price, trailingAmount, trailingTriggerPrice, params])
+woo.createTrailingAmountOrder (symbol, type, side, amount, price?, trailingAmount, trailingTriggerPrice, params?)
 ```
 
 
@@ -316,7 +316,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 
 
 ```javascript
-woo.createTrailingPercentOrder (symbol, type, side, amount[, price, trailingPercent, trailingTriggerPrice, params])
+woo.createTrailingPercentOrder (symbol, type, side, amount, price?, trailingPercent, trailingTriggerPrice, params?)
 ```
 
 
@@ -357,7 +357,7 @@ create a trade order
 
 
 ```javascript
-woo.createOrder (symbol, type, side, amount[, price, params])
+woo.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -395,7 +395,7 @@ edit a trade order
 
 
 ```javascript
-woo.editOrder (id, symbol, type, side, amount[, price, params])
+woo.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -422,7 +422,7 @@ cancels an open order
 
 
 ```javascript
-woo.cancelOrder (id, symbol[, params])
+woo.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -448,7 +448,7 @@ cancel all open orders in a market
 
 
 ```javascript
-woo.cancelAllOrders (symbol[, params])
+woo.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -469,7 +469,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-woo.cancelAllOrdersAfter (timeout[, params])
+woo.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -496,7 +496,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-woo.fetchOrder (id, symbol[, params])
+woo.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -527,7 +527,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-woo.fetchOrders (symbol[, since, limit, params])
+woo.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -559,7 +559,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-woo.fetchOpenOrders (symbol[, since, limit, params])
+woo.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -591,7 +591,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-woo.fetchClosedOrders (symbol[, since, limit, params])
+woo.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -613,7 +613,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-woo.fetchOrderBook (symbol[, limit, params])
+woo.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -638,7 +638,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-woo.fetchOHLCV (symbol, timeframe[, since, limit, params])
+woo.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -662,7 +662,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-woo.fetchOrderTrades (id, symbol[, since, limit, params])
+woo.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -686,7 +686,7 @@ fetch all trades made by the user
 
 
 ```javascript
-woo.fetchMyTrades (symbol[, since, limit, params])
+woo.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -710,7 +710,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-woo.fetchAccounts ([params])
+woo.fetchAccounts (params?)
 ```
 
 
@@ -730,7 +730,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-woo.fetchBalance ([params])
+woo.fetchBalance (params?)
 ```
 
 
@@ -751,7 +751,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-woo.fetchDepositAddress (code[, params])
+woo.fetchDepositAddress (code, params?)
 ```
 
 
@@ -774,7 +774,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-woo.fetchLedger ([code, since, limit, params])
+woo.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -797,7 +797,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-woo.fetchDeposits (code[, since, limit, params])
+woo.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -820,7 +820,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-woo.fetchWithdrawals (code[, since, limit, params])
+woo.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -843,7 +843,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-woo.fetchDepositsWithdrawals ([code, since, limit, params])
+woo.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -867,7 +867,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-woo.transfer (code, amount, fromAccount, toAccount[, params])
+woo.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -891,7 +891,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-woo.fetchTransfers (code[, since, limit, params])
+woo.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -915,7 +915,7 @@ make a withdrawal
 
 
 ```javascript
-woo.withdraw (code, amount, address, tag[, params])
+woo.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -938,7 +938,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-woo.repayMargin (code, amount, symbol[, params])
+woo.repayMargin (code, amount, symbol, params?)
 ```
 
 
@@ -962,7 +962,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-woo.fetchFundingHistory ([symbol, since, limit, params])
+woo.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -983,7 +983,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-woo.fetchFundingInterval (symbol[, params])
+woo.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -1004,7 +1004,7 @@ fetch the current funding rate
 
 
 ```javascript
-woo.fetchFundingRate (symbol[, params])
+woo.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1025,7 +1025,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-woo.fetchFundingRates (symbols[, params])
+woo.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -1050,7 +1050,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-woo.fetchFundingRateHistory (symbol[, since, limit, params])
+woo.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1072,7 +1072,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-woo.setPositionMode (hedged, symbol[, params])
+woo.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1099,7 +1099,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-woo.fetchLeverage (symbol[, params])
+woo.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1127,7 +1127,7 @@ set the level of leverage for a market
 
 
 ```javascript
-woo.setLeverage (leverage[, symbol, params])
+woo.setLeverage (leverage, symbol?, params?)
 ```
 
 
@@ -1150,7 +1150,7 @@ add margin
 
 
 ```javascript
-woo.addMargin (symbol, amount[, params])
+woo.addMargin (symbol, amount, params?)
 ```
 
 
@@ -1173,7 +1173,7 @@ remove margin from a position
 
 
 ```javascript
-woo.reduceMargin (symbol, amount[, params])
+woo.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -1194,7 +1194,7 @@ fetch data on an open position
 
 
 ```javascript
-woo.fetchPosition (symbol[, params])
+woo.fetchPosition (symbol, params?)
 ```
 
 
@@ -1215,7 +1215,7 @@ fetch all open positions
 
 
 ```javascript
-woo.fetchPositions ([symbols, params])
+woo.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1238,7 +1238,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-woo.fetchConvertQuote (fromCode, toCode[, amount, params])
+woo.fetchConvertQuote (fromCode, toCode, amount?, params?)
 ```
 
 
@@ -1262,7 +1262,7 @@ convert from one currency to another
 
 
 ```javascript
-woo.createConvertTrade (id, fromCode, toCode[, amount, params])
+woo.createConvertTrade (id, fromCode, toCode, amount?, params?)
 ```
 
 
@@ -1284,7 +1284,7 @@ fetch the data for a conversion trade
 
 
 ```javascript
-woo.fetchConvertTrade (id[, code, params])
+woo.fetchConvertTrade (id, code?, params?)
 ```
 
 
@@ -1308,7 +1308,7 @@ fetch the users history of conversion trades
 
 
 ```javascript
-woo.fetchConvertTradeHistory ([code, since, limit, params])
+woo.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
@@ -1328,7 +1328,7 @@ fetches all available currencies that can be converted
 
 
 ```javascript
-woo.fetchConvertCurrencies ([params])
+woo.fetchConvertCurrencies (params?)
 ```
 
 
@@ -1349,7 +1349,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 
 
 ```javascript
-woo.fetchPositionsADLRank ([symbols, params])
+woo.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -1376,7 +1376,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-woo.watchOrderBook (symbol[, limit, params])
+woo.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1401,7 +1401,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-woo.unWatchOrderBook (symbol[, params])
+woo.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1421,7 +1421,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-woo.watchTicker (symbol[, params])
+woo.watchTicker (symbol, params?)
 ```
 
 
@@ -1441,7 +1441,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-woo.unWatchTicker (symbol[, params])
+woo.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1462,7 +1462,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-woo.watchTickers (symbols[, params])
+woo.watchTickers (symbols, params?)
 ```
 
 
@@ -1483,7 +1483,7 @@ stops watching a price ticker, a statistical calculation with the information ca
 
 
 ```javascript
-woo.unWatchTickers (symbols[, params])
+woo.unWatchTickers (symbols, params?)
 ```
 
 
@@ -1504,7 +1504,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-woo.watchBidsAsks ([symbols, params])
+woo.watchBidsAsks (symbols?, params?)
 ```
 
 
@@ -1525,7 +1525,7 @@ unWatches best bid & ask for symbols
 
 
 ```javascript
-woo.unWatchBidsAsks ([symbols, params])
+woo.unWatchBidsAsks (symbols?, params?)
 ```
 
 
@@ -1549,7 +1549,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-woo.watchOHLCV (symbol, timeframe[, since, limit, params])
+woo.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1572,7 +1572,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-woo.unWatchOHLCV (symbol, timeframe[, params])
+woo.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1595,7 +1595,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-woo.watchTrades (symbol[, since, limit, params])
+woo.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1616,7 +1616,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-woo.unWatchTrades (symbol[, params])
+woo.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1644,7 +1644,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-woo.watchOrders (symbol[, since, limit, params])
+woo.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1672,7 +1672,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-woo.watchMyTrades (symbol[, since, limit, params])
+woo.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1695,7 +1695,7 @@ watch all open positions
 
 
 ```javascript
-woo.watchPositions ([symbols, since, limit, params])
+woo.watchPositions (symbols?, since?, limit?, params?)
 ```
 
 
@@ -1715,7 +1715,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-woo.watchBalance ([params])
+woo.watchBalance (params?)
 ```
 
 
@@ -1736,6 +1736,6 @@ watch the current funding rate
 
 
 ```javascript
-woo.watchFundingRate (symbol[, params])
+woo.watchFundingRate (symbol, params?)
 ```
 

@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/tokocrypto.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -776,7 +776,7 @@ export default class tokocrypto extends Exchange {
         }
         const data = this.safeValue (response, 'data', {});
         const list = this.safeValue (data, 'list', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < list.length; i++) {
             const market = list[i];
             const baseId = this.safeString (market, 'baseAsset');
@@ -907,9 +907,9 @@ export default class tokocrypto extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        let response = undefined;
+        let response: Dict;
         if (market['quote'] === 'USDT') {
-            request['symbol'] = market['baseId'] + market['quoteId'];
+            request['symbol'] = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
             response = await this.binanceGetDepth (this.extend (request, params));
         } else {
             request['symbol'] = market['id'];
@@ -1067,7 +1067,7 @@ export default class tokocrypto extends Exchange {
                 side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
             }
         }
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
@@ -1255,8 +1255,8 @@ export default class tokocrypto extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'lastPrice');
         const isCoinm = ('baseVolume' in ticker);
-        let baseVolume = undefined;
-        let quoteVolume = undefined;
+        let baseVolume: Str = undefined;
+        let quoteVolume: Str = undefined;
         if (isCoinm) {
             baseVolume = this.safeString (ticker, 'baseVolume');
             quoteVolume = this.safeString (ticker, 'volume');
@@ -1323,7 +1323,7 @@ export default class tokocrypto extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['baseId'] + market['quoteId'],
+            'symbol': this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''),
         };
         const response = await this.binanceGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {
@@ -2214,7 +2214,7 @@ export default class tokocrypto extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request: Dict = {};
         const until = this.safeInteger (params, 'until');
         if (code !== undefined) {
@@ -2276,7 +2276,7 @@ export default class tokocrypto extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -2398,7 +2398,7 @@ export default class tokocrypto extends Exchange {
         }
         const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         const insertTime = this.safeInteger (transaction, 'insertTime');
         const createTime = this.safeInteger2 (transaction, 'createTime', 'timestamp');
         let type = this.safeString (transaction, 'type');
@@ -2485,7 +2485,7 @@ export default class tokocrypto extends Exchange {
             request['addressTag'] = tag;
         }
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['network'] = networkId.toUpperCase ();
         }
@@ -2503,7 +2503,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         if (!(api in this.urls['api']['rest'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
@@ -2528,7 +2528,7 @@ export default class tokocrypto extends Exchange {
             }
         } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
-            let query = undefined;
+            let query: Str = undefined;
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
             const extendedParams = this.extend ({
                 'timestamp': this.nonce (),
@@ -2592,7 +2592,7 @@ export default class tokocrypto extends Exchange {
         const success = this.safeBool (response, 'success', true);
         if (!success) {
             const messageInner = this.safeString (response, 'msg');
-            let parsedMessage = undefined;
+            let parsedMessage: NullableDict = undefined;
             if (messageInner !== undefined) {
                 try {
                     parsedMessage = JSON.parse (messageInner);

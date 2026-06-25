@@ -1143,7 +1143,7 @@ class pacifica extends Exchange {
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
         $request['account'] = $userAddress;
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1317,7 +1317,7 @@ class pacifica extends Exchange {
         return $this->safe_order(array( 'id' => $orderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
         /**
          * @ignore
          * create a trade order
@@ -1793,7 +1793,7 @@ class pacifica extends Exchange {
         $priceNormalized = $this->price_to_precision($symbol, $price);
         $amountNormalized = $this->amount_to_precision($symbol, $amount);
         $sigPayload = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'price' => $priceNormalized,
             'amount' => $amountNormalized,
         );
@@ -3115,7 +3115,7 @@ class pacifica extends Exchange {
         return $this->privatePostAccountBuilderCodesRevoke ($this->extend($request, $params));
     }
 
-    public function handle_origin_and_single_address(string $methodName, array $params) {
+    public function handle_origin_and_single_address(string $methodName, array $params): array {
         $address = null;
         list($address, $params) = $this->handle_param_string_2($params, 'account', 'address', null); // this is for get endpoints that accept account or $address
         if ($address !== null) {
@@ -3156,7 +3156,7 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = ($isTestnet) ? 'test' : 'api';
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
@@ -3197,7 +3197,7 @@ class pacifica extends Exchange {
     }
 
     public function sort_json_keys(mixed $value): mixed {
-        if (gettype($value) === 'array') {
+        if ($this->is_dictionary($value)) {
             $result = array();
             $keys = is_array($value) ? array_keys($value) : array();
             $sortedKeys = $this->sort($keys);

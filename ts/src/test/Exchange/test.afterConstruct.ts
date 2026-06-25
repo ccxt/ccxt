@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 
 async function testAfterConstruct (exchange: Exchange, skippedProperties: object) {
     if (!('networks' in skippedProperties)) {
@@ -11,23 +11,23 @@ async function testAfterConstruct (exchange: Exchange, skippedProperties: object
 function testOptionsNetworks (exchange: Exchange, skippedProperties: object) {
     if (!('networks' in skippedProperties)) {
         // only allow these whitelisted unified networkCodes to be repeated
-        const allowedUnifiedAliases = [ 'BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'POLYGON', 'MATIC' ];
+        const allowedUnifiedAliases = [ 'BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'SPL', 'SOL', 'POLYGON', 'MATIC', 'CARDANO', 'ADA' ];
         const networks = exchange.options['networks'];
         if (networks === undefined) {
             return;
         }
         // 1) ensure 'networks' dictionary exists in options
-        assert (exchange.isDictionary (networks), 'exchange.options["networks"] is not an object');
+        assert (exchange.isDictionary (networks), 'exchange.options["networks"] is not a dict');
         if (Object.keys (networks).length === 0) {
             return;
         }
         // 2) ensure 'networksById' dictionary exists in options
         assert ('networksById' in exchange.options, 'exchange.options["networksById"] is not set');
-        assert (exchange.isDictionary (exchange.options['networksById']), 'exchange.options["networksById"] is not an object');
+        assert (exchange.isDictionary (exchange.options['networksById']), 'exchange.options["networksById"] is not a dict');
         //
         const networkCodes = Object.keys (exchange.options['networks']);
         // 3) ensure that the same network-id is not assigned to multiple networkCodes
-        const collectedNetworkIds = [];
+        const collectedNetworkIds: string[] = [];
         for (let i = 0; i < networkCodes.length; i++) {
             const networkCode = networkCodes[i];
             const networkId = exchange.options['networks'][networkCode];
@@ -37,7 +37,7 @@ function testOptionsNetworks (exchange: Exchange, skippedProperties: object) {
             collectedNetworkIds.push (networkId);
         }
         // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
-        const collectedNetworkCodes = [];
+        const collectedNetworkCodes: string[] = [];
         for (let i = 0; i < networkCodes.length; i++) {
             const networkCodeLower = (networkCodes[i]).toLowerCase ();
             assert (!exchange.inArray (networkCodeLower, collectedNetworkCodes), 'exchange.options["networks"] contains multiple networkCodes with the same networkCode "' + networkCodes[i] + '" in different uppercase/lowercase format');

@@ -1155,7 +1155,7 @@ func  (this *WhitebitCore) HandleErrorMessage(client any, message any) any  {
     	    }(this)
         
             }
-    return message
+    return true
 }
 func  (this *WhitebitCore) HandleMessage(client any, message any)  {
     //

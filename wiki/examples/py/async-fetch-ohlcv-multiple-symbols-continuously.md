@@ -1,8 +1,5 @@
-- [Async Fetch Ohlcv Multiple Symbols Continuously](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -37,5 +34,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

@@ -804,7 +804,7 @@ public class BullishCore extends BullishApi
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        Object id = this.safeString(market, "symbol");
+        Object id = ((String)this.safeString(market, "symbol"));
         Object baseId = this.safeString(market, "baseSymbol");
         Object quoteId = this.safeString(market, "quoteSymbol");
         Object base = this.safeCurrencyCode(baseId);
@@ -854,7 +854,7 @@ public class BullishCore extends BullishApi
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
                 Object idParts = Helpers.split(id, "-");
-                Object datePart = this.safeString(idParts, 2);
+                Object datePart = ((String)this.safeString(idParts, 2));
                 Object dateYmd = Helpers.slice(datePart, 2, null);
                 symbol = Helpers.add(symbol, Helpers.add("-", dateYmd));
                 if (Helpers.isTrue(Helpers.isEqual(type, "future")))
@@ -941,9 +941,10 @@ public class BullishCore extends BullishApi
         }});
     }
 
-    public Object parseMarketType(Object type, Object... optionalArgs)
+    public Object parseMarketType(Object... optionalArgs)
     {
-        Object defaultType = Helpers.getArg(optionalArgs, 0, null);
+        Object type = Helpers.getArg(optionalArgs, 0, null);
+        Object defaultType = Helpers.getArg(optionalArgs, 1, null);
         Object types = new java.util.HashMap<String, Object>() {{
             put( "SPOT", "spot" );
             put( "PERPETUAL", "swap" );
@@ -2469,7 +2470,7 @@ public class BullishCore extends BullishApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, code));
             } else
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a network parameter")) ;
@@ -2549,7 +2550,7 @@ public class BullishCore extends BullishApi
             put( "txid", txid );
             put( "timestamp", timestamp );
             put( "datetime", BullishCore.this.iso8601(timestamp) );
-            put( "network", BullishCore.this.networkIdToCode(network) );
+            put( "network", BullishCore.this.networkIdToCode(network, code) );
             put( "addressFrom", sourceAddress );
             put( "address", address );
             put( "addressTo", address );
@@ -2786,7 +2787,7 @@ public class BullishCore extends BullishApi
                     {
                         Object entry = this.safeDict(safeResponse, i, new java.util.HashMap<String, Object>() {{}});
                         Object networkId = this.safeString(entry, "network");
-                        Object networkCode = this.networkIdToCode(networkId);
+                        Object networkCode = this.networkIdToCode(networkId, code);
                         if (Helpers.isTrue(Helpers.isEqual(network, networkCode)))
                         {
                             data = entry;
@@ -2809,10 +2810,11 @@ public class BullishCore extends BullishApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(depositAddress, "symbol");
         Object network = this.safeString(depositAddress, "network");
+        Object code = this.safeCurrencyCode(id, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", BullishCore.this.safeCurrencyCode(id, currency) );
-            put( "network", BullishCore.this.networkIdToCode(network) );
+            put( "currency", code );
+            put( "network", BullishCore.this.networkIdToCode(network, code) );
             put( "address", BullishCore.this.safeString(depositAddress, "address") );
             put( "tag", null );
         }};
@@ -3463,6 +3465,7 @@ public class BullishCore extends BullishApi
             }
             if (Helpers.isTrue(Helpers.isEqual(path, "v1/users/hmac/login")))
             {
+                headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
                 Helpers.addElementToObject(headers, "BX-PUBLIC-KEY", this.apiKey);
             } else
             {
@@ -3471,6 +3474,7 @@ public class BullishCore extends BullishApi
                 {
                     throw new AuthenticationError((String)Helpers.add(this.id, " requires a token, please call signIn() first")) ;
                 }
+                headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
                 Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
             }
         }

@@ -713,7 +713,7 @@ func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...
 			var newNonce any = this.SafeInteger(level, 0)
 			nonce = mathMax(nonce, newNonce)
 		}
-		var bidask any = this.ParseBidAsk(level, priceKey, amountKey)
+		var bidask any = this.ParseOrderBookBidAsk(level, priceKey, amountKey)
 		var levelSide any = this.SafeInteger(level, 9)
 		var side any = Ternary(IsTrue(levelSide), asksKey, bidsKey)
 		var resultSide any = GetValue(result, side)

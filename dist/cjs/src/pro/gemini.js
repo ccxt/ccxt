@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var gemini$1 = require('../gemini.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
-var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -281,7 +281,7 @@ class gemini extends gemini$1["default"] {
                 {
                     'name': 'candles_' + timeframeId,
                     'symbols': [
-                        market['id'].toUpperCase(),
+                        this.safeStringUpper(market, 'id'),
                     ],
                 },
             ],
@@ -913,7 +913,7 @@ class gemini extends gemini$1["default"] {
             'nonce': this.nonce(),
         };
         const b64 = this.stringToBase64(this.json(payload));
-        const signature = this.hmac(this.encode(b64), this.encode(this.secret), sha512.sha384, 'hex');
+        const signature = this.hmac(this.encode(b64), this.encode(this.secret), sha2_js.sha384, 'hex');
         const defaultOptions = {
             'ws': {
                 'options': {

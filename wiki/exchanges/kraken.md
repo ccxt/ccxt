@@ -70,7 +70,7 @@ retrieves data on all markets for kraken
 
 
 ```javascript
-kraken.fetchMarkets ([params])
+kraken.fetchMarkets (params?)
 ```
 
 
@@ -90,7 +90,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-kraken.fetchStatus ([params])
+kraken.fetchStatus (params?)
 ```
 
 
@@ -110,7 +110,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-kraken.fetchCurrencies ([params])
+kraken.fetchCurrencies (params?)
 ```
 
 
@@ -131,7 +131,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-kraken.fetchTradingFee (symbol[, params])
+kraken.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -153,7 +153,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-kraken.fetchOrderBook (symbol[, limit, params])
+kraken.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -174,7 +174,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-kraken.fetchTickers (symbols[, params])
+kraken.fetchTickers (symbols, params?)
 ```
 
 
@@ -195,7 +195,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-kraken.fetchTicker (symbol[, params])
+kraken.fetchTicker (symbol, params?)
 ```
 
 
@@ -220,7 +220,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-kraken.fetchOHLCV (symbol, timeframe[, since, limit, params])
+kraken.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -245,7 +245,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-kraken.fetchLedger ([code, since, limit, params])
+kraken.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -268,7 +268,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-kraken.fetchTrades (symbol[, since, limit, params])
+kraken.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -288,7 +288,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-kraken.fetchBalance ([params])
+kraken.fetchBalance (params?)
 ```
 
 
@@ -311,7 +311,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-kraken.createMarketOrderWithCost (symbol, side, cost[, params])
+kraken.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -333,7 +333,7 @@ create a market buy order by providing the symbol, side and cost
 
 
 ```javascript
-kraken.createMarketBuyOrderWithCost (symbol, cost[, params])
+kraken.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -368,7 +368,7 @@ create a trade order
 
 
 ```javascript
-kraken.createOrder (symbol, type, side, amount[, price, params])
+kraken.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -389,7 +389,7 @@ create a list of trade orders
 
 
 ```javascript
-kraken.createOrders (orders[, params])
+kraken.createOrders (orders, params?)
 ```
 
 
@@ -424,7 +424,7 @@ edit a trade order
 
 
 ```javascript
-kraken.editOrder (id, symbol, type, side[, amount, price, params])
+kraken.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -446,7 +446,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-kraken.fetchOrder (id, symbol[, params])
+kraken.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -470,7 +470,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-kraken.fetchOrderTrades (id, symbol[, since, limit, params])
+kraken.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -492,7 +492,7 @@ fetch orders by the list of order id
 
 
 ```javascript
-kraken.fetchOrdersByIds ([ids, symbol, params])
+kraken.fetchOrdersByIds (ids?, symbol?, params?)
 ```
 
 
@@ -517,7 +517,7 @@ fetch all trades made by the user
 
 
 ```javascript
-kraken.fetchMyTrades (symbol[, since, limit, params])
+kraken.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -541,7 +541,7 @@ cancels an open order
 
 
 ```javascript
-kraken.cancelOrder (id[, symbol, params])
+kraken.cancelOrder (id, symbol?, params?)
 ```
 
 
@@ -563,7 +563,7 @@ cancel multiple orders
 
 
 ```javascript
-kraken.cancelOrders (ids, symbol[, params])
+kraken.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -584,7 +584,7 @@ cancel all open orders
 
 
 ```javascript
-kraken.cancelAllOrders (symbol[, params])
+kraken.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -605,7 +605,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-kraken.cancelAllOrdersAfter (timeout[, params])
+kraken.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -630,7 +630,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-kraken.fetchOpenOrders ([symbol, since, limit, params])
+kraken.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -656,7 +656,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-kraken.fetchClosedOrders ([symbol, since, limit, params])
+kraken.fetchClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -681,7 +681,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-kraken.fetchDeposits (code[, since, limit, params])
+kraken.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -701,7 +701,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-kraken.fetchTime ([params])
+kraken.fetchTime (params?)
 ```
 
 
@@ -727,7 +727,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-kraken.fetchWithdrawals (code[, since, limit, params])
+kraken.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -748,7 +748,7 @@ create a currency deposit address
 
 
 ```javascript
-kraken.createDepositAddress (code[, params])
+kraken.createDepositAddress (code, params?)
 ```
 
 
@@ -769,7 +769,7 @@ fetch deposit methods for a currency associated with this account
 
 
 ```javascript
-kraken.fetchDepositMethods (code[, params])
+kraken.fetchDepositMethods (code, params?)
 ```
 
 
@@ -790,7 +790,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-kraken.fetchDepositAddress (code[, params])
+kraken.fetchDepositAddress (code, params?)
 ```
 
 
@@ -814,7 +814,7 @@ make a withdrawal
 
 
 ```javascript
-kraken.withdraw (code, amount, address, tag[, params])
+kraken.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -835,7 +835,7 @@ fetch all open positions
 
 
 ```javascript
-kraken.fetchPositions ([symbols, params])
+kraken.fetchPositions (symbols?, params?)
 ```
 
 
@@ -857,7 +857,7 @@ transfer from spot wallet to futures wallet
 
 
 ```javascript
-kraken.transferOut (code, amount[, params])
+kraken.transferOut (code, amount, params?)
 ```
 
 
@@ -881,6 +881,6 @@ transfers currencies between sub-accounts (only spot->swap direction is supporte
 
 
 ```javascript
-kraken.transfer (code, amount, fromAccount, toAccount[, params])
+kraken.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 

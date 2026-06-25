@@ -346,7 +346,7 @@ public partial class bitrue : ccxt.bitrue
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
         } else
         {
-            object marketIdLowercase = ((string)getValue(market, "id")).ToLower();
+            object marketIdLowercase = this.safeStringLower(market, "id");
             channel = add(add("market_", marketIdLowercase), "_simple_depth_step0");
             cbId = marketIdLowercase;
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
@@ -492,7 +492,7 @@ public partial class bitrue : ccxt.bitrue
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -730,7 +730,7 @@ public partial class bitrue : ccxt.bitrue
      * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {

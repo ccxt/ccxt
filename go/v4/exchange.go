@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/big"
 	random2 "math/rand"
 	"net/http"
 	"net/url"
@@ -19,6 +20,9 @@ import (
 	"sync"
 	"time"
 
+	starkfelt "github.com/NethermindEth/juno/core/felt"
+	starkcurve "github.com/NethermindEth/starknet.go/curve"
+	starkutils "github.com/NethermindEth/starknet.go/utils"
 	pb "github.com/ccxt/ccxt/go/v4/protoc"
 	"golang.org/x/net/proxy"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -90,17 +94,21 @@ type Exchange struct {
 
 	// timestamps
 	LastRestRequestTimestamp int64
-	LastRequestHeaders       any
-	Last_request_headers     any
-	Last_response_headers    any
-	LastResponseHeaders      any
-	Last_http_response       any
-	LastRequestBody          any
-	Last_request_body        any
-	Last_request_url         any
-	LastRequestUrl           string
-	Headers                  any
-	ReturnResponseHeaders    bool
+	// lastMu guards the per-instance "last request/response" bookkeeping fields
+	// (timestamp, request headers/body/url, response headers) which are otherwise
+	// written by concurrent request goroutines that share the same *Exchange.
+	lastMu                sync.Mutex
+	LastRequestHeaders    any
+	Last_request_headers  any
+	Last_response_headers any
+	LastResponseHeaders   any
+	Last_http_response    any
+	LastRequestBody       any
+	Last_request_body     any
+	Last_request_url      any
+	LastRequestUrl        string
+	Headers               any
+	ReturnResponseHeaders bool
 
 	// type check this
 	Number any
@@ -524,7 +532,11 @@ func (this *Exchange) callEndpoint(endpoint2 any, parameters any) <-chan any {
 }
 
 func (this *Exchange) ConvertToBigInt(data any) any {
-	return ParseInt(data)
+	bigValue := parseStarknetBigInt(data)
+	if bigValue == nil {
+		return nil
+	}
+	return bigValue.String()
 }
 
 func (this *Exchange) CreateSafeDictionary(isWs ...bool) *sync.Map {
@@ -1325,6 +1337,90 @@ func (this *Exchange) StarknetEncodeStructuredData(a any, b any, c any, d any) a
 
 func (this *Exchange) StarknetSign(a any, b any) any {
 	return nil // to do
+}
+
+func (this *Exchange) ExtendedStarknetSign(a any, b any) any {
+	msgHash := parseStarknetBigInt(a)
+	privateKey := parseStarknetBigInt(b)
+	if msgHash == nil || privateKey == nil {
+		panic(AuthenticationError(Add(this.Id, " extendedStarknetSign() invalid msgHash or privateKey")))
+	}
+	r, s, err := starkcurve.Sign(msgHash, privateKey)
+	if err != nil {
+		panic(AuthenticationError(Add(this.Id, Add(" extendedStarknetSign() failed: ", err.Error()))))
+	}
+	return this.Json([]any{r.String(), s.String()})
+}
+
+func (this *Exchange) ExtendedStarknetGetSelectorFromName(a any) any {
+	return starkutils.GetSelectorFromName(ToString(a)).String()
+}
+
+func (this *Exchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
+	values, ok := a.([]any)
+	if !ok {
+		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
+	}
+	felts := make([]*starkfelt.Felt, 0, len(values))
+	for _, value := range values {
+		bigValue := parseStarknetBigInt(value)
+		if bigValue == nil {
+			panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() invalid felt value")))
+		}
+		felts = append(felts, new(starkfelt.Felt).SetBigInt(bigValue))
+	}
+	hash := starkcurve.PoseidonArray(felts...)
+	return hash.BigInt(new(big.Int)).String()
+}
+
+func parseStarknetBigInt(value any) *big.Int {
+	switch v := value.(type) {
+	case nil:
+		return nil
+	case *big.Int:
+		return new(big.Int).Set(v)
+	case big.Int:
+		return new(big.Int).Set(&v)
+	case string:
+		text := strings.TrimSpace(v)
+		if text == "" {
+			return nil
+		}
+		base := 10
+		if strings.HasPrefix(text, "0x") || strings.HasPrefix(text, "0X") {
+			base = 16
+			text = text[2:]
+		}
+		result := new(big.Int)
+		if _, ok := result.SetString(text, base); ok {
+			return result
+		}
+	case int:
+		return big.NewInt(int64(v))
+	case int8:
+		return big.NewInt(int64(v))
+	case int16:
+		return big.NewInt(int64(v))
+	case int32:
+		return big.NewInt(int64(v))
+	case int64:
+		return big.NewInt(v)
+	case uint:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint8:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint16:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint32:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint64:
+		return new(big.Int).SetUint64(v)
+	case float32:
+		return big.NewInt(int64(v))
+	case float64:
+		return big.NewInt(int64(v))
+	}
+	return nil
 }
 
 func (this *Exchange) GetZKContractSignatureObj(seed any, params any) <-chan any {

@@ -69,7 +69,7 @@ if the required credentials are available in options, it will pre-load the light
 
 
 ```javascript
-lighter.preLoadLighterLibrary ([params])
+lighter.preLoadLighterLibrary (params?)
 ```
 
 
@@ -101,7 +101,7 @@ create a trade order
 
 
 ```javascript
-lighter.createOrder (symbol, type, side, amount[, price, params])
+lighter.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -128,7 +128,7 @@ cancels an order and places a new order
 
 
 ```javascript
-lighter.editOrder (id, symbol, type, side, amount[, price, params])
+lighter.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -148,7 +148,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-lighter.fetchStatus ([params])
+lighter.fetchStatus (params?)
 ```
 
 
@@ -168,7 +168,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-lighter.fetchTime ([params])
+lighter.fetchTime (params?)
 ```
 
 
@@ -188,7 +188,7 @@ retrieves data on all markets for lighter
 
 
 ```javascript
-lighter.fetchMarkets ([params])
+lighter.fetchMarkets (params?)
 ```
 
 
@@ -208,7 +208,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-lighter.fetchCurrencies ([params])
+lighter.fetchCurrencies (params?)
 ```
 
 
@@ -230,7 +230,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lighter.fetchOrderBook (symbol[, limit, params])
+lighter.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -251,7 +251,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lighter.fetchTicker (symbol[, params])
+lighter.fetchTicker (symbol, params?)
 ```
 
 
@@ -272,7 +272,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-lighter.fetchTickers (symbols[, params])
+lighter.fetchTickers (symbols, params?)
 ```
 
 
@@ -297,7 +297,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-lighter.fetchOHLCV (symbol, timeframe[, since, limit, params])
+lighter.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -318,7 +318,7 @@ fetch the current funding rate for multiple symbols
 
 
 ```javascript
-lighter.fetchFundingRates ([symbols, params])
+lighter.fetchFundingRates (symbols?, params?)
 ```
 
 
@@ -341,7 +341,7 @@ fetch data on an open position
 
 
 ```javascript
-lighter.fetchPosition (symbol[, params])
+lighter.fetchPosition (symbol, params?)
 ```
 
 
@@ -364,7 +364,7 @@ fetch all open positions
 
 
 ```javascript
-lighter.fetchPositions ([symbols, params])
+lighter.fetchPositions (symbols?, params?)
 ```
 
 
@@ -386,7 +386,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-lighter.fetchAccounts ([params])
+lighter.fetchAccounts (params?)
 ```
 
 
@@ -410,7 +410,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-lighter.fetchOpenOrders (symbol[, since, limit, params])
+lighter.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -434,7 +434,7 @@ fetch all unfilled currently closed orders
 
 
 ```javascript
-lighter.fetchClosedOrders (symbol[, since, limit, params])
+lighter.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -461,7 +461,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-lighter.transfer (code, amount, fromAccount, toAccount[, params])
+lighter.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -486,7 +486,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-lighter.fetchTransfers (code[, since, limit, params])
+lighter.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -512,7 +512,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-lighter.fetchDeposits ([code, since, limit, params])
+lighter.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -537,7 +537,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-lighter.fetchWithdrawals ([code, since, limit, params])
+lighter.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -563,7 +563,7 @@ make a withdrawal
 
 
 ```javascript
-lighter.withdraw (code, amount, address[, tag, params])
+lighter.withdraw (code, amount, address, tag?, params?)
 ```
 
 
@@ -589,7 +589,7 @@ fetch all trades made by the user
 
 
 ```javascript
-lighter.fetchMyTrades ([symbol, since, limit, params])
+lighter.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -613,7 +613,7 @@ set the level of leverage for a market
 
 
 ```javascript
-lighter.setLeverage (leverage, symbol[, params])
+lighter.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -637,7 +637,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-lighter.setMarginMode (marginMode, symbol[, params])
+lighter.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -660,7 +660,7 @@ cancels an open order
 
 
 ```javascript
-lighter.cancelOrder (id, symbol[, params])
+lighter.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -682,7 +682,7 @@ cancel all open orders
 
 
 ```javascript
-lighter.cancelAllOrders ([symbol, params])
+lighter.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -702,7 +702,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-lighter.cancelAllOrdersAfter (timeout[, params])
+lighter.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -723,7 +723,7 @@ add margin
 
 
 ```javascript
-lighter.addMargin (symbol, amount[, params])
+lighter.addMargin (symbol, amount, params?)
 ```
 
 
@@ -744,7 +744,7 @@ remove margin from a position
 
 
 ```javascript
-lighter.reduceMargin (symbol, amount[, params])
+lighter.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -767,7 +767,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 
 
 ```javascript
-lighter.setMargin (symbol, amount[, params])
+lighter.setMargin (symbol, amount, params?)
 ```
 
 
@@ -790,7 +790,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-lighter.watchOrders (symbol[, since, limit, params])
+lighter.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -812,7 +812,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lighter.watchOrderBook (symbol[, limit, params])
+lighter.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -833,7 +833,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-lighter.unWatchOrderBook (symbol[, params])
+lighter.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -854,7 +854,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lighter.watchTicker (symbol[, params])
+lighter.watchTicker (symbol, params?)
 ```
 
 
@@ -875,7 +875,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-lighter.unWatchTicker (symbol[, params])
+lighter.unWatchTicker (symbol, params?)
 ```
 
 
@@ -897,7 +897,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lighter.watchTickers ([symbols, params])
+lighter.watchTickers (symbols?, params?)
 ```
 
 
@@ -918,7 +918,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-lighter.unWatchTickers ([symbols, params])
+lighter.unWatchTickers (symbols?, params?)
 ```
 
 
@@ -939,7 +939,7 @@ watches a mark price
 
 
 ```javascript
-lighter.watchMarkPrice (symbol[, params])
+lighter.watchMarkPrice (symbol, params?)
 ```
 
 
@@ -960,7 +960,7 @@ watches mark prices
 
 
 ```javascript
-lighter.watchMarkPrices ([symbols, params])
+lighter.watchMarkPrices (symbols?, params?)
 ```
 
 
@@ -981,7 +981,7 @@ unWatches a mark price
 
 
 ```javascript
-lighter.unWatchMarkPrice (symbol[, params])
+lighter.unWatchMarkPrice (symbol, params?)
 ```
 
 
@@ -1002,7 +1002,7 @@ unWatches mark prices
 
 
 ```javascript
-lighter.unWatchMarkPrices ([symbols, params])
+lighter.unWatchMarkPrices (symbols?, params?)
 ```
 
 
@@ -1025,7 +1025,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-lighter.watchTrades (symbol[, since, limit, params])
+lighter.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1046,7 +1046,7 @@ unsubscribe from the trades channel
 
 
 ```javascript
-lighter.unWatchTrades (symbol[, params])
+lighter.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1069,7 +1069,7 @@ subscribe to recent trades of an account.
 
 
 ```javascript
-lighter.watchMyTrades ([symbol, since, limit, params])
+lighter.watchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1090,7 +1090,7 @@ unsubscribe from the account trades channel
 
 
 ```javascript
-lighter.unWatchMyTrades ([symbol, params])
+lighter.unWatchMyTrades (symbol?, params?)
 ```
 
 
@@ -1113,7 +1113,7 @@ watch the public liquidations of a trading pair
 
 
 ```javascript
-lighter.watchLiquidations (symbol[, since, limit, params])
+lighter.watchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -1134,7 +1134,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-lighter.watchBalance ([params])
+lighter.watchBalance (params?)
 ```
 
 
@@ -1155,6 +1155,6 @@ unWatches information on multiple orders made by the user
 
 
 ```javascript
-lighter.unWatchOrders (symbol[, params])
+lighter.unWatchOrders (symbol, params?)
 ```
 

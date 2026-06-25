@@ -397,7 +397,7 @@ class zebpay extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'chainId');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled') === true;
             $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
             $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled') === true;
@@ -1308,7 +1308,7 @@ class zebpay extends Exchange {
             //         }
             //     }
             //
-            $responseData = $this->safe_dict($response, 'data');
+            $responseData = $this->safe_dict($response, 'data', array());
             return $this->parse_order($responseData, $market);
         }) ();
     }
@@ -1440,7 +1440,7 @@ class zebpay extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => strtoupper($market['id']),
+                'symbol' => $this->safe_string_upper($market, 'id'),
             );
             $response = Async\await($this->privateSwapGetV1TradeUserLeverage ($this->extend($request, $params)));
             //
@@ -1912,7 +1912,7 @@ class zebpay extends Exchange {
         $timestamp = $this->milliseconds();
         return array(
             'info' => $info,
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'type' => null,
             'marginMode' => null,
             'amount' => $this->safe_number($info, 'amount'),
@@ -1924,7 +1924,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         $params = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
         $marketType = $isV1 ? 'swap' : 'spot';

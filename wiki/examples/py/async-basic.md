@@ -1,8 +1,5 @@
-- [Async Basic](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -21,5 +18,5 @@ async def test_binance():
 
 if __name__ == '__main__':
     print(asyncio.run(test_binance()))
- 
+
 ```

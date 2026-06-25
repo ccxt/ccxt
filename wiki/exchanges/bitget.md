@@ -104,7 +104,7 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 
 ```javascript
-bitget.setSandboxMode (enabled, [undefined])
+bitget.setSandboxMode (enabled)
 ```
 
 
@@ -122,7 +122,7 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 
 ```javascript
-bitget.enableDemoTrading (enabled, [undefined])
+bitget.enableDemoTrading (enabled)
 ```
 
 
@@ -142,7 +142,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bitget.fetchTime ([params])
+bitget.fetchTime (params?)
 ```
 
 
@@ -169,7 +169,7 @@ retrieves data on all markets for bitget
 
 
 ```javascript
-bitget.fetchMarkets ([params])
+bitget.fetchMarkets (params?)
 ```
 
 
@@ -189,7 +189,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitget.fetchCurrencies ([params])
+bitget.fetchCurrencies (params?)
 ```
 
 
@@ -220,7 +220,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-bitget.fetchMarketLeverageTiers (symbol[, params])
+bitget.fetchMarketLeverageTiers (symbol, params?)
 ```
 
 
@@ -246,7 +246,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitget.fetchDeposits (code[, since, limit, params])
+bitget.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -271,7 +271,7 @@ make a withdrawal
 
 
 ```javascript
-bitget.withdraw (code, amount, address, tag[, params])
+bitget.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -297,7 +297,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitget.fetchWithdrawals (code[, since, limit, params])
+bitget.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -318,7 +318,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitget.fetchDepositAddress (code[, params])
+bitget.fetchDepositAddress (code, params?)
 ```
 
 
@@ -346,7 +346,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitget.fetchOrderBook (symbol[, limit, params])
+bitget.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -373,7 +373,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitget.fetchTicker (symbol[, params])
+bitget.fetchTicker (symbol, params?)
 ```
 
 
@@ -394,7 +394,7 @@ fetches the mark price for a specific market
 
 
 ```javascript
-bitget.fetchMarkPrice (symbol[, params])
+bitget.fetchMarkPrice (symbol, params?)
 ```
 
 
@@ -423,7 +423,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitget.fetchTickers (symbols[, params])
+bitget.fetchTickers (symbols, params?)
 ```
 
 
@@ -456,7 +456,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitget.fetchTrades (symbol[, since, limit, params])
+bitget.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -478,7 +478,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-bitget.fetchTradingFee (symbol[, params])
+bitget.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -505,7 +505,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitget.fetchTradingFees ([params])
+bitget.fetchTradingFees (params?)
 ```
 
 
@@ -544,7 +544,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitget.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitget.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -575,7 +575,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitget.fetchBalance ([params])
+bitget.fetchBalance (params?)
 ```
 
 
@@ -602,7 +602,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bitget.createMarketBuyOrderWithCost (symbol, cost[, params])
+bitget.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -662,7 +662,7 @@ create a trade order
 
 
 ```javascript
-bitget.createOrder (symbol, type, side, amount[, price, params])
+bitget.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -691,7 +691,7 @@ create a list of trade orders (all orders should be of the same symbol)
 
 
 ```javascript
-bitget.createOrders (orders[, params])
+bitget.createOrders (orders, params?)
 ```
 
 
@@ -741,7 +741,7 @@ edit a trade order
 
 
 ```javascript
-bitget.editOrder (id, symbol, type, side, amount[, price, params])
+bitget.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -779,7 +779,7 @@ cancels an open order
 
 
 ```javascript
-bitget.cancelOrder (id, symbol[, params])
+bitget.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -812,7 +812,7 @@ cancel multiple orders
 
 
 ```javascript
-bitget.cancelOrders (ids, symbol[, params])
+bitget.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -843,7 +843,7 @@ cancel all open orders
 
 
 ```javascript
-bitget.cancelAllOrders (symbol[, params])
+bitget.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -872,7 +872,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitget.fetchOrder (id, symbol[, params])
+bitget.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -911,7 +911,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitget.fetchOpenOrders (symbol[, since, limit, params])
+bitget.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -949,7 +949,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitget.fetchClosedOrders (symbol[, since, limit, params])
+bitget.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -987,7 +987,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bitget.fetchCanceledOrders (symbol[, since, limit, params])
+bitget.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1027,7 +1027,7 @@ fetches information on multiple canceled and closed orders made by the user
 
 
 ```javascript
-bitget.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
+bitget.fetchCanceledAndClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1058,7 +1058,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitget.fetchLedger ([code, since, limit, params])
+bitget.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -1091,7 +1091,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitget.fetchMyTrades (symbol[, since, limit, params])
+bitget.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1117,7 +1117,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-bitget.fetchPosition (symbol[, params])
+bitget.fetchPosition (symbol, params?)
 ```
 
 
@@ -1149,7 +1149,7 @@ fetch all open positions
 
 
 ```javascript
-bitget.fetchPositions ([symbols, params])
+bitget.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1178,7 +1178,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-bitget.fetchFundingRateHistory (symbol[, since, limit, params])
+bitget.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1206,7 +1206,7 @@ fetch the current funding rate
 
 
 ```javascript
-bitget.fetchFundingRate (symbol[, params])
+bitget.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1230,7 +1230,7 @@ fetch the current funding rates for all markets
 
 
 ```javascript
-bitget.fetchFundingRates ([symbols, params])
+bitget.fetchFundingRates (symbols?, params?)
 ```
 
 
@@ -1252,7 +1252,7 @@ fetch the funding rate interval for multiple markets
 
 
 ```javascript
-bitget.fetchFundingIntervals ([symbols, params])
+bitget.fetchFundingIntervals (symbols?, params?)
 ```
 
 
@@ -1277,7 +1277,7 @@ fetch the funding history
 
 
 ```javascript
-bitget.fetchFundingHistory (symbol[, since, limit, params])
+bitget.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1299,7 +1299,7 @@ remove margin from a position
 
 
 ```javascript
-bitget.reduceMargin (symbol, amount[, params])
+bitget.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -1321,7 +1321,7 @@ add margin
 
 
 ```javascript
-bitget.addMargin (symbol, amount[, params])
+bitget.addMargin (symbol, amount, params?)
 ```
 
 
@@ -1342,7 +1342,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-bitget.fetchLeverage (symbol[, params])
+bitget.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1371,7 +1371,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bitget.setLeverage (leverage, symbol[, params])
+bitget.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1393,7 +1393,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-bitget.setMarginMode (marginMode, symbol[, params])
+bitget.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -1421,7 +1421,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-bitget.setPositionMode (hedged, symbol[, params])
+bitget.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1447,7 +1447,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-bitget.fetchOpenInterest (symbol[, params])
+bitget.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -1471,7 +1471,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-bitget.fetchTransfers (code[, since, limit, params])
+bitget.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -1497,7 +1497,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bitget.transfer (code, amount, fromAccount, toAccount[, params])
+bitget.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1518,7 +1518,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitget.fetchDepositWithdrawFees (codes[, params])
+bitget.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -1540,7 +1540,7 @@ create a loan to borrow margin
 
 
 ```javascript
-bitget.borrowCrossMargin (code, amount[, params])
+bitget.borrowCrossMargin (code, amount, params?)
 ```
 
 
@@ -1563,7 +1563,7 @@ create a loan to borrow margin
 
 
 ```javascript
-bitget.borrowIsolatedMargin (symbol, code, amount[, params])
+bitget.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1586,7 +1586,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-bitget.repayIsolatedMargin (symbol, code, amount[, params])
+bitget.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1608,7 +1608,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-bitget.repayCrossMargin (code, amount[, params])
+bitget.repayCrossMargin (code, amount, params?)
 ```
 
 
@@ -1638,7 +1638,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-bitget.fetchMyLiquidations ([symbol, since, limit, params])
+bitget.fetchMyLiquidations (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1659,7 +1659,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-bitget.fetchIsolatedBorrowRate (symbol[, params])
+bitget.fetchIsolatedBorrowRate (symbol, params?)
 ```
 
 
@@ -1685,7 +1685,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-bitget.fetchCrossBorrowRate (code[, params])
+bitget.fetchCrossBorrowRate (code, params?)
 ```
 
 
@@ -1714,7 +1714,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-bitget.fetchBorrowInterest ([code, symbol, since, limit, params])
+bitget.fetchBorrowInterest (code?, symbol?, since?, limit?, params?)
 ```
 
 
@@ -1741,7 +1741,7 @@ closes an open position for a market
 
 
 ```javascript
-bitget.closePosition (symbol[, side, params])
+bitget.closePosition (symbol, side?, params?)
 ```
 
 
@@ -1767,7 +1767,7 @@ closes all open positions for a market type
 
 
 ```javascript
-bitget.closeAllPositions ([params])
+bitget.closeAllPositions (params?)
 ```
 
 
@@ -1788,7 +1788,7 @@ fetches the margin mode of a trading pair
 
 
 ```javascript
-bitget.fetchMarginMode (symbol[, params])
+bitget.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -1818,7 +1818,7 @@ fetches historical positions
 
 
 ```javascript
-bitget.fetchPositionsHistory ([symbols, since, limit, params])
+bitget.fetchPositionsHistory (symbols?, since?, limit?, params)
 ```
 
 
@@ -1841,7 +1841,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-bitget.fetchConvertQuote (fromCode, toCode[, amount, params])
+bitget.fetchConvertQuote (fromCode, toCode, amount?, params?)
 ```
 
 
@@ -1867,7 +1867,7 @@ convert from one currency to another
 
 
 ```javascript
-bitget.createConvertTrade (id, fromCode, toCode, amount[, params])
+bitget.createConvertTrade (id, fromCode, toCode, amount, params?)
 ```
 
 
@@ -1890,7 +1890,7 @@ fetch the users history of conversion trades
 
 
 ```javascript
-bitget.fetchConvertTradeHistory ([code, since, limit, params])
+bitget.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
@@ -1910,7 +1910,7 @@ fetches all available currencies that can be converted
 
 
 ```javascript
-bitget.fetchConvertCurrencies ([params])
+bitget.fetchConvertCurrencies (params?)
 ```
 
 
@@ -1936,7 +1936,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-bitget.fetchFundingInterval (symbol[, params])
+bitget.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -1964,7 +1964,7 @@ fetches the long short ratio history for a unified market symbol
 
 
 ```javascript
-bitget.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+bitget.fetchLongShortRatioHistory (symbol, timeframe?, since?, limit?, params?)
 ```
 
 
@@ -2003,7 +2003,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitget.watchTicker (symbol[, params])
+bitget.watchTicker (symbol, params?)
 ```
 
 
@@ -2028,7 +2028,7 @@ unsubscribe from the ticker channel
 
 
 ```javascript
-bitget.unWatchTicker (symbol[, params])
+bitget.unWatchTicker (symbol, params?)
 ```
 
 
@@ -2055,7 +2055,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitget.watchTickers (symbols[, params])
+bitget.watchTickers (symbols, params?)
 ```
 
 
@@ -2082,7 +2082,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-bitget.watchBidsAsks (symbols[, params])
+bitget.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -2112,7 +2112,7 @@ watches historical candlestick data containing the open, high, low, close price,
 
 
 ```javascript
-bitget.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitget.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -2140,7 +2140,7 @@ unsubscribe from the ohlcv channel
 
 
 ```javascript
-bitget.unWatchOHLCV (symbol[, timeframe, params])
+bitget.unWatchOHLCV (symbol, timeframe?, params?)
 ```
 
 
@@ -2168,7 +2168,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitget.watchOrderBook (symbol[, limit, params])
+bitget.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -2196,7 +2196,7 @@ unsubscribe from the orderbook channel
 
 
 ```javascript
-bitget.unWatchOrderBook (symbol[, params])
+bitget.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -2224,7 +2224,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitget.watchOrderBookForSymbols (symbols[, limit, params])
+bitget.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -2253,7 +2253,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitget.watchTrades (symbol[, since, limit, params])
+bitget.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -2282,7 +2282,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitget.watchTradesForSymbols (symbols[, since, limit, params])
+bitget.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -2309,7 +2309,7 @@ unsubscribe from the trades channel
 
 
 ```javascript
-bitget.unWatchTrades (symbol[, params])
+bitget.unWatchTrades (symbol, params?)
 ```
 
 
@@ -2338,7 +2338,7 @@ watch all open positions
 
 
 ```javascript
-bitget.watchPositions (symbols[, since, limit, params])
+bitget.watchPositions (symbols, since?, limit?, params)
 ```
 
 
@@ -2375,7 +2375,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitget.watchOrders (symbol[, since, limit, params])
+bitget.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -2403,7 +2403,7 @@ watches trades made by the user
 
 
 ```javascript
-bitget.watchMyTrades (symbol[, since, limit, params])
+bitget.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -2434,7 +2434,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitget.watchBalance ([params])
+bitget.watchBalance (params?)
 ```
 
 
@@ -2543,7 +2543,7 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 
 ```javascript
-bitget.setSandboxMode (enabled, [undefined])
+bitget.setSandboxMode (enabled)
 ```
 
 
@@ -2561,7 +2561,7 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 
 ```javascript
-bitget.enableDemoTrading (enabled, [undefined])
+bitget.enableDemoTrading (enabled)
 ```
 
 
@@ -2581,7 +2581,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bitget.fetchTime ([params])
+bitget.fetchTime (params?)
 ```
 
 
@@ -2608,7 +2608,7 @@ retrieves data on all markets for bitget
 
 
 ```javascript
-bitget.fetchMarkets ([params])
+bitget.fetchMarkets (params?)
 ```
 
 
@@ -2628,7 +2628,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitget.fetchCurrencies ([params])
+bitget.fetchCurrencies (params?)
 ```
 
 
@@ -2659,7 +2659,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-bitget.fetchMarketLeverageTiers (symbol[, params])
+bitget.fetchMarketLeverageTiers (symbol, params?)
 ```
 
 
@@ -2685,7 +2685,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitget.fetchDeposits (code[, since, limit, params])
+bitget.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -2710,7 +2710,7 @@ make a withdrawal
 
 
 ```javascript
-bitget.withdraw (code, amount, address, tag[, params])
+bitget.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -2736,7 +2736,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitget.fetchWithdrawals (code[, since, limit, params])
+bitget.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -2757,7 +2757,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitget.fetchDepositAddress (code[, params])
+bitget.fetchDepositAddress (code, params?)
 ```
 
 
@@ -2785,7 +2785,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitget.fetchOrderBook (symbol[, limit, params])
+bitget.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -2812,7 +2812,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitget.fetchTicker (symbol[, params])
+bitget.fetchTicker (symbol, params?)
 ```
 
 
@@ -2833,7 +2833,7 @@ fetches the mark price for a specific market
 
 
 ```javascript
-bitget.fetchMarkPrice (symbol[, params])
+bitget.fetchMarkPrice (symbol, params?)
 ```
 
 
@@ -2862,7 +2862,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitget.fetchTickers (symbols[, params])
+bitget.fetchTickers (symbols, params?)
 ```
 
 
@@ -2895,7 +2895,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitget.fetchTrades (symbol[, since, limit, params])
+bitget.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -2917,7 +2917,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-bitget.fetchTradingFee (symbol[, params])
+bitget.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -2944,7 +2944,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitget.fetchTradingFees ([params])
+bitget.fetchTradingFees (params?)
 ```
 
 
@@ -2983,7 +2983,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitget.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitget.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -3014,7 +3014,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitget.fetchBalance ([params])
+bitget.fetchBalance (params?)
 ```
 
 
@@ -3041,7 +3041,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bitget.createMarketBuyOrderWithCost (symbol, cost[, params])
+bitget.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -3101,7 +3101,7 @@ create a trade order
 
 
 ```javascript
-bitget.createOrder (symbol, type, side, amount[, price, params])
+bitget.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -3130,7 +3130,7 @@ create a list of trade orders (all orders should be of the same symbol)
 
 
 ```javascript
-bitget.createOrders (orders[, params])
+bitget.createOrders (orders, params?)
 ```
 
 
@@ -3180,7 +3180,7 @@ edit a trade order
 
 
 ```javascript
-bitget.editOrder (id, symbol, type, side, amount[, price, params])
+bitget.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -3218,7 +3218,7 @@ cancels an open order
 
 
 ```javascript
-bitget.cancelOrder (id, symbol[, params])
+bitget.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -3251,7 +3251,7 @@ cancel multiple orders
 
 
 ```javascript
-bitget.cancelOrders (ids, symbol[, params])
+bitget.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -3282,7 +3282,7 @@ cancel all open orders
 
 
 ```javascript
-bitget.cancelAllOrders (symbol[, params])
+bitget.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -3311,7 +3311,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitget.fetchOrder (id, symbol[, params])
+bitget.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -3350,7 +3350,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitget.fetchOpenOrders (symbol[, since, limit, params])
+bitget.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -3388,7 +3388,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitget.fetchClosedOrders (symbol[, since, limit, params])
+bitget.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -3426,7 +3426,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bitget.fetchCanceledOrders (symbol[, since, limit, params])
+bitget.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -3466,7 +3466,7 @@ fetches information on multiple canceled and closed orders made by the user
 
 
 ```javascript
-bitget.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
+bitget.fetchCanceledAndClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -3497,7 +3497,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitget.fetchLedger ([code, since, limit, params])
+bitget.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -3530,7 +3530,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitget.fetchMyTrades (symbol[, since, limit, params])
+bitget.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -3556,7 +3556,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-bitget.fetchPosition (symbol[, params])
+bitget.fetchPosition (symbol, params?)
 ```
 
 
@@ -3588,7 +3588,7 @@ fetch all open positions
 
 
 ```javascript
-bitget.fetchPositions ([symbols, params])
+bitget.fetchPositions (symbols?, params?)
 ```
 
 
@@ -3617,7 +3617,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-bitget.fetchFundingRateHistory (symbol[, since, limit, params])
+bitget.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -3645,7 +3645,7 @@ fetch the current funding rate
 
 
 ```javascript
-bitget.fetchFundingRate (symbol[, params])
+bitget.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -3669,7 +3669,7 @@ fetch the current funding rates for all markets
 
 
 ```javascript
-bitget.fetchFundingRates ([symbols, params])
+bitget.fetchFundingRates (symbols?, params?)
 ```
 
 
@@ -3691,7 +3691,7 @@ fetch the funding rate interval for multiple markets
 
 
 ```javascript
-bitget.fetchFundingIntervals ([symbols, params])
+bitget.fetchFundingIntervals (symbols?, params?)
 ```
 
 
@@ -3716,7 +3716,7 @@ fetch the funding history
 
 
 ```javascript
-bitget.fetchFundingHistory (symbol[, since, limit, params])
+bitget.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -3738,7 +3738,7 @@ remove margin from a position
 
 
 ```javascript
-bitget.reduceMargin (symbol, amount[, params])
+bitget.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -3760,7 +3760,7 @@ add margin
 
 
 ```javascript
-bitget.addMargin (symbol, amount[, params])
+bitget.addMargin (symbol, amount, params?)
 ```
 
 
@@ -3781,7 +3781,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-bitget.fetchLeverage (symbol[, params])
+bitget.fetchLeverage (symbol, params?)
 ```
 
 
@@ -3810,7 +3810,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bitget.setLeverage (leverage, symbol[, params])
+bitget.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -3832,7 +3832,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-bitget.setMarginMode (marginMode, symbol[, params])
+bitget.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -3860,7 +3860,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-bitget.setPositionMode (hedged, symbol[, params])
+bitget.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -3886,7 +3886,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-bitget.fetchOpenInterest (symbol[, params])
+bitget.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -3910,7 +3910,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-bitget.fetchTransfers (code[, since, limit, params])
+bitget.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -3936,7 +3936,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bitget.transfer (code, amount, fromAccount, toAccount[, params])
+bitget.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -3957,7 +3957,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitget.fetchDepositWithdrawFees (codes[, params])
+bitget.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -3979,7 +3979,7 @@ create a loan to borrow margin
 
 
 ```javascript
-bitget.borrowCrossMargin (code, amount[, params])
+bitget.borrowCrossMargin (code, amount, params?)
 ```
 
 
@@ -4002,7 +4002,7 @@ create a loan to borrow margin
 
 
 ```javascript
-bitget.borrowIsolatedMargin (symbol, code, amount[, params])
+bitget.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -4025,7 +4025,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-bitget.repayIsolatedMargin (symbol, code, amount[, params])
+bitget.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -4047,7 +4047,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-bitget.repayCrossMargin (code, amount[, params])
+bitget.repayCrossMargin (code, amount, params?)
 ```
 
 
@@ -4077,7 +4077,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-bitget.fetchMyLiquidations ([symbol, since, limit, params])
+bitget.fetchMyLiquidations (symbol?, since?, limit?, params?)
 ```
 
 
@@ -4098,7 +4098,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-bitget.fetchIsolatedBorrowRate (symbol[, params])
+bitget.fetchIsolatedBorrowRate (symbol, params?)
 ```
 
 
@@ -4124,7 +4124,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-bitget.fetchCrossBorrowRate (code[, params])
+bitget.fetchCrossBorrowRate (code, params?)
 ```
 
 
@@ -4153,7 +4153,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-bitget.fetchBorrowInterest ([code, symbol, since, limit, params])
+bitget.fetchBorrowInterest (code?, symbol?, since?, limit?, params?)
 ```
 
 
@@ -4180,7 +4180,7 @@ closes an open position for a market
 
 
 ```javascript
-bitget.closePosition (symbol[, side, params])
+bitget.closePosition (symbol, side?, params?)
 ```
 
 
@@ -4206,7 +4206,7 @@ closes all open positions for a market type
 
 
 ```javascript
-bitget.closeAllPositions ([params])
+bitget.closeAllPositions (params?)
 ```
 
 
@@ -4227,7 +4227,7 @@ fetches the margin mode of a trading pair
 
 
 ```javascript
-bitget.fetchMarginMode (symbol[, params])
+bitget.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -4257,7 +4257,7 @@ fetches historical positions
 
 
 ```javascript
-bitget.fetchPositionsHistory ([symbols, since, limit, params])
+bitget.fetchPositionsHistory (symbols?, since?, limit?, params)
 ```
 
 
@@ -4280,7 +4280,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-bitget.fetchConvertQuote (fromCode, toCode[, amount, params])
+bitget.fetchConvertQuote (fromCode, toCode, amount?, params?)
 ```
 
 
@@ -4306,7 +4306,7 @@ convert from one currency to another
 
 
 ```javascript
-bitget.createConvertTrade (id, fromCode, toCode, amount[, params])
+bitget.createConvertTrade (id, fromCode, toCode, amount, params?)
 ```
 
 
@@ -4329,7 +4329,7 @@ fetch the users history of conversion trades
 
 
 ```javascript
-bitget.fetchConvertTradeHistory ([code, since, limit, params])
+bitget.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
@@ -4349,7 +4349,7 @@ fetches all available currencies that can be converted
 
 
 ```javascript
-bitget.fetchConvertCurrencies ([params])
+bitget.fetchConvertCurrencies (params?)
 ```
 
 
@@ -4375,7 +4375,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-bitget.fetchFundingInterval (symbol[, params])
+bitget.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -4403,7 +4403,7 @@ fetches the long short ratio history for a unified market symbol
 
 
 ```javascript
-bitget.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+bitget.fetchLongShortRatioHistory (symbol, timeframe?, since?, limit?, params?)
 ```
 
 
@@ -4442,7 +4442,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitget.watchTicker (symbol[, params])
+bitget.watchTicker (symbol, params?)
 ```
 
 
@@ -4467,7 +4467,7 @@ unsubscribe from the ticker channel
 
 
 ```javascript
-bitget.unWatchTicker (symbol[, params])
+bitget.unWatchTicker (symbol, params?)
 ```
 
 
@@ -4494,7 +4494,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitget.watchTickers (symbols[, params])
+bitget.watchTickers (symbols, params?)
 ```
 
 
@@ -4521,7 +4521,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-bitget.watchBidsAsks (symbols[, params])
+bitget.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -4551,7 +4551,7 @@ watches historical candlestick data containing the open, high, low, close price,
 
 
 ```javascript
-bitget.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitget.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -4579,7 +4579,7 @@ unsubscribe from the ohlcv channel
 
 
 ```javascript
-bitget.unWatchOHLCV (symbol[, timeframe, params])
+bitget.unWatchOHLCV (symbol, timeframe?, params?)
 ```
 
 
@@ -4607,7 +4607,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitget.watchOrderBook (symbol[, limit, params])
+bitget.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -4635,7 +4635,7 @@ unsubscribe from the orderbook channel
 
 
 ```javascript
-bitget.unWatchOrderBook (symbol[, params])
+bitget.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -4663,7 +4663,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitget.watchOrderBookForSymbols (symbols[, limit, params])
+bitget.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -4692,7 +4692,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitget.watchTrades (symbol[, since, limit, params])
+bitget.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -4721,7 +4721,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitget.watchTradesForSymbols (symbols[, since, limit, params])
+bitget.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -4748,7 +4748,7 @@ unsubscribe from the trades channel
 
 
 ```javascript
-bitget.unWatchTrades (symbol[, params])
+bitget.unWatchTrades (symbol, params?)
 ```
 
 
@@ -4777,7 +4777,7 @@ watch all open positions
 
 
 ```javascript
-bitget.watchPositions (symbols[, since, limit, params])
+bitget.watchPositions (symbols, since?, limit?, params)
 ```
 
 
@@ -4814,7 +4814,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitget.watchOrders (symbol[, since, limit, params])
+bitget.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -4842,7 +4842,7 @@ watches trades made by the user
 
 
 ```javascript
-bitget.watchMyTrades (symbol[, since, limit, params])
+bitget.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -4873,6 +4873,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitget.watchBalance ([params])
+bitget.watchBalance (params?)
 ```
 

@@ -145,7 +145,7 @@ public class DydxCore extends DydxApi
                 put( "www", "https://www.dydx.xyz" );
                 put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.dydx.xyz")) );
                 put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.dydx.exchange/introduction-trading_fees")) );
-                put( "referral", "dydx.trade?ref=ccxt" );
+                put( "referral", "https://dydx.trade?ref=ccxt" );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "indexer", new java.util.HashMap<String, Object>() {{
@@ -648,7 +648,7 @@ public class DydxCore extends DydxApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.parse8601(this.safeString(trade, "createdAt"));
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = this.safeString(market, "symbol");
         Object price = this.safeString(trade, "price");
         Object amount = this.safeString(trade, "size");
         Object side = this.safeStringLower(trade, "side");
@@ -1430,7 +1430,7 @@ public class DydxCore extends DydxApi
             // }
             //
             Object response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
-            Object account = this.safeDict(response, "info");
+            Object account = this.safeDict(response, "info", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(account, "pub_key", new java.util.HashMap<String, Object>() {{
         put( "key", Helpers.GetValue(Helpers.GetValue(account, "pub_key"), "key") );
     }});
@@ -1473,7 +1473,7 @@ public class DydxCore extends DydxApi
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         Object amountStr = this.amountToPrecision(symbol, amount);
         Object priceStr = this.priceToPrecision(symbol, price);
-        Object marketInfo = this.safeDict(market, "info");
+        Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
         Object atomicResolution = Helpers.GetValue(marketInfo, "atomicResolution");
         Object quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
         Object quantums = Precise.stringMul(amountStr, quantumScale);
@@ -2108,7 +2108,7 @@ public class DydxCore extends DydxApi
             }
             Object defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
             Object defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
-            Object feeDenom = this.safeDict(this.options, "feeDenom");
+            Object feeDenom = this.safeDict(this.options, "feeDenom", new java.util.HashMap<String, Object>() {{}});
             Object gasPrice = null;
             Object denom = null;
             if (Helpers.isTrue(Helpers.isEqual(defaultFeeDenom, "uusdc")))

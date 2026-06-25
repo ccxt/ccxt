@@ -557,80 +557,79 @@ public class WhitebitCore extends WhitebitApi
             //   }
             // }
             //
-            Object ids = Helpers.objectKeys(response);
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
-            {
-                Object id = Helpers.GetValue(ids, i);
-                Object currency = Helpers.GetValue(response, id);
-                // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
-                Object code = this.safeCurrencyCode(id);
-                Object hasProvider = (Helpers.inOp(currency, "providers"));
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                Object rawNetworks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
-                Object depositsNetworks = this.safeList(rawNetworks, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object networkLimits = this.safeDict(currency, "limits", new java.util.HashMap<String, Object>() {{}});
-                Object depositLimits = this.safeDict(networkLimits, "deposit", new java.util.HashMap<String, Object>() {{}});
-                Object withdrawLimits = this.safeDict(networkLimits, "withdraw", new java.util.HashMap<String, Object>() {{}});
-                Object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(allNetworks)); j++)
-                {
-                    Object networkId = Helpers.GetValue(allNetworks, j);
-                    Object networkCode = this.networkIdToCode(networkId);
-                    Object networkDepositLimits = this.safeDict(depositLimits, networkId, new java.util.HashMap<String, Object>() {{}});
-                    Object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new java.util.HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "active", null );
-        put( "deposit", WhitebitCore.this.inArray(networkId, depositsNetworks) );
-        put( "withdraw", WhitebitCore.this.inArray(networkId, withdrawsNetworks) );
-        put( "fee", null );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", WhitebitCore.this.safeNumber(networkDepositLimits, "min") );
-                put( "max", WhitebitCore.this.safeNumber(networkDepositLimits, "max") );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", WhitebitCore.this.safeNumber(networkWithdrawLimits, "min") );
-                put( "max", WhitebitCore.this.safeNumber(networkWithdrawLimits, "max") );
-            }} );
-        }} );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "code", code );
-        put( "info", currency );
-        put( "name", null );
-        put( "active", null );
-        put( "deposit", WhitebitCore.this.safeBool(currency, "can_deposit") );
-        put( "withdraw", WhitebitCore.this.safeBool(currency, "can_withdraw") );
-        put( "fee", null );
-        put( "networks", networks );
-        put( "type", ((Helpers.isTrue(hasProvider))) ? "fiat" : "crypto" );
-        put( "precision", WhitebitCore.this.parseNumber(WhitebitCore.this.parsePrecision(WhitebitCore.this.safeString(currency, "currency_precision"))) );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", WhitebitCore.this.safeNumber(currency, "min_withdraw") );
-                put( "max", WhitebitCore.this.safeNumber(currency, "max_withdraw") );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", WhitebitCore.this.safeNumber(currency, "min_deposit") );
-                put( "max", WhitebitCore.this.safeNumber(currency, "max_deposit") );
-            }} );
-        }} );
-    }}));
-            }
-            return result;
+            Object enhancedArray = this.addKeyInArrayItems(response, "_coin_id");
+            return this.parseCurrencies(enhancedArray);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
+        Object id = this.safeString(rawCurrency, "_coin_id");
+        Object code = this.safeCurrencyCode(id);
+        Object hasProvider = (Helpers.inOp(rawCurrency, "providers"));
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        Object rawNetworks = this.safeDict(rawCurrency, "networks", new java.util.HashMap<String, Object>() {{}});
+        Object depositsNetworks = this.safeList(rawNetworks, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networkLimits = this.safeDict(rawCurrency, "limits", new java.util.HashMap<String, Object>() {{}});
+        Object depositLimits = this.safeDict(networkLimits, "deposit", new java.util.HashMap<String, Object>() {{}});
+        Object withdrawLimits = this.safeDict(networkLimits, "withdraw", new java.util.HashMap<String, Object>() {{}});
+        Object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(allNetworks)); j++)
+        {
+            Object networkId = Helpers.GetValue(allNetworks, j);
+            Object networkCode = this.networkIdToCode(networkId, code);
+            Object networkDepositLimits = this.safeDict(depositLimits, networkId, new java.util.HashMap<String, Object>() {{}});
+            Object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "active", null );
+    put( "deposit", WhitebitCore.this.inArray(networkId, depositsNetworks) );
+    put( "withdraw", WhitebitCore.this.inArray(networkId, withdrawsNetworks) );
+    put( "fee", null );
+    put( "precision", null );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", WhitebitCore.this.safeNumber(networkDepositLimits, "min") );
+            put( "max", WhitebitCore.this.safeNumber(networkDepositLimits, "max") );
+        }} );
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", WhitebitCore.this.safeNumber(networkWithdrawLimits, "min") );
+            put( "max", WhitebitCore.this.safeNumber(networkWithdrawLimits, "max") );
+        }} );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "code", code );
+            put( "info", rawCurrency );
+            put( "name", null );
+            put( "active", null );
+            put( "deposit", WhitebitCore.this.safeBool(rawCurrency, "can_deposit") );
+            put( "withdraw", WhitebitCore.this.safeBool(rawCurrency, "can_withdraw") );
+            put( "fee", null );
+            put( "networks", networks );
+            put( "type", ((Helpers.isTrue(hasProvider))) ? "fiat" : "crypto" );
+            put( "precision", WhitebitCore.this.parseNumber(WhitebitCore.this.parsePrecision(WhitebitCore.this.safeString(rawCurrency, "currency_precision"))) );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", WhitebitCore.this.safeNumber(rawCurrency, "min_withdraw") );
+                    put( "max", WhitebitCore.this.safeNumber(rawCurrency, "max_withdraw") );
+                }} );
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", WhitebitCore.this.safeNumber(rawCurrency, "min_deposit") );
+                    put( "max", WhitebitCore.this.safeNumber(rawCurrency, "max_deposit") );
+                }} );
+            }} );
+        }});
     }
 
     /**
@@ -848,7 +847,7 @@ public class WhitebitCore extends WhitebitApi
                 {
                     Object networkLength = ((String)networkId).length();
                     networkId = Helpers.slice(networkId, 1, Helpers.subtract(networkLength, 1));
-                    Object networkCode = this.networkIdToCode(networkId);
+                    Object networkCode = this.networkIdToCode(networkId, code);
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
@@ -1612,7 +1611,7 @@ public class WhitebitCore extends WhitebitApi
                 Object market = this.safeMarket(marketId);
                 Object ticker = this.parseTicker(Helpers.GetValue(response, marketId), market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
-                Helpers.addElementToObject(result, symbol, ticker);
+                Helpers.addElementToObject(result, ((String)symbol), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });
@@ -2508,7 +2507,7 @@ public class WhitebitCore extends WhitebitApi
             Object id = Helpers.GetValue(balanceKeys, i);
             Object code = this.safeCurrencyCode(id);
             Object balance = Helpers.GetValue(response, id);
-            if (Helpers.isTrue(Helpers.isTrue((balance instanceof java.util.Map)) && Helpers.isTrue(!Helpers.isEqual(balance, null))))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(balance, null)) && Helpers.isTrue(this.isDictionary(balance))))
             {
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString2(balance, "available", "main_balance"));
@@ -2734,7 +2733,7 @@ public class WhitebitCore extends WhitebitApi
             put( "margin limit", "limit" );
             put( "margin market", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -2857,7 +2856,7 @@ public class WhitebitCore extends WhitebitApi
             put( "PARTIALLY_FILLED", "open" );
             put( "FILLED", "closed" );
         }};
-        return this.safeStringLower(statuses, status, status);
+        return this.safeStringLower(statuses, ((String)status), status);
     }
 
     /**
@@ -3503,7 +3502,7 @@ public class WhitebitCore extends WhitebitApi
             put( "16", "pending" );
             put( "17", "pending" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**

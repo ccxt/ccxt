@@ -375,13 +375,13 @@ class cex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         type = 'fiat' if self.safe_bool(rawCurrency, 'fiat') else 'crypto'
         currencyPrecision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision')))
-        networks: dict = {}
+        networks = {}
         rawNetworks = self.safe_dict(rawCurrency, 'blockchains', {})
         keys = list(rawNetworks.keys())
         for j in range(0, len(keys)):
             networkId = keys[j]
             rawNetwork = rawNetworks[networkId]
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             deposit = self.safe_string(rawNetwork, 'deposit') == 'enabled'
             withdraw = self.safe_string(rawNetwork, 'withdrawal') == 'enabled'
             networks[networkCode] = {
@@ -641,7 +641,7 @@ class cex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if since is not None:
@@ -716,7 +716,7 @@ class cex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.publicPostGetOrderBook(self.extend(request, params))
@@ -762,7 +762,7 @@ class cex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
             'resolution': self.timeframes[timeframe],
             'dataType': dataType,
@@ -839,7 +839,7 @@ class cex(Exchange, ImplicitAPI):
         return self.parse_trading_fees(fees, True)
 
     def parse_trading_fees(self, response, useKeyAsId=False) -> TradingFees:
-        result: dict = {}
+        result = {}
         keys = list(response.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -953,7 +953,7 @@ class cex(Exchange, ImplicitAPI):
         return self.parse_balance(accountBalance)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
         }
         keys = list(response.keys())
@@ -961,7 +961,7 @@ class cex(Exchange, ImplicitAPI):
             key = keys[i]
             balance = self.safe_dict(response, key, {})
             code = self.safe_currency_code(key)
-            account: dict = {
+            account = {
                 'used': self.safe_string(balance, 'balanceOnHold'),
                 'total': self.safe_string(balance, 'balance'),
             }
@@ -983,7 +983,7 @@ class cex(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         isClosedOrders = (status == 'closed')
         if isClosedOrders:
             request['archived'] = True
@@ -1086,7 +1086,7 @@ class cex(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'orderId': int(id),
         }
         result = await self.fetch_open_orders(symbol, None, None, self.extend(request, params))
@@ -1104,14 +1104,14 @@ class cex(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'orderId': int(id),
         }
         result = await self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
         return result[0]
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -1223,7 +1223,7 @@ class cex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'clientOrderId': self.uuid(),
             'currency1': market['baseId'],
             'currency2': market['quoteId'],
@@ -1307,7 +1307,7 @@ class cex(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'orderId': int(id),
             'cancelRequestId': 'c_' + str((self.milliseconds())),
             'timestamp': self.milliseconds(),
@@ -1364,7 +1364,7 @@ class cex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1428,7 +1428,7 @@ class cex(Exchange, ImplicitAPI):
         }, currency)
 
     def parse_ledger_entry_type(self, type):
-        ledgerType: dict = {
+        ledgerType = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
             'commission': 'fee',
@@ -1448,7 +1448,7 @@ class cex(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1516,7 +1516,7 @@ class cex(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'rejected': 'rejected',
             'pending': 'pending',
             'approved': 'ok',
@@ -1553,7 +1553,7 @@ class cex(Exchange, ImplicitAPI):
         fromMain = (fromAccount == '')
         targetAccount = toAccount if fromMain else fromAccount
         guid = self.safe_string(params, 'guid', self.uuid())
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'accountId': targetAccount,
@@ -1583,7 +1583,7 @@ class cex(Exchange, ImplicitAPI):
     async def transfer_between_sub_accounts(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'fromAccountId': fromAccount,
@@ -1657,10 +1657,10 @@ class cex(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'accountId': accountId,
             'currency': currency['id'],  # documentation is wrong about self param
-            'blockchain': self.network_code_to_id(networkCode),
+            'blockchain': self.network_code_to_id(networkCode, currency['code']),
         }
         response = await self.privatePostGetDepositAddress(self.extend(request, params))
         #
@@ -1685,12 +1685,12 @@ class cex(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': currency['code'],
-            'network': self.network_id_to_code(self.safe_string(depositAddress, 'blockchain')),
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'blockchain'), currency['code']),
             'address': address,
             'tag': None,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

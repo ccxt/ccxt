@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var latoken$1 = require('./abstract/latoken.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -18,7 +18,7 @@ class latoken extends latoken$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'latoken',
             'name': 'Latoken',
-            'countries': ['KY'],
+            'countries': ['KY'], // Cayman Islands
             'version': 'v2',
             'rateLimit': 1000,
             'has': {
@@ -229,37 +229,37 @@ class latoken extends latoken$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    'INTERNAL_ERROR': errors.ExchangeError,
-                    'SERVICE_UNAVAILABLE': errors.ExchangeNotAvailable,
-                    'NOT_AUTHORIZED': errors.AuthenticationError,
-                    'FORBIDDEN': errors.PermissionDenied,
-                    'BAD_REQUEST': errors.BadRequest,
-                    'NOT_FOUND': errors.ExchangeError,
-                    'ACCESS_DENIED': errors.PermissionDenied,
-                    'REQUEST_REJECTED': errors.ExchangeError,
-                    'HTTP_MEDIA_TYPE_NOT_SUPPORTED': errors.BadRequest,
-                    'MEDIA_TYPE_NOT_ACCEPTABLE': errors.BadRequest,
-                    'METHOD_ARGUMENT_NOT_VALID': errors.BadRequest,
-                    'VALIDATION_ERROR': errors.BadRequest,
-                    'ACCOUNT_EXPIRED': errors.AccountSuspended,
-                    'BAD_CREDENTIALS': errors.AuthenticationError,
-                    'COOKIE_THEFT': errors.AuthenticationError,
-                    'CREDENTIALS_EXPIRED': errors.AccountSuspended,
-                    'INSUFFICIENT_AUTHENTICATION': errors.AuthenticationError,
-                    'UNKNOWN_LOCATION': errors.AuthenticationError,
-                    'TOO_MANY_REQUESTS': errors.RateLimitExceeded,
-                    'INSUFFICIENT_FUNDS': errors.InsufficientFunds,
-                    'ORDER_VALIDATION': errors.InvalidOrder,
+                    'INTERNAL_ERROR': errors.ExchangeError, // internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
+                    'SERVICE_UNAVAILABLE': errors.ExchangeNotAvailable, // requested information currently not available. You can contact our support to solve this problem or retry later.
+                    'NOT_AUTHORIZED': errors.AuthenticationError, // user's query not authorized. Check if you are logged in.
+                    'FORBIDDEN': errors.PermissionDenied, // you don't have enough access rights.
+                    'BAD_REQUEST': errors.BadRequest, // some bad request, for example bad fields values or something else. Read response message for more information.
+                    'NOT_FOUND': errors.ExchangeError, // entity not found. Read message for more information.
+                    'ACCESS_DENIED': errors.PermissionDenied, // access is denied. Probably you don't have enough access rights, you contact our support.
+                    'REQUEST_REJECTED': errors.ExchangeError, // user's request rejected for some reasons. Check error message.
+                    'HTTP_MEDIA_TYPE_NOT_SUPPORTED': errors.BadRequest, // http media type not supported.
+                    'MEDIA_TYPE_NOT_ACCEPTABLE': errors.BadRequest, // media type not acceptable
+                    'METHOD_ARGUMENT_NOT_VALID': errors.BadRequest, // one of method argument is invalid. Check argument types and error message for more information.
+                    'VALIDATION_ERROR': errors.BadRequest, // check errors field to get reasons.
+                    'ACCOUNT_EXPIRED': errors.AccountSuspended, // restore your account or create a new one.
+                    'BAD_CREDENTIALS': errors.AuthenticationError, // invalid username or password.
+                    'COOKIE_THEFT': errors.AuthenticationError, // cookie has been stolen. Let's try reset your cookies.
+                    'CREDENTIALS_EXPIRED': errors.AccountSuspended, // credentials expired.
+                    'INSUFFICIENT_AUTHENTICATION': errors.AuthenticationError, // for example, 2FA required.
+                    'UNKNOWN_LOCATION': errors.AuthenticationError, // user logged from unusual location, email confirmation required.
+                    'TOO_MANY_REQUESTS': errors.RateLimitExceeded, // too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
+                    'INSUFFICIENT_FUNDS': errors.InsufficientFunds, // {"message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
+                    'ORDER_VALIDATION': errors.InvalidOrder, // {"message":"Quantity (0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
                     'BAD_TICKS': errors.InvalidOrder, // {"status":"FAILURE","message":"Quantity (1.4) does not match quantity tick (10)","error":"BAD_TICKS","errors":null,"result":false}
                 },
                 'broad': {
-                    'invalid API key, signature or digest': errors.AuthenticationError,
-                    'The API key was revoked': errors.AuthenticationError,
-                    'request expired or bad': errors.InvalidNonce,
-                    'For input string': errors.BadRequest,
-                    'Unable to resolve currency by tag': errors.BadSymbol,
-                    "Can't find currency with tag": errors.BadSymbol,
-                    'Unable to place order because pair is in inactive state': errors.BadSymbol,
+                    'invalid API key, signature or digest': errors.AuthenticationError, // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'The API key was revoked': errors.AuthenticationError, // {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
+                    'request expired or bad': errors.InvalidNonce, // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
+                    'For input string': errors.BadRequest, // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
+                    'Unable to resolve currency by tag': errors.BadSymbol, // {"message":"Unable to resolve currency by tag (undefined)","error":"NOT_FOUND","status":"FAILURE"}
+                    "Can't find currency with tag": errors.BadSymbol, // {"status":"FAILURE","message":"Can't find currency with tag = undefined","error":"NOT_FOUND","errors":null,"result":false}
+                    'Unable to place order because pair is in inactive state': errors.BadSymbol, // {"message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
                     'API keys are not available for': errors.AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
@@ -277,7 +277,7 @@ class latoken extends latoken$1["default"] {
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 },
-                'timeDifference': 0,
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': true, // controls the adjustment logic upon instantiation
             },
             'features': {
@@ -288,11 +288,11 @@ class latoken extends latoken$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': true,
+                            'IOC': true, // todo: for non-trigger orders
                             'FOK': true,
                             'PO': false,
                             'GTD': false,
@@ -309,7 +309,7 @@ class latoken extends latoken$1["default"] {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': undefined,
                         'symbolRequired': false,
                     },
@@ -330,7 +330,7 @@ class latoken extends latoken$1["default"] {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'daysBackCanceled': 1,
                         'untilDays': undefined,
                         'trigger': true,
@@ -437,7 +437,7 @@ class latoken extends latoken$1["default"] {
                     'swap': false,
                     'future': false,
                     'option': false,
-                    'active': (status === 'PAIR_STATUS_ACTIVE'),
+                    'active': (status === 'PAIR_STATUS_ACTIVE'), // assuming true
                     'contract': false,
                     'linear': undefined,
                     'inverse': undefined,
@@ -995,7 +995,7 @@ class latoken extends latoken$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response = undefined;
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
@@ -1171,7 +1171,7 @@ class latoken extends latoken$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets();
-        let response = undefined;
+        let response;
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, 'stop');
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1239,7 +1239,7 @@ class latoken extends latoken$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response = undefined;
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
@@ -1302,7 +1302,7 @@ class latoken extends latoken$1["default"] {
         };
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
-        let response = undefined;
+        let response;
         if (isTrigger) {
             response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, params));
         }
@@ -1357,10 +1357,10 @@ class latoken extends latoken$1["default"] {
         const request = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
-            'side': side.toUpperCase(),
-            'condition': 'GTC',
-            'type': uppercaseType,
-            'clientOrderId': this.uuid(),
+            'side': side.toUpperCase(), // "BUY", "BID", "SELL", "ASK"
+            'condition': 'GTC', // "GTC", "GOOD_TILL_CANCELLED", "IOC", "IMMEDIATE_OR_CANCEL", "FOK", "FILL_OR_KILL"
+            'type': uppercaseType, // "LIMIT", "MARKET"
+            'clientOrderId': this.uuid(), // 50 characters max
             // 'price': this.priceToPrecision (symbol, price),
             // 'quantity': this.amountToPrecision (symbol, amount),
             'quantity': this.amountToPrecision(symbol, amount),
@@ -1371,7 +1371,7 @@ class latoken extends latoken$1["default"] {
         }
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         params = this.omit(params, ['triggerPrice', 'stopPrice']);
-        let response = undefined;
+        let response;
         if (triggerPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             response = await this.privatePostAuthStopOrderPlace(this.extend(request, params));
@@ -1412,7 +1412,7 @@ class latoken extends latoken$1["default"] {
         };
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
-        let response = undefined;
+        let response;
         if (isTrigger) {
             response = await this.privatePostAuthStopOrderCancel(this.extend(request, params));
         }
@@ -1450,7 +1450,7 @@ class latoken extends latoken$1["default"] {
         let market = undefined;
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
-        let response = undefined;
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
@@ -1686,7 +1686,7 @@ class latoken extends latoken$1["default"] {
             'recipient': toAccount,
             'value': this.currencyToPrecision(code, amount),
         };
-        let response = undefined;
+        let response;
         if (toAccount.indexOf('@') >= 0) {
             response = await this.privatePostAuthTransferEmail(this.extend(request, params));
         }
@@ -1768,7 +1768,7 @@ class latoken extends latoken$1["default"] {
         };
         return this.safeString(statuses, status, status);
     }
-    sign(path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams(path, params);
         let requestString = request;
         const query = this.omit(params, this.extractParams(path));
@@ -1781,7 +1781,7 @@ class latoken extends latoken$1["default"] {
         if (api === 'private') {
             this.checkRequiredCredentials();
             const auth = method + request + urlencodedQuery;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha512);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512);
             headers = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,

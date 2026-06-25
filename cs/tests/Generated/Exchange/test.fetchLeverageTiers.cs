@@ -16,7 +16,7 @@ public partial class testMainClass : BaseTest
         //       {},
         //     ],
         // };
-        assert((tiers is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(tiers)));
+        assert(exchange.isDictionary(tiers), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(tiers)));
         object tierKeys = new List<object>(((IDictionary<string,object>)tiers).Keys);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(tierKeys)); postFixIncrement(ref i))

@@ -3600,7 +3600,7 @@ func (this *PhemexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 
 			response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if IsTrue(GetValue(market, "swap")) {
+		} else if IsTrue(IsTrue(!IsEqual(market, nil)) && IsTrue(GetValue(market, "swap"))) {
 
 			response = (<-this.PrivateGetExchangeOrderList(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3710,7 +3710,7 @@ func (this *PhemexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(limit, nil)) {
 				AddElementToObject(request, "limit", 200)
 			}
-		} else if IsTrue(!IsEqual(symbol, nil)) {
+		} else if IsTrue(IsTrue(!IsEqual(symbol, nil)) && IsTrue(!IsEqual(market, nil))) {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -4166,7 +4166,7 @@ func (this *PhemexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		"txid":        txid,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"address":     address,
 		"addressTo":   address,
 		"addressFrom": nil,
@@ -4705,7 +4705,7 @@ func (this *PhemexCore) ParseFundingFeeToPrecision(value any, optionalArgs ...an
 	_ = market
 	currencyCode := GetArg(optionalArgs, 1, nil)
 	_ = currencyCode
-	if IsTrue(IsTrue(IsEqual(value, nil)) || IsTrue(IsEqual(currencyCode, nil))) {
+	if IsTrue(IsTrue(IsTrue(IsEqual(value, nil)) || IsTrue(IsEqual(currencyCode, nil))) || IsTrue(IsEqual(market, nil))) {
 		return value
 	}
 	// it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
@@ -5719,7 +5719,7 @@ func (this *PhemexCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(networkCodeparamsVariable, 1)
 		var networkId any = nil
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			networkId = this.NetworkCodeToId(networkCode)
+			networkId = this.NetworkCodeToId(networkCode, code)
 		}
 		var stableCoins any = this.SafeValue(this.Options, "stableCoins")
 		if IsTrue(IsEqual(networkId, nil)) {

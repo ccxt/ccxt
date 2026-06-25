@@ -209,7 +209,15 @@ func BinaryToHex(buff []byte) string {
 }
 
 func (e *Exchange) BinaryToBase16(buff2 any) string {
-	buff := buff2.([]byte)
+	var buff []byte
+	switch value := buff2.(type) {
+	case string:
+		buff = []byte(value)
+	case []byte:
+		buff = value
+	default:
+		panic(fmt.Sprintf("BinaryToBase16: unsupported type %T", buff2))
+	}
 	return BinaryToHex(buff)
 }
 

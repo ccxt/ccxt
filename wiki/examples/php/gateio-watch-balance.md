@@ -1,8 +1,5 @@
-- [Gateio Watch Balance](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -49,5 +46,5 @@ function main() {
 
 
 main();
- 
+
 ```

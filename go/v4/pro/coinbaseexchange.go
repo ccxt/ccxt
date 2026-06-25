@@ -260,7 +260,7 @@ func  (this *CoinbaseexchangeCore) WatchTrades(symbol any, optionalArgs ...any) 
         }
 /**
  * @method
- * @name coinbase#watchTradesForSymbols
+ * @name coinbaseexchange#watchTradesForSymbols
  * @description get the list of most recent trades for a particular symbol
  * @param {string[]} symbols unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -871,11 +871,11 @@ func  (this *CoinbaseexchangeCore) HandleOrder(client any, message any)  {
                     if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "fee"), nil)) {
                         ccxt.AddElementToObject(previousOrder, "fee", map[string]any {
     "cost": 0,
-    "currency": ccxt.GetValue(ccxt.GetValue(trade, "fee"), "currency"),
+    "currency": this.SafeString(ccxt.GetValue(trade, "fee"), "currency"),
 })
                     }
-                    if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil))) && ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(trade, "fee"), "cost"), nil)))) {
-                        ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.Sum(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), ccxt.GetValue(ccxt.GetValue(trade, "fee"), "cost")))
+                    if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil))) && ccxt.IsTrue((!ccxt.IsEqual(this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost"), nil)))) {
+                        ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.Sum(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost")))
                         var previousOrderFee any = this.SafeDict(previousOrder, "fee")
                         var tradeFee any = this.SafeDict(trade, "fee")
                         ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.ParseNumber(ccxt.Precise.StringAdd(this.SafeString(previousOrderFee, "cost"), this.SafeString(tradeFee, "cost"))))

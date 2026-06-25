@@ -1554,7 +1554,7 @@ public partial class poloniex : Exchange
         }
         if (isTrue(isTrue(isContract) && isTrue(!isEqual(symbol, null))))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         var requestparametersVariable = this.handleUntilOption(endKey, request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
@@ -3238,7 +3238,7 @@ public partial class poloniex : Exchange
                     {
                         object networkId = getValue(childChains, j);
                         networkId = ((string)networkId).Replace((string)code, (string)"");
-                        object networkCode = this.networkIdToCode(networkId);
+                        object networkCode = this.networkIdToCode(networkId, getValue(currency, "code"));
                         object networkInfo = this.safeValue(response, networkId);
                         object networkObject = new Dictionary<string, object>() {};
                         object withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
@@ -3276,7 +3276,7 @@ public partial class poloniex : Exchange
         };
         ((IDictionary<string,object>)depositWithdrawFee)["withdraw"] = withdrawResult;
         ((IDictionary<string,object>)depositWithdrawFee)["deposit"] = depositResult;
-        object networkCode = this.networkIdToCode(networkId);
+        object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
         ((IDictionary<string,object>)getValue(depositWithdrawFee, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
             { "withdraw", withdrawResult },
             { "deposit", depositResult },
@@ -3531,7 +3531,7 @@ public partial class poloniex : Exchange
         object longLeverage = null;
         object marketId = null;
         object marginMode = null;
-        object data = this.safeList(leverage, "data");
+        object data = this.safeList(leverage, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);

@@ -69,7 +69,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-hashkey.fetchTime ([params])
+hashkey.fetchTime (params?)
 ```
 
 
@@ -89,7 +89,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-hashkey.fetchStatus ([params])
+hashkey.fetchStatus (params?)
 ```
 
 
@@ -110,7 +110,7 @@ retrieves data on all markets for the exchange
 
 
 ```javascript
-hashkey.fetchMarkets ([params])
+hashkey.fetchMarkets (params?)
 ```
 
 
@@ -130,7 +130,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-hashkey.fetchCurrencies ([params])
+hashkey.fetchCurrencies (params?)
 ```
 
 
@@ -152,7 +152,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-hashkey.fetchOrderBook (symbol[, limit, params])
+hashkey.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -175,7 +175,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-hashkey.fetchTrades (symbol[, since, limit, params])
+hashkey.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -209,7 +209,7 @@ fetch all trades made by the user
 
 
 ```javascript
-hashkey.fetchMyTrades (symbol[, since, limit, params])
+hashkey.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -235,7 +235,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-hashkey.fetchOHLCV (symbol, timeframe[, since, limit, params])
+hashkey.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -256,7 +256,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-hashkey.fetchTicker (symbol[, params])
+hashkey.fetchTicker (symbol, params?)
 ```
 
 
@@ -277,7 +277,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-hashkey.fetchTickers ([symbols, params])
+hashkey.fetchTickers (symbols?, params?)
 ```
 
 
@@ -299,7 +299,7 @@ fetches the last price for multiple markets
 
 
 ```javascript
-hashkey.fetchLastPrices ([symbols, params])
+hashkey.fetchLastPrices (symbols?, params?)
 ```
 
 
@@ -321,7 +321,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-hashkey.fetchBalance ([params])
+hashkey.fetchBalance (params?)
 ```
 
 
@@ -343,7 +343,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-hashkey.fetchDepositAddress (code[, params])
+hashkey.fetchDepositAddress (code, params?)
 ```
 
 
@@ -368,7 +368,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-hashkey.fetchDeposits (code[, since, limit, params])
+hashkey.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -392,7 +392,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-hashkey.fetchWithdrawals (code[, since, limit, params])
+hashkey.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -419,7 +419,7 @@ make a withdrawal
 
 
 ```javascript
-hashkey.withdraw (code, amount, address, tag[, params])
+hashkey.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -445,7 +445,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-hashkey.transfer (code, amount, fromAccount, toAccount[, params])
+hashkey.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -465,7 +465,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-hashkey.fetchAccounts ([params])
+hashkey.fetchAccounts (params?)
 ```
 
 
@@ -491,7 +491,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-hashkey.fetchLedger ([code, since, limit, params])
+hashkey.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -527,7 +527,7 @@ create a trade order
 
 
 ```javascript
-hashkey.createOrder (symbol, type, side, amount[, price, params])
+hashkey.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -548,7 +548,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-hashkey.createMarketBuyOrderWithCost (symbol, cost[, params])
+hashkey.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -582,7 +582,7 @@ create a trade order on spot market
 
 
 ```javascript
-hashkey.createSpotOrder (symbol, type, side, amount[, price, params])
+hashkey.createSpotOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -612,7 +612,7 @@ create a trade order on swap market
 
 
 ```javascript
-hashkey.createSwapOrder (symbol, type, side, amount[, price, params])
+hashkey.createSwapOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -637,7 +637,7 @@ create a list of trade orders (all orders should be of the same symbol)
 
 
 ```javascript
-hashkey.createOrders (orders[, params])
+hashkey.createOrders (orders, params?)
 ```
 
 
@@ -667,7 +667,7 @@ cancels an open order
 
 
 ```javascript
-hashkey.cancelOrder (id, symbol[, params])
+hashkey.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -693,7 +693,7 @@ cancel all open orders
 
 
 ```javascript
-hashkey.cancelAllOrders (symbol[, params])
+hashkey.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -720,7 +720,7 @@ cancel multiple orders
 
 
 ```javascript
-hashkey.cancelOrders (ids[, symbol, params])
+hashkey.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -751,7 +751,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-hashkey.fetchOrder (id, symbol[, params])
+hashkey.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -787,7 +787,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-hashkey.fetchOpenOrders ([symbol, since, limit, params])
+hashkey.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -823,7 +823,7 @@ fetches information on multiple canceled and closed orders made by the user
 
 
 ```javascript
-hashkey.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
+hashkey.fetchCanceledAndClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -844,7 +844,7 @@ fetch the current funding rate
 
 
 ```javascript
-hashkey.fetchFundingRate (symbol[, params])
+hashkey.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -865,7 +865,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-hashkey.fetchFundingRates (symbols[, params])
+hashkey.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -890,7 +890,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-hashkey.fetchFundingRateHistory (symbol[, since, limit, params])
+hashkey.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -912,7 +912,7 @@ fetch all open positions
 
 
 ```javascript
-hashkey.fetchPositions (symbols[, params])
+hashkey.fetchPositions (symbols, params?)
 ```
 
 
@@ -934,7 +934,7 @@ fetch all open positions for specific symbol
 
 
 ```javascript
-hashkey.fetchPositionsForSymbol (symbol[, params])
+hashkey.fetchPositionsForSymbol (symbol, params?)
 ```
 
 
@@ -955,7 +955,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-hashkey.fetchLeverage (symbol[, params])
+hashkey.fetchLeverage (symbol, params?)
 ```
 
 
@@ -977,7 +977,7 @@ set the level of leverage for a market
 
 
 ```javascript
-hashkey.setLeverage (leverage, symbol[, params])
+hashkey.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -998,7 +998,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-hashkey.fetchLeverageTiers (symbols[, params])
+hashkey.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -1023,7 +1023,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-hashkey.fetchTradingFee (symbol[, params])
+hashkey.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -1043,7 +1043,7 @@ hashkey.fetchTradingFee (symbol[, params])
 
 
 ```javascript
-hashkey.fetchTradingFees ([params])
+hashkey.fetchTradingFees (params?)
 ```
 
 
@@ -1068,7 +1068,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-hashkey.watchOHLCV (symbol, timeframe[, since, limit, params])
+hashkey.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1092,7 +1092,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-hashkey.watchTrades (symbol[, since, limit, params])
+hashkey.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1114,7 +1114,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-hashkey.watchOrderBook (symbol[, limit, params])
+hashkey.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1137,7 +1137,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-hashkey.watchOrders (symbol[, since, limit, params])
+hashkey.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1160,7 +1160,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-hashkey.watchMyTrades (symbol[, since, limit, params])
+hashkey.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1183,7 +1183,7 @@ watch all open positions
 
 
 ```javascript
-hashkey.watchPositions ([symbols, since, limit, params])
+hashkey.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -1204,6 +1204,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-hashkey.watchBalance ([params])
+hashkey.watchBalance (params?)
 ```
 

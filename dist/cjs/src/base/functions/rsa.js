@@ -3,18 +3,20 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var JSEncrypt = require('../../static_dependencies/jsencrypt/JSEncrypt.js');
-var index = require('../../static_dependencies/scure-base/index.js');
+var utils_js = require('@noble/hashes/utils.js');
+var base = require('@scure/base');
 var encode = require('./encode.js');
 var crypto = require('./crypto.js');
-var p256 = require('../../static_dependencies/noble-curves/p256.js');
-var ed25519 = require('../../static_dependencies/noble-curves/ed25519.js');
+var nist_js = require('@noble/curves/nist.js');
+var ed25519_js = require('@noble/curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 function rsa(request, secret, hash) {
     const RSA = new JSEncrypt.JSEncrypt();
-    const digester = (input) => index.base16.encode(hash(input));
+    const digester = (input) => base.hex.encode(hash((typeof input === 'string') ? utils_js.utf8ToBytes(input) : input));
     RSA.setPrivateKey(secret);
-    const name = (hash.create()).constructor.name.toLowerCase();
+    // @noble/hashes v2 renamed the digest classes from SHA256 to _SHA256, etc
+    const name = (hash.create()).constructor.name.toLowerCase().replace('_', '');
     return RSA.sign(request, digester, name);
 }
 function jwt(request, secret, hash, isRSA = false, opts = {}) {
@@ -36,16 +38,16 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
         signature = encode.urlencodeBase64(crypto.hmac(token, secret, hash, 'binary'));
     }
     else if (isRSA || algoType === 'RS') {
-        signature = encode.urlencodeBase64(encode.base64ToBinary(rsa(token, index.utf8.encode(secret), hash)));
+        signature = encode.urlencodeBase64(encode.base64ToBinary(rsa(token, base.utf8.encode(secret), hash)));
     }
     else if (algoType === 'ES') {
-        const signedHash = crypto.ecdsa(token, index.utf8.encode(secret), p256.P256, hash);
+        const signedHash = crypto.ecdsa(token, base.utf8.encode(secret), nist_js.p256, hash);
         const r = signedHash.r.padStart(64, '0');
         const s = signedHash.s.padStart(64, '0');
         signature = encode.urlencodeBase64(encode.base16ToBinary(r + s));
     }
     else if (algoType === 'ED') {
-        const base64str = crypto.eddsa(toHex(token), secret, ed25519.ed25519);
+        const base64str = crypto.eddsa(toHex(token), secret, ed25519_js.ed25519);
         // we need urlencoded64 not base64
         signature = encode.base64ToBase64Url(base64str);
     }

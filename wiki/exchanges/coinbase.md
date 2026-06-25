@@ -70,7 +70,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-coinbase.fetchTime ([params])
+coinbase.fetchTime (params?)
 ```
 
 
@@ -95,7 +95,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-coinbase.fetchAccounts ([params])
+coinbase.fetchAccounts (params?)
 ```
 
 
@@ -115,7 +115,7 @@ fetch all the portfolios
 
 
 ```javascript
-coinbase.fetchPortfolios ([params])
+coinbase.fetchPortfolios (params?)
 ```
 
 
@@ -136,7 +136,7 @@ create a currency deposit address
 
 
 ```javascript
-coinbase.createDepositAddress (code[, params])
+coinbase.createDepositAddress (code, params?)
 ```
 
 
@@ -164,7 +164,7 @@ Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use
 
 
 ```javascript
-coinbase.fetchWithdrawals (code[, since, limit, params])
+coinbase.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -192,7 +192,7 @@ Fetch all fiat deposits made to an account. Won't return crypto deposits or stak
 
 
 ```javascript
-coinbase.fetchDeposits (code[, since, limit, params])
+coinbase.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -215,7 +215,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-coinbase.fetchDepositsWithdrawals ([code, since, limit, params])
+coinbase.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -242,7 +242,7 @@ retrieves data on all markets for coinbase
 
 
 ```javascript
-coinbase.fetchMarkets ([params])
+coinbase.fetchMarkets (params?)
 ```
 
 
@@ -266,7 +266,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-coinbase.fetchCurrencies ([params])
+coinbase.fetchCurrencies (params?)
 ```
 
 
@@ -293,7 +293,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinbase.fetchTickers (symbols[, params])
+coinbase.fetchTickers (symbols, params?)
 ```
 
 
@@ -320,7 +320,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinbase.fetchTicker (symbol[, params])
+coinbase.fetchTicker (symbol, params?)
 ```
 
 
@@ -348,7 +348,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinbase.fetchBalance ([params])
+coinbase.fetchBalance (params?)
 ```
 
 
@@ -372,7 +372,7 @@ Fetch the history of changes, i.e. actions done by the user or operations that a
 
 
 ```javascript
-coinbase.fetchLedger ([code, since, limit, params])
+coinbase.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -394,7 +394,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-coinbase.createMarketBuyOrderWithCost (symbol, cost[, params])
+coinbase.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -435,7 +435,7 @@ create a trade order
 
 
 ```javascript
-coinbase.createOrder (symbol, type, side, amount[, price, params])
+coinbase.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -457,7 +457,7 @@ cancels an open order
 
 
 ```javascript
-coinbase.cancelOrder (id, symbol[, params])
+coinbase.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -479,7 +479,7 @@ cancel multiple orders
 
 
 ```javascript
-coinbase.cancelOrders (ids, symbol[, params])
+coinbase.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -506,7 +506,7 @@ edit a trade order
 
 
 ```javascript
-coinbase.editOrder (id, symbol, type, side, amount[, price, params])
+coinbase.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -528,7 +528,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-coinbase.fetchOrder (id, symbol[, params])
+coinbase.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -553,7 +553,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-coinbase.fetchOrders (symbol[, since, limit, params])
+coinbase.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -578,7 +578,7 @@ fetches information on all currently open orders
 
 
 ```javascript
-coinbase.fetchOpenOrders (symbol[, since, limit, params])
+coinbase.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -603,7 +603,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-coinbase.fetchClosedOrders (symbol[, since, limit, params])
+coinbase.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -626,7 +626,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-coinbase.fetchCanceledOrders (symbol[, since, limit, params])
+coinbase.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -657,7 +657,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-coinbase.fetchOHLCV (symbol, timeframe[, since, limit, params])
+coinbase.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -685,7 +685,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coinbase.fetchTrades (symbol[, since, limit, params])
+coinbase.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -710,7 +710,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinbase.fetchMyTrades (symbol[, since, limit, params])
+coinbase.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -737,7 +737,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinbase.fetchOrderBook (symbol[, limit, params])
+coinbase.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -758,7 +758,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-coinbase.fetchBidsAsks ([symbols, params])
+coinbase.fetchBidsAsks (symbols?, params?)
 ```
 
 
@@ -784,7 +784,7 @@ make a withdrawal
 
 
 ```javascript
-coinbase.withdraw (code, amount, address[, tag, params])
+coinbase.withdraw (code, amount, address, tag?, params?)
 ```
 
 
@@ -805,7 +805,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-coinbase.fetchDepositAddress (code[, params])
+coinbase.fetchDepositAddress (code, params?)
 ```
 
 
@@ -829,7 +829,7 @@ make a deposit
 
 
 ```javascript
-coinbase.deposit (code, amount, id[, params])
+coinbase.deposit (code, amount, id, params?)
 ```
 
 
@@ -852,7 +852,7 @@ fetch information on a deposit, fiat only, for crypto transactions use fetchLedg
 
 
 ```javascript
-coinbase.fetchDeposit (id[, code, params])
+coinbase.fetchDeposit (id, code?, params?)
 ```
 
 
@@ -872,7 +872,7 @@ fetch the deposit id for a fiat currency associated with this account
 
 
 ```javascript
-coinbase.fetchDepositMethodIds ([params])
+coinbase.fetchDepositMethodIds (params?)
 ```
 
 
@@ -893,7 +893,7 @@ fetch the deposit id for a fiat currency associated with this account
 
 
 ```javascript
-coinbase.fetchDepositMethodId (id[, params])
+coinbase.fetchDepositMethodId (id, params?)
 ```
 
 
@@ -919,7 +919,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-coinbase.fetchConvertQuote (fromCode, toCode[, amount, params])
+coinbase.fetchConvertQuote (fromCode, toCode, amount?, params?)
 ```
 
 
@@ -943,7 +943,7 @@ convert from one currency to another
 
 
 ```javascript
-coinbase.createConvertTrade (id, fromCode, toCode[, amount, params])
+coinbase.createConvertTrade (id, fromCode, toCode, amount?, params?)
 ```
 
 
@@ -966,7 +966,7 @@ fetch the data for a conversion trade
 
 
 ```javascript
-coinbase.fetchConvertTrade (id, code[, params])
+coinbase.fetchConvertTrade (id, code, params?)
 ```
 
 
@@ -990,7 +990,7 @@ coinbase.fetchConvertTrade (id, code[, params])
 
 
 ```javascript
-coinbase.closePosition (symbol[, side, params])
+coinbase.closePosition (symbol, side?, params?)
 ```
 
 
@@ -1016,7 +1016,7 @@ fetch all open positions
 
 
 ```javascript
-coinbase.fetchPositions ([symbols, params])
+coinbase.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1043,7 +1043,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-coinbase.fetchPosition (symbol[, params])
+coinbase.fetchPosition (symbol, params?)
 ```
 
 
@@ -1064,7 +1064,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-coinbase.fetchTradingFees ([params])
+coinbase.fetchTradingFees (params?)
 ```
 
 
@@ -1085,7 +1085,7 @@ Fetch details for a specific portfolio by UUID
 
 
 ```javascript
-coinbase.fetchPortfolioDetails (portfolioUuid[, params])
+coinbase.fetchPortfolioDetails (portfolioUuid, params?)
 ```
 
 
@@ -1107,6 +1107,6 @@ fetch deposit addresses for multiple currencies (when available)
 
 
 ```javascript
-coinbase.fetchDepositAddresses ([codes, params])
+coinbase.fetchDepositAddresses (codes?, params?)
 ```
 

@@ -94,7 +94,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-aster.fetchCurrencies ([params])
+aster.fetchCurrencies (params?)
 ```
 
 
@@ -118,7 +118,7 @@ retrieves data on all markets for bigone
 
 
 ```javascript
-aster.fetchMarkets ([params])
+aster.fetchMarkets (params?)
 ```
 
 
@@ -142,7 +142,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-aster.fetchTime ([params])
+aster.fetchTime (params?)
 ```
 
 
@@ -174,7 +174,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-aster.fetchOHLCV (symbol, timeframe[, since, limit, params])
+aster.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -203,7 +203,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-aster.fetchTrades (symbol[, since, limit, params])
+aster.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -231,7 +231,7 @@ fetch all trades made by the user
 
 
 ```javascript
-aster.fetchMyTrades ([symbol, since, limit, params])
+aster.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -257,7 +257,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-aster.fetchOrderBook (symbol[, limit, params])
+aster.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -282,7 +282,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-aster.fetchTicker (symbol[, params])
+aster.fetchTicker (symbol, params?)
 ```
 
 
@@ -309,7 +309,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-aster.fetchTickers (symbols[, params])
+aster.fetchTickers (symbols, params?)
 ```
 
 
@@ -335,7 +335,7 @@ fetches the last price for multiple markets
 
 
 ```javascript
-aster.fetchLastPrices (symbols[, params])
+aster.fetchLastPrices (symbols, params?)
 ```
 
 
@@ -361,7 +361,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-aster.fetchBidsAsks (symbols[, params])
+aster.fetchBidsAsks (symbols, params?)
 ```
 
 
@@ -382,7 +382,7 @@ fetch the current funding rate
 
 
 ```javascript
-aster.fetchFundingRate (symbol[, params])
+aster.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -403,7 +403,7 @@ fetch the current funding rate for multiple symbols
 
 
 ```javascript
-aster.fetchFundingRates ([symbols, params])
+aster.fetchFundingRates (symbols?, params?)
 ```
 
 
@@ -424,7 +424,7 @@ fetch the funding rate interval for multiple markets
 
 
 ```javascript
-aster.fetchFundingIntervals ([symbols, params])
+aster.fetchFundingIntervals (symbols?, params?)
 ```
 
 
@@ -448,7 +448,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-aster.fetchFundingRateHistory (symbol[, since, limit, params])
+aster.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -474,7 +474,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-aster.fetchBalance ([params])
+aster.fetchBalance (params?)
 ```
 
 
@@ -496,7 +496,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-aster.setMarginMode (marginMode, symbol[, params])
+aster.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -517,7 +517,7 @@ fetchs the position mode, hedged or one way, hedged for aster is set identically
 
 
 ```javascript
-aster.fetchPositionMode (symbol[, params])
+aster.fetchPositionMode (symbol, params?)
 ```
 
 
@@ -539,7 +539,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-aster.setPositionMode (hedged, symbol[, params])
+aster.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -564,7 +564,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-aster.fetchTradingFee (symbol[, params])
+aster.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -591,7 +591,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-aster.fetchOrder (id, symbol[, params])
+aster.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -617,7 +617,7 @@ fetch an open order by the id
 
 
 ```javascript
-aster.fetchOpenOrder (id, symbol[, params])
+aster.fetchOpenOrder (id, symbol, params?)
 ```
 
 
@@ -645,7 +645,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-aster.fetchOrders (symbol[, since, limit, params])
+aster.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -674,7 +674,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-aster.fetchOpenOrders (symbol[, since, limit, params])
+aster.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -711,7 +711,7 @@ create a trade order
 
 
 ```javascript
-aster.createOrder (symbol, type, side, amount[, price, params])
+aster.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -732,7 +732,7 @@ create a list of trade orders
 
 
 ```javascript
-aster.createOrders (orders[, params])
+aster.createOrders (orders, params?)
 ```
 
 
@@ -757,7 +757,7 @@ cancel all open orders in a market
 
 
 ```javascript
-aster.cancelAllOrders (symbol[, params])
+aster.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -783,7 +783,7 @@ cancels an open order
 
 
 ```javascript
-aster.cancelOrder (id, symbol[, params])
+aster.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -811,7 +811,7 @@ cancel multiple orders
 
 
 ```javascript
-aster.cancelOrders (ids[, symbol, params])
+aster.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -833,7 +833,7 @@ set the level of leverage for a market
 
 
 ```javascript
-aster.setLeverage (leverage, symbol[, params])
+aster.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -854,7 +854,7 @@ fetch the set leverage for all markets
 
 
 ```javascript
-aster.fetchLeverages ([symbols, params])
+aster.fetchLeverages (symbols?, params?)
 ```
 
 
@@ -875,7 +875,7 @@ fetches margin mode of the user
 
 
 ```javascript
-aster.fetchMarginModes (symbols[, params])
+aster.fetchMarginModes (symbols, params?)
 ```
 
 
@@ -900,7 +900,7 @@ fetches the history of margin added or reduced from contract isolated positions
 
 
 ```javascript
-aster.fetchMarginAdjustmentHistory (symbol[, type, since, limit, params])
+aster.fetchMarginAdjustmentHistory (symbol, type?, since?, limit?, params)
 ```
 
 
@@ -922,7 +922,7 @@ remove margin from a position
 
 
 ```javascript
-aster.reduceMargin (symbol, amount[, params])
+aster.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -944,7 +944,7 @@ add margin
 
 
 ```javascript
-aster.addMargin (symbol, amount[, params])
+aster.addMargin (symbol, amount, params?)
 ```
 
 
@@ -970,7 +970,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-aster.fetchFundingHistory (symbol[, since, limit, params])
+aster.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -994,7 +994,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-aster.fetchLedger ([code, since, limit, params])
+aster.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -1015,7 +1015,7 @@ fetch positions risk
 
 
 ```javascript
-aster.fetchPositionsRisk (symbols[, params])
+aster.fetchPositionsRisk (symbols, params?)
 ```
 
 
@@ -1037,7 +1037,7 @@ fetch all open positions
 
 
 ```javascript
-aster.fetchPositions ([symbols, params])
+aster.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1066,7 +1066,7 @@ make a withdrawal
 
 
 ```javascript
-aster.withdraw (code, amount, address, tag[, params])
+aster.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -1094,7 +1094,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-aster.transfer (code, amount, fromAccount, toAccount[, params])
+aster.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1114,7 +1114,7 @@ sign in, must be called prior to using other authenticated methods
 
 
 ```javascript
-aster.signIn ([params])
+aster.signIn (params?)
 ```
 
 
@@ -1145,7 +1145,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-aster.watchTicker (symbol[, params])
+aster.watchTicker (symbol, params?)
 ```
 
 
@@ -1176,7 +1176,7 @@ unWatches a price ticker
 
 
 ```javascript
-aster.unWatchTicker (symbol[, params])
+aster.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1203,7 +1203,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-aster.watchTickers (symbols[, params])
+aster.watchTickers (symbols, params?)
 ```
 
 
@@ -1230,7 +1230,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-aster.unWatchTickers (symbols[, params])
+aster.unWatchTickers (symbols, params?)
 ```
 
 
@@ -1256,7 +1256,7 @@ watches a mark price for a specific market
 
 
 ```javascript
-aster.watchMarkPrice (symbol[, params])
+aster.watchMarkPrice (symbol, params?)
 ```
 
 
@@ -1282,7 +1282,7 @@ unWatches a mark price for a specific market
 
 
 ```javascript
-aster.unWatchMarkPrice (symbol[, params])
+aster.unWatchMarkPrice (symbol, params?)
 ```
 
 
@@ -1308,7 +1308,7 @@ watches the mark price for all markets
 
 
 ```javascript
-aster.watchMarkPrices (symbols[, params])
+aster.watchMarkPrices (symbols, params?)
 ```
 
 
@@ -1334,7 +1334,7 @@ watches the mark price for all markets
 
 
 ```javascript
-aster.unWatchMarkPrices (symbols[, params])
+aster.unWatchMarkPrices (symbols, params?)
 ```
 
 
@@ -1361,7 +1361,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-aster.watchBidsAsks (symbols[, params])
+aster.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -1388,7 +1388,7 @@ unWatches best bid & ask for symbols
 
 
 ```javascript
-aster.unWatchBidsAsks (symbols[, params])
+aster.unWatchBidsAsks (symbols, params?)
 ```
 
 
@@ -1416,7 +1416,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-aster.watchTrades (symbol[, since, limit, params])
+aster.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1442,7 +1442,7 @@ unsubscribe from the trades channel
 
 
 ```javascript
-aster.unWatchTrades (symbol[, params])
+aster.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1470,7 +1470,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-aster.watchTradesForSymbols (symbols[, since, limit, params])
+aster.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1495,7 +1495,7 @@ unsubscribe from the trades channel
 
 
 ```javascript
-aster.unWatchTradesForSymbols (symbols[, params])
+aster.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -1523,7 +1523,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-aster.watchOrderBook (symbol[, limit, params])
+aster.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1551,7 +1551,7 @@ unsubscribe from the orderbook channel
 
 
 ```javascript
-aster.unWatchOrderBook (symbol[, params])
+aster.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1579,7 +1579,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-aster.watchOrderBookForSymbols (symbols[, limit, params])
+aster.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1607,7 +1607,7 @@ unsubscribe from the orderbook channel
 
 
 ```javascript
-aster.unWatchOrderBookForSymbols (symbols[, params])
+aster.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -1635,7 +1635,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-aster.watchOHLCV (symbol, timeframe[, since, limit, params])
+aster.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1661,7 +1661,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-aster.unWatchOHLCV (symbol, timeframe[, params])
+aster.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1688,7 +1688,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-aster.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+aster.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -1713,7 +1713,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-aster.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
+aster.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
 ```
 
 
@@ -1738,7 +1738,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-aster.watchBalance ([params])
+aster.watchBalance (params?)
 ```
 
 
@@ -1761,7 +1761,7 @@ watch all open positions
 
 
 ```javascript
-aster.watchPositions (symbols[, since, limit, params])
+aster.watchPositions (symbols, since?, limit?, params)
 ```
 
 
@@ -1789,7 +1789,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-aster.watchOrders ([symbol, since, limit, params])
+aster.watchOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1817,6 +1817,6 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-aster.watchMyTrades ([symbol, since, limit, params])
+aster.watchMyTrades (symbol?, since?, limit?, params?)
 ```
 

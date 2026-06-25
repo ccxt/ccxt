@@ -4,7 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { base16, base64 } from "../../../scure-base/index.js";
+import { hex as base16, base64 } from "@scure/base";
 export function hex2b64(h) {
     return base64.encode(base16.decode(h));
 }

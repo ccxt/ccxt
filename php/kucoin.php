@@ -2189,7 +2189,7 @@ class kucoin extends Exchange {
         return true;
     }
 
-    public function handle_hf_and_params($params = array ()) {
+    public function handle_hf_and_params($params = array ()): array {
         $migrated = $this->safe_bool($this->options, 'hf', false);
         $loadedHf = null;
         if ($migrated !== null) {
@@ -2204,7 +2204,7 @@ class kucoin extends Exchange {
         return array( $hf, $params );
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array ()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -3619,7 +3619,7 @@ class kucoin extends Exchange {
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             if ($networkCode !== null) {
-                $request['chain'] = strtolower($this->network_code_to_id($networkCode));
+                $request['chain'] = strtolower($this->network_code_to_id($networkCode, $code));
             }
             //
             //     {
@@ -5783,7 +5783,7 @@ class kucoin extends Exchange {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol parameter for $hf and margin orders');
                 }
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
         }
         $params = $this->omit($params, array( 'stop', 'clientOid', 'clientOrderId', 'trigger' ));
@@ -5795,7 +5795,7 @@ class kucoin extends Exchange {
                     $response = $this->privateGetHfMarginStopOrderClientOid ($this->extend($request, $params));
                 } else {
                     if ($symbol !== null) {
-                        $request['symbol'] = $market['id'];
+                        $request['symbol'] = $this->safe_string($market, 'id');
                     }
                     $response = $this->privateGetStopOrderQueryOrderByClientOid ($this->extend($request, $params));
                 }
@@ -8316,7 +8316,7 @@ class kucoin extends Exchange {
         $response = $this->utaPrivatePostAccountTransfer ($this->extend($request, $params));
         //
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
@@ -8400,7 +8400,7 @@ class kucoin extends Exchange {
             //
             $response = $this->privatePostAccountsUniversalTransfer ($this->extend($request, $params));
         }
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
@@ -9620,7 +9620,7 @@ class kucoin extends Exchange {
                 throw new ArgumentsRequired($this->id . ' setLeverage requires a $symbol parameter for isolated margin');
             }
             if ($symbol !== null) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             $request['isIsolated'] = ($marginMode === 'isolated');
             $response = $this->privatePostPositionUpdateUserLeverage ($this->extend($request, $params));
@@ -10544,7 +10544,7 @@ class kucoin extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument when cancelling by clientOrderIds');
             }
             $ordersRequests[] = array(
-                'symbol' => $market['id'],
+                'symbol' => $this->safe_string($market, 'id'),
                 'clientOid' => $this->safe_string($clientOrderIds, $i),
             );
         }
@@ -10553,7 +10553,7 @@ class kucoin extends Exchange {
             if ($uta) {
                 $ordersRequests[] = array(
                     'orderId' => $orderId,
-                    'symbol' => $market['id'],
+                    'symbol' => $this->safe_string($market, 'id'),
                 );
             } else {
                 $ordersRequests[] = $ids[$i];
@@ -10782,7 +10782,7 @@ class kucoin extends Exchange {
         $marginType = ($marginType === 'ISOLATED') ? 'isolated' : 'cross';
         return array(
             'info' => $marginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $marginType,
         );
     }
@@ -11211,7 +11211,7 @@ class kucoin extends Exchange {
         return $this->safe_bool($this->options, 'uta', false);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
@@ -11267,6 +11267,7 @@ class kucoin extends Exchange {
                 'KC-API-KEY' => $this->apiKey,
                 'KC-API-TIMESTAMP' => $timestamp,
             ), $headers);
+            $headers = ($headers === null) ? array() : $headers;
             $apiKeyVersion = $this->safe_string($headers, 'KC-API-KEY-VERSION');
             if ($apiKeyVersion === '2') {
                 $passphrase = $this->hmac($this->encode($this->password), $this->encode($this->secret), 'sha256', 'base64');

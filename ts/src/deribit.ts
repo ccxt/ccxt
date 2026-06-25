@@ -1,12 +1,12 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deribit.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position } from './base/types.js';
+import type { Balances, Bool, Currency, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -499,11 +499,11 @@ export default class deribit extends Exchange {
     createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         let quote = 'USD';
-        let settle = undefined;
+        let settle: Str = undefined;
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base = undefined;
-        let expiry = undefined;
+        let base: Str = undefined;
+        let expiry: Str = undefined;
         if (symbol.indexOf ('/') > -1) {
             base = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
@@ -802,8 +802,8 @@ export default class deribit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const instrumentsResponses = [];
-        const result = [];
+        const instrumentsResponses: List = [];
+        const result: List = [];
         const parsedMarkets: Dict = {};
         let fetchAllMarkets = undefined;
         [ fetchAllMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
@@ -938,8 +938,8 @@ export default class deribit extends Exchange {
                 const option = (kind.indexOf ('option') >= 0);
                 const isComboMarket = kind.indexOf ('combo') >= 0;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
-                let strike = undefined;
-                let optionType = undefined;
+                let strike: Num = undefined;
+                let optionType: Str = undefined;
                 let symbol = id;
                 let type = 'swap';
                 if (future) {
@@ -949,8 +949,8 @@ export default class deribit extends Exchange {
                 } else if (isSpot) {
                     type = 'spot';
                 }
-                let inverse = undefined;
-                let linear = undefined;
+                let inverse: Bool = undefined;
+                let linear: Bool = undefined;
                 if (isSpot) {
                     symbol = base + '/' + quote;
                 } else if (!isComboMarket) {
@@ -1034,7 +1034,7 @@ export default class deribit extends Exchange {
         const result: Dict = {
             'info': balance,
         };
-        let summaries = [];
+        let summaries: List = [];
         if ('summaries' in balance) {
             summaries = this.safeList (balance, 'summaries');
         } else {
@@ -1331,7 +1331,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeDict (response, 'result');
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseTicker (result, market);
     }
 
@@ -1349,7 +1349,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let code = this.safeString2 (params, 'code', 'currency');
-        let type = undefined;
+        let type: Str = undefined;
         params = this.omit (params, [ 'code' ]);
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -1371,7 +1371,7 @@ export default class deribit extends Exchange {
             'currency': currency['id'],
         };
         if (type !== undefined) {
-            let requestType = undefined;
+            let requestType: Str = undefined;
             if (type === 'spot') {
                 requestType = 'spot';
             } else if (type === 'future' || (type === 'contract')) {
@@ -1555,13 +1555,13 @@ export default class deribit extends Exchange {
             cost = Precise.stringDiv (amount, priceString);
         }
         const liquidity = this.safeString (trade, 'liquidity');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (liquidity !== undefined) {
             // M = maker, T = taker, MT = both
             takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
         }
         const feeCostString = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1650,7 +1650,7 @@ export default class deribit extends Exchange {
         //      }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeList (result, 'trades', []);
+        const trades: List = this.safeList (result, 'trades', []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1917,7 +1917,7 @@ export default class deribit extends Exchange {
                 cost = Precise.stringDiv (amount, averageString);
             }
         }
-        let lastTradeTimestamp = undefined;
+        let lastTradeTimestamp: Int = undefined;
         if (filledString !== undefined) {
             const isFilledPositive = Precise.stringGt (filledString, '0');
             if (isFilledPositive) {
@@ -1927,7 +1927,7 @@ export default class deribit extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
         const side = this.safeStringLower (order, 'direction');
         let feeCostString = this.safeString (order, 'commission');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             feeCostString = Precise.stringAbs (feeCostString);
             fee = {
@@ -1981,7 +1981,7 @@ export default class deribit extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2014,7 +2014,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict (response, 'result');
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result, market);
     }
 
@@ -2253,7 +2253,7 @@ export default class deribit extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetCancel (this.extend (request, params));
-        const result = this.safeDict (response, 'result', {});
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result);
     }
 
@@ -2310,7 +2310,7 @@ export default class deribit extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         let response = undefined;
         if (symbol === undefined) {
             const code = this.codeFromOptions ('fetchOpenOrders', params);
@@ -2322,7 +2322,7 @@ export default class deribit extends Exchange {
             request['instrument_name'] = market['id'];
             response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
         }
-        const result = this.safeList (response, 'result', []);
+        const result: List = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2341,7 +2341,7 @@ export default class deribit extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         let response = undefined;
         if (limit !== undefined) {
             request['count'] = limit;
@@ -2358,7 +2358,7 @@ export default class deribit extends Exchange {
             request['instrument_name'] = market['id'];
             response = await this.privateGetGetOrderHistoryByInstrument (this.extend (request, params));
         }
-        const result = this.safeList (response, 'result', []);
+        const result: List = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2413,7 +2413,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: List = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, undefined, since, limit);
     }
 
@@ -2436,7 +2436,7 @@ export default class deribit extends Exchange {
         const request: Dict = {
             'include_old': true,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (limit !== undefined) {
             request['count'] = limit; // default 10
         }
@@ -2495,7 +2495,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeList (result, 'trades', []);
+        const trades: List = this.safeList (result, 'trades', []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2544,7 +2544,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeList (result, 'data', []);
+        const data: List = this.safeList (result, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2597,7 +2597,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeList (result, 'data', []);
+        const data: List = this.safeList (result, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2647,7 +2647,7 @@ export default class deribit extends Exchange {
         const address = this.safeString (transaction, 'address');
         const feeCost = this.safeNumber (transaction, 'fee');
         let type = 'deposit';
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             type = 'withdrawal';
             fee = {
@@ -2789,7 +2789,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict (response, 'result');
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parsePosition (result);
     }
 
@@ -2844,7 +2844,7 @@ export default class deribit extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeList (response, 'result');
+        const result: List = this.safeList (response, 'result') as List;
         return this.parsePositions (result, symbols);
     }
 
@@ -2897,7 +2897,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const volatilityResult = this.safeValue (volatility, 'result', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < volatilityResult.length; i++) {
             const timestamp = this.safeInteger (volatilityResult[i], 0);
             const volatilityObj = this.safeNumber (volatilityResult[i], 1);
@@ -2969,7 +2969,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const transfers = this.safeList (result, 'data', []);
+        const transfers: List = this.safeList (result, 'data', []) as List;
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
@@ -3023,7 +3023,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict (response, 'result', {});
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseTransfer (result, currency);
     }
 
@@ -3263,7 +3263,7 @@ export default class deribit extends Exchange {
         //        ]
         //    }
         //
-        const rates = [];
+        const rates: List = [];
         const result = this.safeValue (response, 'result', []);
         for (let i = 0; i < result.length; i++) {
             const fr = result[i];
@@ -3453,7 +3453,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const settlements = this.safeList (result, 'settlements', []);
+        const settlements: List = this.safeList (result, 'settlements', []) as List;
         return this.parseLiquidations (settlements, market, since, limit);
     }
 
@@ -3666,7 +3666,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        const chain = this.safeDict (result, 0, {});
+        const chain: Dict = this.safeDict (result, 0, {}) as Dict;
         return this.parseOption (chain, undefined, market);
     }
 
@@ -3719,7 +3719,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: List = this.safeList (response, 'result', []) as List;
         return this.parseOptionChain (result, 'base_currency', 'instrument_name');
     }
 
@@ -3857,8 +3857,8 @@ export default class deribit extends Exchange {
         const marketId = this.safeString (interest, 'instrument_name');
         market = this.safeMarket (marketId, market);
         const openInterest = this.safeNumber (interest, 'open_interest');
-        let openInterestAmount = undefined;
-        let openInterestValue = undefined;
+        let openInterestAmount: Num = undefined;
+        let openInterestValue: Num = undefined;
         if (market['option'] || (market['future'] && market['linear'])) {
             openInterestAmount = openInterest;
         } else {
@@ -3878,7 +3878,7 @@ export default class deribit extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {

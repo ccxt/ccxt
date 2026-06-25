@@ -5,12 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/kraken.js';
 import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class kraken
@@ -96,7 +95,7 @@ export default class kraken extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginMode': false, // Kraken only supports cross margin
                 'transfer': true,
                 'withdraw': true,
             },
@@ -160,7 +159,7 @@ export default class kraken extends Exchange {
                     'get': [
                         // we should really refrain from putting fixed fee numbers and stop hardcoding
                         // we will be using their web APIs to scrape all numbers from these articles
-                        '360000292886',
+                        '360000292886', // -What-are-the-deposit-fees-
                         '201893608', // -What-are-the-withdrawal-fees-
                     ],
                 },
@@ -172,7 +171,7 @@ export default class kraken extends Exchange {
                         'Assets': 1,
                         'AssetPairs': 1,
                         'Ticker': 1,
-                        'OHLC': 1.2,
+                        'OHLC': 1.2, // 1.2 because 1 triggers too many requests immediately
                         'Depth': 1.2,
                         'Level3': 1.2,
                         'GroupedBook': 1.2,
@@ -267,8 +266,8 @@ export default class kraken extends Exchange {
                 'ZUSD': 'USD',
             },
             'options': {
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
@@ -329,7 +328,7 @@ export default class kraken extends Exchange {
                     'LTC': 'Litecoin',
                     'MANA': 'MANA',
                     'MATIC': 'Polygon' + ' ' + '(MATIC)',
-                    'MINA': 'Mina',
+                    'MINA': 'Mina', // inspected from webui
                     'MIR': 'Mirror Protocol' + ' ' + '(MIR)',
                     'MKR': 'Maker' + ' ' + '(MKR)',
                     'MLN': 'MLN',
@@ -352,9 +351,9 @@ export default class kraken extends Exchange {
                     'SAND': 'The Sandbox' + ' ' + '(SAND)',
                     'SC': 'Siacoin',
                     'SDN': 'Shiden' + ' ' + '(SDN)',
-                    'SOL': 'Solana',
+                    'SOL': 'Solana', // their deposit method api doesn't work for SOL - was guessed
                     'SNX': 'Synthetix  Network' + ' ' + '(SNX)',
-                    'SRM': 'Serum',
+                    'SRM': 'Serum', // inspected from webui
                     'STORJ': 'Storj' + ' ' + '(STORJ)',
                     'SUSHI': 'Sushiswap' + ' ' + '(SUSHI)',
                     'TBTC': 'tBTC',
@@ -465,7 +464,7 @@ export default class kraken extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': false,
+                        'triggerPrice': false, // todo
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': true,
@@ -482,7 +481,7 @@ export default class kraken extends Exchange {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo implement
                         'iceberg': true, // todo implement
                     },
                     'createOrders': {
@@ -535,17 +534,17 @@ export default class kraken extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
-            'rollingWindowSize': 10000.0,
+            'rollingWindowSize': 10000.0, // https://docs.kraken.com/api/docs/guides/custody-rest-ratelimits
             'exceptions': {
                 'exact': {
-                    'EQuery:Invalid asset pair': BadSymbol,
+                    'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
                     'EAPI:Invalid key': AuthenticationError,
-                    'EFunding:Unknown withdraw key': InvalidAddress,
+                    'EFunding:Unknown withdraw key': InvalidAddress, // {"error":["EFunding:Unknown withdraw key"]}
                     'EFunding:Invalid amount': InsufficientFunds,
                     'EService:Unavailable': ExchangeNotAvailable,
                     'EDatabase:Internal error': ExchangeNotAvailable,
                     'EService:Busy': ExchangeNotAvailable,
-                    'EQuery:Unknown asset': BadSymbol,
+                    'EQuery:Unknown asset': BadSymbol, // {"error":["EQuery:Unknown asset"]}
                     'EAPI:Rate limit exceeded': DDoSProtection,
                     'EOrder:Rate limit exceeded': DDoSProtection,
                     'EGeneral:Internal error': ExchangeNotAvailable,
@@ -559,11 +558,11 @@ export default class kraken extends Exchange {
                     'EGeneral:Invalid arguments': BadRequest,
                     'ESession:Invalid session': AuthenticationError,
                     'EAPI:Invalid nonce': InvalidNonce,
-                    'EFunding:No funding method': BadRequest,
-                    'EFunding:Unknown asset': BadSymbol,
-                    'EService:Market in post_only mode': OnMaintenance,
-                    'EService:Market in cancel_only mode': OnMaintenance,
-                    'EGeneral:Too many requests': DDoSProtection,
+                    'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
+                    'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
+                    'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
+                    'EService:Market in cancel_only mode': OnMaintenance, // {"error":["EService:Market in cancel_only mode"]}
+                    'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
                     'ETrade:User Locked': AccountSuspended, // {"error":["ETrade:User Locked"]}
                 },
                 'broad': {
@@ -975,7 +974,7 @@ export default class kraken extends Exchange {
             'tierBased': true,
         };
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const timestamp = this.safeInteger(bidask, 2);
@@ -1693,7 +1692,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         result['usingCost'] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
@@ -1746,7 +1745,7 @@ export default class kraken extends Exchange {
         let response = undefined;
         let request = {
             'orders': ordersRequests,
-            'pair': market['id'],
+            'pair': this.safeString(market, 'id'),
         };
         request = this.extend(request, params);
         response = await this.privatePostAddOrderBatch(request);
@@ -1822,7 +1821,7 @@ export default class kraken extends Exchange {
     }
     parseOrderStatus(status) {
         const statuses = {
-            'pending': 'open',
+            'pending': 'open', // order pending book entry
             'open': 'open',
             'pending_new': 'open',
             'new': 'open',
@@ -2216,6 +2215,7 @@ export default class kraken extends Exchange {
         let close = this.safeDict(params, 'close');
         if (close !== undefined) {
             close = this.extend({}, close);
+            close = (close === undefined) ? {} : close;
             const closePrice = this.safeValue(close, 'price');
             if (closePrice !== undefined) {
                 close['price'] = this.priceToPrecision(symbol, closePrice);
@@ -2331,7 +2331,7 @@ export default class kraken extends Exchange {
         await this.loadMarkets();
         const clientOrderId = this.safeValue2(params, 'userref', 'clientOrderId');
         const request = {
-            'trades': true,
+            'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': id, // do not comma separate a list of ids - use fetchOrdersByIds instead
             // 'userref': 'optional', // restrict results to given user reference id (optional)
         };
@@ -2480,7 +2480,7 @@ export default class kraken extends Exchange {
     async fetchOrdersByIds(ids, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const response = await this.privatePostQueryOrders(this.extend({
-            'trades': true,
+            'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join(','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
         const result = this.safeValue(response, 'result', {});
@@ -3359,7 +3359,7 @@ export default class kraken extends Exchange {
         await this.loadMarkets();
         const request = {
             // 'txid': 'comma delimited list of transaction ids to restrict output to',
-            'docalcs': 'true',
+            'docalcs': 'true', // whether or not to include profit/loss calculations
             'consolidation': 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
         };
         const response = await this.privatePostOpenPositions(this.extend(request, params));

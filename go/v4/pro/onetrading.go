@@ -480,7 +480,7 @@ func  (this *OnetradingCore) HandleDelta(orderbook any, delta any)  {
     //
     //   [ 'BUY', "0.053595", "0" ]
     //
-    var bidAsk any = this.ParseBidAsk(delta, 1, 2)
+    var bidAsk any = this.ParseOrderBookBidAsk(delta, 1, 2)
     var typeVar any = this.SafeString(delta, 0)
     if ccxt.IsTrue(ccxt.IsEqual(typeVar, "BUY")) {
         var bids any = ccxt.GetValue(orderbook, "bids")

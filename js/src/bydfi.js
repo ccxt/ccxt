@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bydfi.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -20,8 +20,8 @@ export default class bydfi extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bydfi',
             'name': 'BYDFi',
-            'countries': ['SG'],
-            'rateLimit': 50,
+            'countries': ['SG'], // Singapore todo check
+            'rateLimit': 50, // 20 requests per second
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -200,14 +200,14 @@ export default class bydfi extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v1/public/api_limits': 1,
+                        'v1/public/api_limits': 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
                         'v1/fapi/market/exchange_info': 1,
                         'v1/fapi/market/depth': 1,
                         'v1/fapi/market/trades': 1,
                         'v1/fapi/market/klines': 1,
                         'v1/fapi/market/ticker/24hr': 1,
-                        'v1/fapi/market/ticker/price': 1,
-                        'v1/fapi/market/mark_price': 1,
+                        'v1/fapi/market/ticker/price': 1, // https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price': 1, // https://developers.bydfi.com/en/futures/market#mark-price
                         'v1/fapi/market/funding_rate': 1,
                         'v1/fapi/market/funding_rate_history': 1,
                         'v1/fapi/market/risk_limit': 1, // https://developers.bydfi.com/en/futures/market#risk-limit
@@ -229,14 +229,14 @@ export default class bydfi extends Exchange {
                         'v1/fapi/account/balance': 1,
                         'v1/fapi/user_data/assets_margin': 1,
                         'v1/fapi/user_data/position_side/dual': 1,
-                        'v1/agent/teams': 1,
-                        'v1/agent/agent_links': 1,
-                        'v1/agent/regular_overview': 1,
-                        'v1/agent/agent_sub_overview': 1,
-                        'v1/agent/partener_user_deposit': 1,
-                        'v1/agent/partener_users_data': 1,
-                        'v1/agent/affiliate_uids': 1,
-                        'v1/agent/affiliate_commission': 1,
+                        'v1/agent/teams': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
+                        'v1/agent/agent_links': 1, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
+                        'v1/agent/regular_overview': 1, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
+                        'v1/agent/agent_sub_overview': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
+                        'v1/agent/partener_user_deposit': 1, // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
+                        'v1/agent/partener_users_data': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
+                        'v1/agent/affiliate_uids': 1, // https://developers.bydfi.com/en/agent/#get-affiliate-uids
+                        'v1/agent/affiliate_commission': 1, // https://developers.bydfi.com/en/agent/#get-affiliate-commission
                         'v1/agent/internal_withdrawal_status': 1, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     },
                     'post': {
@@ -247,7 +247,7 @@ export default class bydfi extends Exchange {
                         'v1/fapi/trade/batch_edit_order': 1,
                         'v1/fapi/trade/cancel_all_order': 1,
                         'v1/fapi/trade/leverage': 1,
-                        'v1/fapi/trade/batch_leverage_margin': 1,
+                        'v1/fapi/trade/batch_leverage_margin': 1, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
                         'v1/fapi/user_data/margin_type': 1,
                         'v1/fapi/user_data/position_side/dual': 1,
                         'v1/agent/internal_withdrawal': 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
@@ -269,7 +269,7 @@ export default class bydfi extends Exchange {
                             },
                             'stopLossPrice': true,
                             'takeProfitPrice': true,
-                            'attachedStopLossTakeProfit': undefined,
+                            'attachedStopLossTakeProfit': undefined, // not supported
                             'timeInForce': {
                                 'IOC': true,
                                 'FOK': true,
@@ -289,7 +289,7 @@ export default class bydfi extends Exchange {
                         },
                         'fetchMyTrades': {
                             'marginMode': false,
-                            'daysBack': 182,
+                            'daysBack': 182, // 6 months
                             'limit': 500,
                             'untilDays': 7,
                             'symbolRequired': false,
@@ -312,7 +312,7 @@ export default class bydfi extends Exchange {
                         'fetchCanceledAndClosedOrders': {
                             'marginMode': false,
                             'limit': 500,
-                            'daysBack': 182,
+                            'daysBack': 182, // 6 months
                             'untilDays': 7,
                             'trigger': false,
                             'trailing': false,
@@ -346,22 +346,22 @@ export default class bydfi extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '101001': AuthenticationError,
-                    '101103': AuthenticationError,
-                    '102001': BadRequest,
-                    '102002': PermissionDenied,
-                    '401': AuthenticationError,
-                    '500': ExchangeError,
-                    '501': ExchangeError,
-                    '506': ExchangeError,
-                    '510': RateLimitExceeded,
-                    '511': AuthenticationError,
-                    '513': BadRequest,
-                    '514': BadRequest,
-                    '600': BadRequest,
-                    'Position does not exist': BadRequest,
-                    'Requires transaction permissions': PermissionDenied,
-                    'Service error': ExchangeError,
+                    '101001': AuthenticationError, // {"code":101001,"message":"Apikey doesn't exist!"}
+                    '101103': AuthenticationError, // {"code":101103,"message":"Invalid API-key, IP, or permissions for action."}
+                    '102001': BadRequest, // {"code":102001,"message":"Unsupported transfer type"}
+                    '102002': PermissionDenied, // {"code":102002,"message":"The current account does not support transfer of this currency"}
+                    '401': AuthenticationError, // 401 Unauthorized – Invalid API Key
+                    '500': ExchangeError, // 500 Internal Error
+                    '501': ExchangeError, // 501 System Busy
+                    '506': ExchangeError, // 506 Unknown Request Origin
+                    '510': RateLimitExceeded, // 510 Requests Too Frequent
+                    '511': AuthenticationError, // 511 Access to the Interface is Forbidden
+                    '513': BadRequest, // 513 Invalid Request
+                    '514': BadRequest, // 514 Duplicate Request
+                    '600': BadRequest, // 600 Parameter Error
+                    'Position does not exist': BadRequest, // {"code":100036,"message":"Position does not exist"}
+                    'Requires transaction permissions': PermissionDenied, // {"code":101107,"message":"Requires transaction permissions"}
+                    'Service error': ExchangeError, // { msg: 'Service error', code: '-1' }
                     'transfer failed': InsufficientFunds, // {"code":500,"message":"transfer failed","success":false}
                 },
                 'broad': {
@@ -374,9 +374,9 @@ export default class bydfi extends Exchange {
                     'ERC20': 'ETH', // todo add more networks
                 },
                 'timeInForce': {
-                    'GTC': 'GTC',
-                    'FOK': 'FOK',
-                    'IOC': 'IOC',
+                    'GTC': 'GTC', // Good Till Cancelled
+                    'FOK': 'FOK', // Fill Or Kill
+                    'IOC': 'IOC', // Immediate Or Cancel
                     'PO': 'POST_ONLY', // Post Only
                 },
                 'accountsByType': {
@@ -1518,7 +1518,7 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
             'wallet': wallet,
         };
-        let response = undefined;
+        let response;
         let trigger = false;
         [trigger, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'trigger', trigger);
         if (!trigger) {
@@ -1595,7 +1595,7 @@ export default class bydfi extends Exchange {
         let wallet = 'W001';
         [wallet, params] = this.handleOptionAndParams(params, 'fetchOpenOrder', 'wallet', wallet);
         request['wallet'] = wallet;
-        let response = undefined;
+        let response;
         let trigger = false;
         [trigger, params] = this.handleOptionAndParams(params, 'fetchOpenOrder', 'trigger', trigger);
         if (!trigger) {
@@ -2435,7 +2435,7 @@ export default class bydfi extends Exchange {
         let wallet = undefined;
         [wallet, params] = this.handleOptionAndParams(params, 'fetchBalance', 'wallet');
         const request = {};
-        let response = undefined;
+        let response;
         if (wallet === undefined) {
             const options = this.safeDict(this.options, 'accountsByType', {});
             const parsedAccountType = this.safeStringUpper(options, type, type);
@@ -2748,7 +2748,7 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (type === 'deposit') {
             //
             //     {
@@ -2820,7 +2820,7 @@ export default class bydfi extends Exchange {
             'txid': this.safeString(transaction, 'txId'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatus(rawStatus),
             'timestamp': timestamp,

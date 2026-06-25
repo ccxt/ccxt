@@ -36,10 +36,10 @@ const safeFloat = (o, k, $default) => {
     const n = asFloat(prop(o, k));
     return isNumber(n) ? n : $default;
 };
-const safeInteger = (o, k, $default) => {
+function safeInteger(o, k, $default) {
     const n = asInteger(prop(o, k));
     return isNumber(n) ? n : $default;
-};
+}
 const safeIntegerProduct = (o, k, $factor, $default) => {
     const n = asFloat(prop(o, k));
     return isNumber(n) ? parseInt(n * $factor) : $default;
@@ -52,10 +52,10 @@ const safeValue = (o, k, $default) => {
     const x = prop(o, k);
     return hasProps(x) ? x : $default;
 };
-const safeString = (o, k, $default) => {
+function safeString(o, k, $default) {
     const x = prop(o, k);
     return isStringCoercible(x) ? String(x) : $default;
-};
+}
 const safeStringLower = (o, k, $default) => {
     const x = prop(o, k);
     if (isStringCoercible(x)) {
@@ -81,10 +81,10 @@ const safeFloat2 = (o, k1, k2, $default) => {
     const n = asFloat(prop2(o, k1, k2));
     return isNumber(n) ? n : $default;
 };
-const safeInteger2 = (o, k1, k2, $default) => {
+function safeInteger2(o, k1, k2, $default) {
     const n = asInteger(prop2(o, k1, k2));
     return isNumber(n) ? n : $default;
-};
+}
 const safeIntegerProduct2 = (o, k1, k2, $factor, $default) => {
     const n = asFloat(prop2(o, k1, k2));
     return isNumber(n) ? parseInt(n * $factor) : $default;
@@ -97,10 +97,10 @@ const safeValue2 = (o, k1, k2, $default) => {
     const x = prop2(o, k1, k2);
     return hasProps(x) ? x : $default;
 };
-const safeString2 = (o, k1, k2, $default) => {
+function safeString2(o, k1, k2, $default) {
     const x = prop2(o, k1, k2);
     return isStringCoercible(x) ? String(x) : $default;
-};
+}
 const safeStringLower2 = (o, k1, k2, $default) => {
     const x = prop2(o, k1, k2);
     if (isStringCoercible(x)) {
@@ -125,13 +125,13 @@ const safeFloatN = (o, k, $default) => {
     const n = asFloat(getValueFromKeysInArray(o, k));
     return isNumber(n) ? n : $default;
 };
-const safeIntegerN = (o, k, $default) => {
+function safeIntegerN(o, k, $default) {
     if (o === undefined) {
         return $default;
     }
     const n = asInteger(getValueFromKeysInArray(o, k));
     return isNumber(n) ? n : $default;
-};
+}
 const safeIntegerProductN = (o, k, $factor, $default) => {
     const n = asFloat(getValueFromKeysInArray(o, k));
     return isNumber(n) ? parseInt(n * $factor) : $default;
@@ -147,13 +147,13 @@ const safeValueN = (o, k, $default) => {
     const x = getValueFromKeysInArray(o, k);
     return hasProps(x) ? x : $default;
 };
-const safeStringN = (o, k, $default) => {
+function safeStringN(o, k, $default) {
     if (o === undefined) {
         return $default;
     }
     const x = getValueFromKeysInArray(o, k);
     return isStringCoercible(x) ? String(x) : $default;
-};
+}
 const safeStringLowerN = (o, k, $default) => {
     const x = getValueFromKeysInArray(o, k);
     if (isStringCoercible(x)) {
@@ -180,7 +180,7 @@ exports.asFloat = asFloat;
 exports.asInteger = asInteger;
 exports.hasProps = hasProps;
 exports.isArray = isArray;
-exports.isDictionary = isDictionary;
+exports.isDict = isDictionary;
 exports.isInteger = isInteger;
 exports.isNumber = isNumber;
 exports.isObject = isObject;
