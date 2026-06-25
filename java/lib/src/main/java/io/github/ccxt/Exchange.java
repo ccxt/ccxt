@@ -1484,6 +1484,10 @@ public class Exchange {
         return Helpers.parseJson(input);
     }
 
+    private void marketsMutexLocker(boolean locked) {
+        // stub in java
+    }
+
     private final Object marketsLock = new Object();
 
     public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object... args) {
