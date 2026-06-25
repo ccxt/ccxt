@@ -9,6 +9,10 @@ public partial class testMainClass : BaseTest
 {
     public static void testCurrency(Exchange exchange, object skippedProperties, object method, object entry)
     {
+        if (isTrue(isEqual(entry, null)))
+        {
+            return;
+        }
         object format = new Dictionary<string, object>() {
             { "id", "btc" },
             { "code", "BTC" },

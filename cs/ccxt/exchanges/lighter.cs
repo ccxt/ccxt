@@ -135,7 +135,7 @@ public partial class lighter : Exchange
             } },
             { "hostname", "zklighter.elliot.ai" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0" },
+                { "logo", "https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b" },
                 { "api", new Dictionary<string, object>() {
                     { "root", "https://mainnet.{hostname}" },
                     { "public", "https://mainnet.{hostname}" },
@@ -590,8 +590,8 @@ public partial class lighter : Exchange
             accountIndex = this.safeString(res, 0);
         }
         object auths = this.safeDict(this.options, "auths");
-        object accountAuths = this.safeDict(auths, accountIndex);
-        object cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
+        object accountAuths = this.safeDict(auths, ((string)accountIndex));
+        object cachedAuth = this.safeDict(accountAuths, ((string)apiKeyIndex));
         object cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (isTrue(!isEqual(cachedDeadline, null)))
         {
@@ -607,9 +607,9 @@ public partial class lighter : Exchange
             { "api_key_index", this.parseToInt(apiKeyIndex) },
             { "account_index", this.parseToInt(accountIndex) },
         };
-        object token = this.lighterCreateAuthToken(getValue(getValue(getValue(getValue(this.options, "auths"), accountIndex), apiKeyIndex), "signer"), request);
-        ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "auths"), accountIndex), apiKeyIndex))["deadline"] = deadline;
-        ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "auths"), accountIndex), apiKeyIndex))["token"] = token;
+        object token = this.lighterCreateAuthToken(getValue(getValue(getValue(getValue(this.options, "auths"), ((string)accountIndex)), ((string)apiKeyIndex)), "signer"), request);
+        ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "auths"), ((string)accountIndex)), ((string)apiKeyIndex)))["deadline"] = deadline;
+        ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "auths"), ((string)accountIndex)), ((string)apiKeyIndex)))["token"] = token;
         return token;
     }
 
@@ -642,7 +642,7 @@ public partial class lighter : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((string)this.numberToString(binaryMessageLength))));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
@@ -801,7 +801,7 @@ public partial class lighter : Exchange
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
         object orderType = ((string)type).ToUpper();
         object market = this.market(symbol);
-        object orderSide = ((string)side).ToUpper();
+        object orderSide = ((string)((string)side)).ToUpper();
         object request = new Dictionary<string, object>() {
             { "market_index", this.parseToInt(getValue(market, "id")) },
         };
@@ -2515,7 +2515,7 @@ public partial class lighter : Exchange
             object typeAsInteger = this.safeInteger(order, "order_type");
             type = this.parseOrderTypeInteger(typeAsInteger);
         }
-        object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "trigger_price")));
+        object triggerPrice = this.parseNumber(this.omitZero(((string)this.safeString(order, "trigger_price"))));
         object stopLossPrice = null;
         object takeProfitPrice = null;
         if (isTrue(!isEqual(type, null)))
@@ -2552,7 +2552,7 @@ public partial class lighter : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString(order, "order_id") },
-            { "clientOrderId", this.omitZero(this.safeString2(order, "client_order_id", "client_order_index")) },
+            { "clientOrderId", this.omitZero(((string)this.safeString2(order, "client_order_id", "client_order_index"))) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
@@ -2598,7 +2598,7 @@ public partial class lighter : Exchange
             { "canceled-child", "canceled" },
             { "canceled-liquidation", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseOrderType(object type)
@@ -3066,7 +3066,7 @@ public partial class lighter : Exchange
             { "completed", "ok" },
             { "claimable", "ok" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     /**

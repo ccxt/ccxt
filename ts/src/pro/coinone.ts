@@ -192,9 +192,9 @@ export default class coinone extends coinoneRest {
         const data = this.safeValue (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        this.tickers[(symbol as string)] = ticker;
         const messageHash = 'ticker:' + symbol;
-        client.resolve (this.tickers[symbol], messageHash);
+        client.resolve (this.tickers[(symbol as string)], messageHash);
     }
 
     parseWsTicker (ticker, market: Market = undefined): Ticker {
@@ -305,11 +305,11 @@ export default class coinone extends coinoneRest {
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
+        let stored = this.safeValue (this.trades, (symbol as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+            this.trades[(symbol as string)] = stored;
         }
         stored.append (trade);
         const messageHash = 'trade:' + symbol;

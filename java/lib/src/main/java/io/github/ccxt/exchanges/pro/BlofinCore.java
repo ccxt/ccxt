@@ -380,8 +380,8 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object ticker = this.parseWsTicker(Helpers.GetValue(data, i));
             Object symbol = Helpers.GetValue(ticker, "symbol");
             Object messageHash = Helpers.add(Helpers.add(channelName, ":"), symbol);
-            Helpers.addElementToObject(this.tickers, symbol, ticker);
-            client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
+            Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
+            client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
         }
     }
 
@@ -409,7 +409,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, false);
-            Object symbolsList = symbols;
+            Object symbolsList = (java.util.List<String>)(symbols);
             Object firstMarket = this.market(Helpers.GetValue(symbolsList, 0));
             Object channel = "tickers";
             Object marketType = null;
@@ -449,7 +449,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object ticker = this.parseWsBidAsk(Helpers.GetValue(data, i));
             Object symbol = Helpers.GetValue(ticker, "symbol");
             Object messageHash = Helpers.add("bidask:", symbol);
-            Helpers.addElementToObject(this.bidsasks, symbol, ticker);
+            Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
             client.resolve(ticker, messageHash);
         }
     }
@@ -866,7 +866,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
         Object fundingRate = this.parseFundingRate(first);
         Object symbol = Helpers.GetValue(fundingRate, "symbol");
-        Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
+        Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
         Object messageHash = Helpers.add("fundingRate:", symbol);
         client.resolve(fundingRate, messageHash);
     }

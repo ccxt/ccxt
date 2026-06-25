@@ -12,7 +12,7 @@ import { BadRequest, AuthenticationError, NotSupported, RateLimitExceeded, Excha
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
- * @class
+ * @class zebpay
  * @augments Exchange
  */
 export default class zebpay extends Exchange {

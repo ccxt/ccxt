@@ -1159,7 +1159,7 @@ class bithumb extends Exchange {
             $request = array(
                 'side' => $order['side'],
             );
-            return Async\await($this->cancel_order($order['id'], $order['symbol'], $this->extend($request, $params)));
+            return Async\await($this->cancel_order(($order['id']), $order['symbol'], $this->extend($request, $params)));
         }) ();
     }
 

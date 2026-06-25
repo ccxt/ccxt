@@ -86,7 +86,8 @@ public class AftermathCore extends AftermathApi
                 put( "1M", "1M" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807" );
+                put( "www", "https://aftermath.finance" );
+                put( "logo", "https://github.com/user-attachments/assets/f3104ea3-e9ab-4d4e-ad22-0ce772a407b7" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://aftermath.finance/api/ccxt" );
                 }} );
@@ -809,7 +810,7 @@ public class AftermathCore extends AftermathApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object accountNumber = null;
             var accountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "accountNumber");
             accountNumber = ((java.util.List<Object>) accountNumberparametersVariable).get(0);
@@ -1022,7 +1023,7 @@ public class AftermathCore extends AftermathApi
             {
                 Object order = this.clone(Helpers.GetValue(orders, i));
                 Object symbol = this.safeString(order, "symbol");
-                Object market = this.market(symbol);
+                Object market = this.market(((String)symbol));
                 Object price = this.safeString(order, "price");
                 Object amount = this.safeString(order, "amount");
                 Object orderParams = this.safeDict(order, "params", new java.util.HashMap<String, Object>() {{}});
@@ -1036,9 +1037,9 @@ public class AftermathCore extends AftermathApi
                 Helpers.addElementToObject(order, "chId", Helpers.GetValue(market, "id"));
                 if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                 {
-                    Helpers.addElementToObject(order, "price", this.parseToNumeric(this.priceToPrecision(symbol, price)));
+                    Helpers.addElementToObject(order, "price", this.parseToNumeric(this.priceToPrecision(((String)symbol), price)));
                 }
-                Helpers.addElementToObject(order, "amount", this.parseToNumeric(this.amountToPrecision(symbol, amount)));
+                Helpers.addElementToObject(order, "amount", this.parseToNumeric(this.amountToPrecision(((String)symbol), amount)));
                 ((java.util.List<Object>)ordersRequest).add(order);
             }
             Object account = null;
@@ -1127,7 +1128,7 @@ public class AftermathCore extends AftermathApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object account = null;
             var accountparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "account");
             account = ((java.util.List<Object>) accountparametersVariable).get(0);
@@ -1557,7 +1558,7 @@ public class AftermathCore extends AftermathApi
             throw new NotSupported((String)Helpers.add(this.id, " only support hex encoding private key, please transform bech32 encoding private key")) ;
         }
         Object signingDigest = this.safeString(tx, "signingDigest");
-        Object digest = this.base64ToBinary(signingDigest);
+        Object digest = this.base64ToBinary(((String)signingDigest));
         Object privateKey = this.base16ToBinary(this.privateKey);
         Object signature = eddsa(digest, privateKey, ed25519());
         Object hexPublicKey = this.safeString(this.options, "publicKey");

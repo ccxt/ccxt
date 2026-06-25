@@ -54,7 +54,7 @@ type IBaseExchange interface {
 	GetCurrency(currencyId string) Currency
 	GetCurrenciesList() []Currency
 	Throttle(cost any) <-chan any
-	Close() []error
+	Close(cleanInstanceCache ...any) []error
 	ParseTimeframe(timeframe any) any
 	// methods from base
 }
@@ -327,7 +327,7 @@ type ICoreExchange interface {
 	WatchTrades(symbol any, optionalArgs ...any) <-chan any
 	WatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WithdrawWs(code any, amount any, address any, optionalArgs ...any) <-chan any
-	Close() []error
+	Close(cleanInstanceCache ...any) []error
 	ParseTimeframe(timeframe any) any
 }
 

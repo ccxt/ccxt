@@ -611,7 +611,7 @@ class coinex extends \ccxt\async\coinex {
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
         $fee = array();
-        $feeCost = $this->omit_zero($this->safe_string($trade, 'fee'));
+        $feeCost = $this->omit_zero(($this->safe_string($trade, 'fee')));
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_ccy', $market['quote']);
             $fee = array(
@@ -1210,7 +1210,7 @@ class coinex extends \ccxt\async\coinex {
         $defaultType = $isSpot ? 'spot' : 'swap';
         $market = $this->safe_market($marketId, $market, null, $defaultType);
         $fee = null;
-        $feeCost = $this->omit_zero($this->safe_string_2($order, 'fee', 'quote_ccy_fee'));
+        $feeCost = $this->omit_zero(($this->safe_string_2($order, 'fee', 'quote_ccy_fee')));
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($order, 'fee_ccy', $market['quote']);
             $fee = array(

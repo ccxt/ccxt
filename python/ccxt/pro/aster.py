@@ -152,15 +152,15 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName: Str = None
+        methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchTickers')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -171,7 +171,7 @@ class aster(ccxt.async_support.aster):
             messageHashes.append('ticker:' + market['symbol'])
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -194,15 +194,15 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName: Str = None
+        methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchTickers')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -263,15 +263,15 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName: Str = None
+        methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchMarkPrices')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -306,15 +306,15 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName: Str = None
+        methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchMarkPrices')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -427,9 +427,9 @@ class aster(ccxt.async_support.aster):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchBidsAsks() requires a non-empty array of symbols')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -466,9 +466,9 @@ class aster(ccxt.async_support.aster):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' unWatchBidsAsks() requires a non-empty array of symbols')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -567,15 +567,15 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName: Str = None
+        methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchTradesForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
             'id': 1,
@@ -609,15 +609,15 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName: Str = None
+        methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchTradesForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -752,7 +752,7 @@ class aster(ccxt.async_support.aster):
         id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
         price = self.safe_string_2(trade, 'L', 'p')
-        amount: Str = None
+        amount = None
         if isPublicTrade:
             amount = self.safe_string(trade, 'q')
         else:
@@ -766,13 +766,13 @@ class aster(ccxt.async_support.aster):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot') if (market is None) else market['type']
         symbol = self.safe_symbol(marketId, market, None, defaultType)
         side = self.safe_string_lower(trade, 'S')
-        takerOrMaker: Str = None
+        takerOrMaker = None
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
                 side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
             takerOrMaker = 'maker' if trade['m'] else 'taker'
-        fee: NullableDict = None
+        fee = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'N')
@@ -851,15 +851,15 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName: Str = None
+        methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -892,15 +892,15 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.get_market_from_symbols(symbols)
         type = self.safe_string(firstMarket, 'type', 'swap')
         symbolsLength = len(symbols)
-        methodName: Str = None
+        methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchOrderBookForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -1004,7 +1004,7 @@ class aster(ccxt.async_support.aster):
         """
         await self.load_markets()
         symbolsLength = len(symbolsAndTimeframes)
-        methodName: Str = None
+        methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOHLCVForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -1014,9 +1014,9 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.market(marketSymbols[0])
         type = self.safe_string(firstMarket, 'type', 'swap')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -1048,7 +1048,7 @@ class aster(ccxt.async_support.aster):
         """
         await self.load_markets()
         symbolsLength = len(symbolsAndTimeframes)
-        methodName: Str = None
+        methodName = None
         methodName, params = self.handle_param_string(params, 'callerMethodName', 'unWatchOHLCVForSymbols')
         params = self.omit(params, 'callerMethodName')
         if symbolsLength == 0:
@@ -1058,9 +1058,9 @@ class aster(ccxt.async_support.aster):
         firstMarket = self.market(marketSymbols[0])
         type = self.safe_string(firstMarket, 'type', 'swap')
         url = self.urls['api']['ws']['public'][type]
-        subscriptionArgs: List[str] = []
-        messageHashes: List[str] = []
-        request: dict = {
+        subscriptionArgs = []
+        messageHashes = []
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -1140,7 +1140,7 @@ class aster(ccxt.async_support.aster):
         listenKeyRefreshRateOptions = self.safe_dict(self.options, 'listenKeyRefreshRate', {})
         listenKeyRefreshRate = self.safe_integer(listenKeyRefreshRateOptions, type, 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            response: dict = None
+            response = None
             if type == 'spot':
                 response = await self.sapiPrivatePostV3ListenKey(params)
             else:
@@ -1194,7 +1194,7 @@ class aster(ccxt.async_support.aster):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params, type)
         await self.authenticate(type, params)
         url = self.get_private_url(type)
@@ -1223,7 +1223,7 @@ class aster(ccxt.async_support.aster):
             self.balance[type] = {}
 
     async def load_balance_snapshot(self, client, messageHash, type):
-        params: dict = {
+        params = {
             'type': type,
         }
         response = await self.fetch_balance(params)
@@ -1329,7 +1329,7 @@ class aster(ccxt.async_support.aster):
         url = self.get_private_url(type)
         client = self.client(url)
         self.set_positions_cache(client)
-        messageHashes: List[str] = []
+        messageHashes = []
         messageHash = 'positions'
         symbols = self.market_symbols(symbols, 'swap', True, True)
         if symbols is None:
@@ -1414,7 +1414,7 @@ class aster(ccxt.async_support.aster):
         cache = self.positions
         data = self.safe_dict(message, 'a', {})
         rawPositions = self.safe_list(data, 'P', [])
-        newPositions: List = []
+        newPositions = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_ws_position(rawPosition)
@@ -1498,12 +1498,12 @@ class aster(ccxt.async_support.aster):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
         messageHash = 'orders'
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params, type)
         await self.authenticate(type, params)
         if market is not None:
@@ -1531,12 +1531,12 @@ class aster(ccxt.async_support.aster):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
         messageHash = 'myTrades'
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params, type)
         await self.authenticate(type, params)
         if market is not None:
@@ -1711,14 +1711,14 @@ class aster(ccxt.async_support.aster):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'O')
         T = self.safe_integer(order, 'T')
-        lastTradeTimestamp: Int = None
+        lastTradeTimestamp = None
         if executionType == 'NEW' or executionType == 'AMENDMENT' or executionType == 'CANCELED':
             if timestamp is None:
                 timestamp = T
         elif executionType == 'TRADE':
             lastTradeTimestamp = T
         lastUpdateTimestamp = T
-        fee: NullableDict = None
+        fee = None
         feeCost = self.safe_string(order, 'n')
         if (feeCost is not None) and (Precise.string_gt(feeCost, '0')):
             feeCurrencyId = self.safe_string(order, 'N')
@@ -1776,7 +1776,7 @@ class aster(ccxt.async_support.aster):
     def handle_message(self, client: Client, message):
         messageInner = self.safe_dict(message, 'data', message)  # can be either wrapped in 'data' or full object itself
         event = self.safe_string(messageInner, 'e')
-        methods: dict = {
+        methods = {
             '24hrTicker': self.handle_ticker,
             'aggTrade': self.handle_trade,
             'depthUpdate': self.handle_order_book,

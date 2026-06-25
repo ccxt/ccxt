@@ -6736,13 +6736,13 @@ func WithFetchDepositAddressSupplementParams(params map[string]any) FetchDeposit
 }
 
 type FetchPrivateDepositWithdrawFeesOptionsStruct struct {
-	Codes  *any
+	Codes  *[]string
 	Params *map[string]any
 }
 
 type FetchPrivateDepositWithdrawFeesOptions func(opts *FetchPrivateDepositWithdrawFeesOptionsStruct)
 
-func WithFetchPrivateDepositWithdrawFeesCodes(codes any) FetchPrivateDepositWithdrawFeesOptions {
+func WithFetchPrivateDepositWithdrawFeesCodes(codes []string) FetchPrivateDepositWithdrawFeesOptions {
 	return func(opts *FetchPrivateDepositWithdrawFeesOptionsStruct) {
 		opts.Codes = &codes
 	}
@@ -6755,13 +6755,13 @@ func WithFetchPrivateDepositWithdrawFeesParams(params map[string]any) FetchPriva
 }
 
 type FetchPublicDepositWithdrawFeesOptionsStruct struct {
-	Codes  *any
+	Codes  *[]string
 	Params *map[string]any
 }
 
 type FetchPublicDepositWithdrawFeesOptions func(opts *FetchPublicDepositWithdrawFeesOptionsStruct)
 
-func WithFetchPublicDepositWithdrawFeesCodes(codes any) FetchPublicDepositWithdrawFeesOptions {
+func WithFetchPublicDepositWithdrawFeesCodes(codes []string) FetchPublicDepositWithdrawFeesOptions {
 	return func(opts *FetchPublicDepositWithdrawFeesOptionsStruct) {
 		opts.Codes = &codes
 	}

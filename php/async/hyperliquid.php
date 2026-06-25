@@ -144,7 +144,7 @@ class hyperliquid extends Exchange {
             ),
             'hostname' => 'hyperliquid.xyz',
             'urls' => array(
-                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b',
+                'logo' => 'https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8',
                 'api' => array(
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
@@ -1627,7 +1627,7 @@ class hyperliquid extends Exchange {
         $significantDigits = max (5, strlen($integerPart));
         $result = $this->decimal_to_precision($price, ROUND, $significantDigits, SIGNIFICANT_DIGITS, $this->paddingMode);
         $maxDecimals = $market['spot'] ? 8 : 6;
-        $subtractedValue = $maxDecimals - $this->precision_from_string($this->safe_string($market['precision'], 'amount'));
+        $subtractedValue = $maxDecimals - $this->precision_from_string(($this->safe_string($market['precision'], 'amount')));
         return $this->decimal_to_precision($result, ROUND, $subtractedValue, DECIMAL_PLACES, $this->paddingMode);
     }
 
@@ -1656,7 +1656,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function action_hash($action, $vaultAddress, $nonce, $expiresAfter = null) {
+    public function action_hash($action, $vaultAddress, $nonce, ?int $expiresAfter = null) {
         $dataBinary = $this->packb($action);
         $dataHex = bin2hex($dataBinary);
         $data = $dataHex;
@@ -1674,7 +1674,7 @@ class hyperliquid extends Exchange {
         return $this->hash($this->base16_to_binary($data), 'keccak', 'binary');
     }
 
-    public function sign_l1_action($action, $nonce, $vaultAdress = null, $expiresAfter = null): array {
+    public function sign_l1_action($action, $nonce, ?string $vaultAdress = null, ?int $expiresAfter = null): array {
         $hash = $this->action_hash($action, $vaultAdress, $nonce, $expiresAfter);
         $isTestnet = $this->safe_bool($this->options, 'sandboxMode', false);
         $phantomAgent = $this->construct_phantom_agent($hash, $isTestnet);
@@ -1903,7 +1903,7 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
-    public function is_unified_enabled(string $method, ?string $address = null, $shouldRefresh = false, $params = array ()) {
+    public function is_unified_enabled(string $method, ?string $address = null, $shouldRefresh = false, $params = array ()): PromiseInterface {
         return Async\async(function () use ($method, $address, $shouldRefresh, $params) {
             /**
              *
@@ -4868,7 +4868,7 @@ class hyperliquid extends Exchange {
         return $address;
     }
 
-    public function handle_public_address(string $methodName, array $params) {
+    public function handle_public_address(string $methodName, array $params): array {
         $userAux = null;
         list($userAux, $params) = $this->handle_option_and_params_2($params, $methodName, 'user', 'subAccountAddress');
         $user = $userAux;

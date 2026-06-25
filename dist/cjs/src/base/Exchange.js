@@ -17,7 +17,6 @@ var totp = require('./functions/totp.js');
 var index = require('../static_dependencies/ethers/index.js');
 require('../static_dependencies/ethers/utils/base58.js');
 require('../static_dependencies/ethers/utils/errors.js');
-require('../static_dependencies/ethers/utils/events.js');
 require('../static_dependencies/ethers/utils/fixednumber.js');
 require('../static_dependencies/ethers/utils/maths.js');
 require('../static_dependencies/ethers/utils/utf8.js');
@@ -1265,8 +1264,8 @@ class Exchange {
             }
         }
     }
-    async close() {
-        // test by running ts/src/pro/test/base/test.close.ts
+    async close(cleanInstanceCache = false) {
+        // [WS]
         await this.sleep(0); // allow other futures to run
         const clients = Object.values(this.clients || {});
         const closedClients = [];
@@ -1280,7 +1279,14 @@ class Exchange {
             delete this.clients[client.url];
             closedClients.push(client.close());
         }
-        return Promise.all(closedClients);
+        await Promise.all(closedClients);
+        if (cleanInstanceCache) {
+            this.cleanWsData();
+        }
+        // [REST]
+        if (cleanInstanceCache) {
+            this.cleanRestData();
+        }
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
@@ -2154,6 +2160,34 @@ class Exchange {
             },
             'rollingWindowSize': 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         };
+    }
+    cleanRestData() {
+        this.ids = undefined;
+        this.markets = undefined;
+        this.markets_by_id = undefined;
+        this.symbols = undefined;
+        this.codes = undefined;
+        this.currencies = this.createSafeDictionary();
+        this.currencies_by_id = undefined;
+        this.baseCurrencies = undefined;
+        this.quoteCurrencies = undefined;
+        this.last_http_response = undefined;
+        // this.last_json_response = undefined; // not unified prop
+        this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+    }
+    cleanWsData() {
+        this.balance = this.createSafeDictionary(true);
+        this.orderbooks = this.createSafeDictionary(true);
+        this.tickers = this.createSafeDictionary(true);
+        this.liquidations = undefined;
+        this.myLiquidations = undefined;
+        this.orders = undefined;
+        this.trades = this.createSafeDictionary(true);
+        this.transactions = this.createSafeDictionary();
+        this.ohlcvs = this.createSafeDictionary(true);
+        this.myTrades = undefined;
+        this.positions = undefined;
     }
     safeBoolN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
@@ -8326,7 +8360,7 @@ class Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
          */
         throw new errors.NotSupported(this.id + ' fetchOrdersByStatusWs () is not supported yet');
     }

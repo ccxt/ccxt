@@ -234,7 +234,7 @@ class paradex extends \ccxt\async\paradex {
             'asks' => array(),
         );
         $inserts = $this->safe_list($data, 'inserts');
-        for ($i = 0; $i < count($inserts); $i++) {
+        for ($i = 0; $i < count(($inserts)); $i++) {
             $insert = $this->safe_dict($inserts, $i);
             $side = $this->safe_string($insert, 'side');
             $price = $this->safe_string($insert, 'price');

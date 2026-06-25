@@ -541,7 +541,6 @@ func (this *HtxCore) Describe() any {
 						"v2/linear-swap-ex/market/detail/batch_merged":          1,
 						"linear-swap-ex/market/trade":                           1,
 						"linear-swap-ex/market/history/trade":                   1,
-						"linear-swap-api/v1/swap_risk_info":                     1,
 						"swap-api/v1/linear-swap-api/v1/swap_insurance_fund":    1,
 						"linear-swap-api/v1/swap_adjustfactor":                  1,
 						"linear-swap-api/v1/swap_cross_adjustfactor":            1,
@@ -549,11 +548,8 @@ func (this *HtxCore) Describe() any {
 						"linear-swap-api/v1/swap_ladder_margin":                 1,
 						"linear-swap-api/v1/swap_cross_ladder_margin":           1,
 						"linear-swap-api/v1/swap_api_state":                     1,
-						"linear-swap-api/v1/swap_cross_transfer_state":          1,
-						"linear-swap-api/v1/swap_cross_trade_state":             1,
 						"linear-swap-api/v1/swap_elite_account_ratio":           1,
 						"linear-swap-api/v1/swap_elite_position_ratio":          1,
-						"linear-swap-api/v1/swap_liquidation_orders":            1,
 						"linear-swap-api/v1/swap_settlement_records":            1,
 						"linear-swap-api/v3/swap_liquidation_orders":            1,
 						"index/market/history/linear_swap_premium_index_kline":  1,
@@ -573,203 +569,156 @@ func (this *HtxCore) Describe() any {
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"api/v1/contract_sub_auth_list":                        1,
-						"api/v1/contract_api_trading_status":                   1,
-						"swap-api/v1/swap_sub_auth_list":                       1,
-						"swap-api/v1/swap_api_trading_status":                  1,
-						"linear-swap-api/v1/swap_sub_auth_list":                1,
-						"linear-swap-api/v1/swap_api_trading_status":           1,
-						"linear-swap-api/v1/swap_cross_position_side":          1,
-						"linear-swap-api/v1/swap_position_side":                1,
-						"linear-swap-api/v3/unified_account_info":              1,
-						"linear-swap-api/v3/fix_position_margin_change_record": 1,
-						"linear-swap-api/v3/swap_unified_account_type":         1,
-						"linear-swap-api/v3/linear_swap_overview_account_info": 1,
-						"v5/account/asset_mode":                                0.20834,
-						"v5/account/balance":                                   0.20834,
-						"v5/account/bills":                                     0.20834,
-						"v5/account/fee_deduction_currency":                    0.20834,
-						"v5/trade/position/opens":                              0.41679,
-						"v5/trade/order/opens":                                 0.41679,
-						"v5/trade/order/details":                               0.41679,
-						"v5/trade/order/history":                               0.41679,
-						"v5/trade/order":                                       0.41679,
-						"v5/position/lever":                                    0.20834,
-						"v5/position/mode":                                     0.20834,
-						"v5/position/risk/limit":                               0.20834,
-						"v5/position/risk/limit_tier":                          0.20834,
-						"v5/market/risk/limit":                                 0.125,
-						"v5/market/assets_deduction_currency":                  0.125,
-						"v5/market/multi_assets_margin":                        0.125,
-						"v5/algo/order/opens":                                  0.41679,
-						"v5/algo/order":                                        0.41679,
-						"v5/algo/order/history":                                0.41679,
+						"api/v1/contract_sub_auth_list":       1,
+						"api/v1/contract_api_trading_status":  1,
+						"swap-api/v1/swap_sub_auth_list":      1,
+						"swap-api/v1/swap_api_trading_status": 1,
+						"v5/account/asset_mode":               0.20834,
+						"v5/account/balance":                  0.20834,
+						"v5/account/bills":                    0.20834,
+						"v5/account/fee_deduction_currency":   0.20834,
+						"v5/trade/position/opens":             0.41679,
+						"v5/trade/order/opens":                0.41679,
+						"v5/trade/order/details":              0.41679,
+						"v5/trade/order/history":              0.41679,
+						"v5/trade/order":                      0.41679,
+						"v5/position/lever":                   0.20834,
+						"v5/position/mode":                    0.20834,
+						"v5/position/risk/limit":              0.20834,
+						"v5/position/risk/limit_tier":         0.20834,
+						"v5/market/risk/limit":                0.125,
+						"v5/market/assets_deduction_currency": 0.125,
+						"v5/market/multi_assets_margin":       0.125,
+						"v5/algo/order/opens":                 0.41679,
+						"v5/algo/order":                       0.41679,
+						"v5/algo/order/history":               0.41679,
 					},
 					"post": map[string]any{
-						"api/v1/contract_balance_valuation":                     1,
-						"api/v1/contract_account_info":                          1,
-						"api/v1/contract_position_info":                         1,
-						"api/v1/contract_sub_auth":                              1,
-						"api/v1/contract_sub_account_list":                      1,
-						"api/v1/contract_sub_account_info_list":                 1,
-						"api/v1/contract_sub_account_info":                      1,
-						"api/v1/contract_sub_position_info":                     1,
-						"api/v1/contract_financial_record":                      1,
-						"api/v1/contract_financial_record_exact":                1,
-						"api/v1/contract_user_settlement_records":               1,
-						"api/v1/contract_order_limit":                           1,
-						"api/v1/contract_fee":                                   1,
-						"api/v1/contract_transfer_limit":                        1,
-						"api/v1/contract_position_limit":                        1,
-						"api/v1/contract_account_position_info":                 1,
-						"api/v1/contract_master_sub_transfer":                   1,
-						"api/v1/contract_master_sub_transfer_record":            1,
-						"api/v1/contract_available_level_rate":                  1,
-						"api/v3/contract_financial_record":                      1,
-						"api/v3/contract_financial_record_exact":                1,
-						"api/v1/contract-cancel-after":                          1,
-						"api/v1/contract_order":                                 1,
-						"api/v1/contract_batchorder":                            1,
-						"api/v1/contract_cancel":                                1,
-						"api/v1/contract_cancelall":                             1,
-						"api/v1/contract_switch_lever_rate":                     30,
-						"api/v1/lightning_close_position":                       1,
-						"api/v1/contract_order_info":                            1,
-						"api/v1/contract_order_detail":                          1,
-						"api/v1/contract_openorders":                            1,
-						"api/v1/contract_hisorders":                             1,
-						"api/v1/contract_hisorders_exact":                       1,
-						"api/v1/contract_matchresults":                          1,
-						"api/v1/contract_matchresults_exact":                    1,
-						"api/v3/contract_hisorders":                             1,
-						"api/v3/contract_hisorders_exact":                       1,
-						"api/v3/contract_matchresults":                          1,
-						"api/v3/contract_matchresults_exact":                    1,
-						"api/v1/contract_trigger_order":                         1,
-						"api/v1/contract_trigger_cancel":                        1,
-						"api/v1/contract_trigger_cancelall":                     1,
-						"api/v1/contract_trigger_openorders":                    1,
-						"api/v1/contract_trigger_hisorders":                     1,
-						"api/v1/contract_tpsl_order":                            1,
-						"api/v1/contract_tpsl_cancel":                           1,
-						"api/v1/contract_tpsl_cancelall":                        1,
-						"api/v1/contract_tpsl_openorders":                       1,
-						"api/v1/contract_tpsl_hisorders":                        1,
-						"api/v1/contract_relation_tpsl_order":                   1,
-						"api/v1/contract_track_order":                           1,
-						"api/v1/contract_track_cancel":                          1,
-						"api/v1/contract_track_cancelall":                       1,
-						"api/v1/contract_track_openorders":                      1,
-						"api/v1/contract_track_hisorders":                       1,
-						"swap-api/v1/swap_balance_valuation":                    1,
-						"swap-api/v1/swap_account_info":                         1,
-						"swap-api/v1/swap_position_info":                        1,
-						"swap-api/v1/swap_account_position_info":                1,
-						"swap-api/v1/swap_sub_auth":                             1,
-						"swap-api/v1/swap_sub_account_list":                     1,
-						"swap-api/v1/swap_sub_account_info_list":                1,
-						"swap-api/v1/swap_sub_account_info":                     1,
-						"swap-api/v1/swap_sub_position_info":                    1,
-						"swap-api/v1/swap_financial_record":                     1,
-						"swap-api/v1/swap_financial_record_exact":               1,
-						"swap-api/v1/swap_user_settlement_records":              1,
-						"swap-api/v1/swap_available_level_rate":                 1,
-						"swap-api/v1/swap_order_limit":                          1,
-						"swap-api/v1/swap_fee":                                  1,
-						"swap-api/v1/swap_transfer_limit":                       1,
-						"swap-api/v1/swap_position_limit":                       1,
-						"swap-api/v1/swap_master_sub_transfer":                  1,
-						"swap-api/v1/swap_master_sub_transfer_record":           1,
-						"swap-api/v3/swap_financial_record":                     1,
-						"swap-api/v3/swap_financial_record_exact":               1,
-						"swap-api/v1/swap-cancel-after":                         1,
-						"swap-api/v1/swap_order":                                1,
-						"swap-api/v1/swap_batchorder":                           1,
-						"swap-api/v1/swap_cancel":                               1,
-						"swap-api/v1/swap_cancelall":                            1,
-						"swap-api/v1/swap_lightning_close_position":             1,
-						"swap-api/v1/swap_switch_lever_rate":                    30,
-						"swap-api/v1/swap_order_info":                           1,
-						"swap-api/v1/swap_order_detail":                         1,
-						"swap-api/v1/swap_openorders":                           1,
-						"swap-api/v1/swap_hisorders":                            1,
-						"swap-api/v1/swap_hisorders_exact":                      1,
-						"swap-api/v1/swap_matchresults":                         1,
-						"swap-api/v1/swap_matchresults_exact":                   1,
-						"swap-api/v3/swap_matchresults":                         1,
-						"swap-api/v3/swap_matchresults_exact":                   1,
-						"swap-api/v3/swap_hisorders":                            1,
-						"swap-api/v3/swap_hisorders_exact":                      1,
-						"swap-api/v1/swap_trigger_order":                        1,
-						"swap-api/v1/swap_trigger_cancel":                       1,
-						"swap-api/v1/swap_trigger_cancelall":                    1,
-						"swap-api/v1/swap_trigger_openorders":                   1,
-						"swap-api/v1/swap_trigger_hisorders":                    1,
-						"swap-api/v1/swap_tpsl_order":                           1,
-						"swap-api/v1/swap_tpsl_cancel":                          1,
-						"swap-api/v1/swap_tpsl_cancelall":                       1,
-						"swap-api/v1/swap_tpsl_openorders":                      1,
-						"swap-api/v1/swap_tpsl_hisorders":                       1,
-						"swap-api/v1/swap_relation_tpsl_order":                  1,
-						"swap-api/v1/swap_track_order":                          1,
-						"swap-api/v1/swap_track_cancel":                         1,
-						"swap-api/v1/swap_track_cancelall":                      1,
-						"swap-api/v1/swap_track_openorders":                     1,
-						"swap-api/v1/swap_track_hisorders":                      1,
-						"linear-swap-api/v1/swap_lever_position_limit":          1,
-						"linear-swap-api/v1/swap_cross_lever_position_limit":    1,
-						"linear-swap-api/v1/swap_balance_valuation":             1,
-						"linear-swap-api/v1/swap_sub_auth":                      1,
-						"linear-swap-api/v1/swap_sub_account_list":              1,
-						"linear-swap-api/v1/swap_cross_sub_account_list":        1,
-						"linear-swap-api/v1/swap_sub_account_info_list":         1,
-						"linear-swap-api/v1/swap_cross_sub_account_info_list":   1,
-						"linear-swap-api/v1/swap_sub_account_info":              1,
-						"linear-swap-api/v1/swap_cross_sub_account_info":        1,
-						"linear-swap-api/v1/swap_sub_position_info":             1,
-						"linear-swap-api/v1/swap_cross_sub_position_info":       1,
-						"linear-swap-api/v1/swap_financial_record":              1,
-						"linear-swap-api/v1/swap_financial_record_exact":        1,
-						"linear-swap-api/v1/swap_user_settlement_records":       1,
-						"linear-swap-api/v1/swap_cross_user_settlement_records": 1,
-						"linear-swap-api/v1/swap_available_level_rate":          1,
-						"linear-swap-api/v1/swap_cross_available_level_rate":    1,
-						"linear-swap-api/v1/swap_order_limit":                   1,
-						"linear-swap-api/v1/swap_fee":                           1,
-						"linear-swap-api/v1/swap_transfer_limit":                1,
-						"linear-swap-api/v1/swap_cross_transfer_limit":          1,
-						"linear-swap-api/v1/swap_position_limit":                1,
-						"linear-swap-api/v1/swap_cross_position_limit":          1,
-						"linear-swap-api/v1/swap_master_sub_transfer":           1,
-						"linear-swap-api/v1/swap_master_sub_transfer_record":    1,
-						"linear-swap-api/v1/swap_transfer_inner":                1,
-						"linear-swap-api/v3/swap_financial_record":              1,
-						"linear-swap-api/v3/swap_financial_record_exact":        1,
-						"linear-swap-api/v1/swap_cross_matchresults":            1,
-						"linear-swap-api/v1/swap_cross_matchresults_exact":      1,
-						"linear-swap-api/v1/linear-cancel-after":                1,
-						"linear-swap-api/v3/swap_cross_matchresults":            1,
-						"linear-swap-api/v3/swap_cross_matchresults_exact":      1,
-						"linear-swap-api/v3/fix_position_margin_change":         1,
-						"linear-swap-api/v3/swap_switch_account_type":           1,
-						"linear-swap-api/v3/linear_swap_fee_switch":             1,
-						"linear-swap-api/v1/swap_relation_tpsl_order":           1,
-						"linear-swap-api/v1/swap_cross_relation_tpsl_order":     1,
-						"v5/account/asset_mode":                                 100,
-						"v5/trade/order":                                        0.41679,
-						"v5/trade/batch_orders":                                 0.41679,
-						"v5/trade/cancel_order":                                 0.41679,
-						"v5/trade/cancel_batch_orders":                          0.41679,
-						"v5/trade/cancel_all_orders":                            0.41679,
-						"v5/trade/cancel-after":                                 0.41679,
-						"v5/trade/position":                                     0.41679,
-						"v5/trade/position_all":                                 0.41679,
-						"v5/position/lever":                                     0.20834,
-						"v5/position/mode":                                      0.20834,
-						"v5/position/margin":                                    0.20834,
-						"v5/account/fee_deduction_currency":                     0.20834,
-						"v5/algo/order":                                         0.41679,
-						"v5/algo/cancel_orders":                                 0.41679,
+						"api/v1/contract_balance_valuation":           1,
+						"api/v1/contract_account_info":                1,
+						"api/v1/contract_position_info":               1,
+						"api/v1/contract_sub_auth":                    1,
+						"api/v1/contract_sub_account_list":            1,
+						"api/v1/contract_sub_account_info_list":       1,
+						"api/v1/contract_sub_account_info":            1,
+						"api/v1/contract_sub_position_info":           1,
+						"api/v1/contract_financial_record":            1,
+						"api/v1/contract_financial_record_exact":      1,
+						"api/v1/contract_user_settlement_records":     1,
+						"api/v1/contract_order_limit":                 1,
+						"api/v1/contract_fee":                         1,
+						"api/v1/contract_transfer_limit":              1,
+						"api/v1/contract_position_limit":              1,
+						"api/v1/contract_account_position_info":       1,
+						"api/v1/contract_master_sub_transfer":         1,
+						"api/v1/contract_master_sub_transfer_record":  1,
+						"api/v1/contract_available_level_rate":        1,
+						"api/v3/contract_financial_record":            1,
+						"api/v3/contract_financial_record_exact":      1,
+						"api/v1/contract-cancel-after":                1,
+						"api/v1/contract_order":                       1,
+						"api/v1/contract_batchorder":                  1,
+						"api/v1/contract_cancel":                      1,
+						"api/v1/contract_cancelall":                   1,
+						"api/v1/contract_switch_lever_rate":           30,
+						"api/v1/lightning_close_position":             1,
+						"api/v1/contract_order_info":                  1,
+						"api/v1/contract_order_detail":                1,
+						"api/v1/contract_openorders":                  1,
+						"api/v1/contract_hisorders":                   1,
+						"api/v1/contract_hisorders_exact":             1,
+						"api/v1/contract_matchresults":                1,
+						"api/v1/contract_matchresults_exact":          1,
+						"api/v3/contract_hisorders":                   1,
+						"api/v3/contract_hisorders_exact":             1,
+						"api/v3/contract_matchresults":                1,
+						"api/v3/contract_matchresults_exact":          1,
+						"api/v1/contract_trigger_order":               1,
+						"api/v1/contract_trigger_cancel":              1,
+						"api/v1/contract_trigger_cancelall":           1,
+						"api/v1/contract_trigger_openorders":          1,
+						"api/v1/contract_trigger_hisorders":           1,
+						"api/v1/contract_tpsl_order":                  1,
+						"api/v1/contract_tpsl_cancel":                 1,
+						"api/v1/contract_tpsl_cancelall":              1,
+						"api/v1/contract_tpsl_openorders":             1,
+						"api/v1/contract_tpsl_hisorders":              1,
+						"api/v1/contract_relation_tpsl_order":         1,
+						"api/v1/contract_track_order":                 1,
+						"api/v1/contract_track_cancel":                1,
+						"api/v1/contract_track_cancelall":             1,
+						"api/v1/contract_track_openorders":            1,
+						"api/v1/contract_track_hisorders":             1,
+						"swap-api/v1/swap_balance_valuation":          1,
+						"swap-api/v1/swap_account_info":               1,
+						"swap-api/v1/swap_position_info":              1,
+						"swap-api/v1/swap_account_position_info":      1,
+						"swap-api/v1/swap_sub_auth":                   1,
+						"swap-api/v1/swap_sub_account_list":           1,
+						"swap-api/v1/swap_sub_account_info_list":      1,
+						"swap-api/v1/swap_sub_account_info":           1,
+						"swap-api/v1/swap_sub_position_info":          1,
+						"swap-api/v1/swap_financial_record":           1,
+						"swap-api/v1/swap_financial_record_exact":     1,
+						"swap-api/v1/swap_user_settlement_records":    1,
+						"swap-api/v1/swap_available_level_rate":       1,
+						"swap-api/v1/swap_order_limit":                1,
+						"swap-api/v1/swap_fee":                        1,
+						"swap-api/v1/swap_transfer_limit":             1,
+						"swap-api/v1/swap_position_limit":             1,
+						"swap-api/v1/swap_master_sub_transfer":        1,
+						"swap-api/v1/swap_master_sub_transfer_record": 1,
+						"swap-api/v3/swap_financial_record":           1,
+						"swap-api/v3/swap_financial_record_exact":     1,
+						"swap-api/v1/swap-cancel-after":               1,
+						"swap-api/v1/swap_order":                      1,
+						"swap-api/v1/swap_batchorder":                 1,
+						"swap-api/v1/swap_cancel":                     1,
+						"swap-api/v1/swap_cancelall":                  1,
+						"swap-api/v1/swap_lightning_close_position":   1,
+						"swap-api/v1/swap_switch_lever_rate":          30,
+						"swap-api/v1/swap_order_info":                 1,
+						"swap-api/v1/swap_order_detail":               1,
+						"swap-api/v1/swap_openorders":                 1,
+						"swap-api/v1/swap_hisorders":                  1,
+						"swap-api/v1/swap_hisorders_exact":            1,
+						"swap-api/v1/swap_matchresults":               1,
+						"swap-api/v1/swap_matchresults_exact":         1,
+						"swap-api/v3/swap_matchresults":               1,
+						"swap-api/v3/swap_matchresults_exact":         1,
+						"swap-api/v3/swap_hisorders":                  1,
+						"swap-api/v3/swap_hisorders_exact":            1,
+						"swap-api/v1/swap_trigger_order":              1,
+						"swap-api/v1/swap_trigger_cancel":             1,
+						"swap-api/v1/swap_trigger_cancelall":          1,
+						"swap-api/v1/swap_trigger_openorders":         1,
+						"swap-api/v1/swap_trigger_hisorders":          1,
+						"swap-api/v1/swap_tpsl_order":                 1,
+						"swap-api/v1/swap_tpsl_cancel":                1,
+						"swap-api/v1/swap_tpsl_cancelall":             1,
+						"swap-api/v1/swap_tpsl_openorders":            1,
+						"swap-api/v1/swap_tpsl_hisorders":             1,
+						"swap-api/v1/swap_relation_tpsl_order":        1,
+						"swap-api/v1/swap_track_order":                1,
+						"swap-api/v1/swap_track_cancel":               1,
+						"swap-api/v1/swap_track_cancelall":            1,
+						"swap-api/v1/swap_track_openorders":           1,
+						"swap-api/v1/swap_track_hisorders":            1,
+						"v5/account/asset_mode":                       100,
+						"v5/trade/order":                              0.41679,
+						"v5/trade/batch_orders":                       0.41679,
+						"v5/trade/cancel_order":                       0.41679,
+						"v5/trade/cancel_batch_orders":                0.41679,
+						"v5/trade/cancel_all_orders":                  0.41679,
+						"v5/trade/cancel-after":                       0.41679,
+						"v5/trade/position":                           0.41679,
+						"v5/trade/position_all":                       0.41679,
+						"v5/position/lever":                           0.20834,
+						"v5/position/mode":                            0.20834,
+						"v5/position/margin":                          0.20834,
+						"v5/account/fee_deduction_currency":           0.20834,
+						"v5/algo/order":                               0.41679,
+						"v5/algo/cancel_orders":                       0.41679,
 					},
 				},
 			},
@@ -1280,8 +1229,8 @@ func (this *HtxCore) FetchStatus(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes13688 := (<-this.LoadMarkets())
-		PanicOnError(retRes13688)
+		retRes13158 := (<-this.LoadMarkets())
+		PanicOnError(retRes13158)
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchStatus", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -1601,8 +1550,8 @@ func (this *HtxCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes16468 := (<-this.LoadMarkets())
-		PanicOnError(retRes16468)
+		retRes15938 := (<-this.LoadMarkets())
+		PanicOnError(retRes15938)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbols": GetValue(market, "id"),
@@ -1647,8 +1596,8 @@ func (this *HtxCore) FetchTradingLimits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16768 := (<-this.LoadMarkets())
-		PanicOnError(retRes16768)
+		retRes16238 := (<-this.LoadMarkets())
+		PanicOnError(retRes16238)
 		if IsTrue(IsEqual(symbols, nil)) {
 			symbols = this.Symbols
 		}
@@ -1764,8 +1713,8 @@ func (this *HtxCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes176512 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes176512)
+			retRes171212 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes171212)
 		}
 		var types any = nil
 		typesparamsVariable := this.HandleOptionAndParams(params, "fetchMarkets", "types", map[string]any{})
@@ -2280,8 +2229,8 @@ func (this *HtxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes22458 := (<-this.LoadMarkets())
-		PanicOnError(retRes22458)
+		retRes21928 := (<-this.LoadMarkets())
+		PanicOnError(retRes21928)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
 		var response any = nil
@@ -2386,8 +2335,8 @@ func (this *HtxCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23288 := (<-this.LoadMarkets())
-		PanicOnError(retRes23288)
+		retRes22758 := (<-this.LoadMarkets())
+		PanicOnError(retRes22758)
 		symbols = this.MarketSymbols(symbols)
 		var first any = this.SafeString(symbols, 0)
 		var market any = nil
@@ -2524,8 +2473,8 @@ func (this *HtxCore) FetchLastPrices(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes24398 := (<-this.LoadMarkets())
-		PanicOnError(retRes24398)
+		retRes23868 := (<-this.LoadMarkets())
+		PanicOnError(retRes23868)
 		symbols = this.MarketSymbols(symbols)
 		var market any = this.GetMarketFromSymbols(symbols)
 		var typeVar any = nil
@@ -2603,8 +2552,8 @@ func (this *HtxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes25618 := (<-this.LoadMarkets())
-		PanicOnError(retRes25618)
+		retRes25088 := (<-this.LoadMarkets())
+		PanicOnError(retRes25088)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"type": "step0",
@@ -2899,9 +2848,9 @@ func (this *HtxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 			panic(NotSupported(Add(this.Id, " fetchOrderTrades() is only supported for spot markets")))
 		}
 
-		retRes283515 := (<-this.FetchSpotOrderTrades(id, symbol, since, limit, params))
-		PanicOnError(retRes283515)
-		ch <- retRes283515
+		retRes278215 := (<-this.FetchSpotOrderTrades(id, symbol, since, limit, params))
+		PanicOnError(retRes278215)
+		ch <- retRes278215
 		return nil
 
 	}()
@@ -2935,8 +2884,8 @@ func (this *HtxCore) FetchSpotOrderTrades(id any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes28528 := (<-this.LoadMarkets())
-		PanicOnError(retRes28528)
+		retRes27998 := (<-this.LoadMarkets())
+		PanicOnError(retRes27998)
 		var request any = map[string]any{
 			"order-id": id,
 		}
@@ -2979,17 +2928,17 @@ func (this *HtxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes28758 := (<-this.LoadMarkets())
-		PanicOnError(retRes28758)
+		retRes28228 := (<-this.LoadMarkets())
+		PanicOnError(retRes28228)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes287919 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes287919)
-			ch <- retRes287919
+			retRes282619 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes282619)
+			ch <- retRes282619
 			return nil
 		}
 		var market any = nil
@@ -3194,8 +3143,8 @@ func (this *HtxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes30728 := (<-this.LoadMarkets())
-		PanicOnError(retRes30728)
+		retRes30198 := (<-this.LoadMarkets())
+		PanicOnError(retRes30198)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -3321,17 +3270,17 @@ func (this *HtxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes31798 := (<-this.LoadMarkets())
-		PanicOnError(retRes31798)
+		retRes31268 := (<-this.LoadMarkets())
+		PanicOnError(retRes31268)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes318319 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-			PanicOnError(retRes318319)
-			ch <- retRes318319
+			retRes313019 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+			PanicOnError(retRes313019)
+			ch <- retRes313019
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -3504,8 +3453,8 @@ func (this *HtxCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes33178 := (<-this.LoadMarkets())
-		PanicOnError(retRes33178)
+		retRes32648 := (<-this.LoadMarkets())
+		PanicOnError(retRes32648)
 
 		response := (<-this.SpotPrivateGetV1AccountAccounts(params))
 		PanicOnError(response)
@@ -3791,13 +3740,12 @@ func (this *HtxCore) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
  * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
- * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
  * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
  * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.subType] linear or future
- * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+ * @param {string} [params.type] spot, margin, future or swap
+ * @param {string} [params.subType] linear or inverse
  * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -3809,27 +3757,31 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes35698 := (<-this.LoadMarkets())
-		PanicOnError(retRes35698)
+		retRes35158 := (<-this.LoadMarkets())
+		PanicOnError(retRes35158)
+		var isUnifiedAccount any = nil
+		isUnifiedAccountparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "unified", "uta", false)
+		isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
+		params = GetValue(isUnifiedAccountparamsVariable, 1)
+		if IsTrue(isUnifiedAccount) {
+			panic(NotSupported(Add(this.Id, " fetchBalance() unified account has been deprecated on htx")))
+		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
 		var subType any = nil
-		var isUnifiedAccount any = nil
 		var isMultiAssetMode any = nil
 		subTypeparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "defaultSubType", "subType", "linear")
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		isUnifiedAccountparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "unified", "uta", false)
-		isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
-		params = GetValue(isUnifiedAccountparamsVariable, 1)
 		isMultiAssetModeparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "multiAssetMode", false)
 		isMultiAssetMode = GetValue(isMultiAssetModeparamsVariable, 0)
 		params = GetValue(isMultiAssetModeparamsVariable, 1)
 		var request any = map[string]any{}
 		var spot any = (IsEqual(typeVar, "spot"))
 		var future any = (IsEqual(typeVar, "future"))
+		var swap any = (IsEqual(typeVar, "swap"))
 		var inverse any = (IsEqual(subType, "inverse"))
 		var linear any = (IsEqual(subType, "linear"))
 		var marginMode any = nil
@@ -3840,7 +3792,7 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		var cross any = (IsEqual(marginMode, "cross"))
 		var margin any = IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((IsTrue(spot) && IsTrue((IsTrue(cross) || IsTrue(isolated)))))
 		var response any = nil
-		if IsTrue(isMultiAssetMode) {
+		if IsTrue(IsTrue(isMultiAssetMode) || IsTrue((IsTrue(linear) && IsTrue((IsTrue(swap) || IsTrue(future)))))) {
 
 			response = (<-this.ContractPrivateGetV5AccountBalance(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3857,8 +3809,8 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 				}
 			} else {
 
-				retRes359916 := (<-this.LoadAccounts())
-				PanicOnError(retRes359916)
+				retRes354916 := (<-this.LoadAccounts())
+				PanicOnError(retRes354916)
 
 				accountId := (<-this.FetchAccountIdByType(typeVar, nil, nil, params))
 				PanicOnError(accountId)
@@ -3867,14 +3819,6 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 				response = (<-this.SpotPrivateGetV1AccountAccountsAccountIdBalance(this.Extend(request, params)))
 				PanicOnError(response)
 			}
-		} else if IsTrue(linear) {
-
-			response = (<-this.ContractPrivateGetV5AccountBalance(this.Extend(request, params)))
-			PanicOnError(response)
-		} else if IsTrue(isUnifiedAccount) {
-
-			response = (<-this.ContractPrivateGetLinearSwapApiV3UnifiedAccountInfo(this.Extend(request, params)))
-			PanicOnError(response)
 		} else if IsTrue(inverse) {
 			if IsTrue(future) {
 
@@ -4032,14 +3976,15 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 			"info": finalResponse,
 		}
 		var data any = this.SafeValue(response, "data")
-		if IsTrue(isMultiAssetMode) {
+		if IsTrue(IsTrue(isMultiAssetMode) || IsTrue((IsTrue(linear) && IsTrue((IsTrue(swap) || IsTrue(future)))))) {
 			var details any = this.SafeList(data, "details", []any{})
 			for i := 0; IsLessThan(i, GetArrayLength(details)); i++ {
 				var balance any = GetValue(details, i)
 				var currencyId any = this.SafeString(balance, "currency")
 				var code any = this.SafeCurrencyCode(currencyId)
 				var account any = this.Account()
-				AddElementToObject(account, "free", this.SafeString(balance, "withdraw_available"))
+				AddElementToObject(account, "free", this.SafeString(balance, "available_margin"))
+				AddElementToObject(account, "total", this.SafeString(balance, "equity"))
 				AddElementToObject(result, code, account)
 			}
 			result = this.SafeBalance(result)
@@ -4067,43 +4012,6 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 					AddElementToObject(result, code, this.ParseMarginBalanceHelper(balance, code, result))
 				}
 				result = this.SafeBalance(result)
-			}
-		} else if IsTrue(linear) {
-			var details any = this.SafeList(data, "details", []any{})
-			for i := 0; IsLessThan(i, GetArrayLength(details)); i++ {
-				var balance any = GetValue(details, i)
-				var currencyId any = this.SafeString(balance, "currency")
-				var code any = this.SafeCurrencyCode(currencyId)
-				var account any = this.Account()
-				AddElementToObject(account, "free", this.SafeString(balance, "withdraw_available"))
-				AddElementToObject(result, code, account)
-			}
-			result = this.SafeBalance(result)
-		} else if IsTrue(isUnifiedAccount) {
-			for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-				var entry any = GetValue(data, i)
-				var marginAsset any = this.SafeString(entry, "margin_asset")
-				var currencyCode any = this.SafeCurrencyCode(marginAsset)
-				if IsTrue(isolated) {
-					var isolated_swap any = this.SafeValue(entry, "isolated_swap", map[string]any{})
-					for j := 0; IsLessThan(j, GetArrayLength(isolated_swap)); j++ {
-						var balance any = GetValue(isolated_swap, j)
-						var marketId any = this.SafeString(balance, "contract_code")
-						var subBalance any = map[string]any{
-							"code": currencyCode,
-							"free": this.SafeNumber(balance, "margin_available"),
-						}
-						var symbol any = this.SafeSymbol(marketId)
-						AddElementToObject(result, symbol, subBalance)
-						result = this.SafeBalance(result)
-					}
-				} else {
-					var account any = this.Account()
-					AddElementToObject(account, "free", this.SafeString(entry, "margin_static"))
-					AddElementToObject(account, "used", this.SafeString(entry, "margin_frozen"))
-					AddElementToObject(result, currencyCode, account)
-					result = this.SafeBalance(result)
-				}
 			}
 		} else if IsTrue(inverse) {
 			for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
@@ -4154,8 +4062,8 @@ func (this *HtxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes38678 := (<-this.LoadMarkets())
-		PanicOnError(retRes38678)
+		retRes37778 := (<-this.LoadMarkets())
+		PanicOnError(retRes37778)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4396,8 +4304,8 @@ func (this *HtxCore) FetchSpotOrdersByStates(states any, optionalArgs ...any) <-
 			}
 		}
 
-		retRes40888 := (<-this.LoadMarkets())
-		PanicOnError(retRes40888)
+		retRes39988 := (<-this.LoadMarkets())
+		PanicOnError(retRes39988)
 		var market any = nil
 		var request any = map[string]any{
 			"states": states,
@@ -4474,9 +4382,9 @@ func (this *HtxCore) FetchSpotOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes415615 := (<-this.FetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))
-		PanicOnError(retRes415615)
-		ch <- retRes415615
+		retRes406615 := (<-this.FetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))
+		PanicOnError(retRes406615)
+		ch <- retRes406615
 		return nil
 
 	}()
@@ -4496,9 +4404,9 @@ func (this *HtxCore) FetchClosedSpotOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes416015 := (<-this.FetchSpotOrdersByStates("filled", symbol, since, limit, params))
-		PanicOnError(retRes416015)
-		ch <- retRes416015
+		retRes407015 := (<-this.FetchSpotOrdersByStates("filled", symbol, since, limit, params))
+		PanicOnError(retRes407015)
+		ch <- retRes407015
 		return nil
 
 	}()
@@ -4521,8 +4429,8 @@ func (this *HtxCore) FetchContractOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchContractOrders() requires a symbol argument")))
 		}
 
-		retRes41678 := (<-this.LoadMarkets())
-		PanicOnError(retRes41678)
+		retRes40778 := (<-this.LoadMarkets())
+		PanicOnError(retRes40778)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
 		var response any = nil
@@ -4642,8 +4550,8 @@ func (this *HtxCore) FetchClosedContractOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchClosedContractOrders() requires a symbol argument")))
 		}
 
-		retRes43208 := (<-this.LoadMarkets())
-		PanicOnError(retRes43208)
+		retRes42308 := (<-this.LoadMarkets())
+		PanicOnError(retRes42308)
 		var request any = map[string]any{}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "linear")) {
@@ -4662,9 +4570,9 @@ func (this *HtxCore) FetchClosedContractOrders(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "status", "6")
 		}
 
-		retRes433815 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes433815)
-		ch <- retRes433815
+		retRes424815 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes424815)
+		ch <- retRes424815
 		return nil
 
 	}()
@@ -4707,8 +4615,8 @@ func (this *HtxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes43648 := (<-this.LoadMarkets())
-		PanicOnError(retRes43648)
+		retRes42748 := (<-this.LoadMarkets())
+		PanicOnError(retRes42748)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4723,15 +4631,15 @@ func (this *HtxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(contract) {
 
-			retRes437619 := (<-this.FetchContractOrders(symbol, since, limit, params))
-			PanicOnError(retRes437619)
-			ch <- retRes437619
+			retRes428619 := (<-this.FetchContractOrders(symbol, since, limit, params))
+			PanicOnError(retRes428619)
+			ch <- retRes428619
 			return nil
 		} else {
 
-			retRes437819 := (<-this.FetchSpotOrders(symbol, since, limit, params))
-			PanicOnError(retRes437819)
-			ch <- retRes437819
+			retRes428819 := (<-this.FetchSpotOrders(symbol, since, limit, params))
+			PanicOnError(retRes428819)
+			ch <- retRes428819
 			return nil
 		}
 
@@ -4771,17 +4679,17 @@ func (this *HtxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes44018 := (<-this.LoadMarkets())
-		PanicOnError(retRes44018)
+		retRes43118 := (<-this.LoadMarkets())
+		PanicOnError(retRes43118)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchCanceledOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes440519 := (<-this.FetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, params, 100))
-			PanicOnError(retRes440519)
-			ch <- retRes440519
+			retRes431519 := (<-this.FetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, params, 100))
+			PanicOnError(retRes431519)
+			ch <- retRes431519
 			return nil
 		}
 		var market any = nil
@@ -4794,9 +4702,9 @@ func (this *HtxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			retRes441419 := (<-this.FetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, params))
-			PanicOnError(retRes441419)
-			ch <- retRes441419
+			retRes432419 := (<-this.FetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, params))
+			PanicOnError(retRes432419)
+			ch <- retRes432419
 			return nil
 		} else {
 			if IsTrue(IsEqual(symbol, nil)) {
@@ -4819,9 +4727,9 @@ func (this *HtxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 				AddElementToObject(request, "status", "5,7") // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
 			}
 
-			retRes443519 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
-			PanicOnError(retRes443519)
-			ch <- retRes443519
+			retRes434519 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
+			PanicOnError(retRes434519)
+			ch <- retRes434519
 			return nil
 		}
 
@@ -4861,17 +4769,17 @@ func (this *HtxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes44588 := (<-this.LoadMarkets())
-		PanicOnError(retRes44588)
+		retRes43688 := (<-this.LoadMarkets())
+		PanicOnError(retRes43688)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes446219 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, 100))
-			PanicOnError(retRes446219)
-			ch <- retRes446219
+			retRes437219 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, 100))
+			PanicOnError(retRes437219)
+			ch <- retRes437219
 			return nil
 		}
 		var market any = nil
@@ -4884,15 +4792,15 @@ func (this *HtxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			retRes447119 := (<-this.FetchClosedSpotOrders(symbol, since, limit, params))
-			PanicOnError(retRes447119)
-			ch <- retRes447119
+			retRes438119 := (<-this.FetchClosedSpotOrders(symbol, since, limit, params))
+			PanicOnError(retRes438119)
+			ch <- retRes438119
 			return nil
 		} else {
 
-			retRes447319 := (<-this.FetchClosedContractOrders(symbol, since, limit, params))
-			PanicOnError(retRes447319)
-			ch <- retRes447319
+			retRes438319 := (<-this.FetchClosedContractOrders(symbol, since, limit, params))
+			PanicOnError(retRes438319)
+			ch <- retRes438319
 			return nil
 		}
 
@@ -4932,8 +4840,8 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes44968 := (<-this.LoadMarkets())
-		PanicOnError(retRes44968)
+		retRes44068 := (<-this.LoadMarkets())
+		PanicOnError(retRes44068)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4958,8 +4866,8 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(accountId, nil)) {
 				// pick the first account
 
-				retRes451616 := (<-this.LoadAccounts())
-				PanicOnError(retRes451616)
+				retRes442616 := (<-this.LoadAccounts())
+				PanicOnError(retRes442616)
 				for i := 0; IsLessThan(i, GetArrayLength(this.Accounts)); i++ {
 					var account any = GetValue(this.Accounts, i)
 					if IsTrue(IsEqual(this.SafeString(account, "type"), "spot")) {
@@ -5676,17 +5584,17 @@ func (this *HtxCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optional
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes52028 := (<-this.LoadMarkets())
-		PanicOnError(retRes52028)
+		retRes51128 := (<-this.LoadMarkets())
+		PanicOnError(retRes51128)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes520815 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes520815)
-		ch <- retRes520815
+		retRes511815 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes511815)
+		ch <- retRes511815
 		return nil
 
 	}()
@@ -5729,9 +5637,9 @@ func (this *HtxCore) CreateTrailingPercentOrder(symbol any, typeVar any, side an
 		AddElementToObject(params, "trailingPercent", trailingPercent)
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-		retRes523415 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes523415)
-		ch <- retRes523415
+		retRes514415 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes514415)
+		ch <- retRes514415
 		return nil
 
 	}()
@@ -5763,11 +5671,11 @@ func (this *HtxCore) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes52538 := (<-this.LoadMarkets())
-		PanicOnError(retRes52538)
+		retRes51638 := (<-this.LoadMarkets())
+		PanicOnError(retRes51638)
 
-		retRes52548 := (<-this.LoadAccounts())
-		PanicOnError(retRes52548)
+		retRes51648 := (<-this.LoadAccounts())
+		PanicOnError(retRes51648)
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
@@ -6126,8 +6034,8 @@ func (this *HtxCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes55908 := (<-this.LoadMarkets())
-		PanicOnError(retRes55908)
+		retRes55008 := (<-this.LoadMarkets())
+		PanicOnError(retRes55008)
 		var market any = this.Market(symbol)
 		var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "trigger_price"})
 		var stopLossTriggerPrice any = this.SafeNumber2(params, "stopLossPrice", "sl_trigger_price")
@@ -6337,8 +6245,8 @@ func (this *HtxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes57608 := (<-this.LoadMarkets())
-		PanicOnError(retRes57608)
+		retRes56708 := (<-this.LoadMarkets())
+		PanicOnError(retRes56708)
 		var ordersRequests any = []any{}
 		var symbol any = nil
 		var market any = nil
@@ -6517,8 +6425,8 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes59158 := (<-this.LoadMarkets())
-		PanicOnError(retRes59158)
+		retRes58258 := (<-this.LoadMarkets())
+		PanicOnError(retRes58258)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -6724,8 +6632,8 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes60908 := (<-this.LoadMarkets())
-		PanicOnError(retRes60908)
+		retRes60008 := (<-this.LoadMarkets())
+		PanicOnError(retRes60008)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -7023,8 +6931,8 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes63648 := (<-this.LoadMarkets())
-		PanicOnError(retRes63648)
+		retRes62748 := (<-this.LoadMarkets())
+		PanicOnError(retRes62748)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -7157,8 +7065,8 @@ func (this *HtxCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes64898 := (<-this.LoadMarkets())
-		PanicOnError(retRes64898)
+		retRes63998 := (<-this.LoadMarkets())
+		PanicOnError(retRes63998)
 		var request any = map[string]any{
 			"timeout": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
 		}
@@ -7228,8 +7136,8 @@ func (this *HtxCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes65448 := (<-this.LoadMarkets())
-		PanicOnError(retRes65448)
+		retRes64548 := (<-this.LoadMarkets())
+		PanicOnError(retRes64548)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -7277,8 +7185,8 @@ func (this *HtxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes65788 := (<-this.LoadMarkets())
-		PanicOnError(retRes65788)
+		retRes64888 := (<-this.LoadMarkets())
+		PanicOnError(retRes64888)
 		var currency any = this.Currency(code)
 		networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
@@ -7306,8 +7214,8 @@ func (this *HtxCore) FetchWithdrawAddresses(code any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes65878 := (<-this.LoadMarkets())
-		PanicOnError(retRes65878)
+		retRes64978 := (<-this.LoadMarkets())
+		PanicOnError(retRes64978)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -7376,8 +7284,8 @@ func (this *HtxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			limit = 100
 		}
 
-		retRes66368 := (<-this.LoadMarkets())
-		PanicOnError(retRes66368)
+		retRes65468 := (<-this.LoadMarkets())
+		PanicOnError(retRes65468)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -7458,8 +7366,8 @@ func (this *HtxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			limit = 100
 		}
 
-		retRes66978 := (<-this.LoadMarkets())
-		PanicOnError(retRes66978)
+		retRes66078 := (<-this.LoadMarkets())
+		PanicOnError(retRes66078)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -7653,8 +7561,8 @@ func (this *HtxCore) Withdraw(code any, amount any, address any, optionalArgs ..
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes68768 := (<-this.LoadMarkets())
-		PanicOnError(retRes68768)
+		retRes67868 := (<-this.LoadMarkets())
+		PanicOnError(retRes67868)
 		this.CheckAddress(address)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -7766,8 +7674,8 @@ func (this *HtxCore) Transfer(code any, amount any, fromAccount any, toAccount a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes69698 := (<-this.LoadMarkets())
-		PanicOnError(retRes69698)
+		retRes68798 := (<-this.LoadMarkets())
+		PanicOnError(retRes68798)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -7871,8 +7779,8 @@ func (this *HtxCore) FetchIsolatedBorrowRates(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes70478 := (<-this.LoadMarkets())
-		PanicOnError(retRes70478)
+		retRes69578 := (<-this.LoadMarkets())
+		PanicOnError(retRes69578)
 
 		response := (<-this.SpotPrivateGetV1MarginLoanInfo(params))
 		PanicOnError(response)
@@ -7995,14 +7903,14 @@ func (this *HtxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes714719 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "current_page", "page_index", 1, 50))
-			PanicOnError(retRes714719)
-			ch <- retRes714719
+			retRes705719 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "current_page", "page_index", 1, 50))
+			PanicOnError(retRes705719)
+			ch <- retRes705719
 			return nil
 		}
 
-		retRes71498 := (<-this.LoadMarkets())
-		PanicOnError(retRes71498)
+		retRes70598 := (<-this.LoadMarkets())
+		PanicOnError(retRes70598)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"contract_code": GetValue(market, "id"),
@@ -8160,8 +8068,8 @@ func (this *HtxCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes73288 := (<-this.LoadMarkets())
-		PanicOnError(retRes73288)
+		retRes72388 := (<-this.LoadMarkets())
+		PanicOnError(retRes72388)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"contract_code": GetValue(market, "id"),
@@ -8212,8 +8120,8 @@ func (this *HtxCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes73938 := (<-this.LoadMarkets())
-		PanicOnError(retRes73938)
+		retRes73038 := (<-this.LoadMarkets())
+		PanicOnError(retRes73038)
 		symbols = this.MarketSymbols(symbols)
 		var defaultSubType any = this.SafeString(this.Options, "defaultSubType", "linear")
 		var subType any = nil
@@ -8293,8 +8201,8 @@ func (this *HtxCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 4, map[string]any{})
 		_ = params
 
-		retRes74518 := (<-this.LoadMarkets())
-		PanicOnError(retRes74518)
+		retRes73618 := (<-this.LoadMarkets())
+		PanicOnError(retRes73618)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -8633,13 +8541,14 @@ func (this *HtxCore) HandleErrors(httpCode any, reason any, url any, method any,
  * @method
  * @name htx#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
- * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
- * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          // coin-m swaps
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+ * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+ * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *HtxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
@@ -8656,58 +8565,44 @@ func (this *HtxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes77728 := (<-this.LoadMarkets())
-		PanicOnError(retRes77728)
+		retRes76838 := (<-this.LoadMarkets())
+		PanicOnError(retRes76838)
 		var market any = this.Market(symbol)
-		marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
-		marketType := GetValue(marketTypequeryVariable, 0)
-		query := GetValue(marketTypequeryVariable, 1)
+		var marketType any = nil
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
+		marketType = GetValue(marketTypeparamsVariable, 0)
+		params = GetValue(marketTypeparamsVariable, 1)
 		var request any = map[string]any{
 			"type": "30,31",
 		}
+		requestparamsVariable := this.HandleUntilOption("end_time", request, params)
+		request = GetValue(requestparamsVariable, 0)
+		params = GetValue(requestparamsVariable, 1)
 		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_date", since)
+			if IsTrue(GetValue(market, "linear")) {
+				AddElementToObject(request, "start_time", since)
+			} else {
+				AddElementToObject(request, "start_date", since)
+			}
 		}
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "swap")) {
-			AddElementToObject(request, "contract", GetValue(market, "id"))
 			if IsTrue(GetValue(market, "linear")) {
-				//
-				//    {
-				//        "status": "ok",
-				//        "data": {
-				//           "financial_record": [
-				//               {
-				//                   "id": "1320088022",
-				//                   "type": "30",
-				//                   "amount": "0.004732510000000000",
-				//                   "ts": "1641168019321",
-				//                   "contract_code": "BTC-USDT",
-				//                   "asset": "USDT",
-				//                   "margin_account": "BTC-USDT",
-				//                   "face_margin_account": ''
-				//               },
-				//           ],
-				//           "remain_size": "0",
-				//           "next_id": null
-				//        },
-				//        "ts": "1641189898425"
-				//    }
-				//
 				var marginMode any = nil
 				marginModeparamsVariable := this.HandleMarginModeAndParams("fetchFundingHistory", params)
 				marginMode = GetValue(marginModeparamsVariable, 0)
 				params = GetValue(marginModeparamsVariable, 1)
 				marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-				if IsTrue(IsEqual(marginMode, "isolated")) {
-					AddElementToObject(request, "mar_acct", GetValue(market, "id"))
-				} else {
-					AddElementToObject(request, "mar_acct", GetValue(market, "quoteId"))
+				AddElementToObject(request, "margin_mode", marginMode)
+				AddElementToObject(request, "contract_code", GetValue(market, "id"))
+				if IsTrue(!IsEqual(limit, nil)) {
+					AddElementToObject(request, "limit", limit)
 				}
 
-				response = (<-this.ContractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(this.Extend(request, query)))
+				response = (<-this.ContractPrivateGetV5AccountBills(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
+				AddElementToObject(request, "contract", GetValue(market, "id"))
 				//
 				//     {
 				//         "code": 200,
@@ -8729,13 +8624,13 @@ func (this *HtxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 				//     }
 				//
 
-				response = (<-this.ContractPrivatePostSwapApiV3SwapFinancialRecordExact(this.Extend(request, query)))
+				response = (<-this.ContractPrivatePostSwapApiV3SwapFinancialRecordExact(this.Extend(request, params)))
 				PanicOnError(response)
 			}
 		} else {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 
-			response = (<-this.ContractPrivatePostApiV3ContractFinancialRecordExact(this.Extend(request, query)))
+			response = (<-this.ContractPrivatePostApiV3ContractFinancialRecordExact(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		var data any = this.SafeList(response, "data", []any{})
@@ -8773,8 +8668,8 @@ func (this *HtxCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes78648 := (<-this.LoadMarkets())
-		PanicOnError(retRes78648)
+		retRes77778 := (<-this.LoadMarkets())
+		PanicOnError(retRes77778)
 		var market any = this.Market(symbol)
 		marketTypequeryVariable := this.HandleMarketTypeAndParams("setLeverage", market, params)
 		marketType := GetValue(marketTypequeryVariable, 0)
@@ -8829,14 +8724,26 @@ func (this *HtxCore) ParseIncome(income any, optionalArgs ...any) any {
 	//       "contract_code": "BTC-USD"
 	//     }
 	//
+	// linear swap
+	//
+	//     {
+	//         "id": "2194774775",
+	//         "type": "30",
+	//         "currency": "USDT",
+	//         "amount": "0.000433432461821856",
+	//         "contract_code": "BTC-USDT",
+	//         "margin_mode": "cross",
+	//         "created_time": "1780963213165"
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId any = this.SafeString(income, "contract_code")
 	var symbol any = this.SafeSymbol(marketId, market)
 	var amount any = this.SafeNumber(income, "amount")
-	var timestamp any = this.SafeInteger(income, "ts")
+	var timestamp any = this.SafeInteger2(income, "ts", "created_time")
 	var id any = this.SafeString(income, "id")
-	var currencyId any = this.SafeString2(income, "symbol", "asset")
+	var currencyId any = this.SafeStringN(income, []any{"symbol", "asset", "currency"})
 	var code any = this.SafeCurrencyCode(currencyId)
 	return map[string]any{
 		"info":      income,
@@ -9009,8 +8916,8 @@ func (this *HtxCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes81018 := (<-this.LoadMarkets())
-		PanicOnError(retRes81018)
+		retRes80268 := (<-this.LoadMarkets())
+		PanicOnError(retRes80268)
 		symbols = this.MarketSymbols(symbols)
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -9087,8 +8994,8 @@ func (this *HtxCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes82398 := (<-this.LoadMarkets())
-		PanicOnError(retRes82398)
+		retRes81648 := (<-this.LoadMarkets())
+		PanicOnError(retRes81648)
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchPosition", params)
@@ -9251,17 +9158,17 @@ func (this *HtxCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes84748 := (<-this.LoadMarkets())
-		PanicOnError(retRes84748)
+		retRes83998 := (<-this.LoadMarkets())
+		PanicOnError(retRes83998)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes847819 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, 500))
-			PanicOnError(retRes847819)
-			ch <- retRes847819
+			retRes840319 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, 500))
+			PanicOnError(retRes840319)
+			ch <- retRes840319
 			return nil
 		}
 
@@ -9346,8 +9253,8 @@ func (this *HtxCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes85498 := (<-this.LoadMarkets())
-		PanicOnError(retRes85498)
+		retRes84748 := (<-this.LoadMarkets())
+		PanicOnError(retRes84748)
 
 		response := (<-this.ContractPublicGetLinearSwapApiV1SwapAdjustfactor(params))
 		PanicOnError(response)
@@ -9450,8 +9357,8 @@ func (this *HtxCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <
 			panic(BadRequest(Add(this.Id, " fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe")))
 		}
 
-		retRes86318 := (<-this.LoadMarkets())
-		PanicOnError(retRes86318)
+		retRes85568 := (<-this.LoadMarkets())
+		PanicOnError(retRes85568)
 		var timeframes any = map[string]any{
 			"1h":  "60min",
 			"4h":  "4hour",
@@ -9580,8 +9487,8 @@ func (this *HtxCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes87408 := (<-this.LoadMarkets())
-		PanicOnError(retRes87408)
+		retRes86658 := (<-this.LoadMarkets())
+		PanicOnError(retRes86658)
 		symbols = this.MarketSymbols(symbols)
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -9640,8 +9547,8 @@ func (this *HtxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes88148 := (<-this.LoadMarkets())
-		PanicOnError(retRes88148)
+		retRes87398 := (<-this.LoadMarkets())
+		PanicOnError(retRes87398)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
@@ -9833,8 +9740,8 @@ func (this *HtxCore) BorrowIsolatedMargin(symbol any, code any, amount any, opti
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes89858 := (<-this.LoadMarkets())
-		PanicOnError(retRes89858)
+		retRes89108 := (<-this.LoadMarkets())
+		PanicOnError(retRes89108)
 		var currency any = this.Currency(code)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -9883,8 +9790,8 @@ func (this *HtxCore) BorrowCrossMargin(code any, amount any, optionalArgs ...any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes90208 := (<-this.LoadMarkets())
-		PanicOnError(retRes90208)
+		retRes89458 := (<-this.LoadMarkets())
+		PanicOnError(retRes89458)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -9931,8 +9838,8 @@ func (this *HtxCore) RepayIsolatedMargin(symbol any, code any, amount any, optio
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes90538 := (<-this.LoadMarkets())
-		PanicOnError(retRes90538)
+		retRes89788 := (<-this.LoadMarkets())
+		PanicOnError(retRes89788)
 		var currency any = this.Currency(code)
 
 		accountId := (<-this.FetchAccountIdByType("spot", "isolated", symbol, params))
@@ -9988,8 +9895,8 @@ func (this *HtxCore) RepayCrossMargin(code any, amount any, optionalArgs ...any)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes90938 := (<-this.LoadMarkets())
-		PanicOnError(retRes90938)
+		retRes90188 := (<-this.LoadMarkets())
+		PanicOnError(retRes90188)
 		var currency any = this.Currency(code)
 
 		accountId := (<-this.FetchAccountIdByType("spot", "cross", nil, params))
@@ -10067,7 +9974,7 @@ func (this *HtxCore) ParseMarginLoan(info any, optionalArgs ...any) any {
  * @description Fetches historical settlement records
  * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
  * @param {string} symbol unified symbol of the market to fetch the settlement history for
  * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
  * @param {int} [limit] page items, default 20, shall not exceed 50
@@ -10093,8 +10000,6 @@ func (this *HtxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchSettlementHistory() requires a symbol argument")))
 		}
-		var until any = this.SafeInteger(params, "until")
-		params = this.Omit(params, []any{"until"})
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
 		if IsTrue(GetValue(market, "future")) {
@@ -10102,20 +10007,24 @@ func (this *HtxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		} else {
 			AddElementToObject(request, "contract_code", GetValue(market, "id"))
 		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_at", since)
-		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
+			if IsTrue(IsTrue(GetValue(market, "linear")) && IsTrue(GetValue(market, "swap"))) {
+				AddElementToObject(request, "limit", limit)
+			} else {
+				AddElementToObject(request, "page_size", limit)
+			}
 		}
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "end_at", until)
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "start_time", since)
 		}
+		requestparamsVariable := this.HandleUntilOption("end_time", request, params)
+		request = GetValue(requestparamsVariable, 0)
+		params = GetValue(requestparamsVariable, 1)
 		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
 			if IsTrue(GetValue(market, "linear")) {
 
-				response = (<-this.ContractPublicGetLinearSwapApiV1SwapSettlementRecords(this.Extend(request, params)))
+				response = (<-this.ContractPublicGetV5MarketSettlementHistory(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
 
@@ -10128,7 +10037,7 @@ func (this *HtxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 			PanicOnError(response)
 		}
 		//
-		// linear swap, coin-m swap
+		// coin-m swap
 		//
 		//    {
 		//        "status": "ok",
@@ -10179,6 +10088,30 @@ func (this *HtxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		//        }
 		//    }
 		//
+		// linear swap
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": [
+		//             {
+		//                 "id": "14900",
+		//                 "contract_code": "BTC-USDT",
+		//                 "settlement_time": "1781827200000",
+		//                 "clawback_ratio": "0",
+		//                 "settlement_price": "62933.747161774209291325"
+		//             },
+		//         ],
+		//         "ts": 1781853150623
+		//     }
+		//
+		if IsTrue(GetValue(market, "linear")) {
+			var dataLinear any = this.SafeList(response, "data", []any{})
+			var settlementsLinear any = this.ParseSettlements(dataLinear, market)
+
+			ch <- this.SortBy(settlementsLinear, "timestamp")
+			return nil
+		}
 		var data any = this.SafeValue(response, "data")
 		var settlementRecord any = this.SafeValue(data, "settlement_record")
 		var settlements any = this.ParseSettlements(settlementRecord, market)
@@ -10209,8 +10142,8 @@ func (this *HtxCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes92718 := (<-this.LoadMarkets())
-		PanicOnError(retRes92718)
+		retRes92188 := (<-this.LoadMarkets())
+		PanicOnError(retRes92188)
 
 		response := (<-this.SpotPublicGetV2ReferenceCurrencies(params))
 		PanicOnError(response)
@@ -10328,7 +10261,7 @@ func (this *HtxCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 }
 func (this *HtxCore) ParseSettlements(settlements any, market any) any {
 	//
-	// linear swap, coin-m swap, fetchSettlementHistory
+	// coin-m swap, fetchSettlementHistory
 	//
 	//    [
 	//        {
@@ -10363,11 +10296,26 @@ func (this *HtxCore) ParseSettlements(settlements any, market any) any {
 	//        },
 	//    ]
 	//
+	// linear swap fetchSettlementHistory
+	//
+	//     [
+	//         {
+	//             "id": "14900",
+	//             "contract_code": "BTC-USDT",
+	//             "settlement_time": "1781827200000",
+	//             "clawback_ratio": "0",
+	//             "settlement_price": "62933.747161774209291325"
+	//         }
+	//     ]
+	//
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(settlements)); i++ {
 		var settlement any = GetValue(settlements, i)
 		var list any = this.SafeValue(settlement, "list")
-		if IsTrue(!IsEqual(list, nil)) {
+		if IsTrue(GetValue(market, "linear")) {
+			var parsedSettlement any = this.ParseSettlement(settlement, market)
+			AppendToArray(&result, parsedSettlement)
+		} else if IsTrue(!IsEqual(list, nil)) {
 			var timestamp any = this.SafeInteger(settlement, "settlement_time")
 			var timestampDetails any = map[string]any{
 				"timestamp": timestamp,
@@ -10386,7 +10334,7 @@ func (this *HtxCore) ParseSettlements(settlements any, market any) any {
 }
 func (this *HtxCore) ParseSettlement(settlement any, market any) any {
 	//
-	// linear swap, coin-m swap, fetchSettlementHistory
+	// coin-m swap, fetchSettlementHistory
 	//
 	//    {
 	//        "symbol": "ADA",
@@ -10408,6 +10356,16 @@ func (this *HtxCore) ParseSettlement(settlement any, market any) any {
 	//        "settlement_type": "settlement"
 	//    }
 	//
+	// linear swap fetchSettlementHistory
+	//
+	//     {
+	//         "id": "14900",
+	//         "contract_code": "BTC-USDT",
+	//         "settlement_time": "1781827200000",
+	//         "clawback_ratio": "0",
+	//         "settlement_price": "62933.747161774209291325"
+	//     }
+	//
 	var timestamp any = this.SafeInteger(settlement, "settlement_time")
 	var marketId any = this.SafeString(settlement, "contract_code")
 	return map[string]any{
@@ -10423,7 +10381,7 @@ func (this *HtxCore) ParseSettlement(settlement any, market any) any {
  * @method
  * @name htx#fetchLiquidations
  * @description retrieves the public liquidations of a trading pair
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
  * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
  * @param {string} symbol unified CCXT market symbol
@@ -10431,7 +10389,7 @@ func (this *HtxCore) ParseSettlement(settlement any, market any) any {
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the huobi api endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
- * @param {int} [params.tradeType] default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+ * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *HtxCore) FetchLiquidations(symbol any, optionalArgs ...any) <-chan any {
@@ -10446,13 +10404,15 @@ func (this *HtxCore) FetchLiquidations(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes94908 := (<-this.LoadMarkets())
-		PanicOnError(retRes94908)
+		retRes94628 := (<-this.LoadMarkets())
+		PanicOnError(retRes94628)
 		var market any = this.Market(symbol)
-		var tradeType any = this.SafeInteger(params, "trade_type", 0)
-		var request any = map[string]any{
-			"trade_type": tradeType,
+		var tradeType any = this.SafeInteger2(params, "trade_type", "tradeType", 0)
+		var request any = map[string]any{}
+		if !IsTrue(GetValue(market, "linear")) {
+			AddElementToObject(request, "trade_type", tradeType)
 		}
+		params = this.Omit(params, []any{"trade_type", "tradeType"})
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_time", since)
 		}
@@ -10461,12 +10421,16 @@ func (this *HtxCore) FetchLiquidations(symbol any, optionalArgs ...any) <-chan a
 		params = GetValue(requestparamsVariable, 1)
 		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
-			AddElementToObject(request, "contract", GetValue(market, "id"))
 			if IsTrue(GetValue(market, "linear")) {
+				AddElementToObject(request, "contract_code", GetValue(market, "id"))
+				if IsTrue(!IsEqual(limit, nil)) {
+					AddElementToObject(request, "limit", limit)
+				}
 
-				response = (<-this.ContractPublicGetLinearSwapApiV3SwapLiquidationOrders(this.Extend(request, params)))
+				response = (<-this.ContractPublicGetV5MarketLiquidationOrders(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
+				AddElementToObject(request, "contract", GetValue(market, "id"))
 
 				response = (<-this.ContractPublicGetSwapApiV3SwapLiquidationOrders(this.Extend(request, params)))
 				PanicOnError(response)
@@ -10527,17 +10491,31 @@ func (this *HtxCore) ParseLiquidation(liquidation any, optionalArgs ...any) any 
 	//         "pair": "BTC-USDT"
 	//     }
 	//
+	// linear swap
+	//
+	//     {
+	//         "id": "150153038758",
+	//         "contract_code": "BTC-USDT",
+	//         "liquidation_time": "1781849094165",
+	//         "side": "buy",
+	//         "position_side": "short",
+	//         "volume": "2",
+	//         "amount": "2",
+	//         "bankrupt_price": "62978.5",
+	//         "trade_turnover": "125.957"
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId any = this.SafeString(liquidation, "contract_code")
-	var timestamp any = this.SafeInteger(liquidation, "created_at")
+	var timestamp any = this.SafeInteger2(liquidation, "created_at", "liquidation_time")
 	return this.SafeLiquidation(map[string]any{
 		"info":         liquidation,
 		"symbol":       this.SafeSymbol(marketId, market),
 		"contracts":    this.SafeNumber(liquidation, "volume"),
 		"contractSize": this.SafeNumber(market, "contractSize"),
-		"price":        this.SafeNumber(liquidation, "price"),
-		"side":         this.SafeStringLower(liquidation, "direction"),
+		"price":        this.SafeNumber2(liquidation, "price", "bankrupt_price"),
+		"side":         this.SafeStringLower2(liquidation, "direction", "side"),
 		"baseValue":    this.SafeNumber(liquidation, "amount"),
 		"quoteValue":   this.SafeNumber(liquidation, "trade_turnover"),
 		"timestamp":    timestamp,
@@ -10574,8 +10552,8 @@ func (this *HtxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes95948 := (<-this.LoadMarkets())
-		PanicOnError(retRes95948)
+		retRes96068 := (<-this.LoadMarkets())
+		PanicOnError(retRes96068)
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
 		if !IsTrue(GetValue(market, "contract")) {
@@ -10652,8 +10630,8 @@ func (this *HtxCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes96588 := (<-this.LoadMarkets())
-		PanicOnError(retRes96588)
+		retRes96708 := (<-this.LoadMarkets())
+		PanicOnError(retRes96708)
 		var posMode any = Ternary(IsTrue(hedged), "dual_side", "single_side")
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -10707,8 +10685,8 @@ func (this *HtxCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes96968 := (<-this.LoadMarkets())
-		PanicOnError(retRes96968)
+		retRes97088 := (<-this.LoadMarkets())
+		PanicOnError(retRes97088)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {

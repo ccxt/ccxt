@@ -223,7 +223,7 @@ export default class krakenfutures extends Exchange {
      */
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderType(orderType: any): string;
-    verifyOrderActionSuccess(status: any, method: any, omit?: any[]): void;
+    verifyOrderActionSuccess(status: any, method: any, omit?: string[]): void;
     parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**

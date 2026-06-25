@@ -882,8 +882,8 @@ class hollaex extends Exchange {
         $makerFees = $this->safe_value($fees, 'maker', array());
         $takerFees = $this->safe_value($fees, 'taker', array());
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        for ($i = 0; $i < count(($this->symbols)); $i++) {
+            $symbol = ($this->symbols)[$i];
             $market = $this->market($symbol);
             $makerString = $this->safe_string($makerFees, $market['id']);
             $takerString = $this->safe_string($takerFees, $market['id']);

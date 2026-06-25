@@ -9,6 +9,10 @@ public partial class testMainClass : BaseTest
 {
     public static void testMarket(Exchange exchange, object skippedProperties, object method, object market)
     {
+        if (isTrue(isEqual(market, null)))
+        {
+            return;
+        }
         object format = new Dictionary<string, object>() {
             { "id", "btcusd" },
             { "symbol", "BTC/USD" },
@@ -295,7 +299,7 @@ public partial class testMainClass : BaseTest
         // margin modes
         if (!isTrue((inOp(skippedProperties, "marginModes"))))
         {
-            object marginModes = exchange.safeDict(market, "marginModes"); // in future, remove safeDict
+            object marginModes = exchange.safeDict(market, "marginModes", new Dictionary<string, object>() {}); // in future, remove safeDict
             assert(inOp(marginModes, "cross"), add("marginModes should have \"cross\" key", logText));
             assert(inOp(marginModes, "isolated"), add("marginModes should have \"isolated\" key", logText));
             testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "cross", new List<object>() {true, false, null});

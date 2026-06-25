@@ -178,7 +178,7 @@ class blofin(ccxt.async_support.blofin):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        callerMethodName: Str = None
+        callerMethodName = None
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
         channelName = None
         channelName, params = self.handle_option_and_params(params, callerMethodName, 'channel', 'books')
@@ -309,11 +309,11 @@ class blofin(ccxt.async_support.blofin):
         symbolsList = symbols
         firstMarket = self.market(symbolsList[0])
         channel = 'tickers'
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
         url = self.implode_hostname((self.urls['api'])['ws'][marketType]['public'])
-        messageHashes: List = []
-        args: List = []
+        messageHashes = []
+        args = []
         for i in range(0, len(symbolsList)):
             market = self.market(symbolsList[i])
             messageHashes.append('bidask:' + market['symbol'])
@@ -437,7 +437,7 @@ class blofin(ccxt.async_support.blofin):
         """
         await self.load_markets()
         await self.authenticate()
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('watchBalance', None, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' watchBalance() is not supported for spot markets yet')
@@ -574,7 +574,7 @@ class blofin(ccxt.async_support.blofin):
         arg = self.safe_dict(message, 'arg')
         channelName = self.safe_string(arg, 'channel')
         data = self.safe_list(message, 'data')
-        newPositions: List = []
+        newPositions = []
         for i in range(0, len(data)):
             position = self.parse_ws_position(data[i])
             newPositions.append(position)
@@ -597,7 +597,7 @@ class blofin(ccxt.async_support.blofin):
         """
         await self.load_markets()
         market = self.market(symbol)
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('watchFundingRate', market, params)
         messageHash = 'fundingRate:' + market['symbol']
         requestParams = {
@@ -632,7 +632,7 @@ class blofin(ccxt.async_support.blofin):
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 
-    async def watch_multiple_wrapper(self, isPublic: bool, channelName: str, callerMethodName: str, symbolsArray=None, params={}):
+    async def watch_multiple_wrapper(self, isPublic: bool, channelName: str, callerMethodName: str, symbolsArray: Any = None, params={}):
         # underlier method for all watch-multiple symbols
         await self.load_markets()
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', callerMethodName)
@@ -640,23 +640,23 @@ class blofin(ccxt.async_support.blofin):
         isOHLCV = (channelName == 'candle')
         symbols = self.get_list_from_object_values(symbolsArray, 0) if isOHLCV else symbolsArray
         symbols = self.market_symbols(symbols, None, True, True)
-        firstMarket: Market = None
+        firstMarket = None
         firstSymbol = self.safe_string(symbols, 0)
         if firstSymbol is not None:
             firstMarket = self.market(firstSymbol)
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params(callerMethodName, firstMarket, params)
         if marketType != 'swap':
             raise NotSupported(self.id + ' ' + callerMethodName + '() does not support ' + marketType + ' markets yet')
-        rawSubscriptions: List = []
-        messageHashes: List = []
+        rawSubscriptions = []
+        messageHashes = []
         if symbols is None:
             symbols = []
         symbolsLength = len(symbols)
         if symbolsLength > 0:
             for i in range(0, len(symbols)):
                 current = symbols[i]
-                market: Market = None
+                market = None
                 channel = channelName
                 if isOHLCV:
                     market = self.market(current)

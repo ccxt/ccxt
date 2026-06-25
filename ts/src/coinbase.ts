@@ -698,7 +698,7 @@ export default class coinbase extends Exchange {
     async fetchPortfolios (params = {}): Promise<Account[]> {
         const response = await this.v3PrivateGetBrokeragePortfolios (params);
         const portfolios = this.safeList (response, 'portfolios', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < portfolios.length; i++) {
             const portfolio = portfolios[i];
             result.push ({
@@ -773,7 +773,7 @@ export default class coinbase extends Exchange {
         const currencyId = this.safeString (currency, 'code', currencyIdV3);
         const typeV3 = this.safeString (account, 'name');
         const typeV2 = this.safeString (account, 'type');
-        const parts = typeV3.split (' ');
+        const parts = (typeV3 as string).split (' ');
         return {
             'id': this.safeString2 (account, 'id', 'uuid'),
             'type': (active !== undefined) ? this.safeStringLower (parts, 1) : typeV2,
@@ -978,7 +978,7 @@ export default class coinbase extends Exchange {
             'completed': 'ok',
             'canceled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1361,7 +1361,7 @@ export default class coinbase extends Exchange {
         const dataById = this.indexBy (data, 'id');
         const rates = this.safeDict (this.safeDict (exchangeRates, 'data', {}), 'rates', {});
         const baseIds = Object.keys (rates);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
             const base = this.safeCurrencyCode (baseId);
@@ -1551,7 +1551,7 @@ export default class coinbase extends Exchange {
         const expiringFeeTier = this.safeDict (expiringFees, 'fee_tier', {}); // fee tier null?
         const perpetualFeeTier = this.safeDict (perpetualFees, 'fee_tier', {}); // fee tier null?
         const data = this.safeList (spot, 'products', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parseSpotMarket (data[i], feeTier));
         }
@@ -1563,7 +1563,7 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
-        const newMarkets = [];
+        const newMarkets: any[] = [];
         for (let i = 0; i < result.length; i++) {
             const market = result[i];
             const info = this.safeValue (market, 'info', {});
@@ -1979,8 +1979,8 @@ export default class coinbase extends Exchange {
             const id = this.safeString2 (currency, 'id', 'code');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
-            this.options['networks'][code] = name.toLowerCase ();
-            this.options['networksById'][code] = name.toLowerCase ();
+            this.options['networks'][code] = (name as string).toLowerCase ();
+            this.options['networksById'][code] = (name as string).toLowerCase ();
             const type = (assetId !== undefined) ? 'crypto' : 'fiat';
             result[code] = this.safeCurrencyStructure ({
                 'info': currency,
@@ -2006,7 +2006,7 @@ export default class coinbase extends Exchange {
                 },
             });
             if (assetId !== undefined) {
-                const lowerCaseName = name.toLowerCase ();
+                const lowerCaseName = (name as string).toLowerCase ();
                 networks[code] = lowerCaseName;
                 networksById[lowerCaseName] = code;
             }
@@ -3016,7 +3016,7 @@ export default class coinbase extends Exchange {
         let request: Dict = {
             'client_order_id': id + '-' + this.uuid (),
             'product_id': market['id'],
-            'side': side.toUpperCase (),
+            'side': (side as string).toUpperCase (),
         };
         const reduceOnly = this.safeBool (params, 'reduceOnly');
         if (reduceOnly) {
@@ -3220,7 +3220,7 @@ export default class coinbase extends Exchange {
             if (errorResponse !== undefined) {
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorTitle, errorMessage);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorTitle, errorMessage);
-                throw new ExchangeError (errorMessage);
+                throw new ExchangeError ((errorMessage as string));
             }
         }
         const data = this.safeDict (response, 'success_response', {});
@@ -3372,7 +3372,7 @@ export default class coinbase extends Exchange {
             'FAILED': 'canceled',
             'UNKNOWN_ORDER_STATUS': undefined,
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (type: Str) {
@@ -3385,7 +3385,7 @@ export default class coinbase extends Exchange {
             'STOP': 'limit',
             'STOP_LIMIT': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -3396,7 +3396,7 @@ export default class coinbase extends Exchange {
             'FILL_OR_KILL': 'FOK',
             'UNKNOWN_TIME_IN_FORCE': undefined,
         };
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
     }
 
     /**
@@ -3500,7 +3500,7 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder ((response as Dict), market);
     }
 
     /**
@@ -4592,7 +4592,7 @@ export default class coinbase extends Exchange {
     }
 
     parseDepositMethodIds (ids, params = {}) {
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = this.extend (this.parseDepositMethodId (ids[i]), params);
             result.push (id);
@@ -5004,8 +5004,8 @@ export default class coinbase extends Exchange {
         const taker_fee = this.safeNumber (data, 'taker_fee_rate');
         const maker_fee = this.safeNumber (data, 'maker_fee_rate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < (this.symbols as any).length; i++) {
+            const symbol = (this.symbols as any)[i];
             const market = this.market (symbol);
             if ((isSpot && market['spot']) || (!isSpot && !market['spot'])) {
                 result[symbol] = {
@@ -5045,7 +5045,7 @@ export default class coinbase extends Exchange {
         const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
         const portfolioUuid = this.safeString (portfolioInfo, 'uuid', '');
         const spotPositions = this.safeList (breakdown, 'spot_positions', []);
-        const parsedPositions = [];
+        const parsedPositions: any[] = [];
         for (let i = 0; i < spotPositions.length; i++) {
             const position: Dict = spotPositions[i];
             const currencyCode = this.safeString (position, 'asset', 'Unknown');
@@ -5108,7 +5108,7 @@ export default class coinbase extends Exchange {
             'aud': [ aud ],
             'iss': iss,
             'nbf': seconds,
-            'exp': seconds + 120,
+            'exp': (seconds as number) + 120,
             'sub': this.apiKey,
             'iat': seconds,
         };

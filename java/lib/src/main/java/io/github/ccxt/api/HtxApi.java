@@ -874,6 +874,11 @@ public class HtxApi extends Exchange
         return this.callAsync ("spotPrivateGetV2AccountRepayment", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  spotPrivateGetV5AccountUniversalTransferRecords (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivateGetV5AccountUniversalTransferRecords", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  spotPrivateGetV1StableCoinQuote (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetV1StableCoinQuote", optionalArgs);
@@ -1479,11 +1484,6 @@ public class HtxApi extends Exchange
         return this.callAsync ("contractPublicGetLinearSwapExMarketHistoryTrade", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  contractPublicGetLinearSwapApiV1SwapRiskInfo (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPublicGetLinearSwapApiV1SwapRiskInfo", optionalArgs);
-    }
-
     public java.util.concurrent.CompletableFuture<Object>  contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund", optionalArgs);
@@ -1519,16 +1519,6 @@ public class HtxApi extends Exchange
         return this.callAsync ("contractPublicGetLinearSwapApiV1SwapApiState", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  contractPublicGetLinearSwapApiV1SwapCrossTransferState (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPublicGetLinearSwapApiV1SwapCrossTransferState", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPublicGetLinearSwapApiV1SwapCrossTradeState (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPublicGetLinearSwapApiV1SwapCrossTradeState", optionalArgs);
-    }
-
     public java.util.concurrent.CompletableFuture<Object>  contractPublicGetLinearSwapApiV1SwapEliteAccountRatio (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetLinearSwapApiV1SwapEliteAccountRatio", optionalArgs);
@@ -1537,11 +1527,6 @@ public class HtxApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  contractPublicGetLinearSwapApiV1SwapElitePositionRatio (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetLinearSwapApiV1SwapElitePositionRatio", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPublicGetLinearSwapApiV1SwapLiquidationOrders (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPublicGetLinearSwapApiV1SwapLiquidationOrders", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  contractPublicGetLinearSwapApiV1SwapSettlementRecords (Object... optionalArgs)
@@ -1637,46 +1622,6 @@ public class HtxApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  contractPrivateGetSwapApiV1SwapApiTradingStatus (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetSwapApiV1SwapApiTradingStatus", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivateGetLinearSwapApiV1SwapSubAuthList (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivateGetLinearSwapApiV1SwapSubAuthList", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivateGetLinearSwapApiV1SwapApiTradingStatus (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivateGetLinearSwapApiV1SwapApiTradingStatus", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivateGetLinearSwapApiV1SwapCrossPositionSide (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivateGetLinearSwapApiV1SwapCrossPositionSide", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivateGetLinearSwapApiV1SwapPositionSide (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivateGetLinearSwapApiV1SwapPositionSide", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivateGetLinearSwapApiV3UnifiedAccountInfo", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  contractPrivateGetV5AccountAssetMode (Object... optionalArgs)
@@ -2322,201 +2267,6 @@ public class HtxApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostSwapApiV1SwapTrackHisorders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostSwapApiV1SwapTrackHisorders", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapBalanceValuation (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapBalanceValuation", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapSubAuth (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAuth", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapSubAccountList (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAccountList", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapSubAccountInfo (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAccountInfo", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapSubPositionInfo (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubPositionInfo", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapFinancialRecord (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapFinancialRecord", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapOrderLimit (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapOrderLimit", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapFee (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapFee", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapTransferLimit (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTransferLimit", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapPositionLimit (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapPositionLimit", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapTransferInner (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTransferInner", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV3SwapFinancialRecord (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV3SwapFinancialRecord", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossMatchresults (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossMatchresults", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1LinearCancelAfter (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1LinearCancelAfter", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV3SwapCrossMatchresults (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV3SwapCrossMatchresults", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV3FixPositionMarginChange (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV3FixPositionMarginChange", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV3SwapSwitchAccountType (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV3SwapSwitchAccountType", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder (Object... optionalArgs)
-    {
-        return this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  contractPrivatePostV5AccountAssetMode (Object... optionalArgs)

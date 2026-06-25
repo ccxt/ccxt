@@ -107,7 +107,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             } elseif ($symbolsLength === 1) {
                 $market = $this->market($symbols[0]);
                 $messageHash = $name . '::' . $market['symbol'];
-                $productIds = [ $market['id'] ];
+                $productIds = [ ($market['id']) ];
             }
             $url = $this->urls['api']['ws'];
             if ($url === null) {
@@ -157,8 +157,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             }
             $messageHashes = array();
             $productIds = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $marketId = $this->market_id($symbols[$i]);
+            for ($i = 0; $i < count(($symbols)); $i++) {
+                $marketId = $this->market_id(($symbols)[$i]);
                 $symbol = $this->symbol($marketId);
                 $productIds[] = $marketId;
                 $messageHashes[] = $name . '::' . $symbol;

@@ -12,6 +12,14 @@ const require = createRequire(import.meta.url);;
 const minimize = process.env['CCXT_MINIMIZE'] === 'true';
 const outputFilename = process.env['CCXT_OUTPUT_FILENAME'] || 'ccxt.browser.js';
 
+// Vendored node_modules (e.g. protobufjs) ship with CRLF and pass through
+// verbatim; rewrite the emitted bundle to LF to match git's eol=lf.
+const outputPath = path.join (outputDirectory, outputFilename);
+const forceLf = (compiler) => compiler.hooks.afterEmit.tap ('forceLf', () => {
+  const fs = require ('fs');
+  fs.writeFileSync (outputPath, fs.readFileSync (outputPath, 'utf8').replace (/\r\n/g, '\n'));
+});
+
 export default {
   entry : './ts/ccxt.ts',
   output: {
@@ -65,6 +73,7 @@ export default {
   },
   plugins: [
     new rspack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
+    forceLf,
   ],
   ignoreWarnings: [
     {

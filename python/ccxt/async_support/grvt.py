@@ -538,7 +538,7 @@ class grvt(Exchange, ImplicitAPI):
         if expires is not None and expires > now + 10000:
             return {}
         walletAddress = self.eth_get_address_from_private_key(self.privateKey)
-        request: dict = {
+        request = {
             'address': walletAddress,
             'signature': self.default_signature(),
         }
@@ -585,7 +585,7 @@ class grvt(Exchange, ImplicitAPI):
         else:
             try:
                 defaultFromAccountId = self.safe_string(self.options, 'userMainAccountId')  # self.eth_get_address_from_private_key(self.secret)  # self.safe_string(self.options, 'userMainAccountId')
-                request: dict = {
+                request = {
                     'main_account_id': defaultFromAccountId,
                     'builder_account_id': self.safe_string(self.options, 'builder'),
                     'max_futures_fee_rate': self.safe_string(self.options, 'builderRate'),
@@ -688,7 +688,7 @@ class grvt(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
-        type: Str = None
+        type = None
         typeRaw = self.safe_string(market, 'kind')
         if typeRaw == 'PERPETUAL':
             type = 'swap'
@@ -1055,16 +1055,16 @@ class grvt(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'instrument')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_product(trade, 'event_time', 0.000001)
-        takerOrMaker: Str = None
+        takerOrMaker = None
         isTakerBuyer = self.safe_bool(trade, 'is_taker_buyer')
-        side: Str = None
+        side = None
         if isTakerBuyer is not None:
             side = 'buy' if isTakerBuyer else 'sell'
             takerOrMaker = 'taker'
         else:
             takerOrMaker = 'taker' if self.safe_bool(trade, 'is_taker') else 'maker'
             side = 'buy' if self.safe_bool(trade, 'is_buyer') else 'sell'
-        fee: Fee = None
+        fee = None
         feeString = self.safe_string(trade, 'fee')
         if feeString is not None:
             fee = {
@@ -1195,7 +1195,7 @@ class grvt(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument': market['id'],
         }
         if limit is not None:
@@ -1245,7 +1245,7 @@ class grvt(Exchange, ImplicitAPI):
         }
 
     def get_sub_account_id(self, params):
-        subAccountId: Str = None
+        subAccountId = None
         subAccountId, params = self.handle_option_and_params(params, 'getSubAccountId', 'accountId')
         if subAccountId is None:
             raise ArgumentsRequired(self.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page')
@@ -1324,7 +1324,7 @@ class grvt(Exchange, ImplicitAPI):
         #        }
         #
         timestamp = self.safe_integer_product(response, 'event_time', 0.000001)
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1355,8 +1355,8 @@ class grvt(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets_and_sign_in()
-        request: dict = {}
-        currency: Currency = None
+        request = {}
+        currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = [currency['code']]
@@ -1405,8 +1405,8 @@ class grvt(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets_and_sign_in()
-        request: dict = {}
-        currency: Currency = None
+        request = {}
+        currency = None
         if code is None:
             request['currency'] = None
         else:
@@ -1556,9 +1556,9 @@ class grvt(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        direction: Str = None
-        txId: Str = None
-        networkCode: Str = None
+        direction = None
+        txId = None
+        networkCode = None
         addressFrom = self.safe_string(transaction, 'from_account_id')
         addressTo = self.safe_string(transaction, 'to_account_id')
         currencyId = self.safe_string(transaction, 'currency')
@@ -1613,7 +1613,7 @@ class grvt(Exchange, ImplicitAPI):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a code argument')
         await self.load_markets_and_sign_in()
-        request: dict = {}
+        request = {}
         currency = self.currency(code)
         maxLimit = 1000
         paginate = False
@@ -1661,8 +1661,8 @@ class grvt(Exchange, ImplicitAPI):
         return filteredResults[1]
 
     def filter_transfers_by_type(self, transfers: Any, transferType: str, onlyMainAccount=True) -> Any:
-        matchedResults: List = []
-        nonMatchedResults: List = []
+        matchedResults = []
+        nonMatchedResults = []
         for i in range(0, len(transfers)):
             transfer = transfers[i]
             if (onlyMainAccount and transfer['fromAccount'] == '0' and transfer['toAccount'] == '0') or (not onlyMainAccount and (transfer['fromAccount'] != '0' or transfer['toAccount'] != '0')):
@@ -1692,15 +1692,15 @@ class grvt(Exchange, ImplicitAPI):
         currency = self.currency(code)
         defaultFromAccountId = self.safe_string(self.options, 'userMainAccountId')
         if self.in_array(fromAccount, ['trading', 'funding']) and self.in_array(toAccount, ['trading', 'funding']):
-            tradingAccountId: Str = None
+            tradingAccountId = None
             tradingAccountId, params = self.handle_option_and_params(params, 'transfer', 'tradingAccountId')
-            fundingAccountId: Str = None
+            fundingAccountId = None
             fundingAccountId, params = self.handle_option_and_params(params, 'transfer', 'fundingAccountId')
             if tradingAccountId is None or fundingAccountId is None:
                 raise ArgumentsRequired(self.id + ' transfer(): you should set(in the options or params) "tradingAccountId" and "fundingAccountId"(you can use "0" main funding account id)')
             fromAccount = tradingAccountId if (fromAccount == 'trading') else fundingAccountId
             toAccount = tradingAccountId if (toAccount == 'trading') else fundingAccountId
-        request: dict = {
+        request = {
             'from_account_id': self.safe_string(params, 'from_account_id', defaultFromAccountId),
             'from_sub_account_id': self.safe_string(params, 'from_sub_account_id', fromAccount),
             'to_account_id': self.safe_string(params, 'to_account_id', defaultFromAccountId),
@@ -1712,7 +1712,7 @@ class grvt(Exchange, ImplicitAPI):
             'transfer_metadata': None,
         }
         request = self.create_signed_request(request, 'EIP712_TRANSFER_TYPE', currency)
-        response: NullableDict = None
+        response = None
         try:
             response = await self.privateTradingPostFullV1Transfer(self.extend(request, params))
         except Exception as error:
@@ -1783,7 +1783,7 @@ class grvt(Exchange, ImplicitAPI):
     async def load_account_infos(self):
         if self.safe_string(self.options, 'userMainAccountId') is not None:
             return False
-        promises: List = []
+        promises = []
         promises.append(self.privateTradingPostFullV1AggregatedAccountSummary())
         #
         #     {
@@ -1850,7 +1850,7 @@ class grvt(Exchange, ImplicitAPI):
         await self.load_markets_and_sign_in()
         defaultFromAccountId = self.safe_string(self.options, 'userMainAccountId')
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'to_eth_address': address,
             'from_account_id': defaultFromAccountId,
             'currency': currency['id'],
@@ -1953,13 +1953,13 @@ class grvt(Exchange, ImplicitAPI):
                 timeInForce = 'IMMEDIATE_OR_CANCEL'
         params = self.omit(params, ['reduceOnly', 'postOnly', 'timeInForce'])
         # Trigger & SL & TP
-        triggerPrice: Str = None
-        stopLossPrice: Str = None
-        takeProfitPrice: Str = None
+        triggerPrice = None
+        stopLossPrice = None
+        takeProfitPrice = None
         triggerPrice, stopLossPrice, takeProfitPrice, params = self.handle_trigger_prices_and_params(symbol, params)
         if triggerPrice is not None or stopLossPrice is not None or takeProfitPrice is not None:
             # trigger price
-            selectedPrice: Str = None
+            selectedPrice = None
             if triggerPrice is not None:
                 selectedPrice = triggerPrice
             elif stopLossPrice is not None:
@@ -1967,7 +1967,7 @@ class grvt(Exchange, ImplicitAPI):
             elif takeProfitPrice is not None:
                 selectedPrice = takeProfitPrice
             # trigger type
-            selectedType: Str = None
+            selectedType = None
             isBuy = (side == 'buy')
             if stopLossPrice is not None:
                 selectedType = 'STOP_LOSS' if isBuy else 'TAKE_PROFIT'
@@ -2074,7 +2074,7 @@ class grvt(Exchange, ImplicitAPI):
     def eip_message_for_order(self, order, structureType):
         priceMultiplier = '1000000000'
         orderLegs = self.safe_list(order, 'legs', [])
-        legs: List = []
+        legs = []
         for i in range(0, len(orderLegs)):
             leg = orderLegs[i]
             market = self.market(leg['instrument'])
@@ -2143,7 +2143,7 @@ class grvt(Exchange, ImplicitAPI):
         request = {
             'sub_account_id': self.get_sub_account_id(params),
         }
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['base'] = []
@@ -2312,7 +2312,7 @@ class grvt(Exchange, ImplicitAPI):
         :returns dict: a list of `leverage structures <https://docs.ccxt.com/?id=leverage-structure>`
         """
         await self.load_markets_and_sign_in()
-        request: dict = {
+        request = {
             'sub_account_id': self.get_sub_account_id(params),
         }
         response = await self.privateTradingPostFullV1GetAllInitialLeverage(self.extend(request, params))
@@ -2345,7 +2345,7 @@ class grvt(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets_and_sign_in()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'sub_account_id': self.get_sub_account_id(params),
             'instrument': market['id'],
             'leverage': self.number_to_string(leverage),
@@ -2398,7 +2398,7 @@ class grvt(Exchange, ImplicitAPI):
         :returns dict: a list of `margin mode structures <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         await self.load_markets_and_sign_in()
-        request: dict = {
+        request = {
             'sub_account_id': self.get_sub_account_id(params),
         }
         response = await self.privateTradingPostFullV1GetAllInitialLeverage(self.extend(request, params))
@@ -2457,7 +2457,7 @@ class grvt(Exchange, ImplicitAPI):
         request = {
             'sub_account_id': self.get_sub_account_id(params),
         }
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['base'] = []
@@ -2531,7 +2531,7 @@ class grvt(Exchange, ImplicitAPI):
         request = {
             'sub_account_id': subAccountId,
         }
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['base'] = []
@@ -2852,11 +2852,11 @@ class grvt(Exchange, ImplicitAPI):
         isReduceOnly = self.safe_bool(order, 'reduce_only')
         timeInForceRaw = self.safe_string(order, 'time_in_force')
         timeInForce = 'PO' if isPostOnly else self.parse_time_in_force(timeInForceRaw)
-        size: Str = None
-        side: Str = None
-        price: Str = None
-        filled: Str = None
-        avgPrice: Str = None
+        size = None
+        side = None
+        price = None
+        filled = None
+        avgPrice = None
         legs = self.safe_list(order, 'legs', [])
         metadata = self.safe_dict(order, 'metadata', {})
         stateObj = self.safe_dict(order, 'state', {})
@@ -2903,7 +2903,7 @@ class grvt(Exchange, ImplicitAPI):
         }, market)
 
     def parse_time_in_force(self, type: Str) -> Str:
-        types: dict = {
+        types = {
             'GOOD_TILL_TIME': 'GTC',  # yeah, not GTD
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
@@ -2914,7 +2914,7 @@ class grvt(Exchange, ImplicitAPI):
         return self.safe_string_upper(types, type, type)
 
     def time_in_force_to_int(self, timeInForce: Str) -> Int:
-        timeInForces: dict = {
+        timeInForces = {
             'GOOD_TILL_TIME': 1,
             'ALL_OR_NONE': 2,
             'IMMEDIATE_OR_CANCEL': 3,
@@ -2924,7 +2924,7 @@ class grvt(Exchange, ImplicitAPI):
         return self.safe_integer(timeInForces, timeInForce, 0)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'PENDING': 'pending',
             'OPEN': 'open',
             'FILLED': 'closed',
@@ -3013,7 +3013,7 @@ class grvt(Exchange, ImplicitAPI):
         return self.convert_to_big_int_custom('10000')  # multiply needed https://t.me/c/3396937126/88
 
     def create_signed_request(self, request: Any, structureType: str, currencyObj=None, signerAddress: Str = None) -> dict:
-        messageData: NullableDict = None
+        messageData = None
         if structureType == 'EIP712_TRANSFER_TYPE':
             amountMultiplier = self.convert_to_big_int_custom('1000000')
             amountInt = request['num_tokens'] * amountMultiplier

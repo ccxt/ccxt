@@ -11,7 +11,7 @@
 - [Changelog](CHANGELOG.md)
 - [Awesome](Awesome.md)
 - API Spec by Exchange
-	- [fetchCurrencies](exchanges/fetchCurrencies.md)
+	- [aftermath](exchanges/aftermath.md)
 	- [alpaca](exchanges/alpaca.md)
 	- [apex](exchanges/apex.md)
 	- [ascendex](exchanges/ascendex.md)
@@ -80,7 +80,7 @@
 	- [kraken](exchanges/kraken.md)
 	- [krakenfutures](exchanges/krakenfutures.md)
 	- [kucoin](exchanges/kucoin.md)
-	- [fetchBidsAsks](exchanges/fetchBidsAsks.md)
+	- [kucoinfutures](exchanges/kucoinfutures.md)
 	- [latoken](exchanges/latoken.md)
 	- [lbank](exchanges/lbank.md)
 	- [lighter](exchanges/lighter.md)
@@ -107,7 +107,7 @@
 	- [woofipro](exchanges/woofipro.md)
 	- [xt](exchanges/xt.md)
 	- [zaif](exchanges/zaif.md)
-	- [fetchStatus](exchanges/fetchStatus.md)
+	- [zebpay](exchanges/zebpay.md)
 - API Spec by Prediction Exchange
 	- [hyperliquid](exchanges/prediction/hyperliquid.md)
 	- [kalshi](exchanges/prediction/kalshi.md)

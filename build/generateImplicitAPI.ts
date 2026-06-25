@@ -278,8 +278,8 @@ function createImplicitMethodsGo(){
         const callEndpoint = isPrediction ? 'CallEndpointAsync' : 'callEndpointAsync';
         const methods = methodNames.map(method=> {
             return [
-                `func (this *${capitalize(exchange)}Core) ${capitalize(method)} (args ...any) <-chan any {`,
-                `   return this.${callEndpoint}("${method}", args...)`,
+                `func (this *${capitalize(exchange)}Core) ${capitalize(method)}(args ...any) <-chan any {`,
+                `\treturn this.callEndpointAsync("${method}", args...)`,
                 `}`,
                 ``,
             ].join('\n')
