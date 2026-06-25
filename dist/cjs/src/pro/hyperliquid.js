@@ -1415,8 +1415,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         const channel = this.safeString(message, 'channel', '');
         if (channel === 'error') {
             const ret_msg = this.safeString(message, 'data', '');
-            const errorMsg = this.id + ' ' + ret_msg;
-            client.reject(errorMsg);
+            const error = new errors.ExchangeError(this.id + ' ' + ret_msg);
+            client.reject(error);
             return true;
         }
         const data = this.safeDict(message, 'data', {});
@@ -1428,13 +1428,13 @@ class hyperliquid extends hyperliquid$1["default"] {
         const payload = this.safeDict(response, 'payload', {});
         const status = this.safeString(payload, 'status');
         if (status !== undefined && status !== 'ok') {
-            const errorMsg = this.id + ' ' + this.json(payload);
-            client.reject(errorMsg, id);
+            const error = new errors.ExchangeError(this.id + ' ' + this.json(payload));
+            client.reject(error, id);
             return true;
         }
         const type = this.safeString(payload, 'type');
         if (type === 'error') {
-            const error = this.id + ' ' + this.json(payload);
+            const error = new errors.ExchangeError(this.id + ' ' + this.json(payload));
             client.reject(error, id);
             return true;
         }
