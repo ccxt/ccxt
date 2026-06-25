@@ -86,7 +86,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -100,7 +100,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.un_watch_order_book_for_symbols([symbol], params)
 
@@ -115,7 +115,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -158,7 +158,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [params.limit]: orderbook limit, default is 50
         :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
