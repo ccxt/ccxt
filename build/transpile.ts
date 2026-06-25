@@ -563,7 +563,7 @@ class Transpiler {
             [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array($2) && array_key_exists($1, $2))' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode($2, $1)' ],
             [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
-            [ /Math\.(max|min)/g, '$1' ],
+            [ /Math\.(max|min)\s*\(/g, '$1(' ],
             [ /console\.log/g, 'var_dump'],
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
@@ -1691,7 +1691,7 @@ class Transpiler {
                     }
                 }).join (', ').trim ()
                     .replace (/undefined/g, 'null')
-                    .replace (/\{\}/g, 'array ()')
+                    .replace (/\{\}/g, 'array()')
                 phpArgs = phpArgs.length ? (phpArgs) : ''
                 let syncPhpReturnType = ''
                 let asyncPhpReturnType = ''
