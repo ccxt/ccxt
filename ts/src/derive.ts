@@ -2671,7 +2671,7 @@ export default class derive extends Exchange {
         return undefined;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const url = this.urls['api'][api] + '/' + path;
         if (method === 'POST') {
             headers = {

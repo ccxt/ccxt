@@ -2203,7 +2203,7 @@ export default class coinsph extends Exchange {
         return urlEncodedParam;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);

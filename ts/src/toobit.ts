@@ -2983,7 +2983,7 @@ export default class toobit extends Exchange {
         });
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';
         const isDelete = method === 'DELETE';

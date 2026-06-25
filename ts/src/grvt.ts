@@ -3248,7 +3248,7 @@ export default class grvt extends Exchange {
         return requestId;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + path;
         let queryString = '';

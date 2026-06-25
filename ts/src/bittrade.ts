@@ -1999,7 +1999,7 @@ export default class bittrade extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = '/';
         if (api === 'market') {
             url += api;

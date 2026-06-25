@@ -1105,7 +1105,7 @@ export default class independentreserve extends Exchange {
         } as Transaction;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {

@@ -341,7 +341,7 @@ export default class upbit extends upbitRest {
                 'access_key': this.apiKey,
                 'nonce': this.uuid (),
             };
-            const token = await jwt (auth, this.encode (this.secret), sha256, false);
+            const token = jwt (auth, this.encode (this.secret), sha256, false);
             wsOptions['token'] = token;
             wsOptions['options'] = {
                 'headers': {

@@ -3521,7 +3521,7 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         let url = this.urls['api'][(type as string)] + '/' + path;

@@ -1390,7 +1390,7 @@ export default class btcmarkets extends Exchange {
         return this.milliseconds ();
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.keysort (this.omit (params, this.extractParams (path)));
         if (api === 'private') {

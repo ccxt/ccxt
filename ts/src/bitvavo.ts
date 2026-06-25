@@ -2621,7 +2621,7 @@ export default class bitvavo extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'symbol');
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');

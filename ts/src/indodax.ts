@@ -1424,7 +1424,7 @@ export default class indodax extends Exchange {
         return result as DepositAddress[];
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api];
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));

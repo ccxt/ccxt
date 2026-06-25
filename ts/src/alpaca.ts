@@ -1890,7 +1890,7 @@ export default class alpaca extends Exchange {
         return this.safeBalance (result);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};

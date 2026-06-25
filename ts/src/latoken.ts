@@ -1784,7 +1784,7 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let requestString = request;
         const query = this.omit (params, this.extractParams (path));

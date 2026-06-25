@@ -3579,7 +3579,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {

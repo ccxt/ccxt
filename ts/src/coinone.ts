@@ -1232,7 +1232,7 @@ export default class coinone extends Exchange {
         return result as DepositAddress[];
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/';

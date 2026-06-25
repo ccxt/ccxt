@@ -4117,7 +4117,7 @@ export default class aster extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (api === 'fapiPublic' || api === 'sapiPublic') {
             if (Object.keys (params).length) {

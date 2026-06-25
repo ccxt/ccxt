@@ -3541,7 +3541,7 @@ export default class extended extends Exchange {
         return undefined;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = this.safeString (api, 0);
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);

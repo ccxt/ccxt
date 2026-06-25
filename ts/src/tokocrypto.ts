@@ -2503,7 +2503,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         if (!(api in this.urls['api']['rest'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }

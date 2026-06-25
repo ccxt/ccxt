@@ -2749,7 +2749,7 @@ export default class exmo extends Exchange {
         return this.parseTransactions (items, currency, since, limit);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/';
         if (api !== 'web') {
             url += this.version + '/';

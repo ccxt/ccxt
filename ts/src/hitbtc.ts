@@ -3803,7 +3803,7 @@ export default class hitbtc extends Exchange {
         return undefined;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + implodedPath;

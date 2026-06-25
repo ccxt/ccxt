@@ -2970,7 +2970,7 @@ export default class bitfinex extends Exchange {
         return this.milliseconds ();
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'v1') {

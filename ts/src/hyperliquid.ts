@@ -4887,7 +4887,7 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (method === 'POST') {
             headers = {

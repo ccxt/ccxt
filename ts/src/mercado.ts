@@ -985,7 +985,7 @@ export default class mercado extends Exchange {
         return result;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/';
         const query = this.omit (params, this.extractParams (path));
         if ((api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet')) {

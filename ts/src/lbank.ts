@@ -2977,7 +2977,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every spot endpoint ends with ".do"
@@ -3025,7 +3025,7 @@ export default class lbank extends Exchange {
                 } else {
                     pem = this.convertSecretToPem (this.encode (this.secret));
                 }
-                sign = await rsa (uppercaseHash, pem, sha256);
+                sign = rsa (uppercaseHash, pem, sha256);
             } else if (signatureMethod === 'HmacSHA256') {
                 sign = this.hmac (this.encode (uppercaseHash), this.encode (this.secret), sha256);
             }

@@ -12114,7 +12114,7 @@ export default class binance extends Exchange {
         return scheme + '//' + domain + '/';
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
@@ -12229,8 +12229,7 @@ export default class binance extends Exchange {
             let signature: Str = undefined;
             if (this.secret.indexOf ('PRIVATE KEY') > -1) {
                 if (this.secret.length > 120) {
-                    const rsaSignature = await rsa (query, this.secret, sha256);
-                    signature = this.encodeURIComponent (rsaSignature);
+                    signature = this.encodeURIComponent (rsa (query, this.secret, sha256));
                 } else {
                     signature = this.encodeURIComponent (eddsa (this.encode (query), this.secret, ed25519));
                 }

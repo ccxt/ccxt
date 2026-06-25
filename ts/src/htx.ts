@@ -7572,7 +7572,7 @@ export default class htx extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/';
         const isArrayParams = Array.isArray (params);
         let query: NullableDict = undefined;

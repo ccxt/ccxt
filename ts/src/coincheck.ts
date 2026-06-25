@@ -926,7 +926,7 @@ export default class coincheck extends Exchange {
         return this.milliseconds ();
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

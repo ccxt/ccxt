@@ -5087,7 +5087,7 @@ export default class coinbase extends Exchange {
         return parsedPositions;
     }
 
-    async createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false) {
+    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false) {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let uri: Str = undefined;
@@ -5122,10 +5122,10 @@ export default class coinbase extends Exchange {
         if (useEddsa) {
             const byteArray = this.base64ToBinary (this.secret);
             const seed = this.arraySlice (byteArray, 0, 32);
-            return await jwt (request, seed, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
+            return jwt (request, seed, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
         } else {
             // ecdsa with p256
-            return await jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+            return jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
         }
     }
 
@@ -5133,7 +5133,7 @@ export default class coinbase extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    async sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
         const isV3 = version === 'v3';
@@ -5199,7 +5199,7 @@ export default class coinbase extends Exchange {
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    const token = await this.createAuthToken (seconds, method, url, isV2CloudAPiKey);
+                    const token = this.createAuthToken (seconds, method, url, isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 } else {

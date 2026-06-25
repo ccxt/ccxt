@@ -3721,7 +3721,7 @@ export default class ascendex extends Exchange {
         } as Leverage;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const version = api[0];
         const access = api[1];
         const type = this.safeString (api as any, 2);

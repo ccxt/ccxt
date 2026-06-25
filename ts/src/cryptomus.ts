@@ -1133,7 +1133,7 @@ export default class cryptomus extends Exchange {
         };
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const endpoint = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + endpoint;

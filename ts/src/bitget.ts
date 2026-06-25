@@ -11120,7 +11120,7 @@ export default class bitget extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    async sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = '/api';

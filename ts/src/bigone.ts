@@ -1929,7 +1929,7 @@ export default class bigone extends Exchange {
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -1947,7 +1947,7 @@ export default class bigone extends Exchange {
                 'nonce': nonce,
                 // 'recv_window': '30', // default 30
             };
-            const token = await jwt (request, this.encode (this.secret), sha256);
+            const token = jwt (request, this.encode (this.secret), sha256);
             headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
                 if (Object.keys (query).length) {

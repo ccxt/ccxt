@@ -9652,7 +9652,7 @@ export default class bybit extends Exchange {
         return this.safeString (marginModes, marginMode, marginMode);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -9704,7 +9704,7 @@ export default class bybit extends Exchange {
                 }
                 let signature: Str = undefined;
                 if (this.secret.indexOf ('PRIVATE KEY') > -1) {
-                    signature = await rsa (authFull, this.secret, sha256);
+                    signature = rsa (authFull, this.secret, sha256);
                 } else {
                     signature = this.hmac (this.encode (authFull), this.encode (this.secret), sha256);
                 }
@@ -9719,7 +9719,7 @@ export default class bybit extends Exchange {
                 const auth = this.rawencode (sortedQuery, true);
                 let signature: Str = undefined;
                 if (this.secret.indexOf ('PRIVATE KEY') > -1) {
-                    signature = await rsa (auth, this.secret, sha256);
+                    signature = rsa (auth, this.secret, sha256);
                 } else {
                     signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 }

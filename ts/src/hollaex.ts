@@ -2015,7 +2015,7 @@ export default class hollaex extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {

@@ -4314,7 +4314,7 @@ export default class hashkey extends Exchange {
         };
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         let query: Str = undefined;
         if (api === 'private') {

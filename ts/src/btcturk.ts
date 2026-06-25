@@ -1037,7 +1037,7 @@ export default class btcturk extends Exchange {
         return this.milliseconds ();
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }

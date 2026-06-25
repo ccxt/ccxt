@@ -4123,7 +4123,7 @@ export default class whitebit extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const version = this.safeValue (api as any, 0);
         const accessibility = this.safeValue (api as any, 1);

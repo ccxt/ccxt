@@ -2328,7 +2328,7 @@ export default class upbit extends Exchange {
         return this.milliseconds ();
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         });
@@ -2361,7 +2361,7 @@ export default class upbit extends Exchange {
                 request['query_hash'] = hash;
                 request['query_hash_alg'] = 'SHA512';
             }
-            const token = await jwt (request, this.encode (this.secret), sha256);
+            const token = jwt (request, this.encode (this.secret), sha256);
             headers['Authorization'] = 'Bearer ' + token;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

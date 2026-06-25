@@ -1232,7 +1232,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const requestPath = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));

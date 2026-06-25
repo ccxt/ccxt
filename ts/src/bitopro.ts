@@ -1856,7 +1856,7 @@ export default class bitopro extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (headers === undefined) {

@@ -1331,7 +1331,7 @@ export default class p2b extends Exchange {
         }, market);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (method === 'GET') {

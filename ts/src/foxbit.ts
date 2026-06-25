@@ -1971,7 +1971,7 @@ export default class foxbit extends Exchange {
         };
     }
 
-    async sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams (path, params);

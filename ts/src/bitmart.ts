@@ -5711,7 +5711,7 @@ export default class bitmart extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const parts = path.split ('/');
         // to do: refactor api endpoints with spot/swap sections
         const category = this.safeString (parts, 0, 'spot');

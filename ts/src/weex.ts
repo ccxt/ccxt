@@ -3800,7 +3800,7 @@ export default class weex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let endpoint = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const isBatch = (path.indexOf ('batch') >= 0);

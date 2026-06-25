@@ -3878,7 +3878,7 @@ export default class deribit extends Exchange {
         return this.milliseconds ();
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {

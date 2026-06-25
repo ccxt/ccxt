@@ -3246,7 +3246,7 @@ export default class paradex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let version = this.version;
         if (path.indexOf ('v2/') === 0) {
             version = 'v2';

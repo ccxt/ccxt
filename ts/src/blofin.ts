@@ -2882,7 +2882,7 @@ export default class blofin extends Exchange {
         return undefined;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.implodeHostname ((this.urls['api'] as Dict)['rest']) + request;

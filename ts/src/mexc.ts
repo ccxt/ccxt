@@ -6155,7 +6155,7 @@ export default class mexc extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const section = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         [ path, params ] = this.resolvePath (path, params);

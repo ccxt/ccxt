@@ -738,7 +738,7 @@ export default class coinspot extends Exchange {
         return undefined;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const isVersionedApi = Array.isArray (api);
         const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api;

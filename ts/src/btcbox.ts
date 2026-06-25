@@ -795,7 +795,7 @@ export default class btcbox extends Exchange {
         return this.milliseconds ();
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {

@@ -5083,7 +5083,7 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    async sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);

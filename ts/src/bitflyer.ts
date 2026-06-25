@@ -1206,7 +1206,7 @@ export default class bitflyer extends Exchange {
         } as FundingRate;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + this.version + '/';
         if (api === 'private') {
             request += 'me/';

@@ -3603,7 +3603,7 @@ export default class poloniex extends Exchange {
         return this.milliseconds ();
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api']['spot'];
         if (this.inArray (api, [ 'swapPublic', 'swapPrivate' ])) {
             url = this.urls['api']['swap'];

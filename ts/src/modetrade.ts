@@ -2882,7 +2882,7 @@ export default class modetrade extends Exchange {
         return this.milliseconds ();
     }
 
-    async sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);

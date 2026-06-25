@@ -6929,7 +6929,7 @@ export default class gate extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    async sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));

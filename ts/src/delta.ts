@@ -4112,7 +4112,7 @@ export default class delta extends Exchange {
         } as ADL;
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = {}, body: any = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = {}, body: any = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));

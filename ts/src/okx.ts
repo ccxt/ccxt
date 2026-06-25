@@ -6527,7 +6527,7 @@ export default class okx extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    async sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
