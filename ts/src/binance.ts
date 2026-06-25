@@ -1555,7 +1555,7 @@ export default class binance extends Exchange {
                         'marginMode': true,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': false,
+                        'triggerDirection': true,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
@@ -6582,6 +6582,9 @@ export default class binance extends Exchange {
             }
         }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        let triggerDirection = undefined;
+        [ triggerDirection, params ] = this.handleTriggerDirectionAndParams (params, undefined, true);
+        const triggerDirectionSet = triggerDirection !== undefined;
         const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const trailingDelta = this.safeString (params, 'trailingDelta');
@@ -6635,7 +6638,7 @@ export default class binance extends Exchange {
                 const trailingPercentConverted = Precise.stringMul (trailingPercent, '100');
                 request['trailingDelta'] = trailingPercentConverted;
             }
-        } else if (isStopLoss) {
+        } else if (isStopLoss && !triggerDirectionSet) {
             stopPrice = stopLossPrice;
             if (isMarketOrder) {
                 // spot STOP_LOSS market orders are not a valid order type
@@ -6643,13 +6646,45 @@ export default class binance extends Exchange {
             } else if (isLimitOrder) {
                 uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
             }
-        } else if (isTakeProfit) {
+        } else if (isTakeProfit && !triggerDirectionSet) {
             stopPrice = takeProfitPrice;
             if (isMarketOrder) {
                 // spot TAKE_PROFIT market orders are not a valid order type
                 uppercaseType = market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
             } else if (isLimitOrder) {
                 uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
+            }
+        } else if (isTriggerOrder) {
+            stopPrice = triggerPrice;
+            const isAscending = (triggerDirection === 'ascending');
+            if (side === 'buy') {
+                if (isMarketOrder) {
+                    if (isAscending) {
+                        uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+                    } else {
+                        uppercaseType = market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
+                    }
+                } else if (isLimitOrder) {
+                    if (isAscending) {
+                        uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+                    } else {
+                        uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            } else if (side === 'sell') {
+                if (isMarketOrder) {
+                    if (isAscending) {
+                        uppercaseType = market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
+                    } else {
+                        uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+                    }
+                } else if (isLimitOrder) {
+                    if (isAscending) {
+                        uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
+                    } else {
+                        uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+                    }
+                }
             }
         }
         if (market['option']) {
