@@ -129,7 +129,7 @@ program
     .option ('--swap', 'sets defaultType as swap')
     .option ('--future', 'sets defaultType as future')
     .option ('--option', 'sets defaultType as option')
-    .option ('--prediction', 'uses the prediction-markets namespace (ccxt.prediction)')
+    .option ('-p, --prediction', 'forces the prediction-markets namespace (ccxt.prediction) — use this to pick the prediction variant when an id exists in both crypto and prediction')
     .option ('--poll', 'will repeat the call continously')
     .option ('--i', 'iteractive mode, keeps the session opened')
     .option ('--iso8601')
