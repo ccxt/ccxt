@@ -59,6 +59,12 @@ export default {
     alias: {
       "protobufjs/minimal$": require.resolve("protobufjs/minimal"),
     },
+    // node's `crypto` module (used synchronously by base/functions/rsa.ts) has no browser
+    // equivalent; stub it to an empty module so the bundle builds. rsa() guards on
+    // crypto.createSign and throws "rsa is currently not supported in the browser".
+    fallback: {
+      crypto: false,
+    },
   },
   mode: 'production',
   target: 'web',
