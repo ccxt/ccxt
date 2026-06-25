@@ -25,7 +25,7 @@ const exchange = new ccxt.htx ({
     let amount = 1
     let price = 1
     let clientOrderId = 6;
-    let params = {
+    let params: any = {
         'offset': offset,
         'lever_rate': leverage,
         'client_order_id': clientOrderId
@@ -53,7 +53,7 @@ const exchange = new ccxt.htx ({
         side = 'sell'
         type = 'limit'
         offset = 'close'
-        reduce_only = 1 // 1 : yes, 0: no
+        const reduce_only = 1 // 1 : yes, 0: no
         clientOrderId = 9
         price = 1.147 // adjust this accordingly
         params = {'offset': offset, 'reduce_only': reduce_only, 'client_order_id': clientOrderId}

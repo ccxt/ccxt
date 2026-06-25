@@ -13,11 +13,11 @@ const log = noLocate;
 ansicolor.nice
 
 let printSupportedExchanges = function () {
-    log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
+    log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green)
 }
 
 let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'exchange'.green, 'symbol'.yellow, 'depth'.cyan)
+    log ('Usage: node', process.argv[1], ('exchange' as any).green, ('symbol' as any).yellow, ('depth' as any).cyan)
     printSupportedExchanges ()
 }
 
@@ -67,7 +67,7 @@ let printOrderBook = async (id, symbol, depth) => {
 
                 log (symbol.green, exchange.iso8601 (exchange.milliseconds ()))
 
-                log (asTable.configure ({ delimiter: ' | '.dim, right: true }) ([
+                log (asTable.configure ({ delimiter: (' | ' as any).dim, right: true }) ([
                     ... orderbook.asks.slice (0, depth).reverse ().map (priceVolumeHelper ('red')),
                     // { price: '--------'.dim, amount: '--------'.dim },
                     ... orderbook.bids.slice (0, depth).map (priceVolumeHelper ('green')),

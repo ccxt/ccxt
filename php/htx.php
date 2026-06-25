@@ -121,7 +121,7 @@ class htx extends Exchange {
                 'fetchTransactionFee' => null,
                 'fetchTransactionFees' => null,
                 'fetchTransactions' => null,
-                'fetchTransfers' => null,
+                'fetchTransfers' => true,
                 'fetchWithdrawAddresses' => true,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
@@ -446,6 +446,8 @@ class htx extends Exchange {
                             'v1/cross-margin/loan-orders' => 1,
                             'v1/cross-margin/accounts/balance' => 1,
                             'v2/account/repayment' => 5,
+                            // Universal Transfer
+                            'v5/account/universal_transfer_records' => 4, // 5 requests per 2 seconds
                             // Stable Coin Exchange
                             'v1/stable-coin/quote' => 1,
                             'v1/stable_coin/exchange_rate' => 1,
@@ -1108,6 +1110,9 @@ class htx extends Exchange {
                     'grid-trading' => 'grid-trading',
                     'deposit-earning' => 'deposit-earning',
                     'otc-options' => 'otc-options',
+                    'linear-swap' => 'swap',
+                    'swap' => 'swap',
+                    'futures' => 'future',
                 ),
                 'typesByAccount' => array(
                     'pro' => 'spot',
@@ -6830,18 +6835,50 @@ class htx extends Exchange {
         //         "status" => "ok"
         //     }
         //
-        $id = $this->safe_string($transfer, 'data');
-        $code = $this->safe_currency_code(null, $currency);
+        // fetchTransfers
+        //
+        //     {
+        //         "id" => 12345,
+        //         "transfer_id" => "12345",
+        //         "amount" => "10",
+        //         "currency" => "USDT",
+        //         "status" => "success",
+        //         "from_account_type" => "spot",
+        //         "to_account_type" => "margin",
+        //         "from_asset_type" => "",
+        //         "to_asset_type" => "ETHUSDT",
+        //         "transfer_time" => 1770357494000
+        //     }
+        //
+        $accountsById = $this->safe_dict($this->options, 'accountsById', array());
+        $id = $this->safe_string_2($transfer, 'transfer_id', 'data');
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $amount = $this->safe_number($transfer, 'amount');
+        $timestamp = $this->safe_integer($transfer, 'transfer_time');
+        $fromAccountRaw = $this->safe_string($transfer, 'from_account_type');
+        $toAccountRaw = $this->safe_string($transfer, 'to_account_type');
+        $fromAccount = $this->safe_string($accountsById, $fromAccountRaw, $fromAccountRaw);
+        $toAccount = $this->safe_string($accountsById, $toAccountRaw, $toAccountRaw);
+        $statusRaw = $this->safe_string($transfer, 'status');
+        $status = null;
+        if ($statusRaw === 'success') {
+            $status = 'ok';
+        } elseif ($statusRaw === 'pending') {
+            $status = 'pending';
+        } elseif ($statusRaw === 'failed') {
+            $status = 'failed';
+        }
         return array(
             'info' => $transfer,
             'id' => $id,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
-            'amount' => null,
-            'fromAccount' => null,
-            'toAccount' => null,
-            'status' => null,
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $status,
         );
     }
 
@@ -6933,6 +6970,65 @@ class htx extends Exchange {
         //    }
         //
         return $this->parse_transfer($response, $currency);
+    }
+
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch a history of internal transfers made on an account
+         *
+         * @see https://www.huobi.com/en-us/opend/newApiPages/
+         *
+         * @param {string} [$code] unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of transfer structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->status] transfer status => 'success', 'pending', 'failed'
+         * @param {int} [$params->from] the starting ID for pagination
+         * @param {string} [$params->direct] pagination direction => 'prev' or 'next', default 'next'
+         * @param {int} [$params->until] the latest time in ms to fetch transfers for
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         */
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['end_time'] = $until;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->spotPrivateGetV5AccountUniversalTransferRecords ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => 200,
+        //         "message" => "Success",
+        //         "data" => array(
+        //             {
+        //                 "id" => 12345,
+        //                 "transfer_id" => "12345",
+        //                 "amount" => "10",
+        //                 "currency" => "USDT",
+        //                 "status" => "success",
+        //                 "from_account_type" => "spot",
+        //                 "to_account_type" => "margin",
+        //                 "from_asset_type" => "",
+        //                 "to_asset_type" => "ETHUSDT",
+        //                 "transfer_time" => 1770357494000
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
     public function fetch_isolated_borrow_rates($params = array ()): array {

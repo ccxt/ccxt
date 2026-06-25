@@ -126,7 +126,7 @@ export default class htx extends Exchange {
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfers': undefined,
+                'fetchTransfers': true,
                 'fetchWithdrawAddresses': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
@@ -451,6 +451,8 @@ export default class htx extends Exchange {
                             'v1/cross-margin/loan-orders': 1,
                             'v1/cross-margin/accounts/balance': 1,
                             'v2/account/repayment': 5,
+                            // Universal Transfer
+                            'v5/account/universal_transfer_records': 4, // 5 requests per 2 seconds
                             // Stable Coin Exchange
                             'v1/stable-coin/quote': 1,
                             'v1/stable_coin/exchange_rate': 1,
@@ -1113,6 +1115,9 @@ export default class htx extends Exchange {
                     'grid-trading': 'grid-trading',
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
+                    'linear-swap': 'swap',
+                    'swap': 'swap',
+                    'futures': 'future',
                 },
                 'typesByAccount': {
                     'pro': 'spot',
@@ -6841,18 +6846,50 @@ export default class htx extends Exchange {
         //         "status": "ok"
         //     }
         //
-        const id = this.safeString (transfer, 'data');
-        const code = this.safeCurrencyCode (undefined, currency);
+        // fetchTransfers
+        //
+        //     {
+        //         "id": 12345,
+        //         "transfer_id": "12345",
+        //         "amount": "10",
+        //         "currency": "USDT",
+        //         "status": "success",
+        //         "from_account_type": "spot",
+        //         "to_account_type": "margin",
+        //         "from_asset_type": "",
+        //         "to_asset_type": "ETHUSDT",
+        //         "transfer_time": 1770357494000
+        //     }
+        //
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
+        const id = this.safeString2 (transfer, 'transfer_id', 'data');
+        const currencyId = this.safeString (transfer, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = this.safeNumber (transfer, 'amount');
+        const timestamp = this.safeInteger (transfer, 'transfer_time');
+        const fromAccountRaw = this.safeString (transfer, 'from_account_type');
+        const toAccountRaw = this.safeString (transfer, 'to_account_type');
+        const fromAccount = this.safeString (accountsById, fromAccountRaw, fromAccountRaw);
+        const toAccount = this.safeString (accountsById, toAccountRaw, toAccountRaw);
+        const statusRaw = this.safeString (transfer, 'status');
+        let status: Str = undefined;
+        if (statusRaw === 'success') {
+            status = 'ok';
+        } else if (statusRaw === 'pending') {
+            status = 'pending';
+        } else if (statusRaw === 'failed') {
+            status = 'failed';
+        }
         return {
             'info': transfer,
             'id': id,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'currency': code,
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': undefined,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
         };
     }
 
@@ -6944,6 +6981,65 @@ export default class htx extends Exchange {
         //    }
         //
         return this.parseTransfer (response, currency);
+    }
+
+    /**
+     * @method
+     * @name htx#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.huobi.com/en-us/opend/newApiPages/
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.status] transfer status: 'success', 'pending', 'failed'
+     * @param {int} [params.from] the starting ID for pagination
+     * @param {string} [params.direct] pagination direction: 'prev' or 'next', default 'next'
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        let currency: Currency = undefined;
+        const request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['end_time'] = until;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.spotPrivateGetV5AccountUniversalTransferRecords (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": 12345,
+        //                 "transfer_id": "12345",
+        //                 "amount": "10",
+        //                 "currency": "USDT",
+        //                 "status": "success",
+        //                 "from_account_type": "spot",
+        //                 "to_account_type": "margin",
+        //                 "from_asset_type": "",
+        //                 "to_asset_type": "ETHUSDT",
+        //                 "transfer_time": 1770357494000
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransfers (data, currency, since, limit);
     }
 
     /**

@@ -13,11 +13,11 @@ const log = noLocate;
 ansicolor.nice
 
 let printSupportedExchanges = function () {
-    log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
+    log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green)
 }
 
 let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'exchange'.green, 'symbol'.yellow, '[rateLimit]'.magenta)
+    log ('Usage: node', process.argv[1], ('exchange' as any).green, ('symbol' as any).yellow, ('[rateLimit]' as any).magenta)
     printSupportedExchanges ()
 }
 

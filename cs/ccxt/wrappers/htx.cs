@@ -1472,6 +1472,70 @@ public partial class htx
         return new TransferEntry(res);
     }
     /// <summary>
+    /// fetch a history of internal transfers made on an account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.huobi.com/en-us/opend/newApiPages/"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code of the currency transferred
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch transfers for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of transfer structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.status</term>
+    /// <description>
+    /// string : transfer status: 'success', 'pending', 'failed'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.from</term>
+    /// <description>
+    /// int : the starting ID for pagination
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.direct</term>
+    /// <description>
+    /// string : pagination direction: 'prev' or 'next', default 'next'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch transfers for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchTransfers(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
+    }
+    /// <summary>
     /// fetch the borrow interest rates of all currencies
     /// </summary>
     /// <remarks>

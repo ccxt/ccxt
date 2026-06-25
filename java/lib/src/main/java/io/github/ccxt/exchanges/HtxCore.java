@@ -129,7 +129,7 @@ public class HtxCore extends HtxApi
                 put( "fetchTransactionFee", null );
                 put( "fetchTransactionFees", null );
                 put( "fetchTransactions", null );
-                put( "fetchTransfers", null );
+                put( "fetchTransfers", true );
                 put( "fetchWithdrawAddresses", true );
                 put( "fetchWithdrawal", null );
                 put( "fetchWithdrawals", true );
@@ -417,6 +417,7 @@ public class HtxCore extends HtxApi
                             put( "v1/cross-margin/loan-orders", 1 );
                             put( "v1/cross-margin/accounts/balance", 1 );
                             put( "v2/account/repayment", 5 );
+                            put( "v5/account/universal_transfer_records", 4 );
                             put( "v1/stable-coin/quote", 1 );
                             put( "v1/stable_coin/exchange_rate", 1 );
                             put( "v2/etp/transactions", 5 );
@@ -1035,6 +1036,9 @@ public class HtxCore extends HtxApi
                     put( "grid-trading", "grid-trading" );
                     put( "deposit-earning", "deposit-earning" );
                     put( "otc-options", "otc-options" );
+                    put( "linear-swap", "swap" );
+                    put( "swap", "swap" );
+                    put( "futures", "future" );
                 }} );
                 put( "typesByAccount", new java.util.HashMap<String, Object>() {{
                     put( "pro", "spot" );
@@ -7595,19 +7599,55 @@ public class HtxCore extends HtxApi
         //         "status": "ok"
         //     }
         //
+        // fetchTransfers
+        //
+        //     {
+        //         "id": 12345,
+        //         "transfer_id": "12345",
+        //         "amount": "10",
+        //         "currency": "USDT",
+        //         "status": "success",
+        //         "from_account_type": "spot",
+        //         "to_account_type": "margin",
+        //         "from_asset_type": "",
+        //         "to_asset_type": "ETHUSDT",
+        //         "transfer_time": 1770357494000
+        //     }
+        //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(transfer, "data");
-        Object code = this.safeCurrencyCode(null, currency);
+        Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
+        Object id = this.safeString2(transfer, "transfer_id", "data");
+        Object currencyId = this.safeString(transfer, "currency");
+        Object code = this.safeCurrencyCode(currencyId, currency);
+        Object amount = this.safeNumber(transfer, "amount");
+        Object timestamp = this.safeInteger(transfer, "transfer_time");
+        Object fromAccountRaw = this.safeString(transfer, "from_account_type");
+        Object toAccountRaw = this.safeString(transfer, "to_account_type");
+        Object fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
+        Object toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
+        Object statusRaw = this.safeString(transfer, "status");
+        Object status = null;
+        if (Helpers.isTrue(Helpers.isEqual(statusRaw, "success")))
+        {
+            status = "ok";
+        } else if (Helpers.isTrue(Helpers.isEqual(statusRaw, "pending")))
+        {
+            status = "pending";
+        } else if (Helpers.isTrue(Helpers.isEqual(statusRaw, "failed")))
+        {
+            status = "failed";
+        }
+        final Object finalStatus = status;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", id );
-            put( "timestamp", null );
-            put( "datetime", null );
+            put( "timestamp", timestamp );
+            put( "datetime", HtxCore.this.iso8601(timestamp) );
             put( "currency", code );
-            put( "amount", null );
-            put( "fromAccount", null );
-            put( "toAccount", null );
-            put( "status", null );
+            put( "amount", amount );
+            put( "fromAccount", fromAccount );
+            put( "toAccount", toAccount );
+            put( "status", finalStatus );
         }};
     }
 
@@ -7718,6 +7758,79 @@ public class HtxCore extends HtxApi
             //    }
             //
             return this.parseTransfer(response, currency);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name htx#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.huobi.com/en-us/opend/newApiPages/
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.status] transfer status: 'success', 'pending', 'failed'
+     * @param {int} [params.from] the starting ID for pagination
+     * @param {string} [params.direct] pagination direction: 'prev' or 'next', default 'next'
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTransfers(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object currency = null;
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                currency = this.currency(code);
+                Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "start_time", since);
+            }
+            Object until = this.safeInteger(parameters, "until");
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                Helpers.addElementToObject(request, "end_time", until);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "limit", limit);
+            }
+            Object response = (this.spotPrivateGetV5AccountUniversalTransferRecords(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "id": 12345,
+            //                 "transfer_id": "12345",
+            //                 "amount": "10",
+            //                 "currency": "USDT",
+            //                 "status": "success",
+            //                 "from_account_type": "spot",
+            //                 "to_account_type": "margin",
+            //                 "from_asset_type": "",
+            //                 "to_asset_type": "ETHUSDT",
+            //                 "transfer_time": 1770357494000
+            //             }
+            //         ]
+            //     }
+            //
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseTransfers(data, currency, since, limit);
         });
 
     }
