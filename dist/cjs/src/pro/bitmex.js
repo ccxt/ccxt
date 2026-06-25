@@ -910,6 +910,26 @@ class bitmex extends bitmex$1["default"] {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition(rawPosition);
+            let side = this.safeString(position, 'side');
+            if (side === undefined) {
+                // BitMEX 'update' rows are deltas and may omit homeNotional, so
+                // parsePosition returns side = undefined. Carry the side forward from
+                // the cached position for this symbol, otherwise appending would break
+                // the ArrayCacheBySymbolBySide index (see issue #29001).
+                const symbol = this.safeString(position, 'symbol');
+                const cachedBySide = this.safeDict(cache.hashmap, symbol, {});
+                const cachedSides = Object.keys(cachedBySide);
+                const sidesLength = cachedSides.length;
+                if (sidesLength === 1) {
+                    side = cachedSides[0];
+                    position['side'] = side;
+                }
+            }
+            if (side === undefined) {
+                // still unresolved (e.g. the very first message is a partial without
+                // homeNotional); skip this row rather than corrupt the cache
+                continue;
+            }
             newPositions.push(position);
             cache.append(position);
         }
