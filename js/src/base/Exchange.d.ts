@@ -9,6 +9,7 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
  * @class Exchange
  */
 export default class Exchange {
+    static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
     api: Dictionary<any>;
@@ -302,7 +303,6 @@ export default class Exchange {
     loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
-    checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
     throttle(cost?: Num): any;
     initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;

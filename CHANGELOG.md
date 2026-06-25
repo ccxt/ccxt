@@ -1,3 +1,100 @@
+<a id="v4.5.60"></a>
+# [v4.5.60](https://github.com/ccxt/ccxt/releases/tag/v4.5.60) - 2026-06-25
+
+## What's Changed
+* chore(deps): bump phpseclib/phpseclib from 2.0.54 to 2.0.55 by [@dependabot](https://github.com/dependabot)[bot] in [#28897](https://github.com/ccxt/ccxt/pull/28897)
+* update eslintrc by [@frosty00](https://github.com/frosty00) in [#28898](https://github.com/ccxt/ccxt/pull/28898)
+* fix(bitmex): future type add by [@ttodua](https://github.com/ttodua) in [#28903](https://github.com/ccxt/ccxt/pull/28903)
+* test: fix trade structure by [@ttodua](https://github.com/ttodua) in [#28901](https://github.com/ccxt/ccxt/pull/28901)
+* fix(ts): isDictionary overwrite by [@ttodua](https://github.com/ttodua) in [#28902](https://github.com/ccxt/ccxt/pull/28902)
+* chore: apex url change by [@ttodua](https://github.com/ttodua) in [#28914](https://github.com/ccxt/ccxt/pull/28914)
+* docs: rename gateio -> gate by [@ttodua](https://github.com/ttodua) in [#28909](https://github.com/ccxt/ccxt/pull/28909)
+* fix(docs): Telegram-fetchable og:image + on-brand social cards by [@pcriadoperez](https://github.com/pcriadoperez) in [#28906](https://github.com/ccxt/ccxt/pull/28906)
+* docs: rename huobi -> htx  by [@ttodua](https://github.com/ttodua) in [#28907](https://github.com/ccxt/ccxt/pull/28907)
+* docs: rename okex -> okx by [@ttodua](https://github.com/ttodua) in [#28910](https://github.com/ccxt/ccxt/pull/28910)
+* docs: rename bitfinex2 -> bitfinex by [@ttodua](https://github.com/ttodua) in [#28908](https://github.com/ccxt/ccxt/pull/28908)
+* docs: gdax remove & rename coinbasepro -> coinbaseexchange by [@ttodua](https://github.com/ttodua) in [#28912](https://github.com/ccxt/ccxt/pull/28912)
+* fix(coinspot): return correct value in createOrder by [@sc0Vu](https://github.com/sc0Vu) in [#28916](https://github.com/ccxt/ccxt/pull/28916)
+* docs: bittrex remove/replace & rename hitbtc2 -> hitbtc by [@ttodua](https://github.com/ttodua) in [#28913](https://github.com/ccxt/ccxt/pull/28913)
+* feat(lighter): update logo by [@sc0Vu](https://github.com/sc0Vu) in [#28915](https://github.com/ccxt/ccxt/pull/28915)
+* coinbaseexchange new endpoints by [@ndubel](https://github.com/ndubel) in [#28917](https://github.com/ccxt/ccxt/pull/28917)
+* docs: ts transpilation flag default by [@ttodua](https://github.com/ttodua) in [#28919](https://github.com/ccxt/ccxt/pull/28919)
+* docs: move bots to lang by [@ttodua](https://github.com/ttodua) in [#28923](https://github.com/ccxt/ccxt/pull/28923)
+* add types to typescript files by [@frosty00](https://github.com/frosty00) in [#28924](https://github.com/ccxt/ccxt/pull/28924)
+* chore(deps): bump undici from 7.27.2 to 7.28.0 in /playground by [@dependabot](https://github.com/dependabot)[bot] in [#28929](https://github.com/ccxt/ccxt/pull/28929)
+* chore(deps-dev): bump piscina from 3.2.0 to 4.9.3 by [@dependabot](https://github.com/dependabot)[bot] in [#28928](https://github.com/ccxt/ccxt/pull/28928)
+* docs: some renames by [@ttodua](https://github.com/ttodua) in [#28918](https://github.com/ccxt/ccxt/pull/28918)
+* chore(deps): bump dompurify from 3.4.10 to 3.4.11 in /playground by [@dependabot](https://github.com/dependabot)[bot] in [#28931](https://github.com/ccxt/ccxt/pull/28931)
+* chore(deps): bump guzzlehttp/psr7 from 2.11.0 to 2.12.1 by [@dependabot](https://github.com/dependabot)[bot] in [#28930](https://github.com/ccxt/ccxt/pull/28930)
+* chore: pushback examples by [@carlosmiei](https://github.com/carlosmiei) in [#28934](https://github.com/ccxt/ccxt/pull/28934)
+* Typefix large by [@frosty00](https://github.com/frosty00) in [#28932](https://github.com/ccxt/ccxt/pull/28932)
+* fix(go): stringMin by [@ttodua](https://github.com/ttodua) in [#28933](https://github.com/ccxt/ccxt/pull/28933)
+* coinbase: fix swapped maker/taker in fetchTradingFees by [@nmcbride](https://github.com/nmcbride) in [#28922](https://github.com/ccxt/ccxt/pull/28922)
+* Reduce typescript errors 5 by [@frosty00](https://github.com/frosty00) in [#28940](https://github.com/ccxt/ccxt/pull/28940)
+* Reduce typescript errors 6 by [@frosty00](https://github.com/frosty00) in [#28941](https://github.com/ccxt/ccxt/pull/28941)
+* Reduce typescript errors 4 by [@frosty00](https://github.com/frosty00) in [#28939](https://github.com/ccxt/ccxt/pull/28939)
+* Revert "Reduce typescript errors 4" by [@frosty00](https://github.com/frosty00) in [#28944](https://github.com/ccxt/ccxt/pull/28944)
+* Reduce typescript errors 1 by [@frosty00](https://github.com/frosty00) in [#28936](https://github.com/ccxt/ccxt/pull/28936)
+* test: Precise with undefined args by [@ttodua](https://github.com/ttodua) in [#28719](https://github.com/ccxt/ccxt/pull/28719)
+* Reduce typescript errors (over 1000 errors) by [@frosty00](https://github.com/frosty00) in [#28937](https://github.com/ccxt/ccxt/pull/28937)
+* ci(docs): reliable docs deploys — stable server-actions key, zero-downtime swap, release-only trigger by [@pcriadoperez](https://github.com/pcriadoperez) in [#28948](https://github.com/ccxt/ccxt/pull/28948)
+* fix(binance): fees codes by [@ttodua](https://github.com/ttodua) in [#28952](https://github.com/ccxt/ccxt/pull/28952)
+* Reduce typescript errors 7 by [@frosty00](https://github.com/frosty00) in [#28942](https://github.com/ccxt/ccxt/pull/28942)
+* fix(LastRestRequestTimestamp): data race in go by [@carlosmiei](https://github.com/carlosmiei) in [#28947](https://github.com/ccxt/ccxt/pull/28947)
+* refactor(bybit): network codes update by [@ttodua](https://github.com/ttodua) in [#28945](https://github.com/ccxt/ccxt/pull/28945)
+* test: re-enable props test by [@ttodua](https://github.com/ttodua) in [#28957](https://github.com/ccxt/ccxt/pull/28957)
+* refactor(okx): common networks list by [@ttodua](https://github.com/ttodua) in [#28958](https://github.com/ccxt/ccxt/pull/28958)
+* fix(strictNullChecks): null-safety fixes across kucoin exchange group by [@carlotestor](https://github.com/carlotestor) in [#28959](https://github.com/ccxt/ccxt/pull/28959)
+* feat(htx): v5 linear swap updates by [@Dan-krm](https://github.com/Dan-krm) in [#28925](https://github.com/ccxt/ccxt/pull/28925)
+* feat(hyperliquid): doc by [@sc0Vu](https://github.com/sc0Vu) in [#28967](https://github.com/ccxt/ccxt/pull/28967)
+* refactor(binance): common networks list by [@ttodua](https://github.com/ttodua) in [#28951](https://github.com/ccxt/ccxt/pull/28951)
+* fix(pro): reduce strictNullChecks errors across websocket exchanges by [@carlotestor](https://github.com/carlotestor) in [#28962](https://github.com/ccxt/ccxt/pull/28962)
+* fix(python): minor transpiler fixes by [@frosty00](https://github.com/frosty00) in [#28968](https://github.com/ccxt/ccxt/pull/28968)
+* chore: try to clean build by [@carlosmiei](https://github.com/carlosmiei) in [#28969](https://github.com/ccxt/ccxt/pull/28969)
+* bump module version in tsconfig by [@frosty00](https://github.com/frosty00) in [#28974](https://github.com/ccxt/ccxt/pull/28974)
+* fix(doc): fetchOrdersByStatusWs by [@sc0Vu](https://github.com/sc0Vu) in [#28975](https://github.com/ccxt/ccxt/pull/28975)
+* fix(build): emit gofmt-formatted Go in generateImplicitAPI by [@carlotestor](https://github.com/carlotestor) in [#28976](https://github.com/ccxt/ccxt/pull/28976)
+* update tsconfig and rollup.config by [@frosty00](https://github.com/frosty00) in [#28977](https://github.com/ccxt/ccxt/pull/28977)
+* modify workflow to pushback some python files by [@frosty00](https://github.com/frosty00) in [#28978](https://github.com/ccxt/ccxt/pull/28978)
+* fix(dist/ccxt.browser.js): replace the CRLF with a LF by [@carlotestor](https://github.com/carlotestor) in [#28979](https://github.com/ccxt/ccxt/pull/28979)
+* docs: js to ts by [@ttodua](https://github.com/ttodua) in [#28920](https://github.com/ccxt/ccxt/pull/28920)
+* test: fix type in currency & base method by [@ttodua](https://github.com/ttodua) in [#28981](https://github.com/ccxt/ccxt/pull/28981)
+* fix(examples): tsconfig conflict by [@ttodua](https://github.com/ttodua) in [#28982](https://github.com/ccxt/ccxt/pull/28982)
+* chore:   examples tsconfig skip catch message by [@ttodua](https://github.com/ttodua) in [#28983](https://github.com/ccxt/ccxt/pull/28983)
+* docs: ticker.ts fix by [@ttodua](https://github.com/ttodua) in [#28984](https://github.com/ccxt/ccxt/pull/28984)
+* docs: remove delisted exchange by [@ttodua](https://github.com/ttodua) in [#28985](https://github.com/ccxt/ccxt/pull/28985)
+* feat(htx): implement fetchTransfers method by [@sdfwds4](https://github.com/sdfwds4) in [#28972](https://github.com/ccxt/ccxt/pull/28972)
+* docs: fix examples import by [@ttodua](https://github.com/ttodua) in [#28986](https://github.com/ccxt/ccxt/pull/28986)
+* docs: batch type fix 2 by [@ttodua](https://github.com/ttodua) in [#28987](https://github.com/ccxt/ccxt/pull/28987)
+* docs: examples batch fix 3 by [@ttodua](https://github.com/ttodua) in [#28988](https://github.com/ccxt/ccxt/pull/28988)
+* docs: examples batch fix 4 by [@ttodua](https://github.com/ttodua) in [#28989](https://github.com/ccxt/ccxt/pull/28989)
+* docs: examples batch fix 5 by [@ttodua](https://github.com/ttodua) in [#28991](https://github.com/ccxt/ccxt/pull/28991)
+* docs: examples generated js files by [@ttodua](https://github.com/ttodua) in [#28990](https://github.com/ccxt/ccxt/pull/28990)
+* docs: examples batch fix 6 by [@ttodua](https://github.com/ttodua) in [#28992](https://github.com/ccxt/ccxt/pull/28992)
+* docs: examples batch fix 7 by [@ttodua](https://github.com/ttodua) in [#28993](https://github.com/ccxt/ccxt/pull/28993)
+* docs: examples batch fix 9 by [@ttodua](https://github.com/ttodua) in [#28994](https://github.com/ccxt/ccxt/pull/28994)
+* docs: examples batch fix 10 by [@ttodua](https://github.com/ttodua) in [#28995](https://github.com/ccxt/ccxt/pull/28995)
+* docs: examples batch fix 11 by [@ttodua](https://github.com/ttodua) in [#28996](https://github.com/ccxt/ccxt/pull/28996)
+* docs: examples batch fix 12 by [@ttodua](https://github.com/ttodua) in [#28997](https://github.com/ccxt/ccxt/pull/28997)
+* docs: arbitrage example fix by [@ttodua](https://github.com/ttodua) in [#28998](https://github.com/ccxt/ccxt/pull/28998)
+* chore: symlink AGENTS.md -> CLAUDE.md by [@pcriadoperez](https://github.com/pcriadoperez) in [#28999](https://github.com/ccxt/ccxt/pull/28999)
+* fix(build): stop jsdoc2md emitting phantom exchange pages (fetchStatus/fetchBidsAsks/fetchCurrencies) by [@pcriadoperez](https://github.com/pcriadoperez) in [#28877](https://github.com/ccxt/ccxt/pull/28877)
+* feat(exchange) - close and clean exchange by [@ttodua](https://github.com/ttodua) in [#24031](https://github.com/ccxt/ccxt/pull/24031)
+* fix(bitmex): watchPositions side inference by [@carlosmiei](https://github.com/carlosmiei) in [#29002](https://github.com/ccxt/ccxt/pull/29002)
+* chore: fix go base tests (add fetchTransfers to interface) by [@carlosmiei](https://github.com/carlosmiei) in [#29008](https://github.com/ccxt/ccxt/pull/29008)
+* fix(hyperliquid): reject with error by [@sc0Vu](https://github.com/sc0Vu) in [#29006](https://github.com/ccxt/ccxt/pull/29006)
+* chore: fix fetchTransfers in go by [@carlosmiei](https://github.com/carlosmiei) in [#29009](https://github.com/ccxt/ccxt/pull/29009)
+
+## New Contributors
+* [@nmcbride](https://github.com/nmcbride) made their first contribution in [#28922](https://github.com/ccxt/ccxt/pull/28922)
+* [@carlotestor](https://github.com/carlotestor) made their first contribution in [#28959](https://github.com/ccxt/ccxt/pull/28959)
+* [@sdfwds4](https://github.com/sdfwds4) made their first contribution in [#28972](https://github.com/ccxt/ccxt/pull/28972)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.59...v4.5.60
+
+[Changes][v4.5.60]
+
+
 <a id="v4.5.59"></a>
 # [v4.5.59](https://github.com/ccxt/ccxt/releases/tag/v4.5.59) - 2026-06-16
 
@@ -13380,6 +13477,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.60]: https://github.com/ccxt/ccxt/compare/v4.5.59...v4.5.60
 [v4.5.59]: https://github.com/ccxt/ccxt/compare/v4.5.58...v4.5.59
 [v4.5.58]: https://github.com/ccxt/ccxt/compare/v4.5.57...v4.5.58
 [v4.5.57]: https://github.com/ccxt/ccxt/compare/v4.5.56...v4.5.57

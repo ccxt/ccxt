@@ -180,6 +180,9 @@ let SignMode = undefined;
  * @class Exchange
  */
 export default class Exchange {
+    // this is updated by vss.js when building
+    static ccxtVersion = '4.5.59';
+
     options: Dict;
 
     isSandboxModeEnabled: boolean = false;
@@ -520,7 +523,7 @@ export default class Exchange {
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //         this.userAgent = {
-        //             'User-Agent': 'ccxt/' + (Exchange as any).ccxtVersion +
+        //             'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
         //                 ' (+https://github.com/ccxt/ccxt)' +
         //                 ' Node.js/' + this.nodeVersion + ' (JavaScript)'
         //         }
@@ -667,36 +670,6 @@ export default class Exchange {
     encodeURIComponent (...args) {
         // @ts-expect-error
         return encodeURIComponent (...args);
-    }
-
-    checkRequiredVersion (requiredVersion, error = true) {
-        let result = true;
-        const [ major1, minor1, patch1 ] = requiredVersion.split ('.');
-        const [ major2, minor2, patch2 ] = (Exchange as any).ccxtVersion.split ('.');
-        const intMajor1 = this.parseToInt (major1);
-        const intMinor1 = this.parseToInt (minor1);
-        const intPatch1 = this.parseToInt (patch1);
-        const intMajor2 = this.parseToInt (major2);
-        const intMinor2 = this.parseToInt (minor2);
-        const intPatch2 = this.parseToInt (patch2);
-        if (intMajor1 > intMajor2) {
-            result = false;
-        }
-        if (intMajor1 === intMajor2) {
-            if (intMinor1 > intMinor2) {
-                result = false;
-            } else if (intMinor1 === intMinor2 && intPatch1 > intPatch2) {
-                result = false;
-            }
-        }
-        if (!result) {
-            if (error) {
-                throw new NotSupported ('Your current version of CCXT is ' + (Exchange as any).ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT');
-            } else {
-                return error;
-            }
-        }
-        return result;
     }
 
     throttle (cost: Num = undefined) {
