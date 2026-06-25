@@ -1046,7 +1046,7 @@ export default class nado extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsByEventType ('deposit_collateral', 'deposit', 'fetchDeposits', code, since, limit, params);
+        return await this.queryTransactionsByEventType ('deposit_collateral', 'deposit', 'fetchDeposits', code, since, limit, params);
     }
 
     /**
@@ -1063,12 +1063,12 @@ export default class nado extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsByEventType ('withdraw_collateral', 'withdrawal', 'fetchWithdrawals', code, since, limit, params);
+        return await this.queryTransactionsByEventType ('withdraw_collateral', 'withdrawal', 'fetchWithdrawals', code, since, limit, params);
     }
 
-    async fetchTransactionsByEventType (eventType: string, transactionType: string, methodName: string, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async queryTransactionsByEventType (eventType: string, transactionType: string, methodName: string, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (this.walletAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransactionsByEventType() requires walletAddress');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires walletAddress');
         }
         await this.loadMarkets ();
         let currency = undefined;
@@ -1145,7 +1145,10 @@ export default class nado extends Exchange {
                     break;
                 }
             }
-            transactions.push (this.parseTransaction (this.extend (tx, event, { 'transaction_type': transactionType }), currency));
+            let transaction = this.extend ({}, tx);
+            transaction = this.extend (transaction, event);
+            transaction['transaction_type'] = transactionType;
+            transactions.push (this.parseTransaction (transaction, currency));
         }
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }

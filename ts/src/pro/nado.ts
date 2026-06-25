@@ -915,8 +915,7 @@ export default class nado extends nadoRest {
                 this.watchMultiple (url, [ subscribeHash ], request, [ messageHash ], subscription);
             }
         }
-        const future = this.watchMultiple (url, messageHashes, undefined);
-        return await future;
+        return await this.watchMultiple (url, messageHashes, undefined, messageHashes);
     }
 
     async unWatchPublic (streamType, market, messageHash: string, params = {}) {
@@ -1280,8 +1279,12 @@ export default class nado extends nadoRest {
         const positions = this.positions;
         const side = this.safeString (position, 'side');
         if (side === undefined) {
-            positions.append (this.extend ({}, position, { 'side': 'long' }));
-            positions.append (this.extend ({}, position, { 'side': 'short' }));
+            const longPosition = this.extend ({}, position);
+            longPosition['side'] = 'long';
+            positions.append (longPosition);
+            const shortPosition = this.extend ({}, position);
+            shortPosition['side'] = 'short';
+            positions.append (shortPosition);
         } else {
             positions.append (position);
         }
