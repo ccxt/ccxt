@@ -39,7 +39,6 @@ import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, Accoun
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 const version = '4.5.60';
-Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import aftermath from './src/aftermath.js';
 import alpaca from './src/alpaca.js';
