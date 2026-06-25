@@ -2,10 +2,10 @@
 
 import nadoRest from '../nado.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
-import type { Bool, Dict, Int, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -21,12 +21,15 @@ export default class nado extends nadoRest {
                 'watchFundingRates': false,
                 'watchLiquidations': false,
                 'watchLiquidationsForSymbols': false,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'unWatchBidsAsks': true,
+                'unWatchMyTrades': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
+                'unWatchOrders': true,
+                'unWatchPositions': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
                 'unWatchTrades': true,
@@ -36,7 +39,7 @@ export default class nado extends nadoRest {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
-                'watchPositions': false,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -528,6 +531,7 @@ export default class nado extends nadoRest {
      * @name nado#watchOrders
      * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
      * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -541,7 +545,7 @@ export default class nado extends nadoRest {
         await this.authenticate (this.extend ({}, params));
         let market = undefined;
         let messageHash = 'orders';
-        let productId = undefined;
+        let productId = null;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -561,6 +565,194 @@ export default class nado extends nadoRest {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name nado#unWatchOrders
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        await this.authenticate (this.extend ({}, params));
+        let market = undefined;
+        let messageHash = 'orders';
+        let productId = null;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+            productId = this.parseToInt (market['id']);
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'unWatchOrders', 'subaccount', 'default');
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const stream: Dict = {
+            'type': 'order_update',
+            'subaccount': sender,
+            'product_id': productId,
+        };
+        return await this.unWatchPrivate (stream, messageHash, params);
+    }
+
+    /**
+     * @method
+     * @name nado#watchMyTrades
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
+     * @description watches information on multiple trades made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        await this.authenticate (this.extend ({}, params));
+        let market = undefined;
+        let messageHash = 'myTrades';
+        let productId = null;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+            productId = this.parseToInt (market['id']);
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'subaccount', 'default');
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const stream: Dict = {
+            'type': 'fill',
+            'subaccount': sender,
+            'product_id': productId,
+        };
+        const trades = await this.watchPrivate ('fill', stream, messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name nado#unWatchMyTrades
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on multiple trades made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        await this.authenticate (this.extend ({}, params));
+        let market = undefined;
+        let messageHash = 'myTrades';
+        let productId = null;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+            productId = this.parseToInt (market['id']);
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'unWatchMyTrades', 'subaccount', 'default');
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const stream: Dict = {
+            'type': 'fill',
+            'subaccount': sender,
+            'product_id': productId,
+        };
+        return await this.unWatchPrivate (stream, messageHash, params);
+    }
+
+    /**
+     * @method
+     * @name nado#watchPositions
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
+     * @description watches information on user positions
+     * @param {string[]} [symbols] unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        await this.authenticate (this.extend ({}, params));
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        let messageHash = 'positions';
+        let productId = null;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market (symbols[0]);
+                messageHash += ':' + market['symbol'];
+                productId = this.parseToInt (market['id']);
+            }
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'watchPositions', 'subaccount', 'default');
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const stream: Dict = {
+            'type': 'position_change',
+            'subaccount': sender,
+            'product_id': productId,
+        };
+        const positions = await this.watchPrivate ('position_change', stream, messageHash, params);
+        if (this.newUpdates) {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name nado#unWatchPositions
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on user positions
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        await this.authenticate (this.extend ({}, params));
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        let messageHash = 'positions';
+        let productId = null;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market (symbols[0]);
+                messageHash += ':' + market['symbol'];
+                productId = this.parseToInt (market['id']);
+            }
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'unWatchPositions', 'subaccount', 'default');
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const stream: Dict = {
+            'type': 'position_change',
+            'subaccount': sender,
+            'product_id': productId,
+        };
+        return await this.unWatchPrivate (stream, messageHash, params);
     }
 
     async watchPublic (streamType, market, messageHash: string, params = {}) {
@@ -605,6 +797,27 @@ export default class nado extends nadoRest {
         };
         this.watchMultiple (url, [ subscribeHash ], request, [ messageHash ], subscription);
         return await this.watch (url, messageHash);
+    }
+
+    async unWatchPrivate (stream, messageHash: string, params = {}) {
+        const url = this.urls['api']['ws']['subscriptions'];
+        const id = this.nonce ();
+        const unsubscribeHash = 'unsubscribe:' + messageHash;
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'stream': this.deepExtend (stream, params),
+            'id': id,
+        };
+        const subscription = {
+            'id': id,
+            'messageHash': messageHash,
+        };
+        const client = this.client (url);
+        client.subscriptions['unsubscription:' + this.numberToString (id)] = {
+            'messageHash': messageHash,
+            'unsubscribeHash': unsubscribeHash,
+        };
+        return await this.watch (url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
 
     async authenticate (params = {}) {
@@ -795,6 +1008,64 @@ export default class nado extends nadoRest {
         }, market);
     }
 
+    parseWsMyTrade (trade: Dict, market = undefined): Trade {
+        //
+        //     {
+        //         "type": "fill",
+        //         "timestamp": "1695081920633151000",
+        //         "product_id": 1,
+        //         "subaccount": "0x...",
+        //         "order_digest": "0x...",
+        //         "appendix": "1",
+        //         "filled_qty": "18000000000000000",
+        //         "remaining_qty": "82000000000000000",
+        //         "original_qty": "100000000000000000",
+        //         "price": "25000000000000000000000",
+        //         "is_taker": true,
+        //         "is_bid": true,
+        //         "fee": "4500000000000000",
+        //         "submission_idx": 1,
+        //         "id": 100
+        //     }
+        //
+        const marketId = this.safeString (trade, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.parseWsTimestamp (trade, 'timestamp');
+        const isBid = this.safeBool (trade, 'is_bid');
+        let side = undefined;
+        if (isBid !== undefined) {
+            side = isBid ? 'buy' : 'sell';
+        }
+        const isTaker = this.safeBool (trade, 'is_taker');
+        let takerOrMaker = undefined;
+        if (isTaker !== undefined) {
+            takerOrMaker = isTaker ? 'taker' : 'maker';
+        }
+        const feeCost = this.parseX18 (this.safeString (trade, 'fee'));
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': market['quote'],
+            };
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': this.safeString (trade, 'order_digest'),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': this.parseX18 (this.safeString (trade, 'price')),
+            'amount': this.parseX18 (this.safeString (trade, 'filled_qty')),
+            'cost': undefined,
+            'fee': fee,
+        }, market);
+    }
+
     handleTrade (client: Client, message) {
         const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
@@ -809,6 +1080,19 @@ export default class nado extends nadoRest {
         const trade = this.parseWsTrade (message, market);
         trades.append (trade);
         client.resolve (trades, messageHash);
+    }
+
+    handleMyTrade (client: Client, message) {
+        const trade = this.parseWsMyTrade (message);
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trades = this.myTrades;
+        trades.append (trade);
+        const symbol = trade['symbol'];
+        client.resolve (trades, 'myTrades');
+        client.resolve (trades, 'myTrades:' + symbol);
     }
 
     handleOHLCV (client: Client, message) {
@@ -920,6 +1204,90 @@ export default class nado extends nadoRest {
         const symbol = order['symbol'];
         client.resolve (orders, 'orders');
         client.resolve (orders, 'orders:' + symbol);
+    }
+
+    parseWsPosition (position: Dict, market = undefined): Position {
+        //
+        //     {
+        //         "type": "position_change",
+        //         "timestamp": "1695081920633151000",
+        //         "product_id": 2,
+        //         "subaccount": "0x15f43d1f2dee81424afd891943262aa90f22cc2a64656661756c740000000000",
+        //         "isolated": false,
+        //         "amount": "100000000000000000",
+        //         "v_quote_amount": "-3033500000000000000000",
+        //         "reason": "match_orders"
+        //     }
+        //
+        const marketId = this.safeString (position, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.parseWsTimestamp (position, 'timestamp');
+        const amountString = this.safeString (position, 'amount');
+        const vQuoteAmount = this.safeString (position, 'v_quote_amount');
+        let side = undefined;
+        let contracts = undefined;
+        let entryPrice = undefined;
+        if (amountString !== undefined) {
+            if (Precise.stringGt (amountString, '0')) {
+                side = 'long';
+            } else if (Precise.stringLt (amountString, '0')) {
+                side = 'short';
+            }
+            const absoluteAmount = Precise.stringAbs (amountString);
+            contracts = this.parseX18 (absoluteAmount);
+            if ((vQuoteAmount !== undefined) && !Precise.stringEquals (absoluteAmount, '0')) {
+                entryPrice = this.parseNumber (Precise.stringDiv (Precise.stringAbs (vQuoteAmount), absoluteAmount));
+            }
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'isolated': this.safeBool (position, 'isolated'),
+            'hedged': false,
+            'side': side,
+            'contracts': contracts,
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'entryPrice': entryPrice,
+            'markPrice': undefined,
+            'notional': undefined,
+            'leverage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': undefined,
+            'liquidationPrice': undefined,
+            'marginMode': undefined,
+            'marginRatio': undefined,
+            'percentage': undefined,
+        });
+    }
+
+    handlePosition (client: Client, message) {
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        if (!this.safeBool (market, 'contract', false)) {
+            return;
+        }
+        const position = this.parseWsPosition (message, market);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const positions = this.positions;
+        const side = this.safeString (position, 'side');
+        if (side === undefined) {
+            positions.append (this.extend ({}, position, { 'side': 'long' }));
+            positions.append (this.extend ({}, position, { 'side': 'short' }));
+        } else {
+            positions.append (position);
+        }
+        const symbol = position['symbol'];
+        client.resolve (positions, 'positions');
+        client.resolve (positions, 'positions:' + symbol);
     }
 
     parseWsBidAsk (bidask: Dict, market = undefined): Ticker {
@@ -1136,6 +1504,12 @@ export default class nado extends nadoRest {
             for (let i = 0; i < symbols.length; i++) {
                 delete this.bidsasks[symbols[i]];
             }
+        } else if (messageHash.indexOf ('orders') === 0) {
+            this.orders = undefined;
+        } else if (messageHash.indexOf ('myTrades') === 0) {
+            this.myTrades = undefined;
+        } else if (messageHash.indexOf ('positions') === 0) {
+            this.positions = undefined;
         }
     }
 
@@ -1215,8 +1589,10 @@ export default class nado extends nadoRest {
             'all_bbo': this.handleAllBidsAsks,
             'best_bid_offer': this.handleBidAsk,
             'book_depth': this.handleOrderBook,
+            'fill': this.handleMyTrade,
             'latest_candlestick': this.handleOHLCV,
             'order_update': this.handleOrder,
+            'position_change': this.handlePosition,
         };
         const handler = this.safeValue (methods, type);
         if (handler !== undefined) {
