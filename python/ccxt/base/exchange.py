@@ -163,8 +163,6 @@ class SafeJSONEncoder(json.JSONEncoder):
 class Exchange(object):
     """Base exchange class"""
     id = 'Exchange'
-    # this is updated by vss.js when building
-    ccxt_version = '4.5.59'
     name = None
     countries = None
     version = None

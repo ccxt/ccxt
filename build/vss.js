@@ -60,7 +60,6 @@ async function vssEverything () {
     vss ('./pyproject.toml',                             "version = \"{version}\"",                                                   version)
     vss ('./python/ccxt/__init__.py',                    "__version__ = '{version}'",                                                   version)
     vss ('./python/ccxt/base/exchange.py',               "__version__ = '{version}'",                                                   version)
-    vss ('./python/ccxt/base/exchange.py',               "ccxt_version = '{version}'",                                                  version)
     vss ('./python/ccxt/async_support/__init__.py',      "__version__ = '{version}'",                                                   version)
     vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'",                                                   version)
     vss ('./python/ccxt/pro/__init__.py',                "__version__ = '{version}'",                                                   version)
