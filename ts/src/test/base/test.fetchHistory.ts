@@ -38,24 +38,24 @@ async function testFetchHistoryBase () {
 
 
 async function testFetchHistoryDerived () {
-    const exchange = new ccxt.binance ({
+    const exchange = new ccxt.coinbase ({
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
     });
     assert (testSharedMethods.exchangeProp (exchange, 'fetchHistoryCacheSize') === 2, 'fetchHistoryCacheSize should be 2');
     // try 3 times
     // first
-    await exchange.fetchTime (); // https://api.binance.com/api/v3/time
+    await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
     assert ((exchange.getFetchCache ()).length === 1, 'fetchHistoryCache should be an array with 1 element');
     // second
-    await exchange.fetchOHLCV ('BTC/USDT', '1d', 1780000000000, 5); // https://api.binance.com/api/v3/klines?interval=1m&limit=5&symbol=BTCUSDT
+    await exchange.fetchOrderBook ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
     assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
     // third
-    await exchange.fetchStatus (); // https://api.binance.com/sapi/v1/system/status
+    await exchange.fetchTrades ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
     assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
     const finalCache = exchange.getFetchCache ();
-    assert (finalCache[0]['request']['url'].toString () === 'https://api.binance.com/api/v3/klines?interval=1d&limit=5&symbol=BTCUSDT&startTime=1780000000000', 'The first element in fetchHistoryCache should be fetchOHLCV: ' + finalCache[0]['request']['url']);
-    assert (finalCache[1]['request']['url'].toString () === 'https://api.binance.com/sapi/v1/system/status', 'The second element in fetchHistoryCache should be fetchStatus: ' + finalCache[1]['request']['url']);
+    assert (finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' + finalCache[0]['request']['url']);
+    assert (finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' + finalCache[1]['request']['url']);
 }
 
 
