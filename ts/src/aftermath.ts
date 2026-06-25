@@ -5,6 +5,10 @@ import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, L
 import { eddsa } from './base/functions/crypto.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
 
+/**
+ * @class aftermath
+ * @augments Exchange
+ */
 export default class aftermath extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
