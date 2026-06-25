@@ -4,7 +4,7 @@ import nadoRest from '../nado.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import type { Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -1390,7 +1390,10 @@ export default class nado extends nadoRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 0, 1);
+        const bidAsk = [
+            this.parseX18 (this.safeString (delta, 0)),
+            this.parseX18 (this.safeString (delta, 1)),
+        ];
         bookside.storeArray (bidAsk);
     }
 

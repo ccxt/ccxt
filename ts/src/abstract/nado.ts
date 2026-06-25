@@ -11,6 +11,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     gatewayPublicGetSymbols (params?: {}): Promise<implicitReturnType>;
     gatewayPublicGetQuery (params?: {}): Promise<implicitReturnType>;
+    gatewayPublicGetEdgeQuery (params?: {}): Promise<implicitReturnType>;
     gatewayPublicPostQuery (params?: {}): Promise<implicitReturnType>;
     gatewayPrivatePostExecute (params?: {}): Promise<implicitReturnType>;
     gatewayV2PublicGetAssets (params?: {}): Promise<implicitReturnType>;

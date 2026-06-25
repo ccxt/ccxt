@@ -4,8 +4,8 @@ import Exchange from './abstract/nado.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
