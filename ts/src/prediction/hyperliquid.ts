@@ -51,7 +51,7 @@ export default class hyperliquid extends Exchange {
                 'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'prediction': true,
             },
             'timeframes': {
@@ -122,7 +122,7 @@ export default class hyperliquid extends Exchange {
             },
             'options': {
                 'defaultType': 'prediction',
-                'sandboxMode': true,  // outcome markets currently deployed on testnet
+                'sandboxMode': false,  // outcome markets currently deployed on testnet
                 'outcomeQuoteCurrency': 'USDH',
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
@@ -1664,6 +1664,31 @@ export default class hyperliquid extends Exchange {
 
     /**
      * @method
+     * @name hyperliquid#fetchTrades
+     * @description fetches the most recent public trades for an outcome
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-coins-recent-trades
+     * @param {string} outcome unified outcome
+     * @param {int} [since] only return trades at or after this timestamp in ms
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        this.checkEvents (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const request = {
+            'type': 'recentTrades',
+            'coin': this.safeString (info, 'coinName'),
+        };
+        // recentTrades returns the coin's most recent public trades (newest first)
+        const response = await this.publicPostInfo (this.extend (request, params));
+        const trades = (response !== undefined && response !== null) ? response : [];
+        return this.parseTrades (trades, outcomeObj as any, since, limit) as PredictionTrade[];
+    }
+
+    /**
+     * @method
      * @name hyperliquid#fetchMyTrades
      * @description fetches the authenticated user's fill history
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
@@ -1676,29 +1701,10 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        let userAddress: Str;
-        [ userAddress, params ] = this.handlePublicAddress ('fetchMyTrades', params);
-        const request = { 'user': userAddress };
-        if (since !== undefined) {
-            request['type'] = 'userFillsByTime';
-            request['startTime'] = since;
-        } else {
-            request['type'] = 'userFills';
+        if (outcome === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires an outcome argument');
         }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
-        const response = await this.publicPostInfo (this.extend (request, params));
-        const parsed = this.parseTrades (response, undefined, since, undefined);
-        let outcomeHandle: Str = undefined;
-        if (outcome !== undefined) {
-            this.checkEvents (outcome);
-            const outcomeObj = this.outcome (outcome);
-            outcomeHandle = this.safeString (outcomeObj, 'outcome');
-        }
-        return this.filterByOutcomeSinceLimit (parsed, outcomeHandle, since, limit) as PredictionTrade[];
+        return await this.fetchTrades (outcome, since, limit, params) as PredictionTrade[];
     }
 
     /**
@@ -2041,7 +2047,7 @@ export default class hyperliquid extends Exchange {
 
     sign (path: any, api: any = 'public', method = 'POST', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup = Array.isArray (api) ? api[0] : api;
-        const sandboxMode = this.safeBool (this.options, 'sandboxMode', true);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let baseUrl: string;
         if (sandboxMode) {
             const testUrls = this.safeDict (this.urls, 'test', {});
