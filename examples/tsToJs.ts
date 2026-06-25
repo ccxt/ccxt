@@ -18,7 +18,7 @@ if (fs.existsSync(dirToClean)) {
     const files = fs.readdirSync(dirToClean);
     
     for (const file of files) {
-        if (path.extname(file) === '.js') {
+        if ( file.endsWith ('.js') || file.endsWith ('.d.ts') || file.endsWith ('.d.ts.map') ) {
             fs.unlinkSync(path.join(dirToClean, file));
         }
     }
