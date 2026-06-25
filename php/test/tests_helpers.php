@@ -264,12 +264,13 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
     $exchangeClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
     if ($is_ws) {
         $exchangeClassString = '\\ccxt\\pro\\' . $exchangeId;
-    } elseif (!class_exists($exchangeClassString)) {
-        // fall back to the prediction-markets namespace; prediction exchanges are
-        // async-only and live at \ccxt\prediction\<id> (no \async sub-namespace).
-        // regular ccxt ids always win for ids present in both (e.g. hyperliquid)
+    } else {
+        // prediction-markets exchanges are async-only and live at \ccxt\prediction\<id>
+        // (no \async sub-namespace). the --prediction flag forces that namespace for ids
+        // present in both (e.g. hyperliquid); otherwise regular ccxt wins
         $predictionClassString = '\\ccxt\\prediction\\' . $exchangeId;
-        if (class_exists($predictionClassString)) {
+        $forcePrediction = get_cli_arg_value('--prediction');
+        if (class_exists($predictionClassString) && ($forcePrediction || !class_exists($exchangeClassString))) {
             $exchangeClassString = $predictionClassString;
         }
     }

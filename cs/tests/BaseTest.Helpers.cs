@@ -42,7 +42,9 @@ public partial class testMainClass : BaseTest
             // var binance = new ccxt.binance();
             exchangeId = "ccxt.pro." + (string)exchangeId;// + "Ws";
         }
-        var exchange = Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs);
+        // the --prediction flag forces the prediction-markets namespace for ids present in both (e.g. hyperliquid)
+        var forcePrediction = getCliArgValue("--prediction");
+        var exchange = Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs, false, forcePrediction);
         return exchange;
     }
 

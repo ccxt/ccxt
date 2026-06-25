@@ -4,7 +4,7 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public static Exchange DynamicallyCreateInstance(string className, object args = null, bool isWs = false)
+    public static Exchange DynamicallyCreateInstance(string className, object args = null, bool isWs = false, bool forcePrediction = false)
     {
         var assembly = Assembly.GetExecutingAssembly();
 
@@ -14,9 +14,15 @@ public partial class Exchange
         }
 
         // prefer the regular ccxt namespace, then the prediction-markets namespace
-        // (regular ccxt ids always win for ids present in both, e.g. hyperliquid)
+        // (regular ccxt ids always win for ids present in both, e.g. hyperliquid) — unless
+        // forcePrediction (the --prediction test flag) flips the preference to prediction first
         var types = assembly.GetTypes();
-        var type = types.FirstOrDefault(t => t.FullName == "ccxt." + className)
+        Type type = null;
+        if (forcePrediction)
+        {
+            type = types.FirstOrDefault(t => t.FullName == "ccxt.prediction." + className);
+        }
+        type ??= types.FirstOrDefault(t => t.FullName == "ccxt." + className)
             ?? types.FirstOrDefault(t => t.FullName == "ccxt.prediction." + className)
             ?? types.First(t => t.Name == className || t.FullName == className);
 

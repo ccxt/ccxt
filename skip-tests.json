@@ -1408,7 +1408,11 @@
             "watchTrades": {
                 "currency": "not provided"
             }
-        }
+        },
+        "preferredPredictionOutcome": "2026-WORLD-CUP-CHAMPION-BRAZIL-10238:YES",
+        "fundedAmount": "500",
+        "fundedPrice": "0.02",
+        "predictionNote": "testnet 10 USD min notional (500*0.02); World Cup market valid through ~2026-07; update the outcome if it resolves"
     },
     "hollaex": {
         "skipWs": "temp",
