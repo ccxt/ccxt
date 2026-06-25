@@ -1585,8 +1585,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (isTrue(isEqual(channel, "error")))
         {
             object ret_msg = this.safeString(message, "data", "");
-            object errorMsg = add(add(this.id, " "), ret_msg);
-            ((WebSocketClient)client).reject(errorMsg);
+            var error = new ExchangeError(add(add(this.id, " "), ret_msg));
+            ((WebSocketClient)client).reject(error);
             return true;
         }
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
@@ -1600,14 +1600,14 @@ public partial class hyperliquid : ccxt.hyperliquid
         object status = this.safeString(payload, "status");
         if (isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "ok"))))
         {
-            object errorMsg = add(add(this.id, " "), this.json(payload));
-            ((WebSocketClient)client).reject(errorMsg, id);
+            var error = new ExchangeError(add(add(this.id, " "), this.json(payload)));
+            ((WebSocketClient)client).reject(error, id);
             return true;
         }
         object type = this.safeString(payload, "type");
         if (isTrue(isEqual(type, "error")))
         {
-            object error = add(add(this.id, " "), this.json(payload));
+            var error = new ExchangeError(add(add(this.id, " "), this.json(payload)));
             ((WebSocketClient)client).reject(error, id);
             return true;
         }
