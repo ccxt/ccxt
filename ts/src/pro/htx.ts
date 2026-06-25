@@ -51,6 +51,7 @@ export default class htx extends htxRest {
                                 'linear': {
                                     'public': 'wss://api.hbdm.vn/linear-swap-ws',
                                     'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                    'privateV5': 'wss://api.hbdm.vn/ws/v5/notification',
                                 },
                                 'inverse': {
                                     'public': 'wss://api.hbdm.vn/ws',
@@ -65,6 +66,7 @@ export default class htx extends htxRest {
                                 'linear': {
                                     'public': 'wss://api.hbdm.vn/linear-swap-ws',
                                     'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                    'privateV5': 'wss://api.hbdm.vn/ws/v5/notification',
                                 },
                             },
                         },
@@ -79,6 +81,7 @@ export default class htx extends htxRest {
                                 'linear': {
                                     'public': 'wss://api.hbdm.vn/linear-swap-ws',
                                     'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                    'privateV5': 'wss://api.hbdm.vn/ws/v5/notification',
                                 },
                                 'inverse': {
                                     'public': 'wss://api.hbdm.vn/ws',
@@ -89,6 +92,7 @@ export default class htx extends htxRest {
                                 'linear': {
                                     'public': 'wss://api.hbdm.vn/linear-swap-ws',
                                     'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                    'privateV5': 'wss://api.hbdm.vn/ws/v5/notification',
                                 },
                                 'inverse': {
                                     'public': 'wss://api.hbdm.vn/swap-ws',
@@ -795,6 +799,7 @@ export default class htx extends htxRest {
      * @name htx#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35275ff
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -824,6 +829,10 @@ export default class htx extends htxRest {
             subType = this.safeString (params, 'subType', subType);
             params = this.omit (params, [ 'type', 'subType' ]);
         }
+        const linear = (subType === 'linear');
+        const swap = (type === 'swap');
+        const future = (type === 'future');
+        const isV5Linear = (linear && (swap || future));
         if (type === 'spot') {
             let mode: Str = undefined;
             if (mode === undefined) {
@@ -833,6 +842,11 @@ export default class htx extends htxRest {
             }
             messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
             channel = messageHash;
+        } else if (isV5Linear) {
+            const channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash ('trade', market, params);
+            channel = this.safeString (channelAndMessageHashAndParams, 0);
+            messageHash = this.safeString (channelAndMessageHashAndParams, 1);
+            params = this.safeValue (channelAndMessageHashAndParams, 2, {});
         } else {
             const channelAndMessageHash = this.getOrderChannelAndMessageHash (type, subType, market, params);
             channel = this.safeString (channelAndMessageHash, 0);
@@ -841,7 +855,10 @@ export default class htx extends htxRest {
             // like symbol/margin/subtype/type variations
             messageHash = orderMessageHash + ':' + 'trade';
         }
-        trades = await this.subscribePrivate (channel, messageHash, type, subType, params);
+        const subscriptionParams = {
+            'isV5': isV5Linear,
+        };
+        trades = await this.subscribePrivate (channel, messageHash, type, subType, params, subscriptionParams);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -889,11 +906,23 @@ export default class htx extends htxRest {
         return [ channel, messageHash ];
     }
 
+    getV5LinearChannelAndMessageHash (topic, market = undefined, params = {}) {
+        const contractCode = (market !== undefined) ? market['id'] : this.safeString (params, 'contract_code', '*');
+        const channel = topic;
+        const messageHash = (contractCode === '*') ? topic : (topic + '.' + contractCode.toLowerCase ());
+        params = this.omit (params, 'contract_code');
+        const requestParams = this.extend ({
+            'contract_code': contractCode,
+        }, params);
+        return [ channel, messageHash, requestParams ];
+    }
+
     /**
      * @method
      * @name htx#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a208afe7
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -919,17 +948,29 @@ export default class htx extends htxRest {
             subType = this.safeString (params, 'subType', subType);
             params = this.omit (params, [ 'type', 'subType' ]);
         }
+        const linear = (subType === 'linear');
+        const swap = (type === 'swap');
+        const future = (type === 'future');
+        const isV5Linear = (linear && (swap || future));
         let messageHash: Str = undefined;
         let channel: Str = undefined;
         if (type === 'spot') {
             messageHash = 'orders' + '#' + suffix;
             channel = messageHash;
+        } else if (isV5Linear) {
+            const channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash ('orders', market, params);
+            channel = this.safeString (channelAndMessageHashAndParams, 0);
+            messageHash = this.safeString (channelAndMessageHashAndParams, 1);
+            params = this.safeValue (channelAndMessageHashAndParams, 2, {});
         } else {
             const channelAndMessageHash = this.getOrderChannelAndMessageHash (type, subType, market, params);
             channel = this.safeString (channelAndMessageHash, 0);
             messageHash = this.safeString (channelAndMessageHash, 1);
         }
-        const orders = await this.subscribePrivate (channel, messageHash, type, subType, params);
+        const subscriptionParams = {
+            'isV5': isV5Linear,
+        };
+        const orders = await this.subscribePrivate (channel, messageHash, type, subType, params, subscriptionParams);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1057,11 +1098,60 @@ export default class htx extends htxRest {
         //   }
         //
         //
+        // linear v5 watchOrders
+        //
+        //     {
+        //         "op": "notify",
+        //         "topic": "orders",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782367563267,
+        //         "uid": "359305390",
+        //         "data": {
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "price": "40000",
+        //             "volume": "1",
+        //             "state": "new",
+        //             "profit": "0",
+        //             "contract_code": "BTC-USDT",
+        //             "position_side": "both",
+        //             "price_match": null,
+        //             "order_id": "1519705236917489664",
+        //             "client_order_id": "1519705236917489664",
+        //             "margin_mode": "cross",
+        //             "lever_rate": 10,
+        //             "order_source": "api",
+        //             "reduce_only": false,
+        //             "time_in_force": "gtc",
+        //             "trade_avg_price": "0",
+        //             "trade_volume": "0",
+        //             "trade_turnover": "0",
+        //             "fee_currency": null,
+        //             "fee": "0",
+        //             "tp_trigger_price": "",
+        //             "tp_order_price": "",
+        //             "tp_type": "",
+        //             "tp_trigger_price_type": "",
+        //             "sl_trigger_price": "",
+        //             "sl_order_price": "",
+        //             "sl_type": "",
+        //             "sl_trigger_price_type": "",
+        //             "contract_type": "swap",
+        //             "cancel_reason": "",
+        //             "created_time": "1782367563239",
+        //             "updated_time": "1782367563239",
+        //             "self_match_prevent": "cancel_taker",
+        //             "amend_origin_volume": "",
+        //             "amend_source": "",
+        //             "amend_result": ""
+        //         }
+        //     }
+        //
         const messageHash = this.safeString2 (message, 'ch', 'topic');
         const data = this.safeValue (message, 'data');
         let marketId = this.safeString (message, 'contract_code');
         if (marketId === undefined) {
-            marketId = this.safeString (data, 'symbol');
+            marketId = this.safeString2 (data, 'contract_code', 'symbol');
         }
         const market = this.safeMarket (marketId);
         let parsedOrder = undefined;
@@ -1123,6 +1213,10 @@ export default class htx extends htxRest {
         const cachedOrders = this.orders;
         cachedOrders.append (parsedOrder);
         client.resolve (this.orders, messageHash);
+        if ((messageHash === 'orders') && (marketId !== undefined)) {
+            const specificMessageHash = messageHash + '.' + marketId.toLowerCase ();
+            client.resolve (this.orders, specificMessageHash);
+        }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here
         let genericMessageHash = messageHash.replace ('.' + market['lowercaseId'], '');
@@ -1245,22 +1339,64 @@ export default class htx extends htxRest {
         //         "real_profit": 0
         //     }
         //
-        const lastTradeTimestamp = this.safeInteger2 (order, 'lastActTime', 'ts');
-        const created = this.safeInteger (order, 'orderCreateTime');
+        // linear v5 watchOrders
+        //
+        //     {
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "price": "40000",
+        //         "volume": "1",
+        //         "state": "new",
+        //         "profit": "0",
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "both",
+        //         "price_match": null,
+        //         "order_id": "1519705236917489664",
+        //         "client_order_id": "1519705236917489664",
+        //         "margin_mode": "cross",
+        //         "lever_rate": 10,
+        //         "order_source": "api",
+        //         "reduce_only": false,
+        //         "time_in_force": "gtc",
+        //         "trade_avg_price": "0",
+        //         "trade_volume": "0",
+        //         "trade_turnover": "0",
+        //         "fee_currency": null,
+        //         "fee": "0",
+        //         "tp_trigger_price": "",
+        //         "tp_order_price": "",
+        //         "tp_type": "",
+        //         "tp_trigger_price_type": "",
+        //         "sl_trigger_price": "",
+        //         "sl_order_price": "",
+        //         "sl_type": "",
+        //         "sl_trigger_price_type": "",
+        //         "contract_type": "swap",
+        //         "cancel_reason": "",
+        //         "created_time": "1782367563239",
+        //         "updated_time": "1782367563239",
+        //         "self_match_prevent": "cancel_taker",
+        //         "amend_origin_volume": "",
+        //         "amend_source": "",
+        //         "amend_result": ""
+        //     }
+        //
+        const lastTradeTimestamp = this.safeIntegerN (order, [ 'lastActTime', 'updated_time', 'ts' ]);
+        const created = this.safeInteger2 (order, 'orderCreateTime', 'created_time');
         const marketId = this.safeString2 (order, 'contract_code', 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const amount = this.safeString2 (order, 'orderSize', 'volume');
-        const status = this.parseOrderStatus (this.safeString2 (order, 'orderStatus', 'status'));
+        const status = this.parseOrderStatus (this.safeStringN (order, [ 'orderStatus', 'state', 'status' ]));
         const id = this.safeString2 (order, 'orderId', 'order_id');
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'client_order_id');
         const price = this.safeString2 (order, 'orderPrice', 'price');
-        const filled = this.safeString (order, 'execAmt');
+        const filled = this.safeString2 (order, 'execAmt', 'trade_volume');
         const typeSide = this.safeString (order, 'type');
         const feeCost = this.safeString (order, 'fee');
         let fee: Dict = undefined;
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (order, 'fee_asset');
+            const feeCurrencyId = this.safeString2 (order, 'fee_asset', 'fee_currency');
             fee = {
                 'cost': feeCost,
                 'currency': this.safeCurrencyCode (feeCurrencyId),
@@ -1269,18 +1405,23 @@ export default class htx extends htxRest {
         const avgPrice = this.safeString (order, 'trade_avg_price');
         const rawTrades = this.safeValue (order, 'trade');
         let typeSideParts = [];
+        let type = undefined;
         if (typeSide !== undefined) {
-            typeSideParts = typeSide.split ('-');
+            if (!market['linear'] && !market['swap'] && !market['swap']) {
+                typeSideParts = typeSide.split ('-');
+                type = this.safeStringLower (typeSideParts, 1);
+            } else {
+                type = typeSide;
+            }
         }
-        let type = this.safeStringLower (typeSideParts, 1);
         if (type === undefined) {
             type = this.safeString (order, 'order_price_type');
         }
         let side = this.safeStringLower (typeSideParts, 0);
         if (side === undefined) {
-            side = this.safeString (order, 'direction');
+            side = this.safeString2 (order, 'direction', 'side');
         }
-        const cost = this.safeString (order, 'orderValue');
+        const cost = this.safeString2 (order, 'orderValue', 'trade_turnover');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1291,7 +1432,7 @@ export default class htx extends htxRest {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
+            'timeInForce': this.safeStringUpper (order, 'time_in_force'),
             'postOnly': undefined,
             'side': side,
             'price': price,
@@ -1302,6 +1443,11 @@ export default class htx extends htxRest {
             'fee': fee,
             'average': avgPrice,
             'trades': rawTrades,
+            'reduceOnly': this.safeBool (order, 'reduce_only'),
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'takeProfitPrice': this.safeString2 (order, 'tp_trigger_price', 'tp_order_price'),
+            'stopLossPrice': this.safeString2 (order, 'sl_trigger_price', 'sl_order_price'),
         }, market);
     }
 
@@ -2001,6 +2147,9 @@ export default class htx extends htxRest {
             if (topic.indexOf ('orders') >= 0) {
                 this.handleOrder (client, message);
             }
+            if (topic.indexOf ('trade') >= 0) {
+                this.handleMyTrade (client, message);
+            }
             if (topic.indexOf ('account') >= 0) {
                 this.handleBalance (client, message);
             }
@@ -2292,20 +2441,64 @@ export default class htx extends htxRest {
         //         ],
         //     }
         //
+        // linear v5 watchMyTrades
+        //
+        //     {
+        //         "op": "notify",
+        //         "topic": "trade",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782367694387,
+        //         "uid": "359305390",
+        //         "data": [
+        //             {
+        //                 "direction": "buy",
+        //                 "id": "100121555172810-1519705786942156810-1",
+        //                 "contract_code": "BTC-USDT",
+        //                 "contract_type": "swap",
+        //                 "order_id": "1519705786942156810",
+        //                 "trade_id": "155233460",
+        //                 "position_side": "both",
+        //                 "trade_volume": "1",
+        //                 "trade_price": "61629",
+        //                 "trade_turnover": "61.629",
+        //                 "role": "taker",
+        //                 "client_order_id": "1519705786942156810",
+        //                 "created_time": "1782367694375",
+        //                 "updated_time": "1782367694385"
+        //             }
+        //         ]
+        //     }
+        //
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const cachedTrades = this.myTrades;
-        const messageHash = this.safeString (message, 'ch');
+        const messageHash = this.safeString2 (message, 'ch', 'topic');
         if (messageHash !== undefined) {
             const data = this.safeValue (message, 'data');
             if (data !== undefined) {
-                const parsed = this.parseWsTrade (data);
-                const symbol = this.safeString (parsed, 'symbol');
-                if (symbol !== undefined) {
-                    cachedTrades.append (parsed);
-                    client.resolve (this.myTrades, messageHash);
+                const contractCode = this.safeString (message, 'contract_code');
+                const market = (contractCode !== undefined) ? this.safeMarket (contractCode) : undefined;
+                if (Array.isArray (data)) {
+                    for (let i = 0; i < data.length; i++) {
+                        const parsed = this.parseWsTrade (data[i], market);
+                        const symbol = this.safeString (parsed, 'symbol');
+                        if (symbol !== undefined) {
+                            cachedTrades.append (parsed);
+                        }
+                    }
+                } else {
+                    const parsed = this.parseWsTrade (data, market);
+                    const symbol = this.safeString (parsed, 'symbol');
+                    if (symbol !== undefined) {
+                        cachedTrades.append (parsed);
+                    }
+                }
+                client.resolve (this.myTrades, messageHash);
+                if ((messageHash === 'trade') && (contractCode !== undefined)) {
+                    const specificMessageHash = messageHash + '.' + contractCode.toLowerCase ();
+                    client.resolve (this.myTrades, specificMessageHash);
                 }
             } else {
                 // this trades object is artificially created
@@ -2363,31 +2556,53 @@ export default class htx extends htxRest {
         //         "feeDeductType":""
         //     }
         //
-        const symbol = this.safeSymbol (this.safeString (trade, 'symbol'));
-        const side = this.safeString2 (trade, 'side', 'orderSide');
-        const tradeId = this.safeString (trade, 'tradeId');
-        const price = this.safeString (trade, 'tradePrice');
-        const amount = this.safeString (trade, 'tradeVolume');
-        const order = this.safeString (trade, 'orderId');
-        const timestamp = this.safeInteger (trade, 'tradeTime');
-        market = this.market (symbol);
-        const orderType = this.safeString (trade, 'orderType');
+        // linear v5 watchMyTrades
+        //
+        //     {
+        //         "direction": "buy",
+        //         "id": "100121555172810-1519705786942156810-1",
+        //         "contract_code": "BTC-USDT",
+        //         "contract_type": "swap",
+        //         "order_id": "1519705786942156810",
+        //         "trade_id": "155233460",
+        //         "position_side": "both",
+        //         "trade_volume": "1",
+        //         "trade_price": "61629",
+        //         "trade_turnover": "61.629",
+        //         "role": "taker",
+        //         "client_order_id": "1519705786942156810",
+        //         "created_time": "1782367694375",
+        //         "updated_time": "1782367694385"
+        //     }
+        //
+        const marketId = this.safeString2 (trade, 'symbol', 'contract_code');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const side = this.safeStringN (trade, [ 'side', 'orderSide', 'direction' ]);
+        const tradeId = this.safeStringN (trade, [ 'tradeId', 'trade_id', 'id' ]);
+        const price = this.safeString2 (trade, 'tradePrice', 'trade_price');
+        const amount = this.safeString2 (trade, 'tradeVolume', 'trade_volume');
+        const order = this.safeString2 (trade, 'orderId', 'order_id');
+        const timestamp = this.safeIntegerN (trade, [ 'tradeTime', 'updated_time', 'created_time' ]);
+        const orderType = this.safeString2 (trade, 'orderType', 'type');
         const aggressor = this.safeValue (trade, 'aggressor');
         let takerOrMaker: Str = undefined;
         if (aggressor !== undefined) {
             takerOrMaker = aggressor ? 'taker' : 'maker';
+        } else {
+            takerOrMaker = this.safeStringLower (trade, 'role');
         }
         let type: Str = undefined;
         let orderTypeParts = [];
         if (orderType !== undefined) {
             orderTypeParts = orderType.split ('-');
-            type = this.safeString (orderTypeParts, 1);
+            type = this.safeString (orderTypeParts, 1, orderType);
         }
         let fee: Dict = undefined;
-        const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
+        const feeCurrency = this.safeCurrencyCode (this.safeStringN (trade, [ 'feeCurrency', 'fee_currency', 'fee_asset' ]));
         if (feeCurrency !== undefined) {
             fee = {
-                'cost': this.safeString (trade, 'transactFee'),
+                'cost': this.safeStringN (trade, [ 'transactFee', 'fee', 'trade_fee' ]),
                 'currency': feeCurrency,
             };
         }
@@ -2408,7 +2623,7 @@ export default class htx extends htxRest {
         }, market);
     }
 
-    getUrlByMarketType (type, isLinear = true, isPrivate = false, isFeed = false) {
+    getUrlByMarketType (type, isLinear = true, isPrivate = false, isFeed = false, isV5 = false) {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname: Dict = { 'hostname': this.hostname };
         let hostnameURL: Str = undefined;
@@ -2427,7 +2642,15 @@ export default class htx extends htxRest {
         } else {
             const baseUrl = this.urls['api']['ws'][api][type];
             const subTypeUrl = isLinear ? baseUrl['linear'] : baseUrl['inverse'];
-            url = isPrivate ? subTypeUrl['private'] : subTypeUrl['public'];
+            if (isPrivate) {
+                if (isV5 && isLinear) {
+                    url = this.safeString (subTypeUrl, 'privateV5', subTypeUrl['private']);
+                } else {
+                    url = subTypeUrl['private'];
+                }
+            } else {
+                url = subTypeUrl['public'];
+            }
         }
         return url;
     }
@@ -2497,7 +2720,8 @@ export default class htx extends htxRest {
             };
         }
         const isLinear = subtype === 'linear';
-        const url = this.getUrlByMarketType (type, isLinear, true);
+        const isV5 = this.safeBool (subscriptionParams, 'isV5', false);
+        const url = this.getUrlByMarketType (type, isLinear, true, false, isV5);
         const hostname = (type === 'spot') ? this.urls['hostnames']['spot'] : this.urls['hostnames']['contract'];
         const authParams: Dict = {
             'type': type,
