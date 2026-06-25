@@ -610,13 +610,13 @@ export default class bitfinex extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const labels = [
             'pub:info:pair',
-            // sample: 'AAVE:USD' with fields null,null,null,"0.02","5000.0",null,null,null,null,null,null,null
+            // [  ['AAVE:USD',      [null,null,null,"0.02","5000.0",null,null,null,null,null,null,null,] ], ... ]
             'pub:info:pair:futures',
-            // sample: 'AAVEF0:USTF0' with fields null,null,null,"0.02","5000.0",null,null,null,0.01,0.005
+            // [  ['AAVEF0:USTF0',  [null,null,null,"0.02","5000.0",null,null,null,0.01,0.005,] ]]
             'pub:list:pair:securities',
-            // sample: "ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"
+            // ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"]]
             'pub:list:pair:margin',
-            // sample: 'ADABTC', 'AVAX:BTC', ... // delimiter inconsistency
+            // [ 'ADABTC', 'AVAX:BTC', ... ] // delimiter inconsistency
         ];
         const config = labels.join (',');
         const request: Dict = {
