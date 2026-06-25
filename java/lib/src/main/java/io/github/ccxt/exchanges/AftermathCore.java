@@ -86,7 +86,8 @@ public class AftermathCore extends AftermathApi
                 put( "1M", "1M" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807" );
+                put( "www", "https://aftermath.finance" );
+                put( "logo", "https://github.com/user-attachments/assets/f3104ea3-e9ab-4d4e-ad22-0ce772a407b7" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://aftermath.finance/api/ccxt" );
                 }} );
