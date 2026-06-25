@@ -8,6 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
 
@@ -1364,8 +1365,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         channel = self.safe_string(message, 'channel', '')
         if channel == 'error':
             ret_msg = self.safe_string(message, 'data', '')
-            errorMsg = self.id + ' ' + ret_msg
-            client.reject(errorMsg)
+            error = ExchangeError(self.id + ' ' + ret_msg)
+            client.reject(error)
             return True
         data = self.safe_dict(message, 'data', {})
         id = self.safe_string(message, 'id')
@@ -1375,12 +1376,12 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         payload = self.safe_dict(response, 'payload', {})
         status = self.safe_string(payload, 'status')
         if status is not None and status != 'ok':
-            errorMsg = self.id + ' ' + self.json(payload)
-            client.reject(errorMsg, id)
+            error = ExchangeError(self.id + ' ' + self.json(payload))
+            client.reject(error, id)
             return True
         type = self.safe_string(payload, 'type')
         if type == 'error':
-            error = self.id + ' ' + self.json(payload)
+            error = ExchangeError(self.id + ' ' + self.json(payload))
             client.reject(error, id)
             return True
         try:
