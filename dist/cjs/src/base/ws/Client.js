@@ -30,15 +30,17 @@ function _interopNamespace(e) {
     return Object.freeze(n);
 }
 
-// websocket decompression backends, loaded lazily so neither is bundled where it
-// is not needed: node:zlib only under Node, the fflate npm package only in the browser
-let nodeZlib = undefined;
-let fflate = undefined;
+// ----------------------------------------------------------------------------
+// websocket decompression backends are resolved once at startup so the message
+// hot path stays branch-free: node:zlib under Node, the fflate npm package elsewhere.
+// inflate is always raw deflate (no zlib header), hence node's inflateRawSync.
+let gunzipSync = undefined;
+let inflateRawSync = undefined;
 if (platform.isNode) {
-    Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:zlib')); }).then((mod) => { nodeZlib = mod; }).catch(() => { });
+    Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:zlib')); }).then((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateRawSync; }).catch(() => { });
 }
 else {
-    Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackMode: "eager" */ 'fflate')); }).then((mod) => { fflate = mod; }).catch(() => { });
+    Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackMode: "eager" */ 'fflate')); }).then((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateSync; }).catch(() => { });
 }
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
@@ -306,10 +308,10 @@ class Client {
             if (this.gunzip || this.inflate) {
                 arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
                 if (this.gunzip) {
-                    arrayBuffer = platform.isNode ? nodeZlib.gunzipSync(arrayBuffer) : fflate.gunzipSync(arrayBuffer);
+                    arrayBuffer = gunzipSync(arrayBuffer);
                 }
                 else if (this.inflate) {
-                    arrayBuffer = platform.isNode ? nodeZlib.inflateRawSync(arrayBuffer) : fflate.inflateSync(arrayBuffer);
+                    arrayBuffer = inflateRawSync(arrayBuffer);
                 }
                 message = base.utf8.encode(arrayBuffer);
             }

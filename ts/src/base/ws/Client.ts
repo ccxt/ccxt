@@ -10,14 +10,15 @@ import {
 import { utf8 } from '@scure/base';
 import { Dictionary, Str } from '../types.js';
 
-// websocket decompression backends, loaded lazily so neither is bundled where it
-// is not needed: node:zlib only under Node, the fflate npm package only in the browser
-let nodeZlib: any = undefined;
-let fflate: any = undefined;
+// websocket decompression backends are resolved once at startup so the message
+// hot path stays branch-free: node:zlib under Node, the fflate npm package elsewhere.
+// inflate is always raw deflate (no zlib header), hence node's inflateRawSync.
+let gunzipSync: any = undefined;
+let inflateRawSync: any = undefined;
 if (isNode) {
-    import (/* webpackIgnore: true */ 'node:zlib').then ((mod) => { nodeZlib = mod; }).catch (() => {});
+    import (/* webpackIgnore: true */ 'node:zlib').then ((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateRawSync; }).catch (() => {});
 } else {
-    import (/* webpackMode: "eager" */ 'fflate').then ((mod) => { fflate = mod; }).catch (() => {});
+    import (/* webpackMode: "eager" */ 'fflate').then ((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateSync; }).catch (() => {});
 }
 
 export default class Client {
@@ -361,9 +362,9 @@ export default class Client {
             if (this.gunzip || this.inflate) {
                 arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
                 if (this.gunzip) {
-                    arrayBuffer = isNode ? nodeZlib.gunzipSync (arrayBuffer) : fflate.gunzipSync (arrayBuffer)
+                    arrayBuffer = gunzipSync (arrayBuffer)
                 } else if (this.inflate) {
-                    arrayBuffer = isNode ? nodeZlib.inflateRawSync (arrayBuffer) : fflate.inflateSync (arrayBuffer)
+                    arrayBuffer = inflateRawSync (arrayBuffer)
                 }
                 message = utf8.encode (arrayBuffer)
             } else {
