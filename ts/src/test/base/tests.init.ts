@@ -68,7 +68,7 @@ async function baseTestsInit () {
     testAggregate ();
     testExtend ();
     testDeepExtend ();
-    await testCryptography ();
+    testCryptography ();
     testBinaryToBase16 ();
     testBase16ToBinary ();
     testBinaryToBase64 ();

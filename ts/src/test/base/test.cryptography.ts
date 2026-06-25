@@ -24,7 +24,7 @@ function equals (a, b) {
     return true;
 }
 
-async function testCryptography () {
+function testCryptography () {
 
     // const exchange = new Exchange ();
 
@@ -111,11 +111,11 @@ async function testCryptography () {
 
 
     const pemKey = pemKeyArray.join ("\n");
-    assert (await rsa ('hello', pemKey, sha256) === 'PqHotvSEBvM/AejnMOWBXUcOf3uHtcGu2zAYdlYdnlNSSQ80Uq4lcyAEstnZ2AnQJ9l5TCC53uoRZ26GQ47zlACgqtYglmPhQKLvQ5fldRzeBauYhGgM2C0mUuUGxh074fNGbK+bgmwEmDMIrnSPtXwiCqTAHh+8VEnC7us3t09D61y298dPBJYEBNN3dFZT0w0pCIQg3j3DSiFJOCfywmOKyXqS1pvmk6A38DVclQZORQ5WZXp2yvSKRLjxpzjxDl76h1GfbBl7sMLEFMyzk0wyIhIz8ZELMibYn036G4X1IcSlDcimthEkIbn2QjM0ntyYDZIS4QnsMBjvkV2UHw==');
-    assert (await rsa ('poopy', pemKey, sha256) === 'or069qHwRDyl162T1s5G5+LfLnvDxlgk9kEsJvwI3vM02KB1LHW4+8gWqsV4TENZpeqed2Tb4na6ex+L/UR8JxJnnZtpVp33nUBgcp3miqp/YhcGN4++qolP4YN/21/AyfLFZW+VYggc+Mhh6PJSm+0dSEWMVsP35uH+35abXVxgB8GVOn7YTOSPaL8aw7hn4wlZWf2ieikKAi7AwAjkxnd7/Bu5+cW8D+ZdPHQfSKj+XHuPXlJNuQX0MDIqhdD2yuYJOQL56eKYs6nHPlClATkndSaAemQSGKet3X3Iz1awG4MGgz2Ei6bOanlNugc0f6Rng6rdwmqiMU3G4it6cw==');
+    assert (rsa ('hello', pemKey, sha256) === 'PqHotvSEBvM/AejnMOWBXUcOf3uHtcGu2zAYdlYdnlNSSQ80Uq4lcyAEstnZ2AnQJ9l5TCC53uoRZ26GQ47zlACgqtYglmPhQKLvQ5fldRzeBauYhGgM2C0mUuUGxh074fNGbK+bgmwEmDMIrnSPtXwiCqTAHh+8VEnC7us3t09D61y298dPBJYEBNN3dFZT0w0pCIQg3j3DSiFJOCfywmOKyXqS1pvmk6A38DVclQZORQ5WZXp2yvSKRLjxpzjxDl76h1GfbBl7sMLEFMyzk0wyIhIz8ZELMibYn036G4X1IcSlDcimthEkIbn2QjM0ntyYDZIS4QnsMBjvkV2UHw==');
+    assert (rsa ('poopy', pemKey, sha256) === 'or069qHwRDyl162T1s5G5+LfLnvDxlgk9kEsJvwI3vM02KB1LHW4+8gWqsV4TENZpeqed2Tb4na6ex+L/UR8JxJnnZtpVp33nUBgcp3miqp/YhcGN4++qolP4YN/21/AyfLFZW+VYggc+Mhh6PJSm+0dSEWMVsP35uH+35abXVxgB8GVOn7YTOSPaL8aw7hn4wlZWf2ieikKAi7AwAjkxnd7/Bu5+cW8D+ZdPHQfSKj+XHuPXlJNuQX0MDIqhdD2yuYJOQL56eKYs6nHPlClATkndSaAemQSGKet3X3Iz1awG4MGgz2Ei6bOanlNugc0f6Rng6rdwmqiMU3G4it6cw==');
 
-    assert (await jwt ({ 'chicken': 'salad' }, encode (pemKey), sha256, true) === 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ');
-    assert (await jwt ({ 'lil': 'xan' }, encode ('betrayed'), sha256, false) === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM');
+    assert (jwt ({ 'chicken': 'salad' }, encode (pemKey), sha256, true) === 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ');
+    assert (jwt ({ 'lil': 'xan' }, encode ('betrayed'), sha256, false) === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM');
 
     assert (crc32 ('hello', true) === 907060870);
     assert (crc32 ('tasty chicken breast :)', true) === 825820175);

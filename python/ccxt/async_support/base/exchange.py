@@ -689,9 +689,6 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-    async def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
-        return {}
-
     async def fetch_accounts(self, params={}):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')
 
@@ -1023,7 +1020,7 @@ class Exchange(BaseExchange):
         for i in range(0, retries + 1):
             try:
                 self.set_last_rest_request_timestamp()
-                request = await self.sign(path, api, method, params, headers, body)
+                request = self.sign(path, api, method, params, headers, body)
                 self.set_last_request(request)
                 return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
             except Exception as e:
