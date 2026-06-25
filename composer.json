@@ -280,5 +280,8 @@
             "/python",
             "/wiki"
         ]
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0"
     }
 }

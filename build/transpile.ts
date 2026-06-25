@@ -567,6 +567,11 @@ class Transpiler {
             [ /console\.log/g, 'var_dump'],
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
+            // PSR-12 / no_spaces_after_function_name: drop the space before "(" in
+            // constructor calls, e.g. new ArrayCache ($limit) -> new ArrayCache($limit).
+            // Placed after the "throw new ..." handlers above so it does not stop them
+            // from matching; the class name may be namespaced (e.g. new \ccxt\BadRequest()).
+            [ /new ([\\A-Za-z_][\\A-Za-z0-9_]*) \(/g, 'new $1(' ],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([\]\[\|@\.\s+\:\/#()\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /(\s+ \* @(param|return) {[^}]*)array\(\)([^}]*}.*)/g, '$1[]$3' ], // docstring type conversion
@@ -1158,11 +1163,18 @@ class Transpiler {
 
         // transpile JS → PHP
         const phpRegexes = this.getPHPRegexes ()
-        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
+        // PSR-12 / no_spaces_after_function_name: drop the space before "(" in object
+        // ("->") and static ("::") method calls, e.g. implicit api calls like
+        // $this->publicGetFooBar (), local-variable calls like $client->resolve () and
+        // dynamic calls like $this->$method (). It runs last because local-variable
+        // calls only get their "->" from variablePropertiesRegexes above; control
+        // structures never follow "->"/"::" so collapsing the space here is safe.
+        const noSpaceBeforeCallParen = [ /(->|::)(\$?[A-Za-z_][A-Za-z0-9_]*) \(/g, '$1$2(' ]
+        let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen ]))
         // indent async php
         if (async && js.indexOf (' await ') > -1) {
             const closure = variables && variables.length ? 'use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
-            phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
+            phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        })();'
         }
         phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
