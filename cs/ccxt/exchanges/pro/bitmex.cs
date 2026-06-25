@@ -956,6 +956,27 @@ public partial class bitmex : ccxt.bitmex
         {
             object rawPosition = getValue(rawPositions, i);
             object position = this.parsePosition(rawPosition);
+            object side = this.safeString(position, "side");
+            if (isTrue(isEqual(side, null)))
+            {
+                // BitMEX 'update' rows are deltas and may omit homeNotional, so
+                // parsePosition returns side = undefined. Carry the side forward from
+                // the cached position for this symbol, otherwise appending would break
+                // the ArrayCacheBySymbolBySide index (see issue #29001).
+                object symbol = this.safeString(position, "symbol");
+                object cachedBySide = this.safeDict((cache as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+                object cachedSides = new List<object>(((IDictionary<string,object>)cachedBySide).Keys);
+                object sidesLength = getArrayLength(cachedSides);
+                if (isTrue(isEqual(sidesLength, 1)))
+                {
+                    side = getValue(cachedSides, 0);
+                    ((IDictionary<string,object>)position)["side"] = side;
+                }
+            }
+            if (isTrue(isEqual(side, null)))
+            {
+                continue;
+            }
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
