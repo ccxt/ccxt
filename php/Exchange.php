@@ -66,7 +66,7 @@ class Exchange {
     const VERSION = '4.5.59';
 
     // this is updated by vss.js when building
-    public static $ccxtVersion = '4.5.59';
+    public static $ccxt_version = '4.5.59';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
