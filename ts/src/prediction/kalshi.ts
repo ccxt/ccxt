@@ -1500,6 +1500,7 @@ export default class kalshi extends Exchange {
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+        this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
         params = this.omit (params, [ 'query', 'queries' ]);
         // map the unified status onto the kalshi event status (open / closed) so it is pushed server-side

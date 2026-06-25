@@ -2849,6 +2849,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+        this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
         let result = [];
         const queriesLength = queries.length;

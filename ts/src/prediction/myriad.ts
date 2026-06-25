@@ -2410,6 +2410,7 @@ export default class myriad extends Exchange {
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+        this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
         const rest = this.omit (params, [ 'query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
         const queriesLength = queries.length;

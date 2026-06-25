@@ -57,6 +57,19 @@ export default class PredictionExchange extends Exchange {
         return this.safeList (params, 'queries', []);
     }
 
+    requireEventQuery (params = {}) {
+        // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
+        // entire exchange. require one of query / queries / tags / eventId / slug
+        const query = this.safeString (params, 'query');
+        const queries = this.safeList (params, 'queries', []);
+        const tags = this.safeList (params, 'tags', []);
+        const eventId = this.safeString (params, 'eventId');
+        const slug = this.safeString (params, 'slug');
+        if ((query === undefined) && (queries.length === 0) && (tags.length === 0) && (eventId === undefined) && (slug === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search');
+        }
+    }
+
     applyEventFetchParams (events: any[], params = {}, queries: string[] = undefined): any[] {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
         // so exchanges whose API can't filter natively still support them consistently

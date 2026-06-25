@@ -2052,6 +2052,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+        this.requireEventQuery (params);
         const requestedEventId = this.safeString (params, 'eventId');
         const requestedSlug = this.safeString (params, 'slug');
         const queries = this.parseSearchQueries (params);
