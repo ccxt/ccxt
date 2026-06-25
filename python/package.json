@@ -130,7 +130,7 @@
     "check-php-syntax": "npm run check-rest-php-syntax && npm run check-ws-php-syntax",
     "check-rest-php-syntax": "php -f php/test/custom/syntax.php",
     "check-ws-php-syntax": "php -f php/pro/test/custom/syntax.php",
-    "check-php-style": "php vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff",
+    "check-php-style": "php vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run",
     "bundle": "npm run bundle-cjs && npm run bundle-browser",
     "bundle-cjs": "rollup -c rollup.config.js",
     "bundle-browser": "rspack build -c rspack.config.js && CCXT_MINIMIZE=true CCXT_OUTPUT_FILENAME=ccxt.browser.min.js rspack build -c rspack.config.js",
