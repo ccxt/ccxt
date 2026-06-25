@@ -11,7 +11,7 @@ var Precise = require('./base/Precise.js');
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
- * @class
+ * @class zebpay
  * @augments Exchange
  */
 class zebpay extends zebpay$1["default"] {

@@ -8461,6 +8461,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#watchorderbook)
 * [alpaca](/exchanges/alpaca.md#watchorderbook)
 * [apex](/exchanges/apex.md#watchorderbook)
 * [ascendex](/exchanges/ascendex.md#watchorderbook)
@@ -8683,12 +8684,14 @@ watch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
-| limit | <code>int</code> | No | the maximum number of positions to retrieve |
+| limit | <code>int</code> | No | the maximum number of position structures to retrieve |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| params.accountNumber | <code>int</code> | No | account number to query orders for, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#watchpositions)
 * [apex](/exchanges/apex.md#watchpositions)
 * [aster](/exchanges/aster.md#watchpositions)
 * [backpack](/exchanges/backpack.md#watchpositions)
@@ -8852,11 +8855,12 @@ watches information on multiple trades made in a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#watchtrades)
 * [alpaca](/exchanges/alpaca.md#watchtrades)
 * [apex](/exchanges/apex.md#watchtrades)
 * [ascendex](/exchanges/ascendex.md#watchtrades)
