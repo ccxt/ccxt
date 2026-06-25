@@ -780,6 +780,36 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
+    public function clean_rest_data() {
+        $this->ids = null;
+        $this->markets = null;
+        $this->markets_by_id = null;
+        $this->symbols = null;
+        $this->codes = null;
+        $this->currencies = $this->create_safe_dictionary();
+        $this->currencies_by_id = null;
+        $this->baseCurrencies = null;
+        $this->quoteCurrencies = null;
+        $this->last_http_response = null;
+        // $this->last_json_response = null; // not unified prop
+        $this->last_response_headers = null;
+        $this->last_request_headers = null;
+    }
+
+    public function clean_ws_data() {
+        $this->balance = $this->create_safe_dictionary(true);
+        $this->orderbooks = $this->create_safe_dictionary(true);
+        $this->tickers = $this->create_safe_dictionary(true);
+        $this->liquidations = null;
+        $this->myLiquidations = null;
+        $this->orders = null;
+        $this->trades = $this->create_safe_dictionary(true);
+        $this->transactions = $this->create_safe_dictionary();
+        $this->ohlcvs = $this->create_safe_dictionary(true);
+        $this->myTrades = null;
+        $this->positions = null;
+    }
+
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {
         /**
          * @ignore
