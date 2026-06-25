@@ -1748,8 +1748,8 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         if (Helpers.isTrue(Helpers.isEqual(channel, "error")))
         {
             Object ret_msg = this.safeString(message, "data", "");
-            Object errorMsg = Helpers.add(Helpers.add(this.id, " "), ret_msg);
-            client.reject(errorMsg);
+            var error = new ExchangeError(Helpers.add(Helpers.add(this.id, " "), ret_msg));
+            client.reject(error);
             return true;
         }
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
@@ -1763,14 +1763,14 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object status = this.safeString(payload, "status");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(status, null)) && Helpers.isTrue(!Helpers.isEqual(status, "ok"))))
         {
-            Object errorMsg = Helpers.add(Helpers.add(this.id, " "), this.json(payload));
-            client.reject(errorMsg, id);
+            var error = new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(payload)));
+            client.reject(error, id);
             return true;
         }
         Object type = this.safeString(payload, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "error")))
         {
-            Object error = Helpers.add(Helpers.add(this.id, " "), this.json(payload));
+            var error = new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(payload)));
             client.reject(error, id);
             return true;
         }
