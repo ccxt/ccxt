@@ -10,23 +10,26 @@ async function testFetchHistoryBase () {
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
     });
-    const trueClause = testSharedMethods.exchangeProp (exchange, 'fetchHistoryCacheSize') === 2;
-    assert (trueClause);
+    assert (testSharedMethods.exchangeProp (exchange, 'fetchHistoryCacheSize') === 2, 'fetchHistoryCacheSize should be 2');
+    const trueAssertion = exchange.parseNumber (undefined) === undefined;
     // try 3 times
     try {
         await exchange.fetch2 ('sample1');
+        assert (trueAssertion); // fail intentionally
     } catch (error) {
         const fetchHistoryCache = exchange.getFetchCache ();
         assert (fetchHistoryCache.length === 1, 'fetchHistoryCache should be an array with 1 element');
     }
     try {
         await exchange.fetch2 ('sample2');
+        assert (trueAssertion); // fail intentionally
     } catch (error) {
         const fetchHistoryCache = exchange.getFetchCache ();
         assert (fetchHistoryCache.length === 2, 'fetchHistoryCache should be an array with 2 elements');
     }
     try {
         await exchange.fetch2 ('sample3');
+        assert (trueAssertion); // fail intentionally
     } catch (error) {
         const fetchHistoryCache = exchange.getFetchCache ();
         assert (fetchHistoryCache.length === 2, 'fetchHistoryCache should be an array with 2 elements');
@@ -39,8 +42,7 @@ async function testFetchHistoryDerived () {
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
     });
-    const trueClause = testSharedMethods.exchangeProp (exchange, 'fetchHistoryCacheSize') === 2;
-    assert (trueClause);
+    assert (testSharedMethods.exchangeProp (exchange, 'fetchHistoryCacheSize') === 2, 'fetchHistoryCacheSize should be 2');
     // try 3 times
     // first
     await exchange.fetchTime (); // https://api.binance.com/api/v3/time
