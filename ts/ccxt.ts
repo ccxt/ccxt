@@ -42,8 +42,6 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 
 const version = '4.5.60';
 
-(Exchange as any).ccxtVersion = version
-
 //-----------------------------------------------------------------------------
 
 import aftermath from  './src/aftermath.js'
