@@ -1936,8 +1936,12 @@ export default class hyperliquid extends Exchange {
 
     signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'].padStart (64, '0');
-        const s = signature['s'].padStart (64, '0');
+        // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
+        // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
+        const rRaw = signature['r'];
+        const sRaw = signature['s'];
+        const r = rRaw.padStart (64, '0');
+        const s = sRaw.padStart (64, '0');
         return {
             'r': '0x' + r,
             's': '0x' + s,
@@ -1993,12 +1997,17 @@ export default class hyperliquid extends Exchange {
         return this.signMessage (msg, this.privateKey);
     }
 
-    async initializeClient () {
+    async initializeClient (): Promise<any> {
+        // createOrder/createOrders call this before trading; load markets so checkEvents/outcome can
+        // resolve the outcome handle. loading them also keeps this method genuinely async for the PHP
+        // and typed transpilers, which mishandle an async body that never suspends
+        await this.loadMarkets ();
         const buildFee = this.safeBool (this.options, 'builderFee', false);
         if (!buildFee) {
-            return; // eslint-disable-line no-useless-return
+            return undefined;
         }
         // builder fee approval would go here if needed
+        return undefined;
     }
 
     handlePublicAddress (methodName: string, params: Dict): any {
