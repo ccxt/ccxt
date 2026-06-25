@@ -2038,6 +2038,10 @@ class Transpiler {
 
         python2Body = this.regexAll (python2Body, [
             [ /function (\w+)\(\) \{/g, 'def $1():' ],
+            // the base init calls test_cryptography() synchronously (it is NOT awaited),
+            // so emit a plain `def` (rsa/jwt are synchronous in python anyway). Without
+            // this the `async def` coroutine would never be awaited and silently skip.
+            [ /\basync def (test_cryptography)/g, 'def $1' ],
             // rsa/jwt are async in TS (crypto.subtle), so `await rsa (...)` no longer
             // sits behind the `assert (` lookbehind and gets turned into `self.rsa`.
             // python's rsa/jwt are synchronous, so revert to the bare module bindings.
