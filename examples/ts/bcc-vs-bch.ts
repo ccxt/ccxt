@@ -5,6 +5,7 @@
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
 import ololog from 'ololog'
+// @ts-ignore
 import config from '../../keys.json';
 import ansicolor from 'ansicolor';
 
@@ -41,7 +42,7 @@ let proxies = [
                 exchanges[id][key] = config[id][key]
     }
 
-    log (ids.join (', ').yellow)
+    log ((ids.join (', ') as any).yellow)
 
     // load all markets from all exchanges
 
@@ -83,11 +84,11 @@ let proxies = [
         }
 
         if (exchange.symbols)
-            log (id.green, 'loaded', exchange.symbols.length.toString ().green, 'markets')
+            log ((id as any).green, 'loaded', (exchange.symbols.length.toString () as any).green, 'markets')
 
     }))
 
-    log ('Loaded all markets'.green)
+    log (('Loaded all markets' as any).green)
 
     let table = ccxt.exchanges.map (id => {
         console.log (id)
@@ -97,13 +98,13 @@ let proxies = [
             let hasBCH = exchange.currencies.includes ('BCH')
             let hasBoth = (hasBCC && hasBCH)
             return {
-                id,
-                'BCC': hasBoth ? id.green : (hasBCC ? id.yellow : ''),
-                'BCH': hasBCH ? id.green : '',
+                id: id as any,
+                'BCC': hasBoth ? (id as any).green : (hasBCC ? (id as any).yellow : ''),
+                'BCH': hasBCH ? (id as any).green : '',
             }
         } else {
             return {
-                'id': id.red,
+                'id': (id as any).red,
                 'BCC': '',
                 'BCH': '',
             }

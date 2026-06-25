@@ -117,7 +117,7 @@ public partial class htx : Exchange
                 { "fetchTransactionFee", null },
                 { "fetchTransactionFees", null },
                 { "fetchTransactions", null },
-                { "fetchTransfers", null },
+                { "fetchTransfers", true },
                 { "fetchWithdrawAddresses", true },
                 { "fetchWithdrawal", null },
                 { "fetchWithdrawals", true },
@@ -405,6 +405,7 @@ public partial class htx : Exchange
                             { "v1/cross-margin/loan-orders", 1 },
                             { "v1/cross-margin/accounts/balance", 1 },
                             { "v2/account/repayment", 5 },
+                            { "v5/account/universal_transfer_records", 4 },
                             { "v1/stable-coin/quote", 1 },
                             { "v1/stable_coin/exchange_rate", 1 },
                             { "v2/etp/transactions", 5 },
@@ -1023,6 +1024,9 @@ public partial class htx : Exchange
                     { "grid-trading", "grid-trading" },
                     { "deposit-earning", "deposit-earning" },
                     { "otc-options", "otc-options" },
+                    { "linear-swap", "swap" },
+                    { "swap", "swap" },
+                    { "futures", "future" },
                 } },
                 { "typesByAccount", new Dictionary<string, object>() {
                     { "pro", "spot" },
@@ -7223,18 +7227,53 @@ public partial class htx : Exchange
         //         "status": "ok"
         //     }
         //
-        object id = this.safeString(transfer, "data");
-        object code = this.safeCurrencyCode(null, currency);
+        // fetchTransfers
+        //
+        //     {
+        //         "id": 12345,
+        //         "transfer_id": "12345",
+        //         "amount": "10",
+        //         "currency": "USDT",
+        //         "status": "success",
+        //         "from_account_type": "spot",
+        //         "to_account_type": "margin",
+        //         "from_asset_type": "",
+        //         "to_asset_type": "ETHUSDT",
+        //         "transfer_time": 1770357494000
+        //     }
+        //
+        object accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
+        object id = this.safeString2(transfer, "transfer_id", "data");
+        object currencyId = this.safeString(transfer, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        object amount = this.safeNumber(transfer, "amount");
+        object timestamp = this.safeInteger(transfer, "transfer_time");
+        object fromAccountRaw = this.safeString(transfer, "from_account_type");
+        object toAccountRaw = this.safeString(transfer, "to_account_type");
+        object fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
+        object toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
+        object statusRaw = this.safeString(transfer, "status");
+        object status = null;
+        if (isTrue(isEqual(statusRaw, "success")))
+        {
+            status = "ok";
+        } else if (isTrue(isEqual(statusRaw, "pending")))
+        {
+            status = "pending";
+        } else if (isTrue(isEqual(statusRaw, "failed")))
+        {
+            status = "failed";
+        }
         return new Dictionary<string, object>() {
             { "info", transfer },
             { "id", id },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "currency", code },
-            { "amount", null },
-            { "fromAccount", null },
-            { "toAccount", null },
-            { "status", null },
+            { "amount", amount },
+            { "fromAccount", fromAccount },
+            { "toAccount", toAccount },
+            { "status", status },
         };
     }
 
@@ -7342,6 +7381,71 @@ public partial class htx : Exchange
         //    }
         //
         return this.parseTransfer(response, currency);
+    }
+
+    /**
+     * @method
+     * @name htx#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.huobi.com/en-us/opend/newApiPages/
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.status] transfer status: 'success', 'pending', 'failed'
+     * @param {int} [params.from] the starting ID for pagination
+     * @param {string} [params.direct] pagination direction: 'prev' or 'next', default 'next'
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_time"] = since;
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["end_time"] = until;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.spotPrivateGetV5AccountUniversalTransferRecords(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": 12345,
+        //                 "transfer_id": "12345",
+        //                 "amount": "10",
+        //                 "currency": "USDT",
+        //                 "status": "success",
+        //                 "from_account_type": "spot",
+        //                 "to_account_type": "margin",
+        //                 "from_asset_type": "",
+        //                 "to_asset_type": "ETHUSDT",
+        //                 "transfer_time": 1770357494000
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTransfers(data, currency, since, limit);
     }
 
     /**

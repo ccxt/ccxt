@@ -11,21 +11,20 @@ import ololog from 'ololog';
 const log = ololog.configure ({ locate: false }), verbose   = process.argv.includes ('--verbose'), keysGlobal = 'keys.json', keysLocal = 'keys.local.json', keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false), config = keysFile ? require ('../../' + keysFile) : {};
 
 let printSupportedExchanges = function () {
-    log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
+    log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green)
 }
 
 let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'id1'.green, 'id2'.yellow, 'id3'.blue, '...')
+    log ('Usage: node', process.argv[1], ('id1' as any).green, ('id2' as any).yellow, ('id3' as any).blue, '...')
     printSupportedExchanges ()
 }
 
 let printExchangeSymbolsAndMarkets = function (exchange) {
-    log (getExchangeSymbols (exchange))
     log (getExchangeMarketsTable (exchange))
 }
 
 let getExchangeMarketsTable = (exchange) => {
-    return asTable.configure ({ delimiter: ' | ' }) (Object.values (markets))
+    return asTable.configure ({ delimiter: ' | ' }) (Object.values (exchange.markets))
 }
 
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
@@ -43,7 +42,7 @@ let proxies = [
         let ids = process.argv.slice (2)
         let exchanges = {}
 
-        log (ids.join (', ').yellow)
+        log ((ids.join (', ') as any).yellow)
 
         // load all markets from all exchanges
         for (let id of ids) {
@@ -95,10 +94,10 @@ let proxies = [
                 }
             }
 
-            log (id.green, 'loaded', exchange.symbols.length.toString ().green, 'markets')
+            log ((id as any).green, 'loaded', (exchange.symbols.length.toString () as any).green, 'markets')
         }
 
-        log ('Loaded all markets'.green)
+        log ((('Loaded all markets' as any).green))
 
         // get all unique symbols
         let uniqueSymbols = ccxt.unique (ccxt.flatten (ids.map (id => exchanges[id].symbols)))

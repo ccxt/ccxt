@@ -520,6 +520,9 @@ abstract class htx extends \ccxt\async\Exchange {
     public function spot_private_get_v2_account_repayment($params = array()) {
         return $this->request('v2/account/repayment', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
+    public function spot_private_get_v5_account_universal_transfer_records($params = array()) {
+        return $this->request('v5/account/universal_transfer_records', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 4));
+    }
     public function spot_private_get_v1_stable_coin_quote($params = array()) {
         return $this->request('v1/stable-coin/quote', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1911,6 +1914,9 @@ abstract class htx extends \ccxt\async\Exchange {
     }
     public function spotPrivateGetV2AccountRepayment($params = array()) {
         return $this->request('v2/account/repayment', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function spotPrivateGetV5AccountUniversalTransferRecords($params = array()) {
+        return $this->request('v5/account/universal_transfer_records', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 4));
     }
     public function spotPrivateGetV1StableCoinQuote($params = array()) {
         return $this->request('v1/stable-coin/quote', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));

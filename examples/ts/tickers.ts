@@ -14,16 +14,16 @@ ansicolor.nice
 //-----------------------------------------------------------------------------
 
 let printSupportedExchanges = function () {
-    log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
+    log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green)
 }
 
 let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'id'.green, '[symbol]'.yellow)
+    log ('Usage: node', process.argv[1], ('id' as any).green, ('[symbol]' as any).yellow)
     printSupportedExchanges ()
 }
 
 let printSymbols = function (exchange) {
-    log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
+    log (exchange.id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
 }
 
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
@@ -93,7 +93,7 @@ let printTickers = async (id) => {
 
         } else {
 
-            log ('Exchange ' + id.red + ' not found')
+            log ('Exchange ' + (id as any).red + ' not found')
             printUsage ()
         }
 

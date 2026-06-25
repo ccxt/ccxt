@@ -2063,7 +2063,9 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 	return nil
 }
 
-func (this *Exchange) Close() []error {
+func (this *Exchange) Close(cleanInstanceData ...any) []error {
+	// ##### language-specific cleanup of WS & REST resources #####
+	// [WS]
 	this.WsClientsMu.Lock()
 	clients := make([]*WSClient, 0, len(this.Clients))
 	for _, c := range this.Clients {
@@ -2081,6 +2083,15 @@ func (this *Exchange) Close() []error {
 			userClosedError := ExchangeClosedByUser()
 			c.OnError(userClosedError)
 		}
+	}
+	firstArg := GetArg(cleanInstanceData, 0, nil)
+	shouldClean, _ := firstArg.(bool)
+	if shouldClean {
+		this.CleanWsData()
+	}
+	// [REST]
+	if shouldClean {
+		this.CleanRestData()
 	}
 	return errs
 }

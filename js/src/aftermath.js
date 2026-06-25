@@ -9,6 +9,10 @@ import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
+/**
+ * @class aftermath
+ * @augments Exchange
+ */
 export default class aftermath extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

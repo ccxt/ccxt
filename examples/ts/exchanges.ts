@@ -18,13 +18,13 @@ let exchanges = {}
 
 ccxt.exchanges.forEach (id => { exchanges[id] = new (ccxt)[id] () })
 
-log ('The ccxt library supports', (ccxt.exchanges.length.toString ()).green, 'exchanges:')
+log ('The ccxt library supports', (ccxt.exchanges.length.toString () as any).green, 'exchanges:')
 
 var countryName = function (code) {
     return ((countries[code] !== undefined) ? countries[code] : code)
 }
 
-log (asTable.configure ({ delimiter: ' | ' }) (Object.values (exchanges).map (exchange => {
+log (asTable.configure ({ delimiter: ' | ' }) (Object.values (exchanges).map ((exchange: any) => {
 
     let countries = Array.isArray (exchange.countries) ?
         exchange.countries.map (countryName).join (', ') :

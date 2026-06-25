@@ -15,7 +15,8 @@
     "strict": true,
     "noImplicitAny": false,
     "skipLibCheck": true,
-    "strictNullChecks":false
+    "strictNullChecks":false,
+    "useUnknownInCatchVariables":false
   },
   "include": [
     "./ts/*.ts",

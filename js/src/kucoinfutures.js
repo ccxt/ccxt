@@ -8,6 +8,10 @@
 import kucoin from './kucoin.js';
 import { BadRequest } from './base/errors.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class kucoinfutures
+ * @augments kucoin
+ */
 export default class kucoinfutures extends kucoin {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -39,7 +39,7 @@ const getPositiveAccounts = function (balance) {
         let withdraw = await exchange.withdraw ('ETH', 0.01, '0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81')
 
         // output the result
-        log (exchange.name.green, 'withdraw', withdraw)
+        log ((exchange.name as any).green, 'withdraw', withdraw)
 
     } catch (e) {
 

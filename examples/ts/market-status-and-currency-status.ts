@@ -12,8 +12,8 @@ import asTable from 'as-table';
     await kraken.loadMarkets ()
 
     const markets = Object.values (kraken.markets).map (market => ({
-        symbol: market.symbol,
-        active: market.active,
+        symbol: market['symbol'],
+        active: market['active'],
     }))
 
     log.bright.green.noLocate ('Markets:')
@@ -21,8 +21,8 @@ import asTable from 'as-table';
 
     const currencies = Object.values (kraken.currencies).map (currency => ({
         code: currency.code,
-        active: currency.active,
-        status: currency.status,
+        active: currency['active'],
+        status: currency['status'],
     }))
 
     log.bright.yellow.noLocate ('Currencies:')
