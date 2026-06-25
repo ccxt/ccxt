@@ -1218,8 +1218,12 @@ func (this *Exchange) SetProperty(obj any, property any, defaultValue any) {
 
 	// Check if the field exists and is settable
 	if field.IsValid() && field.CanSet() {
-		// Set the field with the default value, casting it to the right type
-		field.Set(reflect.ValueOf(defaultValue))
+		// only set when the value is assignable to the field type — the test harness can pass a
+		// plain map for a typed field (e.g. Options *sync.Map) and reflect.Set panics on a mismatch
+		valueReflect := reflect.ValueOf(defaultValue)
+		if valueReflect.IsValid() && valueReflect.Type().AssignableTo(field.Type()) {
+			field.Set(valueReflect)
+		}
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be set\n", propName)
 	}
