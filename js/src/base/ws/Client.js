@@ -5,10 +5,19 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
-import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future } from './Future.js';
 import { isNode, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
 import { utf8 } from '@scure/base';
+// websocket decompression backends, loaded lazily so neither is bundled where it
+// is not needed: node:zlib only under Node, the fflate npm package only in the browser
+let nodeZlib = undefined;
+let fflate = undefined;
+if (isNode) {
+    import(/* webpackIgnore: true */ 'node:zlib').then((mod) => { nodeZlib = mod; }).catch(() => { });
+}
+else {
+    import(/* webpackMode: "eager" */ 'fflate').then((mod) => { fflate = mod; }).catch(() => { });
+}
 export default class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;
@@ -275,10 +284,10 @@ export default class Client {
             if (this.gunzip || this.inflate) {
                 arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
                 if (this.gunzip) {
-                    arrayBuffer = gunzipSync(arrayBuffer);
+                    arrayBuffer = isNode ? nodeZlib.gunzipSync(arrayBuffer) : fflate.gunzipSync(arrayBuffer);
                 }
                 else if (this.inflate) {
-                    arrayBuffer = inflateSync(arrayBuffer);
+                    arrayBuffer = isNode ? nodeZlib.inflateRawSync(arrayBuffer) : fflate.inflateSync(arrayBuffer);
                 }
                 message = utf8.encode(arrayBuffer);
             }
