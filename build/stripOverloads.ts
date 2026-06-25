@@ -74,6 +74,14 @@ function transpileSignSyncByPath (transpileByPath: (p: string) => any, filePath:
     }
 }
 
+// Monkey-patch an ast-transpiler's byPath method (e.g. 'transpileGoByPath') so every
+// file it transpiles has `sign` made synchronous first (see transpileSignSyncByPath).
+// Shared by the C#/Go/Java transpilers (in setupTranspiler) and their Piscina workers.
+function patchTranspileByPathWithSyncSign (transpiler: any, byPathMethod: string): void {
+    const original = transpiler[byPathMethod].bind (transpiler);
+    transpiler[byPathMethod] = (filePath: string) => transpileSignSyncByPath (original, filePath);
+}
+
 // Base files whose sign-async-ness the AST transpiler resolves (via `extends Exchange`
 // and the rsa/jwt imports) when inferring an exchange override's return type / async-ness.
 // They must be sign-synchronous ON DISK while exchanges + wrappers transpile.
@@ -104,7 +112,7 @@ async function withSyncSignBaseFiles (inherit: boolean, fn: () => Promise<void> 
 
 export {
     stripSignAsyncForAst,
-    transpileSignSyncByPath,
+    patchTranspileByPathWithSyncSign,
     withSyncSignBaseFiles,
     writeOverloadStrippedFile,
     removeOverloadStrippedFile,

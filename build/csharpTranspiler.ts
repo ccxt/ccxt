@@ -4,7 +4,7 @@ import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
-import { writeOverloadStrippedFile, removeOverloadStrippedFile, transpileSignSyncByPath, withSyncSignBaseFiles } from './stripOverloads.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, patchTranspileByPathWithSyncSign, withSyncSignBaseFiles } from './stripOverloads.js';
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
@@ -282,11 +282,9 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
-        // sign (+ crypto helpers) is async only in JS; in C# it is synchronous. Wrap
-        // transpileCSharpByPath so every file is transpiled with sign made synchronous
-        // (the original content is restored afterwards — see transpileSignSyncByPath).
-        const originalByPath = this.transpiler.transpileCSharpByPath.bind (this.transpiler);
-        this.transpiler.transpileCSharpByPath = (filePath: string) => transpileSignSyncByPath (originalByPath, filePath);
+        // sign (+ crypto helpers) is async only in JS; in C# it is synchronous, so make
+        // every byPath transpile strip sign->sync first (originals restored afterwards).
+        patchTranspileByPathWithSyncSign (this.transpiler, 'transpileCSharpByPath');
     }
 
     createGeneratedHeader() {
