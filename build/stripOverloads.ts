@@ -11,23 +11,27 @@ const overloadLineRegex = /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{
 
 // `sign` (and its crypto helpers createAuthToken / createWSAuth / signParams) are
 // async ONLY in TypeScript/JavaScript, because crypto.subtle (used by rsa) is async.
-// In every AST-transpiled language (C#, Go, Java) rsa/jwt are synchronous, so we
-// strip the `async` keyword from these method declarations and the `await` from
-// their call-sites (including the internal rsa/jwt calls) BEFORE handing the source
-// to the ast-transpiler, so they transpile to plain synchronous methods.
-// This is the single source of truth: imported by the C#/Go/Java transpilers,
-// their Piscina workers, and generateJavaWrappers.
+// In every transpiled language rsa/jwt are synchronous, so these methods/functions stay
+// synchronous there. This is the single source of truth for that list — used both by the
+// AST strip below and (imported) by the Python/PHP regex transpiler in build/transpile.ts.
+const SIGN_SYNC_METHODS = [ 'sign', 'createAuthToken', 'createWSAuth', 'signParams' ]; // class methods
+const SIGN_SYNC_FUNCTIONS = [ 'rsa', 'jwt' ]; // base/functions/rsa.ts free functions
+const methodsAlt = SIGN_SYNC_METHODS.join ('|');
+const funcsAlt = SIGN_SYNC_FUNCTIONS.join ('|');
+
+// Strip the `async`/`await` for the above methods/functions before handing the source to
+// the ast-transpiler (C#, Go, Java), so they transpile to plain synchronous code.
 function stripSignAsyncForAst (tsContent: string): string {
     return tsContent
         // free-function declarations in base/functions/rsa.ts: drop `async` AND unwrap the
         // `: Promise<string>` return type so the type checker sees rsa/jwt returning string.
-        .replace (/\basync function (rsa|jwt) (\([^)]*\)): Promise<([^>]+)>/g, 'function $1 $2: $3')
+        .replace (new RegExp ('\\basync function (' + funcsAlt + ') (\\([^)]*\\)): Promise<([^>]+)>', 'g'), 'function $1 $2: $3')
         // method declarations: `async sign (` -> `sign (` (also createAuthToken/createWSAuth/signParams)
-        .replace (/\basync (sign|createAuthToken|createWSAuth|signParams) \(/g, '$1 (')
+        .replace (new RegExp ('\\basync (' + methodsAlt + ') \\(', 'g'), '$1 (')
         // awaited call-sites of those methods: `await this.sign (` -> `this.sign (`
-        .replace (/\bawait (this\.(?:sign|createAuthToken|createWSAuth|signParams)\s*\()/g, '$1')
+        .replace (new RegExp ('\\bawait (this\\.(?:' + methodsAlt + ')\\s*\\()', 'g'), '$1')
         // awaited rsa/jwt (imported free functions or this.rsa/this.jwt)
-        .replace (/\bawait ((?:this\.)?(?:rsa|jwt)\s*\()/g, '$1');
+        .replace (new RegExp ('\\bawait ((?:this\\.)?(?:' + funcsAlt + ')\\s*\\()', 'g'), '$1');
 }
 
 // Writes a copy of `srcPath` with overload signature lines removed, into the SAME
@@ -111,6 +115,8 @@ async function withSyncSignBaseFiles (inherit: boolean, fn: () => Promise<void> 
 }
 
 export {
+    SIGN_SYNC_METHODS,
+    SIGN_SYNC_FUNCTIONS,
     stripSignAsyncForAst,
     patchTranspileByPathWithSyncSign,
     withSyncSignBaseFiles,

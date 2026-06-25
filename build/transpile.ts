@@ -12,6 +12,7 @@ import {unCamelCase, precisionConstants, safeString, unique} from "../ts/src/bas
 import Exchange from '../ts/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
+import { SIGN_SYNC_METHODS, SIGN_SYNC_FUNCTIONS } from './stripOverloads.js'
 import errorHierarchy from '../ts/src/base/errorHierarchy.js'
 import { platform } from 'process'
 import os from 'os'
@@ -41,18 +42,15 @@ const exchangesWsIds = exchanges.ws;
 
 let shouldTranspileTests = true
 
-// Methods that are async ONLY in TypeScript/JavaScript (because crypto.subtle is
-// async). In every transpiled language rsa/jwt are synchronous, so `sign` and its
-// crypto helpers stay synchronous there: they are emitted as plain sync methods and
-// their awaited call-sites have the `await` stripped. Listed in both camelCase (as
-// they appear in method bodies, pre-snake-casing) and snake_case (method names).
-const JS_ONLY_ASYNC_METHODS_CAMEL = [ 'sign', 'signParams', 'createWSAuth', 'createAuthToken', 'rsa', 'jwt' ];
-const JS_ONLY_ASYNC_METHODS_SNAKE = [ 'sign', 'sign_params', 'create_ws_auth', 'create_auth_token' ];
-// regex fragment matching a call to one of the JS-only-async methods (camelCase body form)
-const JS_ONLY_ASYNC_CALL_RE = '(?:' + JS_ONLY_ASYNC_METHODS_CAMEL.join ('|') + ')';
-// NOTE: the AST-transpiler-side helper `stripSignAsyncForAst` lives in build/stripOverloads.ts
-// (single source of truth, imported by the C#/Go/Java transpilers + their workers). The
-// Python/PHP regex transpiler handles `sign` sync inline via getCommonRegexes below.
+// `sign` + its crypto helpers are async ONLY in JS (crypto.subtle); in every transpiled
+// language they're synchronous. The canonical list lives in build/stripOverloads.ts (also
+// used by the AST transpilers). Here, for the Python/PHP regex transpiler, we derive:
+//  - JS_ONLY_ASYNC_CALL_RE: matches a call to any of them (camelCase, body form) so the
+//    `await` before it can be stripped in getCommonRegexes below;
+//  - JS_ONLY_ASYNC_METHODS_SNAKE: their snake_case method names, used to keep the methods
+//    sync (no `async def` / no PHP Async\async wrap).
+const JS_ONLY_ASYNC_CALL_RE = '(?:' + SIGN_SYNC_METHODS.concat (SIGN_SYNC_FUNCTIONS).join ('|') + ')';
+const JS_ONLY_ASYNC_METHODS_SNAKE = SIGN_SYNC_METHODS.map ((m) => unCamelCase (m));
 
 
 // let buildPython = true;
