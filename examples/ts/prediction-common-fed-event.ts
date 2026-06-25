@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 // Find a common FED-related event across every prediction-market exchange,
 // then drill down to the same market and the same outcome on each of them.
 //

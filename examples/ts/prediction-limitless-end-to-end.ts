@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 // Limitless prediction end-to-end example (read market data + place/fetch/cancel one order)
 //
 // Limitless is a CLOB prediction market on Base. Auth has two parts:

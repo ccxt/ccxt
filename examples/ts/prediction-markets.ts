@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 // Prediction markets example
 //
 // Demonstrates the PredictionExchange base class: prediction-market exchanges

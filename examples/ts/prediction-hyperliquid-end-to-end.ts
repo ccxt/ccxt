@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 // Hyperliquid prediction end-to-end example (read market data + place/fetch/cancel one order)
 //
 // Hyperliquid's outcome (prediction) markets trade as spot tokens on the L1. Auth is the

@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 // Myriad prediction end-to-end example (read market data + place/fetch/cancel one order)
 //
 // Myriad (https://myriad.markets) is a multi-chain prediction market (BSC, Celo, Abstract,

@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 // fetchEvents options on prediction-market exchanges
 //
 // Prediction exchanges (ccxt.prediction.*) accept a typed `fetchEventsParams` object:
