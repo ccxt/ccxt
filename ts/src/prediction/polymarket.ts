@@ -2546,8 +2546,11 @@ export default class polymarket extends Exchange {
     }
 
     handleMessage (client: any, message: any) {
-        // Polymarket sends "PONG" text frames as keepalive responses; skip them.
+        // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
+        // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
+        // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
         if (typeof message === 'string') {
+            client.lastPong = this.milliseconds ();
             return;
         }
         const events = Array.isArray (message) ? message : [ message ];
@@ -2579,7 +2582,7 @@ export default class polymarket extends Exchange {
             return;
         }
         if (!(outcome in this.orderbooks)) {
-            this.orderbooks[outcome] = this.orderBook ([]);
+            this.orderbooks[outcome] = this.orderBook ({});
         }
         const orderbook = this.orderbooks[outcome];
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
@@ -2738,7 +2741,7 @@ export default class polymarket extends Exchange {
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         if (!(outcome in this.orderbooks)) {
-            this.orderbooks[outcome] = this.orderBook ([]);
+            this.orderbooks[outcome] = this.orderBook ({});
         }
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
