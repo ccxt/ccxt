@@ -18,7 +18,6 @@ class gateeu extends gate["default"] {
             'id': 'gateeu',
             'name': 'Gate EU',
             'countries': ['EU'],
-            'hostname': 'gateeu.com',
             'certified': false,
             'urls': {
                 'api': {
