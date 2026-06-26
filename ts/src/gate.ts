@@ -13,11 +13,6 @@ import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenI
  */
 export default class gate extends Exchange {
     describe (): any {
-        const superDescribe = super.describe ();
-        return this.deepExtend (superDescribe, this.describeData ());
-    }
-
-    describeData (): any {
         return this.deepExtend (super.describe (), {
             'id': 'gate',
             'name': 'Gate',

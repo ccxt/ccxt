@@ -13,6 +13,11 @@ import { Precise } from '../base/Precise.js';
 
 export default class gate extends gateRest {
     describe (): any {
+        const superDescribe = super.describe ();
+        return this.deepExtend (superDescribe, this.describeData ());
+    }
+
+    describeData (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
