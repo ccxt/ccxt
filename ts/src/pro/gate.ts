@@ -18,7 +18,7 @@ export default class gate extends gateRest {
     }
 
     describeData (): any {
-        return this.deepExtend (super.describe (), {
+        return {
             'has': {
                 'ws': true,
                 'cancelAllOrdersWs': true,
