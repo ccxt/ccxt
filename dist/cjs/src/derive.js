@@ -20,7 +20,7 @@ class derive extends derive$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'derive',
-            'name': 'derive',
+            'name': 'Derive',
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,

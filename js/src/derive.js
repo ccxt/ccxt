@@ -21,7 +21,7 @@ export default class derive extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'derive',
-            'name': 'derive',
+            'name': 'Derive',
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,
