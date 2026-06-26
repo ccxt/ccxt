@@ -17,7 +17,7 @@ export default class luno extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'luno',
-            'name': 'luno',
+            'name': 'Luno',
             'countries': [ 'GB', 'SG', 'ZA' ],
             // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit': 200,
