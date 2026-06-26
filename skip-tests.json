@@ -1389,6 +1389,12 @@
             }
         }
     },
+    "limitless": {
+        "preferredEventQuery": "bitcoin"
+    },
+    "myriad": {
+        "preferredEventQuery": "bitcoin"
+    },
     "hyperliquid": {
         "skipMethods": {
             "loadMarkets": {
@@ -1408,7 +1414,12 @@
             "watchTrades": {
                 "currency": "not provided"
             }
-        }
+        },
+        "preferredPredictionOutcome": "2026-WORLD-CUP-CHAMPION-BRAZIL-10238:YES",
+        "preferredEventQuery": "WORLD",
+        "fundedAmount": "500",
+        "fundedPrice": "0.02",
+        "predictionNote": "testnet 10 USD min notional (500*0.02); World Cup market valid through ~2026-07; update the outcome if it resolves"
     },
     "hollaex": {
         "skipWs": "temp",
@@ -1510,6 +1521,7 @@
     },
     "kalshi": {
         "until": "2026-12-31",
+        "preferredEventQuery": "trump",
         "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "fetchPositions": "demo/test account holds no open positions and the fetchPositions test asserts a non-empty array; run with a funded position to re-enable"
@@ -1917,6 +1929,7 @@
     },
     "polymarket": {
         "until": "2026-12-31",
+        "preferredEventQuery": "trump",
         "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures"

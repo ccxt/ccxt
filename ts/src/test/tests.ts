@@ -797,16 +797,20 @@ class testMainClass {
         // tokens; resolve a tradeable outcome handle from them (works in every language since
         // exchange.markets is typed on the base, unlike the prediction-only outcomes cache),
         // then fetchEvents for an event id and run every method by that outcome handle
-        let outcomeSymbol = undefined;
-        const marketKeys = Object.keys (exchange.markets);
-        for (let i = 0; i < marketKeys.length; i++) {
-            const market = exchange.markets[marketKeys[i]];
-            const outcomesList = exchange.safeList (market, 'outcomes', []);
-            const outcomesListLength = outcomesList.length;
-            if (outcomesListLength > 0) {
-                outcomeSymbol = exchange.safeString (outcomesList[0], 'outcome');
-                if (outcomeSymbol !== undefined) {
-                    break;
+        // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
+        // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
+        let outcomeSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredPredictionOutcome');
+        if (outcomeSymbol === undefined) {
+            const marketKeys = Object.keys (exchange.markets);
+            for (let i = 0; i < marketKeys.length; i++) {
+                const market = exchange.markets[marketKeys[i]];
+                const outcomesList = exchange.safeList (market, 'outcomes', []);
+                const outcomesListLength = outcomesList.length;
+                if (outcomesListLength > 0) {
+                    outcomeSymbol = exchange.safeString (outcomesList[0], 'outcome');
+                    if (outcomeSymbol !== undefined) {
+                        break;
+                    }
                 }
             }
         }
@@ -822,7 +826,14 @@ class testMainClass {
             // try/catch is required: callExchangeMethodDynamically is a checked-throwing call in
             // Java and its async lambda can't propagate (or re-throw) a checked exception
             try {
-                const events = await callExchangeMethodDynamically (exchange, 'fetchEvents', []);
+                // some venues require fetchEvents to be scoped (e.g. hyperliquid's requireEventQuery);
+                // a skip-tests.json preferredEventQuery supplies a query that matches their markets
+                const eventQuery = exchange.safeString (this.skippedSettingsForExchange, 'preferredEventQuery');
+                const eventParams = {};
+                if (eventQuery !== undefined) {
+                    eventParams['query'] = eventQuery;
+                }
+                const events = await callExchangeMethodDynamically (exchange, 'fetchEvents', [ eventParams ]);
                 assert (events !== undefined, exchange.id + ' fetchEvents returned undefined');
                 // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
                 const eventsList = exchange.safeList ({ 'events': events }, 'events', []);
@@ -920,9 +931,20 @@ class testMainClass {
             dump ('[INFO] skipping prediction createOrder test', exchange.id, 'keys not found');
             return true;
         }
-        const price = exchange.parseToNumeric ('0.02');
-        const amount = exchange.parseToNumeric ('5');
-        dump ('[INFO:MAIN] prediction createOrder', exchange.id, outcome, 'buy 5 @ 0.02 (0.10 USD notional)');
+        // default 5 @ 0.02 = 0.10 USD notional. a venue with a higher minimum (e.g. hyperliquid
+        // testnet's 10 USD min) overrides amount/price via skip-tests.json fundedAmount/fundedPrice;
+        // any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
+        let price = exchange.parseToNumeric ('0.02');
+        let amount = exchange.parseToNumeric ('5');
+        const fundedPrice = exchange.safeString (this.skippedSettingsForExchange, 'fundedPrice');
+        if (fundedPrice !== undefined) {
+            price = exchange.parseToNumeric (fundedPrice);
+        }
+        const fundedAmount = exchange.safeString (this.skippedSettingsForExchange, 'fundedAmount');
+        if (fundedAmount !== undefined) {
+            amount = exchange.parseToNumeric (fundedAmount);
+        }
+        dump ('[INFO:MAIN] prediction createOrder', exchange.id, outcome, 'buy', amount, '@', price);
         // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
         // either): record any failure, ALWAYS attempt the cancel, then report the failure
         let order = undefined;

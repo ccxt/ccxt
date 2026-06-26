@@ -31,6 +31,12 @@ export default class polymarket extends Exchange {
             'rateLimit': 100,
             'certified': false,
             'pro': true,
+            'streaming': {
+                // Polymarket's CLOB ws (market + user channels) has no protocol-level ping-pong;
+                // it requires a text "PING" every 10s and replies "PONG" (see @see in describe)
+                'ping': this.ping,
+                'keepAlive': 10000,
+            },
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -2533,6 +2539,12 @@ export default class polymarket extends Exchange {
         throw new AuthenticationError (this.id + ' requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them');
     }
 
+    ping (client: any) {
+        // Polymarket keeps the ws alive with a plain-text "PING" (the server replies "PONG"); the
+        // keepAlive interval set in describe.streaming sends it on both the market and user channels
+        return 'PING';
+    }
+
     handleMessage (client: any, message: any) {
         // Polymarket sends "PONG" text frames as keepalive responses; skip them.
         if (typeof message === 'string') {
@@ -2566,7 +2578,7 @@ export default class polymarket extends Exchange {
         if (outcome === undefined) {
             return;
         }
-        if (this.orderbooks[outcome] === undefined) {
+        if (!(outcome in this.orderbooks)) {
             this.orderbooks[outcome] = this.orderBook ([]);
         }
         const orderbook = this.orderbooks[outcome];
@@ -2602,7 +2614,7 @@ export default class polymarket extends Exchange {
             const change = changes[i];
             const tokenId = this.safeString (change, 'asset_id');
             const outcome = this.tokenIdToSymbol (tokenId);
-            if (outcome === undefined || this.orderbooks[outcome] === undefined) {
+            if ((outcome === undefined) || !(outcome in this.orderbooks)) {
                 continue; // no snapshot yet — discard delta
             }
             const orderbook = this.orderbooks[outcome];
@@ -2657,7 +2669,7 @@ export default class polymarket extends Exchange {
         if (!this.trades) {
             this.trades = {};
         }
-        let stored = this.trades[outcome];
+        let stored = this.safeValue (this.trades, outcome);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
@@ -2725,7 +2737,7 @@ export default class polymarket extends Exchange {
         const messageHash = 'ticker::' + outcome;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
-        if (this.orderbooks[outcome] === undefined) {
+        if (!(outcome in this.orderbooks)) {
             this.orderbooks[outcome] = this.orderBook ([]);
         }
         const url = this.urls['api']['ws'];

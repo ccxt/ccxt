@@ -3509,6 +3509,10 @@ public class Exchange {
     }
 
     public static Exchange dynamicallyCreateInstance(String className, Object args, boolean isWs) {
+        return dynamicallyCreateInstance(className, args, isWs, false);
+    }
+
+    public static Exchange dynamicallyCreateInstance(String className, Object args, boolean isWs, boolean forcePrediction) {
         if (className == null || className.trim().isEmpty()) return null;
 
         String EXCHANGES_PKG = "io.github.ccxt.exchanges.";
@@ -3531,14 +3535,28 @@ public class Exchange {
 
         if (args == null) args = new HashMap<String, Object>();
 
+        String predictionFqcn = (isWs ? EXCHANGES_PKG_PREDICTION_PRO : EXCHANGES_PKG_PREDICTION) + name;
+
         try {
             Class<?> clazz;
-            try {
-                clazz = Class.forName(fqcn);
-            } catch (ClassNotFoundException primaryMiss) {
-                String predictionFqcn = (isWs ? EXCHANGES_PKG_PREDICTION_PRO : EXCHANGES_PKG_PREDICTION) + name;
-                clazz = Class.forName(predictionFqcn);
-                fqcn = predictionFqcn;
+            if (forcePrediction) {
+                // the --prediction flag prefers the prediction-markets package; prediction exchanges
+                // carry their watch* methods on the main prediction class (no .pro variant), so use the
+                // non-pro package even for ws
+                String predictionNonPro = EXCHANGES_PKG_PREDICTION + name;
+                try {
+                    clazz = Class.forName(predictionNonPro);
+                    fqcn = predictionNonPro;
+                } catch (ClassNotFoundException predictionMiss) {
+                    clazz = Class.forName(fqcn);
+                }
+            } else {
+                try {
+                    clazz = Class.forName(fqcn);
+                } catch (ClassNotFoundException primaryMiss) {
+                    clazz = Class.forName(predictionFqcn);
+                    fqcn = predictionFqcn;
+                }
             }
 
             if (!Exchange.class.isAssignableFrom(clazz)) return null;

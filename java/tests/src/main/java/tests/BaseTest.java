@@ -678,7 +678,9 @@ public class BaseTest {
             return new Exchange(exchangeArgs);
         }
 
-        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, isWs);
+        // the --prediction flag forces the prediction-markets package for ids present in both (e.g. hyperliquid)
+        boolean forcePrediction = getCliArgValue("--prediction");
+        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, isWs, forcePrediction);
     }
 
     public static Exchange initExchange(Object exchangeId, Object exchangeArgs) {

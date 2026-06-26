@@ -229,10 +229,14 @@ def init_exchange(exchangeId, args, is_ws=False):
         if not hasattr(ccxt_sync, exchangeId) and hasattr(ccxt_prediction_sync, exchangeId):
             return getattr(ccxt_prediction_sync, exchangeId)(args)
         return getattr(ccxt_sync, exchangeId)(args)
+    # the --prediction flag forces the prediction-markets namespace for ids present in both
+    # (e.g. hyperliquid); the prediction class carries the watch* methods too (no separate pro
+    # namespace), so route both REST and WS there. otherwise regular ccxt/ccxtpro wins
+    force_prediction = get_cli_arg_value('--prediction')
+    if hasattr(ccxt_prediction, exchangeId) and (force_prediction or not hasattr(ccxt, exchangeId)):
+        return getattr(ccxt_prediction, exchangeId)(args)
     if (is_ws):
         return getattr(ccxtpro, exchangeId)(args)
-    if not hasattr(ccxt, exchangeId) and hasattr(ccxt_prediction, exchangeId):
-        return getattr(ccxt_prediction, exchangeId)(args)
     return getattr(ccxt, exchangeId)(args)
 
 

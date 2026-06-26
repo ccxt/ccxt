@@ -147,15 +147,16 @@ function setExchangeProp (exchange, prop, value) {
 }
 
 function initExchange (exchangeId, args, isWs = false): Exchange {
-    if (isWs) {
-        return new (ccxt.pro)[exchangeId] (args);
-    }
     const prediction = (ccxt as any).prediction;
     const hasPrediction = (prediction !== undefined) && (exchangeId in prediction);
     // regular ccxt ids win for ids present in both (e.g. hyperliquid); --prediction forces the
-    // prediction-markets namespace for those, and prediction is the fallback for prediction-only ids
+    // prediction-markets namespace for those, and prediction is the fallback for prediction-only ids.
+    // the prediction class carries the watch* methods too (no ccxt.pro variant), so route WS there as well
     if (hasPrediction && (getCliArgValue ('--prediction') || !(exchangeId in ccxt))) {
         return new (prediction)[exchangeId] (args);
+    }
+    if (isWs) {
+        return new (ccxt.pro)[exchangeId] (args);
     }
     return new (ccxt)[exchangeId] (args);
 }

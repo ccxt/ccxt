@@ -261,17 +261,18 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
 }
 
 function init_exchange ($exchangeId, $args, $is_ws = false) {
-    $exchangeClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
-    if ($is_ws) {
+    $regularClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
+    // prediction-markets exchanges are async-only at \ccxt\prediction\<id> and carry their watch*
+    // methods on that same class (no \ccxt\pro\ variant), so the --prediction flag routes both REST
+    // and WS there for ids present in both (e.g. hyperliquid); otherwise regular ccxt/pro wins
+    $predictionClassString = '\\ccxt\\prediction\\' . $exchangeId;
+    $forcePrediction = get_cli_arg_value('--prediction');
+    if (class_exists($predictionClassString) && ($forcePrediction || !class_exists($regularClassString))) {
+        $exchangeClassString = $predictionClassString;
+    } elseif ($is_ws) {
         $exchangeClassString = '\\ccxt\\pro\\' . $exchangeId;
-    } elseif (!class_exists($exchangeClassString)) {
-        // fall back to the prediction-markets namespace; prediction exchanges are
-        // async-only and live at \ccxt\prediction\<id> (no \async sub-namespace).
-        // regular ccxt ids always win for ids present in both (e.g. hyperliquid)
-        $predictionClassString = '\\ccxt\\prediction\\' . $exchangeId;
-        if (class_exists($predictionClassString)) {
-            $exchangeClassString = $predictionClassString;
-        }
+    } else {
+        $exchangeClassString = $regularClassString;
     }
     $newClass = create_dynamic_class ($exchangeId, $exchangeClassString, $args);
     return $newClass;
