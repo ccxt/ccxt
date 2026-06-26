@@ -60,6 +60,7 @@ Exchange::$exchanges = array(
     'exmo',
     'extended',
     'gate',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',

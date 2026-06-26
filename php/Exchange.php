@@ -393,6 +393,7 @@ class Exchange {
         'fmfwio',
         'foxbit',
         'gate',
+        'gateeu',
         'gemini',
         'grvt',
         'hashkey',

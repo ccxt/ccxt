@@ -118,7 +118,7 @@ class hibachi extends Exchange {
                 '1w' => '1w',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973',
+                'logo' => 'https://github.com/user-attachments/assets/f267bf5b-5c6c-45e2-9ce4-fb0af8a9d9ab',
                 'api' => array(
                     'public' => 'https://data-api.hibachi.xyz',
                     'private' => 'https://api.hibachi.xyz',

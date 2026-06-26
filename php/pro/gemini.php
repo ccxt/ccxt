@@ -29,7 +29,6 @@ class gemini extends \ccxt\async\gemini {
                 'watchOrderBookForSymbols' => true,
                 'watchOHLCV' => true,
             ),
-            'hostname' => 'api.gemini.com',
             'urls' => array(
                 'api' => array(
                     'ws' => 'wss://api.gemini.com',

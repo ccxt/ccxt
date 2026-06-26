@@ -18,12 +18,11 @@ class aster extends Exchange {
             // 150 req/s for subscribers => https://aster.markets/data
             // for brokers => https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit' => 333,
-            'hostname' => 'aster.markets',
             'certified' => false,
             'pro' => true,
             'dex' => true,
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
+                'logo' => 'https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7',
                 'www' => 'https://www.asterdex.com/en',
                 'api' => array(
                     'fapiPublic' => 'https://fapi.asterdex.com/fapi',
@@ -4094,7 +4093,7 @@ class aster extends Exchange {
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
-        $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
+        $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'fapiPublic' || $api === 'sapiPublic') {
             if ($params) {
                 $url .= '?' . $this->rawencode($params);
