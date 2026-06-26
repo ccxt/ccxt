@@ -12,12 +12,11 @@ public partial class aster : Exchange
             { "name", "Aster" },
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 333 },
-            { "hostname", "aster.markets" },
             { "certified", false },
             { "pro", true },
             { "dex", true },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609" },
+                { "logo", "https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7" },
                 { "www", "https://www.asterdex.com/en" },
                 { "api", new Dictionary<string, object>() {
                     { "fapiPublic", "https://fapi.asterdex.com/fapi" },
@@ -4388,7 +4387,7 @@ public partial class aster : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/"), path);
+        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
         if (isTrue(isTrue(isEqual(api, "fapiPublic")) || isTrue(isEqual(api, "sapiPublic"))))
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))

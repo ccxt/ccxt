@@ -127,7 +127,7 @@ public partial class pacifica : Exchange
             } },
             { "hostname", "pacifica.fi" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4" },
+                { "logo", "https://github.com/user-attachments/assets/03ed021f-cdec-43c8-acb4-941f1282f610" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.{hostname}" },
                     { "private", "https://api.{hostname}" },

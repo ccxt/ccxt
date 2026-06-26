@@ -125,9 +125,8 @@ public partial class derive : Exchange
                 { "1w", "1w" },
                 { "1M", "1M" },
             } },
-            { "hostname", "derive.xyz" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c" },
+                { "logo", "https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.lyra.finance/public" },
                     { "private", "https://api.lyra.finance/private" },
