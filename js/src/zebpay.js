@@ -85,7 +85,7 @@ export default class zebpay extends Exchange {
                 '1w': 10080,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad',
+                'logo': 'https://github.com/user-attachments/assets/0e88d86a-a1cd-49df-a826-054cd8caafa6',
                 'api': {
                     'spot': 'https://sapi.zebpay.com',
                     'swap': 'https://futuresbe.zebpay.com',
