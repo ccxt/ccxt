@@ -403,12 +403,12 @@ export default class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const intervalDefault = (market['spot']) ? '50' : '100ms';
+        const url = this.getUrlByMarket (market);
+        const isEuUrl = url.indexOf ('gateeu') >= 0;
+        const intervalDefault = (market['spot'] && !isEuUrl) ? '50' : '100ms';
         const [ interval, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', intervalDefault);
         const messageType = this.getTypeByMarket (market);
         const messageHash = 'orderbook' + ':' + symbol;
-        const url = this.getUrlByMarket (market);
-        const isEuUrl = url.indexOf ('gateeu') >= 0;
         if (limit === undefined) {
             limit = (market['spot']) ? 50 : 100; // max 100 atm
             if (messageType === 'options') {
@@ -417,7 +417,10 @@ export default class gate extends gateRest {
         }
         let payload: List = [];
         let channel = '';
-        if (market['spot'] && !isEuUrl) {
+        if (isEuUrl) {
+            channel = 'spot.order_book_update';
+            payload = [ marketId, interval ];
+        } else if (market['spot']) {
             channel = 'spot.obu';
             let finalInterval = interval;
             if (limit === 400) {
