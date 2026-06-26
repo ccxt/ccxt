@@ -28,7 +28,6 @@ public class WoofiproCore extends WoofiproApi
             put( "certified", true );
             put( "pro", true );
             put( "dex", true );
-            put( "hostname", "dex.woo.org" );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );
@@ -3394,8 +3393,7 @@ public class WoofiproCore extends WoofiproApi
         Object version = Helpers.GetValue(section, 0);
         Object access = Helpers.GetValue(section, 1);
         Object pathWithParams = this.implodeParams(path, parameters);
-        Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), access));
-        url = Helpers.add(url, Helpers.add(Helpers.add("/", version), "/"));
+        Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), access), "/"), version), "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))

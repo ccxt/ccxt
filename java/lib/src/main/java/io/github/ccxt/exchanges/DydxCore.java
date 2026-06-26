@@ -131,7 +131,7 @@ public class DydxCore extends DydxApi
                 put( "1d", "1DAY" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1" );
+                put( "logo", "https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "indexer", "https://indexer.dydx.trade/v4" );
                     put( "nodeRpc", "https://dydx-ops-rpc.kingnodes.com" );

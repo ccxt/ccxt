@@ -28,7 +28,6 @@ public class ModetradeCore extends ModetradeApi
             put( "certified", false );
             put( "pro", true );
             put( "dex", true );
-            put( "hostname", "trade.mode.network" );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );
@@ -128,7 +127,7 @@ public class ModetradeCore extends ModetradeApi
                 put( "1y", "1y" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b" );
+                put( "logo", "https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api-evm.orderly.org" );
                     put( "private", "https://api-evm.orderly.org" );
@@ -3357,8 +3356,7 @@ public class ModetradeCore extends ModetradeApi
         Object version = Helpers.GetValue(section, 0);
         Object access = Helpers.GetValue(section, 1);
         Object pathWithParams = this.implodeParams(path, parameters);
-        Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), access));
-        url = Helpers.add(url, Helpers.add(Helpers.add("/", version), "/"));
+        Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), access), "/"), version), "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))

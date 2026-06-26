@@ -146,7 +146,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                     put( "public", "https://api-public.sandbox.exchange.coinbase.com" );
                     put( "private", "https://api-public.sandbox.exchange.coinbase.com" );
                 }} );
-                put( "logo", "https://github.com/ccxt/ccxt/assets/43336371/34a65553-88aa-4a38-a714-064bd228b97e" );
+                put( "logo", "https://github.com/user-attachments/assets/a99ef849-a4b2-4dd4-87fe-458ef17db7fd" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.{hostname}" );
                     put( "private", "https://api.{hostname}" );

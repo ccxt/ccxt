@@ -165,7 +165,7 @@ public class BitgetCore extends BitgetApi
             }} );
             put( "hostname", "bitget.com" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658" );
+                put( "logo", "https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "spot", "https://api.{hostname}" );
                     put( "mix", "https://api.{hostname}" );
