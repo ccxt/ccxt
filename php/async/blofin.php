@@ -157,9 +157,8 @@ class blofin extends Exchange {
                 '1w' => '1W',
                 '1M' => '1M',
             ),
-            'hostname' => 'www.blofin.com',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b',
+                'logo' => 'https://github.com/user-attachments/assets/67edf117-6217-4cb8-95e7-9b03f314b1b1',
                 'api' => array(
                     'rest' => 'https://openapi.blofin.com',
                 ),
@@ -2943,7 +2942,7 @@ class blofin extends Exchange {
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->implode_hostname(($this->urls['api'])['rest']) . $request;
+        $url = $this->urls['api']['rest'] . $request;
         // $type = $this->getPathAuthenticationType($path);
         if ($api === 'public') {
             if (!$this->is_empty($query)) {

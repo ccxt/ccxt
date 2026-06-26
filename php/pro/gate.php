@@ -17,7 +17,12 @@ use React\Promise\PromiseInterface;
 
 class gate extends \ccxt\async\gate {
     public function describe(): mixed {
-        return $this->deep_extend(parent::describe(), array(
+        $superDescribe = parent::describe();
+        return $this->deep_extend($superDescribe, $this->describe_data());
+    }
+
+    public function describe_data(): mixed {
+        return array(
             'has' => array(
                 'ws' => true,
                 'cancelAllOrdersWs' => true,
@@ -137,7 +142,7 @@ class gate extends \ccxt\async\gate {
                     'broad' => array(),
                 ),
             ),
-        ));
+        );
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
@@ -426,11 +431,12 @@ class gate extends \ccxt\async\gate {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $marketId = $market['id'];
-            $intervalDefault = ($market['spot']) ? '50' : '100ms';
+            $url = $this->get_url_by_market($market);
+            $isEuUrl = mb_strpos($url, 'gateeu') !== false;
+            $intervalDefault = ($market['spot'] && !$isEuUrl) ? '50' : '100ms';
             list($interval, $query) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', $intervalDefault);
             $messageType = $this->get_type_by_market($market);
             $messageHash = 'orderbook' . ':' . $symbol;
-            $url = $this->get_url_by_market($market);
             if ($limit === null) {
                 $limit = ($market['spot']) ? 50 : 100; // max 100 atm
                 if ($messageType === 'options') {
@@ -439,7 +445,10 @@ class gate extends \ccxt\async\gate {
             }
             $payload = array();
             $channel = '';
-            if ($market['spot']) {
+            if ($isEuUrl) {
+                $channel = 'spot.order_book_update';
+                $payload = array( $marketId, $interval );
+            } elseif ($market['spot']) {
                 $channel = 'spot.obu';
                 $finalInterval = $interval;
                 if ($limit === 400) {
@@ -471,21 +480,41 @@ class gate extends \ccxt\async\gate {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $url = $this->get_url_by_market($market);
             $symbol = $market['symbol'];
             $marketId = $market['id'];
-            $interval = '100ms';
+            $isEuUrl = mb_strpos($url, 'gateeu') !== false;
+            $intervalDefault = ($market['spot'] && !$isEuUrl) ? '50' : '100ms';
+            $interval = $intervalDefault;
             list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', $interval);
             $messageType = $this->get_type_by_market($market);
-            $channel = $messageType . '.order_book_update';
-            $subMessageHash = 'orderbook' . ':' . $symbol;
-            $messageHash = 'unsubscribe:orderbook' . ':' . $symbol;
-            $url = $this->get_url_by_market($market);
-            $payload = array( $marketId, $interval );
-            $limit = $this->safe_integer($params, 'limit', 100);
-            if ($market['contract']) {
+            $limit = $this->safe_integer($params, 'limit');
+            if ($limit === null) {
+                $limit = ($market['spot']) ? 50 : 100; // max 100 atm
+                if ($messageType === 'options') {
+                    $limit = 50; // max 50 for options
+                }
+            }
+            $payload = array();
+            $channel = '';
+            if ($isEuUrl) {
+                $channel = 'spot.order_book_update';
+                $payload = array( $marketId, $interval );
+            } elseif ($market['spot']) {
+                $channel = 'spot.obu';
+                $finalInterval = $interval;
+                if ($limit === 400) {
+                    $finalInterval = '400';
+                }
+                $payload = array( 'ob.' . $market['id'] . '.' . $finalInterval );
+            } else {
+                $channel = $messageType . '.order_book_update';
+                $payload = array( $marketId, $interval );
                 $stringLimit = (string) $limit;
                 $payload[] = $stringLimit;
             }
+            $subMessageHash = 'orderbook' . ':' . $symbol;
+            $messageHash = 'unsubscribe:orderbook' . ':' . $symbol;
             return Async\await($this->un_subscribe_public_multiple($url, 'orderbook', array( $symbol ), array( $messageHash ), array( $subMessageHash ), $payload, $channel, $params));
         })();
     }

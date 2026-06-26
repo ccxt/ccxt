@@ -27,7 +27,6 @@ class woofipro extends Exchange {
             'certified' => true,
             'pro' => true,
             'dex' => true,
-            'hostname' => 'dex.woo.org',
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -2992,8 +2991,7 @@ class woofipro extends Exchange {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$access]);
-        $url .= '/' . $version . '/';
+        $url = $this->urls['api'][$access] . '/' . $version . '/';
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         if ($access === 'public') {
