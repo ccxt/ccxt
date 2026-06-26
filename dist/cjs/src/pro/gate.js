@@ -12,7 +12,11 @@ var Precise = require('../base/Precise.js');
 //  ---------------------------------------------------------------------------
 class gate extends gate$1["default"] {
     describe() {
-        return this.deepExtend(super.describe(), {
+        const superDescribe = super.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'cancelAllOrdersWs': true,
@@ -132,7 +136,7 @@ class gate extends gate$1["default"] {
                     'broad': {},
                 },
             },
-        });
+        };
     }
     /**
      * @method
@@ -392,11 +396,12 @@ class gate extends gate$1["default"] {
         const market = this.market(symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const intervalDefault = (market['spot']) ? '50' : '100ms';
+        const url = this.getUrlByMarket(market);
+        const isEuUrl = url.indexOf('gateeu') >= 0;
+        const intervalDefault = (market['spot'] && !isEuUrl) ? '50' : '100ms';
         const [interval, query] = this.handleOptionAndParams(params, 'watchOrderBook', 'interval', intervalDefault);
         const messageType = this.getTypeByMarket(market);
         const messageHash = 'orderbook' + ':' + symbol;
-        const url = this.getUrlByMarket(market);
         if (limit === undefined) {
             limit = (market['spot']) ? 50 : 100; // max 100 atm
             if (messageType === 'options') {
@@ -405,7 +410,11 @@ class gate extends gate$1["default"] {
         }
         let payload = [];
         let channel = '';
-        if (market['spot']) {
+        if (isEuUrl) {
+            channel = 'spot.order_book_update';
+            payload = [marketId, interval];
+        }
+        else if (market['spot']) {
             channel = 'spot.obu';
             let finalInterval = interval;
             if (limit === 400) {
@@ -437,21 +446,43 @@ class gate extends gate$1["default"] {
     async unWatchOrderBook(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
+        const url = this.getUrlByMarket(market);
         symbol = market['symbol'];
         const marketId = market['id'];
-        let interval = '100ms';
+        const isEuUrl = url.indexOf('gateeu') >= 0;
+        const intervalDefault = (market['spot'] && !isEuUrl) ? '50' : '100ms';
+        let interval = intervalDefault;
         [interval, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'interval', interval);
         const messageType = this.getTypeByMarket(market);
-        const channel = messageType + '.order_book_update';
-        const subMessageHash = 'orderbook' + ':' + symbol;
-        const messageHash = 'unsubscribe:orderbook' + ':' + symbol;
-        const url = this.getUrlByMarket(market);
-        const payload = [marketId, interval];
-        const limit = this.safeInteger(params, 'limit', 100);
-        if (market['contract']) {
+        let limit = this.safeInteger(params, 'limit');
+        if (limit === undefined) {
+            limit = (market['spot']) ? 50 : 100; // max 100 atm
+            if (messageType === 'options') {
+                limit = 50; // max 50 for options
+            }
+        }
+        let payload = [];
+        let channel = '';
+        if (isEuUrl) {
+            channel = 'spot.order_book_update';
+            payload = [marketId, interval];
+        }
+        else if (market['spot']) {
+            channel = 'spot.obu';
+            let finalInterval = interval;
+            if (limit === 400) {
+                finalInterval = '400';
+            }
+            payload = ['ob.' + market['id'] + '.' + finalInterval];
+        }
+        else {
+            channel = messageType + '.order_book_update';
+            payload = [marketId, interval];
             const stringLimit = limit.toString();
             payload.push(stringLimit);
         }
+        const subMessageHash = 'orderbook' + ':' + symbol;
+        const messageHash = 'unsubscribe:orderbook' + ':' + symbol;
         return await this.unSubscribePublicMultiple(url, 'orderbook', [symbol], [messageHash], [subMessageHash], payload, channel, params);
     }
     handleOrderBookSubscription(client, message, subscription) {
