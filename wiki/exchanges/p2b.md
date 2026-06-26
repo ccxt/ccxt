@@ -87,7 +87,7 @@ p2b.fetchTicker (symbol, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result  
 

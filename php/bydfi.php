@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bydfi as Exchange;
 
 class bydfi extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bydfi',
@@ -391,7 +390,7 @@ class bydfi extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves $data on all markets for bydfi
          *
@@ -400,7 +399,7 @@ class bydfi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
-        $response = $this->publicGetV1FapiMarketExchangeInfo ($params);
+        $response = $this->publicGetV1FapiMarketExchangeInfo($params);
         //
         //     {
         //         "code" => "200",
@@ -553,7 +552,7 @@ class bydfi extends Exchange {
         ));
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
@@ -573,7 +572,7 @@ class bydfi extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $this->get_closest_limit($limit);
         }
-        $response = $this->publicGetV1FapiMarketDepth ($this->extend($request, $params));
+        $response = $this->publicGetV1FapiMarketDepth($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -619,7 +618,7 @@ class bydfi extends Exchange {
         return $result;
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -638,9 +637,9 @@ class bydfi extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
-        $response = $this->publicGetV1FapiMarketTrades ($this->extend($request, $params));
+        $response = $this->publicGetV1FapiMarketTrades($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -662,7 +661,7 @@ class bydfi extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -701,7 +700,7 @@ class bydfi extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetV1FapiTradeHistoryTrade ($this->extend($request, $params));
+        $response = $this->privateGetV1FapiTradeHistoryTrade($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -807,7 +806,7 @@ class bydfi extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -857,7 +856,7 @@ class bydfi extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetV1FapiMarketKlines ($this->extend($request, $params));
+        $response = $this->publicGetV1FapiMarketKlines($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -903,7 +902,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          *
          * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
@@ -914,7 +913,7 @@ class bydfi extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
-        $response = $this->publicGetV1FapiMarketTicker24hr ($params);
+        $response = $this->publicGetV1FapiMarketTicker24hr($params);
         //
         //     {
         //         "code" => 200,
@@ -937,7 +936,7 @@ class bydfi extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -952,7 +951,7 @@ class bydfi extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetV1FapiMarketTicker24hr ($this->extend($request, $params));
+        $response = $this->publicGetV1FapiMarketTicker24hr($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         $ticker = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($ticker, $market);
@@ -1001,7 +1000,7 @@ class bydfi extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate
          *
@@ -1016,7 +1015,7 @@ class bydfi extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetV1FapiMarketFundingRate ($this->extend($request, $params));
+        $response = $this->publicGetV1FapiMarketFundingRate($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -1069,7 +1068,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1101,7 +1100,7 @@ class bydfi extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicGetV1FapiMarketFundingRateHistory ($this->extend($request, $params));
+        $response = $this->publicGetV1FapiMarketFundingRateHistory($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -1141,7 +1140,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1173,7 +1172,7 @@ class bydfi extends Exchange {
         $wallet = 'W001';
         list($wallet, $params) = $this->handle_option_and_params($params, 'createOrder', 'wallet', $wallet);
         $orderRequest = $this->extend($orderRequest, array( 'wallet' => $wallet ));
-        $response = $this->privatePostV1FapiTradePlaceOrder ($orderRequest);
+        $response = $this->privatePostV1FapiTradePlaceOrder($orderRequest);
         //
         //     {
         //         "code" => 200,
@@ -1208,7 +1207,7 @@ class bydfi extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1318,7 +1317,7 @@ class bydfi extends Exchange {
         return $this->safe_string($types, $workingType, $workingType);
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         /**
          * create a list of trade $orders
          *
@@ -1352,12 +1351,12 @@ class bydfi extends Exchange {
             'wallet' => $wallet,
             'orders' => $ordersRequests,
         );
-        $response = $this->privatePostV1FapiTradeBatchPlaceOrder ($this->extend($request, $params));
+        $response = $this->privatePostV1FapiTradeBatchPlaceOrder($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order
          *
@@ -1379,12 +1378,12 @@ class bydfi extends Exchange {
         $wallet = 'W001';
         list($wallet, $params) = $this->handle_option_and_params($params, 'editOrder', 'wallet', $wallet);
         $request['wallet'] = $wallet;
-        $response = $this->privatePostV1FapiTradeEditOrder ($request);
+        $response = $this->privatePostV1FapiTradeEditOrder($request);
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data);
     }
 
-    public function edit_orders(array $orders, $params = array ()): array {
+    public function edit_orders(array $orders, $params = array()): array {
         /**
          * edit a list of trade $orders
          *
@@ -1418,12 +1417,12 @@ class bydfi extends Exchange {
             'wallet' => $wallet,
             'editOrders' => $ordersRequests,
         );
-        $response = $this->privatePostV1FapiTradeBatchEditOrder ($this->extend($request, $params));
+        $response = $this->privatePostV1FapiTradeBatchEditOrder($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
     }
 
-    public function create_edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function create_edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array();
         if (($id === null) && ($clientOrderId === null)) {
@@ -1445,7 +1444,7 @@ class bydfi extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()): array {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a $market
          *
@@ -1467,7 +1466,7 @@ class bydfi extends Exchange {
             'symbol' => $market['id'],
             'wallet' => $wallet,
         );
-        $response = $this->privatePostV1FapiTradeCancelAllOrder ($this->extend($request, $params));
+        $response = $this->privatePostV1FapiTradeCancelAllOrder($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -1504,7 +1503,7 @@ class bydfi extends Exchange {
         return $this->parse_orders($data, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -1565,15 +1564,15 @@ class bydfi extends Exchange {
             //         "success" => true
             //     }
             //
-            $response = $this->privateGetV1FapiTradeOpenOrder ($this->extend($request, $params));
+            $response = $this->privateGetV1FapiTradeOpenOrder($this->extend($request, $params));
         } else {
-            $response = $this->privateGetV1FapiTradePlanOrder ($this->extend($request, $params));
+            $response = $this->privateGetV1FapiTradePlanOrder($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetch an open $order by the $id
          *
@@ -1608,16 +1607,16 @@ class bydfi extends Exchange {
         $trigger = false;
         list($trigger, $params) = $this->handle_option_and_params($params, 'fetchOpenOrder', 'trigger', $trigger);
         if (!$trigger) {
-            $response = $this->privateGetV1FapiTradeOpenOrder ($this->extend($request, $params));
+            $response = $this->privateGetV1FapiTradeOpenOrder($this->extend($request, $params));
         } else {
-            $response = $this->privateGetV1FapiTradePlanOrder ($this->extend($request, $params));
+            $response = $this->privateGetV1FapiTradePlanOrder($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         $order = $this->safe_dict($data, 0, array());
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled and closed orders made by the user
          *
@@ -1656,7 +1655,7 @@ class bydfi extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetV1FapiTradeHistoryOrder ($this->extend($request, $params));
+        $response = $this->privateGetV1FapiTradeHistoryOrder($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -1706,7 +1705,7 @@ class bydfi extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function handle_since_and_until(string $methodName, ?int $since = null, $params = array ()): array {
+    public function handle_since_and_until(string $methodName, ?int $since = null, $params = array()): array {
         $until = null;
         list($until, $params) = $this->handle_option_and_params_2($params, $methodName, 'until', 'endTime');
         $now = $this->milliseconds();
@@ -1889,7 +1888,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -1913,12 +1912,12 @@ class bydfi extends Exchange {
             'leverage' => $leverage,
             'wallet' => $wallet,
         );
-        $response = $this->privatePostV1FapiTradeLeverage ($this->extend($request, $params));
+        $response = $this->privatePostV1FapiTradeLeverage($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());
         return $data;
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): array {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         /**
          * fetch the set leverage for a $market
          *
@@ -1940,7 +1939,7 @@ class bydfi extends Exchange {
             'symbol' => $market['id'],
             'wallet' => $wallet,
         );
-        $response = $this->privateGetV1FapiTradeLeverage ($this->extend($request, $params));
+        $response = $this->privateGetV1FapiTradeLeverage($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -1968,7 +1967,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -1986,7 +1985,7 @@ class bydfi extends Exchange {
         $request = array(
             'contractType' => $contractType,
         );
-        $response = $this->privateGetV1FapiTradePositions ($this->extend($request, $params));
+        $response = $this->privateGetV1FapiTradePositions($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -2013,7 +2012,7 @@ class bydfi extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function fetch_positions_for_symbol(string $symbol, $params = array ()): array {
+    public function fetch_positions_for_symbol(string $symbol, $params = array()): array {
         /**
          * fetch open positions for a single $market
          *
@@ -2033,9 +2032,9 @@ class bydfi extends Exchange {
             'contractType' => $contractType,
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetV1FapiTradePositions ($this->extend($request, $params));
+        $response = $this->privateGetV1FapiTradePositions($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_positions($data, [ $market['symbol'] ]);
+        return $this->parse_positions($data, array( $market['symbol'] ));
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2151,7 +2150,7 @@ class bydfi extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical $positions
          *
@@ -2178,7 +2177,7 @@ class bydfi extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetV1FapiTradePositionHistory ($this->extend($request, $params));
+        $response = $this->privateGetV1FapiTradePositionHistory($this->extend($request, $params));
         //
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2186,7 +2185,7 @@ class bydfi extends Exchange {
         return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
-    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical $positions
          *
@@ -2211,7 +2210,7 @@ class bydfi extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetV1FapiTradePositionHistory ($this->extend($request, $params));
+        $response = $this->privateGetV1FapiTradePositionHistory($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -2259,7 +2258,7 @@ class bydfi extends Exchange {
         return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+    public function fetch_margin_mode(string $symbol, $params = array()): array {
         /**
          * fetches the margin mode of a trading pair
          *
@@ -2282,7 +2281,7 @@ class bydfi extends Exchange {
             'symbol' => $market['id'],
             'wallet' => $wallet,
         );
-        $response = $this->privateGetV1FapiUserDataAssetsMargin ($this->extend($request, $params));
+        $response = $this->privateGetV1FapiUserDataAssetsMargin($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -2308,7 +2307,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
@@ -2340,10 +2339,10 @@ class bydfi extends Exchange {
             'marginType' => strtoupper($marginMode),
             'wallet' => $wallet,
         );
-        return $this->privatePostV1FapiUserDataMarginType ($this->extend($request, $params));
+        return $this->privatePostV1FapiUserDataMarginType($this->extend($request, $params));
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         /**
          * set $hedged to true or false for a market, $hedged for bydfi is set identically for all markets with same settle currency
          *
@@ -2381,10 +2380,10 @@ class bydfi extends Exchange {
         //         "success" => true
         //     }
         //
-        return $this->privatePostV1FapiUserDataPositionSideDual ($this->extend($request, $params));
+        return $this->privatePostV1FapiUserDataPositionSideDual($this->extend($request, $params));
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()) {
         /**
          * fetchs the position mode, $hedged or one way, $hedged for bydfi is set identically for all markets with same settle currency
          *
@@ -2414,7 +2413,7 @@ class bydfi extends Exchange {
             'settleCoin' => $settleCoin,
             'wallet' => $wallet,
         );
-        $response = $this->privateGetV1FapiUserDataPositionSideDual ($this->extend($request, $params));
+        $response = $this->privateGetV1FapiUserDataPositionSideDual($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -2440,7 +2439,7 @@ class bydfi extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -2479,7 +2478,7 @@ class bydfi extends Exchange {
             //         "success" => true
             //     }
             //
-            $response = $this->privateGetV1AccountAssets ($this->extend($request, $params));
+            $response = $this->privateGetV1AccountAssets($this->extend($request, $params));
         } else {
             $request['wallet'] = $wallet;
             //
@@ -2510,7 +2509,7 @@ class bydfi extends Exchange {
             //         ),
             //         "success" => true
             //     }
-            $response = $this->privateGetV1FapiAccountBalance ($this->extend($request, $params));
+            $response = $this->privateGetV1FapiAccountBalance($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_balance($data);
@@ -2535,7 +2534,7 @@ class bydfi extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          *
@@ -2559,7 +2558,7 @@ class bydfi extends Exchange {
             'fromType' => $fromId,
             'toType' => $toId,
         );
-        $response = $this->privatePostV1AccountTransfer ($this->extend($request, $params));
+        $response = $this->privatePostV1AccountTransfer($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -2582,7 +2581,7 @@ class bydfi extends Exchange {
         return $transfer;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of internal transfers made on an account
          *
@@ -2624,7 +2623,7 @@ class bydfi extends Exchange {
         if ($limit !== null) {
             $request['rows'] = $limit;
         }
-        $response = $this->privateGetV1AccountTransferRecords ($this->extend($request, $params));
+        $response = $this->privateGetV1AccountTransferRecords($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -2699,7 +2698,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -2714,7 +2713,7 @@ class bydfi extends Exchange {
         return $this->fetch_transactions_helper('deposit', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -2797,12 +2796,12 @@ class bydfi extends Exchange {
             //         "success" => true
             //     }
             //
-            $response = $this->privateGetV1SpotDepositRecords ($this->extend($request, $params));
+            $response = $this->privateGetV1SpotDepositRecords($this->extend($request, $params));
         } else {
             //
             // todo check after withdrawal
             //
-            $response = $this->privateGetV1SpotWithdrawRecords ($this->extend($request, $params));
+            $response = $this->privateGetV1SpotWithdrawRecords($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         $transactionParams = array(
@@ -2873,7 +2872,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         $url = $this->urls['api'][$api];
         $endpoint = '/' . $path;
         $query = '';

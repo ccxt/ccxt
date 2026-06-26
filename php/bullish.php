@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bullish as Exchange;
 
 class bullish extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bullish',
@@ -438,7 +437,7 @@ class bullish extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -447,7 +446,7 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->publicGetV1Time ($params);
+        $response = $this->publicGetV1Time($params);
         //
         //     {
         //         "datetime" => "2025-05-05T20:05:50.999Z",
@@ -457,7 +456,7 @@ class bullish extends Exchange {
         return $this->safe_integer($response, 'timestamp');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -466,7 +465,7 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicGetV1Assets ($params);
+        $response = $this->publicGetV1Assets($params);
         //
         //     array(
         //         {
@@ -538,7 +537,7 @@ class bullish extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for ace
          *
@@ -550,7 +549,7 @@ class bullish extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
-        $response = $this->publicGetV1Markets ($params);
+        $response = $this->publicGetV1Markets($params);
         return $this->parse_markets($response);
     }
 
@@ -895,7 +894,7 @@ class bullish extends Exchange {
         return $this->safe_string($types, $type, $defaultType);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -911,7 +910,7 @@ class bullish extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetV1MarketsSymbolOrderbookHybrid ($this->extend($request, $params));
+        $response = $this->publicGetV1MarketsSymbolOrderbookHybrid($this->extend($request, $params));
         //
         //     {
         //         "bids" => array(
@@ -935,7 +934,7 @@ class bullish extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'priceLevelQuantity');
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -966,7 +965,7 @@ class bullish extends Exchange {
         if ($limit !== null) {
             $request['_pageSize'] = $this->get_closest_limit($limit);
         }
-        $response = $this->publicGetV1HistoryMarketsSymbolTrades ($this->extend($request, $params));
+        $response = $this->publicGetV1HistoryMarketsSymbolTrades($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -985,7 +984,7 @@ class bullish extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -1013,7 +1012,7 @@ class bullish extends Exchange {
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
-            $response = $this->privateGetV1TradesClientOrderIdClientOrderId ($this->extend($request, $params));
+            $response = $this->privateGetV1TradesClientOrderIdClientOrderId($this->extend($request, $params));
         } else {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
@@ -1045,12 +1044,12 @@ class bullish extends Exchange {
             //         ), ...
             //     )
             //
-            $response = $this->privateGetV1HistoryTrades ($this->extend($request, $params));
+            $response = $this->privateGetV1HistoryTrades($this->extend($request, $params));
         }
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -1161,7 +1160,7 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1176,7 +1175,7 @@ class bullish extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetV1MarketsSymbolTick ($this->extend($request, $params));
+        $response = $this->publicGetV1MarketsSymbolTick($this->extend($request, $params));
         //
         //     {
         //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
@@ -1285,7 +1284,7 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array ()) {
+    public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array()) {
         $maxRetries = null;
         list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
         $errors = 0;
@@ -1295,9 +1294,9 @@ class bullish extends Exchange {
         while ($errors <= $maxRetries) {
             try {
                 if ($timeframe && $method !== 'fetchFundingRateHistory') {
-                    return $this->$method ($symbol, $timeframe, $since, $limit, $params);
+                    return $this->$method($symbol, $timeframe, $since, $limit, $params);
                 } else {
-                    return $this->$method ($symbol, $since, $limit, $params);
+                    return $this->$method($symbol, $since, $limit, $params);
                 }
             } catch (Exception $e) {
                 if ($e instanceof RateLimitExceeded) {
@@ -1312,7 +1311,7 @@ class bullish extends Exchange {
         return array();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1356,7 +1355,7 @@ class bullish extends Exchange {
         }
         $request['createdAtDatetime[gte]'] = $this->iso8601($startTime);
         $request['createdAtDatetime[lte]'] = $this->iso8601($until);
-        $response = $this->publicGetV1MarketsSymbolCandle ($this->extend($request, $params));
+        $response = $this->publicGetV1MarketsSymbolCandle($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1385,7 +1384,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1419,7 +1418,7 @@ class bullish extends Exchange {
             $request['_pageSize'] = $this->get_closest_limit($limit);
         }
         $params = $this->handle_since_and_until($since, $params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
-        $response = $this->publicGetV1HistoryMarketsSymbolFundingRate ($this->extend($request, $params));
+        $response = $this->publicGetV1HistoryMarketsSymbolFundingRate($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1449,7 +1448,7 @@ class bullish extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
@@ -1520,16 +1519,16 @@ class bullish extends Exchange {
             //         }
             //     )
             //
-            $response = $this->privateGetV2Orders ($this->extend($request, $params));
+            $response = $this->privateGetV2Orders($this->extend($request, $params));
         } elseif ($method === 'privateGetV2HistoryOrders') {
-            $response = $this->privateGetV2HistoryOrders ($this->extend($request, $params));
+            $response = $this->privateGetV2HistoryOrders($this->extend($request, $params));
         } else {
             throw new BadRequest($this->id . ' fetchOrders() $method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
         }
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function handle_pagination_params(string $method, ?int $since = null, array $params = array ()): array {
+    public function handle_pagination_params(string $method, ?int $since = null, array $params = array()): array {
         $ninetyDays = 90 * 24 * 60 * 60 * 1000;
         $now = $this->milliseconds();
         $allowedSince = $now - $ninetyDays;
@@ -1545,7 +1544,7 @@ class bullish extends Exchange {
         return $params;
     }
 
-    public function handle_since_and_until(?int $since = null, array $params = array (), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
+    public function handle_since_and_until(?int $since = null, array $params = array(), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
         $until = $this->safe_integer($params, 'until');
         if (($since !== null) || ($until !== null)) {
             $timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -1579,7 +1578,7 @@ class bullish extends Exchange {
         return $pageSize;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -1598,7 +1597,7 @@ class bullish extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -1618,7 +1617,7 @@ class bullish extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -1638,7 +1637,7 @@ class bullish extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -1658,7 +1657,7 @@ class bullish extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -1680,7 +1679,7 @@ class bullish extends Exchange {
             'orderId' => $id,
             'tradingAccountId' => $tradingAccountId,
         );
-        $response = $this->privateGetV2OrdersOrderId ($this->extend($request, $params));
+        $response = $this->privateGetV2OrdersOrderId($this->extend($request, $params));
         //
         //     {
         //         "clientOrderId" => "187",
@@ -1711,7 +1710,7 @@ class bullish extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1763,7 +1762,7 @@ class bullish extends Exchange {
             $params = $this->omit($params, 'triggerPrice');
         }
         $request['type'] = strtoupper($type);
-        $response = $this->privatePostV2Orders ($this->extend($request, $params));
+        $response = $this->privatePostV2Orders($this->extend($request, $params));
         //
         //     {
         //         "message" => "Command acknowledged - CreateOrder",
@@ -1775,7 +1774,7 @@ class bullish extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * edit a trade limit order
          *
@@ -1819,11 +1818,11 @@ class bullish extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostV2Command ($this->extend($request, $params));
+        $response = $this->privatePostV2Command($this->extend($request, $params));
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1848,7 +1847,7 @@ class bullish extends Exchange {
             'commandType' => $this->safe_string($params, 'commandType', 'V3CancelOrder'),
             'orderId' => $id,
         );
-        $response = $this->privatePostV2Command ($this->extend($request, $params));
+        $response = $this->privatePostV2Command($this->extend($request, $params));
         //
         //     {
         //         "message" => "Command acknowledged - CancelOrder",
@@ -1860,7 +1859,7 @@ class bullish extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()): array {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open $orders in a $market
          *
@@ -1884,7 +1883,7 @@ class bullish extends Exchange {
         } else {
             $request['commandType'] = 'V1CancelAllOrders';
         }
-        $response = $this->privatePostV2Command ($this->extend($request, $params));
+        $response = $this->privatePostV2Command($this->extend($request, $params));
         //
         //     {
         //         "message" => "Command acknowledged - CancelAllOrders",
@@ -2019,7 +2018,7 @@ class bullish extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits and withdrawals
          *
@@ -2041,7 +2040,7 @@ class bullish extends Exchange {
         if ($since !== null) {
             $request['createdAtDatetime[gte]'] = $this->iso8601($since);
         }
-        $response = $this->privateGetV1WalletsTransactions ($this->extend($request, $params));
+        $response = $this->privateGetV1WalletsTransactions($this->extend($request, $params));
         //
         //     {
         //         "data" => array(
@@ -2084,7 +2083,7 @@ class bullish extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2118,7 +2117,7 @@ class bullish extends Exchange {
         } else {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
         }
-        $response = $this->privatePostV1WalletsWithdrawal ($this->extend($request, $params));
+        $response = $this->privatePostV1WalletsWithdrawal($this->extend($request, $params));
         //
         //     {
         //         "code" => "00000",
@@ -2225,11 +2224,11 @@ class bullish extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function load_account($params = array ()) {
+    public function load_account($params = array()) {
         $tradingAccountId = null;
         list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'tradingAccountId');
         if ($tradingAccountId === null) {
-            $response = $this->privateGetV1AccountsTradingAccounts ($params);
+            $response = $this->privateGetV1AccountsTradingAccounts($params);
             for ($i = 0; $i < count($response); $i++) {
                 $account = $response[$i];
                 $name = $this->safe_string($account, 'tradingAccountName');
@@ -2246,7 +2245,7 @@ class bullish extends Exchange {
         return $tradingAccountId;
     }
 
-    public function fetch_accounts($params = array ()): array {
+    public function fetch_accounts($params = array()): array {
         /**
          * fetch all the accounts associated with a profile
          *
@@ -2256,7 +2255,7 @@ class bullish extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
         array( $this->load_markets(), $this->handle_token() );
-        $response = $this->privateGetV1AccountsTradingAccounts ($params);
+        $response = $this->privateGetV1AccountsTradingAccounts($params);
         //
         //     array(
         //         {
@@ -2348,7 +2347,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          *
@@ -2364,7 +2363,7 @@ class bullish extends Exchange {
         $request = array(
             'symbol' => $currency['id'],
         );
-        $response = $this->privateGetV1WalletsDepositInstructionsCryptoSymbol ($this->extend($request, $params));
+        $response = $this->privateGetV1WalletsDepositInstructionsCryptoSymbol($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2418,7 +2417,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -2439,10 +2438,10 @@ class bullish extends Exchange {
         $code = $this->safe_string($params, 'code');
         if ($code !== null) {
             $request['symbol'] = $this->currency($code)['id'];
-            $response = $this->privateGetV1AccountsAssetSymbol ($this->extend($request, $params));
+            $response = $this->privateGetV1AccountsAssetSymbol($this->extend($request, $params));
             return $this->parse_balance_for_single_currency($response, $code);
         } else {
-            $response = $this->privateGetV1AccountsAsset ($this->extend($request, $params));
+            $response = $this->privateGetV1AccountsAsset($this->extend($request, $params));
             //
             //     array(
             //         array(
@@ -2488,7 +2487,7 @@ class bullish extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -2504,7 +2503,7 @@ class bullish extends Exchange {
         $request = array(
             'tradingAccountId' => $tradingAccountId,
         );
-        $response = $this->privateGetV1DerivativesPositions ($this->extend($request, $params));
+        $response = $this->privateGetV1DerivativesPositions($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2595,7 +2594,7 @@ class bullish extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of internal transfers made on an account
          *
@@ -2636,7 +2635,7 @@ class bullish extends Exchange {
         if ($limit !== null) {
             $request['_pageSize'] = $this->get_closest_limit($limit);
         }
-        $response = $this->privateGetV1HistoryTransfer ($this->extend($request, $params));
+        $response = $this->privateGetV1HistoryTransfer($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2656,7 +2655,7 @@ class bullish extends Exchange {
         return $this->parse_transfers($response, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          *
@@ -2679,7 +2678,7 @@ class bullish extends Exchange {
             'fromTradingAccountId' => $fromAccount,
             'toTradingAccountId' => $toAccount,
         );
-        $response = $this->privatePostV2Command ($this->extend($request, $params));
+        $response = $this->privatePostV2Command($this->extend($request, $params));
         //
         //     {
         //         "message" => "Command acknowledged - TransferAsset",
@@ -2749,7 +2748,7 @@ class bullish extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          *
@@ -2783,7 +2782,7 @@ class bullish extends Exchange {
         }
         $request['createdAtDatetime[gte]'] = $this->iso8601($startTimestamp);
         $request['createdAtDatetime[lte]'] = $this->iso8601($until);
-        $response = $this->privateGetV1HistoryBorrowInterest ($this->extend($request, $params));
+        $response = $this->privateGetV1HistoryBorrowInterest($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2826,7 +2825,7 @@ class bullish extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()): array {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * fetches the open interest of a specific $market
          *
@@ -2841,7 +2840,7 @@ class bullish extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetV1MarketsSymbolTick ($this->extend($request, $params));
+        $response = $this->publicGetV1MarketsSymbolTick($this->extend($request, $params));
         //
         //     {
         //         "createdAtDatetime" => "2021-05-20T01:01:01.000Z",
@@ -2935,7 +2934,7 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
@@ -2990,7 +2989,7 @@ class bullish extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function sign_in($params = array ()) {
+    public function sign_in($params = array()) {
         /**
          * sign in, must be called prior to using other authenticated methods
          *
@@ -2999,7 +2998,7 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return $response from exchange
          */
-        $response = $this->privateGetV1UsersHmacLogin ($params);
+        $response = $this->privateGetV1UsersHmacLogin($params);
         //
         //     {
         //         "authorizer" => "113363EFA2CA00007368524E02000000",
@@ -3015,7 +3014,7 @@ class bullish extends Exchange {
         return $token;
     }
 
-    public function handle_token($params = array ()) {
+    public function handle_token($params = array()) {
         $now = $this->milliseconds();
         $token = $this->token;
         $tokenExpires = $this->safe_integer($this->options, 'tokenExpires');

@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\p2b as Exchange;
 
 class p2b extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'p2b',
@@ -328,7 +327,7 @@ class p2b extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for bigone
          *
@@ -337,7 +336,7 @@ class p2b extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetMarkets ($params);
+        $response = $this->publicGetMarkets($params);
         //
         //    {
         //        "success" => true,
@@ -431,7 +430,7 @@ class p2b extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -442,7 +441,7 @@ class p2b extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
-        $response = $this->publicGetTickers ($params);
+        $response = $this->publicGetTickers($params);
         //
         //    {
         //        success => true,
@@ -472,7 +471,7 @@ class p2b extends Exchange {
         return $this->parse_tickers($result, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -487,7 +486,7 @@ class p2b extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetTicker ($this->extend($request, $params));
+        $response = $this->publicGetTicker($this->extend($request, $params));
         //
         //    {
         //        success => true,
@@ -577,7 +576,7 @@ class p2b extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -599,7 +598,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetDepthResult ($this->extend($request, $params));
+        $response = $this->publicGetDepthResult($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -630,7 +629,7 @@ class p2b extends Exchange {
         return $this->parse_order_book($result, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -656,7 +655,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetHistory ($this->extend($request, $params));
+        $response = $this->publicGetHistory($this->extend($request, $params));
         //
         //    {
         //        success => true,
@@ -748,7 +747,7 @@ class p2b extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -771,7 +770,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetMarketKline ($this->extend($request, $params));
+        $response = $this->publicGetMarketKline($this->extend($request, $params));
         //
         //    {
         //        success => true,
@@ -821,7 +820,7 @@ class p2b extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -831,7 +830,7 @@ class p2b extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->privatePostAccountBalances ($params);
+        $response = $this->privatePostAccountBalances($params);
         //
         //    {
         //        "success" => true,
@@ -885,7 +884,7 @@ class p2b extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -910,7 +909,7 @@ class p2b extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'price' => $this->price_to_precision($symbol, $price),
         );
-        $response = $this->privatePostOrderNew ($this->extend($request, $params));
+        $response = $this->privatePostOrderNew($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -937,7 +936,7 @@ class p2b extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -957,7 +956,7 @@ class p2b extends Exchange {
             'market' => $market['id'],
             'orderId' => $id,
         );
-        $response = $this->privatePostOrderCancel ($this->extend($request, $params));
+        $response = $this->privatePostOrderCancel($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -984,7 +983,7 @@ class p2b extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all unfilled currently open orders
          *
@@ -1010,7 +1009,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostOrders ($this->extend($request, $params));
+        $response = $this->privatePostOrders($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -1040,7 +1039,7 @@ class p2b extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all the trades made from a single order
          *
@@ -1064,7 +1063,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostAccountOrder ($this->extend($request, $params));
+        $response = $this->privatePostAccountOrder($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -1093,7 +1092,7 @@ class p2b extends Exchange {
         return $this->parse_trades($records, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between $since and $params["until"] cannot be longer than 24 hours
          *
@@ -1139,7 +1138,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostAccountMarketDealHistory ($this->extend($request, $params));
+        $response = $this->privatePostAccountMarketDealHistory($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -1171,7 +1170,7 @@ class p2b extends Exchange {
         return $this->parse_trades($deals, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed $orders made by the user, the time between $since and $params["untnil"] cannot be longer than 24 hours
          *
@@ -1219,7 +1218,7 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostAccountOrderHistory ($this->extend($request, $params));
+        $response = $this->privatePostAccountOrderHistory($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -1327,7 +1326,7 @@ class p2b extends Exchange {
         ), $market);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {

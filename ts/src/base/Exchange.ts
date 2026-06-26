@@ -50,7 +50,6 @@ import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
-import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
@@ -1912,11 +1911,9 @@ export default class Exchange {
     }
 
     randomBytes (length: number) {
-        const rng = new SecureRandom ();
-        const x:number[] = [];
-        x.length = length;
-        rng.nextBytes (x);
-        return Buffer.from (x).toString ('hex');
+        const x = new Uint8Array (length);
+        crypto.getRandomValues (x);
+        return this.binaryToBase16 (x);
     }
 
     randNumber (size: number) {

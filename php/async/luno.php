@@ -10,11 +10,10 @@ use ccxt\async\abstract\luno as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class luno extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'luno',
@@ -308,7 +307,7 @@ class luno extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -318,7 +317,7 @@ class luno extends Exchange {
             if (!$this->check_required_credentials(false)) {
                 return array();
             }
-            $response = Async\await($this->privateGetSendNetworks ($params));
+            $response = Async\await($this->privateGetSendNetworks($params));
             //
             //     {
             //         "networks" => array(
@@ -335,7 +334,7 @@ class luno extends Exchange {
             $grouped = $this->group_by($currenciesData, 'native_currency');
             $values = is_array($grouped) ? array_values($grouped) : array();
             return $this->parse_currencies($values);
-        }) ();
+        })();
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -392,7 +391,7 @@ class luno extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for luno
@@ -402,7 +401,7 @@ class luno extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $response = Async\await($this->exchangeGetMarkets ($params));
+            $response = Async\await($this->exchangeGetMarkets($params));
             //
             //     {
             //         "markets":array(
@@ -483,10 +482,10 @@ class luno extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_accounts($params = array ()): PromiseInterface {
+    public function fetch_accounts($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -496,7 +495,7 @@ class luno extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
              */
-            $response = Async\await($this->privateGetBalance ($params));
+            $response = Async\await($this->privateGetBalance($params));
             $wallets = $this->safe_value($response, 'balance', array());
             $result = array();
             for ($i = 0; $i < count($wallets); $i++) {
@@ -512,7 +511,7 @@ class luno extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -544,7 +543,7 @@ class luno extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -555,7 +554,7 @@ class luno extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetBalance ($params));
+            $response = Async\await($this->privateGetBalance($params));
             //
             //     {
             //         "balance" => [
@@ -567,10 +566,10 @@ class luno extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -590,13 +589,13 @@ class luno extends Exchange {
             );
             $response = null;
             if ($limit !== null && $limit <= 100) {
-                $response = Async\await($this->publicGetOrderbookTop ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetOrderbookTop($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetOrderbook ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetOrderbook($this->extend($request, $params)));
             }
             $timestamp = $this->safe_integer($response, 'timestamp');
             return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -681,7 +680,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -697,12 +696,12 @@ class luno extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privateGetOrdersId ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrdersId($this->extend($request, $params)));
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($state, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $request = array();
@@ -714,13 +713,13 @@ class luno extends Exchange {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
             }
-            $response = Async\await($this->privateGetListorders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetListorders($this->extend($request, $params)));
             $orders = $this->safe_list($response, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -734,10 +733,10 @@ class luno extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_state(null, $symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -751,10 +750,10 @@ class luno extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_state('PENDING', $symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -768,7 +767,7 @@ class luno extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_state('COMPLETE', $symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -809,7 +808,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -822,7 +821,7 @@ class luno extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetTickers ($params));
+            $response = Async\await($this->publicGetTickers($params));
             $tickers = $this->index_by($response['tickers'], 'pair');
             $ids = is_array($tickers) ? array_keys($tickers) : array();
             $result = array();
@@ -834,10 +833,10 @@ class luno extends Exchange {
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -853,7 +852,7 @@ class luno extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
             // {
             //     "pair":"XBTAUD",
             //     "timestamp":1642201439301,
@@ -864,7 +863,7 @@ class luno extends Exchange {
             //     "status":"ACTIVE"
             // }
             return $this->parse_ticker($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -958,7 +957,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -979,7 +978,7 @@ class luno extends Exchange {
             if ($since !== null) {
                 $request['since'] = $since;
             }
-            $response = Async\await($this->publicGetTrades ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTrades($this->extend($request, $params)));
             //
             //      {
             //          "trades":array(
@@ -995,10 +994,10 @@ class luno extends Exchange {
             //
             $trades = $this->safe_list($response, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1024,7 +1023,7 @@ class luno extends Exchange {
                 $duration = 1000 * 1000 * $this->parse_timeframe($timeframe);
                 $request['since'] = $this->milliseconds() - $duration;
             }
-            $response = Async\await($this->exchangePrivateGetCandles ($this->extend($request, $params)));
+            $response = Async\await($this->exchangePrivateGetCandles($this->extend($request, $params)));
             //
             //     {
             //          "candles" => array(
@@ -1043,7 +1042,7 @@ class luno extends Exchange {
             //
             $ohlcvs = $this->safe_list($response, 'candles', array());
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1065,7 +1064,7 @@ class luno extends Exchange {
         );
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -1092,7 +1091,7 @@ class luno extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetListtrades ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetListtrades($this->extend($request, $params)));
             //
             //      {
             //          "trades":array(
@@ -1116,10 +1115,10 @@ class luno extends Exchange {
             //
             $trades = $this->safe_list($response, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -1135,7 +1134,7 @@ class luno extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->privateGetFeeInfo ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetFeeInfo($this->extend($request, $params)));
             //
             //     {
             //          "maker_fee" => "0.00250000",
@@ -1151,10 +1150,10 @@ class luno extends Exchange {
                 'percentage' => null,
                 'tierBased' => null,
             );
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1184,21 +1183,21 @@ class luno extends Exchange {
                 } else {
                     $request['base_volume'] = $this->amount_to_precision($market['symbol'], $amount);
                 }
-                $response = Async\await($this->privatePostMarketorder ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostMarketorder($this->extend($request, $params)));
             } else {
                 $request['volume'] = $this->amount_to_precision($market['symbol'], $amount);
                 $request['price'] = $this->price_to_precision($market['symbol'], $price);
                 $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
-                $response = Async\await($this->privatePostPostorder ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostPostorder($this->extend($request, $params)));
             }
             return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['order_id'],
             ), $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1214,7 +1213,7 @@ class luno extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privatePostStoporder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostStoporder($this->extend($request, $params)));
             //
             //    {
             //        "success" => true
@@ -1223,10 +1222,10 @@ class luno extends Exchange {
             return $this->safe_order(array(
                 'info' => $response,
             ));
-        }) ();
+        })();
     }
 
-    public function fetch_ledger_by_entries(?string $code = null, $entry = null, $limit = null, $params = array ()) {
+    public function fetch_ledger_by_entries(?string $code = null, $entry = null, $limit = null, $params = array()) {
         return Async\async(function () use ($code, $entry, $limit, $params) {
             // by default without $entry number or $limit number, return most recent $entry
             if ($entry === null) {
@@ -1241,10 +1240,10 @@ class luno extends Exchange {
                 'max_row' => $this->sum($entry, $limit),
             );
             return Async\await($this->fetch_ledger($code, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -1296,10 +1295,10 @@ class luno extends Exchange {
                 'min_row' => $min_row,
                 'max_row' => $max_row,
             );
-            $response = Async\await($this->privateGetAccountsIdTransactions ($this->extend($params, $request)));
+            $response = Async\await($this->privateGetAccountsIdTransactions($this->extend($params, $request)));
             $entries = $this->safe_value($response, 'transactions', array());
             return $this->parse_ledger($entries, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ledger_comment($comment) {
@@ -1388,7 +1387,7 @@ class luno extends Exchange {
         ), $currency);
     }
 
-    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function create_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address
@@ -1406,7 +1405,7 @@ class luno extends Exchange {
             $request = array(
                 'asset' => $currency['id'],
             );
-            $response = Async\await($this->privatePostFundingAddress ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostFundingAddress($this->extend($request, $params)));
             //
             //     {
             //         "account_id" => "string",
@@ -1428,10 +1427,10 @@ class luno extends Exchange {
             //     }
             //
             return $this->parse_deposit_address($response, $currency);
-        }) ();
+        })();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1448,7 +1447,7 @@ class luno extends Exchange {
             $request = array(
                 'asset' => $currency['id'],
             );
-            $response = Async\await($this->privateGetFundingAddress ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetFundingAddress($this->extend($request, $params)));
             //
             //     {
             //         "account_id" => "string",
@@ -1470,7 +1469,7 @@ class luno extends Exchange {
             //     }
             //
             return $this->parse_deposit_address($response, $currency);
-        }) ();
+        })();
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -1505,7 +1504,7 @@ class luno extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($query) {

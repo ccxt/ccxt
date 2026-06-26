@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bitstamp as Exchange;
 
 class bitstamp extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitstamp',
@@ -596,7 +595,7 @@ class bitstamp extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for bitstamp
          *
@@ -771,7 +770,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_markets_from_cache($params = array ()) {
+    public function fetch_markets_from_cache($params = array()) {
         // this method is $now redundant
         // currencies are $now fetched before markets
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
@@ -779,7 +778,7 @@ class bitstamp extends Exchange {
         $expires = $this->safe_integer($options, 'expires', 1000);
         $now = $this->milliseconds();
         if (($timestamp === null) || (($now - $timestamp) > $expires)) {
-            $response = $this->publicGetMarkets ($params);
+            $response = $this->publicGetMarkets($params);
             //
             //    [
             //        array(
@@ -805,7 +804,7 @@ class bitstamp extends Exchange {
         return $this->safe_value($this->options['fetchMarkets'], 'response');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -858,7 +857,7 @@ class bitstamp extends Exchange {
         return $this->options['_temp_currencies_result'][$quote];
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -874,7 +873,7 @@ class bitstamp extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetOrderBookPair ($this->extend($request, $params));
+        $response = $this->publicGetOrderBookPair($this->extend($request, $params));
         //
         //     {
         //         "timestamp" => "1583652948",
@@ -946,7 +945,7 @@ class bitstamp extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -961,7 +960,7 @@ class bitstamp extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $ticker = $this->publicGetTickerPair ($this->extend($request, $params));
+        $ticker = $this->publicGetTickerPair($this->extend($request, $params));
         //
         // {
         //     "timestamp" => "1686068944",
@@ -980,7 +979,7 @@ class bitstamp extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -991,7 +990,7 @@ class bitstamp extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
-        $response = $this->publicGetTicker ($params);
+        $response = $this->publicGetTicker($params);
         //
         // {
         //     "timestamp" => "1686068944",
@@ -1222,7 +1221,7 @@ class bitstamp extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1240,7 +1239,7 @@ class bitstamp extends Exchange {
             'pair' => $market['id'],
             'time' => 'hour',
         );
-        $response = $this->publicGetTransactionsPair ($this->extend($request, $params));
+        $response = $this->publicGetTransactionsPair($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1283,7 +1282,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1319,9 +1318,9 @@ class bitstamp extends Exchange {
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $duration * ($limit - 1));
             }
-            $request['limit'] = min ($limit, 1000); // min 1, max 1000
+            $request['limit'] = min($limit, 1000); // min 1, max 1000
         }
-        $response = $this->publicGetOhlcPair ($this->extend($request, $params));
+        $response = $this->publicGetOhlcPair($this->extend($request, $params));
         //
         //     {
         //         "data" => {
@@ -1362,7 +1361,7 @@ class bitstamp extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -1372,7 +1371,7 @@ class bitstamp extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->privatePostAccountBalances ($params);
+        $response = $this->privatePostAccountBalances($params);
         //
         //     array(
         //         array(
@@ -1387,7 +1386,7 @@ class bitstamp extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -1402,7 +1401,7 @@ class bitstamp extends Exchange {
         $request = array(
             'market_symbol' => $market['id'],
         );
-        $response = $this->privatePostFeesTrading ($this->extend($request, $params));
+        $response = $this->privatePostFeesTrading($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1445,7 +1444,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
@@ -1455,7 +1454,7 @@ class bitstamp extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
          */
         $this->load_markets();
-        $response = $this->privatePostFeesTrading ($params);
+        $response = $this->privatePostFeesTrading($params);
         //
         //     array(
         //         {
@@ -1473,7 +1472,7 @@ class bitstamp extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array()) {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
@@ -1485,7 +1484,7 @@ class bitstamp extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
         $this->load_markets();
-        $response = $this->privatePostFeesWithdrawal ($params);
+        $response = $this->privatePostFeesWithdrawal($params);
         //
         //     array(
         //         {
@@ -1519,7 +1518,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array()) {
         /**
          * fetch deposit and withdraw fees
          *
@@ -1530,7 +1529,7 @@ class bitstamp extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
         $this->load_markets();
-        $response = $this->privatePostFeesWithdrawal ($params);
+        $response = $this->privatePostFeesWithdrawal($params);
         //
         //     array(
         //         {
@@ -1571,7 +1570,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade $order
          *
@@ -1605,22 +1604,22 @@ class bitstamp extends Exchange {
         $capitalizedSide = $this->capitalize($side);
         if ($type === 'market') {
             if ($capitalizedSide === 'Buy') {
-                $response = $this->privatePostBuyMarketPair ($this->extend($request, $params));
+                $response = $this->privatePostBuyMarketPair($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSellMarketPair ($this->extend($request, $params));
+                $response = $this->privatePostSellMarketPair($this->extend($request, $params));
             }
         } elseif ($type === 'instant') {
             if ($capitalizedSide === 'Buy') {
-                $response = $this->privatePostBuyInstantPair ($this->extend($request, $params));
+                $response = $this->privatePostBuyInstantPair($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSellInstantPair ($this->extend($request, $params));
+                $response = $this->privatePostSellInstantPair($this->extend($request, $params));
             }
         } else {
             $request['price'] = $this->price_to_precision($symbol, $price);
             if ($capitalizedSide === 'Buy') {
-                $response = $this->privatePostBuyPair ($this->extend($request, $params));
+                $response = $this->privatePostBuyPair($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSellPair ($this->extend($request, $params));
+                $response = $this->privatePostSellPair($this->extend($request, $params));
             }
         }
         $order = $this->parse_order($response, $market);
@@ -1628,7 +1627,7 @@ class bitstamp extends Exchange {
         return $order;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * edit a trade $order
          *
@@ -1659,13 +1658,13 @@ class bitstamp extends Exchange {
         } else {
             $request['id'] = $id;
         }
-        $response = $this->privatePostReplaceOrder ($this->extend($request, $params));
+        $response = $this->privatePostReplaceOrder($this->extend($request, $params));
         $order = $this->parse_order($response, $market);
         $order['type'] = $type;
         return $order;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1680,7 +1679,7 @@ class bitstamp extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostCancelOrder($this->extend($request, $params));
         //
         //    {
         //        "id" => 1453282316578816,
@@ -1693,7 +1692,7 @@ class bitstamp extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders
          *
@@ -1711,9 +1710,9 @@ class bitstamp extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
-            $response = $this->privatePostCancelAllOrdersPair ($this->extend($request, $params));
+            $response = $this->privatePostCancelAllOrdersPair($this->extend($request, $params));
         } else {
-            $response = $this->privatePostCancelAllOrders ($this->extend($request, $params));
+            $response = $this->privatePostCancelAllOrders($this->extend($request, $params));
         }
         //
         //    {
@@ -1745,7 +1744,7 @@ class bitstamp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_order_status(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_status(string $id, ?string $symbol = null, $params = array()) {
         $this->load_markets();
         $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
         $request = array();
@@ -1755,11 +1754,11 @@ class bitstamp extends Exchange {
         } else {
             $request['id'] = $id;
         }
-        $response = $this->privatePostOrderStatus ($this->extend($request, $params));
+        $response = $this->privatePostOrderStatus($this->extend($request, $params));
         return $this->parse_order_status($this->safe_string($response, 'status'));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -1783,7 +1782,7 @@ class bitstamp extends Exchange {
         } else {
             $request['id'] = $id;
         }
-        $response = $this->privatePostOrderStatus ($this->extend($request, $params));
+        $response = $this->privatePostOrderStatus($this->extend($request, $params));
         //
         //      {
         //          "status" => "Finished",
@@ -1805,7 +1804,7 @@ class bitstamp extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
@@ -1830,12 +1829,12 @@ class bitstamp extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method ($this->extend($request, $params));
+        $response = $this->$method($this->extend($request, $params));
         $result = $this->filter_by($response, 'type', '2');
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
          *
@@ -1869,7 +1868,7 @@ class bitstamp extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetFundingRateHistoryPair ($this->extend($request, $params));
+        $response = $this->publicGetFundingRateHistoryPair($this->extend($request, $params));
         //
         //     {
         //         "market" => "BTC/USD-PERP",
@@ -1902,7 +1901,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits and withdrawals
          *
@@ -1919,7 +1918,7 @@ class bitstamp extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostUserTransactions ($this->extend($request, $params));
+        $response = $this->privatePostUserTransactions($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1954,7 +1953,7 @@ class bitstamp extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -1973,7 +1972,7 @@ class bitstamp extends Exchange {
         } else {
             $request['timedelta'] = 50000000; // use max bitstamp approved value
         }
-        $response = $this->privatePostWithdrawalRequests ($this->extend($request, $params));
+        $response = $this->privatePostWithdrawalRequests($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -2331,7 +2330,7 @@ class bitstamp extends Exchange {
         }
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -2348,7 +2347,7 @@ class bitstamp extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostUserTransactions ($this->extend($request, $params));
+        $response = $this->privatePostUserTransactions($this->extend($request, $params));
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -2356,7 +2355,7 @@ class bitstamp extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate
          *
@@ -2371,7 +2370,7 @@ class bitstamp extends Exchange {
         $request = array(
             'market_symbol' => $market['id'],
         );
-        $response = $this->publicGetFundingRateMarketSymbol ($this->extend($request, $params));
+        $response = $this->publicGetFundingRateMarketSymbol($this->extend($request, $params));
         //
         //     {
         //         "funding_rate" => "0.0024",
@@ -2417,7 +2416,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -2435,7 +2434,7 @@ class bitstamp extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = $this->privatePostOpenOrdersAll ($params);
+        $response = $this->privatePostOpenOrdersAll($params);
         //
         //     array(
         //         {
@@ -2468,7 +2467,7 @@ class bitstamp extends Exchange {
         return $code === 'USD' || $code === 'EUR' || $code === 'GBP';
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit $address for a currency associated with this account
          *
@@ -2483,7 +2482,7 @@ class bitstamp extends Exchange {
         }
         $name = $this->get_currency_name($code);
         $method = 'privatePost' . $this->capitalize($name) . 'Address';
-        $response = $this->$method ($params);
+        $response = $this->$method($params);
         $address = $this->safe_string($response, 'address');
         $tag = $this->safe_string_2($response, 'memo_id', 'destination_tag');
         $this->check_address($address);
@@ -2496,7 +2495,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2539,11 +2538,11 @@ class bitstamp extends Exchange {
             $request['iban'] = $address;
             $request['account_currency'] = $currency['id'];
         }
-        $response = $this->$method ($this->extend($request, $params));
+        $response = $this->$method($this->extend($request, $params));
         return $this->parse_transaction($response, $currency);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          *
@@ -2566,10 +2565,10 @@ class bitstamp extends Exchange {
         $response = null;
         if ($fromAccount === 'main') {
             $request['subAccount'] = $toAccount;
-            $response = $this->privatePostTransferFromMain ($this->extend($request, $params));
+            $response = $this->privatePostTransferFromMain($this->extend($request, $params));
         } elseif ($toAccount === 'main') {
             $request['subAccount'] = $fromAccount;
-            $response = $this->privatePostTransferToMain ($this->extend($request, $params));
+            $response = $this->privatePostTransferToMain($this->extend($request, $params));
         } else {
             throw new BadRequest($this->id . ' $transfer() only supports from or to main');
         }
@@ -2613,7 +2612,7 @@ class bitstamp extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/';
         $url .= $this->version . '/';
         $url .= $this->implode_params($path, $params);

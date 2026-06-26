@@ -7,11 +7,10 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\AuthenticationError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class hollaex extends \ccxt\async\hollaex {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -56,7 +55,7 @@ class hollaex extends \ccxt\async\hollaex {
         ));
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -72,8 +71,8 @@ class hollaex extends \ccxt\async\hollaex {
             $market = $this->market($symbol);
             $messageHash = 'orderbook' . ':' . $market['id'];
             $orderbook = Async\await($this->watch_public($messageHash, $params));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -83,16 +82,16 @@ class hollaex extends \ccxt\async\hollaex {
         //         "action":"partial",
         //         "symbol":"ltc-usdt",
         //         "data":array(
-        //             "bids":[
+        //             "bids":array(
         //                 [104.29, 5.2264],
         //                 [103.86,1.3629],
         //                 [101.82,0.5942]
-        //             ],
-        //             "asks":[
+        //             ),
+        //             "asks":array(
         //                 [104.81,9.5531],
         //                 [105.54,0.6416],
         //                 [106.18,1.4141],
-        //             ],
+        //             ),
         //             "timestamp":"2022-04-12T08:17:05.932Z"
         //         ),
         //         "time":1649751425
@@ -112,13 +111,13 @@ class hollaex extends \ccxt\async\hollaex {
             $this->orderbooks[$symbol] = $orderbook;
         } else {
             $orderbook = $this->orderbooks[$symbol];
-            $orderbook->reset ($snapshot);
+            $orderbook->reset($snapshot);
         }
         $messageHash = $channel . ':' . $marketId;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -137,10 +136,10 @@ class hollaex extends \ccxt\async\hollaex {
             $messageHash = 'trade' . ':' . $market['id'];
             $trades = Async\await($this->watch_public($messageHash, $params));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
     public function handle_trades(Client $client, $message) {
@@ -166,20 +165,20 @@ class hollaex extends \ccxt\async\hollaex {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $data = $this->safe_value($message, 'data', array());
         $parsedTrades = $this->parse_trades($data, $market);
         for ($j = 0; $j < count($parsedTrades); $j++) {
-            $stored->append ($parsedTrades[$j]);
+            $stored->append($parsedTrades[$j]);
         }
         $messageHash = $channel . ':' . $marketId;
-        $client->resolve ($stored, $messageHash);
-        $client->resolve ($stored, $channel);
+        $client->resolve($stored, $messageHash);
+        $client->resolve($stored, $channel);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -202,10 +201,10 @@ class hollaex extends \ccxt\async\hollaex {
             }
             $trades = Async\await($this->watch_private($messageHash, $params));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_my_trades(Client $client, $message, $subscription = null) {
@@ -241,30 +240,30 @@ class hollaex extends \ccxt\async\hollaex {
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCache ($limit);
+            $this->myTrades = new ArrayCache($limit);
         }
         $stored = $this->myTrades;
         $marketIds = array();
         for ($i = 0; $i < count($rawTrades); $i++) {
             $trade = $rawTrades[$i];
             $parsed = $this->parse_trade($trade);
-            $stored->append ($parsed);
+            $stored->append($parsed);
             $symbol = $trade['symbol'];
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $marketIds[$marketId] = true;
         }
         // non-$symbol specific
-        $client->resolve ($this->myTrades, $channel);
+        $client->resolve($this->myTrades, $channel);
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
             $messageHash = $channel . ':' . $marketId;
-            $client->resolve ($this->myTrades, $messageHash);
+            $client->resolve($this->myTrades, $messageHash);
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -287,10 +286,10 @@ class hollaex extends \ccxt\async\hollaex {
             }
             $orders = Async\await($this->watch_private($messageHash, $params));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_order(Client $client, $message, $subscription = null) {
@@ -360,7 +359,7 @@ class hollaex extends \ccxt\async\hollaex {
         }
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $stored = $this->orders;
         $rawOrders = null;
@@ -373,23 +372,23 @@ class hollaex extends \ccxt\async\hollaex {
         for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $rawOrders[$i];
             $parsed = $this->parse_order($order);
-            $stored->append ($parsed);
+            $stored->append($parsed);
             $symbol = $order['symbol'];
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $marketIds[$marketId] = true;
         }
         // non-$symbol specific
-        $client->resolve ($this->orders, $channel);
+        $client->resolve($this->orders, $channel);
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
             $messageHash = $channel . ':' . $marketId;
-            $client->resolve ($this->orders, $messageHash);
+            $client->resolve($this->orders, $messageHash);
         }
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -401,7 +400,7 @@ class hollaex extends \ccxt\async\hollaex {
              */
             $messageHash = 'wallet';
             return Async\await($this->watch_private($messageHash, $params));
-        }) ();
+        })();
     }
 
     public function handle_balance(Client $client, $message) {
@@ -440,10 +439,10 @@ class hollaex extends \ccxt\async\hollaex {
             $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_public($messageHash, $params = array ()) {
+    public function watch_public($messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $url = $this->urls['api']['ws'];
             $request = array(
@@ -452,10 +451,10 @@ class hollaex extends \ccxt\async\hollaex {
             );
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        }) ();
+        })();
     }
 
-    public function watch_private($messageHash, $params = array ()) {
+    public function watch_private($messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $this->check_required_credentials();
             $expires = $this->safe_string($this->options, 'ws-expires');
@@ -482,7 +481,7 @@ class hollaex extends \ccxt\async\hollaex {
             );
             $message = $this->extend($request, $params);
             return Async\await($this->watch($signedUrl, $messageHash, $message, $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_error_message(Client $client, $message): ?bool {
@@ -533,16 +532,16 @@ class hollaex extends \ccxt\async\hollaex {
         //         "action" => "partial",
         //         "symbol" => "ltc-usdt",
         //         "data" => array(
-        //             "bids" => [
+        //             "bids" => array(
         //                 [104.29, 5.2264],
         //                 [103.86,1.3629],
         //                 [101.82,0.5942]
-        //             ],
-        //             "asks" => [
+        //             ),
+        //             "asks" => array(
         //                 [104.81,9.5531],
         //                 [105.54,0.6416],
         //                 [106.18,1.4141],
-        //             ],
+        //             ),
         //             "timestamp" => "2022-04-11T10:37:01.227Z"
         //         ),
         //         "time" => 1649673421
