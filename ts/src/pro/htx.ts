@@ -1407,7 +1407,7 @@ export default class htx extends htxRest {
         let typeSideParts = [];
         let type = undefined;
         if (typeSide !== undefined) {
-            if (!market['linear'] && !market['swap'] && !market['swap']) {
+            if (typeSide.indexOf ('-') >= 0) {
                 typeSideParts = typeSide.split ('-');
                 type = this.safeStringLower (typeSideParts, 1);
             } else {
@@ -1553,7 +1553,9 @@ export default class htx extends htxRest {
         messageHash = marginMode + ':positions' + messageHash;
         let channel = (marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
         if (isV5Linear) {
-            const channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash ('positions', market, params);
+            const isOneMarket = (!this.isEmpty (symbols) && (symbols.length === 1));
+            const v5Market = isOneMarket ? market : undefined;
+            const channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash ('positions', v5Market, params);
             channel = this.safeString (channelAndMessageHashAndParams, 0);
             params = this.safeValue (channelAndMessageHashAndParams, 2, {});
         }
@@ -1671,8 +1673,11 @@ export default class htx extends htxRest {
             if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
                 marginMode = defaultMarginMode;
             }
-            this.positions[url][marginMode] = this.safeValue (this.positions[url], marginMode, new ArrayCacheBySymbolBySide ());
-            const cache = this.positions[url][marginMode];
+            let cache = this.safeValue (this.positions[url], marginMode);
+            if (cache === undefined) {
+                cache = new ArrayCacheBySymbolBySide ();
+                this.positions[url][marginMode] = cache;
+            }
             newPositions.push (position);
             positionsByMarginMode[marginMode] = this.safeValue (positionsByMarginMode, marginMode, []);
             positionsByMarginMode[marginMode].push (position);
