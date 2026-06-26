@@ -190,7 +190,7 @@ class gate extends Exchange {
             ),
             'api' => array(
                 'public' => array(
-                    // All public endpoints 200r/10s per endpoint
+                    // all public endpoints 200r/10s per endpoint
                     'wallet' => array(
                         'get' => array(
                             'currency_chains' => 1,
