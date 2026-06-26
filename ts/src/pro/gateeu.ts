@@ -17,7 +17,6 @@ export default class gateeu extends gate {
             'id': 'gateeu',
             'name': 'Gate EU',
             'countries': [ 'EU' ],
-            'hostname': 'gateeu.com',
             'certified': false,
             'urls': {
                 'api': {
