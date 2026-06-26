@@ -839,7 +839,7 @@ import java.util.concurrent.TimeUnit;
 Exchange exchange = new Binance();
 exchange.loadMarkets().join();
 
-// Stream live ticker updates
+// stream live ticker updates
 for (int i = 0; i < 10; i++) {
     Object ticker = exchange.watchTicker("BTC/USDT").get(30, TimeUnit.SECONDS);
     System.out.println(ticker);
