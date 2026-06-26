@@ -2909,9 +2909,10 @@ export default class polymarket extends Exchange {
         if (outcomeObj !== undefined) {
             return this.safeString (outcomeObj, 'outcome');
         }
-        const marketsById = this.markets_by_id as any;
-        const market = (marketsById !== undefined) ? marketsById[tokenId] : undefined;
-        return market ? (market['symbol'] as string) : undefined;
+        // safe dict/string access: a bare marketsById[tokenId] / market['symbol'] is undefined in JS
+        // but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
+        const market = this.safeDict (this.markets_by_id, tokenId);
+        return this.safeString (market, 'symbol');
     }
 
     parsePolyTimestamp (raw: Str): number {
