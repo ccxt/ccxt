@@ -70,7 +70,7 @@
     "tsBuildFile": "tsc --outDir ./js/src ",
     "addJsHeaders": "tsx build/transpile.ts --js-headers",
     "tsBuild": "tsc && npm run addJsHeaders || echo \"\"",
-    "tsBuildExamples": "tsx examples/tsToJs.ts",
+    "tsBuildExamples": "tsx examples/clean-js-dir.ts && tsc -p ./examples/tsconfig.json",
     "emitAPI": "tsx build/generateImplicitAPI.ts",
     "emitAPITs": "tsx build/generateImplicitAPI.ts -- --ts",
     "emitAPIPy": "tsx build/generateImplicitAPI.ts -- --python",
