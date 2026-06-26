@@ -93,10 +93,13 @@ class ArrayCache(BaseCache):
             self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
             self._new_updates_by_symbol.clear()
-        if self._clear_updates_by_symbol.get(item['symbol']):
-            self._clear_updates_by_symbol[item['symbol']] = False
-            self._new_updates_by_symbol[item['symbol']] = 0
-        self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
+        # item.get('symbol') (not item['symbol']): prediction trades carry 'outcome' not 'symbol',
+        # so a bare lookup raises KeyError in Python where JS just yields undefined
+        symbol = item.get('symbol')
+        if self._clear_updates_by_symbol.get(symbol):
+            self._clear_updates_by_symbol[symbol] = False
+            self._new_updates_by_symbol[symbol] = 0
+        self._new_updates_by_symbol[symbol] = self._new_updates_by_symbol.get(symbol, 0) + 1
         self._all_new_updates = (self._all_new_updates or 0) + 1
 
 
