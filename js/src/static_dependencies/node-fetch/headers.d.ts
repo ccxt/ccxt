@@ -3,7 +3,7 @@
  * not conform to HTTP grammar productions.
  * @param {import('http').IncomingMessage['rawHeaders']} headers
  */
-export function fromRawHeaders(headers?: import("http").IncomingMessage["rawHeaders"]): Headers;
+export function fromRawHeaders(headers?: any["rawHeaders"]): Headers;
 /**
  * @typedef {Headers | Record<string, string> | Iterable<readonly [string, string]> | Iterable<Iterable<string>>} HeadersInit
  */

@@ -13,6 +13,11 @@ import { Precise } from '../base/Precise.js';
 
 export default class gate extends gateRest {
     describe (): any {
+        const superDescribe = super.describe ();
+        return this.deepExtend (superDescribe, this.describeData ());
+    }
+
+    describeData (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -403,11 +408,12 @@ export default class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const intervalDefault = (market['spot']) ? '50' : '100ms';
+        const url = this.getUrlByMarket (market);
+        const isEuUrl = url.indexOf ('gateeu') >= 0;
+        const intervalDefault = (market['spot'] && !isEuUrl) ? '50' : '100ms';
         const [ interval, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', intervalDefault);
         const messageType = this.getTypeByMarket (market);
         const messageHash = 'orderbook' + ':' + symbol;
-        const url = this.getUrlByMarket (market);
         if (limit === undefined) {
             limit = (market['spot']) ? 50 : 100; // max 100 atm
             if (messageType === 'options') {
@@ -416,7 +422,10 @@ export default class gate extends gateRest {
         }
         let payload: List = [];
         let channel = '';
-        if (market['spot']) {
+        if (isEuUrl) {
+            channel = 'spot.order_book_update';
+            payload = [ marketId, interval ];
+        } else if (market['spot']) {
             channel = 'spot.obu';
             let finalInterval = interval;
             if (limit === 400) {
@@ -450,19 +459,28 @@ export default class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        let interval = '100ms';
+        const url = this.getUrlByMarket (market);
+        const isEuUrl = url.indexOf ('gateeu') >= 0;
+        const intervalDefault = (market['spot'] && !isEuUrl) ? '50' : '100ms';
+        let interval = intervalDefault;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
         const messageType = this.getTypeByMarket (market);
-        const channel = messageType + '.order_book_update';
+        let channel = '';
+        let payload: List = [];
+        if (!isEuUrl && market['spot']) {
+            channel = 'spot.obu';
+            payload = [ 'ob.' + marketId + '.' + interval ];
+        } else {
+            channel = messageType + '.order_book_update';
+            payload = [ marketId, interval ];
+            const limit = this.safeInteger (params, 'limit', 100);
+            if (market['contract']) {
+                const stringLimit = limit.toString ();
+                payload.push (stringLimit);
+            }
+        }
         const subMessageHash = 'orderbook' + ':' + symbol;
         const messageHash = 'unsubscribe:orderbook' + ':' + symbol;
-        const url = this.getUrlByMarket (market);
-        const payload = [ marketId, interval ];
-        const limit = this.safeInteger (params, 'limit', 100);
-        if (market['contract']) {
-            const stringLimit = limit.toString ();
-            payload.push (stringLimit);
-        }
         return await this.unSubscribePublicMultiple (url, 'orderbook', [ symbol ], [ messageHash ], [ subMessageHash ], payload, channel, params);
     }
 

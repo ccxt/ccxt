@@ -5,7 +5,7 @@ export function deflate(data: any, opts: any, cb: any): () => void;
  * @param opts The compression options
  * @returns The deflated version of the data
  */
-export function deflateSync(data: any, opts: any): Uint8Array<ArrayBuffer> | Uint16Array<ArrayBuffer> | Uint32Array<ArrayBuffer>;
+export function deflateSync(data: any, opts: any): Uint8Array<ArrayBuffer> | Uint32Array<ArrayBuffer> | Uint16Array<ArrayBuffer>;
 export function inflate(data: any, opts: any, cb: any): () => void;
 /**
  * Expands DEFLATE data with no wrapper
@@ -21,7 +21,7 @@ export function gzip(data: any, opts: any, cb: any): () => void;
  * @param opts The compression options
  * @returns The gzipped version of the data
  */
-export function gzipSync(data: any, opts: any): Uint8Array<ArrayBuffer> | Uint16Array<ArrayBuffer> | Uint32Array<ArrayBuffer>;
+export function gzipSync(data: any, opts: any): Uint8Array<ArrayBuffer> | Uint32Array<ArrayBuffer> | Uint16Array<ArrayBuffer>;
 export function gunzip(data: any, opts: any, cb: any): () => void;
 /**
  * Expands GZIP data
@@ -37,7 +37,7 @@ export function zlib(data: any, opts: any, cb: any): () => void;
  * @param opts The compression options
  * @returns The zlib-compressed version of the data
  */
-export function zlibSync(data: any, opts: any): Uint8Array<ArrayBuffer> | Uint16Array<ArrayBuffer> | Uint32Array<ArrayBuffer>;
+export function zlibSync(data: any, opts: any): Uint8Array<ArrayBuffer> | Uint32Array<ArrayBuffer> | Uint16Array<ArrayBuffer>;
 export function unzlib(data: any, opts: any, cb: any): () => void;
 /**
  * Expands Zlib data
@@ -61,7 +61,7 @@ export function decompressSync(data: any, out: any): any;
  *               not need to be true unless decoding a binary string.
  * @returns The string encoded in UTF-8/Latin-1 binary
  */
-export function strToU8(str: any, latin1: any): Uint16Array<ArrayBuffer> | Uint32Array<ArrayBuffer> | Uint8Array<any>;
+export function strToU8(str: any, latin1: any): Uint32Array<ArrayBuffer> | Uint16Array<ArrayBuffer> | Uint8Array<any>;
 /**
  * Converts a Uint8Array to a string
  * @param dat The data to decode to string
@@ -69,7 +69,7 @@ export function strToU8(str: any, latin1: any): Uint16Array<ArrayBuffer> | Uint3
  *               not need to be true unless encoding to binary string.
  * @returns The original UTF-8/Latin-1 string
  */
-export function strFromU8(dat: any, latin1: any): string | Uint8Array<ArrayBuffer> | Uint16Array<ArrayBuffer> | Uint32Array<ArrayBuffer>;
+export function strFromU8(dat: any, latin1: any): string | Uint8Array<ArrayBuffer> | Uint32Array<ArrayBuffer> | Uint16Array<ArrayBuffer>;
 export function zip(data: any, opts: any, cb: any): () => void;
 /**
  * Synchronously creates a ZIP file. Prefer using `zip` for better performance
