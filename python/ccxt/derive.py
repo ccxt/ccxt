@@ -24,7 +24,7 @@ class derive(Exchange, ImplicitAPI):
     def describe(self) -> Any:
         return self.deep_extend(super(derive, self).describe(), {
             'id': 'derive',
-            'name': 'derive',
+            'name': 'Derive',
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,
