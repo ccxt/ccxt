@@ -124,6 +124,7 @@ jobs:
       run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout HEAD README.md wiki  # only JS does wiki pushback
           git pull origin master
           git add cs/
           git commit -m "[Automated changes] C# files" || echo "No changes to commit."
