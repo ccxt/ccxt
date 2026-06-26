@@ -200,7 +200,7 @@ class gate(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    # All public endpoints 200r/10s per endpoint
+                    # all public endpoints 200r/10s per endpoint
                     'wallet': {
                         'get': {
                             'currency_chains': 1,
