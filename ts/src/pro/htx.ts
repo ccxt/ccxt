@@ -1511,11 +1511,10 @@ export default class htx extends htxRest {
     /**
      * @method
      * @name htx#watchPositions
-     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
-     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
-     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35d6034
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
      * @param {int} [limit] the maximum number of positions to fetch
@@ -1545,11 +1544,24 @@ export default class htx extends htxRest {
         symbols = this.marketSymbols (symbols);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchPositions', params, 'cross');
+        const linear = (subType === 'linear');
+        const swap = (type === 'swap');
+        const future = (type === 'future');
+        const isV5Linear = (linear && (swap || future));
         const isLinear = (subType === 'linear');
-        const url = this.getUrlByMarketType (type, isLinear, true);
+        const url = this.getUrlByMarketType (type, isLinear, true, false, isV5Linear);
         messageHash = marginMode + ':positions' + messageHash;
-        const channel = (marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
-        const newPositions = await this.subscribePrivate (channel, messageHash, type, subType, params);
+        let channel = (marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
+        if (isV5Linear) {
+            const channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash ('positions', market, params);
+            channel = this.safeString (channelAndMessageHashAndParams, 0);
+            params = this.safeValue (channelAndMessageHashAndParams, 2, {});
+        }
+        const subscriptionParams = {
+            'isV5': isV5Linear,
+            'margin': marginMode,
+        };
+        const newPositions = await this.subscribePrivate (channel, messageHash, type, subType, params, subscriptionParams);
         if (this.newUpdates) {
             return newPositions;
         }
@@ -1592,9 +1604,53 @@ export default class htx extends htxRest {
         //        ]
         //    }
         //
+        // watchPositions linear v5
+        //
+        //     {
+        //         "op": "notify",
+        //         "topic": "positions",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782460576073,
+        //         "uid": "359305390",
+        //         "event": "snapshot",
+        //         "data": [
+        //             {
+        //                 "contract_code": "BTC-USDT",
+        //                 "symbol": "BTC",
+        //                 "position_mode": "single_side",
+        //                 "position_side": "both",
+        //                 "direction": "buy",
+        //                 "margin_mode": "cross",
+        //                 "open_avg_price": "60547.9",
+        //                 "volume": "1",
+        //                 "available": "1",
+        //                 "fee": "0.03632874",
+        //                 "break_even_price": "60620.55748",
+        //                 "total_trade_fee": "0.03632874",
+        //                 "lever_rate": 10,
+        //                 "adl_risk_percent": 4,
+        //                 "liquidation_price": "-102094.847680676304309652",
+        //                 "initial_margin": "6.05807",
+        //                 "maintenance_margin": "0.20597438",
+        //                 "profit_unreal": "0.0328",
+        //                 "profit": "0",
+        //                 "profit_rate": "0.0054",
+        //                 "margin_rate": "0.0012",
+        //                 "state": "normal",
+        //                 "funding_fee": "0",
+        //                 "mark_price": "60580.7",
+        //                 "last_price": "60591.4",
+        //                 "contract_type": "swap",
+        //                 "version": 7,
+        //                 "created_time": "1782460515119",
+        //                 "updated_time": "1782460515119"
+        //             }
+        //         ]
+        //     }
+        //
         const url = client.url;
         const topic = this.safeString (message, 'topic', '');
-        const marginMode = (topic === 'positions_cross') ? 'cross' : 'isolated';
+        const defaultMarginMode = (topic === 'positions_cross') ? 'cross' : 'isolated';
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -1602,34 +1658,43 @@ export default class htx extends htxRest {
         if (clientPositions === undefined) {
             this.positions[url] = {};
         }
-        const clientMarginModePositions = this.safeValue (clientPositions, marginMode);
-        if (clientMarginModePositions === undefined) {
-            this.positions[url][marginMode] = new ArrayCacheBySymbolBySide ();
-        }
-        const cache = this.positions[url][marginMode];
         const rawPositions = this.safeValue (message, 'data', []);
         const newPositions = [];
+        const positionsByMarginMode = {};
         const timestamp = this.safeInteger (message, 'ts');
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
             position['timestamp'] = timestamp;
             position['datetime'] = this.iso8601 (timestamp);
+            let marginMode = this.safeStringLower (position, 'marginMode', defaultMarginMode);
+            if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+                marginMode = defaultMarginMode;
+            }
+            this.positions[url][marginMode] = this.safeValue (this.positions[url], marginMode, new ArrayCacheBySymbolBySide ());
+            const cache = this.positions[url][marginMode];
             newPositions.push (position);
+            positionsByMarginMode[marginMode] = this.safeValue (positionsByMarginMode, marginMode, []);
+            positionsByMarginMode[marginMode].push (position);
             cache.append (position);
         }
-        const messageHashes = this.findMessageHashes (client, marginMode + ':positions::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
-            if (!this.isEmpty (positions)) {
-                client.resolve (positions, messageHash);
+        const marginModes = Object.keys (positionsByMarginMode);
+        for (let i = 0; i < marginModes.length; i++) {
+            const marginMode = marginModes[i];
+            const marginModePositions = this.safeValue (positionsByMarginMode, marginMode, []);
+            const messageHashes = this.findMessageHashes (client, marginMode + ':positions::');
+            for (let j = 0; j < messageHashes.length; j++) {
+                const messageHash = messageHashes[j];
+                const parts = messageHash.split ('::');
+                const symbolsString = parts[1];
+                const symbols = symbolsString.split (',');
+                const positions = this.filterByArray (marginModePositions, 'symbol', symbols, false);
+                if (!this.isEmpty (positions)) {
+                    client.resolve (positions, messageHash);
+                }
             }
+            client.resolve (marginModePositions, marginMode + ':positions');
         }
-        client.resolve (newPositions, marginMode + ':positions');
     }
 
     /**
@@ -1637,9 +1702,8 @@ export default class htx extends htxRest {
      * @name htx#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7dcca-77b5-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a6c94551
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1654,11 +1718,20 @@ export default class htx extends htxRest {
         let messageHash: Str = undefined;
         let channel: Str = undefined;
         let marginMode: Str = undefined;
+        const linear = (subType === 'linear');
+        const swap = (type === 'swap');
+        const future = (type === 'future');
+        const isV5Linear = (linear && (swap || future));
         if (type === 'spot') {
             let mode = this.safeString2 (this.options, 'watchBalance', 'mode', '2');
             mode = this.safeString (params, 'mode', mode);
             messageHash = 'accounts.update' + '#' + mode;
             channel = messageHash;
+        } else if (isV5Linear) {
+            marginMode = this.safeString (params, 'margin', 'cross');
+            params = this.omit (params, [ 'currency', 'symbol', 'margin' ]);
+            channel = 'account';
+            messageHash = 'account';
         } else {
             const symbol = this.safeString (params, 'symbol');
             const currency = this.safeString (params, 'currency');
@@ -1722,6 +1795,7 @@ export default class htx extends htxRest {
             'type': type,
             'subType': subType,
             'margin': marginMode,
+            'isV5': isV5Linear,
         };
         // we are differentiating the channel from the messageHash for global subscriptions (*)
         // because huobi returns a different topic than the topic sent. Example: we send
@@ -1775,47 +1849,47 @@ export default class htx extends htxRest {
         //         "uid":"123456789"
         //     }
         //
-        // usdt / linear future, swap
+        // watchBalance linear v5
         //
         //     {
-        //         "op":"notify",
-        //         "topic":"accounts.btc-usdt", // or "accounts" for global subscriptions
-        //         "ts":1603711370689,
-        //         "event":"order.open",
-        //         "data":[
-        //             {
-        //                 "margin_mode":"cross",
-        //                 "margin_account":"USDT",
-        //                 "margin_asset":"USDT",
-        //                 "margin_balance":30.959342395,
-        //                 "margin_static":30.959342395,
-        //                 "margin_position":0,
-        //                 "margin_frozen":10,
-        //                 "profit_real":0,
-        //                 "profit_unreal":0,
-        //                 "withdraw_available":20.959342395,
-        //                 "risk_rate":153.796711975,
-        //                 "position_mode":"dual_side",
-        //                 "contract_detail":[
-        //                     {
-        //                         "symbol":"LTC",
-        //                         "contract_code":"LTC-USDT",
-        //                         "margin_position":0,
-        //                         "margin_frozen":0,
-        //                         "margin_available":20.959342395,
-        //                         "profit_unreal":0,
-        //                         "liquidation_price":null,
-        //                         "lever_rate":1,
-        //                         "adjust_factor":0.01,
-        //                         "contract_type":"swap",
-        //                         "pair":"LTC-USDT",
-        //                         "business_type":"swap",
-        //                         "trade_partition":"USDT"
-        //                     },
-        //                 ],
-        //                 "futures_contract_detail":[],
-        //             }
-        //         ]
+        //         "op": "notify",
+        //         "topic": "account",
+        //         "contract_code": "",
+        //         "ts": 1782459963509,
+        //         "uid": "359305390",
+        //         "event": "snapshot",
+        //         "data": {
+        //             "equity": "0",
+        //             "state": "normal",
+        //             "details": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "equity": "162.331953938562004875",
+        //                     "available": "162.331953938562004875",
+        //                     "profit_unreal": "0",
+        //                     "initial_margin": "0",
+        //                     "maintenance_margin": "0",
+        //                     "maintenance_margin_rate": "0",
+        //                     "initial_margin_rate": "0",
+        //                     "voucher": "0",
+        //                     "voucher_value": "0",
+        //                     "created_time": "1770293270932",
+        //                     "updated_time": "1780329743956",
+        //                     "isolated_equity": "0",
+        //                     "isolated_profit_unreal": "0",
+        //                     "withdraw_available": "162.331953938562004875"
+        //                 }
+        //             ],
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "maintenance_margin_rate": "0",
+        //             "profit_unreal": "0",
+        //             "available_margin": "0",
+        //             "created_time": "1770293268881",
+        //             "updated_time": "1780329743956",
+        //             "version": 5659,
+        //             "voucher_value": "0"
+        //         }
         //     }
         //
         // inverse future
@@ -1863,12 +1937,32 @@ export default class htx extends htxRest {
             client.resolve (this.balance, channel);
         } else {
             // contract balance
+            const topic = this.safeString (message, 'topic');
+            if (topic === 'account') {
+                const accountData = this.safeDict (message, 'data', {});
+                const details = this.safeList (accountData, 'details', []);
+                const detailsLength = details.length;
+                for (let i = 0; i < detailsLength; i++) {
+                    const detail = details[i];
+                    const currencyId = this.safeString (detail, 'currency');
+                    const code = this.safeCurrencyCode (currencyId);
+                    if (code === undefined) {
+                        continue;
+                    }
+                    const account = this.account ();
+                    account['free'] = this.safeString (detail, 'withdraw_available');
+                    account['total'] = this.safeString (detail, 'equity');
+                    this.balance[code] = account;
+                }
+                this.balance = this.safeBalance (this.balance);
+                client.resolve (this.balance, 'account');
+                return;
+            }
             const dataLength = data.length;
             if (dataLength === 0) {
                 return;
             }
             const first = this.safeValue (data, 0, {});
-            const topic = this.safeString (message, 'topic');
             const splitTopic = topic.split ('.');
             let messageHash = this.safeString (splitTopic, 0);
             let subscription = this.safeValue2 (client.subscriptions, messageHash, messageHash + '.*');
