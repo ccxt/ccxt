@@ -163,6 +163,7 @@ type ICoreExchange interface {
 	FetchClosedOrders(optionalArgs ...any) <-chan any
 	FetchOpenOrders(optionalArgs ...any) <-chan any
 	FetchTransactions(optionalArgs ...any) <-chan any
+	FetchTransfers(optionalArgs ...any) <-chan any
 	FetchFundingHistory(optionalArgs ...any) <-chan any
 	FetchTradingFee(symbol any, optionalArgs ...any) <-chan any
 	FetchTradingFees(optionalArgs ...any) <-chan any
