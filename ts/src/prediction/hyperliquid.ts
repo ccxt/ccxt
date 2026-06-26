@@ -982,7 +982,8 @@ export default class hyperliquid extends Exchange {
     /**
      * @method
      * @name hyperliquid#fetchPositions
-     * @description fetches outcome token positions from spot clearinghouse state, outcome tokens appear as spot token balances starting with '+'
+     * @description fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
@@ -1005,30 +1006,41 @@ export default class hyperliquid extends Exchange {
             'type': 'spotClearinghouseState',
             'user': userAddress,
         };
-        const response = await this.publicPostInfo (this.extend (request, params));
+        // outcome positions are spot token balances under the "+<encoding>" coin form; they carry
+        // the size (total) and entry notional (entryNtl). hyperliquid does not return the position
+        // value / entry price / pnl, so they are computed from the current mid prices
+        const promises = [
+            this.publicPostInfo (this.extend (request, params)),
+            this.publicPostInfo ({ 'type': 'allMids' }),
+        ];
+        const results = await Promise.all (promises);
+        const response = results[0];
+        const midsResponse = results[1];
         const balances = this.safeList (response, 'balances', []);
+        const mids = this.safeDict (midsResponse, 'mids', midsResponse);
         const positions = [];
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const coin = this.safeString (balance, 'coin');
-            // Outcome tokens start with '+'
-            if (!coin || !coin.startsWith ('+')) {
+            const balance = this.safeDict (balances, i, {});
+            const coin = this.safeString (balance, 'coin', '');
+            // outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
+            if (coin.indexOf ('+') !== 0) {
                 continue;
             }
             const totalStr = this.safeString (balance, 'total');
-            const total = this.parseNumber (totalStr);
-            if (total === undefined || total === 0) {
+            if ((totalStr === undefined) || Precise.stringEq (totalStr, '0')) {
                 continue;
             }
-            const outcomeId = '#' + coin.slice (1); // +10 -> #10
-            const outcomeObj = this.safeOutcome (outcomeId);
+            // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
+            const tradeCoin = '#' + coin.slice (1);
+            const outcomeObj = this.safeOutcome (tradeCoin);
             if (outcomes !== undefined) {
                 const outcomeHandle = this.safeString (outcomeObj, 'outcome');
                 if (outcomeHandle === undefined || !(outcomeHandle in requestedOutcomeSymbols)) {
                     continue;
                 }
             }
-            positions.push (this.parsePosition (balance, outcomeObj));
+            const enriched = this.extend (balance, { 'markPx': this.safeString (mids, tradeCoin) });
+            positions.push (this.parsePosition (enriched, outcomeObj));
         }
         return positions;
     }
@@ -1043,22 +1055,31 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
     parsePosition (position: Dict, market: Market = undefined): PredictionPosition {
+        // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
+        // enriched with the current mid price (markPx); hyperliquid does not return the position
+        // value / entry price / pnl for outcome tokens, so they are computed here
         const outcomeObj = this.safeOutcome (undefined, market);
         const totalStr = this.safeString (position, 'total');
         const total = this.parseNumber (totalStr);
-        const holdStr = this.safeString (position, 'hold');
-        const hold = this.parseNumber (holdStr);
         const entryNtlStr = this.safeString (position, 'entryNtl');
-        const entryNotional = this.parseNumber (entryNtlStr);
         let entryPrice = undefined;
-        if (entryNotional !== undefined && total !== undefined && total > 0) {
-            entryPrice = entryNotional / total;
+        if ((entryNtlStr !== undefined) && (totalStr !== undefined) && !Precise.stringEq (totalStr, '0')) {
+            entryPrice = this.parseNumber (Precise.stringDiv (entryNtlStr, totalStr));
+        }
+        const markPxStr = this.safeString (position, 'markPx');
+        let notional = undefined;        // current position value = size * mark price
+        let unrealizedPnl = undefined;   // value - entry notional
+        if ((markPxStr !== undefined) && (totalStr !== undefined)) {
+            const notionalStr = Precise.stringMul (totalStr, markPxStr);
+            notional = this.parseNumber (notionalStr);
+            if (entryNtlStr !== undefined) {
+                unrealizedPnl = this.parseNumber (Precise.stringSub (notionalStr, entryNtlStr));
+            }
         }
         return this.safePredictionPosition ({
             'id': undefined,
             'outcome': this.safeString (outcomeObj, 'outcome'),
             'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
-            'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'outcome'),
             'timestamp': undefined,
             'datetime': undefined,
@@ -1068,20 +1089,19 @@ export default class hyperliquid extends Exchange {
             'contracts': total,
             'contractSize': 1,
             'entryPrice': entryPrice,
-            'markPrice': undefined,
-            'notional': entryNotional,
+            'markPrice': this.parseNumber (markPxStr),
+            'notional': notional,
             'leverage': undefined,
-            'collateral': hold,
+            'collateral': this.safeNumber (position, 'hold'),
             'initialMargin': undefined,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': unrealizedPnl,
             'realizedPnl': undefined,
             'liquidationPrice': undefined,
             'marginRatio': undefined,
             'marginMode': 'cross',
-            'marginType': 'cross',
             'percentage': undefined,
             'info': position,
         });

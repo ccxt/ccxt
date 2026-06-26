@@ -223,7 +223,7 @@ export interface PredictionPosition extends Position {
     label?: Str;
     market?: Str;
     event?: Str;
-    oppositeOutcome?: Str;       // complementary leg (NO when you hold YES)
+
     resolved?: Bool;
     won?: Bool;
     settleFraction?: Num;
