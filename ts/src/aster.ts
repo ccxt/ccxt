@@ -24,7 +24,6 @@ export default class aster extends Exchange {
             // 150 req/s for subscribers: https://aster.markets/data
             // for brokers: https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit': 333,
-            'hostname': 'aster.markets',
             'certified': false,
             'pro': true,
             'dex': true,
@@ -4118,7 +4117,7 @@ export default class aster extends Exchange {
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
-        let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
+        let url = this.urls['api'][api] + '/' + path;
         if (api === 'fapiPublic' || api === 'sapiPublic') {
             if (Object.keys (params).length) {
                 url += '?' + this.rawencode (params);
