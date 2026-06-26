@@ -136,8 +136,6 @@
 
 - [Fetch Funding Rate History](./examples/ts/fetch-funding-rate-history.md)
 
-- [📂 Fetch Futures](https://github.com/ccxt/ccxt/tree/master/./examples/ts/fetch-futures)
-
 - [Fetch Ohlcv From To Mark Index Premium](./examples/ts/fetch-ohlcv-from-to-mark-index-premium.md)
 
 - [Fetch Ohlcv Many Exchanges Continuosly](./examples/ts/fetch-ohlcv-many-exchanges-continuosly.md)
@@ -151,8 +149,6 @@
 - [Fetch Ticker From Multiple Exchanges](./examples/ts/fetch-ticker-from-multiple-exchanges.md)
 
 - [Fetch Ticker Where Available](./examples/ts/fetch-ticker-where-available.md)
-
-- [📂 Fetch Tickers](https://github.com/ccxt/ccxt/tree/master/./examples/ts/fetch-tickers)
 
 - [Gate Create Batch Order](./examples/ts/gate-create-batch-order.md)
 
