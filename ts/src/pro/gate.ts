@@ -138,7 +138,7 @@ export default class gate extends gateRest {
                     'broad': {},
                 },
             },
-        });
+        };
     }
 
     /**
