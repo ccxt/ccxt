@@ -129,7 +129,7 @@ export default class xt extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
+                'logo': 'https://github.com/user-attachments/assets/1f916564-6507-4549-af96-22837bb0a0c7',
                 'api': {
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
