@@ -32,7 +32,6 @@ class gemini(ccxt.async_support.gemini):
                 'watchOrderBookForSymbols': True,
                 'watchOHLCV': True,
             },
-            'hostname': 'api.gemini.com',
             'urls': {
                 'api': {
                     'ws': 'wss://api.gemini.com',

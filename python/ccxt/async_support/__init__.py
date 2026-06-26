@@ -126,6 +126,7 @@ from ccxt.async_support.extended import extended                                
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
+from ccxt.async_support.gateeu import gateeu                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
 from ccxt.async_support.grvt import grvt                                        # noqa: F401
 from ccxt.async_support.hashkey import hashkey                                  # noqa: F401
@@ -233,6 +234,7 @@ exchanges = [
     'fmfwio',
     'foxbit',
     'gate',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',
