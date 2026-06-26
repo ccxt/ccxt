@@ -408,6 +408,7 @@ export default class gate extends gateRest {
         const messageType = this.getTypeByMarket (market);
         const messageHash = 'orderbook' + ':' + symbol;
         const url = this.getUrlByMarket (market);
+        const isEuUrl = url.indexOf ('gateeu') >= 0;
         if (limit === undefined) {
             limit = (market['spot']) ? 50 : 100; // max 100 atm
             if (messageType === 'options') {
@@ -416,7 +417,7 @@ export default class gate extends gateRest {
         }
         let payload: List = [];
         let channel = '';
-        if (market['spot']) {
+        if (market['spot'] && !isEuUrl) {
             channel = 'spot.obu';
             let finalInterval = interval;
             if (limit === 400) {
