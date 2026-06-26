@@ -130,7 +130,7 @@ export default class dydx extends Exchange {
                 '1d': '1DAY',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1',
+                'logo': 'https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d',
                 'api': {
                     'indexer': 'https://indexer.dydx.trade/v4',
                     'nodeRpc': 'https://dydx-ops-rpc.kingnodes.com',
