@@ -49,7 +49,7 @@ let SignMode = undefined;
  */
 export default class Exchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.60'; }
+    static { this.ccxtVersion = '4.5.61'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.api = undefined;
