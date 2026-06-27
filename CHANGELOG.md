@@ -1,3 +1,24 @@
+<a id="v4.5.61"></a>
+# [v4.5.61](https://github.com/ccxt/ccxt/releases/tag/v4.5.61) - 2026-06-27
+
+## What's Changed
+* chore(build): make protobufjs an optional peer dependency by [@carlotestor](https://github.com/carlotestor) in [#29011](https://github.com/ccxt/ccxt/pull/29011)
+* chore(go): interface methods by [@ttodua](https://github.com/ttodua) in [#29012](https://github.com/ccxt/ccxt/pull/29012)
+* perf(build): enable optimal tree shaking via sideEffects: false by [@carlotestor](https://github.com/carlotestor) in [#29013](https://github.com/ccxt/ccxt/pull/29013)
+* fix(doc): return orderbook by [@sc0Vu](https://github.com/sc0Vu) in [#29007](https://github.com/ccxt/ccxt/pull/29007)
+* chore: try to fix pushback conflict by [@carlosmiei](https://github.com/carlosmiei) in [#29015](https://github.com/ccxt/ccxt/pull/29015)
+* fix(build): drop space before paren in transpiled PHP (array()/max/min) by [@carlotestor](https://github.com/carlotestor) in [#29010](https://github.com/ccxt/ccxt/pull/29010)
+* Remove jsencrypt static dependency by [@frosty00](https://github.com/frosty00) in [#28955](https://github.com/ccxt/ccxt/pull/28955)
+* docs: gateio -> gate by [@ttodua](https://github.com/ttodua) in [#29000](https://github.com/ccxt/ccxt/pull/29000)
+* feat(gateeu): add gate EU by [@carlosmiei](https://github.com/carlosmiei) in [#29018](https://github.com/ccxt/ccxt/pull/29018)
+* docs: remove ts two folders by [@ttodua](https://github.com/ttodua) in [#29021](https://github.com/ccxt/ccxt/pull/29021)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.60...v4.5.61
+
+[Changes][v4.5.61]
+
+
 <a id="v4.5.60"></a>
 # [v4.5.60](https://github.com/ccxt/ccxt/releases/tag/v4.5.60) - 2026-06-25
 
@@ -13477,6 +13498,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.61]: https://github.com/ccxt/ccxt/compare/v4.5.60...v4.5.61
 [v4.5.60]: https://github.com/ccxt/ccxt/compare/v4.5.59...v4.5.60
 [v4.5.59]: https://github.com/ccxt/ccxt/compare/v4.5.58...v4.5.59
 [v4.5.58]: https://github.com/ccxt/ccxt/compare/v4.5.57...v4.5.58
