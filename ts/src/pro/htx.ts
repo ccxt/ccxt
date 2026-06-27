@@ -1673,6 +1673,7 @@ export default class htx extends htxRest {
         }
         const newPositions = [];
         const positionsByMarginMode = {};
+        const timestamp = this.safeInteger (message, 'ts');
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
