@@ -7,6 +7,7 @@ import ansicolor from 'ansicolor';
 import ccxt from '../../js/ccxt.js';
 const { noLocate } = ololog;
 const log = noLocate;
+// @ts-expect-error
 ansicolor.nice;
 /*  ------------------------------------------------------------------------ */
 const [processPath, , argument = null] = process.argv.filter(x => !x.startsWith('--')), verbose = process.argv.includes('--verbose'), strict = process.argv.includes('--strict'), detailed = process.argv.includes('--detailed') || process.argv.includes('-v'), debug = process.argv.includes('--debug'), marketsOnly = process.argv.includes('--markets'), currenciesOnly = process.argv.includes('--currencies');

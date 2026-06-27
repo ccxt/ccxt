@@ -21,7 +21,7 @@ public partial class testMainClass : BaseTest
         {
             // only allow these whitelisted unified networkCodes to be repeated
             object allowedUnifiedAliases = new List<object>() {"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SPL", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA"};
-            object networks = getValue(exchange.options, "networks");
+            object networks = exchange.safeDict(exchange.options, "networks");
             if (isTrue(isEqual(networks, null)))
             {
                 return;
