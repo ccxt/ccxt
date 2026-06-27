@@ -2,6 +2,7 @@
 import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
 import ansicolor from 'ansicolor';
+// @ts-expect-error
 ansicolor.nice;
 (async function test() {
     const exchange = new ccxt.bitfinex();

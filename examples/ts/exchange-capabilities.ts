@@ -9,7 +9,7 @@ import asTable from 'as-table';
 
 const { noLocate } = ololog;
 const log = noLocate;
-
+// @ts-expect-error
 ansicolor.nice
 
 

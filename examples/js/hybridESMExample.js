@@ -1,5 +1,5 @@
 // @NO_AUTO_TRANSPILE
-import { version, htx } from '../../js/ccxt';
+import { version, htx } from '../../js/ccxt.js';
 console.log('--------------------------------------------');
 console.log('Yey importing ccxt as an ESM module!!!!!');
 console.log('Version:', version);
