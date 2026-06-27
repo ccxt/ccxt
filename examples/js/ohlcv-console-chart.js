@@ -4,6 +4,7 @@ import asciichart from 'asciichart';
 import ololog from 'ololog';
 import ansicolor from 'ansicolor';
 const log = ololog.configure({ locate: false });
+// @ts-expect-error
 ansicolor.nice;
 (async function main() {
     // experimental, not yet implemented for all exchanges

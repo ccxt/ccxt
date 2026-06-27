@@ -59,6 +59,7 @@ python path/to/example.py # substitute for actual filename here
 ## CCXT Citations In Papers And Theses
 
 
+- [Developing Predictive and Explainable Models for Cryptocurrency Delistings: A Case Study of Binance Exchange](https://onlinelibrary.wiley.com/doi/epdf/10.1111/ajfs.70045) <br>2026, **Sungju Yang**, **Hunyeong Kwon** (School of Cybersecurity, Korea University)
 - [Do Whitepaper Claims Predict Market Behavior?](https://arxiv.org/pdf/2601.20336) <br>2026, **Murad Farzulla** (Dissensus AI, King’s College London)
 - [An Adaptive Neuro-Fuzzy Blockchain–AI Framework for Secure and Intelligent FinTech Transactions](https://arxiv.org/pdf/2603.23829) <br>2026, **Gunjan Mishraa**, **Yash Mishrab** (Lakshmipat University)
 - [A Unified GRU Model for Cryptocurrency Price Prediction and Harsh Price Movement Detection Using Enhanced Sentiment Analysis]() <br>2026, **Mahmood Mohammadi Nezhad**, **Saeed Rouhani**, **Navid Mohammadi** (University of Tehran), **Ali Shahedi** (Sharif University of Technology)

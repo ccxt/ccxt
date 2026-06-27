@@ -9,7 +9,7 @@ import ololog from 'ololog';
 import ansicolor from 'ansicolor';
 
 const log       = ololog.configure ({ locate: false }), verbose   = process.argv.includes ('--verbose');
-
+// @ts-expect-error
 ansicolor.nice
 
 //-----------------------------------------------------------------------------
