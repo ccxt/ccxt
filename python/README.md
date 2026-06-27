@@ -12,12 +12,12 @@ It is intended to be used by **coders, developers, technically-skilled traders, 
 
 Current feature list:
 
-- supports for many cryptocurrency exchanges — more coming soon
+- supports many cryptocurrency exchanges — more coming soon
 - implements public and private APIs, both REST and WebSocket
 - optionally normalizes data for cross-exchange analytics and arbitrage
 - has an out of the box unified API that is extremely easy to integrate
 - ideal for AI agents and vibe coding
-- works in Node 10.4+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+, Java 21+ and web browsers
+- works in Node 18+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+, Java 21+ and web browsers
 
 ## See Also
 
