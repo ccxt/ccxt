@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\zaif as Exchange;
 
 class zaif extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'zaif',
@@ -78,7 +77,7 @@ class zaif extends Exchange {
                 'withdraw' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e',
                 'api' => array(
                     'rest' => 'https://api.zaif.jp',
                 ),
@@ -225,7 +224,7 @@ class zaif extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
@@ -234,7 +233,7 @@ class zaif extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $markets = $this->publicGetCurrencyPairsAll ($params);
+        $markets = $this->publicGetCurrencyPairsAll($params);
         //
         //     array(
         //         {
@@ -344,7 +343,7 @@ class zaif extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
@@ -354,11 +353,11 @@ class zaif extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->privatePostGetInfo ($params);
+        $response = $this->privatePostGetInfo($params);
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
@@ -374,7 +373,7 @@ class zaif extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetDepthPair ($this->extend($request, $params));
+        $response = $this->publicGetDepthPair($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol']);
     }
 
@@ -419,7 +418,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
@@ -434,7 +433,7 @@ class zaif extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $ticker = $this->publicGetTickerPair ($this->extend($request, $params));
+        $ticker = $this->publicGetTickerPair($this->extend($request, $params));
         //
         // {
         //     "last" => 9e-08,
@@ -487,7 +486,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
@@ -504,7 +503,7 @@ class zaif extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradesPair ($this->extend($request, $params));
+        $response = $this->publicGetTradesPair($this->extend($request, $params));
         //
         //      array(
         //          array(
@@ -527,7 +526,7 @@ class zaif extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
@@ -552,14 +551,14 @@ class zaif extends Exchange {
             'amount' => $amount,
             'price' => $price,
         );
-        $response = $this->privatePostTrade ($this->extend($request, $params));
+        $response = $this->privatePostTrade($this->extend($request, $params));
         return $this->safe_order(array(
             'info' => $response,
             'id' => (string) $response['return']['order_id'],
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
@@ -573,7 +572,7 @@ class zaif extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostCancelOrder($this->extend($request, $params));
         //
         //    {
         //        "success" => 1,
@@ -648,7 +647,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
@@ -670,11 +669,11 @@ class zaif extends Exchange {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
-        $response = $this->privatePostActiveOrders ($this->extend($request, $params));
+        $response = $this->privatePostActiveOrders($this->extend($request, $params));
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
@@ -702,11 +701,11 @@ class zaif extends Exchange {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
-        $response = $this->privatePostTradeHistory ($this->extend($request, $params));
+        $response = $this->privatePostTradeHistory($this->extend($request, $params));
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
@@ -736,7 +735,7 @@ class zaif extends Exchange {
         if ($tag !== null) {
             $request['message'] = $tag;
         }
-        $result = $this->privatePostWithdraw ($this->extend($request, $params));
+        $result = $this->privatePostWithdraw($this->extend($request, $params));
         //
         //     {
         //         "success" => 1,
@@ -810,7 +809,7 @@ class zaif extends Exchange {
         return sprintf('%.8f', $nonce);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api']['rest'] . '/';
         if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);

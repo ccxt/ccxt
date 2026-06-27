@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.5.60",
+  "version": "4.5.61",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -67,7 +67,7 @@
     "tsBuildFile": "tsc --outDir ./js/src ",
     "addJsHeaders": "tsx build/transpile.ts --js-headers",
     "tsBuild": "tsc && npm run addJsHeaders || echo \"\"",
-    "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
+    "tsBuildExamples": "tsx examples/clean-js-dir.ts && tsc -p ./examples/tsconfig.json",
     "emitAPI": "tsx build/generateImplicitAPI.ts",
     "emitAPITs": "tsx build/generateImplicitAPI.ts -- --ts",
     "emitAPIPy": "tsx build/generateImplicitAPI.ts -- --python",
@@ -84,7 +84,7 @@
     "pre-transpile-js-simple": "npm run export-exchanges && npm run emitAPITs && tsc && npm run validate-types",
     "pre-transpile-cs": "npm run export-exchanges && npm run emitAPICs",
     "pre-transpile-java": "npm run export-exchanges && npm run emitAPIJava",
-    "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run copy-python-files && npm run check-js-syntax && npm run bundle",
+    "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run check-js-syntax && npm run bundle",
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "cli.ts": "tsx ./cli/ts/cli.ts",
@@ -122,11 +122,12 @@
     "check-js-syntax": "node -e \"console.log(process.cwd())\" && eslint --version && npm run lint",
     "eslint": "eslint",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
-    "check-python-ruff": "ruff check ./python/ccxt",
+    "check-python-style": "ruff check ./python/ccxt",
     "check-python-types": "cd python && tox -e type && cd ..",
     "check-php-syntax": "npm run check-rest-php-syntax && npm run check-ws-php-syntax",
     "check-rest-php-syntax": "php -f php/test/custom/syntax.php",
     "check-ws-php-syntax": "php -f php/pro/test/custom/syntax.php",
+    "check-php-style": "php vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run",
     "bundle": "npm run bundle-cjs && npm run bundle-browser",
     "bundle-cjs": "rollup -c rollup.config.js",
     "bundle-browser": "rspack build -c rspack.config.js && CCXT_MINIMIZE=true CCXT_OUTPUT_FILENAME=ccxt.browser.min.js rspack build -c rspack.config.js",
@@ -361,6 +362,10 @@
     "@scure/bip39": "2.2.0",
     "@scure/starknet": "2.2.0",
     "ws": "8.21.0"
+  },
+  "overrides": {
+    "marked": "^4.0.10",
+    "piscina": "^4.9.3"
   },
   "optionalDependencies": {
     "bufferutil": "4.1.0"

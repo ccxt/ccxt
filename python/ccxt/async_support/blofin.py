@@ -164,9 +164,8 @@ class blofin(Exchange, ImplicitAPI):
                 '1w': '1W',
                 '1M': '1M',
             },
-            'hostname': 'www.blofin.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b',
+                'logo': 'https://github.com/user-attachments/assets/67edf117-6217-4cb8-95e7-9b03f314b1b1',
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
@@ -2718,7 +2717,7 @@ class blofin(Exchange, ImplicitAPI):
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.implode_hostname((self.urls['api'])['rest']) + request
+        url = self.urls['api']['rest'] + request
         # type = self.getPathAuthenticationType(path)
         if api == 'public':
             if not self.is_empty(query):

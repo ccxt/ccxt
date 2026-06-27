@@ -160,7 +160,7 @@ func (this *BitgetCore) Describe() any {
 		},
 		"hostname": "bitget.com",
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658",
+			"logo": "https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45",
 			"api": map[string]any{
 				"spot":    "https://api.{hostname}",
 				"mix":     "https://api.{hostname}",

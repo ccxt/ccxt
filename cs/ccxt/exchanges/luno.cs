@@ -9,7 +9,7 @@ public partial class luno : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "luno" },
-            { "name", "luno" },
+            { "name", "Luno" },
             { "countries", new List<object>() {"GB", "SG", "ZA"} },
             { "rateLimit", 200 },
             { "version", "1" },

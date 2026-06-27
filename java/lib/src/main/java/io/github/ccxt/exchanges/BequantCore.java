@@ -33,7 +33,7 @@ public class BequantCore extends BequantApi
                 put( "option", null );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867" );
+                put( "logo", "https://github.com/user-attachments/assets/01e199a6-5c65-4b03-83ab-7f9827c140f9" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.bequant.io/api/3" );
                     put( "private", "https://api.bequant.io/api/3" );

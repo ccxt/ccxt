@@ -81,7 +81,7 @@ func (this *ToobitCore) Describe() any {
 			"withdraw":                  true,
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e",
+			"logo": "https://github.com/user-attachments/assets/58e1b718-c6fd-49e2-8a49-797da6b9c008",
 			"api": map[string]any{
 				"common":  "https://api.toobit.com",
 				"private": "https://api.toobit.com",

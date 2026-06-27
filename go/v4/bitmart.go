@@ -111,7 +111,7 @@ func (this *BitmartCore) Describe() any {
 		},
 		"hostname": "bitmart.com",
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14",
+			"logo": "https://github.com/user-attachments/assets/3741e8c0-83a8-4504-ae68-32b00e3c27ee",
 			"api": map[string]any{
 				"spot": "https://api-cloud.{hostname}",
 				"swap": "https://api-cloud-v2.{hostname}",

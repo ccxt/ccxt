@@ -9,12 +9,11 @@ use Exception; // a common import
 use ccxt\async\abstract\hibachi as Exchange;
 use ccxt\ExchangeError;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 
 class hibachi extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hibachi',
@@ -124,7 +123,7 @@ class hibachi extends Exchange {
                 '1w' => '1w',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973',
+                'logo' => 'https://github.com/user-attachments/assets/f267bf5b-5c6c-45e2-9ce4-fb0af8a9d9ab',
                 'api' => array(
                     'public' => 'https://data-api.hibachi.xyz',
                     'private' => 'https://api.hibachi.xyz',
@@ -338,7 +337,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for hibachi
@@ -348,7 +347,7 @@ class hibachi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $response = Async\await($this->publicGetMarketExchangeInfo ($params));
+            $response = Async\await($this->publicGetMarketExchangeInfo($params));
             // array(
             //     "displayName" => "ETH/USDT Perps",
             //     "id" => 1,
@@ -376,7 +375,7 @@ class hibachi extends Exchange {
             // ),
             $rows = $this->safe_list($response, 'futureContracts');
             return $this->parse_markets($rows);
-        }) ();
+        })();
     }
 
     public function hardcoded_currencies(): array {
@@ -443,7 +442,7 @@ class hibachi extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -456,7 +455,7 @@ class hibachi extends Exchange {
             $request = array(
                 'accountId' => $this->get_account_id(),
             );
-            $response = Async\await($this->privateGetTradeAccountInfo ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTradeAccountInfo($this->extend($request, $params)));
             //
             // {
             //     assets => array( array( quantity => '3.000000', symbol => 'USDT' ) ),
@@ -474,7 +473,7 @@ class hibachi extends Exchange {
             // }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -580,7 +579,7 @@ class hibachi extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -598,7 +597,7 @@ class hibachi extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketDataTrades ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketDataTrades($this->extend($request, $params)));
             //
             // {
             //     "trades" => array(
@@ -613,10 +612,10 @@ class hibachi extends Exchange {
             //
             $trades = $this->safe_list($response, 'trades', array());
             return $this->parse_trades($trades, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_ticker(?string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(?string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -633,8 +632,8 @@ class hibachi extends Exchange {
                 'symbol' => $market['id'],
             );
             $rawPromises = array(
-                $this->publicGetMarketDataPrices ($this->extend($request, $params)),
-                $this->publicGetMarketDataStats ($this->extend($request, $params)),
+                $this->publicGetMarketDataPrices($this->extend($request, $params)),
+                $this->publicGetMarketDataStats($this->extend($request, $params)),
             );
             $promises = Async\await(Promise\all($rawPromises));
             $pricesResponse = $promises[0];
@@ -662,7 +661,7 @@ class hibachi extends Exchange {
                 'stats' => $statsResponse,
             );
             return $this->parse_ticker($ticker, $market);
-        }) ();
+        })();
     }
 
     public function parse_order_status(string $status): string {
@@ -739,7 +738,7 @@ class hibachi extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -760,12 +759,12 @@ class hibachi extends Exchange {
                 'orderId' => $id,
                 'accountId' => $this->get_account_id(),
             );
-            $response = Async\await($this->privateGetTradeOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTradeOrder($this->extend($request, $params)));
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
+    public function fetch_trading_fees($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fee
@@ -776,7 +775,7 @@ class hibachi extends Exchange {
             $request = array(
                 'accountId' => $this->get_account_id(),
             );
-            $response = Async\await($this->privateGetTradeAccountInfo ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTradeAccountInfo($this->extend($request, $params)));
             //    array(
             //        "tradeMakerFeeRate" => "0.00000000",
             //        "tradeTakerFeeRate" => "0.00020000"
@@ -795,7 +794,7 @@ class hibachi extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function order_message($market, float $nonce, float $feeRate, string $type, string $side, float $amount, ?float $price = null) {
@@ -848,9 +847,9 @@ class hibachi extends Exchange {
         return $message;
     }
 
-    public function create_order_request(float $nonce, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(float $nonce, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
-        $feeRate = max ($this->safe_number($market, 'taker', $this->safe_number($this->options, 'defaultTakerFee', 0.00045)), $this->safe_number($market, 'maker', $this->safe_number($this->options, 'defaultMakerFee', 0.00015)));
+        $feeRate = max($this->safe_number($market, 'taker', $this->safe_number($this->options, 'defaultTakerFee', 0.00045)), $this->safe_number($market, 'maker', $this->safe_number($this->options, 'defaultMakerFee', 0.00015)));
         $sideInternal = '';
         if ($side === 'sell') {
             $sideInternal = 'ASK';
@@ -891,7 +890,7 @@ class hibachi extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -910,7 +909,7 @@ class hibachi extends Exchange {
             $nonce = $this->nonce();
             $request = $this->create_order_request($nonce, $symbol, $type, $side, $amount, $price, $params);
             $request['accountId'] = $this->get_account_id();
-            $response = Async\await($this->privatePostTradeOrder ($request));
+            $response = Async\await($this->privatePostTradeOrder($request));
             //
             // {
             //     "orderId" => "578721673790138368"
@@ -920,10 +919,10 @@ class hibachi extends Exchange {
                 'id' => $this->safe_string($response, 'orderId'),
                 'status' => 'pending',
             ));
-        }) ();
+        })();
     }
 
-    public function create_orders(array $orders, $params = array ()): PromiseInterface {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(function () use ($orders, $params) {
             /**
              * *contract only* create a list of trade $orders
@@ -953,7 +952,7 @@ class hibachi extends Exchange {
                 'accountId' => $this->get_account_id(),
                 'orders' => $requestOrders,
             );
-            $response = Async\await($this->privatePostTradeOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTradeOrders($this->extend($request, $params)));
             //
             // array( "orders" => array( array( $nonce => '1754349993908', orderId => '589642085255349248' ) ) )
             //
@@ -968,12 +967,12 @@ class hibachi extends Exchange {
                 ));
             }
             return $ret;
-        }) ();
+        })();
     }
 
-    public function edit_order_request(float $nonce, string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order_request(float $nonce, string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
-        $feeRate = max ($this->safe_number($market, 'taker'), $this->safe_number($market, 'maker'));
+        $feeRate = max($this->safe_number($market, 'taker'), $this->safe_number($market, 'maker'));
         $message = $this->order_message($market, $nonce, $feeRate, $type, $side, $amount, $price);
         $signature = $this->sign_message($message, $this->privateKey);
         $request = array(
@@ -987,7 +986,7 @@ class hibachi extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a limit order that is not matched
@@ -1007,7 +1006,7 @@ class hibachi extends Exchange {
             $nonce = $this->nonce();
             $request = $this->edit_order_request($nonce, $id, $symbol, $type, $side, $amount, $price, $params);
             $request['accountId'] = $this->get_account_id();
-            Async\await($this->privatePutTradeOrder ($request));
+            Async\await($this->privatePutTradeOrder($request));
             // At this time the response body is empty. A 200 response means the update $request is accepted and sent to process
             //
             // array()
@@ -1016,10 +1015,10 @@ class hibachi extends Exchange {
                 'id' => $id,
                 'status' => 'pending',
             ));
-        }) ();
+        })();
     }
 
-    public function edit_orders(array $orders, $params = array ()): PromiseInterface {
+    public function edit_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(function () use ($orders, $params) {
             /**
              * edit a list of trade $orders
@@ -1050,7 +1049,7 @@ class hibachi extends Exchange {
                 'accountId' => $this->get_account_id(),
                 'orders' => $requestOrders,
             );
-            $response = Async\await($this->privatePostTradeOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTradeOrders($this->extend($request, $params)));
             //
             // array( "orders" => array( array( "orderId" => "589636801329628160" ) ) )
             //
@@ -1065,7 +1064,7 @@ class hibachi extends Exchange {
                 ));
             }
             return $ret;
-        }) ();
+        })();
     }
 
     public function cancel_order_request(string $id) {
@@ -1080,7 +1079,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
@@ -1094,7 +1093,7 @@ class hibachi extends Exchange {
              */
             $request = $this->cancel_order_request($id);
             $request['accountId'] = $this->get_account_id();
-            $response = Async\await($this->privateDeleteTradeOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteTradeOrder($this->extend($request, $params)));
             // At this time the $response body is empty. A 200 $response means the cancel $request is accepted and sent to cancel
             //
             // array()
@@ -1104,10 +1103,10 @@ class hibachi extends Exchange {
                 'id' => $id,
                 'status' => 'canceled',
             ));
-        }) ();
+        })();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple $orders
@@ -1129,7 +1128,7 @@ class hibachi extends Exchange {
                 'accountId' => $this->get_account_id(),
                 'orders' => $orders,
             );
-            $response = Async\await($this->privatePostTradeOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTradeOrders($this->extend($request, $params)));
             //
             // array( "orders" => array( array( "orderId" => "589636801329628160" ) ) )
             //
@@ -1144,10 +1143,10 @@ class hibachi extends Exchange {
                 ));
             }
             return $ret;
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -1173,7 +1172,7 @@ class hibachi extends Exchange {
                 $market = $this->market($symbol);
                 $request['contractId'] = $this->safe_integer($market, 'numericId');
             }
-            $response = Async\await($this->privateDeleteTradeOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteTradeOrders($this->extend($request, $params)));
             // At this time the $response body is empty. A 200 $response means the cancel $request is accepted and sent to process
             //
             // array()
@@ -1183,7 +1182,7 @@ class hibachi extends Exchange {
                     'info' => $response,
                 )),
             );
-        }) ();
+        })();
     }
 
     public function encode_withdraw_message(float $amount, float $maxFees, string $address) {
@@ -1213,7 +1212,7 @@ class hibachi extends Exchange {
         return $message;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1229,7 +1228,7 @@ class hibachi extends Exchange {
              */
             $withdrawAddress = mb_substr($address, -40);
             // Get the withdraw fees
-            $exchangeInfo = Async\await($this->publicGetMarketExchangeInfo ($params));
+            $exchangeInfo = Async\await($this->publicGetMarketExchangeInfo($params));
             // {
             //      "feeConfig" => array(
             //          "depositFees" => "0.004518",
@@ -1254,7 +1253,7 @@ class hibachi extends Exchange {
                 'maxFees' => $this->number_to_string($maxFees),
                 'signature' => $signature,
             );
-            Async\await($this->privatePostCapitalWithdraw ($this->extend($request, $params)));
+            Async\await($this->privatePostCapitalWithdraw($this->extend($request, $params)));
             // At this time the response body is empty. A 200 response means the withdraw $request is accepted and sent to process
             //
             // array()
@@ -1281,7 +1280,7 @@ class hibachi extends Exchange {
                 'comment' => null,
                 'internal' => null,
             );
-        }) ();
+        })();
     }
 
     public function nonce() {
@@ -1303,7 +1302,7 @@ class hibachi extends Exchange {
         }
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches the state of the open orders on the orderbook
@@ -1320,7 +1319,7 @@ class hibachi extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketDataOrderbook ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketDataOrderbook($this->extend($request, $params)));
             $formattedResponse = array();
             $formattedResponse['ask'] = $this->safe_list($this->safe_dict($response, 'ask'), 'levels');
             $formattedResponse['bid'] = $this->safe_list($this->safe_dict($response, 'bid'), 'levels');
@@ -1363,10 +1362,10 @@ class hibachi extends Exchange {
             //     }
             // }
             return $this->parse_order_book($formattedResponse, $symbol, $this->milliseconds(), 'bid', 'ask', 'price', 'quantity');
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -1385,7 +1384,7 @@ class hibachi extends Exchange {
                 $market = $this->market($symbol);
             }
             $request = array( 'accountId' => $this->get_account_id() );
-            $response = Async\await($this->privateGetTradeAccountTrades ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTradeAccountTrades($this->extend($request, $params)));
             //
             // {
             //     "trades" => array(
@@ -1409,7 +1408,7 @@ class hibachi extends Exchange {
             //
             $trades = $this->safe_list($response, 'trades');
             return $this->parse_trades($trades, $market, $since, $limit, $params);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1436,7 +1435,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches all current open orders
@@ -1457,7 +1456,7 @@ class hibachi extends Exchange {
             $request = array(
                 'accountId' => $this->get_account_id(),
             );
-            $response = Async\await($this->privateGetTradeOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTradeOrders($this->extend($request, $params)));
             // array(
             //     array(
             //         "accountId" => 12452,
@@ -1487,10 +1486,10 @@ class hibachi extends Exchange {
             //     }
             // )
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1520,7 +1519,7 @@ class hibachi extends Exchange {
             if ($until !== null) {
                 $request['toMs'] = $until;
             }
-            $response = Async\await($this->publicGetMarketDataKlines ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketDataKlines($this->extend($request, $params)));
             //
             // array(
             //     {
@@ -1536,10 +1535,10 @@ class hibachi extends Exchange {
             //
             $klines = $this->safe_list($response, 'klines', array());
             return $this->parse_ohlcvs($klines, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -1555,7 +1554,7 @@ class hibachi extends Exchange {
             $request = array(
                 'accountId' => $this->get_account_id(),
             );
-            $response = Async\await($this->privateGetTradeAccountInfo ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTradeAccountInfo($this->extend($request, $params)));
             //
             // {
             //     "assets" => array(
@@ -1600,7 +1599,7 @@ class hibachi extends Exchange {
             //
             $data = $this->safe_list($response, 'positions', array());
             return $this->parse_positions($data, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -1650,7 +1649,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $headers = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );
@@ -1771,7 +1770,7 @@ class hibachi extends Exchange {
         ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -1788,8 +1787,8 @@ class hibachi extends Exchange {
             $currency = $this->currency('USDT');
             $request = array( 'accountId' => $this->get_account_id() );
             $rawPromises = array(
-                $this->privateGetCapitalHistory ($this->extend($request, $params)),
-                $this->privateGetTradeAccountTradingHistory ($this->extend($request, $params)),
+                $this->privateGetCapitalHistory($this->extend($request, $params)),
+                $this->privateGetTradeAccountTradingHistory($this->extend($request, $params)),
             );
             $promises = Async\await(Promise\all($rawPromises));
             $responseCapitalHistory = $promises[0];
@@ -1877,10 +1876,10 @@ class hibachi extends Exchange {
             $rowsTradingHistory = $this->safe_list($responseTradingHistory, 'tradingHistory');
             $rows = $this->array_concat($rowsCapitalHistory, $rowsTradingHistory);
             return $this->parse_ledger($rows, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note => This method is currently only supported for trustless accounts
@@ -1893,7 +1892,7 @@ class hibachi extends Exchange {
                 'publicKey' => $this->safe_string($params, 'publicKey'),
                 'accountId' => $this->get_account_id(),
             );
-            $response = Async\await($this->privateGetCapitalDepositInfo ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetCapitalDepositInfo($this->extend($request, $params)));
             // {
             //     "depositAddressEvm" => "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
             // }
@@ -1904,7 +1903,7 @@ class hibachi extends Exchange {
                 'address' => $this->safe_string($response, 'depositAddressEvm'),
                 'tag' => null,
             );
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1938,7 +1937,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch $deposits made to account
@@ -1955,7 +1954,7 @@ class hibachi extends Exchange {
             $request = array(
                 'accountId' => $this->get_account_id(),
             );
-            $response = Async\await($this->privateGetCapitalHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetCapitalHistory($this->extend($request, $params)));
             // {
             //     "transactions" => array(
             //         array(
@@ -1996,10 +1995,10 @@ class hibachi extends Exchange {
                 }
             }
             return $this->parse_transactions($deposits, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch $withdrawals made from account
@@ -2016,7 +2015,7 @@ class hibachi extends Exchange {
             $request = array(
                 'accountId' => $this->get_account_id(),
             );
-            $response = Async\await($this->privateGetCapitalHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetCapitalHistory($this->extend($request, $params)));
             // {
             //     "transactions" => array(
             //         array(
@@ -2057,10 +2056,10 @@ class hibachi extends Exchange {
                 }
             }
             return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -2070,15 +2069,15 @@ class hibachi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetExchangeUtcTimestamp ($params));
+            $response = Async\await($this->publicGetExchangeUtcTimestamp($params));
             //
             //     array( "timestampMs":1754077574040 )
             //
             return $this->safe_integer($response, 'timestampMs');
-        }) ();
+        })();
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieves the open interest of a contract trading pair
@@ -2094,7 +2093,7 @@ class hibachi extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketDataOpenInterest ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketDataOpenInterest($this->extend($request, $params)));
             //
             //   array( "totalQuantity" : "2.3299770166" )
             //
@@ -2107,10 +2106,10 @@ class hibachi extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
                 'info' => $response,
             ), $market);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current $funding rate
@@ -2126,7 +2125,7 @@ class hibachi extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketDataPrices ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketDataPrices($this->extend($request, $params)));
             //
             // {
             //     "askPrice" => "3514.650296",
@@ -2164,10 +2163,10 @@ class hibachi extends Exchange {
                 'previousFundingDatetime' => null,
                 'interval' => '8h',
             );
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -2185,7 +2184,7 @@ class hibachi extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketDataFundingRates ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketDataFundingRates($this->extend($request, $params)));
             //
             // {
             //     "data" => array(
@@ -2213,6 +2212,6 @@ class hibachi extends Exchange {
             }
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-        }) ();
+        })();
     }
 }

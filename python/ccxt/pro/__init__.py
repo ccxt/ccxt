@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.60'
+__version__ = '4.5.61'
 
 # ----------------------------------------------------------------------------
 
@@ -100,6 +100,7 @@ from ccxt.pro.dydx import dydx                                            # noqa
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.extended import extended                                    # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
+from ccxt.pro.gateeu import gateeu                                        # noqa: F401
 from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.grvt import grvt                                            # noqa: F401
 from ccxt.pro.hashkey import hashkey                                      # noqa: F401
@@ -179,6 +180,7 @@ exchanges = [
     'exmo',
     'extended',
     'gate',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',

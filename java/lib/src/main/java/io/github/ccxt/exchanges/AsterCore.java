@@ -24,12 +24,11 @@ public class AsterCore extends AsterApi
             put( "name", "Aster" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("US")) );
             put( "rateLimit", 333 );
-            put( "hostname", "aster.markets" );
             put( "certified", false );
             put( "pro", true );
             put( "dex", true );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609" );
+                put( "logo", "https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7" );
                 put( "www", "https://www.asterdex.com/en" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "fapiPublic", "https://fapi.asterdex.com/fapi" );
@@ -4739,7 +4738,7 @@ public class AsterCore extends AsterApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object url = Helpers.add(Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api)), "/"), path);
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), path);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "fapiPublic")) || Helpers.isTrue(Helpers.isEqual(api, "sapiPublic"))))
         {
             if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))

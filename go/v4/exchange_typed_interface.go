@@ -406,6 +406,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "gate":
 		itf := NewGate(options)
 		return itf
+	case "gateeu":
+		itf := NewGateeu(options)
+		return itf
 	case "gemini":
 		itf := NewGemini(options)
 		return itf

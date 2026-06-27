@@ -16,7 +16,7 @@ func NewLunoCore() *LunoCore {
 func (this *LunoCore) Describe() any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "luno",
-		"name":      "luno",
+		"name":      "Luno",
 		"countries": []any{"GB", "SG", "ZA"},
 		"rateLimit": 200,
 		"version":   "1",

@@ -22,7 +22,6 @@ require('../static_dependencies/ethers/utils/maths.js');
 require('../static_dependencies/ethers/utils/utf8.js');
 require('../static_dependencies/ethers/address/address.js');
 var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
-var rng = require('../static_dependencies/jsencrypt/lib/jsbn/rng.js');
 var zklinkSdkWeb = require('../static_dependencies/zklink/zklink-sdk-web.js');
 require('@noble/curves/abstract/poseidon.js');
 var selector = require('../static_dependencies/starknet/utils/selector.js');
@@ -71,7 +70,7 @@ let SignMode = undefined;
  */
 class Exchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.60'; }
+    static { this.ccxtVersion = '4.5.61'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.api = undefined;
@@ -1577,11 +1576,9 @@ class Exchange {
         return dict;
     }
     randomBytes(length) {
-        const rng$1 = new rng.SecureRandom();
-        const x = [];
-        x.length = length;
-        rng$1.nextBytes(x);
-        return Buffer.from(x).toString('hex');
+        const x = new Uint8Array(length);
+        crypto.getRandomValues(x);
+        return this.binaryToBase16(x);
     }
     randNumber(size) {
         let number = '';

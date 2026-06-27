@@ -16,7 +16,7 @@ func NewCoincheckCore() *CoincheckCore {
 func (this *CoincheckCore) Describe() any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "coincheck",
-		"name":      "coincheck",
+		"name":      "Coincheck",
 		"countries": []any{"JP", "ID"},
 		"rateLimit": 1500,
 		"has": map[string]any{

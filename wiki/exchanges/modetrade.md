@@ -292,7 +292,7 @@ modetrade.fetchTradingFees (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>modetrade</code>](#modetrade)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot  
 
@@ -908,7 +908,7 @@ modetrade.fetchPositions (symbols?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>modetrade</code>](#modetrade)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook  
 

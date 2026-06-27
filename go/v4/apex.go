@@ -142,7 +142,7 @@ func (this *ApexCore) Describe() any {
 		},
 		"hostname": "omni.apex.exchange",
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00",
+			"logo": "https://github.com/user-attachments/assets/8ba7fbfa-0dd0-4ab9-8b72-ff60abe08ac6",
 			"api": map[string]any{
 				"public":  "https://{hostname}/api",
 				"private": "https://{hostname}/api",

@@ -119,7 +119,7 @@ aftermath.fetchTicker (symbol, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>aftermath</code>](#aftermath)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://testnet.aftermath.finance/docs/#/CCXT/orderbook  
 
@@ -588,7 +588,7 @@ aftermath.watchTrades (symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>aftermath</code>](#aftermath)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://testnet.aftermath.finance/docs/#/CCXT/service%3A%3Ahandlers%3A%3Accxt%3A%3Astream%3A%3Aorderbook  
 

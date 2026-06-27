@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.60';
+const version = '4.5.61';
 
 //-----------------------------------------------------------------------------
 
@@ -106,6 +106,7 @@ import extended from  './src/extended.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
+import gateeu from  './src/gateeu.js'
 import gemini from  './src/gemini.js'
 import grvt from  './src/grvt.js'
 import hashkey from  './src/hashkey.js'
@@ -195,6 +196,7 @@ import dydxPro from  './src/pro/dydx.js'
 import exmoPro from  './src/pro/exmo.js'
 import extendedPro from  './src/pro/extended.js'
 import gatePro from  './src/pro/gate.js'
+import gateeuPro from  './src/pro/gateeu.js'
 import geminiPro from  './src/pro/gemini.js'
 import grvtPro from  './src/pro/grvt.js'
 import hashkeyPro from  './src/pro/hashkey.js'
@@ -293,6 +295,7 @@ const exchanges = {
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
     'gate':                   gate,
+    'gateeu':                 gateeu,
     'gemini':                 gemini,
     'grvt':                   grvt,
     'hashkey':                hashkey,
@@ -382,6 +385,7 @@ const pro = {
     'exmo':                   exmoPro,
     'extended':               extendedPro,
     'gate':                   gatePro,
+    'gateeu':                 gateeuPro,
     'gemini':                 geminiPro,
     'grvt':                   grvtPro,
     'hashkey':                hashkeyPro,
@@ -624,6 +628,7 @@ export {
     fmfwio,
     foxbit,
     gate,
+    gateeu,
     gemini,
     grvt,
     hashkey,

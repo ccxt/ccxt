@@ -28,7 +28,6 @@ export default class modetrade extends Exchange {
             'certified': false,
             'pro': true,
             'dex': true,
-            'hostname': 'trade.mode.network',
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -128,7 +127,7 @@ export default class modetrade extends Exchange {
                 '1y': '1y',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b',
+                'logo': 'https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24',
                 'api': {
                     'public': 'https://api-evm.orderly.org',
                     'private': 'https://api-evm.orderly.org',
@@ -2886,8 +2885,7 @@ export default class modetrade extends Exchange {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.implodeHostname (this.urls['api'][access]);
-        url += '/' + version + '/';
+        let url = this.urls['api'][access] + '/' + version + '/';
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         if (access === 'public') {

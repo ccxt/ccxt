@@ -24,7 +24,6 @@ public partial class gemini : ccxt.gemini
                 { "watchOrderBookForSymbols", true },
                 { "watchOHLCV", true },
             } },
-            { "hostname", "api.gemini.com" },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
                     { "ws", "wss://api.gemini.com" },

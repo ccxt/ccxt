@@ -328,7 +328,7 @@ bitget.fetchDepositAddress (code, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -2122,7 +2122,7 @@ bitget.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 unsubscribe from the ohlcv channel
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -2150,7 +2150,7 @@ bitget.unWatchOHLCV (symbol, timeframe?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -2178,7 +2178,7 @@ bitget.watchOrderBook (symbol, limit?, params?)
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -2206,7 +2206,7 @@ bitget.unWatchOrderBook (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

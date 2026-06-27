@@ -17,7 +17,7 @@ class coincheck extends coincheck$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coincheck',
-            'name': 'coincheck',
+            'name': 'Coincheck',
             'countries': ['JP', 'ID'],
             'rateLimit': 1500,
             'has': {
@@ -374,7 +374,7 @@ class coincheck extends coincheck$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();

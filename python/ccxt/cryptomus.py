@@ -159,7 +159,7 @@ class cryptomus(Exchange, ImplicitAPI):
             },
             'timeframes': {},
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7',
+                'logo': 'https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0',
                 'api': {
                     'public': 'https://api.cryptomus.com',
                     'private': 'https://api.cryptomus.com',

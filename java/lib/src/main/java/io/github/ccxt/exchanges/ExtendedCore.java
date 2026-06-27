@@ -167,14 +167,14 @@ public class ExtendedCore extends ExtendedApi
             }} );
             put( "hostname", "extended.exchange" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299" );
+                put( "logo", "https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://api.starknet.{hostname}" );
                 }} );
                 put( "test", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://api.starknet.sepolia.{hostname}" );
                 }} );
-                put( "www", "https://app.{hostname}" );
+                put( "www", "https://app.extended.exchange" );
                 put( "doc", "https://api.docs.{hostname}" );
                 put( "fees", "https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates" );
                 put( "referral", "" );

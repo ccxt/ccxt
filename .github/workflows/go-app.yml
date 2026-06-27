@@ -146,6 +146,8 @@ jobs:
         run: |
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git checkout HEAD README.md wiki  # only JS does wiki pushback
+            git pull origin master
             rm -f ./go/tests/main
             rm -f ./go/v4/ccxt
             rm -f ./go/main

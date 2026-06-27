@@ -9,7 +9,7 @@ public partial class coincheck : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coincheck" },
-            { "name", "coincheck" },
+            { "name", "Coincheck" },
             { "countries", new List<object>() {"JP", "ID"} },
             { "rateLimit", 1500 },
             { "has", new Dictionary<string, object>() {

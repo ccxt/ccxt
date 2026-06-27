@@ -148,9 +148,8 @@ public partial class blofin : Exchange
                 { "1w", "1W" },
                 { "1M", "1M" },
             } },
-            { "hostname", "www.blofin.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b" },
+                { "logo", "https://github.com/user-attachments/assets/67edf117-6217-4cb8-95e7-9b03f314b1b1" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://openapi.blofin.com" },
                 } },
@@ -3149,7 +3148,7 @@ public partial class blofin : Exchange
         parameters ??= new Dictionary<string, object>();
         object request = add(add(add("/api/", this.version), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), "rest")), request);
+        object url = add(getValue(getValue(this.urls, "api"), "rest"), request);
         // const type = this.getPathAuthenticationType (path);
         if (isTrue(isEqual(api, "public")))
         {
