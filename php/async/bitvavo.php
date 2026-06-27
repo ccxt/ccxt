@@ -153,7 +153,7 @@ class bitvavo extends Exchange {
                 '1d' => '1d',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8',
+                'logo' => 'https://github.com/user-attachments/assets/35d690b1-5710-47f6-86e9-d638ce38685a',
                 'api' => array(
                     'public' => 'https://api.bitvavo.com',
                     'private' => 'https://api.bitvavo.com',
