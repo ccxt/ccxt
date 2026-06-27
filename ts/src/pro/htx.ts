@@ -1661,9 +1661,18 @@ export default class htx extends htxRest {
             this.positions[url] = {};
         }
         const rawPositions = this.safeValue (message, 'data', []);
+        if (this.isEmpty (rawPositions)) {
+            const prefixes = [ 'cross:positions', 'isolated:positions' ];
+            for (let i = 0; i < prefixes.length; i++) {
+                const messageHashes = this.findMessageHashes (client, prefixes[i]);
+                for (let j = 0; j < messageHashes.length; j++) {
+                    client.resolve ([], messageHashes[j]);
+                }
+            }
+            return;
+        }
         const newPositions = [];
         const positionsByMarginMode = {};
-        const timestamp = this.safeInteger (message, 'ts');
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
