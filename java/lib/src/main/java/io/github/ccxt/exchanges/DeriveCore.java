@@ -21,7 +21,7 @@ public class DeriveCore extends DeriveApi
     {
         return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
             put( "id", "derive" );
-            put( "name", "derive" );
+            put( "name", "Derive" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             put( "version", "v1" );
             put( "rateLimit", 50 );
