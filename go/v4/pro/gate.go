@@ -19,7 +19,11 @@ func NewGateCore() *GateCore {
 }
 
 func  (this *GateCore) Describe() any  {
-    return this.DeepExtend(this.base.Describe(), map[string]any {
+    var superDescribe any = this.base.Describe()
+    return this.DeepExtend(superDescribe, this.DescribeData())
+}
+func  (this *GateCore) DescribeData() any  {
+    return map[string]any {
         "has": map[string]any {
             "ws": true,
             "cancelAllOrdersWs": true,
@@ -139,7 +143,7 @@ func  (this *GateCore) Describe() any  {
                 "broad": map[string]any {},
             },
         },
-    })
+    }
 }
 /**
  * @method
@@ -180,8 +184,8 @@ func  (this *GateCore) CreateOrderWs(symbol any, typeVar any, side any, amount a
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes1688 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1688)
+            retRes1738 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1738)
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageType any = this.GetTypeByMarket(market)
@@ -190,8 +194,8 @@ func  (this *GateCore) CreateOrderWs(symbol any, typeVar any, side any, amount a
             ccxt.AddElementToObject(params, "textIsRequired", true)
             var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
         
-            retRes1768 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes1768)
+            retRes1818 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes1818)
         
             rawOrder:= (<-this.RequestPrivate(url, request, channel))
             ccxt.PanicOnError(rawOrder)
@@ -220,8 +224,8 @@ func  (this *GateCore) CreateOrdersWs(orders any, optionalArgs ...any) <- chan a
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes1928 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1928)
+            retRes1978 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1978)
             var request any = this.CreateOrdersRequest(orders, params)
             var firstOrder any = ccxt.GetValue(orders, 0)
             var market any = this.Market(ccxt.GetValue(firstOrder, "symbol"))
@@ -233,8 +237,8 @@ func  (this *GateCore) CreateOrdersWs(orders any, optionalArgs ...any) <- chan a
             var channel any = ccxt.Add(messageType, ".order_batch_place")
             var url any = this.GetUrlByMarket(market)
         
-            retRes2038 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes2038)
+            retRes2088 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes2088)
         
             rawOrders:= (<-this.RequestPrivate(url, request, channel))
             ccxt.PanicOnError(rawOrders)
@@ -269,8 +273,8 @@ func  (this *GateCore) CancelAllOrdersWs(optionalArgs ...any) <- chan any {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " cancelAllOrdersWs() requires a symbol argument")))
             }
         
-            retRes2238 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2238)
+            retRes2288 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2288)
             var market any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.Market(symbol))
             var trigger any = this.SafeBool2(params, "stop", "trigger")
             var messageType any = this.GetTypeByMarket(market)
@@ -287,8 +291,8 @@ func  (this *GateCore) CancelAllOrdersWs(optionalArgs ...any) <- chan any {
             request := ccxt.GetValue(requestrequestParamsVariable,0)
             requestParams := ccxt.GetValue(requestrequestParamsVariable,1)
         
-            retRes2338 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes2338)
+            retRes2388 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes2388)
         
             rawOrders:= (<-this.RequestPrivate(url, this.Extend(request, requestParams), channel))
             ccxt.PanicOnError(rawOrders)
@@ -321,8 +325,8 @@ func  (this *GateCore) CancelOrderWs(id any, optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes2518 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2518)
+            retRes2568 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2568)
             var market any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.Market(symbol))
             var trigger any = this.SafeValueN(params, []any{"is_stop_order", "stop", "trigger"}, false)
             params = this.Omit(params, []any{"is_stop_order", "stop", "trigger"})
@@ -336,8 +340,8 @@ func  (this *GateCore) CancelOrderWs(id any, optionalArgs ...any) <- chan any {
             var channel any = ccxt.Add(messageType, ".order_cancel")
             var url any = this.GetUrlByMarket(market)
         
-            retRes2608 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes2608)
+            retRes2658 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes2658)
             ccxt.AddElementToObject(request, "order_id", ccxt.ToString(id))
         
             res:= (<-this.RequestPrivate(url, this.Extend(request, requestParams), channel))
@@ -376,16 +380,16 @@ func  (this *GateCore) EditOrderWs(id any, symbol any, typeVar any, side any, op
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes2828 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2828)
+            retRes2878 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2878)
             var market any = this.Market(symbol)
             var extendedRequest any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
             var messageType any = this.GetTypeByMarket(market)
             var channel any = ccxt.Add(messageType, ".order_amend")
             var url any = this.GetUrlByMarket(market)
         
-            retRes2888 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes2888)
+            retRes2938 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes2938)
         
             rawOrder:= (<-this.RequestPrivate(url, extendedRequest, channel))
             ccxt.PanicOnError(rawOrder)
@@ -421,8 +425,8 @@ func  (this *GateCore) FetchOrderWs(id any, optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes3098 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3098)
+            retRes3148 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3148)
             var market any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.Market(symbol))
             requestrequestParamsVariable := this.FetchOrderRequest(id, symbol, params)
             request := ccxt.GetValue(requestrequestParamsVariable,0)
@@ -431,8 +435,8 @@ func  (this *GateCore) FetchOrderWs(id any, optionalArgs ...any) <- chan any {
             var channel any = ccxt.Add(messageType, ".order_status")
             var url any = this.GetUrlByMarket(market)
         
-            retRes3158 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes3158)
+            retRes3208 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes3208)
         
             rawOrder:= (<-this.RequestPrivate(url, this.Extend(request, requestParams), channel))
             ccxt.PanicOnError(rawOrder)
@@ -468,9 +472,9 @@ func  (this *GateCore) FetchOpenOrdersWs(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-                retRes33215 :=  (<-this.FetchOrdersByStatusWs("open", symbol, since, limit, params))
-                ccxt.PanicOnError(retRes33215)
-                ch <- retRes33215
+                retRes33715 :=  (<-this.FetchOrdersByStatusWs("open", symbol, since, limit, params))
+                ccxt.PanicOnError(retRes33715)
+                ch <- retRes33715
                 return nil
         
             }()
@@ -501,9 +505,9 @@ func  (this *GateCore) FetchClosedOrdersWs(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-                retRes34715 :=  (<-this.FetchOrdersByStatusWs("finished", symbol, since, limit, params))
-                ccxt.PanicOnError(retRes34715)
-                ch <- retRes34715
+                retRes35215 :=  (<-this.FetchOrdersByStatusWs("finished", symbol, since, limit, params))
+                ccxt.PanicOnError(retRes35215)
+                ch <- retRes35215
                 return nil
         
             }()
@@ -537,8 +541,8 @@ func  (this *GateCore) FetchOrdersByStatusWs(status any, optionalArgs ...any) <-
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes3658 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3658)
+            retRes3708 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3708)
             var market any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -555,8 +559,8 @@ func  (this *GateCore) FetchOrdersByStatusWs(status any, optionalArgs ...any) <-
             var channel any = ccxt.Add(messageType, ".order_list")
             var url any = this.GetUrlByMarket(market)
         
-            retRes3798 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes3798)
+            retRes3848 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes3848)
         
             rawOrders:= (<-this.RequestPrivate(url, this.Extend(newRequest, requestParams), channel))
             ccxt.PanicOnError(rawOrders)
@@ -593,18 +597,19 @@ func  (this *GateCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan a
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes4018 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4018)
+            retRes4068 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4068)
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var marketId any = ccxt.GetValue(market, "id")
-            var intervalDefault any = ccxt.Ternary(ccxt.IsTrue((ccxt.GetValue(market, "spot"))), "50", "100ms")
+            var url any = this.GetUrlByMarket(market)
+            var isEuUrl any = ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(url, "gateeu"), 0)
+            var intervalDefault any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(ccxt.GetValue(market, "spot")) && !ccxt.IsTrue(isEuUrl))), "50", "100ms")
             intervalqueryVariable := this.HandleOptionAndParams(params, "watchOrderBook", "interval", intervalDefault)
             interval := ccxt.GetValue(intervalqueryVariable,0)
             query := ccxt.GetValue(intervalqueryVariable,1)
             var messageType any = this.GetTypeByMarket(market)
             var messageHash any = ccxt.Add(ccxt.Add("orderbook", ":"), symbol)
-            var url any = this.GetUrlByMarket(market)
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
                 limit = ccxt.Ternary(ccxt.IsTrue((ccxt.GetValue(market, "spot"))), 50, 100) // max 100 atm
                 if ccxt.IsTrue(ccxt.IsEqual(messageType, "options")) {
@@ -613,7 +618,10 @@ func  (this *GateCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan a
             }
             var payload any = []any{}
             var channel any = ""
-            if ccxt.IsTrue(ccxt.GetValue(market, "spot")) {
+            if ccxt.IsTrue(isEuUrl) {
+                channel = "spot.order_book_update"
+                payload = []any{marketId, interval}
+            } else if ccxt.IsTrue(ccxt.GetValue(market, "spot")) {
                 channel = "spot.obu"
                 var finalInterval any = interval
                 if ccxt.IsTrue(ccxt.IsEqual(limit, 400)) {
@@ -656,30 +664,50 @@ func  (this *GateCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- chan
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes4488 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4488)
+            retRes4578 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4578)
             var market any = this.Market(symbol)
+            var url any = this.GetUrlByMarket(market)
             symbol = ccxt.GetValue(market, "symbol")
             var marketId any = ccxt.GetValue(market, "id")
-            var interval any = "100ms"
+            var isEuUrl any = ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(url, "gateeu"), 0)
+            var intervalDefault any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(ccxt.GetValue(market, "spot")) && !ccxt.IsTrue(isEuUrl))), "50", "100ms")
+            var interval any = intervalDefault
             intervalparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
             interval = ccxt.GetValue(intervalparamsVariable,0)
             params = ccxt.GetValue(intervalparamsVariable,1)
             var messageType any = this.GetTypeByMarket(market)
-            var channel any = ccxt.Add(messageType, ".order_book_update")
-            var subMessageHash any = ccxt.Add(ccxt.Add("orderbook", ":"), symbol)
-            var messageHash any = ccxt.Add(ccxt.Add("unsubscribe:orderbook", ":"), symbol)
-            var url any = this.GetUrlByMarket(market)
-            var payload any = []any{marketId, interval}
-            var limit any = this.SafeInteger(params, "limit", 100)
-            if ccxt.IsTrue(ccxt.GetValue(market, "contract")) {
+            var limit any = this.SafeInteger(params, "limit")
+            if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
+                limit = ccxt.Ternary(ccxt.IsTrue((ccxt.GetValue(market, "spot"))), 50, 100) // max 100 atm
+                if ccxt.IsTrue(ccxt.IsEqual(messageType, "options")) {
+                    limit = 50 // max 50 for options
+                }
+            }
+            var payload any = []any{}
+            var channel any = ""
+            if ccxt.IsTrue(isEuUrl) {
+                channel = "spot.order_book_update"
+                payload = []any{marketId, interval}
+            } else if ccxt.IsTrue(ccxt.GetValue(market, "spot")) {
+                channel = "spot.obu"
+                var finalInterval any = interval
+                if ccxt.IsTrue(ccxt.IsEqual(limit, 400)) {
+                    finalInterval = "400"
+                }
+                payload = []any{ccxt.Add(ccxt.Add(ccxt.Add("ob.", ccxt.GetValue(market, "id")), "."), finalInterval)}
+            } else {
+                channel = ccxt.Add(messageType, ".order_book_update")
+                payload = []any{marketId, interval}
                 var stringLimit any = ccxt.ToString(limit)
                 ccxt.AppendToArray(&payload, stringLimit)
             }
+            var subMessageHash any = ccxt.Add(ccxt.Add("orderbook", ":"), symbol)
+            var messageHash any = ccxt.Add(ccxt.Add("unsubscribe:orderbook", ":"), symbol)
         
-                retRes46515 :=  (<-this.UnSubscribePublicMultiple(url, "orderbook", []any{symbol}, []any{messageHash}, []any{subMessageHash}, payload, channel, params))
-                ccxt.PanicOnError(retRes46515)
-                ch <- retRes46515
+                retRes49415 :=  (<-this.UnSubscribePublicMultiple(url, "orderbook", []any{symbol}, []any{messageHash}, []any{subMessageHash}, payload, channel, params))
+                ccxt.PanicOnError(retRes49415)
+                ch <- retRes49415
                 return nil
         
             }()
@@ -902,8 +930,8 @@ func  (this *GateCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any 
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes6848 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6848)
+            retRes7138 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7138)
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             ccxt.AddElementToObject(params, "callerMethodName", "watchTicker")
@@ -938,11 +966,11 @@ func  (this *GateCore) WatchTickers(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes70415 :=  (<-this.SubscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.Extend(map[string]any {
+                retRes73315 :=  (<-this.SubscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.Extend(map[string]any {
                 "method": "tickers",
             }, params)))
-                ccxt.PanicOnError(retRes70415)
-                ch <- retRes70415
+                ccxt.PanicOnError(retRes73315)
+                ch <- retRes73315
                 return nil
         
             }()
@@ -990,11 +1018,11 @@ func  (this *GateCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes74115 :=  (<-this.SubscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.Extend(map[string]any {
+                retRes77015 :=  (<-this.SubscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.Extend(map[string]any {
                 "method": "book_ticker",
             }, params)))
-                ccxt.PanicOnError(retRes74115)
-                ch <- retRes74115
+                ccxt.PanicOnError(retRes77015)
+                ch <- retRes77015
                 return nil
         
             }()
@@ -1032,8 +1060,8 @@ func  (this *GateCore) SubscribeWatchTickersAndBidsAsks(optionalArgs ...any) <- 
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes7668 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7668)
+            retRes7958 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7958)
             callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", callerMethodName)
             callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable,0)
             params = ccxt.GetValue(callerMethodNameparamsVariable,1)
@@ -1127,9 +1155,9 @@ func  (this *GateCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any 
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes83815 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes83815)
-                ch <- retRes83815
+                retRes86715 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes86715)
+                ch <- retRes86715
                 return nil
         
             }()
@@ -1161,8 +1189,8 @@ func  (this *GateCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) <
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes8568 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8568)
+            retRes8858 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8858)
             symbols = this.MarketSymbols(symbols)
             var marketIds any = this.MarketIds(symbols)
             var market any = this.Market(ccxt.GetValue(symbols, 0))
@@ -1205,8 +1233,8 @@ func  (this *GateCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...any)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes8868 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8868)
+            retRes9158 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9158)
             symbols = this.MarketSymbols(symbols)
             var marketIds any = this.MarketIds(symbols)
             var market any = this.Market(ccxt.GetValue(symbols, 0))
@@ -1221,9 +1249,9 @@ func  (this *GateCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...any)
             }
             var url any = this.GetUrlByMarket(market)
         
-                retRes90015 :=  (<-this.UnSubscribePublicMultiple(url, "trades", symbols, messageHashes, subMessageHashes, marketIds, channel, params))
-                ccxt.PanicOnError(retRes90015)
-                ch <- retRes90015
+                retRes92915 :=  (<-this.UnSubscribePublicMultiple(url, "trades", symbols, messageHashes, subMessageHashes, marketIds, channel, params))
+                ccxt.PanicOnError(retRes92915)
+                ch <- retRes92915
                 return nil
         
             }()
@@ -1245,9 +1273,9 @@ func  (this *GateCore) UnWatchTrades(symbol any, optionalArgs ...any) <- chan an
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes91215 :=  (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
-                ccxt.PanicOnError(retRes91215)
-                ch <- retRes91215
+                retRes94115 :=  (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
+                ccxt.PanicOnError(retRes94115)
+                ch <- retRes94115
                 return nil
         
             }()
@@ -1317,8 +1345,8 @@ func  (this *GateCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes9678 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9678)
+            retRes9968 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9968)
             // todo add options support
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
@@ -1426,8 +1454,8 @@ func  (this *GateCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes10578 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10578)
+            retRes10868 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10868)
             var subType any = nil
             var typeVar any = nil
             var marketId any = ccxt.Add("!", "all")
@@ -1539,8 +1567,8 @@ func  (this *GateCore) WatchBalance(optionalArgs ...any) <- chan any {
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes11538 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11538)
+            retRes11828 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes11828)
             var typeVar any = nil
             var subType any = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
@@ -1563,9 +1591,9 @@ func  (this *GateCore) WatchBalance(optionalArgs ...any) <- chan any {
             var channel any = ccxt.Add(channelType, ".balances")
             var messageHash any = ccxt.Add(typeVar, ".balance")
         
-                retRes117115 :=  (<-this.SubscribePrivate(url, messageHash, nil, channel, params, requiresUid))
-                ccxt.PanicOnError(retRes117115)
-                ch <- retRes117115
+                retRes120015 :=  (<-this.SubscribePrivate(url, messageHash, nil, channel, params, requiresUid))
+                ccxt.PanicOnError(retRes120015)
+                ch <- retRes120015
                 return nil
         
             }()
@@ -1690,8 +1718,8 @@ func  (this *GateCore) WatchPositions(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes12818 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12818)
+            retRes13108 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes13108)
             var market any = nil
             symbols = this.MarketSymbols(symbols)
             var payload any = []any{ccxt.Add("!", "all")}
@@ -1729,9 +1757,9 @@ func  (this *GateCore) WatchPositions(optionalArgs ...any) <- chan any {
             var cache any = this.SafeValue(this.Positions, typeVar)
             if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(cache, nil))) {
         
-                    retRes131419 :=  (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
-                    ccxt.PanicOnError(retRes131419)
-                    ch <- retRes131419
+                    retRes134319 :=  (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
+                    ccxt.PanicOnError(retRes134319)
+                    ch <- retRes134319
                     return nil
             }
         
@@ -1906,8 +1934,8 @@ func  (this *GateCore) WatchOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes14578 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14578)
+            retRes14868 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes14868)
             var market any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2086,8 +2114,8 @@ func  (this *GateCore) WatchMyLiquidationsForSymbols(symbols any, optionalArgs .
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes16028 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16028)
+            retRes16318 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes16318)
             symbols = this.MarketSymbols(symbols, nil, true, true)
             var market any = this.GetMarketFromSymbols(symbols)
             var typeVar any = nil
@@ -2643,9 +2671,9 @@ func  (this *GateCore) SubscribePublic(url any, messageHash any, payload any, ch
             }
             var message any = this.Extend(request, params)
         
-                retRes212815 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
-                ccxt.PanicOnError(retRes212815)
-                ch <- retRes212815
+                retRes215715 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
+                ccxt.PanicOnError(retRes215715)
+                ch <- retRes215715
                 return nil
         
             }()
@@ -2669,9 +2697,9 @@ func  (this *GateCore) SubscribePublicMultiple(url any, messageHashes any, paylo
             }
             var message any = this.Extend(request, params)
         
-                retRes214215 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-                ccxt.PanicOnError(retRes214215)
-                ch <- retRes214215
+                retRes217115 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+                ccxt.PanicOnError(retRes217115)
+                ch <- retRes217115
                 return nil
         
             }()
@@ -2703,9 +2731,9 @@ func  (this *GateCore) UnSubscribePublicMultiple(url any, topic any, symbols any
             }
             var message any = this.Extend(request, params)
         
-                retRes216415 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
-                ccxt.PanicOnError(retRes216415)
-                ch <- retRes216415
+                retRes219315 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
+                ccxt.PanicOnError(retRes219315)
+                ch <- retRes219315
                 return nil
         
             }()
@@ -2723,9 +2751,9 @@ func  (this *GateCore) Authenticate(url any, messageType any) <- chan any {
             var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
             if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
         
-                    retRes217419 :=  (<-this.RequestPrivate(url, map[string]any {}, channel, messageHash))
-                    ccxt.PanicOnError(retRes217419)
-                    ch <- retRes217419
+                    retRes220319 :=  (<-this.RequestPrivate(url, map[string]any {}, channel, messageHash))
+                    ccxt.PanicOnError(retRes220319)
+                    ch <- retRes220319
                     return nil
             }
         
@@ -2779,9 +2807,9 @@ func  (this *GateCore) RequestPrivate(url any, reqParams any, channel any, optio
                 "payload": payload,
             }
         
-                retRes221715 :=  (<-this.Watch(url, messageHash, request, messageHash, requestId))
-                ccxt.PanicOnError(retRes221715)
-                ch <- retRes221715
+                retRes224615 :=  (<-this.Watch(url, messageHash, request, messageHash, requestId))
+                ccxt.PanicOnError(retRes224615)
+                ch <- retRes224615
                 return nil
         
             }()
@@ -2835,9 +2863,9 @@ func  (this *GateCore) SubscribePrivate(url any, messageHash any, payload any, c
             }
             var message any = this.Extend(request, params)
         
-                retRes226115 :=  (<-this.Watch(url, messageHash, message, messageHash, messageHash))
-                ccxt.PanicOnError(retRes226115)
-                ch <- retRes226115
+                retRes229015 :=  (<-this.Watch(url, messageHash, message, messageHash, messageHash))
+                ccxt.PanicOnError(retRes229015)
+                ch <- retRes229015
                 return nil
         
             }()

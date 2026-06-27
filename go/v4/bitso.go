@@ -130,7 +130,7 @@ func (this *BitsoCore) Describe() any {
 			"withdraw":                               true,
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975",
+			"logo": "https://github.com/user-attachments/assets/3d0c1e5e-8aaa-419f-968a-2b7409381ce4",
 			"api": map[string]any{
 				"rest": "https://bitso.com/api",
 			},
