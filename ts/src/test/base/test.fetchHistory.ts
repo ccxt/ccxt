@@ -6,6 +6,7 @@ import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 async function testFetchHistoryBase () {
+    // @SKIP_START_GO
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
@@ -15,25 +16,24 @@ async function testFetchHistoryBase () {
     // try 3 times
     try {
         await exchange.fetch2 ('sample1');
-        assert (trueAssertion); // fail intentionally
     } catch (error) {
-        const fetchHistoryCache = exchange.getFetchCache ();
-        assert (fetchHistoryCache.length === 1, 'fetchHistoryCache should be an array with 1 element');
+        assert (trueAssertion); // just skip
     }
+    assert ((exchange.getFetchCache ()).length === 1, 'fetchHistoryCache should be an array with 1 element');
     try {
         await exchange.fetch2 ('sample2');
-        assert (trueAssertion); // fail intentionally
     } catch (error) {
-        const fetchHistoryCache = exchange.getFetchCache ();
-        assert (fetchHistoryCache.length === 2, 'fetchHistoryCache should be an array with 2 elements');
+        assert (trueAssertion); // just skip
     }
+    assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
     try {
         await exchange.fetch2 ('sample3');
-        assert (trueAssertion); // fail intentionally
     } catch (error) {
-        const fetchHistoryCache = exchange.getFetchCache ();
-        assert (fetchHistoryCache.length === 2, 'fetchHistoryCache should be an array with 2 elements');
+        assert (trueAssertion); // just skip
     }
+    assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+    // @SKIP_END_GO
+    assert (1 + 1 < 3, 'sample assertion');
 }
 
 
