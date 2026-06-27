@@ -12,7 +12,7 @@ class derive extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'derive',
-            'name' => 'derive',
+            'name' => 'Derive',
             'countries' => array(),
             'version' => 'v1',
             'rateLimit' => 50,

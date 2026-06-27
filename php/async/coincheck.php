@@ -17,7 +17,7 @@ class coincheck extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coincheck',
-            'name' => 'coincheck',
+            'name' => 'Coincheck',
             'countries' => array( 'JP', 'ID' ),
             'rateLimit' => 1500,
             'has' => array(

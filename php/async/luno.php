@@ -17,7 +17,7 @@ class luno extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'luno',
-            'name' => 'luno',
+            'name' => 'Luno',
             'countries' => array( 'GB', 'SG', 'ZA' ),
             // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit' => 200,

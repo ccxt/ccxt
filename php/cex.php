@@ -115,7 +115,7 @@ class cex extends Exchange {
                 'transfer' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/6105a195-3bae-4a08-a1bd-b2a86e3e8f99',
                 'api' => array(
                     'public' => 'https://trade.cex.io/api/spot/rest-public',
                     'private' => 'https://trade.cex.io/api/spot/rest',
