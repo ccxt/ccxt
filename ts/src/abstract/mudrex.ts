@@ -9,17 +9,32 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    bybit_publicGetV5MarketKline (params?: {}): Promise<implicitReturnType>;
-    bybit_publicGetV5MarketTickers (params?: {}): Promise<implicitReturnType>;
-    bybit_publicGetV5MarketOrderbook (params?: {}): Promise<implicitReturnType>;
-    bybit_publicGetV5MarketRecentTrade (params?: {}): Promise<implicitReturnType>;
-    bybit_publicGetV5MarketFundingHistory (params?: {}): Promise<implicitReturnType>;
-    bybit_publicGetV5MarketMarkPriceKline (params?: {}): Promise<implicitReturnType>;
-    bybit_publicGetV5MarketIndexPriceKline (params?: {}): Promise<implicitReturnType>;
-    mudrex_publicGetFutures (params?: {}): Promise<implicitReturnType>;
-    mudrex_publicGetFuturesFunds (params?: {}): Promise<implicitReturnType>;
-    mudrex_publicGetWalletFunds (params?: {}): Promise<implicitReturnType>;
-    mudrex_privatePostWalletFuturesTransfer (params?: {}): Promise<implicitReturnType>;
+    marketGetPriceKline (params?: {}): Promise<implicitReturnType>;
+    marketGetPriceMarkKline (params?: {}): Promise<implicitReturnType>;
+    privateGetFutures (params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesAssetId (params?: {}): Promise<implicitReturnType>;
+    privateGetWalletFunds (params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesFunds (params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesOrdersHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesPositionsHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesFeeHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesAssetIdLeverage (params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesPositionsPositionIdLiqPrice (params?: {}): Promise<implicitReturnType>;
+    privatePostWalletFuturesTransfer (params?: {}): Promise<implicitReturnType>;
+    privatePostFuturesTransfersInr (params?: {}): Promise<implicitReturnType>;
+    privatePostFuturesAssetIdOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostFuturesPositionsPositionIdClose (params?: {}): Promise<implicitReturnType>;
+    privatePostFuturesPositionsPositionIdClosePartial (params?: {}): Promise<implicitReturnType>;
+    privatePostFuturesPositionsPositionIdReverse (params?: {}): Promise<implicitReturnType>;
+    privatePostFuturesPositionsPositionIdAddMargin (params?: {}): Promise<implicitReturnType>;
+    privatePostFuturesPositionsPositionIdRiskorder (params?: {}): Promise<implicitReturnType>;
+    privatePostFuturesAssetIdLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePatchFuturesOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    privatePatchFuturesPositionsPositionIdRiskorder (params?: {}): Promise<implicitReturnType>;
+    privateDeleteFuturesOrdersOrderId (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

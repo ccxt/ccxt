@@ -1,0 +1,251 @@
+
+// ---------------------------------------------------------------------------
+
+import mudrexRest from '../mudrex.js';
+import { AuthenticationError, BadRequest, ExchangeError, NotSupported, RateLimitExceeded } from '../base/errors.js';
+import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
+import type { Int, OHLCV, Strings, Ticker, Tickers, Dict } from '../base/types.js';
+
+// ---------------------------------------------------------------------------
+
+export default class mudrex extends mudrexRest {
+    describe (): any {
+        return this.deepExtend (super.describe (), {
+            'has': {
+                'ws': true,
+                'watchOHLCV': true,
+                'watchTicker': true,
+                'watchTickers': true,
+            },
+            'urls': {
+                'api': {
+                    'ws': 'wss://trade.mudrex.com/fapi/v1/price/ws/linear',
+                },
+            },
+            'options': {
+                'broker': '42ce8902-8585-448c-a1e8-0371a6ca7ca8',
+            },
+            'streaming': {
+                'ping': this.ping,
+                'keepAlive': 20000,
+            },
+        });
+    }
+
+    ping (client) {
+        return {
+            'id': this.requestId (),
+            'method': 'PING',
+        };
+    }
+
+    requestId () {
+        const reqid = this.sum (this.safeInteger (this.options, 'correlationId', 0), 1);
+        this.options['correlationId'] = reqid;
+        return reqid;
+    }
+
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'ticker:' + symbol;
+        const url = this.urls['api']['ws'];
+        const brokerId = this.safeString (this.options, 'broker');
+        let headers = undefined;
+        if (brokerId !== undefined) {
+            headers = {
+                'Partner-Id': brokerId,
+            };
+        }
+        const subscribe: Dict = {
+            'id': this.requestId (),
+            'method': 'SUBSCRIBE',
+            'params': [ 'ticker@1s' ],
+            'assets': [ market['baseId'].toLowerCase () + market['quoteId'].toLowerCase () ],
+        };
+        const request = this.extend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash, undefined, headers);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const messageHashes = [];
+        const assets = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                messageHashes.push ('ticker:' + market['symbol']);
+                assets.push (market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ());
+            }
+        }
+        const url = this.urls['api']['ws'];
+        const brokerId = this.safeString (this.options, 'broker');
+        let headers = undefined;
+        if (brokerId !== undefined) {
+            headers = {
+                'Partner-Id': brokerId,
+            };
+        }
+        const subscribe: Dict = {
+            'id': this.requestId (),
+            'method': 'SUBSCRIBE',
+            'params': [ 'ticker@1s' ],
+            'assets': assets,
+        };
+        const request = this.extend (subscribe, params);
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash = 'tickers::' + symbols.join (',');
+        }
+        const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined, headers);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArrayTickers (this.tickers, 'symbol', symbols);
+    }
+
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const priceType = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        if (interval !== '1s' && interval !== '1m') {
+            throw new NotSupported (this.id + ' watchOHLCV() supports 1s and 1m timeframes only');
+        }
+        let prefix = 'kline';
+        if (priceType === 'mark') {
+            prefix = 'markKline';
+        }
+        const stream = prefix + '@' + interval + '@' + market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ();
+        const messageHash = stream;
+        const url = this.urls['api']['ws'];
+        const brokerId = this.safeString (this.options, 'broker');
+        let headers = undefined;
+        if (brokerId !== undefined) {
+            headers = {
+                'Partner-Id': brokerId,
+            };
+        }
+        const subscribe: Dict = {
+            'id': this.requestId (),
+            'method': 'SUBSCRIBE',
+            'params': [ stream ],
+        };
+        const request = this.extend (subscribe, params);
+        const ohlcv = await this.watch (url, messageHash, request, messageHash, undefined, headers);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleMessage (client, message) {
+        if (this.safeString (message, 'method') === 'PONG') {
+            return;
+        }
+        const error = this.safeDict (message, 'error');
+        if (error !== undefined) {
+            this.handleErrorMessage (client, message);
+            return;
+        }
+        const stream = this.safeString (message, 'stream');
+        if (stream !== undefined) {
+            if (stream.indexOf ('kline') >= 0 || stream.indexOf ('markKline') >= 0) {
+                this.handleOHLCV (client, message);
+            } else if (stream.indexOf ('ticker') >= 0) {
+                this.handleTicker (client, message);
+            }
+        }
+    }
+
+    handleErrorMessage (client, message) {
+        const error = this.safeDict (message, 'error', {});
+        const code = this.safeString (error, 'code');
+        const msg = this.safeString (error, 'msg');
+        const feedback = this.id + ' ' + msg;
+        if (code === '429') {
+            throw new RateLimitExceeded (feedback);
+        }
+        throw new ExchangeError (feedback);
+    }
+
+    handleOHLCV (client, message) {
+        const stream = this.safeString (message, 'stream');
+        const parts = stream.split ('@');
+        const interval = parts[1];
+        const tf = this.findTimeframe (interval);
+        const data = this.safeDict (message, 'data', {});
+        const s = this.safeString (data, 's');
+        const u = s ? s.toUpperCase () : undefined;
+        let symbol = undefined;
+        if (u !== undefined) {
+            let base = u;
+            if (u.endsWith ('USDT')) {
+                base = u.slice (0, -4);
+            }
+            const unified = base + '/USDT:USDT';
+            const market = this.safeMarket (unified);
+            symbol = market['symbol'];
+        }
+        if (symbol === undefined) {
+            return;
+        }
+        const parsed = [
+            this.safeTimestamp (data, 't'),
+            this.safeNumber (data, 'o'),
+            this.safeNumber (data, 'h'),
+            this.safeNumber (data, 'l'),
+            this.safeNumber (data, 'c'),
+            this.safeNumber (data, 'v'),
+        ];
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], tf);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][tf] = stored;
+        }
+        stored.append (parsed);
+        const messageHash = stream;
+        client.resolve (stored, messageHash);
+    }
+
+    handleTicker (client, message) {
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const t = data[i];
+            const s = this.safeString (t, 's');
+            if (s === undefined) {
+                continue;
+            }
+            const u = s.toUpperCase ();
+            let base = u;
+            if (u.endsWith ('USDT')) {
+                base = u.slice (0, -4);
+            }
+            const unified = base + '/USDT:USDT';
+            const market = this.safeMarket (unified);
+            const symbol = market['symbol'];
+            const timestamp = this.milliseconds ();
+            const last = this.safeNumber (t, 'p');
+            const result = this.safeTicker ({
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'last': last,
+                'close': last,
+                'info': t,
+            });
+            this.tickers[symbol] = result;
+            const messageHash = 'ticker:' + symbol;
+            client.resolve (result, messageHash);
+            client.resolve (result, 'tickers');
+        }
+    }
+}
