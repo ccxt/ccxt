@@ -128,7 +128,7 @@ public class BtcturkCore extends BtcturkApi
                 put( "1y", "1 y" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/10e0a238-9f60-4b06-9dda-edfc7602f1d6" );
+                put( "logo", "https://github.com/user-attachments/assets/710711ff-1278-4e7a-9b03-b5503dd85b59" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.btcturk.com/api/v2" );
                     put( "private", "https://api.btcturk.com/api/v1" );

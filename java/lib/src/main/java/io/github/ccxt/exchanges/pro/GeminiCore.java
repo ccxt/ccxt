@@ -35,7 +35,6 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 put( "watchOrderBookForSymbols", true );
                 put( "watchOHLCV", true );
             }} );
-            put( "hostname", "api.gemini.com" );
             put( "urls", new java.util.HashMap<String, Object>() {{
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "ws", "wss://api.gemini.com" );

@@ -7,11 +7,10 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class dydx extends \ccxt\async\dydx {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -37,7 +36,7 @@ class dydx extends \ccxt\async\dydx {
         ));
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -61,13 +60,13 @@ class dydx extends \ccxt\async\dydx {
             );
             $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
-    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unsubscribes from the trades channel
@@ -88,7 +87,7 @@ class dydx extends \ccxt\async\dydx {
                 'id' => $market['id'],
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_trades($client, $message) {
@@ -122,16 +121,16 @@ class dydx extends \ccxt\async\dydx {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $parsedTrades = $this->parse_trades($rawTrades, $market);
         for ($i = 0; $i < count($parsedTrades); $i++) {
             $parsed = $parsedTrades[$i];
-            $stored->append ($parsed);
+            $stored->append($parsed);
         }
         $messageHash = 'trade' . ':' . $symbol;
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
     public function parse_ws_trade($trade, $market = null) {
@@ -164,7 +163,7 @@ class dydx extends \ccxt\async\dydx {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -186,11 +185,11 @@ class dydx extends \ccxt\async\dydx {
                 'id' => $market['id'],
             );
             $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -211,7 +210,7 @@ class dydx extends \ccxt\async\dydx {
                 'id' => $market['id'],
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -254,21 +253,21 @@ class dydx extends \ccxt\async\dydx {
         $orderbook['nonce'] = $this->safe_integer($message, 'message_id');
         $messageHash = 'orderbook:' . $symbol;
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
         if ((gettype($delta) === 'array' && array_keys($delta) === array_keys(array_keys($delta)))) {
             $price = $this->safe_float($delta, 0);
             $amount = $this->safe_float($delta, 1);
-            $bookside->store ($price, $amount);
+            $bookside->store($price, $amount);
         } else {
             $bidAsk = $this->parse_order_book_bid_ask($delta, 'price', 'size');
-            $bookside->storeArray ($bidAsk);
+            $bookside->storeArray($bidAsk);
         }
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -294,13 +293,13 @@ class dydx extends \ccxt\async\dydx {
             );
             $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -324,7 +323,7 @@ class dydx extends \ccxt\async\dydx {
                 'id' => $market['id'] . '/' . $resolution,
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -395,11 +394,11 @@ class dydx extends \ccxt\async\dydx {
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp ($limit);
+            $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
-        $stored->append ($parsed);
-        $client->resolve ($stored, $messageHash);
+        $stored->append($parsed);
+        $client->resolve($stored, $messageHash);
     }
 
     public function handle_error_message(Client $client, $message) {
@@ -415,7 +414,7 @@ class dydx extends \ccxt\async\dydx {
             $msg = $this->safe_string($message, 'message');
             throw new ExchangeError($this->id . ' ' . $msg);
         } catch (Exception $e) {
-            $client->reject ($e);
+            $client->reject($e);
         }
         return true;
     }

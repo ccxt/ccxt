@@ -80,7 +80,7 @@ func (this *ZaifCore) Describe() any {
 			"withdraw":                   true,
 		},
 		"urls": map[string]any{
-			"logo": "https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg",
+			"logo": "https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e",
 			"api": map[string]any{
 				"rest": "https://api.zaif.jp",
 			},

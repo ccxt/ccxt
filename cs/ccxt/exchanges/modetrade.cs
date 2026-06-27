@@ -16,7 +16,6 @@ public partial class modetrade : Exchange
             { "certified", false },
             { "pro", true },
             { "dex", true },
-            { "hostname", "trade.mode.network" },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", false },
@@ -116,7 +115,7 @@ public partial class modetrade : Exchange
                 { "1y", "1y" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b" },
+                { "logo", "https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api-evm.orderly.org" },
                     { "private", "https://api-evm.orderly.org" },
@@ -3074,8 +3073,7 @@ public partial class modetrade : Exchange
         object version = getValue(section, 0);
         object access = getValue(section, 1);
         object pathWithParams = this.implodeParams(path, parameters);
-        object url = this.implodeHostname(getValue(getValue(this.urls, "api"), access));
-        url = add(url, add(add("/", version), "/"));
+        object url = add(add(add(getValue(getValue(this.urls, "api"), access), "/"), version), "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (isTrue(isEqual(access, "public")))

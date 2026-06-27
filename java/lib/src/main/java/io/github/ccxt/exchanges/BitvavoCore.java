@@ -156,7 +156,7 @@ public class BitvavoCore extends BitvavoApi
                 put( "1d", "1d" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8" );
+                put( "logo", "https://github.com/user-attachments/assets/35d690b1-5710-47f6-86e9-d638ce38685a" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.bitvavo.com" );
                     put( "private", "https://api.bitvavo.com" );

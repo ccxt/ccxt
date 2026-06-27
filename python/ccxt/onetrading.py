@@ -161,7 +161,7 @@ class onetrading(Exchange, ImplicitAPI):
                 '1M': '1/MONTHS',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
+                'logo': 'https://github.com/user-attachments/assets/341a1b01-7660-402a-9a2b-876391e52f15',
                 'api': {
                     'public': 'https://api.onetrading.com/fast',
                     'private': 'https://api.onetrading.com/fast',

@@ -257,6 +257,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		gateItf := NewGateCore()
 		gateItf.Init(exchangeArgs)
 		return gateItf, true
+	case "gateeu":
+		gateeuItf := NewGateeuCore()
+		gateeuItf.Init(exchangeArgs)
+		return gateeuItf, true
 	case "gemini":
 		geminiItf := NewGeminiCore()
 		geminiItf.Init(exchangeArgs)

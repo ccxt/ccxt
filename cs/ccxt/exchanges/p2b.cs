@@ -137,9 +137,8 @@ public partial class p2b : Exchange
                 { "1d", "1d" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "extension", ".json" },
                 { "referral", "https://p2pb2b.com?referral=ee784c53" },
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755" },
+                { "logo", "https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.p2pb2b.com/api/v2/public" },
                     { "private", "https://api.p2pb2b.com/api/v2" },

@@ -11,7 +11,7 @@ import asTable from 'as-table';
 
 const { noLocate } = ololog;
 const log = noLocate;
-
+// @ts-expect-error
 ansicolor.nice
 const table = asTable.configure ({ delimiter: ' | ' }), verbose   = process.argv.includes ('--verbose'), debug     = process.argv.includes ('--debug');
 

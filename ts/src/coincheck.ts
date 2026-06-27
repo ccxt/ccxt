@@ -17,7 +17,7 @@ export default class coincheck extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coincheck',
-            'name': 'coincheck',
+            'name': 'Coincheck',
             'countries': [ 'JP', 'ID' ],
             'rateLimit': 1500,
             'has': {

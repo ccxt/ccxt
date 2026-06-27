@@ -20,7 +20,7 @@ class coincheck(Exchange, ImplicitAPI):
     def describe(self) -> Any:
         return self.deep_extend(super(coincheck, self).describe(), {
             'id': 'coincheck',
-            'name': 'coincheck',
+            'name': 'Coincheck',
             'countries': ['JP', 'ID'],
             'rateLimit': 1500,
             'has': {

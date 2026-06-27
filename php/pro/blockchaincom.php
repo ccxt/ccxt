@@ -9,11 +9,10 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class blockchaincom extends \ccxt\async\blockchaincom {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -58,7 +57,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ));
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -77,7 +76,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             );
             $request = $this->deep_extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-        }) ();
+        })();
     }
 
     public function handle_balance(Client $client, $message) {
@@ -127,10 +126,10 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         }
         $messageHash = 'balance';
         $this->balance = $this->safe_balance($result);
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market->
@@ -159,10 +158,10 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $url = $this->urls['api']['ws'];
             $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -201,17 +200,17 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCacheByTimestamp ($limit);
+                $stored = new ArrayCacheByTimestamp($limit);
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
-            $stored->append ($ohlcv);
-            $client->resolve ($stored, $messageHash);
+            $stored->append($ohlcv);
+            $client->resolve($stored, $messageHash);
         } elseif ($event !== 'subscribed') {
             throw new NotSupported($this->id . ' ' . $this->json($message));
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -234,7 +233,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             );
             $request = $this->deep_extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -281,7 +280,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         }
         $messageHash = 'ticker:' . $symbol;
         $this->tickers[$symbol] = $ticker;
-        $client->resolve ($ticker, $messageHash);
+        $client->resolve($ticker, $messageHash);
     }
 
     public function parse_ws_updated_ticker($ticker, $lastTicker = null, ?array $market = null) {
@@ -321,7 +320,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ), $market);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -347,7 +346,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $request = $this->deep_extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
     public function handle_trades(Client $client, $message) {
@@ -383,13 +382,13 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $parsed = $this->parse_ws_trade($message, $market);
-        $stored->append ($parsed);
+        $stored->append($parsed);
         $this->trades[$symbol] = $stored;
-        $client->resolve ($this->trades[$symbol], $messageHash);
+        $client->resolve($this->trades[$symbol], $messageHash);
     }
 
     public function parse_ws_trade($trade, ?array $market = null) {
@@ -425,7 +424,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ), $market);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -453,10 +452,10 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $request = $this->deep_extend($message, $params);
             $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_orders(Client $client, $message) {
@@ -538,7 +537,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $cachedOrders = $this->orders;
         if ($cachedOrders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         if ($event === 'subscribed') {
             return;
@@ -549,14 +548,14 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             for ($i = 0; $i < count($orders); $i++) {
                 $order = $orders[$i];
                 $parsedOrder = $this->parse_ws_order($order);
-                $cachedOrders->append ($parsedOrder);
+                $cachedOrders->append($parsedOrder);
             }
         } elseif ($event === 'updated') {
             $parsedOrder = $this->parse_ws_order($message);
-            $cachedOrders->append ($parsedOrder);
+            $cachedOrders->append($parsedOrder);
         }
         $this->orders = $cachedOrders;
-        $client->resolve ($this->orders, $messageHash);
+        $client->resolve($this->orders, $messageHash);
     }
 
     public function parse_ws_order($order, ?array $market = null) {
@@ -642,7 +641,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -668,8 +667,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -723,7 +722,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $orderbook = $this->orderbooks[$symbol];
         if ($event === 'snapshot') {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
-            $orderbook->reset ($snapshot);
+            $orderbook->reset($snapshot);
         } elseif ($event === 'updated') {
             $asks = $this->safe_list($message, 'asks', array());
             $bids = $this->safe_list($message, 'bids', array());
@@ -734,12 +733,12 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         } else {
             throw new NotSupported($this->id . ' watchOrderBook() does not support ' . $event . ' yet');
         }
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
         $bookArray = $this->parse_order_book_bid_ask($delta, 'px', 'qty', 'num');
-        $bookside->storeArray ($bookArray);
+        $bookside->storeArray($bookArray);
     }
 
     public function handle_deltas($bookside, $deltas) {
@@ -783,16 +782,16 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         }
         $future = $this->safe_value($client->futures, 'authenticated');
         if ($future !== null) {
-            $future->resolve (true);
+            $future->resolve(true);
         }
     }
 
-    public function authenticate($params = array ()) {
+    public function authenticate($params = array()) {
         return Async\async(function () use ($params) {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->reusableFuture ($messageHash);
+            $future = $client->reusableFuture($messageHash);
             $isAuthenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($isAuthenticated === null) {
                 $this->check_required_credentials();
@@ -804,6 +803,6 @@ class blockchaincom extends \ccxt\async\blockchaincom {
                 return $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
             }
             return Async\await($future);
-        }) ();
+        })();
     }
 }

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.60'
+__version__ = '4.5.61'
 
 # ----------------------------------------------------------------------------
 
@@ -146,6 +146,7 @@ from ccxt.extended import extended                                    # noqa: F4
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
 from ccxt.foxbit import foxbit                                        # noqa: F401
 from ccxt.gate import gate                                            # noqa: F401
+from ccxt.gateeu import gateeu                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
 from ccxt.grvt import grvt                                            # noqa: F401
 from ccxt.hashkey import hashkey                                      # noqa: F401
@@ -253,6 +254,7 @@ exchanges = [
     'fmfwio',
     'foxbit',
     'gate',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',

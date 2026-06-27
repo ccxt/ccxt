@@ -33,7 +33,6 @@ class woofipro(Exchange, ImplicitAPI):
             'certified': True,
             'pro': True,
             'dex': True,
-            'hostname': 'dex.woo.org',
             'has': {
                 'CORS': None,
                 'spot': False,
@@ -2784,8 +2783,7 @@ class woofipro(Exchange, ImplicitAPI):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
-        url = self.implode_hostname(self.urls['api'][access])
-        url += '/' + version + '/'
+        url = self.urls['api'][access] + '/' + version + '/'
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         if access == 'public':

@@ -177,7 +177,7 @@ public class HashkeyCore extends HashkeyApi
                 put( "1M", "1M" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/6dd6127b-cc19-4a13-9b29-a98d81f80e98" );
+                put( "logo", "https://github.com/user-attachments/assets/3dd65db2-5da9-4ecc-93ac-6d420f36261c" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api-glb.hashkey.com" );
                     put( "private", "https://api-glb.hashkey.com" );

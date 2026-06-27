@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\extended as Exchange;
 
 class extended extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'extended',
@@ -159,14 +158,14 @@ class extended extends Exchange {
             ),
             'hostname' => 'extended.exchange',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
+                'logo' => 'https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079',
                 'api' => array(
                     'rest' => 'https://api.starknet.{hostname}',
                 ),
                 'test' => array(
                     'rest' => 'https://api.starknet.sepolia.{hostname}',
                 ),
-                'www' => 'https://app.{hostname}',
+                'www' => 'https://app.extended.exchange',
                 'doc' => 'https://api.docs.{hostname}',
                 'fees' => 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
                 'referral' => '',
@@ -329,7 +328,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function load_markets($reload = false, $params = array ()) {
+    public function load_markets($reload = false, $params = array()) {
         $markets = parent::load_markets($reload, $params);
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId');
         if (($currenciesByNumericId === null) || $reload) {
@@ -356,7 +355,7 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves $data on all markets for extended
          *
@@ -365,7 +364,7 @@ class extended extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
-        $response = $this->v1PublicGetInfoMarkets ($params);
+        $response = $this->v1PublicGetInfoMarkets($params);
         //
         //     {
         //       "status" => "OK",
@@ -606,7 +605,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -615,7 +614,7 @@ class extended extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->v1PublicGetInfoAssets ($params);
+        $response = $this->v1PublicGetInfoAssets($params);
         //
         //     {
         //       "status" => "OK",
@@ -694,7 +693,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -709,7 +708,7 @@ class extended extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PublicGetInfoMarketsMarketStats ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketsMarketStats($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -750,7 +749,7 @@ class extended extends Exchange {
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for all markets
          *
@@ -771,7 +770,7 @@ class extended extends Exchange {
             }
             $request['market'] = $marketIds;
         }
-        $response = $this->v1PublicGetInfoMarkets ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarkets($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -867,7 +866,7 @@ class extended extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
@@ -883,7 +882,7 @@ class extended extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PublicGetInfoMarketsMarketOrderbook ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketsMarketOrderbook($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -914,7 +913,7 @@ class extended extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -931,7 +930,7 @@ class extended extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PublicGetInfoMarketsMarketTrades ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketsMarketTrades($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -952,7 +951,7 @@ class extended extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -980,7 +979,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserTrades ($this->extend($params, $request));
+        $response = $this->v1PrivateGetUserTrades($this->extend($params, $request));
         //
         //     {
         //         "status" => "OK",
@@ -1022,7 +1021,7 @@ class extended extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the funding payments history
          *
@@ -1053,7 +1052,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserFundingHistory ($this->extend($params, $request));
+        $response = $this->v1PrivateGetUserFundingHistory($this->extend($params, $request));
         //
         //     {
         //         "status" => "OK",
@@ -1199,7 +1198,7 @@ class extended extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -1239,7 +1238,7 @@ class extended extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->v1PublicGetInfoCandlesMarketCandleType ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoCandlesMarketCandleType($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -1280,7 +1279,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1322,7 +1321,7 @@ class extended extends Exchange {
             'endTime' => $endTime,
             'limit' => $limit,
         );
-        $response = $this->v1PublicGetInfoMarketFunding ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketFunding($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -1375,7 +1374,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_open_interest_history(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_interest_history(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * Retrieves the open interest history of a currency
          *
@@ -1411,7 +1410,7 @@ class extended extends Exchange {
             'endTime' => $endTime,
             'limit' => $limit,
         );
-        $response = $this->v1PublicGetInfoMarketOpenInterests ($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketOpenInterests($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -1449,7 +1448,7 @@ class extended extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -1459,7 +1458,7 @@ class extended extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->v1PrivateGetUserSpotBalances ($params);
+        $response = $this->v1PrivateGetUserSpotBalances($params);
         //
         //     {
         //         "status" => "OK",
@@ -1507,7 +1506,7 @@ class extended extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_account($params = array ()): array {
+    public function fetch_account($params = array()): array {
         /**
          * fetch the current authenticated sub-account
          *
@@ -1516,7 +1515,7 @@ class extended extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=account-structure account structure~
          */
-        $response = $this->v1PrivateGetUserAccountInfo ($params);
+        $response = $this->v1PrivateGetUserAccountInfo($params);
         //
         //     {
         //         "status" => "OK",
@@ -1539,7 +1538,7 @@ class extended extends Exchange {
         return $this->parse_account($data);
     }
 
-    public function fetch_accounts($params = array ()): array {
+    public function fetch_accounts($params = array()): array {
         /**
          * fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
          *
@@ -1548,7 +1547,7 @@ class extended extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=account-structure account structures~
          */
-        $response = $this->v1PrivateGetUserAccounts ($params);
+        $response = $this->v1PrivateGetUserAccounts($params);
         //
         // {
         //     "status" => "OK",
@@ -1591,7 +1590,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -1618,7 +1617,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserAssetOperations ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         $pagination = $this->safe_dict($response, 'pagination', array());
         $cursor = $this->safe_string($pagination, 'cursor');
@@ -1684,7 +1683,7 @@ class extended extends Exchange {
         ), $ledgerCurrency);
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits, withdrawals, and transfers
          *
@@ -1711,7 +1710,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserAssetOperations ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -1749,7 +1748,7 @@ class extended extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -1765,7 +1764,7 @@ class extended extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, $this->extend(array( 'type' => 'DEPOSIT' ), $params));
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -1781,7 +1780,7 @@ class extended extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, $this->extend(array( 'type' => 'WITHDRAWAL' ), $params));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a Starknet withdrawal
          *
@@ -1818,7 +1817,7 @@ class extended extends Exchange {
             'settlement' => $settlement,
         );
         $params = $this->omit($params, array( 'chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution' ));
-        $response = $this->v1PrivatePostUserWithdrawal ($this->extend($request, $params));
+        $response = $this->v1PrivatePostUserWithdrawal($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -1850,7 +1849,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of internal transfers made on an account
          *
@@ -1879,7 +1878,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserAssetOperations ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         $pagination = $this->safe_dict($response, 'pagination', array());
         $cursor = $this->safe_string($pagination, 'cursor');
@@ -1895,7 +1894,7 @@ class extended extends Exchange {
         return $this->parse_transfers($result, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer collateral between sub-accounts associated with the same wallet
          *
@@ -1936,7 +1935,7 @@ class extended extends Exchange {
             'settlement' => $settlement,
         );
         $params = $this->omit($params, array( 'fromVault', 'senderPositionId', 'fromL2Key', 'senderPublicKey', 'toVault', 'receiverPositionId', 'toL2Key', 'receiverPublicKey', 'settlementExpiration', 'nonce', 'assetId', 'collateralId', 'resolution' ));
-        $response = $this->v1PrivatePostUserTransfer ($this->extend($request, $params));
+        $response = $this->v1PrivatePostUserTransfer($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2092,7 +2091,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -2108,7 +2107,7 @@ class extended extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PrivateGetUserFees ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserFees($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2127,7 +2126,7 @@ class extended extends Exchange {
         return $this->parse_trading_fee($first, $market);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
@@ -2139,7 +2138,7 @@ class extended extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
          */
         $this->load_markets();
-        $response = $this->v1PrivateGetUserFees ($params);
+        $response = $this->v1PrivateGetUserFees($params);
         //
         //     {
         //         "status" => "OK",
@@ -2185,7 +2184,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): array {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         /**
          * fetch the set leverage for a $market
          *
@@ -2200,7 +2199,7 @@ class extended extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PrivateGetUserLeverage ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserLeverage($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2216,7 +2215,7 @@ class extended extends Exchange {
         return $this->parse_leverage($this->safe_dict($data, 0), $market);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()): array {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a $market
          *
@@ -2236,7 +2235,7 @@ class extended extends Exchange {
             'market' => $market['id'],
             'leverage' => $this->number_to_string($leverage),
         );
-        $response = $this->v1PrivatePatchUserLeverage ($this->extend($request, $params));
+        $response = $this->v1PrivatePatchUserLeverage($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2266,7 +2265,7 @@ class extended extends Exchange {
         );
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -2282,7 +2281,7 @@ class extended extends Exchange {
             $marketIds = $this->market_ids($symbols);
             $request['market'] = $marketIds;
         }
-        $response = $this->v1PrivateGetUserPositions ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserPositions($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2317,7 +2316,7 @@ class extended extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function fetch_position(string $symbol, $params = array ()): array {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on an open position
          *
@@ -2331,7 +2330,7 @@ class extended extends Exchange {
         return $this->safe_dict($positions, 0);
     }
 
-    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch historical $positions
          *
@@ -2358,7 +2357,7 @@ class extended extends Exchange {
             $marketIds = $this->market_ids($symbols);
             $request['market'] = $marketIds;
         }
-        $response = $this->v1PrivateGetUserPositionsHistory ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserPositionsHistory($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -2476,7 +2475,7 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function fetch_extended_account($params = array ()): mixed {
+    public function fetch_extended_account($params = array()): mixed {
         $account = $this->safe_dict($this->options, 'account');
         if ($account !== null) {
             return $account;
@@ -2487,7 +2486,7 @@ class extended extends Exchange {
         return $account;
     }
 
-    public function create_order_settlement_data(bool $isBuy, string $amountString, string $priceString, $params = array ()) {
+    public function create_order_settlement_data(bool $isBuy, string $amountString, string $priceString, $params = array()) {
         $totalFee = $this->safe_string($params, 'totalFee');
         $settlementExpiration = $this->safe_integer($params, 'settlementExpiration');
         $nonce = $this->safe_integer($params, 'nonce');
@@ -2529,7 +2528,7 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_withdrawal_settlement_data(string $address, string $amountString, array $currency, array $account, $params = array ()) {
+    public function create_withdrawal_settlement_data(string $address, string $amountString, array $currency, array $account, $params = array()) {
         $now = $this->milliseconds();
         $settlementExpiration = $this->safe_integer($params, 'settlementExpiration', $this->parse_to_int(($now + 999) / 1000) + 1209600 + 60);
         $nonce = $this->safe_integer($params, 'nonce', $this->nonce());
@@ -2562,7 +2561,7 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_transfer_settlement_data(string $amountString, array $currency, array $account, string $toVault, string $toL2Key, $params = array ()) {
+    public function create_transfer_settlement_data(string $amountString, array $currency, array $account, string $toVault, string $toL2Key, $params = array()) {
         $now = $this->milliseconds();
         $settlementExpiration = $this->safe_integer($params, 'settlementExpiration', $this->parse_to_int(($now + 999) / 1000) + 1814400);
         $nonce = $this->safe_integer($params, 'nonce', $this->nonce());
@@ -2594,7 +2593,7 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_extended_order_request(string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array ()): array {
+    public function create_extended_order_request(string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
@@ -2785,7 +2784,7 @@ class extended extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -2820,7 +2819,7 @@ class extended extends Exchange {
         $this->check_required_credentials();
         $extendedOrderRequest = $this->create_extended_order_request($symbol, $type, $side, $amount, $price, $params);
         $request = $this->safe_dict($extendedOrderRequest, 'request', array());
-        $response = $this->v1PrivatePostUserOrder ($request);
+        $response = $this->v1PrivatePostUserOrder($request);
         //
         //     {
         //         "status" => "OK",
@@ -2838,7 +2837,7 @@ class extended extends Exchange {
         return $this->parse_order($this->extend($request, $data), $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade $order
          *
@@ -2861,7 +2860,7 @@ class extended extends Exchange {
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $cancelId = $this->safe_string_2($params, 'cancelId', 'previousOrderId');
         if (($amount === null) || ($price === null) || ($expiryEpochMillis === null) || ($postOnly === null) || ($reduceOnly === null) || ($cancelId === null)) {
-            $response = $this->v1PrivateGetUserOrdersId (array( 'id' => $id ));
+            $response = $this->v1PrivateGetUserOrdersId(array( 'id' => $id ));
             $order = $this->safe_dict($response, 'data', array());
             if ($amount === null) {
                 $amount = $this->safe_number($order, 'qty');
@@ -2898,7 +2897,7 @@ class extended extends Exchange {
         ));
         $extendedOrderRequest = $this->create_extended_order_request($symbol, $type, $side, $amount, $price, $requestParams);
         $request = $this->safe_dict($extendedOrderRequest, 'request', array());
-        $editResponse = $this->v1PrivatePostUserOrder ($request);
+        $editResponse = $this->v1PrivatePostUserOrder($request);
         //
         //     {
         //         "status" => "OK",
@@ -2916,7 +2915,7 @@ class extended extends Exchange {
         return $this->parse_order($this->extend($request, $responseData), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2941,7 +2940,7 @@ class extended extends Exchange {
             $request = array(
                 'externalId' => $clientOrderId,
             );
-            $response = $this->v1PrivateDeleteUserOrder ($this->extend($request, $params));
+            $response = $this->v1PrivateDeleteUserOrder($this->extend($request, $params));
         } else {
             if ($id === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument');
@@ -2949,7 +2948,7 @@ class extended extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = $this->v1PrivateDeleteUserOrderId ($this->extend($request, $params));
+            $response = $this->v1PrivateDeleteUserOrderId($this->extend($request, $params));
         }
         //
         //     {
@@ -2969,7 +2968,7 @@ class extended extends Exchange {
         ), $market);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders by order $ids or client order $ids
          *
@@ -3007,7 +3006,7 @@ class extended extends Exchange {
         if (!$hasOrderIds && !$hasClientOrderIds) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires an $ids argument or $clientOrderIds parameter');
         }
-        $this->v1PrivatePostUserOrderMassCancel ($this->extend($request, $params));
+        $this->v1PrivatePostUserOrderMassCancel($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -3017,7 +3016,7 @@ class extended extends Exchange {
         return array();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()): array {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancels all open orders, optionally filtered by $symbol
          *
@@ -3034,9 +3033,9 @@ class extended extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['markets'] = [ $market['id'] ];
+            $request['markets'] = array( $market['id'] );
         }
-        $this->v1PrivatePostUserOrderMassCancel ($this->extend($request, $params));
+        $this->v1PrivatePostUserOrderMassCancel($this->extend($request, $params));
         //
         //     {
         //         "status" => "OK",
@@ -3046,7 +3045,7 @@ class extended extends Exchange {
         return array();
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()) {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          *
@@ -3060,10 +3059,10 @@ class extended extends Exchange {
         $request = array(
             'countdownTime' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
         );
-        return $this->v1PrivatePostUserDeadmanswitch ($this->extend($request, $params));
+        return $this->v1PrivatePostUserDeadmanswitch($this->extend($request, $params));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an $order made by the user
          *
@@ -3089,7 +3088,7 @@ class extended extends Exchange {
             $request = array(
                 'externalId' => $clientOrderId,
             );
-            $response = $this->v1PrivateGetUserOrdersExternalExternalId ($this->extend($request, $params));
+            $response = $this->v1PrivateGetUserOrdersExternalExternalId($this->extend($request, $params));
             $data = $this->safe_list($response, 'data', array());
             $order = $this->safe_dict($data, 0, array());
         } else {
@@ -3099,13 +3098,13 @@ class extended extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = $this->v1PrivateGetUserOrdersId ($this->extend($request, $params));
+            $response = $this->v1PrivateGetUserOrdersId($this->extend($request, $params));
             $order = $this->safe_dict($response, 'data', array());
         }
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open $orders
          *
@@ -3124,7 +3123,7 @@ class extended extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->v1PrivateGetUserOrders ($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserOrders($this->extend($request, $params));
         //
         //     {
         //       "status" => "OK",
@@ -3157,7 +3156,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -3185,7 +3184,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserOrdersHistory ($this->extend($params, $request));
+        $response = $this->v1PrivateGetUserOrdersHistory($this->extend($params, $request));
         //
         //     {
         //       "status" => "OK",
@@ -3233,7 +3232,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed $orders made by the user
          *
@@ -3251,7 +3250,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled $orders made by the user
          *
@@ -3537,7 +3536,7 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $this->safe_string($api, 0);
         $accessibility = $this->safe_string($api, 1);
         $endpoint = '/' . $this->implode_params($path, $params);

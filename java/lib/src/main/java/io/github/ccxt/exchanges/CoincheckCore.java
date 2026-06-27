@@ -21,7 +21,7 @@ public class CoincheckCore extends CoincheckApi
     {
         return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
             put( "id", "coincheck" );
-            put( "name", "coincheck" );
+            put( "name", "Coincheck" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("JP", "ID")) );
             put( "rateLimit", 1500 );
             put( "has", new java.util.HashMap<String, Object>() {{

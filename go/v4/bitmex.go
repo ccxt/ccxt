@@ -131,7 +131,7 @@ func (this *BitmexCore) Describe() any {
 				"public":  "https://testnet.bitmex.com",
 				"private": "https://testnet.bitmex.com",
 			},
-			"logo": "https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04",
+			"logo": "https://github.com/user-attachments/assets/3360333d-35a6-4503-bbba-92a6bc0c174f",
 			"api": map[string]any{
 				"public":  "https://www.bitmex.com",
 				"private": "https://www.bitmex.com",

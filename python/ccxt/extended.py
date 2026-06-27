@@ -173,14 +173,14 @@ class extended(Exchange, ImplicitAPI):
             },
             'hostname': 'extended.exchange',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
+                'logo': 'https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079',
                 'api': {
                     'rest': 'https://api.starknet.{hostname}',
                 },
                 'test': {
                     'rest': 'https://api.starknet.sepolia.{hostname}',
                 },
-                'www': 'https://app.{hostname}',
+                'www': 'https://app.extended.exchange',
                 'doc': 'https://api.docs.{hostname}',
                 'fees': 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
                 'referral': '',

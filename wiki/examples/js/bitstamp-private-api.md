@@ -5,6 +5,7 @@ import asTable from 'as-table';
 import ololog from 'ololog';
 import ansicolor from 'ansicolor';
 const log = ololog.configure({ locate: false });
+// @ts-expect-error
 ansicolor.nice;
 (async () => {
     let apiUrl = 'https://www.bitstamp.net/api';

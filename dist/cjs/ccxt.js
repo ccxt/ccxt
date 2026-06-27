@@ -70,6 +70,7 @@ var extended = require('./src/extended.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
 var gate = require('./src/gate.js');
+var gateeu = require('./src/gateeu.js');
 var gemini = require('./src/gemini.js');
 var grvt = require('./src/grvt.js');
 var hashkey = require('./src/hashkey.js');
@@ -156,6 +157,7 @@ var dydx$1 = require('./src/pro/dydx.js');
 var exmo$1 = require('./src/pro/exmo.js');
 var extended$1 = require('./src/pro/extended.js');
 var gate$1 = require('./src/pro/gate.js');
+var gateeu$1 = require('./src/pro/gateeu.js');
 var gemini$1 = require('./src/pro/gemini.js');
 var grvt$1 = require('./src/pro/grvt.js');
 var hashkey$1 = require('./src/pro/hashkey.js');
@@ -193,7 +195,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.60';
+const version = '4.5.61';
 const exchanges = {
     'aftermath': aftermath["default"],
     'alpaca': alpaca["default"],
@@ -257,6 +259,7 @@ const exchanges = {
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
     'gate': gate["default"],
+    'gateeu': gateeu["default"],
     'gemini': gemini["default"],
     'grvt': grvt["default"],
     'hashkey': hashkey["default"],
@@ -345,6 +348,7 @@ const pro = {
     'exmo': exmo$1["default"],
     'extended': extended$1["default"],
     'gate': gate$1["default"],
+    'gateeu': gateeu$1["default"],
     'gemini': gemini$1["default"],
     'grvt': grvt$1["default"],
     'hashkey': hashkey$1["default"],
@@ -493,6 +497,7 @@ exports.extended = extended["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];
 exports.gate = gate["default"];
+exports.gateeu = gateeu["default"];
 exports.gemini = gemini["default"];
 exports.grvt = grvt["default"];
 exports.hashkey = hashkey["default"];
