@@ -363,6 +363,10 @@
     "@scure/starknet": "2.2.0",
     "ws": "8.21.0"
   },
+  "overrides": {
+    "marked": "^4.0.10",
+    "piscina": "^4.9.3"
+  },
   "optionalDependencies": {
     "bufferutil": "4.1.0"
   },
