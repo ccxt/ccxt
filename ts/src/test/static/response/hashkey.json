@@ -192,7 +192,7 @@
                         "precision": null,
                         "type": "crypto",
                         "name": "Tether",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0,
@@ -211,7 +211,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 8,
@@ -239,7 +239,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1,
@@ -267,7 +267,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.3,
@@ -295,7 +295,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0,
@@ -323,7 +323,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": false,
+                                "active": null,
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": 1,
@@ -351,7 +351,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 2,
@@ -379,7 +379,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": false,
+                                "active": null,
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": 0,
@@ -407,7 +407,7 @@
                                         "max": null
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.2,

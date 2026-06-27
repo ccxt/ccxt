@@ -13,16 +13,16 @@ func NewToobitCore() *ToobitCore {
 	return p
 }
 
-func (this *ToobitCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *ToobitCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "toobit",
 		"name":      "Toobit",
-		"countries": []interface{}{"KY"},
+		"countries": []any{"KY"},
 		"version":   "v1",
 		"rateLimit": 20,
 		"certified": false,
 		"pro":       true,
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                      nil,
 			"spot":                      true,
 			"margin":                    false,
@@ -80,23 +80,23 @@ func (this *ToobitCore) Describe() interface{} {
 			"transfer":                  true,
 			"withdraw":                  true,
 		},
-		"urls": map[string]interface{}{
-			"logo": "https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e",
-			"api": map[string]interface{}{
+		"urls": map[string]any{
+			"logo": "https://github.com/user-attachments/assets/58e1b718-c6fd-49e2-8a49-797da6b9c008",
+			"api": map[string]any{
 				"common":  "https://api.toobit.com",
 				"private": "https://api.toobit.com",
 			},
 			"www": "https://www.toobit.com/",
-			"doc": []interface{}{"https://toobit-docs.github.io/apidocs/spot/v1/en/", "https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/"},
-			"referral": map[string]interface{}{
+			"doc": []any{"https://toobit-docs.github.io/apidocs/spot/v1/en/", "https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/"},
+			"referral": map[string]any{
 				"url":      "https://www.toobit.com/en-US/r?i=IFFPy0",
 				"discount": 0.1,
 			},
 			"fees": "https://www.toobit.com/fee",
 		},
-		"api": map[string]interface{}{
-			"common": map[string]interface{}{
-				"get": map[string]interface{}{
+		"api": map[string]any{
+			"common": map[string]any{
+				"get": map[string]any{
 					"api/v1/time":                       1,
 					"api/v1/ping":                       1,
 					"api/v1/exchangeInfo":               1,
@@ -116,8 +116,8 @@ func (this *ToobitCore) Describe() interface{} {
 					"api/v1/futures/historyFundingRate": 1,
 				},
 			},
-			"private": map[string]interface{}{
-				"get": map[string]interface{}{
+			"private": map[string]any{
+				"get": map[string]any{
 					"api/v1/account":                 5,
 					"api/v1/account/checkApiKey":     1,
 					"api/v1/spot/order":              Multiply(1, 1.67),
@@ -140,7 +140,7 @@ func (this *ToobitCore) Describe() interface{} {
 					"api/v1/futures/commissionRate":  5,
 					"api/v1/futures/todayPnl":        5,
 				},
-				"post": map[string]interface{}{
+				"post": map[string]any{
 					"api/v1/spot/orderTest":                Multiply(1, 1.67),
 					"api/v1/spot/order":                    Multiply(1, 1.67),
 					"api/v1/futures/order":                 Multiply(1, 1.67),
@@ -155,7 +155,7 @@ func (this *ToobitCore) Describe() interface{} {
 					"api/v1/userDataStream":                1,
 					"api/v1/listenKey":                     1,
 				},
-				"delete": map[string]interface{}{
+				"delete": map[string]any{
 					"api/v1/spot/order":               Multiply(1, 1.67),
 					"api/v1/futures/order":            Multiply(1, 1.67),
 					"api/v1/spot/openOrders":          Multiply(5, 1.67),
@@ -164,12 +164,12 @@ func (this *ToobitCore) Describe() interface{} {
 					"api/v1/futures/cancelOrderByIds": Multiply(5, 1.67),
 					"api/v1/listenKey":                1,
 				},
-				"put": map[string]interface{}{
+				"put": map[string]any{
 					"api/v1/listenKey": 1,
 				},
 			},
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "1m",
 			"3m":  "3m",
 			"5m":  "5m",
@@ -186,8 +186,8 @@ func (this *ToobitCore) Describe() interface{} {
 			"1M":  "1M",
 		},
 		"precisionMode": TICK_SIZE,
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"-1000": OperationFailed,
 				"-1001": OperationFailed,
 				"-1002": PermissionDenied,
@@ -277,7 +277,7 @@ func (this *ToobitCore) Describe() interface{} {
 				"-3130": OperationRejected,
 				"-3131": NotSupported,
 			},
-			"broad": map[string]interface{}{
+			"broad": map[string]any{
 				"Unknown order sent":   OrderNotFound,
 				"Duplicate order sent": InvalidOrder,
 				"Market is closed":     OperationRejected,
@@ -297,14 +297,14 @@ func (this *ToobitCore) Describe() interface{} {
 				"Order would immediately match and take":                 OperationRejected,
 			},
 		},
-		"commonCurrencies": map[string]interface{}{},
-		"options": map[string]interface{}{
+		"commonCurrencies": map[string]any{},
+		"options": map[string]any{
 			"defaultType": "spot",
-			"accountsByType": map[string]interface{}{
+			"accountsByType": map[string]any{
 				"spot": "MAIN",
 				"swap": "FUTURES",
 			},
-			"networks": map[string]interface{}{
+			"networks": map[string]any{
 				"BTC":    "BTC",
 				"ERC20":  "ETH",
 				"ETH":    "ETH",
@@ -333,15 +333,15 @@ func (this *ToobitCore) Describe() interface{} {
 				"ICP":    "ICP",
 				"ONE":    "ONE",
 			},
-			"networksById": map[string]interface{}{
+			"networksById": map[string]any{
 				"ETH":   "ERC20",
 				"ERC20": "ERC20",
 			},
 		},
-		"features": map[string]interface{}{
-			"spot": map[string]interface{}{
+		"features": map[string]any{
+			"spot": map[string]any{
 				"sandbox": false,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":                 false,
 					"triggerPrice":               true,
 					"triggerPriceType":           nil,
@@ -349,7 +349,7 @@ func (this *ToobitCore) Describe() interface{} {
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -364,30 +364,30 @@ func (this *ToobitCore) Describe() interface{} {
 					"iceberg":                false,
 				},
 				"createOrders": nil,
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": 1000,
 				},
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          1000,
 					"daysBack":       100000,
 					"untilDays":      100000,
 					"symbolRequired": true,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          1000,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOrders": map[string]interface{}{
+				"fetchOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          500,
 					"daysBack":       100000,
@@ -398,14 +398,14 @@ func (this *ToobitCore) Describe() interface{} {
 				},
 				"fetchClosedOrders": nil,
 			},
-			"forDerivatives": map[string]interface{}{
+			"forDerivatives": map[string]any{
 				"createOrders": nil,
 			},
-			"swap": map[string]interface{}{
+			"swap": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
@@ -421,18 +421,18 @@ func (this *ToobitCore) Describe() interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *ToobitCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchStatus(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.CommonGetApiV1Ping(params))
 		PanicOnError(response)
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"status":  "ok",
 			"updated": nil,
 			"eta":     nil,
@@ -453,12 +453,12 @@ func (this *ToobitCore) FetchStatus(optionalArgs ...interface{}) <-chan interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *ToobitCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchTime(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.CommonGetApiV1Time(params))
@@ -483,12 +483,12 @@ func (this *ToobitCore) FetchTime(optionalArgs ...interface{}) <-chan interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *ToobitCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.CommonGetApiV1ExchangeInfo(params))
@@ -622,12 +622,12 @@ func (this *ToobitCore) FetchCurrencies(optionalArgs ...interface{}) <-chan inte
 		//            },
 		//          ...
 		//
-		var coins interface{} = this.SafeList(response, "coins", []interface{}{})
-		var result interface{} = map[string]interface{}{}
+		var coins any = this.SafeList(response, "coins", []any{})
+		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
-			var coin interface{} = GetValue(coins, i)
-			var parsed interface{} = this.ParseCurrency(coin)
-			var code interface{} = GetValue(parsed, "code")
+			var coin any = GetValue(coins, i)
+			var parsed any = this.ParseCurrency(coin)
+			var code any = GetValue(parsed, "code")
 			AddElementToObject(result, code, parsed)
 		}
 
@@ -637,16 +637,16 @@ func (this *ToobitCore) FetchCurrencies(optionalArgs ...interface{}) <-chan inte
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseCurrency(rawCurrency interface{}) interface{} {
-	var id interface{} = this.SafeString(rawCurrency, "coinId")
-	var code interface{} = this.SafeCurrencyCode(id)
-	var networks interface{} = map[string]interface{}{}
-	var rawNetworks interface{} = this.SafeList(rawCurrency, "chainTypes")
+func (this *ToobitCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(rawCurrency, "coinId")
+	var code any = this.SafeCurrencyCode(id)
+	var networks any = map[string]any{}
+	var rawNetworks any = this.SafeList(rawCurrency, "chainTypes", []any{})
 	for j := 0; IsLessThan(j, GetArrayLength(rawNetworks)); j++ {
-		var rawNetwork interface{} = GetValue(rawNetworks, j)
-		var networkId interface{} = this.SafeString(rawNetwork, "chainType")
-		var networkCode interface{} = this.NetworkIdToCode(networkId)
-		AddElementToObject(networks, networkCode, map[string]interface{}{
+		var rawNetwork any = GetValue(rawNetworks, j)
+		var networkId any = this.SafeString(rawNetwork, "chainType")
+		var networkCode any = this.NetworkIdToCode(networkId, code)
+		AddElementToObject(networks, networkCode, map[string]any{
 			"id":        networkId,
 			"network":   networkCode,
 			"margin":    nil,
@@ -655,12 +655,12 @@ func (this *ToobitCore) ParseCurrency(rawCurrency interface{}) interface{} {
 			"active":    nil,
 			"fee":       this.SafeNumber(rawNetwork, "withdrawFee"),
 			"precision": nil,
-			"limits": map[string]interface{}{
-				"deposit": map[string]interface{}{
+			"limits": map[string]any{
+				"deposit": map[string]any{
 					"min": this.SafeNumber(rawNetwork, "minDepositQuantity"),
 					"max": nil,
 				},
-				"withdraw": map[string]interface{}{
+				"withdraw": map[string]any{
 					"min": this.SafeNumber(rawNetwork, "minWithdrawQuantity"),
 					"max": this.SafeNumber(rawNetwork, "maxWithdrawQuantity"),
 				},
@@ -668,7 +668,7 @@ func (this *ToobitCore) ParseCurrency(rawCurrency interface{}) interface{} {
 			"info": rawNetwork,
 		})
 	}
-	return this.SafeCurrencyStructure(map[string]interface{}{
+	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,
 		"name":      this.SafeString(rawCurrency, "coinFullName"),
@@ -678,12 +678,12 @@ func (this *ToobitCore) ParseCurrency(rawCurrency interface{}) interface{} {
 		"withdraw":  this.SafeBool(rawCurrency, "allowWithdraw"),
 		"fee":       nil,
 		"precision": nil,
-		"limits": map[string]interface{}{
-			"amount": map[string]interface{}{
+		"limits": map[string]any{
+			"amount": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"withdraw": map[string]interface{}{
+			"withdraw": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
@@ -702,14 +702,14 @@ func (this *ToobitCore) ParseCurrency(rawCurrency interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *ToobitCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var response interface{} = this.SafeDict(this.Options, "exchangeInfo")
+		var response any = this.SafeDict(this.Options, "exchangeInfo")
 		if IsTrue(!IsEqual(response, nil)) {
 			AddElementToObject(this.Options, "exchangeInfo", nil) // reset it to avoid using old cached data
 		} else {
@@ -845,13 +845,13 @@ func (this *ToobitCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfa
 		//            },
 		//          ...
 		//
-		var symbols interface{} = this.SafeList(response, "symbols", []interface{}{})
-		var contracts interface{} = this.SafeList(response, "contracts", []interface{}{})
-		var all interface{} = this.ArrayConcat(symbols, contracts)
-		var result interface{} = []interface{}{}
+		var symbols any = this.SafeList(response, "symbols", []any{})
+		var contracts any = this.SafeList(response, "contracts", []any{})
+		var all any = this.ArrayConcat(symbols, contracts)
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(all)); i++ {
-			var market interface{} = GetValue(all, i)
-			var parsed interface{} = this.ParseMarket(market)
+			var market any = GetValue(all, i)
+			var parsed any = this.ParseMarket(market)
 			AppendToArray(&result, parsed)
 		}
 
@@ -861,30 +861,30 @@ func (this *ToobitCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseMarket(market interface{}) interface{} {
-	var id interface{} = this.SafeString(market, "symbol")
-	var baseId interface{} = this.SafeString(market, "baseAsset")
-	var quoteId interface{} = this.SafeString(market, "quoteAsset")
-	var baseParts interface{} = Split(baseId, "-")
-	var baseIdClean interface{} = GetValue(baseParts, 0)
-	var base interface{} = this.SafeCurrencyCode(baseIdClean)
-	var quote interface{} = this.SafeCurrencyCode(quoteId)
-	var settleId interface{} = this.SafeString(market, "marginToken")
-	var settle interface{} = this.SafeCurrencyCode(settleId)
-	var status interface{} = this.SafeString(market, "status")
-	var active interface{} = (IsEqual(status, "TRADING"))
-	var filters interface{} = this.SafeList(market, "filters", []interface{}{})
-	var filtersByType interface{} = this.IndexBy(filters, "filterType")
-	var priceFilter interface{} = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]interface{}{})
-	var lotSizeFilter interface{} = this.SafeDict(filtersByType, "LOT_SIZE", map[string]interface{}{})
-	var minNotionalFilter interface{} = this.SafeDict(filtersByType, "MIN_NOTIONAL", map[string]interface{}{})
-	var symbol interface{} = Add(Add(base, "/"), quote)
-	var isContract interface{} = (InOp(market, "contractMultiplier"))
-	var inverse interface{} = this.SafeBool2(market, "isInverse", "inverse")
+func (this *ToobitCore) ParseMarket(market any) any {
+	var id any = this.SafeString(market, "symbol")
+	var baseId any = this.SafeString(market, "baseAsset")
+	var quoteId any = this.SafeString(market, "quoteAsset")
+	var baseParts any = Split(baseId, "-")
+	var baseIdClean any = GetValue(baseParts, 0)
+	var base any = this.SafeCurrencyCode(baseIdClean)
+	var quote any = this.SafeCurrencyCode(quoteId)
+	var settleId any = this.SafeString(market, "marginToken")
+	var settle any = this.SafeCurrencyCode(settleId)
+	var status any = this.SafeString(market, "status")
+	var active any = (IsEqual(status, "TRADING"))
+	var filters any = this.SafeList(market, "filters", []any{})
+	var filtersByType any = this.IndexBy(filters, "filterType")
+	var priceFilter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
+	var lotSizeFilter any = this.SafeDict(filtersByType, "LOT_SIZE", map[string]any{})
+	var minNotionalFilter any = this.SafeDict(filtersByType, "MIN_NOTIONAL", map[string]any{})
+	var symbol any = Add(Add(base, "/"), quote)
+	var isContract any = (InOp(market, "contractMultiplier"))
+	var inverse any = this.SafeBool2(market, "isInverse", "inverse")
 	if IsTrue(isContract) {
 		symbol = Add(symbol, Add(":", settle))
 	}
-	return this.SafeMarketStructure(map[string]interface{}{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -908,24 +908,24 @@ func (this *ToobitCore) ParseMarket(market interface{}) interface{} {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"amount": this.SafeNumber(lotSizeFilter, "stepSize"),
 			"price":  this.SafeNumber(priceFilter, "tickSize"),
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": this.SafeNumber(lotSizeFilter, "minQty"),
 				"max": this.SafeNumber(lotSizeFilter, "maxQty"),
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": this.SafeNumber(priceFilter, "minPrice"),
 				"max": this.SafeNumber(priceFilter, "maxPrice"),
 			},
-			"cost": map[string]interface{}{
+			"cost": map[string]any{
 				"min": this.SafeNumber(minNotionalFilter, "minNotional"),
 				"max": nil,
 			},
@@ -944,22 +944,22 @@ func (this *ToobitCore) ParseMarket(market interface{}) interface{} {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *ToobitCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes9078 := (<-this.LoadMarkets())
 		PanicOnError(retRes9078)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -995,7 +995,7 @@ func (this *ToobitCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 		//        ]
 		//    }
 		//
-		var timestamp interface{} = this.SafeInteger(response, "t")
+		var timestamp any = this.SafeInteger(response, "t")
 
 		ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "b", "a")
 		return nil
@@ -1016,22 +1016,22 @@ func (this *ToobitCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *ToobitCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
 		retRes9608 := (<-this.LoadMarkets())
 		PanicOnError(retRes9608)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1057,7 +1057,7 @@ func (this *ToobitCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// fetchTrades
 	//
@@ -1101,14 +1101,14 @@ func (this *ToobitCore) ParseTrade(trade interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger2(trade, "t", "time")
-	var priceString interface{} = this.SafeString2(trade, "p", "price")
-	var amountString interface{} = this.SafeString2(trade, "q", "qty")
-	var isBuyer interface{} = this.SafeBool(trade, "isBuyer")
-	var side interface{} = nil
-	var isBuyerMaker interface{} = this.SafeBool(trade, "ibm")
+	var timestamp any = this.SafeInteger2(trade, "t", "time")
+	var priceString any = this.SafeString2(trade, "p", "price")
+	var amountString any = this.SafeString2(trade, "q", "qty")
+	var isBuyer any = this.SafeBool(trade, "isBuyer")
+	var side any = nil
+	var isBuyerMaker any = this.SafeBool(trade, "ibm")
 	if IsTrue(IsEqual(isBuyerMaker, nil)) {
-		var isBuyerTaker interface{} = this.SafeBool(trade, "m")
+		var isBuyerTaker any = this.SafeBool(trade, "m")
 		if IsTrue(!IsEqual(isBuyerTaker, nil)) {
 			isBuyerMaker = !IsTrue(isBuyerTaker)
 		}
@@ -1126,23 +1126,23 @@ func (this *ToobitCore) ParseTrade(trade interface{}, optionalArgs ...interface{
 			side = "sell"
 		}
 	}
-	var feeCurrencyId interface{} = this.SafeString(trade, "feeCoinId")
-	var feeAmount interface{} = this.SafeString(trade, "feeAmount")
-	var fee interface{} = nil
+	var feeCurrencyId any = this.SafeString(trade, "feeCoinId")
+	var feeAmount any = this.SafeString(trade, "feeAmount")
+	var fee any = nil
 	if IsTrue(!IsEqual(feeAmount, nil)) {
-		fee = map[string]interface{}{
+		fee = map[string]any{
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
 			"cost":     feeAmount,
 		}
 	}
-	var isMaker interface{} = this.SafeBool(trade, "isMaker")
-	var takerOrMaker interface{} = nil
+	var isMaker any = this.SafeBool(trade, "isMaker")
+	var takerOrMaker any = nil
 	if IsTrue(!IsEqual(isMaker, nil)) {
 		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 	}
 	market = this.SafeMarket(nil, market)
-	var symbol interface{} = GetValue(market, "symbol")
-	return this.SafeTrade(map[string]interface{}{
+	var symbol any = GetValue(market, "symbol")
+	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1172,9 +1172,9 @@ func (this *ToobitCore) ParseTrade(trade interface{}, optionalArgs ...interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *ToobitCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -1183,20 +1183,20 @@ func (this *ToobitCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes10968 := (<-this.LoadMarkets())
 		PanicOnError(retRes10968)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol":   GetValue(market, "id"),
 			"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
 		}
-		var until interface{} = this.SafeInteger(params, "until")
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, "until")
 			AddElementToObject(request, "endTime", until)
@@ -1204,8 +1204,8 @@ func (this *ToobitCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var response interface{} = nil
-		var endpoint interface{} = nil
+		var response any = nil
+		var endpoint any = nil
 		endpointparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "price")
 		endpoint = GetValue(endpointparamsVariable, 0)
 		params = GetValue(endpointparamsVariable, 1)
@@ -1229,10 +1229,10 @@ func (this *ToobitCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	return []interface{}{this.SafeIntegerN(ohlcv, []interface{}{0, "time", "t"}), this.SafeNumberN(ohlcv, []interface{}{1, "open", "o"}), this.SafeNumberN(ohlcv, []interface{}{2, "high", "h"}), this.SafeNumberN(ohlcv, []interface{}{3, "low", "l"}), this.SafeNumberN(ohlcv, []interface{}{4, "close", "c"}), this.SafeNumberN(ohlcv, []interface{}{5, "volume", "v"})}
+	return []any{this.SafeIntegerN(ohlcv, []any{0, "time", "t"}), this.SafeNumberN(ohlcv, []any{1, "open", "o"}), this.SafeNumberN(ohlcv, []any{2, "high", "h"}), this.SafeNumberN(ohlcv, []any{3, "low", "l"}), this.SafeNumberN(ohlcv, []any{4, "close", "c"}), this.SafeNumberN(ohlcv, []any{5, "volume", "v"})}
 }
 
 /**
@@ -1245,26 +1245,26 @@ func (this *ToobitCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *ToobitCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes12098 := (<-this.LoadMarkets())
 		PanicOnError(retRes12098)
 		symbols = this.MarketSymbols(symbols)
-		var typeVar interface{} = nil
-		var market interface{} = nil
-		var request interface{} = map[string]interface{}{}
+		var typeVar any = nil
+		var market any = nil
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
-			var symbol interface{} = this.SafeString(symbols, 0)
+			var symbol any = this.SafeString(symbols, 0)
 			market = this.Market(symbol)
-			var length interface{} = GetArrayLength(symbols)
+			var length any = GetArrayLength(symbols)
 			if IsTrue(IsEqual(length, 1)) {
 				AddElementToObject(request, "symbol", GetValue(market, "id"))
 			}
@@ -1272,7 +1272,7 @@ func (this *ToobitCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(typeVar, "spot")) {
 
 			response = (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, params)))
@@ -1305,14 +1305,14 @@ func (this *ToobitCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(ticker, "s")
+	var marketId any = this.SafeString(ticker, "s")
 	market = this.SafeMarket(marketId, market)
-	var timestamp interface{} = this.SafeInteger(ticker, "t")
-	var last interface{} = this.SafeString(ticker, "c")
-	return this.SafeTicker(map[string]interface{}{
+	var timestamp any = this.SafeInteger(ticker, "t")
+	var last any = this.SafeString(ticker, "c")
+	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1346,24 +1346,24 @@ func (this *ToobitCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of lastprices structures
  */
-func (this *ToobitCore) FetchLastPrices(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchLastPrices(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes12888 := (<-this.LoadMarkets())
 		PanicOnError(retRes12888)
 		symbols = this.MarketSymbols(symbols)
-		var request interface{} = map[string]interface{}{}
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
-			var length interface{} = GetArrayLength(symbols)
+			var length any = GetArrayLength(symbols)
 			if IsTrue(IsEqual(length, 1)) {
-				var market interface{} = this.Market(GetValue(symbols, 0))
+				var market any = this.Market(GetValue(symbols, 0))
 				AddElementToObject(request, "symbol", GetValue(market, "id"))
 			}
 		}
@@ -1385,12 +1385,12 @@ func (this *ToobitCore) FetchLastPrices(optionalArgs ...interface{}) <-chan inte
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseLastPrice(entry interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseLastPrice(entry any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(entry, "s")
+	var marketId any = this.SafeString(entry, "s")
 	market = this.SafeMarket(marketId, market)
-	return map[string]interface{}{
+	return map[string]any{
 		"symbol":    GetValue(market, "symbol"),
 		"timestamp": nil,
 		"datetime":  nil,
@@ -1410,24 +1410,24 @@ func (this *ToobitCore) ParseLastPrice(entry interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *ToobitCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes13348 := (<-this.LoadMarkets())
 		PanicOnError(retRes13348)
 		symbols = this.MarketSymbols(symbols)
-		var request interface{} = map[string]interface{}{}
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
-			var length interface{} = GetArrayLength(symbols)
+			var length any = GetArrayLength(symbols)
 			if IsTrue(IsEqual(length, 1)) {
-				var market interface{} = this.Market(GetValue(symbols, 0))
+				var market any = this.Market(GetValue(symbols, 0))
 				AddElementToObject(request, "symbol", GetValue(market, "id"))
 			}
 		}
@@ -1452,22 +1452,22 @@ func (this *ToobitCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan interf
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseBidsAsksCustom(tickers interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseBidsAsksCustom(tickers any, optionalArgs ...any) any {
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]interface{}{})
+	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var results interface{} = []interface{}{}
+	var results any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
-		var parsedTicker interface{} = this.ParseBidAskCustom(GetValue(tickers, i))
-		var ticker interface{} = this.Extend(parsedTicker, params)
+		var parsedTicker any = this.ParseBidAskCustom(GetValue(tickers, i))
+		var ticker any = this.Extend(parsedTicker, params)
 		AppendToArray(&results, ticker)
 	}
 	symbols = this.MarketSymbols(symbols)
 	return this.FilterByArray(results, "symbol", symbols)
 }
-func (this *ToobitCore) ParseBidAskCustom(ticker interface{}) interface{} {
-	return map[string]interface{}{
+func (this *ToobitCore) ParseBidAskCustom(ticker any) any {
+	return map[string]any{
 		"timestamp": this.SafeString(ticker, "t"),
 		"symbol":    this.SafeString(ticker, "s"),
 		"bid":       this.SafeNumber(ticker, "b"),
@@ -1487,24 +1487,24 @@ func (this *ToobitCore) ParseBidAskCustom(ticker interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
  */
-func (this *ToobitCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchFundingRates(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes13928 := (<-this.LoadMarkets())
 		PanicOnError(retRes13928)
 		symbols = this.MarketSymbols(symbols)
-		var request interface{} = map[string]interface{}{}
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
-			var length interface{} = GetArrayLength(symbols)
+			var length any = GetArrayLength(symbols)
 			if IsTrue(IsEqual(length, 1)) {
-				var market interface{} = this.Market(GetValue(symbols, 0))
+				var market any = this.Market(GetValue(symbols, 0))
 				AddElementToObject(request, "symbol", GetValue(market, "id"))
 			}
 		}
@@ -1526,14 +1526,14 @@ func (this *ToobitCore) FetchFundingRates(optionalArgs ...interface{}) <-chan in
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseFundingRate(contract interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(contract, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market)
-	var nextFundingRate interface{} = this.SafeNumber(contract, "rate")
-	var nextFundingRateTimestamp interface{} = this.SafeInteger(contract, "nextFundingTime")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(contract, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market)
+	var nextFundingRate any = this.SafeNumber(contract, "rate")
+	var nextFundingRateTimestamp any = this.SafeInteger(contract, "nextFundingTime")
+	return map[string]any{
 		"info":                     contract,
 		"symbol":                   symbol,
 		"markPrice":                nil,
@@ -1568,9 +1568,9 @@ func (this *ToobitCore) ParseFundingRate(contract interface{}, optionalArgs ...i
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1579,12 +1579,12 @@ func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-c
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes14558 := (<-this.LoadMarkets())
 		PanicOnError(retRes14558)
-		var paginate interface{} = false
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
@@ -1595,8 +1595,8 @@ func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-c
 			ch <- retRes145919
 			return nil
 		}
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1621,12 +1621,12 @@ func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-c
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseFundingRateHistory(contract interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger(contract, "settleTime")
-	var marketId interface{} = this.SafeString(contract, "symbol")
-	return map[string]interface{}{
+	var timestamp any = this.SafeInteger(contract, "settleTime")
+	var marketId any = this.SafeString(contract, "symbol")
+	return map[string]any{
 		"info":        contract,
 		"symbol":      this.SafeSymbol(marketId, market),
 		"fundingRate": this.SafeNumber(contract, "settleRate"),
@@ -1644,22 +1644,22 @@ func (this *ToobitCore) ParseFundingRateHistory(contract interface{}, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *ToobitCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes15038 := (<-this.LoadMarkets())
 		PanicOnError(retRes15038)
-		var response interface{} = nil
-		var marketType interface{} = nil
+		var response any = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
-		if IsTrue(this.InArray(marketType, []interface{}{"swap", "future"})) {
+		if IsTrue(this.InArray(marketType, []any{"swap", "future"})) {
 
 			response = (<-this.PrivateGetApiV1FuturesBalance())
 			PanicOnError(response)
@@ -1675,17 +1675,17 @@ func (this *ToobitCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseBalance(response interface{}) interface{} {
-	var result interface{} = map[string]interface{}{
+func (this *ToobitCore) ParseBalance(response any) any {
+	var result any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var balances interface{} = this.SafeList(response, "balances", response)
+	var balances any = this.SafeList(response, "balances", response)
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
-		var balance interface{} = GetValue(balances, i)
-		var code interface{} = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
-		var account interface{} = this.Account()
+		var balance any = GetValue(balances, i)
+		var code any = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
+		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString2(balance, "free", "availableBalance"))
 		AddElementToObject(account, "total", this.SafeString2(balance, "total", "balance"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
@@ -1708,21 +1708,21 @@ func (this *ToobitCore) ParseBalance(response interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *ToobitCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes15768 := (<-this.LoadMarkets())
 		PanicOnError(retRes15768)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{}
-		var response interface{} = nil
+		var market any = this.Market(symbol)
+		var request any = map[string]any{}
+		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
 			requestparamsVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 			request = GetValue(requestparamsVariable, 0)
@@ -1768,21 +1768,21 @@ func (this *ToobitCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 	}()
 	return ch
 }
-func (this *ToobitCore) CreateOrderRequest(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]interface{}{})
+	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market interface{} = this.Market(symbol)
-	var id interface{} = GetValue(market, "id")
-	var request interface{} = map[string]interface{}{
+	var market any = this.Market(symbol)
+	var id any = GetValue(market, "id")
+	var request any = map[string]any{
 		"symbol": id,
 		"side":   ToUpper(side),
 	}
 	if IsTrue(!IsEqual(price, nil)) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
-	var cost interface{} = nil
+	var cost any = nil
 	costparamsVariable := this.HandleParamString(params, "cost")
 	cost = GetValue(costparamsVariable, 0)
 	params = GetValue(costparamsVariable, 1)
@@ -1795,7 +1795,7 @@ func (this *ToobitCore) CreateOrderRequest(symbol interface{}, typeVar interface
 	} else {
 		AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
 	}
-	var isPostOnly interface{} = nil
+	var isPostOnly any = nil
 	isPostOnlyparamsVariable := this.HandlePostOnly(IsEqual(typeVar, "market"), false, params)
 	isPostOnly = GetValue(isPostOnlyparamsVariable, 0)
 	params = GetValue(isPostOnlyparamsVariable, 1)
@@ -1804,19 +1804,19 @@ func (this *ToobitCore) CreateOrderRequest(symbol interface{}, typeVar interface
 	} else {
 		AddElementToObject(request, "type", ToUpper(typeVar))
 	}
-	return []interface{}{request, params}
+	return []any{request, params}
 }
-func (this *ToobitCore) CreateContractOrderRequest(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) CreateContractOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]interface{}{})
+	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market interface{} = this.Market(symbol)
-	var request interface{} = map[string]interface{}{
+	var market any = this.Market(symbol)
+	var request any = map[string]any{
 		"symbol":   GetValue(market, "id"),
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
-	var reduceOnly interface{} = nil
+	var reduceOnly any = nil
 	reduceOnlyparamsVariable := this.HandleParamBool(params, "reduceOnly")
 	reduceOnly = GetValue(reduceOnlyparamsVariable, 0)
 	params = GetValue(reduceOnlyparamsVariable, 1)
@@ -1829,42 +1829,42 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol interface{}, typeVar i
 	if IsTrue(!IsEqual(price, nil)) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
-	if IsTrue(this.InArray(typeVar, []interface{}{"limit", "LIMIT"})) {
+	if IsTrue(this.InArray(typeVar, []any{"limit", "LIMIT"})) {
 		AddElementToObject(request, "type", ToUpper(typeVar))
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	} else if IsTrue(IsEqual(typeVar, "market")) {
 		AddElementToObject(request, "type", "LIMIT") // weird, but exchange works this way
 		AddElementToObject(request, "priceType", "MARKET")
 	}
-	var isPostOnly interface{} = nil
+	var isPostOnly any = nil
 	isPostOnlyparamsVariable := this.HandlePostOnly(IsEqual(typeVar, "market"), false, params)
 	isPostOnly = GetValue(isPostOnlyparamsVariable, 0)
 	params = GetValue(isPostOnlyparamsVariable, 1)
 	if IsTrue(isPostOnly) {
 		AddElementToObject(request, "timeInForce", "LIMIT_MAKER")
 	}
-	var values interface{} = this.HandleTriggerPricesAndParams(symbol, params)
-	var triggerPrice interface{} = GetValue(values, 0)
+	var values any = this.HandleTriggerPricesAndParams(symbol, params)
+	var triggerPrice any = GetValue(values, 0)
 	params = GetValue(values, 3)
 	if IsTrue(!IsEqual(triggerPrice, nil)) {
 		AddElementToObject(request, "stopPrice", triggerPrice)
 	}
-	var stopLoss interface{} = this.SafeDict(params, "stopLoss")
-	var takeProfit interface{} = this.SafeDict(params, "takeProfit")
-	var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
-	var triggerPriceTypes interface{} = map[string]interface{}{
+	var stopLoss any = this.SafeDict(params, "stopLoss")
+	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var hasStopLoss any = (!IsEqual(stopLoss, nil))
+	var hasTakeProfit any = (!IsEqual(takeProfit, nil))
+	var triggerPriceTypes any = map[string]any{
 		"mark": "MARK_PRICE",
 		"last": "CONTRACT_PRICE",
 	}
 	if IsTrue(hasStopLoss) {
 		AddElementToObject(request, "stopLoss", this.SafeValue(stopLoss, "triggerPrice"))
-		var limitPrice interface{} = this.SafeValue(stopLoss, "price")
+		var limitPrice any = this.SafeValue(stopLoss, "price")
 		if IsTrue(!IsEqual(limitPrice, nil)) {
 			AddElementToObject(request, "slOrderType", "LIMIT")
 			AddElementToObject(request, "slLimitPrice", this.PriceToPrecision(symbol, limitPrice))
 		}
-		var triggerPriceType interface{} = this.SafeString(stopLoss, "triggerPriceType")
+		var triggerPriceType any = this.SafeString(stopLoss, "triggerPriceType")
 		if IsTrue(!IsEqual(triggerPriceType, nil)) {
 			AddElementToObject(request, "slTriggerBy", this.SafeString(triggerPriceTypes, triggerPriceType, triggerPriceType))
 		}
@@ -1872,12 +1872,12 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol interface{}, typeVar i
 	}
 	if IsTrue(hasTakeProfit) {
 		AddElementToObject(request, "takeProfit", this.SafeValue(takeProfit, "triggerPrice"))
-		var limitPrice interface{} = this.SafeValue(takeProfit, "price")
+		var limitPrice any = this.SafeValue(takeProfit, "price")
 		if IsTrue(!IsEqual(limitPrice, nil)) {
 			AddElementToObject(request, "tpOrderType", "LIMIT")
 			AddElementToObject(request, "tpLimitPrice", this.PriceToPrecision(symbol, limitPrice))
 		}
-		var triggerPriceType interface{} = this.SafeString(takeProfit, "triggerPriceType")
+		var triggerPriceType any = this.SafeString(takeProfit, "triggerPriceType")
 		if IsTrue(!IsEqual(triggerPriceType, nil)) {
 			AddElementToObject(request, "tpTriggerBy", this.SafeString(triggerPriceTypes, triggerPriceType, triggerPriceType))
 		}
@@ -1886,9 +1886,9 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol interface{}, typeVar i
 	if !IsTrue((InOp(params, "newClientOrderId"))) {
 		AddElementToObject(request, "newClientOrderId", this.Uuid())
 	}
-	return []interface{}{request, params}
+	return []any{request, params}
 }
-func (this *ToobitCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// createOrder, cancelOrder
 	//
@@ -1949,16 +1949,16 @@ func (this *ToobitCore) ParseOrder(order interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger2(order, "transactTime", "time")
-	var marketId interface{} = this.SafeString(order, "symbol")
+	var timestamp any = this.SafeInteger2(order, "transactTime", "time")
+	var marketId any = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var rawType interface{} = this.SafeString(order, "type")
-	var rawSideLower interface{} = this.SafeStringLower(order, "side")
-	var triggerPrice interface{} = this.OmitZero(this.SafeString(order, "stopPrice"))
+	var rawType any = this.SafeString(order, "type")
+	var rawSideLower any = this.SafeStringLower(order, "side")
+	var triggerPrice any = this.OmitZero(this.SafeString(order, "stopPrice"))
 	if IsTrue(IsEqual(triggerPrice, "0.0")) {
 		triggerPrice = nil
 	}
-	return this.SafeOrder(map[string]interface{}{
+	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(order, "orderId"),
 		"clientOrderId":       this.SafeString(order, "clientOrderId"),
@@ -1987,8 +1987,8 @@ func (this *ToobitCore) ParseOrder(order interface{}, optionalArgs ...interface{
 		"hedged":              nil,
 	}, market)
 }
-func (this *ToobitCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *ToobitCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"PENDING_NEW":      "open",
 		"NEW":              "open",
 		"PARTIALLY_FILLED": "open",
@@ -1999,8 +1999,8 @@ func (this *ToobitCore) ParseOrderStatus(status interface{}) interface{} {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *ToobitCore) ParseOrderType(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *ToobitCore) ParseOrderType(status any) any {
+	var statuses any = map[string]any{
 		"MARKET":      "market",
 		"LIMIT":       "limit",
 		"LIMIT_MAKER": "limit",
@@ -2019,32 +2019,32 @@ func (this *ToobitCore) ParseOrderType(status interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *ToobitCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{}
+		var request any = map[string]any{}
 		if IsTrue(IsEqual(this.SafeString(params, "clientOrderId"), nil)) {
 			AddElementToObject(request, "orderId", id)
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
-		var marketType interface{} = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params, "none")
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "none")) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")))
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
 			response = (<-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, params)))
@@ -2055,7 +2055,7 @@ func (this *ToobitCore) CancelOrder(id interface{}, optionalArgs ...interface{})
 			PanicOnError(response)
 		}
 		// response same as in `createOrder`
-		var status interface{} = this.ParseOrderStatus(this.SafeString(response, "status"))
+		var status any = this.ParseOrderStatus(this.SafeString(response, "status"))
 		if IsTrue(!IsEqual(status, "open")) {
 			panic(OrderNotFound(Add(Add(Add(Add(this.Id, " order "), id), " can not be canceled, "), this.Json(response))))
 		}
@@ -2077,32 +2077,32 @@ func (this *ToobitCore) CancelOrder(id interface{}, optionalArgs ...interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *ToobitCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes18908 := (<-this.LoadMarkets())
 		PanicOnError(retRes18908)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
-		var marketType interface{} = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params, "none")
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "none")) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")))
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
 			response = (<-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, params)))
@@ -2113,7 +2113,7 @@ func (this *ToobitCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
 			PanicOnError(response)
 		}
 
-		ch <- []interface{}{this.SafeOrder(map[string]interface{}{
+		ch <- []any{this.SafeOrder(map[string]any{
 			"info": response,
 		})}
 		return nil
@@ -2133,34 +2133,34 @@ func (this *ToobitCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *ToobitCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes19338 := (<-this.LoadMarkets())
 		PanicOnError(retRes19338)
-		var idsString interface{} = Join(ids, ",")
-		var request interface{} = map[string]interface{}{
+		var idsString any = Join(ids, ",")
+		var request any = map[string]any{
 			"ids": idsString,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var marketType interface{} = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrders", market, params, "none")
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "none")) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")))
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
 			response = (<-this.PrivateDeleteApiV1SpotCancelOrderByIds(this.Extend(request, params)))
@@ -2170,7 +2170,7 @@ func (this *ToobitCore) CancelOrders(ids interface{}, optionalArgs ...interface{
 			response = (<-this.PrivateDeleteApiV1FuturesCancelOrderByIds(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var result interface{} = this.SafeList(response, "result", []interface{}{})
+		var result any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseOrders(result, market)
 		return nil
@@ -2190,14 +2190,14 @@ func (this *ToobitCore) CancelOrders(ids interface{}, optionalArgs ...interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *ToobitCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
@@ -2205,11 +2205,11 @@ func (this *ToobitCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
 
 		retRes19918 := (<-this.LoadMarkets())
 		PanicOnError(retRes19918)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"orderId": id,
 		}
-		var market interface{} = this.Market(symbol)
-		var response interface{} = nil
+		var market any = this.Market(symbol)
+		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
 
 			response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params)))
@@ -2267,9 +2267,9 @@ func (this *ToobitCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *ToobitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2278,13 +2278,13 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes20468 := (<-this.LoadMarkets())
 		PanicOnError(retRes20468)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2292,11 +2292,11 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var marketType interface{} = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrders", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
 			response = (<-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, params)))
@@ -2325,9 +2325,9 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *ToobitCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2336,12 +2336,12 @@ func (this *ToobitCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes21068 := (<-this.LoadMarkets())
 		PanicOnError(retRes21068)
-		var request interface{} = map[string]interface{}{}
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
@@ -2351,16 +2351,16 @@ func (this *ToobitCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
-		var marketType interface{} = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrders", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
 			response = (<-this.PrivateGetApiV1SpotTradeOrders(request))
@@ -2387,9 +2387,9 @@ func (this *ToobitCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *ToobitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		// returns the most recent closed or canceled orders up to circa two weeks ago
@@ -2399,13 +2399,13 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes21718 := (<-this.LoadMarkets())
 		PanicOnError(retRes21718)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2416,11 +2416,11 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
-		var marketType interface{} = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchOrders() is not supported for "), marketType), " markets")))
 		} else {
@@ -2428,9 +2428,9 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 			response = (<-this.PrivateGetApiV1FuturesHistoryOrders(request))
 			PanicOnError(response)
 		}
-		var ordersList interface{} = []interface{}{}
+		var ordersList any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			AppendToArray(&ordersList, map[string]interface{}{
+			AppendToArray(&ordersList, map[string]any{
 				"result": GetValue(response, i),
 			})
 		}
@@ -2455,9 +2455,9 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *ToobitCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2466,7 +2466,7 @@ func (this *ToobitCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
@@ -2474,23 +2474,23 @@ func (this *ToobitCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 
 		retRes22408 := (<-this.LoadMarkets())
 		PanicOnError(retRes22408)
-		var request interface{} = map[string]interface{}{}
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var market interface{} = this.Market(symbol)
+		var market any = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
-		var marketType interface{} = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
 			response = (<-this.PrivateGetApiV1AccountTrades(this.Extend(request, params)))
@@ -2520,21 +2520,21 @@ func (this *ToobitCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *ToobitCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes23208 := (<-this.LoadMarkets())
 		PanicOnError(retRes23208)
-		var currency interface{} = this.Currency(code)
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
-		var toId interface{} = this.SafeString(accountsByType, toAccount, toAccount)
-		var request interface{} = map[string]interface{}{
+		var currency any = this.Currency(code)
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
+		var toId any = this.SafeString(accountsByType, toAccount, toAccount)
+		var request any = map[string]any{
 			"asset":           GetValue(currency, "id"),
 			"quantity":        this.CurrencyToPrecision(code, amount),
 			"fromAccountType": fromId,
@@ -2556,7 +2556,7 @@ func (this *ToobitCore) Transfer(code interface{}, amount interface{}, fromAccou
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	//    {
 	//     "code": 200, // 200 = success
@@ -2565,7 +2565,7 @@ func (this *ToobitCore) ParseTransfer(transfer interface{}, optionalArgs ...inte
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	return map[string]interface{}{
+	return map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   nil,
@@ -2591,9 +2591,9 @@ func (this *ToobitCore) ParseTransfer(transfer interface{}, optionalArgs ...inte
  * @param {int} [params.until] end time in ms
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func (this *ToobitCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchLedger(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2602,13 +2602,13 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...interface{}) <-chan interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes23758 := (<-this.LoadMarkets())
 		PanicOnError(retRes23758)
-		var currency interface{} = nil
-		var request interface{} = map[string]interface{}{}
+		var currency any = nil
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 			AddElementToObject(request, "coin", GetValue(currency, "id"))
@@ -2622,11 +2622,11 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...interface{}) <-chan interfac
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var marketType interface{} = nil
+		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
 			response = (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, params)))
@@ -2661,20 +2661,20 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...interface{}) <-chan interfac
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId interface{} = this.SafeString(item, "coinId")
+	var currencyId any = this.SafeString(item, "coinId")
 	currency = this.SafeCurrency(currencyId, currency)
-	var timestamp interface{} = this.SafeInteger(item, "created")
-	var after interface{} = this.SafeNumber(item, "total")
-	var amountRaw interface{} = this.SafeString(item, "change")
-	var amount interface{} = this.ParseNumber(Precise.StringAbs(amountRaw))
-	var direction interface{} = "in"
+	var timestamp any = this.SafeInteger(item, "created")
+	var after any = this.SafeNumber(item, "total")
+	var amountRaw any = this.SafeString(item, "change")
+	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
+	var direction any = "in"
 	if IsTrue(StartsWith(amountRaw, "-")) {
 		direction = "out"
 	}
-	return this.SafeLedgerEntry(map[string]interface{}{
+	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),
 		"timestamp":        timestamp,
@@ -2692,8 +2692,8 @@ func (this *ToobitCore) ParseLedgerEntry(item interface{}, optionalArgs ...inter
 		"fee":              nil,
 	}, currency)
 }
-func (this *ToobitCore) ParseLedgerType(typeVar interface{}) interface{} {
-	var types interface{} = map[string]interface{}{
+func (this *ToobitCore) ParseLedgerType(typeVar any) any {
+	var types any = map[string]any{
 		"USER_ACCOUNT_TRANSFER": "transfer",
 		"AIRDROP":               "rebate",
 	}
@@ -2708,26 +2708,26 @@ func (this *ToobitCore) ParseLedgerType(typeVar interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *ToobitCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchTradingFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes24658 := (<-this.LoadMarkets())
 		PanicOnError(retRes24658)
-		var response interface{} = nil
-		var marketType interface{} = nil
-		var market interface{} = nil
+		var response any = nil
+		var marketType any = nil
+		var market any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "spot")) {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchTradingFees(): does not support "), marketType), " markets")))
-		} else if IsTrue(this.InArray(marketType, []interface{}{"swap", "future"})) {
-			var symbol interface{} = nil
+		} else if IsTrue(this.InArray(marketType, []any{"swap", "future"})) {
+			var symbol any = nil
 			symbolparamsVariable := this.HandleParamString(params, "symbol")
 			symbol = GetValue(symbolparamsVariable, 0)
 			params = GetValue(symbolparamsVariable, 1)
@@ -2735,7 +2735,7 @@ func (this *ToobitCore) FetchTradingFees(optionalArgs ...interface{}) <-chan int
 				panic(BadRequest(Add(this.Id, " fetchTradingFees requires a params[\"symbol\"]")))
 			}
 			market = this.Market(symbol)
-			var request interface{} = map[string]interface{}{
+			var request any = map[string]any{
 				"symbol": GetValue(market, "id"),
 			}
 
@@ -2750,11 +2750,11 @@ func (this *ToobitCore) FetchTradingFees(optionalArgs ...interface{}) <-chan int
 		//     "closeTakerFee": "0.0004" // The trade fee rate for closing a taker order
 		// }
 		//
-		var result interface{} = map[string]interface{}{}
-		var entry interface{} = response
-		var marketId interface{} = this.SafeString(entry, "symbol")
+		var result any = map[string]any{}
+		var entry any = response
+		var marketId any = this.SafeString(entry, "symbol")
 		market = this.SafeMarket(marketId, market)
-		var fee interface{} = this.ParseTradingFee(entry, market)
+		var fee any = this.ParseTradingFee(entry, market)
 		AddElementToObject(result, GetValue(market, "symbol"), fee)
 
 		ch <- result
@@ -2763,11 +2763,11 @@ func (this *ToobitCore) FetchTradingFees(optionalArgs ...interface{}) <-chan int
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseTradingFee(data interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseTradingFee(data any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(data, "symbol")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(data, "symbol")
+	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeSymbol(marketId, market),
 		"maker":      this.SafeNumber(data, "closeMakerFee"),
@@ -2788,9 +2788,9 @@ func (this *ToobitCore) ParseTradingFee(data interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *ToobitCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2799,7 +2799,7 @@ func (this *ToobitCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes252515 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
@@ -2822,9 +2822,9 @@ func (this *ToobitCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *ToobitCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2833,7 +2833,7 @@ func (this *ToobitCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes254015 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
@@ -2844,16 +2844,18 @@ func (this *ToobitCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
 	}()
 	return ch
 }
-func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar interface{}, code interface{}, since interface{}, limit interface{}, params interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
 
 		retRes25448 := (<-this.LoadMarkets())
 		PanicOnError(retRes25448)
-		var currency interface{} = nil
-		var request interface{} = map[string]interface{}{}
+		var currency any = nil
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 			AddElementToObject(request, "coin", GetValue(currency, "id"))
@@ -2867,7 +2869,7 @@ func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar interface{}, co
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(typeVar, "deposits")) {
 
 			response = (<-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, params)))
@@ -2884,7 +2886,7 @@ func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar interface{}, co
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	// fetchDeposits & fetchWithdrawals
 	//
@@ -2927,25 +2929,25 @@ func (this *ToobitCore) ParseTransaction(transaction interface{}, optionalArgs .
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var timestamp interface{} = this.SafeInteger(transaction, "time")
-	var currencyId interface{} = this.SafeString2(transaction, "coin", "coinId")
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
-	var feeString interface{} = this.SafeString(transaction, "fee")
-	var feeCoin interface{} = this.SafeString(transaction, "feeCoinName")
-	var fee interface{} = nil
+	var timestamp any = this.SafeInteger(transaction, "time")
+	var currencyId any = this.SafeString2(transaction, "coin", "coinId")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var feeString any = this.SafeString(transaction, "fee")
+	var feeCoin any = this.SafeString(transaction, "feeCoinName")
+	var fee any = nil
 	if IsTrue(!IsEqual(feeString, nil)) {
-		fee = map[string]interface{}{
+		fee = map[string]any{
 			"cost":     this.ParseNumber(feeString),
 			"currency": this.SafeCurrencyCode(feeCoin),
 		}
 	}
-	var tagTo interface{} = this.SafeString2(transaction, "addressTag", "addressExt")
-	var tagFrom interface{} = this.SafeString(transaction, "fromAddressTag")
-	var addressTo interface{} = this.SafeString(transaction, "address")
-	var addressFrom interface{} = this.SafeString(transaction, "fromAddress")
-	var isWithdraw interface{} = (InOp(transaction, "arriveQuantity"))
-	var typeVar interface{} = Ternary(IsTrue(isWithdraw), "withdrawal", "deposit")
-	return map[string]interface{}{
+	var tagTo any = this.SafeString2(transaction, "addressTag", "addressExt")
+	var tagFrom any = this.SafeString(transaction, "fromAddressTag")
+	var addressTo any = this.SafeString(transaction, "address")
+	var addressFrom any = this.SafeString(transaction, "fromAddress")
+	var isWithdraw any = (InOp(transaction, "arriveQuantity"))
+	var typeVar any = Ternary(IsTrue(isWithdraw), "withdrawal", "deposit")
+	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "id"),
 		"txid":        this.SafeString(transaction, "txId"),
@@ -2968,8 +2970,8 @@ func (this *ToobitCore) ParseTransaction(transaction interface{}, optionalArgs .
 		"internal":    nil,
 	}
 }
-func (this *ToobitCore) ParseTransactionStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *ToobitCore) ParseTransactionStatus(status any) any {
+	var statuses any = map[string]any{
 		"2":  "pending",
 		"12": "pending",
 		"11": "failed",
@@ -2987,18 +2989,18 @@ func (this *ToobitCore) ParseTransactionStatus(status interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *ToobitCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes27188 := (<-this.LoadMarkets())
 		PanicOnError(retRes27188)
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"coin": GetValue(currency, "id"),
 		}
 		networkCodeparamsOmittedVariable := this.HandleNetworkCodeAndParams(this.Extend(request, params))
@@ -3007,7 +3009,7 @@ func (this *ToobitCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 		if IsTrue(IsEqual(networkCode, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddress() : param[\"network\"] is required")))
 		}
-		AddElementToObject(request, "chainType", this.NetworkCodeToId(networkCode))
+		AddElementToObject(request, "chainType", this.NetworkCodeToId(networkCode, code))
 
 		response := (<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsOmitted)))
 		PanicOnError(response)
@@ -3029,12 +3031,12 @@ func (this *ToobitCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var address interface{} = this.SafeString(depositAddress, "address")
+	var address any = this.SafeString(depositAddress, "address")
 	this.CheckAddress(address)
-	return map[string]interface{}{
+	return map[string]any{
 		"info":     depositAddress,
 		"currency": this.SafeString(currency, "code"),
 		"network":  nil,
@@ -3055,17 +3057,17 @@ func (this *ToobitCore) ParseDepositAddress(depositAddress interface{}, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *ToobitCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		this.CheckAddress(address)
-		var networkCode interface{} = nil
+		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
@@ -3075,8 +3077,8 @@ func (this *ToobitCore) Withdraw(code interface{}, amount interface{}, address i
 
 		retRes27748 := (<-this.LoadMarkets())
 		PanicOnError(retRes27748)
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"coin":          GetValue(currency, "id"),
 			"address":       address,
 			"quantity":      this.CurrencyToPrecision(GetValue(currency, "code"), amount),
@@ -3116,14 +3118,14 @@ func (this *ToobitCore) Withdraw(code interface{}, amount interface{}, address i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *ToobitCore) SetMarginMode(marginMode interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
@@ -3131,12 +3133,12 @@ func (this *ToobitCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 
 		retRes28138 := (<-this.LoadMarkets())
 		PanicOnError(retRes28138)
-		var market interface{} = this.Market(symbol)
+		var market any = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
 		}
 		marginMode = ToUpper(marginMode)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"symbol":     GetValue(market, "id"),
 			"marginType": marginMode,
 		}
@@ -3164,14 +3166,14 @@ func (this *ToobitCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *ToobitCore) SetLeverage(leverage interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
@@ -3179,8 +3181,8 @@ func (this *ToobitCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 
 		retRes28448 := (<-this.LoadMarkets())
 		PanicOnError(retRes28448)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol":   GetValue(market, "id"),
 			"leverage": leverage,
 		}
@@ -3207,18 +3209,18 @@ func (this *ToobitCore) SetLeverage(leverage interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *ToobitCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes28678 := (<-this.LoadMarkets())
 		PanicOnError(retRes28678)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -3233,7 +3235,7 @@ func (this *ToobitCore) FetchLeverage(symbol interface{}, optionalArgs ...interf
 		//     }
 		// ]
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseLeverage(data, market)
 		return nil
@@ -3241,14 +3243,14 @@ func (this *ToobitCore) FetchLeverage(symbol interface{}, optionalArgs ...interf
 	}()
 	return ch
 }
-func (this *ToobitCore) ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(leverage, "symbol")
-	var leverageValue interface{} = this.SafeInteger(leverage, "leverage")
-	var marginType interface{} = this.SafeString(leverage, "marginType")
-	var marginMode interface{} = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", "isolated")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(leverage, "symbol")
+	var leverageValue any = this.SafeInteger(leverage, "leverage")
+	var marginType any = this.SafeString(leverage, "marginType")
+	var marginMode any = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", "isolated")
+	return map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),
 		"marginMode":    marginMode,
@@ -3266,26 +3268,26 @@ func (this *ToobitCore) ParseLeverage(leverage interface{}, optionalArgs ...inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *ToobitCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *ToobitCore) FetchPositions(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes29108 := (<-this.LoadMarkets())
 		PanicOnError(retRes29108)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
-			var length interface{} = GetArrayLength(symbols)
+			var length any = GetArrayLength(symbols)
 			if IsTrue(IsGreaterThan(length, 1)) {
 				panic(BadRequest(Add(this.Id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")))
 			}
-			var firstSymbol interface{} = this.SafeString(symbols, 0)
+			var firstSymbol any = this.SafeString(symbols, 0)
 			if IsTrue(!IsEqual(firstSymbol, nil)) {
 				market = this.Market(firstSymbol)
 				AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -3324,15 +3326,15 @@ func (this *ToobitCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *ToobitCore) ParsePosition(position interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) ParsePosition(position any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(position, "symbol")
+	var marketId any = this.SafeString(position, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var side interface{} = this.SafeStringLower(position, "side")
-	var quantity interface{} = this.SafeString(position, "position")
-	var leverage interface{} = this.SafeInteger(position, "leverage")
-	return this.SafePosition(map[string]interface{}{
+	var side any = this.SafeStringLower(position, "side")
+	var quantity any = this.SafeString(position, "position")
+	var leverage any = this.SafeInteger(position, "leverage")
+	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
 		"symbol":                      GetValue(market, "symbol"),
@@ -3359,22 +3361,22 @@ func (this *ToobitCore) ParsePosition(position interface{}, optionalArgs ...inte
 		"percentage":                  nil,
 	})
 }
-func (this *ToobitCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url interface{} = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
-	var isPost interface{} = IsEqual(method, "POST")
-	var isDelete interface{} = IsEqual(method, "DELETE")
-	var extraQuery interface{} = map[string]interface{}{}
-	var query interface{} = this.Omit(params, this.ExtractParams(path))
+	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
+	var isPost any = IsEqual(method, "POST")
+	var isDelete any = IsEqual(method, "DELETE")
+	var extraQuery any = map[string]any{}
+	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(!IsEqual(api, "private")) {
 		// Public endpoints
 		if !IsTrue(isPost) {
@@ -3384,12 +3386,12 @@ func (this *ToobitCore) Sign(path interface{}, optionalArgs ...interface{}) inte
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var timestamp interface{} = this.Milliseconds()
+		var timestamp any = this.Milliseconds()
 		// Add timestamp to parameters for signed endpoints
 		AddElementToObject(extraQuery, "recvWindow", this.SafeString(this.Options, "recvWindow", "5000"))
 		AddElementToObject(extraQuery, "timestamp", ToString(timestamp))
-		var queryExtended interface{} = this.Extend(query, extraQuery)
-		var queryString interface{} = ""
+		var queryExtended any = this.Extend(query, extraQuery)
+		var queryString any = ""
 		if IsTrue(IsTrue(isPost) || IsTrue(isDelete)) {
 			// everything else except Batch-Orders
 			if !IsTrue(IsArray(params)) {
@@ -3401,39 +3403,39 @@ func (this *ToobitCore) Sign(path interface{}, optionalArgs ...interface{}) inte
 		} else {
 			queryString = this.Urlencode(queryExtended)
 		}
-		var payload interface{} = queryString
+		var payload any = queryString
 		if IsTrue(!IsEqual(body, nil)) {
 			payload = Add(body, payload)
 		}
-		var signature interface{} = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
+		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 		if IsTrue(!IsEqual(queryString, "")) {
 			queryString = Add(queryString, Add("&signature=", signature))
 			url = Add(url, Add("?", queryString))
 		} else {
 			body = Add(body, Add("&signature=", signature))
 		}
-		headers = map[string]interface{}{
+		headers = map[string]any{
 			"Referrer":          "CCXT",
 			"X-BB-APIKEY":       this.ApiKey,
 			"X-BB-API-PLATFORM": this.SafeString(this.Options, "brokerId", "177321641268789"),
 			"Content-Type":      "application/x-www-form-urlencoded",
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *ToobitCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *ToobitCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsTrue(IsEqual(response, nil)) {
 		return nil
 	}
-	var errorCode interface{} = this.SafeString(response, "code")
-	var message interface{} = this.SafeString(response, "msg")
+	var errorCode any = this.SafeString(response, "code")
+	var message any = this.SafeString(response, "msg")
 	if IsTrue(IsTrue(IsTrue(errorCode) && IsTrue(!IsEqual(errorCode, "200"))) && IsTrue(!IsEqual(errorCode, "0"))) {
-		var feedback interface{} = Add(Add(this.Id, " "), body)
+		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 		panic(ExchangeError(feedback))
@@ -3441,8 +3443,8 @@ func (this *ToobitCore) HandleErrors(code interface{}, reason interface{}, url i
 	return nil
 }
 
-func (this *ToobitCore) Init(userConfig map[string]interface{}) {
+func (this *ToobitCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

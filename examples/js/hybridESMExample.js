@@ -1,19 +1,17 @@
-import {version, huobi} from 'ccxt';
-
-console.log('--------------------------------------------')
-console.log('Yey importing ccxt as an ESM module!!!!!')
-console.log('Version:', version)
-console.log('--------------------------------------------')
-
-const exchange = new huobi ({
+// @NO_AUTO_TRANSPILE
+import { version, htx } from '../../js/ccxt';
+console.log('--------------------------------------------');
+console.log('Yey importing ccxt as an ESM module!!!!!');
+console.log('Version:', version);
+console.log('--------------------------------------------');
+const exchange = new htx({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET_KEY',
     'options': {
         'defaultType': 'swap',
     },
-})
-
-;(async () => {
+});
+(async () => {
     const result = await exchange.fetchBalance();
-    console.log(result)
-    }) ()
+    console.log(result);
+})();

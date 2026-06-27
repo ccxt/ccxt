@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitopro$1 = require('./abstract/bitopro.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class bitopro extends bitopro$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bitopro',
             'name': 'BitoPro',
-            'countries': ['TW'],
+            'countries': ['TW'], // Taiwan
             'version': 'v3',
             'rateLimit': 100,
             'pro': true,
@@ -188,16 +188,16 @@ class bitopro extends bitopro$1["default"] {
                         'orders/open': 1,
                     },
                     'post': {
-                        'orders/{pair}': 1 / 2,
-                        'orders/batch': 20 / 3,
+                        'orders/{pair}': 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch': 20 / 3, // 90/m => 1.5/s => 10/1.5 = 20/3
                         'wallet/withdraw/{currency}': 10, // 60/m => 1/s => 10/1 = 10
                     },
                     'put': {
                         'orders': 5, // 2/s => 10/2 = 5
                     },
                     'delete': {
-                        'orders/{pair}/{id}': 2 / 3,
-                        'orders/all': 5,
+                        'orders/{pair}/{id}': 2 / 3, // 900/m => 15/s => 10/15 = 2/3
+                        'orders/all': 5, // 2/s => 10/2 = 5
                         'orders/{pair}': 5, // 2/s => 10/2 = 5
                     },
                 },
@@ -248,7 +248,7 @@ class bitopro extends bitopro$1["default"] {
                         'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': true,
+                        'triggerDirection': true, // todo implement
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
@@ -323,16 +323,16 @@ class bitopro extends bitopro$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Unsupported currency.': errors.BadRequest,
-                    'Unsupported order type': errors.BadRequest,
-                    'Invalid body': errors.BadRequest,
-                    'Invalid Signature': errors.AuthenticationError,
+                    'Unsupported currency.': errors.BadRequest, // {"error":"Unsupported currency."}
+                    'Unsupported order type': errors.BadRequest, // {"error":"Unsupported order type"}
+                    'Invalid body': errors.BadRequest, // {"error":"Invalid body"}
+                    'Invalid Signature': errors.AuthenticationError, // {"error":"Invalid Signature"}
                     'Address not in whitelist.': errors.BadRequest,
                 },
                 'broad': {
-                    'Invalid amount': errors.InvalidOrder,
-                    'Balance for ': errors.InsufficientFunds,
-                    'Invalid ': errors.BadRequest,
+                    'Invalid amount': errors.InvalidOrder, // {"error":"Invalid amount 0.0000000001, decimal limit is 8."}
+                    'Balance for ': errors.InsufficientFunds, // {"error":"Balance for eth not enough, only has 0, but ordered 0.01."}
+                    'Invalid ': errors.BadRequest, // {"error":"Invalid price -1."}
                     'Wrong parameter': errors.BadRequest, // {"error":"Wrong parameter: from"}
                 },
             },
@@ -349,7 +349,6 @@ class bitopro extends bitopro$1["default"] {
      */
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetProvisioningCurrencies(params);
-        const currencies = this.safeList(response, 'data', []);
         //
         //     {
         //         "data":[
@@ -366,44 +365,39 @@ class bitopro extends bitopro$1["default"] {
         //         ]
         //     }
         //
-        const result = {};
+        const currencies = this.safeList(response, 'data', []);
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(rawCurrency) {
         const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const currencyId = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            const deposit = this.safeBool(currency, 'deposit');
-            const withdraw = this.safeBool(currency, 'withdraw');
-            const fee = this.safeNumber(currency, 'withdrawFee');
-            const withdrawMin = this.safeNumber(currency, 'minWithdraw');
-            const withdrawMax = this.safeNumber(currency, 'maxWithdraw');
-            const limits = {
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        const deposit = this.safeBool(rawCurrency, 'deposit');
+        const withdraw = this.safeBool(rawCurrency, 'withdraw');
+        const isFiat = this.inArray(code, fiatCurrencies);
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'info': rawCurrency,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'name': undefined,
+            'active': deposit && withdraw,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': this.safeNumber(rawCurrency, 'withdrawFee'),
+            'precision': undefined,
+            'limits': {
                 'withdraw': {
-                    'min': withdrawMin,
-                    'max': withdrawMax,
+                    'min': this.safeNumber(rawCurrency, 'minWithdraw'),
+                    'max': this.safeNumber(rawCurrency, 'maxWithdraw'),
                 },
                 'amount': {
                     'min': undefined,
                     'max': undefined,
                 },
-            };
-            const isFiat = this.inArray(code, fiatCurrencies);
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'info': currency,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'name': undefined,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': undefined,
-                'limits': limits,
-                'networks': undefined,
-            };
-        }
-        return result;
+            },
+            'networks': undefined,
+        });
     }
     /**
      * @method
@@ -607,7 +601,7 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1026,7 +1020,7 @@ class bitopro extends bitopro$1["default"] {
             '4': 'canceled',
             '6': 'canceled',
         };
-        return this.safeString(statuses, status, undefined);
+        return this.safeString(statuses, status);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1563,7 +1557,7 @@ class bitopro extends bitopro$1["default"] {
             'txid': this.safeString(transaction, 'txid'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'amount': this.safeNumber(transaction, 'total'),
             'status': this.parseTransactionStatus(status),
             'timestamp': timestamp,
@@ -1846,7 +1840,7 @@ class bitopro extends bitopro$1["default"] {
             if (method === 'POST' || method === 'PUT') {
                 body = this.json(params);
                 const payload = this.stringToBase64(body);
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
@@ -1861,7 +1855,7 @@ class bitopro extends bitopro$1["default"] {
                 };
                 const data = this.json(rawData);
                 const payload = this.stringToBase64(data);
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;

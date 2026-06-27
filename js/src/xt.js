@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/xt.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class xt
@@ -20,7 +20,7 @@ export default class xt extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'xt',
             'name': 'XT',
-            'countries': ['SC'],
+            'countries': ['SC'], // Seychelles
             // spot api ratelimits are undefined, 10/s/ip, 50/s/ip, 100/s/ip or 200/s/ip
             // futures 3 requests per second => 1000ms / (100 * 3.33) = 3.003 (get assets -> fetchMarkets & fetchCurrencies)
             // futures 10 requests per second => 1000ms / (100 * 1) = 10 (all other)
@@ -130,7 +130,7 @@ export default class xt extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
+                'logo': 'https://github.com/user-attachments/assets/1f916564-6507-4549-af96-22837bb0a0c7',
                 'api': {
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
@@ -152,11 +152,11 @@ export default class xt extends Exchange {
                             'currencies': 1,
                             'depth': 10,
                             'kline': 1,
-                            'symbol': 1,
-                            'ticker': 1,
-                            'ticker/book': 1,
-                            'ticker/price': 1,
-                            'ticker/24h': 1,
+                            'symbol': 1, // 1 for a single symbol
+                            'ticker': 1, // 1 for a single symbol
+                            'ticker/book': 1, // 1 for a single symbol
+                            'ticker/price': 1, // 1 for a single symbol
+                            'ticker/24h': 1, // 1 for a single symbol
                             'time': 1,
                             'trade/history': 1,
                             'trade/recent': 1,
@@ -424,118 +424,118 @@ export default class xt extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '400': NetworkError,
-                    '404': ExchangeError,
-                    '429': RateLimitExceeded,
-                    '500': ExchangeError,
-                    '502': ExchangeError,
-                    '503': OnMaintenance,
-                    'AUTH_001': AuthenticationError,
-                    'AUTH_002': AuthenticationError,
-                    'AUTH_003': AuthenticationError,
-                    'AUTH_004': AuthenticationError,
-                    'AUTH_005': AuthenticationError,
-                    'AUTH_006': AuthenticationError,
-                    'AUTH_007': AuthenticationError,
-                    'AUTH_101': AuthenticationError,
-                    'AUTH_102': AuthenticationError,
-                    'AUTH_103': AuthenticationError,
-                    'AUTH_104': AuthenticationError,
-                    'AUTH_105': AuthenticationError,
-                    'AUTH_106': PermissionDenied,
-                    'SYMBOL_001': BadSymbol,
-                    'SYMBOL_002': BadSymbol,
-                    'SYMBOL_003': BadSymbol,
-                    'SYMBOL_004': BadSymbol,
-                    'SYMBOL_005': BadSymbol,
-                    'ORDER_001': InvalidOrder,
-                    'ORDER_002': InsufficientFunds,
-                    'ORDER_003': InvalidOrder,
-                    'ORDER_004': InvalidOrder,
-                    'ORDER_005': InvalidOrder,
-                    'ORDER_006': InvalidOrder,
-                    'ORDER_007': PermissionDenied,
-                    'ORDER_F0101': InvalidOrder,
-                    'ORDER_F0102': InvalidOrder,
-                    'ORDER_F0103': InvalidOrder,
-                    'ORDER_F0201': InvalidOrder,
-                    'ORDER_F0202': InvalidOrder,
-                    'ORDER_F0203': InvalidOrder,
-                    'ORDER_F0301': InvalidOrder,
-                    'ORDER_F0401': InvalidOrder,
-                    'ORDER_F0501': InvalidOrder,
-                    'ORDER_F0502': InvalidOrder,
-                    'ORDER_F0601': InvalidOrder,
-                    'COMMON_001': ExchangeError,
-                    'COMMON_002': ExchangeError,
-                    'COMMON_003': BadRequest,
-                    'CURRENCY_001': BadRequest,
-                    'DEPOSIT_001': BadRequest,
-                    'DEPOSIT_002': PermissionDenied,
-                    'DEPOSIT_003': BadRequest,
-                    'DEPOSIT_004': BadRequest,
-                    'DEPOSIT_005': BadRequest,
-                    'DEPOSIT_006': BadRequest,
-                    'DEPOSIT_007': BadRequest,
-                    'DEPOSIT_008': BadRequest,
-                    'WITHDRAW_001': BadRequest,
-                    'WITHDRAW_002': BadRequest,
-                    'WITHDRAW_003': PermissionDenied,
-                    'WITHDRAW_004': BadRequest,
-                    'WITHDRAW_005': BadRequest,
-                    'WITHDRAW_006': BadRequest,
-                    'WITHDRAW_008': PermissionDenied,
-                    'WITHDRAW_009': PermissionDenied,
-                    'WITHDRAW_010': BadRequest,
-                    'WITHDRAW_011': InsufficientFunds,
-                    'WITHDRAW_012': PermissionDenied,
-                    'WITHDRAW_013': PermissionDenied,
-                    'WITHDRAW_014': BadRequest,
-                    'WITHDRAW_015': BadRequest,
-                    'WITHDRAW_016': BadRequest,
-                    'WITHDRAW_017': BadRequest,
-                    'WITHDRAW_018': BadRequest,
-                    'WITHDRAW_019': BadRequest,
-                    'WITHDRAW_020': PermissionDenied,
-                    'WITHDRAW_021': PermissionDenied,
-                    'WITHDRAW_022': BadRequest,
-                    'WITHDRAW_023': BadRequest,
-                    'WITHDRAW_024': BadRequest,
-                    'WITHDRAW_025': BadRequest,
-                    'FUND_001': BadRequest,
-                    'FUND_002': InsufficientFunds,
-                    'FUND_003': BadRequest,
-                    'FUND_004': ExchangeError,
-                    'FUND_005': PermissionDenied,
-                    'FUND_014': BadRequest,
-                    'FUND_015': BadRequest,
-                    'FUND_016': BadRequest,
-                    'FUND_017': BadRequest,
-                    'FUND_018': BadRequest,
-                    'FUND_019': BadRequest,
-                    'FUND_020': BadRequest,
-                    'FUND_021': BadRequest,
-                    'FUND_022': BadRequest,
-                    'FUND_044': BadRequest,
-                    'TRANSFER_001': BadRequest,
-                    'TRANSFER_002': InsufficientFunds,
-                    'TRANSFER_003': BadRequest,
-                    'TRANSFER_004': PermissionDenied,
-                    'TRANSFER_005': PermissionDenied,
-                    'TRANSFER_006': PermissionDenied,
-                    'TRANSFER_007': RequestTimeout,
-                    'TRANSFER_008': BadRequest,
-                    'TRANSFER_009': BadRequest,
-                    'TRANSFER_010': PermissionDenied,
-                    'TRANSFER_011': PermissionDenied,
-                    'TRANSFER_012': PermissionDenied,
-                    'symbol_not_support_trading_via_api': BadSymbol,
-                    'open_order_min_nominal_value_limit': InvalidOrder,
+                    '400': NetworkError, // {"returnCode":1,"msgInfo":"failure","error":{"code":"400","msg":"Connection refused: /10.0.26.71:8080"},"result":null}
+                    '404': ExchangeError, // interface does not exist
+                    '429': RateLimitExceeded, // The request is too frequent, please control the request rate according to the speed limit requirement
+                    '500': ExchangeError, // Service exception
+                    '502': ExchangeError, // Gateway exception
+                    '503': OnMaintenance, // Service unavailable, please try again later
+                    'AUTH_001': AuthenticationError, // missing request header xt-validate-appkey
+                    'AUTH_002': AuthenticationError, // missing request header xt-validate-timestamp
+                    'AUTH_003': AuthenticationError, // missing request header xt-validate-recvwindow
+                    'AUTH_004': AuthenticationError, // bad request header xt-validate-recvwindow
+                    'AUTH_005': AuthenticationError, // missing request header xt-validate-algorithms
+                    'AUTH_006': AuthenticationError, // bad request header xt-validate-algorithms
+                    'AUTH_007': AuthenticationError, // missing request header xt-validate-signature
+                    'AUTH_101': AuthenticationError, // ApiKey does not exist
+                    'AUTH_102': AuthenticationError, // ApiKey is not activated
+                    'AUTH_103': AuthenticationError, // Signature error, {"rc":1,"mc":"AUTH_103","ma":[],"result":null}
+                    'AUTH_104': AuthenticationError, // Unbound IP request
+                    'AUTH_105': AuthenticationError, // outdated message
+                    'AUTH_106': PermissionDenied, // Exceeded apikey permission
+                    'SYMBOL_001': BadSymbol, // Symbol not exist
+                    'SYMBOL_002': BadSymbol, // Symbol offline
+                    'SYMBOL_003': BadSymbol, // Symbol suspend trading
+                    'SYMBOL_004': BadSymbol, // Symbol country disallow trading
+                    'SYMBOL_005': BadSymbol, // The symbol does not support trading via API
+                    'ORDER_001': InvalidOrder, // Platform rejection
+                    'ORDER_002': InsufficientFunds, // insufficient funds
+                    'ORDER_003': InvalidOrder, // Trading Pair Suspended
+                    'ORDER_004': InvalidOrder, // no transaction
+                    'ORDER_005': InvalidOrder, // Order not exist
+                    'ORDER_006': InvalidOrder, // Too many open orders
+                    'ORDER_007': PermissionDenied, // The sub-account has no transaction authority
+                    'ORDER_F0101': InvalidOrder, // Trigger Price Filter - Min
+                    'ORDER_F0102': InvalidOrder, // Trigger Price Filter - Max
+                    'ORDER_F0103': InvalidOrder, // Trigger Price Filter - Step Value
+                    'ORDER_F0201': InvalidOrder, // Trigger Quantity Filter - Min
+                    'ORDER_F0202': InvalidOrder, // Trigger Quantity Filter - Max
+                    'ORDER_F0203': InvalidOrder, // Trigger Quantity Filter - Step Value
+                    'ORDER_F0301': InvalidOrder, // Trigger QUOTE_QTY Filter - Min Value
+                    'ORDER_F0401': InvalidOrder, // Trigger PROTECTION_ONLINE Filter
+                    'ORDER_F0501': InvalidOrder, // Trigger PROTECTION_LIMIT Filter - Buy Max Deviation
+                    'ORDER_F0502': InvalidOrder, // Trigger PROTECTION_LIMIT Filter - Sell Max Deviation
+                    'ORDER_F0601': InvalidOrder, // Trigger PROTECTION_MARKET Filter
+                    'COMMON_001': ExchangeError, // The user does not exist
+                    'COMMON_002': ExchangeError, // System busy, please try it later
+                    'COMMON_003': BadRequest, // Operation failed, please try it later
+                    'CURRENCY_001': BadRequest, // Information of currency is abnormal
+                    'DEPOSIT_001': BadRequest, // Deposit is not open
+                    'DEPOSIT_002': PermissionDenied, // The current account security level is low, please bind any two security verifications in mobile phone/email/Google Authenticator before deposit
+                    'DEPOSIT_003': BadRequest, // The format of address is incorrect, please enter again
+                    'DEPOSIT_004': BadRequest, // The address is already exists, please enter again
+                    'DEPOSIT_005': BadRequest, // Can not find the address of offline wallet
+                    'DEPOSIT_006': BadRequest, // No deposit address, please try it later
+                    'DEPOSIT_007': BadRequest, // Address is being generated, please try it later
+                    'DEPOSIT_008': BadRequest, // Deposit is not available
+                    'WITHDRAW_001': BadRequest, // Withdraw is not open
+                    'WITHDRAW_002': BadRequest, // The withdrawal address is invalid
+                    'WITHDRAW_003': PermissionDenied, // The current account security level is low, please bind any two security verifications in mobile phone/email/Google Authenticator before withdraw
+                    'WITHDRAW_004': BadRequest, // The withdrawal address is not added
+                    'WITHDRAW_005': BadRequest, // The withdrawal address cannot be empty
+                    'WITHDRAW_006': BadRequest, // Memo cannot be empty
+                    'WITHDRAW_008': PermissionDenied, // Risk control is triggered, withdraw of this currency is not currently supported
+                    'WITHDRAW_009': PermissionDenied, // Withdraw failed, some assets in this withdraw are restricted by T+1 withdraw
+                    'WITHDRAW_010': BadRequest, // The precision of withdrawal is invalid
+                    'WITHDRAW_011': InsufficientFunds, // free balance is not enough
+                    'WITHDRAW_012': PermissionDenied, // Withdraw failed, your remaining withdrawal limit today is not enough
+                    'WITHDRAW_013': PermissionDenied, // Withdraw failed, your remaining withdrawal limit today is not enough, the withdrawal amount can be increased by completing a higher level of real-name authentication
+                    'WITHDRAW_014': BadRequest, // This withdrawal address cannot be used in the internal transfer function, please cancel the internal transfer function before submitting
+                    'WITHDRAW_015': BadRequest, // The withdrawal amount is not enough to deduct the handling fee
+                    'WITHDRAW_016': BadRequest, // This withdrawal address is already exists
+                    'WITHDRAW_017': BadRequest, // This withdrawal has been processed and cannot be canceled
+                    'WITHDRAW_018': BadRequest, // Memo must be a number
+                    'WITHDRAW_019': BadRequest, // Memo is incorrect, please enter again
+                    'WITHDRAW_020': PermissionDenied, // Your withdrawal amount has reached the upper limit for today, please try it tomorrow
+                    'WITHDRAW_021': PermissionDenied, // Your withdrawal amount has reached the upper limit for today, you can only withdraw up to {0} this time
+                    'WITHDRAW_022': BadRequest, // Withdrawal amount must be greater than {0}
+                    'WITHDRAW_023': BadRequest, // Withdrawal amount must be less than {0}
+                    'WITHDRAW_024': BadRequest, // Withdraw is not supported
+                    'WITHDRAW_025': BadRequest, // Please create a FIO address in the deposit page
+                    'FUND_001': BadRequest, // Duplicate request (a bizId can only be requested once)
+                    'FUND_002': InsufficientFunds, // Insufficient account balance
+                    'FUND_003': BadRequest, // Transfer operations are not supported (for example, sub-accounts do not support financial transfers)
+                    'FUND_004': ExchangeError, // Unfreeze failed
+                    'FUND_005': PermissionDenied, // Transfer prohibited
+                    'FUND_014': BadRequest, // The transfer-in account id and transfer-out account ID cannot be the same
+                    'FUND_015': BadRequest, // From and to business types cannot be the same
+                    'FUND_016': BadRequest, // Leverage transfer, symbol cannot be empty
+                    'FUND_017': BadRequest, // Parameter error
+                    'FUND_018': BadRequest, // Invalid freeze record
+                    'FUND_019': BadRequest, // Freeze users not equal
+                    'FUND_020': BadRequest, // Freeze currency are not equal
+                    'FUND_021': BadRequest, // Operation not supported
+                    'FUND_022': BadRequest, // Freeze record does not exist
+                    'FUND_044': BadRequest, // The maximum length of the amount is 113 and cannot exceed the limit
+                    'TRANSFER_001': BadRequest, // Duplicate request (a bizId can only be requested once)
+                    'TRANSFER_002': InsufficientFunds, // Insufficient account balance
+                    'TRANSFER_003': BadRequest, // User not registered
+                    'TRANSFER_004': PermissionDenied, // The currency is not allowed to be transferred
+                    'TRANSFER_005': PermissionDenied, // The user’s currency is not allowed to be transferred
+                    'TRANSFER_006': PermissionDenied, // Transfer prohibited
+                    'TRANSFER_007': RequestTimeout, // Request timed out
+                    'TRANSFER_008': BadRequest, // Transferring to a leveraged account is abnormal
+                    'TRANSFER_009': BadRequest, // Departing from a leveraged account is abnormal
+                    'TRANSFER_010': PermissionDenied, // Leverage cleared, transfer prohibited
+                    'TRANSFER_011': PermissionDenied, // Leverage with borrowing, transfer prohibited
+                    'TRANSFER_012': PermissionDenied, // Currency transfer prohibited
+                    'symbol_not_support_trading_via_api': BadSymbol, // {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
+                    'open_order_min_nominal_value_limit': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
                     'insufficient_balance': InsufficientFunds,
                 },
                 'broad': {
-                    'The symbol does not support trading via API': BadSymbol,
-                    'Exceeds the minimum notional value of a single order': InvalidOrder,
+                    'The symbol does not support trading via API': BadSymbol, // {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
+                    'Exceeds the minimum notional value of a single order': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
                     'insufficient balance': InsufficientFunds,
                 },
             },
@@ -544,13 +544,13 @@ export default class xt extends Exchange {
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
+                '1h': '1h', // spot only
+                '2h': '2h', // spot only
                 '4h': '4h',
-                '6h': '6h',
-                '8h': '8h',
+                '6h': '6h', // spot only
+                '8h': '8h', // spot only
                 '1d': '1d',
-                '3d': '3d',
+                '3d': '3d', // spot only
                 '1w': '1w',
                 '1M': '1M', // spot only
             },
@@ -570,11 +570,10 @@ export default class xt extends Exchange {
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
+                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
                     'ETH': 'Ethereum',
-                    'TRON': 'Tron',
-                    'BNB': 'BNB Smart Chain',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',
@@ -718,15 +717,15 @@ export default class xt extends Exchange {
                     'fetchMyTrades': {
                         'marginMode': true,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'marketType': true,
                         'subType': true,
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
-                        'trigger': true,
+                        'trigger': true, // todo TPSL kind
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
@@ -735,7 +734,7 @@ export default class xt extends Exchange {
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': 100,
-                        'trigger': true,
+                        'trigger': true, // todo TPSL
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
@@ -744,9 +743,9 @@ export default class xt extends Exchange {
                     'fetchOrders': {
                         'marginMode': true,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
-                        'trigger': true,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': true, // todo TPSL
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
@@ -755,10 +754,10 @@ export default class xt extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
-                        'trigger': true,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': true, // todo TPSL
                         'trailing': false,
                         'marketType': true,
                         'subType': true,
@@ -1419,6 +1418,12 @@ export default class xt extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
+            if (market['spot']) {
+                limit = Math.min(limit, 1000); // spot max limit
+            }
+            else {
+                limit = Math.min(limit, 1500); // derivatives max limit
+            }
             request['limit'] = limit;
         }
         else {
@@ -1511,7 +1516,8 @@ export default class xt extends Exchange {
         //         "v": "702461.58895"
         //     }
         //
-        const volumeIndex = (market['inverse']) ? 'v' : 'a';
+        const isInverse = this.safeBool(market, 'inverse');
+        const volumeIndex = (isInverse) ? 'v' : 'a';
         return [
             this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
@@ -1929,13 +1935,13 @@ export default class xt extends Exchange {
         let response = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['limit'] = Math.min(limit, 1000);
             }
             response = await this.publicSpotGetTradeRecent(this.extend(request, params));
         }
         else {
             if (limit !== undefined) {
-                request['num'] = limit;
+                request['num'] = Math.min(limit, 1000);
             }
             if (market['linear']) {
                 response = await this.publicLinearGetFutureMarketV1PublicQDeal(this.extend(request, params));
@@ -4139,7 +4145,7 @@ export default class xt extends Exchange {
         };
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('setLeverage', market, params);
-        let response = undefined;
+        let response;
         if (subType === 'inverse') {
             response = await this.privateInversePostFutureUserV1PositionAdjustLeverage(this.extend(request, params));
         }
@@ -4384,11 +4390,12 @@ export default class xt extends Exchange {
             const tier = brackets[i];
             const marketId = this.safeString(info, 'symbol');
             market = this.safeMarket(marketId, market, '_', 'contract');
+            const minNotional = this.safeNumber(brackets[i - 1], 'maxNominalValue', 0);
             tiers.push({
                 'tier': this.safeInteger(tier, 'bracket'),
                 'symbol': this.safeSymbol(marketId, market, '_', 'contract'),
                 'currency': market['settle'],
-                'minNotional': this.safeNumber(brackets[i - 1], 'maxNominalValue', 0),
+                'minNotional': minNotional,
                 'maxNotional': this.safeNumber(tier, 'maxNominalValue'),
                 'maintenanceMarginRate': this.safeNumber(tier, 'maintMarginRate'),
                 'maxLeverage': this.safeNumber(tier, 'maxLeverage'),

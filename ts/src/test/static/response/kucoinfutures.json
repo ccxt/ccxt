@@ -1,7 +1,9 @@
 {
     "exchange": "kucoinfutures",
     "skipKeys": [],
-    "options": {},
+    "options": {
+        "uta": false
+    },
     "methods": {
         "fetchFundingRate": [
             {

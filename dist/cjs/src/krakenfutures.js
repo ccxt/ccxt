@@ -2,12 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var krakenfutures$1 = require('./abstract/krakenfutures.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -49,7 +48,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledOrders': true,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
@@ -143,7 +142,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'batchorder',
                         'cancelallorders',
                         'cancelallordersafter',
-                        'withdrawal',
+                        'withdrawal', // for futures wallet -> kraken spot wallet
                         'assignmentprogram/add',
                         'assignmentprogram/delete',
                     ],
@@ -206,12 +205,12 @@ class krakenfutures extends krakenfutures$1["default"] {
                     'requiredArgumentMissing': errors.BadRequest,
                     'unavailable': errors.ExchangeNotAvailable,
                     'authenticationError': errors.AuthenticationError,
-                    'accountInactive': errors.ExchangeError,
-                    'invalidAccount': errors.BadRequest,
+                    'accountInactive': errors.ExchangeError, // When account has no trade history / no order history. Should this error be ignored in some cases?
+                    'invalidAccount': errors.BadRequest, // the fromAccount or the toAccount are invalid
                     'invalidAmount': errors.BadRequest,
                     'insufficientFunds': errors.InsufficientFunds,
-                    'Bad Request': errors.BadRequest,
-                    'Unavailable': errors.ExchangeNotAvailable,
+                    'Bad Request': errors.BadRequest, // The URL contains invalid characters. (Please encode the json URL parameter)
+                    'Unavailable': errors.ExchangeNotAvailable, // https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit': errors.BadRequest,
                     'Json Parse Error': errors.ExchangeError,
                     'nonceBelowThreshold': errors.InvalidNonce,
@@ -784,11 +783,11 @@ class krakenfutures extends krakenfutures$1["default"] {
         //    }
         //
         return [
-            this.safeInteger(ohlcv, 'time'),
-            this.safeNumber(ohlcv, 'open'),
-            this.safeNumber(ohlcv, 'high'),
-            this.safeNumber(ohlcv, 'low'),
-            this.safeNumber(ohlcv, 'close'),
+            this.safeInteger(ohlcv, 'time'), // unix timestamp in milliseconds
+            this.safeNumber(ohlcv, 'open'), // open price
+            this.safeNumber(ohlcv, 'high'), // highest price
+            this.safeNumber(ohlcv, 'low'), // lowest price
+            this.safeNumber(ohlcv, 'close'), // close price
             this.safeNumber(ohlcv, 'volume'), // trading volume, undefined for mark or index price
         ];
     }
@@ -820,7 +819,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         };
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
-        let rawTrades = undefined;
+        let rawTrades = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
             [request, params] = this.handleUntilOption('before', request, params);
@@ -1569,10 +1568,10 @@ class krakenfutures extends krakenfutures$1["default"] {
             request['count'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = since;
+            request['since'] = since;
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
-        let response = undefined;
+        let response;
         if (isTrigger) {
             params = this.omit(params, ['trigger', 'stop']);
             response = await this.historyGetTriggers(this.extend(request, params));
@@ -1586,12 +1585,21 @@ class krakenfutures extends krakenfutures$1["default"] {
             const order = allOrders[i];
             const event = this.safeDict(order, 'event', {});
             const orderPlaced = this.safeDict2(event, 'OrderPlaced', 'OrderTriggerActivated');
+            const orderUpdated = this.safeDict(event, 'OrderUpdated');
             if (orderPlaced !== undefined) {
                 const innerOrder = this.safeDict(orderPlaced, 'order', {});
                 const filled = this.safeString(innerOrder, 'filled');
                 if (filled !== '0') {
                     innerOrder['status'] = 'closed'; // status not available in the response
                     closedOrders.push(innerOrder);
+                }
+            }
+            else if (orderUpdated !== undefined) {
+                const reason = this.safeString(orderUpdated, 'reason');
+                if (reason === 'full_fill') {
+                    const newOrder = this.safeDict(orderUpdated, 'newOrder', {});
+                    newOrder['status'] = 'closed';
+                    closedOrders.push(newOrder);
                 }
             }
         }
@@ -1622,7 +1630,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (since !== undefined) {
             request['from'] = since;
         }
-        let response = undefined;
+        let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         if (isTrigger) {
             params = this.omit(params, ['trigger', 'stop']);
@@ -1685,8 +1693,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             'clientOrderIdAlreadyExist': errors.DuplicateOrderId,
             'clientOrderIdTooLong': errors.BadRequest,
             'outsidePriceCollar': errors.InvalidOrder,
-            'postWouldExecute': errors.OrderImmediatelyFillable,
-            'iocWouldNotExecute': errors.OrderNotFillable,
+            'postWouldExecute': errors.OrderImmediatelyFillable, // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
+            'iocWouldNotExecute': errors.OrderNotFillable, // -||-
             'wouldNotReducePosition': errors.ExchangeError,
             'orderForEditNotFound': errors.OrderNotFound,
             'orderForEditNotAStop': errors.InvalidOrder,
@@ -1699,32 +1707,32 @@ class krakenfutures extends krakenfutures$1["default"] {
     }
     parseOrderStatus(status) {
         const statuses = {
-            'placed': 'open',
-            'cancelled': 'canceled',
-            'invalidOrderType': 'rejected',
-            'invalidSide': 'rejected',
-            'invalidSize': 'rejected',
-            'invalidPrice': 'rejected',
-            'insufficientAvailableFunds': 'rejected',
-            'selfFill': 'rejected',
-            'tooManySmallOrders': 'rejected',
-            'maxPositionViolation': 'rejected',
-            'marketSuspended': 'rejected',
-            'marketInactive': 'rejected',
-            'clientOrderIdAlreadyExist': 'rejected',
-            'clientOrderIdTooLong': 'rejected',
-            'outsidePriceCollar': 'rejected',
+            'placed': 'open', // the order was placed successfully
+            'cancelled': 'canceled', // the order was cancelled successfully
+            'invalidOrderType': 'rejected', // the order was not placed because orderType is invalid
+            'invalidSide': 'rejected', // the order was not placed because side is invalid
+            'invalidSize': 'rejected', // the order was not placed because size is invalid
+            'invalidPrice': 'rejected', // the order was not placed because limitPrice and/or stopPrice are invalid
+            'insufficientAvailableFunds': 'rejected', // the order was not placed because available funds are insufficient
+            'selfFill': 'rejected', // the order was not placed because it would be filled against an existing order belonging to the same account
+            'tooManySmallOrders': 'rejected', // the order was not placed because the number of small open orders would exceed the permissible limit
+            'maxPositionViolation': 'rejected', // Order would cause you to exceed your maximum position in this contract.
+            'marketSuspended': 'rejected', // the order was not placed because the market is suspended
+            'marketInactive': 'rejected', // the order was not placed because the market is inactive
+            'clientOrderIdAlreadyExist': 'rejected', // the specified client id already exist
+            'clientOrderIdTooLong': 'rejected', // the client id is longer than the permissible limit
+            'outsidePriceCollar': 'rejected', // the limit order crosses the spread but is an order of magnitude away from the mark price - fat finger control
             // Should the next two be 'expired' ?
-            'postWouldExecute': 'rejected',
-            'iocWouldNotExecute': 'rejected',
-            'wouldNotReducePosition': 'rejected',
-            'edited': 'open',
-            'orderForEditNotFound': 'rejected',
-            'orderForEditNotAStop': 'rejected',
-            'filled': 'closed',
-            'notFound': 'rejected',
-            'untouched': 'open',
-            'partiallyFilled': 'open',
+            'postWouldExecute': 'rejected', // the post-only order would be filled upon placement, thus is cancelled
+            'iocWouldNotExecute': 'rejected', // the immediate-or-cancel order would not execute.
+            'wouldNotReducePosition': 'rejected', // the reduce only order would not reduce position.
+            'edited': 'open', // the order was edited successfully
+            'orderForEditNotFound': 'rejected', // the requested order for edit has not been found
+            'orderForEditNotAStop': 'rejected', // the supplied stopPrice cannot be applied because order is not a stop order
+            'filled': 'closed', // the order was found completely filled and could not be cancelled
+            'notFound': 'rejected', // the order was not found, either because it had already been cancelled or it never existed
+            'untouched': 'open', // the entire size of the order is unfilled
+            'partiallyFilled': 'open', // the size of the order is partially but not entirely filled
             'ENTERED_BOOK': 'open',
             'FULLY_EXECUTED': 'closed',
             'CANCELLED': 'canceled',
@@ -2041,6 +2049,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             const innerStatus = this.safeString(order, 'status');
             const fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, 'priceTriggerOptions', {});
             const fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, 'triggerPrice');
+            const unifiedSymbol = this.safeSymbol(this.safeString(orderDictFromFetchOrder, 'symbol'), market);
             return this.safeOrder({
                 'info': order,
                 'id': this.safeString(orderDictFromFetchOrder, 'orderId'),
@@ -2049,13 +2058,13 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'datetime': datetime,
                 'lastTradeTimestamp': undefined,
                 'lastUpdateTimestamp': this.parse8601(this.safeString(orderDictFromFetchOrder, 'lastUpdateTimestamp')),
-                'symbol': this.safeSymbol(this.safeString(orderDictFromFetchOrder, 'symbol'), market),
+                'symbol': unifiedSymbol,
                 'type': undefined,
                 'timeInForce': undefined,
                 'postOnly': undefined,
                 'reduceOnly': this.safeBool(orderDictFromFetchOrder, 'reduceOnly'),
                 'side': this.safeString(orderDictFromFetchOrder, 'side'),
-                'price': undefined,
+                'price': undefined, // limitPrice is returning inaccurate values https://github.com/ccxt/ccxt/issues/27996#issuecomment-4019280204
                 'triggerPrice': fetchOrderTriggerPrice,
                 'stopPrice': fetchOrderTriggerPrice,
                 'amount': this.safeString(orderDictFromFetchOrder, 'quantity'),
@@ -2214,7 +2223,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'postOnly': type === 'post',
             'reduceOnly': this.safeBool2(details, 'reduceOnly', 'reduce_only'),
             'side': this.safeStringLower2(details, 'side', 'direction'),
-            'price': price,
+            'price': price, // limitPrice is returning inaccurate values https://github.com/ccxt/ccxt/issues/27996#issuecomment-4070088684
             'triggerPrice': triggerPrice,
             'stopPrice': triggerPrice,
             'amount': amount,
@@ -2612,7 +2621,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
-            'symbol': market['id'].toUpperCase(),
+            'symbol': this.safeStringUpper(market, 'id'),
         };
         const response = await this.publicGetHistoricalfundingrates(this.extend(request, params));
         //
@@ -2952,7 +2961,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const request = {
             'amount': amount,
         };
-        let response = undefined;
+        let response;
         if (toAccount === 'spot') {
             if (this.parseAccount(fromAccount) !== 'cash') {
                 throw new errors.BadRequest(this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);
@@ -3127,9 +3136,9 @@ class krakenfutures extends krakenfutures$1["default"] {
                 auth += api + '/';
             }
             auth += endpoint; // 1
-            const hash = this.hash(this.encode(auth), sha256.sha256, 'binary'); // 2
+            const hash = this.hash(this.encode(auth), sha2_js.sha256, 'binary'); // 2
             const secret = this.base64ToBinary(this.secret); // 3
-            const signature = this.hmac(hash, secret, sha512.sha512, 'base64'); // 4-5
+            const signature = this.hmac(hash, secret, sha2_js.sha512, 'base64'); // 4-5
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',

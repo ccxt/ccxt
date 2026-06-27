@@ -365,64 +365,61 @@ public partial class coinmetro : Exchange
         //         ...
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object result = this.parseCurrencies(response);
+        object currenciesById = this.indexBy(result, "id");
+        ((IDictionary<string,object>)this.options)["currenciesByIdForParseMarket"] = currenciesById;
+        object currentCurrencyIdsList = this.safeList(this.options, "currencyIdsListForParseMarket", new List<object>() {});
+        object currencyIdsList = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(currencyIdsList)); postFixIncrement(ref i))
         {
-            object currency = getValue(response, i);
-            object id = this.safeString(currency, "symbol");
-            object code = this.safeCurrencyCode(id);
-            object typeRaw = this.safeString(currency, "type");
-            object type = null;
-            if (isTrue(isTrue(isTrue(isTrue(isEqual(typeRaw, "coin")) || isTrue(isEqual(typeRaw, "token"))) || isTrue(isEqual(typeRaw, "erc20"))) || isTrue(isEqual(typeRaw, "crypto"))))
-            {
-                type = "crypto";
-            } else if (isTrue(isEqual(typeRaw, "fiat")))
-            {
-                type = "fiat";
-            }
-            object precisionDigits = this.safeString2(currency, "digits", "notabeneDecimals");
-            if (isTrue(isEqual(code, "RENDER")))
-            {
-                // RENDER is an exception (with broken info)
-                precisionDigits = "4";
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "name", code },
-                { "type", type },
-                { "info", currency },
-                { "active", this.safeBool(currency, "canTrade") },
-                { "deposit", this.safeBool(currency, "canDeposit") },
-                { "withdraw", this.safeBool(currency, "canWithdraw") },
-                { "fee", null },
-                { "precision", this.parseNumber(this.parsePrecision(precisionDigits)) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "minQty") },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", new Dictionary<string, object>() {} },
-            });
+            ((IList<object>)currentCurrencyIdsList).Add(getValue(currencyIdsList, i));
         }
-        if (isTrue(isEqual(this.safeValue(this.options, "currenciesByIdForParseMarket"), null)))
-        {
-            object currenciesById = this.indexBy(result, "id");
-            ((IDictionary<string,object>)this.options)["currenciesByIdForParseMarket"] = currenciesById;
-            object currentCurrencyIdsList = this.safeList(this.options, "currencyIdsListForParseMarket", new List<object>() {});
-            object currencyIdsList = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(currencyIdsList)); postFixIncrement(ref i))
-            {
-                ((IList<object>)currentCurrencyIdsList).Add(getValue(currencyIdsList, i));
-            }
-            ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = currentCurrencyIdsList;
-        }
+        ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = currentCurrencyIdsList;
         return result;
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "symbol");
+        object code = this.safeCurrencyCode(id);
+        object typeRaw = this.safeString(rawCurrency, "type");
+        object type = null;
+        if (isTrue(isTrue(isTrue(isTrue(isEqual(typeRaw, "coin")) || isTrue(isEqual(typeRaw, "token"))) || isTrue(isEqual(typeRaw, "erc20"))) || isTrue(isEqual(typeRaw, "crypto"))))
+        {
+            type = "crypto";
+        } else if (isTrue(isEqual(typeRaw, "fiat")))
+        {
+            type = "fiat";
+        }
+        object precisionDigits = this.safeString2(rawCurrency, "digits", "notabeneDecimals");
+        if (isTrue(isEqual(code, "RENDER")))
+        {
+            // RENDER is an exception (with broken info)
+            precisionDigits = "4";
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "name", code },
+            { "type", type },
+            { "info", rawCurrency },
+            { "active", this.safeBool(rawCurrency, "canTrade") },
+            { "deposit", this.safeBool(rawCurrency, "canDeposit") },
+            { "withdraw", this.safeBool(rawCurrency, "canWithdraw") },
+            { "fee", null },
+            { "precision", this.parseNumber(this.parsePrecision(precisionDigits)) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawCurrency, "minQty") },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+        });
     }
 
     /**
@@ -438,10 +435,6 @@ public partial class coinmetro : Exchange
         parameters ??= new Dictionary<string, object>();
         object promises = new List<object>() {};
         ((IList<object>)promises).Add(this.publicGetMarkets(parameters));
-        if (isTrue(isEqual(this.safeValue(this.options, "currenciesByIdForParseMarket"), null)))
-        {
-            ((IList<object>)promises).Add(this.fetchCurrencies());
-        }
         object responses = await promiseAll(promises);
         object response = getValue(responses, 0);
         //
@@ -464,7 +457,7 @@ public partial class coinmetro : Exchange
         {
             object market = this.parseMarket(getValue(response, i));
             // there are several broken (unavailable info) markets
-            if (isTrue(isTrue(isEqual(getValue(market, "base"), null)) || isTrue(isEqual(getValue(market, "quote"), null))))
+            if (isTrue(isTrue(isEqual(this.safeString(market, "base"), null)) || isTrue(isEqual(this.safeString(market, "quote"), null))))
             {
                 continue;
             }
@@ -882,7 +875,7 @@ public partial class coinmetro : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -932,7 +925,7 @@ public partial class coinmetro : Exchange
         return orderbook;
     }
 
-    public override object parseBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public override object parseOrderBookBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;
@@ -944,7 +937,7 @@ public partial class coinmetro : Exchange
             object priceString = this.safeString(prices, i);
             object price = this.safeNumber(prices, i);
             object volume = this.safeNumber(bidasks, priceString);
-            ((IList<object>)result).Add(new List<object>() {price, volume});
+            ((IList<object>)(result)).Add(new List<object>() {price, volume});
         }
         return result;
     }
@@ -1509,7 +1502,7 @@ public partial class coinmetro : Exchange
         //         "takerQty": 0.002
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(response);
     }
 
     public virtual object handleCreateOrderSide(object sellingCurrency, object buyingCurrency, object sellingQty, object buyingQty, object request = null)
@@ -2109,6 +2102,7 @@ public partial class coinmetro : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        headers ??= new Dictionary<string, object>();
         object request = this.omit(parameters, this.extractParams(path));
         object endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);

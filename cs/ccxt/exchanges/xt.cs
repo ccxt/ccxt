@@ -116,7 +116,7 @@ public partial class xt : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/1f916564-6507-4549-af96-22837bb0a0c7" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://sapi.xt.com" },
                     { "linear", "https://fapi.xt.com" },
@@ -501,11 +501,10 @@ public partial class xt : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "Ethereum" },
                     { "TRC20", "Tron" },
+                    { "TRX", "Tron" },
                     { "BEP20", "BNB Smart Chain" },
                     { "BEP2", "BNB-BEP2" },
                     { "ETH", "Ethereum" },
-                    { "TRON", "Tron" },
-                    { "BNB", "BNB Smart Chain" },
                     { "AVAX", "AVAX C-Chain" },
                     { "GAL", "GAL(FT)" },
                     { "ALEO", "ALEO(IOU)" },
@@ -1393,6 +1392,13 @@ public partial class xt : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
+            if (isTrue(getValue(market, "spot")))
+            {
+                limit = mathMin(limit, 1000); // spot max limit
+            } else
+            {
+                limit = mathMin(limit, 1500); // derivatives max limit
+            }
             ((IDictionary<string,object>)request)["limit"] = limit;
         } else
         {
@@ -1489,7 +1495,8 @@ public partial class xt : Exchange
         //         "v": "702461.58895"
         //     }
         //
-        object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? "v" : "a";
+        object isInverse = this.safeBool(market, "inverse");
+        object volumeIndex = ((bool) isTrue((isInverse))) ? "v" : "a";
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)};
     }
 
@@ -1939,14 +1946,14 @@ public partial class xt : Exchange
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
             }
             response = await this.publicSpotGetTradeRecent(this.extend(request, parameters));
         } else
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["num"] = limit;
+                ((IDictionary<string,object>)request)["num"] = mathMin(limit, 1000);
             }
             if (isTrue(getValue(market, "linear")))
             {
@@ -4650,11 +4657,12 @@ public partial class xt : Exchange
             object tier = getValue(brackets, i);
             object marketId = this.safeString(info, "symbol");
             market = this.safeMarket(marketId, market, "_", "contract");
+            object minNotional = this.safeNumber(getValue(brackets, subtract(i, 1)), "maxNominalValue", 0);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "bracket") },
                 { "symbol", this.safeSymbol(marketId, market, "_", "contract") },
                 { "currency", getValue(market, "settle") },
-                { "minNotional", this.safeNumber(getValue(brackets, subtract(i, 1)), "maxNominalValue", 0) },
+                { "minNotional", minNotional },
                 { "maxNotional", this.safeNumber(tier, "maxNominalValue") },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintMarginRate") },
                 { "maxLeverage", this.safeNumber(tier, "maxLeverage") },

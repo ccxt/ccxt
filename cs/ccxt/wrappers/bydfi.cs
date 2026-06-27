@@ -10,7 +10,7 @@ public partial class bydfi
     /// retrieves data on all markets for bydfi
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/market#fetching-trading-rules-and-pairs"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/market#fetching-trading-rules-and-pairs"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class bydfi
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/market#depth-information"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/market#depth-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -63,7 +63,7 @@ public partial class bydfi
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/market#recent-trades"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/market#recent-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -103,7 +103,7 @@ public partial class bydfi
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#historical-trades-query"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#historical-trades-query"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -161,7 +161,7 @@ public partial class bydfi
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/market#candlestick-data"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/market#candlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -201,7 +201,7 @@ public partial class bydfi
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -221,7 +221,7 @@ public partial class bydfi
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -241,7 +241,7 @@ public partial class bydfi
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/market#recent-funding-rate"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/market#recent-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -261,7 +261,7 @@ public partial class bydfi
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/market#historical-funding-rates"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/market#historical-funding-rates"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -301,7 +301,7 @@ public partial class bydfi
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#placing-an-order"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#placing-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -406,7 +406,7 @@ public partial class bydfi
     /// create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#batch-order-placement"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#batch-order-placement"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -432,7 +432,7 @@ public partial class bydfi
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#order-modification"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#order-modification"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -496,7 +496,7 @@ public partial class bydfi
     /// edit a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#batch-order-modification"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#batch-order-modification"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -529,7 +529,7 @@ public partial class bydfi
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#complete-order-cancellation"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#complete-order-cancellation"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -555,8 +555,8 @@ public partial class bydfi
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#pending-order-query"/>  <br/>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#planned-order-query"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#pending-order-query"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#planned-order-query"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -602,8 +602,8 @@ public partial class bydfi
     /// fetch an open order by the id
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#pending-order-query"/>  <br/>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#planned-order-query"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#pending-order-query"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#planned-order-query"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -641,7 +641,7 @@ public partial class bydfi
     /// fetches information on multiple canceled and closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#historical-orders-query"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#historical-orders-query"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -699,7 +699,7 @@ public partial class bydfi
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#set-leverage-for-single-trading-pair"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -725,7 +725,7 @@ public partial class bydfi
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#get-leverage-for-single-trading-pair"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -751,7 +751,7 @@ public partial class bydfi
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#positions-query"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#positions-query"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -783,7 +783,7 @@ public partial class bydfi
     /// fetch open positions for a single market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#positions-query"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#positions-query"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -809,7 +809,7 @@ public partial class bydfi
     /// fetches historical positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -855,7 +855,7 @@ public partial class bydfi
     /// fetches historical positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -901,7 +901,7 @@ public partial class bydfi
     /// fetches the margin mode of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/user#margin-mode-query"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/user#margin-mode-query"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -933,7 +933,7 @@ public partial class bydfi
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/user#change-margin-type-cross-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -965,7 +965,7 @@ public partial class bydfi
     /// set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/user#change-position-mode-dual"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/user#change-position-mode-dual"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1009,7 +1009,7 @@ public partial class bydfi
     /// fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/user#get-position-mode"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/user#get-position-mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1054,7 +1054,7 @@ public partial class bydfi
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.bydfi.com/en/account#asset-inquiry"/>  <br/>
-    /// See <see href="https://developers.bydfi.com/en/swap/user#asset-query"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/user#asset-query"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1063,9 +1063,9 @@ public partial class bydfi
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.accountType</term>
+    /// <term>params.account</term>
     /// <description>
-    /// string : the type of account to fetch the balance for, either 'spot' or 'swap'  or 'funding' (default is 'spot')
+    /// string : the type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING' (default is 'SPOT')
     /// </description>
     /// </item>
     /// <item>

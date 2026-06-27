@@ -4,10 +4,18 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
-                "url": "http://testnet.aftermath.finance/api/ccxt/currencies",
-                "input": []
+                "url": "https://aftermath.finance/api/ccxt/currencies",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://aftermath.finance/api/ccxt/currencies",
+                "input": [],
+                "output": null
             }
         ],
         "fetchMarkets": [

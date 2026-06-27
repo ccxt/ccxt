@@ -1,13 +1,13 @@
 
 // ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/ndax.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -481,43 +481,42 @@ export default class ndax extends Exchange {
         //        },
         //        ...
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'ProductId');
-            const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
-            const ProductType = this.safeString (currency, 'ProductType');
-            let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
-            if (ProductType === 'Unknown') {
-                // such currency is just a blanket entry
-                type = 'other';
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'name': this.safeString (currency, 'ProductFullName'),
-                'code': code,
-                'type': type,
-                'precision': this.safeNumber (currency, 'TickSize'),
-                'info': currency,
-                'active': !this.safeBool (currency, 'IsDisabled'),
-                'deposit': this.safeBool (currency, 'DepositEnabled'),
-                'withdraw': this.safeBool (currency, 'WithdrawEnabled'),
-                'fee': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-                'margin': this.safeBool (currency, 'MarginEnabled'),
-            });
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'ProductId');
+        const code = this.safeCurrencyCode (this.safeString (rawCurrency, 'Product'));
+        const ProductType = this.safeString (rawCurrency, 'ProductType');
+        let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
+        if (ProductType === 'Unknown') {
+            // such currency is just a blanket entry
+            type = 'other';
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'name': this.safeString (rawCurrency, 'ProductFullName'),
+            'code': code,
+            'type': type,
+            'precision': this.safeNumber (rawCurrency, 'TickSize'),
+            'info': rawCurrency,
+            'active': !this.safeBool (rawCurrency, 'IsDisabled'),
+            'deposit': this.safeBool (rawCurrency, 'DepositEnabled'),
+            'withdraw': this.safeBool (rawCurrency, 'WithdrawEnabled'),
+            'fee': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+            'margin': this.safeBool (rawCurrency, 'MarginEnabled'),
+        });
     }
 
     /**
@@ -645,7 +644,7 @@ export default class ndax extends Exchange {
     }
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
-        let nonce = undefined;
+        let nonce: Int = undefined;
         const result: Dict = {
             'symbol': symbol,
             'bids': [],
@@ -668,7 +667,7 @@ export default class ndax extends Exchange {
                 const newNonce = this.safeInteger (level, 0);
                 nonce = Math.max (nonce, newNonce);
             }
-            const bidask = this.parseBidAsk (level, priceKey, amountKey);
+            const bidask = this.parseOrderBookBidAsk (level, priceKey, amountKey);
             const levelSide = this.safeInteger (level, 9);
             const side = levelSide ? asksKey : bidsKey;
             const resultSide = result[side];
@@ -690,7 +689,7 @@ export default class ndax extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1026,17 +1025,17 @@ export default class ndax extends Exchange {
         //         "OMSId":1
         //     }
         //
-        let priceString = undefined;
-        let amountString = undefined;
-        let costString = undefined;
-        let timestamp = undefined;
-        let id = undefined;
-        let marketId = undefined;
-        let side = undefined;
-        let orderId = undefined;
-        let takerOrMaker = undefined;
-        let fee = undefined;
-        let type = undefined;
+        let priceString: Str = undefined;
+        let amountString: Str = undefined;
+        let costString: Str = undefined;
+        let timestamp: Int = undefined;
+        let id: Str = undefined;
+        let marketId: Str = undefined;
+        let side: Str = undefined;
+        let orderId: Str = undefined;
+        let takerOrMaker: Str = undefined;
+        let fee: Dict = undefined;
+        let type: Str = undefined;
         if (Array.isArray (trade)) {
             priceString = this.safeString (trade, 3);
             amountString = this.safeString (trade, 2);
@@ -1270,8 +1269,8 @@ export default class ndax extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const credit = this.safeString (item, 'CR');
         const debit = this.safeString (item, 'DR');
-        let amount = undefined;
-        let direction = undefined;
+        let amount: Str = undefined;
+        let direction: Str = undefined;
         if (Precise.stringLt (credit, '0')) {
             amount = credit;
             direction = 'in';
@@ -1279,7 +1278,7 @@ export default class ndax extends Exchange {
             amount = debit;
             direction = 'out';
         }
-        let before = undefined;
+        let before: Str = undefined;
         const after = this.safeString (item, 'Balance');
         if (direction === 'out') {
             before = Precise.stringAdd (after, amount);
@@ -1350,7 +1349,7 @@ export default class ndax extends Exchange {
         //         },
         //     ]
         //
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1616,7 +1615,7 @@ export default class ndax extends Exchange {
             // 'StartIndex': 0 // from the most recent trade 0 and moving backwards in time
             // 'ExecutionId': 123, // The ID of the individual buy or sell execution. If not specified, returns all.
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['InstrumentId'] = market['id'];
@@ -1732,7 +1731,7 @@ export default class ndax extends Exchange {
         // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1773,7 +1772,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1866,7 +1865,7 @@ export default class ndax extends Exchange {
             // 'Depth': limit,
             // 'StartIndex': 0,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['InstrumentId'] = market['id'];
@@ -1948,7 +1947,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2028,7 +2027,7 @@ export default class ndax extends Exchange {
         // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2153,7 +2152,7 @@ export default class ndax extends Exchange {
         const parts = lastString.split ('?memo=');
         const address = this.safeString (parts, 0);
         const tag = this.safeString (parts, 1);
-        let code = undefined;
+        let code: Str = undefined;
         if (currency !== undefined) {
             code = currency['code'];
         }
@@ -2200,7 +2199,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2261,7 +2260,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2397,10 +2396,10 @@ export default class ndax extends Exchange {
         //         "NotionalProductId": 0
         //     }
         //
-        let id = undefined;
+        let id: Str = undefined;
         const currencyId = this.safeString (transaction, 'ProductId');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let type = undefined;
+        let type: Str = undefined;
         if ('DepositId' in transaction) {
             id = this.safeString (transaction, 'DepositId');
             type = 'deposit';
@@ -2417,7 +2416,7 @@ export default class ndax extends Exchange {
         const timestamp = this.safeInteger (templateForm, 'TimeSubmitted');
         const feeCost = this.safeNumber (transaction, 'FeeAmount');
         const transactionStatus = this.safeString (transaction, 'TicketStatus');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
@@ -2545,7 +2544,7 @@ export default class ndax extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

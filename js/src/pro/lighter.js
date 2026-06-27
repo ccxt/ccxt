@@ -23,14 +23,14 @@ export default class lighter extends lighterRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchOrderBookForSymbols': false,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchLiquidations': true,
                 'watchLiquidationsForSymbols': false,
                 'watchMyLiquidations': false,
                 'watchMyLiquidationsForSymbols': false,
                 'watchOHLCV': false,
                 'watchOHLCVForSymbols': false,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchMyTrades': true,
                 'watchPositions': false,
                 'watchFundingRate': false,
@@ -42,6 +42,7 @@ export default class lighter extends lighterRest {
                 'unWatchMyTrades': true,
                 'unWatchMarkPrice': true,
                 'unWatchMarkPrices': true,
+                'unWatchOrders': true,
             },
             'urls': {
                 'api': {
@@ -89,7 +90,7 @@ export default class lighter extends lighterRest {
         };
         return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscription);
     }
-    async unsubscribePublic(messageHash, params = {}) {
+    async unsubscribe(messageHash, params = {}) {
         const url = this.urls['api']['ws'];
         const request = {
             'type': 'unsubscribe',
@@ -99,6 +100,11 @@ export default class lighter extends lighterRest {
             'params': params,
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
+    }
+    async subscribePrivate(messageHash, params = {}) {
+        await this.preLoadLighterLibrary();
+        params['auth'] = this.createAuth(params);
+        return await this.subscribePublic(messageHash, params);
     }
     handleDelta(bookside, delta) {
         const price = this.safeFloat(delta, 'price');
@@ -177,7 +183,7 @@ export default class lighter extends lighterRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -196,7 +202,7 @@ export default class lighter extends lighterRest {
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#order-book
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
         await this.loadMarkets();
@@ -205,7 +211,7 @@ export default class lighter extends lighterRest {
             'channel': 'order_book/' + market['id'],
         };
         const messageHash = this.getMessageHash('unsubscribe', symbol);
-        return await this.unsubscribePublic(messageHash, this.extend(request, params));
+        return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     handleTicker(client, message) {
         //
@@ -289,7 +295,7 @@ export default class lighter extends lighterRest {
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -307,7 +313,7 @@ export default class lighter extends lighterRest {
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -316,7 +322,7 @@ export default class lighter extends lighterRest {
             'channel': 'market_stats/' + market['id'],
         };
         const messageHash = this.getMessageHash('unsubscribe', symbol);
-        return await this.unsubscribePublic(messageHash, this.extend(request, params));
+        return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     /**
      * @method
@@ -326,7 +332,7 @@ export default class lighter extends lighterRest {
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -335,7 +341,11 @@ export default class lighter extends lighterRest {
             'channel': 'market_stats/all',
         };
         const messageHashes = [];
-        if (symbols === undefined || symbols.length === 0) {
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        if (symbolsLength === 0) {
             messageHashes.push(this.getMessageHash('ticker'));
         }
         else {
@@ -359,7 +369,7 @@ export default class lighter extends lighterRest {
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -367,7 +377,7 @@ export default class lighter extends lighterRest {
             'channel': 'market_stats/all',
         };
         const messageHash = this.getMessageHash('unsubscribe');
-        return await this.unsubscribePublic(messageHash, this.extend(request, params));
+        return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     /**
      * @method
@@ -376,7 +386,7 @@ export default class lighter extends lighterRest {
      * @description watches a mark price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchMarkPrice(symbol, params = {}) {
         return await this.watchTicker(symbol, params);
@@ -388,7 +398,7 @@ export default class lighter extends lighterRest {
      * @description watches mark prices
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchMarkPrices(symbols = undefined, params = {}) {
         return await this.watchTickers(symbols, params);
@@ -400,7 +410,7 @@ export default class lighter extends lighterRest {
      * @description unWatches a mark price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchMarkPrice(symbol, params = {}) {
         return await this.unWatchTicker(symbol, params);
@@ -412,7 +422,7 @@ export default class lighter extends lighterRest {
      * @description unWatches mark prices
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchMarkPrices(symbols = undefined, params = {}) {
         return await this.unWatchTickers(symbols, params);
@@ -451,10 +461,7 @@ export default class lighter extends lighterRest {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
         const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
-        const side = (isMakerAsk === true) ? 'sell' : 'buy';
-        const makerFeeRate = this.safeString(market, 'maker_fee');
-        const maker = Precise.stringDiv(makerFeeRate, '100');
-        const feeAmount = Precise.stringMul(maker, makerFeeRate);
+        const side = isMakerAsk ? 'buy' : 'sell';
         return this.safeTrade({
             'info': trade,
             'id': tradeId,
@@ -464,14 +471,11 @@ export default class lighter extends lighterRest {
             'symbol': this.safeSymbol(undefined, market),
             'type': undefined,
             'side': side,
-            'takerOrMaker': 'maker',
+            'takerOrMaker': 'taker',
             'price': priceString,
             'amount': amountString,
             'cost': this.safeString(trade, 'usd_amount'),
-            'fee': {
-                'cost': feeAmount,
-                'currency': 'USDC',
-            },
+            'fee': undefined,
         }, market);
     }
     handleTrades(client, message) {
@@ -512,7 +516,8 @@ export default class lighter extends lighterRest {
         //     }
         //
         const liquidationData = this.safeList(message, 'liquidation_trades', []);
-        if (liquidationData.length > 0) {
+        const liquidationDataLength = liquidationData.length;
+        if (liquidationDataLength > 0) {
             this.handleLiquidation(client, message);
         }
         const data = this.safeList(message, 'trades', []);
@@ -527,8 +532,10 @@ export default class lighter extends lighterRest {
             stored = new ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        for (let i = 0; i < data.length; i++) {
-            const trade = this.parseWsTrade(data[i], market);
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const iReversed = dataLength - 1 - i;
+            const trade = this.parseWsTrade(data[iReversed], market);
             stored.append(trade);
         }
         const messageHash = this.getMessageHash('trade', symbol);
@@ -543,7 +550,7 @@ export default class lighter extends lighterRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -552,7 +559,8 @@ export default class lighter extends lighterRest {
             'channel': 'trade/' + market['id'],
         };
         const messageHash = this.getMessageHash('trade', market['symbol']);
-        return await this.subscribePublic(messageHash, this.extend(request, params));
+        const trades = await this.subscribePublic(messageHash, this.extend(request, params));
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     /**
      * @method
@@ -561,7 +569,7 @@ export default class lighter extends lighterRest {
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades(symbol, params = {}) {
         await this.loadMarkets();
@@ -570,7 +578,83 @@ export default class lighter extends lighterRest {
             'channel': 'trade/' + market['id'],
         };
         const messageHash = this.getMessageHash('unsubscribe', symbol);
-        return await this.unsubscribePublic(messageHash, this.extend(request, params));
+        return await this.unsubscribe(messageHash, this.extend(request, params));
+    }
+    parseWsOrderTrade(trade, market = undefined) {
+        //
+        //     {
+        //         "trade_id": 526801155,
+        //         "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //         "type": "trade",
+        //         "market_id": 0,
+        //         "size": "0.0346",
+        //         "price": "3028.85",
+        //         "usd_amount": "104.798210",
+        //         "ask_id": 281475673670566,
+        //         "bid_id": 562949291740362,
+        //         "ask_client_id": 76303170,
+        //         "bid_client_id": 27601,
+        //         "ask_account_id": 99349,
+        //         "bid_account_id": 243008,
+        //         "is_maker_ask": false,
+        //         "block_height": 102322769,
+        //         "timestamp": 1763623734215,
+        //         "taker_position_size_before": "0.0346",
+        //         "taker_entry_quote_before": "104.359926",
+        //         "taker_initial_margin_fraction_before": 500,
+        //         "taker_position_sign_changed": true,
+        //         "maker_fee": 20,
+        //         "maker_position_size_before": "2.1277",
+        //         "maker_entry_quote_before": "6444.179555",
+        //         "maker_initial_margin_fraction_before": 200
+        //     }
+        //
+        const timestamp = this.safeInteger(trade, 'timestamp');
+        const tradeId = this.safeString(trade, 'trade_id');
+        const priceString = this.safeString(trade, 'price');
+        const amountString = this.safeString(trade, 'size');
+        const costString = this.safeString(trade, 'usd_amount');
+        const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
+        const side = isMakerAsk ? 'buy' : 'sell';
+        const accountIndex = this.safeInteger(trade, 'accountIndex');
+        let order = undefined;
+        let takerOrMaker = undefined;
+        if (accountIndex !== undefined) {
+            if (this.safeInteger(trade, 'bid_account_id') === accountIndex) {
+                order = this.safeString(trade, 'bid_id');
+                takerOrMaker = isMakerAsk ? 'taker' : 'maker';
+            }
+            else if (this.safeInteger(trade, 'ask_account_id') === accountIndex) {
+                order = this.safeString(trade, 'ask_id');
+                takerOrMaker = isMakerAsk ? 'maker' : 'taker';
+            }
+        }
+        let fee = undefined;
+        if (takerOrMaker !== undefined) {
+            const feeRateRaw = (takerOrMaker === 'maker') ? this.safeString(trade, 'maker_fee') : this.safeString(trade, 'taker_fee');
+            const feeRate = (feeRateRaw !== undefined) ? Precise.stringDiv(feeRateRaw, '1000000') : '0';
+            const feeAmount = Precise.stringMul(costString, feeRate);
+            fee = {
+                'cost': feeAmount,
+                'currency': 'USDC',
+                'rate': feeRate,
+            };
+        }
+        return this.safeTrade({
+            'info': trade,
+            'id': tradeId,
+            'order': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'symbol': this.safeSymbol(undefined, market),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
+            'fee': fee,
+        }, market);
     }
     handleMyTrades(client, message) {
         //
@@ -607,6 +691,9 @@ export default class lighter extends lighterRest {
         //         "type": "update/account_all_trades"
         //     }
         //
+        const channel = this.safeString(message, 'channel', '');
+        const parts = channel.split(':');
+        const accountIndex = parts[1];
         const data = this.safeDict(message, 'trades', {});
         const marketIds = Object.keys(data);
         const idsLength = marketIds.length;
@@ -623,8 +710,12 @@ export default class lighter extends lighterRest {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const trades = this.safeList(data, marketId, []);
-            for (let j = 0; j < trades.length; j++) {
-                const trade = this.parseWsTrade(trades[j], market);
+            const tradesLength = trades.length;
+            for (let j = 0; j < tradesLength; j++) {
+                const jReversed = tradesLength - 1 - j;
+                const tradeRaw = trades[jReversed];
+                tradeRaw['accountIndex'] = accountIndex;
+                const trade = this.parseWsOrderTrade(tradeRaw, market);
                 stored.append(trade);
                 const symbol = trade['symbol'];
                 if (symbol !== undefined) {
@@ -645,7 +736,7 @@ export default class lighter extends lighterRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -673,10 +764,10 @@ export default class lighter extends lighterRest {
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchMyTrades(symbol = undefined, params = {}) {
-        let accountIndex;
+        let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index');
         let messageHash = this.getMessageHash('unsubscribe', 'myTrades');
         if (symbol !== undefined) {
@@ -688,7 +779,7 @@ export default class lighter extends lighterRest {
         const request = {
             'channel': 'account_all_trades/' + accountIndex,
         };
-        return await this.unsubscribePublic(messageHash, this.extend(request, params));
+        return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     parseWsLiquidation(liquidation, market = undefined) {
         //
@@ -720,15 +811,22 @@ export default class lighter extends lighterRest {
         //     }
         //
         const timestamp = this.safeInteger(liquidation, 'timestamp');
+        const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask');
+        const side = isMakerAsk ? 'buy' : 'sell';
+        const contracts = this.safeString(liquidation, 'size');
+        const contractSize = this.safeString(market, 'contractSize');
+        const price = this.safeString(liquidation, 'price');
+        const baseValue = Precise.stringMul(contracts, contractSize);
+        const quoteValue = Precise.stringMul(baseValue, price);
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': market['symbol'],
-            'contracts': undefined,
-            'contractSize': undefined,
-            'price': this.safeString(liquidation, 'price'),
-            'side': this.safeString(liquidation, 'size'),
-            'baseValue': undefined,
-            'quoteValue': undefined,
+            'contracts': contracts,
+            'contractSize': contractSize,
+            'price': price,
+            'side': side,
+            'baseValue': baseValue,
+            'quoteValue': quoteValue,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         });
@@ -782,8 +880,10 @@ export default class lighter extends lighterRest {
             this.liquidations = new ArrayCache(limit);
             stored = this.liquidations;
         }
-        for (let i = 0; i < data.length; i++) {
-            const liquidation = this.parseWsLiquidation(data[i], market);
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const iReversed = dataLength - 1 - i;
+            const liquidation = this.parseWsLiquidation(data[iReversed], market);
             stored.append(liquidation);
         }
         const messageHash = this.getMessageHash('liquidations', symbol);
@@ -798,7 +898,7 @@ export default class lighter extends lighterRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -808,6 +908,230 @@ export default class lighter extends lighterRest {
         };
         const messageHash = this.getMessageHash('liquidations', symbol);
         return await this.subscribePublic(messageHash, this.extend(request, params));
+    }
+    /**
+     * @method
+     * @name lighter#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'swap'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async watchBalance(params = {}) {
+        await this.loadMarkets();
+        const defaultType = this.safeString2(this.options, 'watchBalance', 'defaultType', 'spot');
+        let type = undefined;
+        [type, params] = this.handleParamString(params, 'type', defaultType);
+        let accountIndex = undefined;
+        [accountIndex, params] = await this.handleAccountIndex(params, 'watchBalance', 'accountIndex', 'account_index');
+        const messageHash = this.getMessageHash('balances', undefined, type);
+        const request = {};
+        if (type === 'spot') {
+            request['channel'] = 'account_all_assets/' + this.numberToString(accountIndex);
+            return await this.subscribePrivate(messageHash, this.extend(request, params));
+        }
+        else {
+            request['channel'] = 'user_stats/' + this.numberToString(accountIndex);
+            return await this.subscribePublic(messageHash, this.extend(request, params));
+        }
+    }
+    handleBalance(client, message) {
+        //
+        //    spot balance
+        //    {
+        //        "assets": {
+        //              "1": {
+        //                    "symbol": "ETH",
+        //                    "asset_id": 1,
+        //                    "balance": "7.1072",
+        //                    "locked_balance": "0.0000"
+        //              },
+        //              "3": {
+        //                    "symbol": "USDC",
+        //                    "asset_id": 3,
+        //                    "balance": "6343.581906",
+        //                    "locked_balance": "297.000000"
+        //              }
+        //        },
+        //        "channel": "account_all_assets:1234",
+        //        "timestamp": 1773158679717,
+        //        "type": "update/account_all_assets"
+        //    }
+        //
+        //    swap balance
+        //    {
+        //        "channel": "user_stats:10",
+        //        "stats": {
+        //            "collateral": "5000.00",
+        //            "portfolio_value": "15000.00",
+        //            "leverage": "3.0",
+        //            "available_balance": "2000.00",
+        //            "margin_usage": "0.80",
+        //            "buying_power": "4000.00",
+        //            "account_trading_mode": 1,
+        //            "cross_stats":{
+        //               "collateral":"0.000000",
+        //               "portfolio_value":"0.000000",
+        //               "leverage":"0.00",
+        //               "available_balance":"0.000000",
+        //               "margin_usage":"0.00",
+        //               "buying_power":"0"
+        //            },
+        //            "total_stats":{
+        //               "collateral":"0.000000",
+        //               "portfolio_value":"0.000000",
+        //               "leverage":"0.00",
+        //               "available_balance":"0.000000",
+        //               "margin_usage":"0.00",
+        //               "buying_power":"0"
+        //            }
+        //        },
+        //        "timestamp": 1773158679717,
+        //        "type": "update/user_stats"
+        //    }
+        //
+        const channel = this.safeString(message, 'channel', '');
+        let type = 'spot';
+        if (channel.indexOf('user_stats:') >= 0) {
+            type = 'swap';
+        }
+        const balance = this.safeDict(this.balance, type, {});
+        if (type === 'spot') {
+            const assets = this.safeDict(message, 'assets', {});
+            const assetIds = Object.keys(assets);
+            for (let i = 0; i < assetIds.length; i++) {
+                const assetId = assetIds[i];
+                const asset = assets[assetId];
+                const codeId = this.safeString(asset, 'symbol');
+                const code = this.safeCurrencyCode(codeId);
+                const account = this.account();
+                account['used'] = this.safeString(asset, 'locked_balance');
+                account['total'] = this.safeString(asset, 'balance');
+                balance[code] = account;
+            }
+        }
+        else {
+            const stats = this.safeDict(message, 'stats', {});
+            const account = this.account();
+            account['free'] = this.safeString(stats, 'available_balance');
+            account['total'] = this.safeString(stats, 'collateral');
+            account['info'] = stats;
+            balance['USDC'] = account;
+        }
+        const timestamp = this.safeInteger(message, 'timestamp');
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
+        this.balance[type] = this.safeBalance(balance);
+        const messageHash = this.getMessageHash('balances', undefined, type);
+        client.resolve(this.balance[type], messageHash);
+        return true;
+    }
+    /**
+     * @name lighter#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let accountIndex = undefined;
+        [accountIndex, params] = await this.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index');
+        let messageHash = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            messageHash = this.getMessageHash('orders', market['symbol']);
+            request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString(accountIndex);
+        }
+        else {
+            messageHash = this.getMessageHash('orders');
+            request['channel'] = 'account_all_orders/' + this.numberToString(accountIndex);
+        }
+        const orders = await this.subscribePrivate(messageHash, this.extend(request, params));
+        if (this.newUpdates) {
+            limit = orders.getLimit(symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+    /**
+     * @method
+     * @name lighter#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async unWatchOrders(symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let accountIndex = undefined;
+        [accountIndex, params] = await this.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index');
+        let messageHash = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            messageHash = this.getMessageHash('orders', market['symbol']);
+            request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString(accountIndex);
+        }
+        else {
+            messageHash = this.getMessageHash('orders');
+            request['channel'] = 'account_all_orders/' + this.numberToString(accountIndex);
+        }
+        return await this.unsubscribe(messageHash, this.extend(request, params));
+    }
+    handleOrders(client, message) {
+        //
+        //    {
+        //        "account": {ACCOUNT_INDEX},
+        //        "channel": "account_orders:{MARKET_INDEX}",
+        //        "nonce": INTEGER,
+        //        "orders": {
+        //            "{MARKET_INDEX}": [Order] // the only present market index will be the one provided
+        //        },
+        //        "type": "update/account_orders"
+        //    }
+        //
+        //    {
+        //        "channel": "account_all_orders:{ACCOUNT_ID}",
+        //        "orders": {
+        //            "{MARKET_INDEX}": [Order]
+        //        },
+        //        "type": "update/account_all_orders"
+        //    }
+        //
+        const data = this.safeDict(message, 'orders', {});
+        const marketIds = Object.keys(data);
+        const idsLength = marketIds.length;
+        if (idsLength === 0) {
+            return false; // nothing to process
+        }
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCache(limit);
+        }
+        const stored = this.orders;
+        const messageHash = this.getMessageHash('orders');
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket(marketId);
+            const orders = this.safeList(data, marketId, []);
+            for (let j = 0; j < orders.length; j++) {
+                const order = this.parseOrder(orders[j], market);
+                stored.append(order);
+                const symbol = order['symbol'];
+                if (symbol !== undefined) {
+                    const symbolSpecificMessageHash = this.getMessageHash('orders', symbol);
+                    client.resolve(stored, symbolSpecificMessageHash);
+                }
+            }
+        }
+        client.resolve(stored, messageHash);
+        return true;
     }
     handleErrorMessage(client, message) {
         //
@@ -821,7 +1145,7 @@ export default class lighter extends lighterRest {
         const error = this.safeDict(message, 'error');
         try {
             if (error !== undefined) {
-                const code = this.safeString(message, 'code');
+                const code = this.safeString(error, 'code');
                 if (code !== undefined) {
                     const feedback = this.id + ' ' + this.json(message);
                     this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
@@ -857,6 +1181,22 @@ export default class lighter extends lighterRest {
         }
         if (channel.indexOf('account_all_trades:') >= 0) {
             this.handleMyTrades(client, message);
+            return;
+        }
+        if (channel.indexOf('account_all_assets:') >= 0) {
+            this.handleBalance(client, message);
+            return;
+        }
+        if (channel.indexOf('user_stats:') >= 0) {
+            this.handleBalance(client, message);
+            return;
+        }
+        if (channel.indexOf('account_orders:') >= 0) {
+            this.handleOrders(client, message);
+            return;
+        }
+        if (channel.indexOf('account_all_orders:') >= 0) {
+            this.handleOrders(client, message);
             return;
         }
         if (channel === '') {

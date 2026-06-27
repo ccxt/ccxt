@@ -1,8 +1,5 @@
-- [Basic Rate Limiting](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 from pprint import pprint
 
@@ -25,5 +22,5 @@ for i in range(0, 10):
     ticker = exchange.fetch_ticker(symbol)
     ticker = exchange.omit(ticker, 'info')
     pprint(ticker)
- 
+
 ```

@@ -196,14 +196,14 @@ public partial class Exchange
 
     public string binaryToBase16(object buff2)
     {
-        var buff = (byte[])buff2;
+        var buff = buff2 is string ? Encoding.UTF8.GetBytes((string)buff2) : (byte[])buff2;
         return binaryToHex(buff);
     }
 
     public string binaryToBase58(object buff2)
     {
         var buff = (byte[])buff2;
-        return binaryToHex(buff);
+        return Base58.Encode(buff);
     }
 
     public static string Base64ToBase64Url(string base64, bool stripPadding = true)
@@ -230,13 +230,21 @@ public partial class Exchange
         return Convert.ToBase64String(buff);
     }
 
-
-
     public byte[] stringToBinary(string buff) => StringToBinary(buff);
 
     public static byte[] StringToBinary(string buff)
     {
         return Encoding.UTF8.GetBytes(buff);
+    }
+
+    public string binaryToString(object buff)
+    {
+        return BinaryToString(buff);
+    }
+
+    public static string BinaryToString(object buff)
+    {
+        return Encoding.UTF8.GetString(buff as byte[]);
     }
 
     public string encode(object data)
@@ -312,7 +320,7 @@ public partial class Exchange
                 foreach (var key in ((dict)value).Keys)
                 {
                     var val = ((dict)value)[key];
-                    var nextPrefix = string.IsNullOrEmpty(prefix) ? System.Web.HttpUtility.UrlEncode(key) : prefix + "[" + System.Web.HttpUtility.UrlEncode(key) + "]";
+                    var nextPrefix = string.IsNullOrEmpty(prefix) ? Uri.EscapeDataString(key) : prefix + "[" + Uri.EscapeDataString(key) + "]";
                     urlencodeNestedRecursive(nextPrefix, val);
                 }
             }
@@ -332,7 +340,7 @@ public partial class Exchange
                 {
                     valStr = valStr.ToLower();
                 }
-                outList.Add(prefix + "=" + System.Web.HttpUtility.UrlEncode(valStr));
+                outList.Add(prefix + "=" + Uri.EscapeDataString(valStr));
             }
         }
 
@@ -350,21 +358,14 @@ public partial class Exchange
         foreach (string key in keys)
         {
             var value = parameters[key];
-            string encodedKey = System.Web.HttpUtility.UrlEncode(key);
+            string encodedKey = Uri.EscapeDataString(key);
             var finalValue = value.ToString();
             if (value.GetType() == typeof(bool))
             {
                 finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
 
             }
-            if (key.ToLower() == "timestamp")
-            {
-                finalValue = System.Web.HttpUtility.UrlEncode(finalValue).ToUpper();
-            }
-            else
-            {
-                finalValue = System.Web.HttpUtility.UrlEncode(finalValue);
-            }
+            finalValue = Uri.EscapeDataString(finalValue);
             queryString.Add($"{encodedKey}={finalValue}");
         }
         return string.Join("&", queryString);

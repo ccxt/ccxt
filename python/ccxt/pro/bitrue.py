@@ -4,10 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import NotSupported
 
 
 class bitrue(ccxt.async_support.bitrue):
@@ -17,19 +18,20 @@ class bitrue(ccxt.async_support.bitrue):
             'has': {
                 'ws': True,
                 'watchBalance': True,
-                'watchTicker': False,
+                'watchTicker': True,
                 'watchTickers': False,
-                'watchTrades': False,
+                'watchTrades': True,
                 'watchMyTrades': False,
                 'watchOrders': True,
                 'watchOrderBook': True,
-                'watchOHLCV': False,
+                'watchOHLCV': True,
             },
             'urls': {
                 'api': {
                     'open': 'https://open.bitrue.com',
                     'ws': {
                         'public': 'wss://ws.bitrue.com/market/ws',
+                        'futurePublic': 'wss://fmarket-ws.bitrue.com/kline-api/ws',
                         'private': 'wss://wsapi.bitrue.com',
                     },
                 },
@@ -56,6 +58,17 @@ class bitrue(ccxt.async_support.bitrue):
                 'ws': {
                     'gunzip': True,
                 },
+                'futuresTimeframes': {
+                    '1m': '1min',
+                    '5m': '5min',
+                    '15m': '15min',
+                    '30m': '30min',
+                    '1h': '60min',
+                    '2h': '2h',
+                    '4h': '4h',
+                    '1d': '1day',
+                    '1w': '1week',
+                },
             },
         })
 
@@ -70,7 +83,7 @@ class bitrue(ccxt.async_support.bitrue):
         """
         url = await self.authenticate()
         messageHash = 'balance'
-        message: dict = {
+        message = {
             'event': 'sub',
             'params': {
                 'channel': 'user_balance_update',
@@ -185,7 +198,7 @@ class bitrue(ccxt.async_support.bitrue):
             symbol = market['symbol']
         url = await self.authenticate()
         messageHash = 'orders'
-        message: dict = {
+        message = {
             'event': 'sub',
             'params': {
                 'channel': 'user_order_update',
@@ -294,13 +307,25 @@ class bitrue(ccxt.async_support.bitrue):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        marketIdLowercase = market['id'].lower()
-        channel = 'market_' + marketIdLowercase + '_simple_depth_step0'
-        url = self.urls['api']['ws']['public']
-        message: dict = {
+        url = None
+        channel = None
+        cbId = None
+        if market['swap']:
+            baseIdLower = self.safe_string_lower(market, 'baseId')
+            quoteIdLower = self.safe_string_lower(market, 'quoteId')
+            wsId = 'e_' + baseIdLower + quoteIdLower
+            channel = 'market_' + wsId + '_depth_step0'
+            cbId = wsId
+            url = self.urls['api']['ws']['futurePublic']
+        else:
+            marketIdLowercase = self.safe_string_lower(market, 'id')
+            channel = 'market_' + marketIdLowercase + '_simple_depth_step0'
+            cbId = marketIdLowercase
+            url = self.urls['api']['ws']['public']
+        message = {
             'event': 'sub',
             'params': {
-                'cb_id': marketIdLowercase,
+                'cb_id': cbId,
                 'channel': channel,
             },
         }
@@ -342,21 +367,362 @@ class bitrue(ccxt.async_support.bitrue):
         #
         channel = self.safe_string(message, 'channel')
         parts = channel.split('_')
-        marketId = self.safe_string_upper(parts, 1)
-        market = self.safe_market(marketId)
+        channelKind = self.safe_string(parts, 1)
+        isFutures = (channelKind == 'e')
+        market = None
+        if isFutures:
+            wsBaseQuote = self.safe_string_lower(parts, 2)
+            market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
+        else:
+            marketId = self.safe_string_upper(parts, 1)
+            market = self.safe_market(marketId)
         symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
         tick = self.safe_value(message, 'tick', {})
+        parseable = tick
+        if isFutures:
+            rawAsks = self.safe_list(tick, 'asks', [])
+            rawBuys = self.safe_list(tick, 'buys', [])
+            parseable = {
+                'asks': self.parse_contract_bids_asks(rawAsks, symbol),
+                'buys': self.parse_contract_bids_asks(rawBuys, symbol),
+            }
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
-        snapshot = self.parse_order_book(tick, symbol, timestamp, 'buys', 'asks')
+        snapshot = self.parse_order_book(parseable, symbol, timestamp, 'buys', 'asks')
         orderbook.reset(snapshot)
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
+    def find_swap_market_by_ws_base_quote(self, wsBaseQuote: str):
+        symbols = list(self.markets.keys())
+        for i in range(0, len(symbols)):
+            candidate = self.markets[symbols[i]]
+            if not candidate['swap']:
+                continue
+            baseId = self.safe_string_lower(candidate, 'baseId', '')
+            quoteId = self.safe_string_lower(candidate, 'quoteId', '')
+            if baseId + quoteId == wsBaseQuote:
+                return candidate
+        return None
+
+    def parse_contract_bids_asks(self, bidsAsks, symbol: str):
+        result = []
+        for i in range(0, len(bidsAsks)):
+            level = bidsAsks[i]
+            price = self.safe_number(level, 0)
+            rawAmount = self.safe_number(level, 1)
+            amount = self.convert_from_raw_quantity(symbol, rawAmount)
+            result.append([price, amount])
+        return result
+
+    def convert_from_raw_quantity(self, symbol: str, rawQuantity):
+        if rawQuantity is None:
+            return None
+        market = self.market(symbol)
+        if not market['contract']:
+            return rawQuantity
+        contractSize = self.safe_number(market, 'contractSize', 1)
+        return rawQuantity * contractSize
+
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        watches public trades for a swap(futures) market
+
+        https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        if not market['swap']:
+            raise NotSupported(self.id + ' watchTrades is only supported for swap markets')
+        baseIdLower = self.safe_string_lower(market, 'baseId')
+        quoteIdLower = self.safe_string_lower(market, 'quoteId')
+        wsId = 'e_' + baseIdLower + quoteIdLower
+        channel = 'market_' + wsId + '_trade_ticker'
+        messageHash = 'trades:' + symbol
+        url = self.urls['api']['ws']['futurePublic']
+        message = {
+            'event': 'sub',
+            'params': {
+                'cb_id': wsId,
+                'channel': channel,
+            },
+        }
+        request = self.deep_extend(message, params)
+        trades = await self.watch(url, messageHash, request, messageHash)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    def handle_trades(self, client: Client, message):
+        #
+        #     {
+        #         "event_rep": "",
+        #         "channel": "market_e_btcusdt_trade_ticker",
+        #         "ts": 1721743391000,
+        #         "status": "ok",
+        #         "tick": {
+        #             "data": [
+        #                 {
+        #                     "amount": "1666656191.2",
+        #                     "ds": "2024-07-23 22:03:11",
+        #                     "price": "66008.8",
+        #                     "side": "SELL",
+        #                     "ts": 1721743391398,
+        #                     "vol": "25249"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        channel = self.safe_string(message, 'channel')
+        parts = channel.split('_')
+        wsBaseQuote = self.safe_string_lower(parts, 2)
+        market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
+        if market is None:
+            return
+        symbol = market['symbol']
+        tick = self.safe_value(message, 'tick', {})
+        data = self.safe_list(tick, 'data', [])
+        appended = False
+        stored = self.safe_value(self.trades, symbol)
+        for i in range(0, len(data)):
+            if stored is None:
+                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                stored = ArrayCache(limit)
+                self.trades[symbol] = stored
+            trade = self.parse_ws_trade(data[i], market)
+            stored.append(trade)
+            appended = True
+        if appended:
+            messageHash = 'trades:' + symbol
+            client.resolve(stored, messageHash)
+
+    def parse_ws_trade(self, trade, market=None):
+        symbol = market['symbol']
+        timestamp = self.safe_integer(trade, 'ts')
+        sideLower = self.safe_string_lower(trade, 'side')
+        priceString = self.safe_string(trade, 'price')
+        rawVol = self.safe_number(trade, 'vol')
+        baseAmount = self.convert_from_raw_quantity(symbol, rawVol)
+        return self.safe_trade({
+            'info': trade,
+            'id': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'order': None,
+            'type': None,
+            'side': sideLower,
+            'takerOrMaker': 'taker',
+            'price': priceString,
+            'amount': self.number_to_string(baseAmount),
+            'cost': None,
+            'fee': None,
+        }, market)
+
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        watches OHLCV candles for a swap(futures) market
+
+        https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        if not market['swap']:
+            raise NotSupported(self.id + ' watchOHLCV is only supported for swap markets')
+        futuresTimeframes = self.safe_dict(self.options, 'futuresTimeframes', {})
+        interval = self.safe_string(futuresTimeframes, timeframe)
+        if interval is None:
+            raise NotSupported(self.id + ' watchOHLCV does not support timeframe ' + timeframe)
+        baseIdLower = self.safe_string_lower(market, 'baseId')
+        quoteIdLower = self.safe_string_lower(market, 'quoteId')
+        wsId = 'e_' + baseIdLower + quoteIdLower
+        channel = 'market_' + wsId + '_kline_' + interval
+        messageHash = 'ohlcv:' + symbol + ':' + timeframe
+        url = self.urls['api']['ws']['futurePublic']
+        message = {
+            'event': 'sub',
+            'params': {
+                'cb_id': wsId,
+                'channel': channel,
+            },
+        }
+        request = self.deep_extend(message, params)
+        ohlcv = await self.watch(url, messageHash, request, messageHash)
+        if self.newUpdates:
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    def handle_ohlcv(self, client: Client, message):
+        #
+        #     {
+        #         "channel": "market_e_btcusdt_kline_1min",
+        #         "data": [],
+        #         "tick": {
+        #             "amount": 396539282326.3,
+        #             "close": 19517.1,
+        #             "ds": "2022-07-13 14:00:00",
+        #             "high": 19556.5,
+        #             "id": 1657692000,
+        #             "low": 19465.1,
+        #             "open": 19507.3,
+        #             "vol": 20325940
+        #         },
+        #         "ts": 1657696418000,
+        #         "status": "ok"
+        #     }
+        #
+        channel = self.safe_string(message, 'channel')
+        parts = channel.split('_')
+        wsBaseQuote = self.safe_string_lower(parts, 2)
+        market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
+        if market is None:
+            return
+        symbol = market['symbol']
+        wsInterval = self.safe_string(parts, 4)
+        futuresTimeframes = self.safe_dict(self.options, 'futuresTimeframes', {})
+        timeframe = self.find_timeframe(wsInterval, futuresTimeframes)
+        tick = self.safe_value(message, 'tick')
+        if tick is None:
+            return
+        parsed = self.parse_ws_ohlcv(tick, market)
+        if not (symbol in self.ohlcvs):
+            self.ohlcvs[symbol] = {}
+        if not (timeframe in self.ohlcvs[symbol]):
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
+        stored = self.ohlcvs[symbol][timeframe]
+        stored.append(parsed)
+        messageHash = 'ohlcv:' + symbol + ':' + timeframe
+        client.resolve(stored, messageHash)
+
+    def parse_ws_ohlcv(self, tick, market=None) -> list:
+        symbol = market['symbol']
+        idSeconds = self.safe_integer(tick, 'id')
+        timestamp = None if (idSeconds is None) else idSeconds * 1000
+        open = self.safe_number(tick, 'open')
+        high = self.safe_number(tick, 'high')
+        low = self.safe_number(tick, 'low')
+        close = self.safe_number(tick, 'close')
+        rawVol = self.safe_number(tick, 'vol')
+        baseVolume = self.convert_from_raw_quantity(symbol, rawVol)
+        return [timestamp, open, high, low, close, baseVolume]
+
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        watches a 24h ticker for a swap(futures) market
+
+        https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        if not market['swap']:
+            raise NotSupported(self.id + ' watchTicker is only supported for swap markets')
+        baseIdLower = self.safe_string_lower(market, 'baseId')
+        quoteIdLower = self.safe_string_lower(market, 'quoteId')
+        wsId = 'e_' + baseIdLower + quoteIdLower
+        channel = 'market_' + wsId + '_ticker'
+        messageHash = 'ticker:' + symbol
+        url = self.urls['api']['ws']['futurePublic']
+        message = {
+            'event': 'sub',
+            'params': {
+                'cb_id': wsId,
+                'channel': channel,
+            },
+        }
+        request = self.deep_extend(message, params)
+        return await self.watch(url, messageHash, request, messageHash)
+
+    def handle_ticker(self, client: Client, message):
+        #
+        #     {
+        #         "channel": "market_e_btcusdt_ticker",
+        #         "ts": 1506584998239,
+        #         "tick": {
+        #             "amount": 123.1221,
+        #             "vol": 1212.12211,
+        #             "open": 2233.22,
+        #             "close": 1221.11,
+        #             "high": 22322.22,
+        #             "low": 2321.22,
+        #             "rose": -0.2922
+        #         },
+        #         "status": "ok"
+        #     }
+        #
+        channel = self.safe_string(message, 'channel')
+        parts = channel.split('_')
+        wsBaseQuote = self.safe_string_lower(parts, 2)
+        market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
+        if market is None:
+            return
+        symbol = market['symbol']
+        tick = self.safe_value(message, 'tick')
+        if tick is None:
+            return
+        timestamp = self.safe_integer(message, 'ts')
+        parsed = self.parse_ws_ticker(tick, market, timestamp)
+        self.tickers[symbol] = parsed
+        messageHash = 'ticker:' + symbol
+        client.resolve(parsed, messageHash)
+
+    def parse_ws_ticker(self, tick, market, timestamp: Int = None) -> Ticker:
+        symbol = market['symbol']
+        rawVol = self.safe_number(tick, 'vol')
+        rawAmount = self.safe_number(tick, 'amount')
+        baseVolume = self.convert_from_raw_quantity(symbol, rawVol)
+        quoteVolume = self.convert_from_raw_quantity(symbol, rawAmount)
+        close = self.safe_number(tick, 'close')
+        rose = self.safe_number(tick, 'rose')
+        percentage = None if (rose is None) else rose * 100
+        return self.safe_ticker({
+            'info': tick,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_number(tick, 'high'),
+            'low': self.safe_number(tick, 'low'),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_number(tick, 'open'),
+            'close': close,
+            'last': close,
+            'previousClose': None,
+            'change': None,
+            'percentage': percentage,
+            'average': None,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+        }, market)
+
     def parse_ws_order_type(self, typeId):
-        types: dict = {
+        types = {
             '1': 'limit',
             '2': 'market',
             '3': 'limit',
@@ -364,7 +730,7 @@ class bitrue(ccxt.async_support.bitrue):
         return self.safe_string(types, typeId, typeId)
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             '0': 'open',  # The order has not been accepted by the engine.
             '1': 'open',  # The order has been accepted by the engine.
             '2': 'closed',  # The order has been completed.
@@ -384,19 +750,27 @@ class bitrue(ccxt.async_support.bitrue):
         #     }
         #
         time = self.safe_integer(message, 'ping')
-        pong: dict = {
+        pong = {
             'pong': time,
         }
         await client.send(pong)
 
     def handle_message(self, client: Client, message):
         if 'channel' in message:
-            self.handle_order_book(client, message)
+            channel = self.safe_string(message, 'channel')
+            if channel.find('_depth_step') > -1:
+                self.handle_order_book(client, message)
+            elif channel.find('_trade_ticker') > -1:
+                self.handle_trades(client, message)
+            elif channel.find('_kline_') > -1:
+                self.handle_ohlcv(client, message)
+            elif channel.find('_ticker') > -1:
+                self.handle_ticker(client, message)
         elif 'ping' in message:
             self.handle_ping(client, message)
         else:
             event = self.safe_string(message, 'e')
-            handlers: dict = {
+            handlers = {
                 'BALANCE': self.handle_balance,
                 'ORDER': self.handle_order,
             }
@@ -427,7 +801,7 @@ class bitrue(ccxt.async_support.bitrue):
 
     async def keep_alive_listen_key(self, params={}):
         listenKey = self.safe_string(self.options, 'listenKey')
-        request: dict = {
+        request = {
             'listenKey': listenKey,
         }
         try:

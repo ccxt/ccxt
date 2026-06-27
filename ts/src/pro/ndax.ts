@@ -296,7 +296,7 @@ export default class ndax extends ndaxRest {
                     ];
                     updates[marketId][timeframe] = true;
                 } else {
-                    if (length && (parsed[0] < stored[length - 1][0])) {
+                    if (length && (this.parseToInt (parsed[0]) < this.parseToInt (stored[length - 1][0]))) {
                         continue;
                     } else {
                         stored.push (parsed);
@@ -334,7 +334,7 @@ export default class ndax extends ndaxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -408,8 +408,8 @@ export default class ndax extends ndaxRest {
         if (orderbook === undefined) {
             return;
         }
-        let timestamp = undefined;
-        let nonce = undefined;
+        let timestamp: Int = undefined;
+        let nonce: Int = undefined;
         for (let i = 0; i < payload.length; i++) {
             const bidask = payload[i];
             if (timestamp === undefined) {

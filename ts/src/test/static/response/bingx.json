@@ -1984,6 +1984,7 @@
                 "method": "createOrder",
                 "disabledCS": true,
                 "disabledGO": true,
+                "disabledJava": true,
                 "input": [
                     "LTC/USDT:USDT",
                     "market",

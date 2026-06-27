@@ -189,6 +189,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeIntegerProduct(inputDict, "strNumber", factor), 30));
             Assert(isEqual(exchange.safeIntegerProduct(inputList, 1, factor), 20));
             Assert(isEqual(exchange.safeIntegerProduct(inputDict, "longInt", 0.000001), 123456789));
+            Assert(isEqual(exchange.safeIntegerProduct(inputDict, "inexistent", 0.000001, 123456789), 123456789));
             // safeIntegerProduct2
             Assert(isEqual(exchange.safeIntegerProduct2(inputDict, "a", "i", factor), 10));
             Assert(isEqual(exchange.safeIntegerProduct2(inputDict, "a", "f", factor), 1)); // NB the result is 1
@@ -275,6 +276,7 @@ public partial class BaseTest
             Assert(!isEqual(exchange.safeNumberOmitZero(inputDict, "floatString"), null));
             // tbd Assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
             // tbd Assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+            // init array cache tests
             // Test cache types - ArrayCache
             var arrayCache = new ArrayCache(100);
             arrayCache.append(new Dictionary<string, object>() {

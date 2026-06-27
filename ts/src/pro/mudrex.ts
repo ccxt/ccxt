@@ -2,8 +2,8 @@
 // ---------------------------------------------------------------------------
 
 import mudrexRest from '../mudrex.js';
-import { AuthenticationError, BadRequest, ExchangeError, NotSupported, RateLimitExceeded } from '../base/errors.js';
-import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
+import { ExchangeError, NotSupported, RateLimitExceeded } from '../base/errors.js';
+import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Strings, Ticker, Tickers, Dict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -52,11 +52,11 @@ export default class mudrex extends mudrexRest {
         const messageHash = 'ticker:' + symbol;
         const url = this.urls['api']['ws'];
         const brokerId = this.safeString (this.options, 'broker');
-        let headers = undefined;
+        this.options['ws'] = this.options['ws'] || {};
+        this.options['ws']['options'] = this.options['ws']['options'] || {};
+        this.options['ws']['options']['headers'] = this.options['ws']['options']['headers'] || {};
         if (brokerId !== undefined) {
-            headers = {
-                'Partner-Id': brokerId,
-            };
+            this.options['ws']['options']['headers']['Partner-Id'] = brokerId;
         }
         const subscribe: Dict = {
             'id': this.requestId (),
@@ -65,7 +65,7 @@ export default class mudrex extends mudrexRest {
             'assets': [ market['baseId'].toLowerCase () + market['quoteId'].toLowerCase () ],
         };
         const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash, undefined, headers);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -82,11 +82,11 @@ export default class mudrex extends mudrexRest {
         }
         const url = this.urls['api']['ws'];
         const brokerId = this.safeString (this.options, 'broker');
-        let headers = undefined;
+        this.options['ws'] = this.options['ws'] || {};
+        this.options['ws']['options'] = this.options['ws']['options'] || {};
+        this.options['ws']['options']['headers'] = this.options['ws']['options']['headers'] || {};
         if (brokerId !== undefined) {
-            headers = {
-                'Partner-Id': brokerId,
-            };
+            this.options['ws']['options']['headers']['Partner-Id'] = brokerId;
         }
         const subscribe: Dict = {
             'id': this.requestId (),
@@ -95,11 +95,7 @@ export default class mudrex extends mudrexRest {
             'assets': assets,
         };
         const request = this.extend (subscribe, params);
-        let messageHash = 'tickers';
-        if (symbols !== undefined) {
-            messageHash = 'tickers::' + symbols.join (',');
-        }
-        const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined, headers);
+        const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -126,11 +122,11 @@ export default class mudrex extends mudrexRest {
         const messageHash = stream;
         const url = this.urls['api']['ws'];
         const brokerId = this.safeString (this.options, 'broker');
-        let headers = undefined;
+        this.options['ws'] = this.options['ws'] || {};
+        this.options['ws']['options'] = this.options['ws']['options'] || {};
+        this.options['ws']['options']['headers'] = this.options['ws']['options']['headers'] || {};
         if (brokerId !== undefined) {
-            headers = {
-                'Partner-Id': brokerId,
-            };
+            this.options['ws']['options']['headers']['Partner-Id'] = brokerId;
         }
         const subscribe: Dict = {
             'id': this.requestId (),
@@ -138,7 +134,7 @@ export default class mudrex extends mudrexRest {
             'params': [ stream ],
         };
         const request = this.extend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash, undefined, headers);
+        const ohlcv = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }

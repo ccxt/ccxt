@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bittrade.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 /**
  * @class bittrade
@@ -87,7 +87,7 @@ export default class bittrade extends Exchange {
                 '1y': '1year',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c5996ed2-0d56-42d8-ac40-7eaf8116dbae',
                 'api': {
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
@@ -103,7 +103,7 @@ export default class bittrade extends Exchange {
             'api': {
                 'v2Public': {
                     'get': {
-                        'reference/currencies': 1,
+                        'reference/currencies': 1, // 币链参考信息
                         'market-status': 1, // 获取当前市场状态
                     },
                 },
@@ -111,103 +111,103 @@ export default class bittrade extends Exchange {
                     'get': {
                         'account/ledger': 1,
                         'account/withdraw/quota': 1,
-                        'account/withdraw/address': 1,
+                        'account/withdraw/address': 1, // 提币地址查询(限母用户可用)
                         'account/deposit/address': 1,
-                        'account/repayment': 5,
+                        'account/repayment': 5, // 还币交易记录查询
                         'reference/transact-fee-rate': 1,
-                        'account/asset-valuation': 0.2,
-                        'point/account': 5,
-                        'sub-user/user-list': 1,
-                        'sub-user/user-state': 1,
-                        'sub-user/account-list': 1,
-                        'sub-user/deposit-address': 1,
-                        'sub-user/query-deposit': 1,
-                        'user/api-key': 1,
-                        'user/uid': 1,
-                        'algo-orders/opening': 1,
-                        'algo-orders/history': 1,
-                        'algo-orders/specific': 1,
-                        'c2c/offers': 1,
-                        'c2c/offer': 1,
-                        'c2c/transactions': 1,
-                        'c2c/repayment': 1,
-                        'c2c/account': 1,
-                        'etp/reference': 1,
-                        'etp/transactions': 5,
-                        'etp/transaction': 5,
-                        'etp/rebalance': 1,
+                        'account/asset-valuation': 0.2, // 获取账户资产估值
+                        'point/account': 5, // 点卡余额查询
+                        'sub-user/user-list': 1, // 获取子用户列表
+                        'sub-user/user-state': 1, // 获取特定子用户的用户状态
+                        'sub-user/account-list': 1, // 获取特定子用户的账户列表
+                        'sub-user/deposit-address': 1, // 子用户充币地址查询
+                        'sub-user/query-deposit': 1, // 子用户充币记录查询
+                        'user/api-key': 1, // 母子用户API key信息查询
+                        'user/uid': 1, // 母子用户获取用户UID
+                        'algo-orders/opening': 1, // 查询未触发OPEN策略委托
+                        'algo-orders/history': 1, // 查询策略委托历史
+                        'algo-orders/specific': 1, // 查询特定策略委托
+                        'c2c/offers': 1, // 查询借入借出订单
+                        'c2c/offer': 1, // 查询特定借入借出订单及其交易记录
+                        'c2c/transactions': 1, // 查询借入借出交易记录
+                        'c2c/repayment': 1, // 查询还币交易记录
+                        'c2c/account': 1, // 查询账户余额
+                        'etp/reference': 1, // 基础参考信息
+                        'etp/transactions': 5, // 获取杠杆ETP申赎记录
+                        'etp/transaction': 5, // 获取特定杠杆ETP申赎记录
+                        'etp/rebalance': 1, // 获取杠杆ETP调仓记录
                         'etp/limit': 1, // 获取ETP持仓限额
                     },
                     'post': {
                         'account/transfer': 1,
-                        'account/repayment': 5,
-                        'point/transfer': 5,
-                        'sub-user/management': 1,
-                        'sub-user/creation': 1,
-                        'sub-user/tradable-market': 1,
-                        'sub-user/transferability': 1,
-                        'sub-user/api-key-generation': 1,
-                        'sub-user/api-key-modification': 1,
-                        'sub-user/api-key-deletion': 1,
-                        'sub-user/deduct-mode': 1,
-                        'algo-orders': 1,
-                        'algo-orders/cancel-all-after': 1,
-                        'algo-orders/cancellation': 1,
-                        'c2c/offer': 1,
-                        'c2c/cancellation': 1,
-                        'c2c/cancel-all': 1,
-                        'c2c/repayment': 1,
-                        'c2c/transfer': 1,
-                        'etp/creation': 5,
-                        'etp/redemption': 5,
-                        'etp/{transactId}/cancel': 10,
+                        'account/repayment': 5, // 归还借币（全仓逐仓通用）
+                        'point/transfer': 5, // 点卡划转
+                        'sub-user/management': 1, // 冻结/解冻子用户
+                        'sub-user/creation': 1, // 子用户创建
+                        'sub-user/tradable-market': 1, // 设置子用户交易权限
+                        'sub-user/transferability': 1, // 设置子用户资产转出权限
+                        'sub-user/api-key-generation': 1, // 子用户API key创建
+                        'sub-user/api-key-modification': 1, // 修改子用户API key
+                        'sub-user/api-key-deletion': 1, // 删除子用户API key
+                        'sub-user/deduct-mode': 1, // 设置子用户手续费抵扣模式
+                        'algo-orders': 1, // 策略委托下单
+                        'algo-orders/cancel-all-after': 1, // 自动撤销订单
+                        'algo-orders/cancellation': 1, // 策略委托（触发前）撤单
+                        'c2c/offer': 1, // 借入借出下单
+                        'c2c/cancellation': 1, // 借入借出撤单
+                        'c2c/cancel-all': 1, // 撤销所有借入借出订单
+                        'c2c/repayment': 1, // 还币
+                        'c2c/transfer': 1, // 资产划转
+                        'etp/creation': 5, // 杠杆ETP换入
+                        'etp/redemption': 5, // 杠杆ETP换出
+                        'etp/{transactId}/cancel': 10, // 杠杆ETP单个撤单
                         'etp/batch-cancel': 50, // 杠杆ETP批量撤单
                     },
                 },
                 'market': {
                     'get': {
-                        'history/kline': 1,
-                        'detail/merged': 1,
-                        'depth': 1,
-                        'trade': 1,
-                        'history/trade': 1,
-                        'detail': 1,
+                        'history/kline': 1, // 获取K线数据
+                        'detail/merged': 1, // 获取聚合行情(Ticker)
+                        'depth': 1, // 获取 Market Depth 数据
+                        'trade': 1, // 获取 Trade Detail 数据
+                        'history/trade': 1, // 批量获取最近的交易记录
+                        'detail': 1, // 获取 Market Detail 24小时成交量数据
                         'tickers': 1,
                         'etp': 1, // 获取杠杆ETP实时净值
                     },
                 },
                 'public': {
                     'get': {
-                        'common/symbols': 1,
-                        'common/currencys': 1,
-                        'common/timestamp': 1,
-                        'common/exchange': 1,
+                        'common/symbols': 1, // 查询系统支持的所有交易对
+                        'common/currencys': 1, // 查询系统支持的所有币种
+                        'common/timestamp': 1, // 查询系统当前时间
+                        'common/exchange': 1, // order limits
                         'settings/currencys': 1, // ?language=en-US
                     },
                 },
                 'private': {
                     'get': {
-                        'account/accounts': 0.2,
-                        'account/accounts/{id}/balance': 0.2,
+                        'account/accounts': 0.2, // 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance': 0.2, // 查询指定账户的余额
                         'account/accounts/{sub-uid}': 1,
                         'account/history': 4,
                         'cross-margin/loan-info': 1,
-                        'margin/loan-info': 1,
+                        'margin/loan-info': 1, // 查询借币币息率及额度
                         'fee/fee-rate/get': 1,
                         'order/openOrders': 0.4,
                         'order/orders': 0.4,
-                        'order/orders/{id}': 0.4,
-                        'order/orders/{id}/matchresults': 0.4,
+                        'order/orders/{id}': 0.4, // 查询某个订单详情
+                        'order/orders/{id}/matchresults': 0.4, // 查询某个订单的成交明细
                         'order/orders/getClientOrder': 0.4,
-                        'order/history': 1,
-                        'order/matchresults': 1,
+                        'order/history': 1, // 查询当前委托、历史委托
+                        'order/matchresults': 1, // 查询当前成交、历史成交
                         // 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
                         'query/deposit-withdraw': 1,
                         // 'margin/loan-info', // duplicate
-                        'margin/loan-orders': 0.2,
-                        'margin/accounts/balance': 0.2,
-                        'cross-margin/loan-orders': 1,
-                        'cross-margin/accounts/balance': 1,
+                        'margin/loan-orders': 0.2, // 借贷订单
+                        'margin/accounts/balance': 0.2, // 借贷账户详情
+                        'cross-margin/loan-orders': 1, // 查询借币订单
+                        'cross-margin/accounts/balance': 1, // 借币账户详情
                         'points/actions': 1,
                         'points/orders': 1,
                         'subuser/aggregate-balance': 10,
@@ -215,29 +215,29 @@ export default class bittrade extends Exchange {
                         'stable-coin/quote': 1,
                     },
                     'post': {
-                        'account/transfer': 1,
+                        'account/transfer': 1, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
                         'futures/transfer': 1,
                         'order/batch-orders': 0.4,
-                        'order/orders/place': 0.2,
+                        'order/orders/place': 0.2, // 创建并执行一个新订单 (一步下单， 推荐使用)
                         'order/orders/submitCancelClientOrder': 0.2,
                         'order/orders/batchCancelOpenOrders': 0.4,
                         // 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         // 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel': 0.2,
-                        'order/orders/batchcancel': 0.4,
+                        'order/orders/{id}/submitcancel': 0.2, // 申请撤销一个订单请求
+                        'order/orders/batchcancel': 0.4, // 批量撤销订单
                         // 'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create': 1,
+                        'dw/withdraw/api/create': 1, // 申请提现虚拟币
                         // 'dw/withdraw-virtual/create', // 申请提现虚拟币
                         // 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
-                        'dw/withdraw-virtual/{id}/cancel': 1,
-                        'dw/transfer-in/margin': 10,
-                        'dw/transfer-out/margin': 10,
-                        'margin/orders': 10,
-                        'margin/orders/{id}/repay': 10,
-                        'cross-margin/transfer-in': 1,
-                        'cross-margin/transfer-out': 1,
-                        'cross-margin/orders': 1,
-                        'cross-margin/orders/{id}/repay': 1,
+                        'dw/withdraw-virtual/{id}/cancel': 1, // 申请取消提现虚拟币
+                        'dw/transfer-in/margin': 10, // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin': 10, // 借贷账户划出至现货账户
+                        'margin/orders': 10, // 申请借贷
+                        'margin/orders/{id}/repay': 10, // 归还借贷
+                        'cross-margin/transfer-in': 1, // 资产划转
+                        'cross-margin/transfer-out': 1, // 资产划转
+                        'cross-margin/orders': 1, // 申请借币
+                        'cross-margin/orders/{id}/repay': 1, // 归还借币
                         'stable-coin/exchange': 1,
                         'subuser/transfer': 10,
                     },
@@ -257,11 +257,11 @@ export default class bittrade extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo: implement
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -293,7 +293,7 @@ export default class bittrade extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': undefined,
+                        'limit': undefined, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -301,8 +301,8 @@ export default class bittrade extends Exchange {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBack': undefined,
-                        'untilDays': undefined,
+                        'daysBack': undefined, // todo
+                        'untilDays': undefined, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -310,9 +310,9 @@ export default class bittrade extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBack': undefined,
-                        'daysBackCanceled': undefined,
-                        'untilDays': undefined,
+                        'daysBack': undefined, // todo
+                        'daysBackCanceled': undefined, // todo
+                        'untilDays': undefined, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -339,34 +339,34 @@ export default class bittrade extends Exchange {
                 'exact': {
                     // err-code
                     'bad-request': BadRequest,
-                    'base-date-limit-error': BadRequest,
-                    'api-not-support-temp-addr': PermissionDenied,
-                    'timeout': RequestTimeout,
-                    'gateway-internal-error': ExchangeNotAvailable,
-                    'account-frozen-balance-insufficient-error': InsufficientFunds,
-                    'invalid-amount': InvalidOrder,
-                    'order-limitorder-amount-min-error': InvalidOrder,
-                    'order-limitorder-amount-max-error': InvalidOrder,
-                    'order-marketorder-amount-min-error': InvalidOrder,
-                    'order-limitorder-price-min-error': InvalidOrder,
-                    'order-limitorder-price-max-error': InvalidOrder,
-                    'order-holding-limit-failed': InvalidOrder,
-                    'order-orderprice-precision-error': InvalidOrder,
-                    'order-etp-nav-price-max-error': InvalidOrder,
-                    'order-orderstate-error': OrderNotFound,
-                    'order-queryorder-invalid': OrderNotFound,
-                    'order-update-error': ExchangeNotAvailable,
+                    'base-date-limit-error': BadRequest, // {"status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null}
+                    'api-not-support-temp-addr': PermissionDenied, // {"status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null}
+                    'timeout': RequestTimeout, // {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
+                    'gateway-internal-error': ExchangeNotAvailable, // {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
+                    'account-frozen-balance-insufficient-error': InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
+                    'invalid-amount': InvalidOrder, // eg "Paramemter `amount` is invalid."
+                    'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
+                    'order-limitorder-amount-max-error': InvalidOrder, // market order amount error, max: `1000000`
+                    'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
+                    'order-limitorder-price-min-error': InvalidOrder, // limit order price error
+                    'order-limitorder-price-max-error': InvalidOrder, // limit order price error
+                    'order-holding-limit-failed': InvalidOrder, // {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
+                    'order-orderprice-precision-error': InvalidOrder, // {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
+                    'order-etp-nav-price-max-error': InvalidOrder, // {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
+                    'order-orderstate-error': OrderNotFound, // canceling an already canceled order
+                    'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
+                    'order-update-error': ExchangeNotAvailable, // undocumented error
                     'api-signature-check-failed': AuthenticationError,
-                    'api-signature-not-valid': AuthenticationError,
-                    'base-record-invalid': OrderNotFound,
-                    'base-symbol-trade-disabled': BadSymbol,
-                    'base-symbol-error': BadSymbol,
-                    'system-maintenance': OnMaintenance,
+                    'api-signature-not-valid': AuthenticationError, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
+                    'base-record-invalid': OrderNotFound, // https://github.com/ccxt/ccxt/issues/5750
+                    'base-symbol-trade-disabled': BadSymbol, // {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
+                    'base-symbol-error': BadSymbol, // {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
+                    'system-maintenance': OnMaintenance, // {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     // err-msg
-                    'invalid symbol': BadSymbol,
-                    'symbol trade not open now': BadSymbol,
-                    'invalid-address': BadRequest,
-                    'base-currency-chain-error': BadRequest,
+                    'invalid symbol': BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
+                    'symbol trade not open now': BadSymbol, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"},
+                    'invalid-address': BadRequest, // {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
+                    'base-currency-chain-error': BadRequest, // {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
                     'dw-insufficient-balance': InsufficientFunds, // {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
                 },
             },
@@ -379,11 +379,10 @@ export default class bittrade extends Exchange {
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
                     'ALGO': 'algo',
-                    'OMNI': '',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'private_get_order_orders',
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1',
+                'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
@@ -398,8 +397,8 @@ export default class bittrade extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/6081
                 // https://github.com/ccxt/ccxt/issues/3365
                 // https://github.com/ccxt/ccxt/issues/2873
-                'GET': 'Themis',
-                'GTC': 'Game.com',
+                'GET': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+                'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'HIT': 'HitChain',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
@@ -698,7 +697,7 @@ export default class bittrade extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1117,51 +1116,49 @@ export default class bittrade extends Exchange {
         //     }
         //
         const currencies = this.safeValue(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeValue(currency, 'name');
-            const code = this.safeCurrencyCode(id);
-            const depositEnabled = this.safeValue(currency, 'deposit-enabled');
-            const withdrawEnabled = this.safeValue(currency, 'withdraw-enabled');
-            const countryDisabled = this.safeValue(currency, 'country-disabled');
-            const visible = this.safeBool(currency, 'visible', false);
-            const state = this.safeString(currency, 'state');
-            const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
-            const name = this.safeString(currency, 'display-name');
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdraw-precision')));
-            result[code] = {
-                'id': id,
-                'code': code,
-                'type': 'crypto',
-                // 'payin': currency['deposit-enabled'],
-                // 'payout': currency['withdraw-enabled'],
-                // 'transfer': undefined,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'precision': precision,
-                'networks': undefined,
-                'limits': {
-                    'amount': {
-                        'min': precision,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': this.safeNumber(currency, 'deposit-min-amount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber(currency, 'withdraw-min-amount'),
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(currency) {
+        const id = this.safeValue(currency, 'name');
+        const code = this.safeCurrencyCode(id);
+        const depositEnabled = this.safeValue(currency, 'deposit-enabled');
+        const withdrawEnabled = this.safeValue(currency, 'withdraw-enabled');
+        const countryDisabled = this.safeValue(currency, 'country-disabled');
+        const visible = this.safeBool(currency, 'visible', false);
+        const state = this.safeString(currency, 'state');
+        const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
+        const name = this.safeString(currency, 'display-name');
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdraw-precision')));
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'type': 'crypto',
+            // 'payin': currency['deposit-enabled'],
+            // 'payout': currency['withdraw-enabled'],
+            // 'transfer': undefined,
+            'name': name,
+            'active': active,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': undefined, // todo need to fetch from fee endpoint
+            'precision': precision,
+            'networks': undefined,
+            'limits': {
+                'amount': {
+                    'min': precision,
+                    'max': undefined,
                 },
-                'info': currency,
-            };
-        }
-        return result;
+                'deposit': {
+                    'min': this.safeNumber(currency, 'deposit-min-amount'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(currency, 'withdraw-min-amount'),
+                    'max': undefined,
+                },
+            },
+            'info': currency,
+        });
     }
     parseBalance(response) {
         const balances = this.safeValue(response['data'], 'list', []);
@@ -1218,7 +1215,7 @@ export default class bittrade extends Exchange {
         const response = await this[method](this.extend(request, params));
         //
         //     { "status":   "ok",
-        //         "data": [ {                  id:  13997833014,
+        //         "data": [ {                  id:  13997833016,
         //                                "symbol": "ethbtc",
         //                          "account-id":  3398321,
         //                                "amount": "0.045000000000000000",
@@ -1942,7 +1939,7 @@ export default class bittrade extends Exchange {
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
-            'address': address,
+            'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
             'currency': currency['id'].toLowerCase(),
         };
@@ -1999,8 +1996,9 @@ export default class bittrade extends Exchange {
             const requestSorted = this.keysort(request);
             let auth = this.urlencode(requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            const content = [method, this.hostname, url, auth];
             // eslint-disable-next-line quotes
-            const payload = [method, this.hostname, url, auth].join("\n");
+            const payload = content.join("\n");
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
             auth += '&' + this.urlencode({ 'Signature': signature });
             url += '?' + auth;

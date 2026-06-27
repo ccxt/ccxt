@@ -6,63 +6,63 @@ package cache
 // --------------------------------------------------------------------------------------------------------------------
 
 func TestWsOrderBook()  {
-    var orderBookInput interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10}, []interface{}{9.1, 11}, []interface{}{8.2, 12}, []interface{}{7.3, 13}, []interface{}{6.4, 14}, []interface{}{4.5, 13}, []interface{}{4.5, 0}},
-        "asks": []interface{}{[]interface{}{16.6, 10}, []interface{}{15.5, 11}, []interface{}{14.4, 12}, []interface{}{13.3, 13}, []interface{}{12.2, 14}, []interface{}{11.1, 13}},
+    var orderBookInput any = map[string]any {
+        "bids": []any{[]any{10, 10}, []any{9.1, 11}, []any{8.2, 12}, []any{7.3, 13}, []any{6.4, 14}, []any{4.5, 13}, []any{4.5, 0}},
+        "asks": []any{[]any{16.6, 10}, []any{15.5, 11}, []any{14.4, 12}, []any{13.3, 13}, []any{12.2, 14}, []any{11.1, 13}},
         "timestamp": 1574827239000,
         "nonce": 69,
         "symbol": nil,
     }
-    var orderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10}, []interface{}{9.1, 11}, []interface{}{8.2, 12}, []interface{}{7.3, 13}, []interface{}{6.4, 14}},
-        "asks": []interface{}{[]interface{}{11.1, 13}, []interface{}{12.2, 14}, []interface{}{13.3, 13}, []interface{}{14.4, 12}, []interface{}{15.5, 11}, []interface{}{16.6, 10}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var storeBid interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10}, []interface{}{9.1, 11}, []interface{}{8.2, 12}, []interface{}{7.3, 13}, []interface{}{6.4, 14}, []interface{}{3, 4}},
-        "asks": []interface{}{[]interface{}{11.1, 13}, []interface{}{12.2, 14}, []interface{}{13.3, 13}, []interface{}{14.4, 12}, []interface{}{15.5, 11}, []interface{}{16.6, 10}},
+    var orderBookTarget any = map[string]any {
+        "bids": []any{[]any{10, 10}, []any{9.1, 11}, []any{8.2, 12}, []any{7.3, 13}, []any{6.4, 14}},
+        "asks": []any{[]any{11.1, 13}, []any{12.2, 14}, []any{13.3, 13}, []any{14.4, 12}, []any{15.5, 11}, []any{16.6, 10}},
         "timestamp": 1574827239000,
         "datetime": "2019-11-27T04:00:39.000Z",
         "nonce": 69,
         "symbol": nil,
     }
-    var limitedOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10}, []interface{}{9.1, 11}, []interface{}{8.2, 12}, []interface{}{7.3, 13}, []interface{}{6.4, 14}},
-        "asks": []interface{}{[]interface{}{11.1, 13}, []interface{}{12.2, 14}, []interface{}{13.3, 13}, []interface{}{14.4, 12}, []interface{}{15.5, 11}},
+    var storeBid any = map[string]any {
+        "bids": []any{[]any{10, 10}, []any{9.1, 11}, []any{8.2, 12}, []any{7.3, 13}, []any{6.4, 14}, []any{3, 4}},
+        "asks": []any{[]any{11.1, 13}, []any{12.2, 14}, []any{13.3, 13}, []any{14.4, 12}, []any{15.5, 11}, []any{16.6, 10}},
         "timestamp": 1574827239000,
         "datetime": "2019-11-27T04:00:39.000Z",
         "nonce": 69,
         "symbol": nil,
     }
-    var limitedDeletedOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10}, []interface{}{9.1, 11}, []interface{}{8.2, 12}, []interface{}{7.3, 13}, []interface{}{6.4, 14}},
-        "asks": []interface{}{[]interface{}{11.1, 13}, []interface{}{12.2, 14}, []interface{}{13.3, 13}, []interface{}{14.4, 12}},
+    var limitedOrderBookTarget any = map[string]any {
+        "bids": []any{[]any{10, 10}, []any{9.1, 11}, []any{8.2, 12}, []any{7.3, 13}, []any{6.4, 14}},
+        "asks": []any{[]any{11.1, 13}, []any{12.2, 14}, []any{13.3, 13}, []any{14.4, 12}, []any{15.5, 11}},
         "timestamp": 1574827239000,
         "datetime": "2019-11-27T04:00:39.000Z",
         "nonce": 69,
         "symbol": nil,
     }
-    var indexedOrderBookInput interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10, "1234"}, []interface{}{9.1, 11, "1235"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}, []interface{}{4.5, 13, "1239"}},
-        "asks": []interface{}{[]interface{}{16.6, 10, "1240"}, []interface{}{15.5, 11, "1241"}, []interface{}{14.4, 12, "1242"}, []interface{}{13.3, 13, "1243"}, []interface{}{12.2, 14, "1244"}, []interface{}{11.1, 13, "1244"}},
-        "timestamp": 1574827239000,
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var indexedOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10, "1234"}, []interface{}{9.1, 11, "1235"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}, []interface{}{4.5, 13, "1239"}},
-        "asks": []interface{}{[]interface{}{11.1, 13, "1244"}, []interface{}{13.3, 13, "1243"}, []interface{}{14.4, 12, "1242"}, []interface{}{15.5, 11, "1241"}, []interface{}{16.6, 10, "1240"}},
+    var limitedDeletedOrderBookTarget any = map[string]any {
+        "bids": []any{[]any{10, 10}, []any{9.1, 11}, []any{8.2, 12}, []any{7.3, 13}, []any{6.4, 14}},
+        "asks": []any{[]any{11.1, 13}, []any{12.2, 14}, []any{13.3, 13}, []any{14.4, 12}},
         "timestamp": 1574827239000,
         "datetime": "2019-11-27T04:00:39.000Z",
         "nonce": 69,
         "symbol": nil,
     }
-    var limitedIndexedOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10, "1234"}, []interface{}{9.1, 11, "1235"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}},
-        "asks": []interface{}{[]interface{}{11.1, 13, "1244"}, []interface{}{13.3, 13, "1243"}, []interface{}{14.4, 12, "1242"}, []interface{}{15.5, 11, "1241"}, []interface{}{16.6, 10, "1240"}},
+    var indexedOrderBookInput any = map[string]any {
+        "bids": []any{[]any{10, 10, "1234"}, []any{9.1, 11, "1235"}, []any{8.2, 12, "1236"}, []any{7.3, 13, "1237"}, []any{6.4, 14, "1238"}, []any{4.5, 13, "1239"}},
+        "asks": []any{[]any{16.6, 10, "1240"}, []any{15.5, 11, "1241"}, []any{14.4, 12, "1242"}, []any{13.3, 13, "1243"}, []any{12.2, 14, "1244"}, []any{11.1, 13, "1244"}},
+        "timestamp": 1574827239000,
+        "nonce": 69,
+        "symbol": nil,
+    }
+    var indexedOrderBookTarget any = map[string]any {
+        "bids": []any{[]any{10, 10, "1234"}, []any{9.1, 11, "1235"}, []any{8.2, 12, "1236"}, []any{7.3, 13, "1237"}, []any{6.4, 14, "1238"}, []any{4.5, 13, "1239"}},
+        "asks": []any{[]any{11.1, 13, "1244"}, []any{13.3, 13, "1243"}, []any{14.4, 12, "1242"}, []any{15.5, 11, "1241"}, []any{16.6, 10, "1240"}},
+        "timestamp": 1574827239000,
+        "datetime": "2019-11-27T04:00:39.000Z",
+        "nonce": 69,
+        "symbol": nil,
+    }
+    var limitedIndexedOrderBookTarget any = map[string]any {
+        "bids": []any{[]any{10, 10, "1234"}, []any{9.1, 11, "1235"}, []any{8.2, 12, "1236"}, []any{7.3, 13, "1237"}, []any{6.4, 14, "1238"}},
+        "asks": []any{[]any{11.1, 13, "1244"}, []any{13.3, 13, "1243"}, []any{14.4, 12, "1242"}, []any{15.5, 11, "1241"}, []any{16.6, 10, "1240"}},
         "timestamp": 1574827239000,
         "datetime": "2019-11-27T04:00:39.000Z",
         "nonce": 69,
@@ -108,48 +108,48 @@ func TestWsOrderBook()  {
     //     'nonce': 69,
     //     'symbol': undefined,
     // };
-    var overwrite1234 interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{9.1, 11, "1235"}, []interface{}{9, 3, "1231"}, []interface{}{9, 1, "1232"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}, []interface{}{4.5, 13, "1239"}, []interface{}{4, 2, "12399"}},
-        "asks": []interface{}{[]interface{}{11.1, 13, "1244"}, []interface{}{13.3, 13, "1243"}, []interface{}{14.4, 12, "1242"}, []interface{}{15.5, 11, "1241"}, []interface{}{16.6, 10, "1240"}},
+    var overwrite1234 any = map[string]any {
+        "bids": []any{[]any{9.1, 11, "1235"}, []any{9, 3, "1231"}, []any{9, 1, "1232"}, []any{8.2, 12, "1236"}, []any{7.3, 13, "1237"}, []any{6.4, 14, "1238"}, []any{4.5, 13, "1239"}, []any{4, 2, "12399"}},
+        "asks": []any{[]any{11.1, 13, "1244"}, []any{13.3, 13, "1243"}, []any{14.4, 12, "1242"}, []any{15.5, 11, "1241"}, []any{16.6, 10, "1240"}},
         "timestamp": 1574827239000,
         "datetime": "2019-11-27T04:00:39.000Z",
         "nonce": 69,
         "symbol": nil,
     }
-    var overwrite1244 interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10, "1234"}, []interface{}{9.1, 11, "1235"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}, []interface{}{4.5, 13, "1239"}},
-        "asks": []interface{}{[]interface{}{13.3, 13, "1243"}, []interface{}{13.5, 13, "1244"}, []interface{}{14.4, 12, "1242"}, []interface{}{15.5, 11, "1241"}, []interface{}{16.6, 10, "1240"}},
+    var overwrite1244 any = map[string]any {
+        "bids": []any{[]any{10, 10, "1234"}, []any{9.1, 11, "1235"}, []any{8.2, 12, "1236"}, []any{7.3, 13, "1237"}, []any{6.4, 14, "1238"}, []any{4.5, 13, "1239"}},
+        "asks": []any{[]any{13.3, 13, "1243"}, []any{13.5, 13, "1244"}, []any{14.4, 12, "1242"}, []any{15.5, 11, "1241"}, []any{16.6, 10, "1240"}},
         "timestamp": 1574827239000,
         "datetime": "2019-11-27T04:00:39.000Z",
         "nonce": 69,
         "symbol": nil,
     }
-    var countedOrderBookInput interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10, 1}, []interface{}{9.1, 11, 1}, []interface{}{8.2, 12, 1}, []interface{}{7.3, 13, 1}, []interface{}{7.3, 0, 1}, []interface{}{6.4, 14, 5}, []interface{}{4.5, 13, 5}, []interface{}{4.5, 13, 1}, []interface{}{4.5, 13, 0}},
-        "asks": []interface{}{[]interface{}{16.6, 10, 1}, []interface{}{15.5, 11, 1}, []interface{}{14.4, 12, 1}, []interface{}{13.3, 13, 3}, []interface{}{12.2, 14, 3}, []interface{}{11.1, 13, 3}, []interface{}{11.1, 13, 12}},
+    var countedOrderBookInput any = map[string]any {
+        "bids": []any{[]any{10, 10, 1}, []any{9.1, 11, 1}, []any{8.2, 12, 1}, []any{7.3, 13, 1}, []any{7.3, 0, 1}, []any{6.4, 14, 5}, []any{4.5, 13, 5}, []any{4.5, 13, 1}, []any{4.5, 13, 0}},
+        "asks": []any{[]any{16.6, 10, 1}, []any{15.5, 11, 1}, []any{14.4, 12, 1}, []any{13.3, 13, 3}, []any{12.2, 14, 3}, []any{11.1, 13, 3}, []any{11.1, 13, 12}},
         "timestamp": 1574827239000,
         "nonce": 69,
         "symbol": nil,
     }
-    var countedOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10, 1}, []interface{}{9.1, 11, 1}, []interface{}{8.2, 12, 1}, []interface{}{6.4, 14, 5}},
-        "asks": []interface{}{[]interface{}{11.1, 13, 12}, []interface{}{12.2, 14, 3}, []interface{}{13.3, 13, 3}, []interface{}{14.4, 12, 1}, []interface{}{15.5, 11, 1}, []interface{}{16.6, 10, 1}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var storedCountedOrderbookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10, 1}, []interface{}{9.1, 11, 1}, []interface{}{8.2, 12, 1}, []interface{}{6.4, 14, 5}, []interface{}{1, 1, 6}},
-        "asks": []interface{}{[]interface{}{11.1, 13, 12}, []interface{}{12.2, 14, 3}, []interface{}{13.3, 13, 3}, []interface{}{14.4, 12, 1}, []interface{}{15.5, 11, 1}, []interface{}{16.6, 10, 1}},
+    var countedOrderBookTarget any = map[string]any {
+        "bids": []any{[]any{10, 10, 1}, []any{9.1, 11, 1}, []any{8.2, 12, 1}, []any{6.4, 14, 5}},
+        "asks": []any{[]any{11.1, 13, 12}, []any{12.2, 14, 3}, []any{13.3, 13, 3}, []any{14.4, 12, 1}, []any{15.5, 11, 1}, []any{16.6, 10, 1}},
         "timestamp": 1574827239000,
         "datetime": "2019-11-27T04:00:39.000Z",
         "nonce": 69,
         "symbol": nil,
     }
-    var limitedCountedOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10, 1}, []interface{}{9.1, 11, 1}, []interface{}{8.2, 12, 1}, []interface{}{6.4, 14, 5}},
-        "asks": []interface{}{[]interface{}{11.1, 13, 12}, []interface{}{12.2, 14, 3}, []interface{}{13.3, 13, 3}, []interface{}{14.4, 12, 1}, []interface{}{15.5, 11, 1}},
+    var storedCountedOrderbookTarget any = map[string]any {
+        "bids": []any{[]any{10, 10, 1}, []any{9.1, 11, 1}, []any{8.2, 12, 1}, []any{6.4, 14, 5}, []any{1, 1, 6}},
+        "asks": []any{[]any{11.1, 13, 12}, []any{12.2, 14, 3}, []any{13.3, 13, 3}, []any{14.4, 12, 1}, []any{15.5, 11, 1}, []any{16.6, 10, 1}},
+        "timestamp": 1574827239000,
+        "datetime": "2019-11-27T04:00:39.000Z",
+        "nonce": 69,
+        "symbol": nil,
+    }
+    var limitedCountedOrderBookTarget any = map[string]any {
+        "bids": []any{[]any{10, 10, 1}, []any{9.1, 11, 1}, []any{8.2, 12, 1}, []any{6.4, 14, 5}},
+        "asks": []any{[]any{11.1, 13, 12}, []any{12.2, 14, 3}, []any{13.3, 13, 3}, []any{14.4, 12, 1}, []any{15.5, 11, 1}},
         "timestamp": 1574827239000,
         "datetime": "2019-11-27T04:00:39.000Z",
         "nonce": 69,
@@ -239,20 +239,20 @@ func TestWsOrderBook()  {
     indexedOrderBook.Limit()
     Assert(Equals(indexedOrderBook, indexedOrderBookTarget))
     indexedBids := indexedOrderBook.Bids
-    indexedBids.StoreArray([]interface{}{1000, 0, "12345"})
+    indexedBids.StoreArray([]any{1000, 0, "12345"})
     Assert(Equals(indexedOrderBook, indexedOrderBookTarget))
-    indexedBids.StoreArray([]interface{}{10, 0, "1234"})
-    indexedBids.StoreArray([]interface{}{10, 2, "1231"})
-    indexedBids.StoreArray([]interface{}{10, 1, "1232"})
-    indexedBids.StoreArray([]interface{}{4, 2, "12399"})
-    indexedBids.StoreArray([]interface{}{9, 2, "1231"})
-    indexedBids.StoreArray([]interface{}{9, 3, "1231"})
-    indexedBids.StoreArray([]interface{}{9, 1, "1232"})
+    indexedBids.StoreArray([]any{10, 0, "1234"})
+    indexedBids.StoreArray([]any{10, 2, "1231"})
+    indexedBids.StoreArray([]any{10, 1, "1232"})
+    indexedBids.StoreArray([]any{4, 2, "12399"})
+    indexedBids.StoreArray([]any{9, 2, "1231"})
+    indexedBids.StoreArray([]any{9, 3, "1231"})
+    indexedBids.StoreArray([]any{9, 1, "1232"})
     indexedOrderBook.Limit()
     Assert(Equals(indexedOrderBook, overwrite1234))
     indexedOrderBook = NewIndexedOrderBook(indexedOrderBookInput)
     indexedAsks := indexedOrderBook.Asks
-    indexedAsks.StoreArray([]interface{}{13.5, 13, "1244"})
+    indexedAsks.StoreArray([]any{13.5, 13, "1244"})
     indexedOrderBook.Limit()
     Assert(Equals(indexedOrderBook, overwrite1244))
     
@@ -267,10 +267,10 @@ func TestWsOrderBook()  {
     countedOrderBook.Limit()
     Assert(Equals(countedOrderBook, countedOrderBookTarget))
     countedBids := countedOrderBook.Bids
-    countedBids.StoreArray([]interface{}{5, 0, 6})
+    countedBids.StoreArray([]any{5, 0, 6})
     countedOrderBook.Limit()
     Assert(Equals(countedOrderBook, countedOrderBookTarget))
-    countedBids.StoreArray([]interface{}{1, 1, 6})
+    countedBids.StoreArray([]any{1, 1, 6})
     countedOrderBook.Limit()
     Assert(Equals(countedOrderBook, storedCountedOrderbookTarget))
     

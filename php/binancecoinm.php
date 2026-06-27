@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\binancecoinm as binance;
 
 class binancecoinm extends binance {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binancecoinm',
@@ -43,13 +42,13 @@ class binancecoinm extends binance {
         ));
     }
 
-    public function transfer_in(string $code, $amount, $params = array ()) {
+    public function transfer_in(string $code, $amount, $params = array()) {
         // transfer from spot wallet to coinm futures wallet
-        return $this->futuresTransfer ($code, $amount, 3, $params);
+        return $this->futuresTransfer($code, $amount, 3, $params);
     }
 
-    public function transfer_out(string $code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array()) {
         // transfer from coinm futures wallet to spot wallet
-        return $this->futuresTransfer ($code, $amount, 4, $params);
+        return $this->futuresTransfer($code, $amount, 4, $params);
     }
 }

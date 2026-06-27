@@ -3,7 +3,7 @@
 
 import bullishRest from '../bullish.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 
@@ -279,7 +279,7 @@ export default class bullish extends bullishRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -344,7 +344,7 @@ export default class bullish extends bullishRest {
     }
 
     separateBidsOrAsks (entry) {
-        const result = [];
+        const result: List = [];
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
@@ -440,12 +440,12 @@ export default class bullish extends bullishRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        let rawOrders = [];
+        let rawOrders: List = [];
         if (type === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawOrders.push (data); // update is a single order
         } else {
-            rawOrders = this.safeList (message, 'data', []); // snapshot is a list of orders
+            rawOrders = this.safeList (message, 'data', []) as List; // snapshot is a list of orders
         }
         if (rawOrders.length > 0) {
             if (this.orders === undefined) {
@@ -546,12 +546,12 @@ export default class bullish extends bullishRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        let rawTrades = [];
+        let rawTrades: List = [];
         if (type === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawTrades.push (data); // update is a single trade
         } else {
-            rawTrades = this.safeList (message, 'data', []); // snapshot is a list of trades
+            rawTrades = this.safeList (message, 'data', []) as List; // snapshot is a list of trades
         }
         if (rawTrades.length > 0) {
             if (this.myTrades === undefined) {
@@ -703,18 +703,18 @@ export default class bullish extends bullishRest {
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
         const messageType = this.safeString (message, 'type');
-        let rawPositions = [];
+        let rawPositions: List = [];
         if (messageType === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawPositions.push (data);
         } else {
-            rawPositions = this.safeList (message, 'data', []);
+            rawPositions = this.safeList (message, 'data', []) as List;
         }
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const positions = this.positions;
-        const newPositions = [];
+        const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);

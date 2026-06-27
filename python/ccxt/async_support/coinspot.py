@@ -10,6 +10,7 @@ from ccxt.base.types import Any, Balances, Int, Market, Num, OrderBook, OrderSid
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -300,7 +301,7 @@ class coinspot(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
             for i in range(0, len(balances)):
@@ -362,11 +363,11 @@ class coinspot(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'cointype': market['id'],
         }
         orderbook = await self.privatePostOrders(self.extend(request, params))
@@ -467,7 +468,7 @@ class coinspot(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result: dict = {}
+        result = {}
         prices = self.safe_dict(response, 'prices', {})
         ids = list(prices.keys())
         for i in range(0, len(ids)):
@@ -493,7 +494,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'cointype': market['id'],
         }
         response = await self.privatePostOrdersHistory(self.extend(request, params))
@@ -521,7 +522,7 @@ class coinspot(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -646,17 +647,28 @@ class coinspot(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        method = 'privatePostMy' + self.capitalize(side)
+        sideUpper = side.upper()
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'cointype': market['id'],
             'amount': amount,
             'rate': price,
         }
-        response = await getattr(self, method)(self.extend(request, params))
-        return self.parse_order(response)
+        response: dict
+        if sideUpper == 'BUY':
+            response = await self.privatePostMyBuy(self.extend(request, params))
+        elif sideUpper == 'SELL':
+            response = await self.privatePostMySell(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' createOrder only support buy/sell side')
+        #
+        # status - ok, error
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -674,10 +686,10 @@ class coinspot(Exchange, ImplicitAPI):
         if side != 'buy' and side != 'sell':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
         params = self.omit(params, 'side')
-        request: dict = {
+        request = {
             'id': id,
         }
-        response = None
+        response: dict
         if side == 'buy':
             response = await self.privatePostMyBuyCancel(self.extend(request, params))
         else:
@@ -689,7 +701,16 @@ class coinspot(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+        if not response:
+            return None  # fallback to default error handler
+        status = self.safe_string(response, 'status')
+        if status == 'error':
+            feedback = self.id + ' ' + self.json(response)
+            raise ExchangeError(feedback)
+        return None
+
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isVersionedApi = isinstance(api, list)
         version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api

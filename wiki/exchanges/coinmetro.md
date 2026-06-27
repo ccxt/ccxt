@@ -39,7 +39,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-coinmetro.fetchCurrencies ([params])
+coinmetro.fetchCurrencies (params?)
 ```
 
 
@@ -59,7 +59,7 @@ retrieves data on all markets for coinmetro
 
 
 ```javascript
-coinmetro.fetchMarkets ([params])
+coinmetro.fetchMarkets (params?)
 ```
 
 
@@ -84,7 +84,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-coinmetro.fetchOHLCV (symbol, timeframe[, since, limit, params])
+coinmetro.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -107,7 +107,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coinmetro.fetchTrades (symbol[, since, limit, params])
+coinmetro.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -130,7 +130,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinmetro.fetchMyTrades (symbol[, since, limit, params])
+coinmetro.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -140,7 +140,7 @@ coinmetro.fetchMyTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinmetro</code>](#coinmetro)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://documenter.getpostman.com/view/3653795/SVfWN6KS#26ad80d7-8c46-41b5-9208-386f439a8b87  
 
@@ -152,7 +152,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinmetro.fetchOrderBook (symbol[, limit, params])
+coinmetro.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -173,7 +173,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinmetro.fetchTickers ([symbols, params])
+coinmetro.fetchTickers (symbols?, params?)
 ```
 
 
@@ -194,7 +194,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-coinmetro.fetchBidsAsks ([symbols, params])
+coinmetro.fetchBidsAsks (symbols?, params?)
 ```
 
 
@@ -214,7 +214,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinmetro.fetchBalance ([params])
+coinmetro.fetchBalance (params?)
 ```
 
 
@@ -238,7 +238,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-coinmetro.fetchLedger ([code, since, limit, params])
+coinmetro.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -272,7 +272,7 @@ create a trade order
 
 
 ```javascript
-coinmetro.createOrder (symbol, type, side, amount[, price, params])
+coinmetro.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -299,7 +299,7 @@ cancels an open order
 
 
 ```javascript
-coinmetro.cancelOrder (id, symbol[, params])
+coinmetro.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -323,7 +323,7 @@ closes an open position
 
 
 ```javascript
-coinmetro.closePosition (symbol[, side, params])
+coinmetro.closePosition (symbol, side?, params?)
 ```
 
 
@@ -346,7 +346,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-coinmetro.fetchOpenOrders (symbol[, since, limit, params])
+coinmetro.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -369,7 +369,7 @@ fetches information on multiple canceled and closed orders made by the user
 
 
 ```javascript
-coinmetro.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
+coinmetro.fetchCanceledAndClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -391,7 +391,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-coinmetro.fetchOrder (id, symbol[, params])
+coinmetro.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -413,6 +413,6 @@ create a loan to borrow margin
 
 
 ```javascript
-coinmetro.borrowCrossMargin (code, amount[, params])
+coinmetro.borrowCrossMargin (code, amount, params?)
 ```
 

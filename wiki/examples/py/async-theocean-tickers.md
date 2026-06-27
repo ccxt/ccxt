@@ -1,8 +1,5 @@
-- [Async Theocean Tickers](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -43,5 +40,5 @@ async def fetch_tickers(id):
 
 
 asyncio.run(fetch_tickers('theocean'))
- 
+
 ```

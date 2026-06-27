@@ -72,7 +72,10 @@ class Client(object):
             else:
                 setattr(self, key, settings[key])
         # connection-related Future
-        self.options = config
+        if "options" in config:
+            self.options = config["options"]
+        else:
+            self.options = config
         self.connected = Future()
 
     def future(self, message_hash):

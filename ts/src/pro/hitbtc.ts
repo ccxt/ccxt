@@ -1,19 +1,23 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class hitbtc extends hitbtcRest {
     describe (): any {
-        return this.deepExtend (super.describe (), {
+        return this.deepExtend (super.describe (), this.describeData ());
+    }
+
+    describeData (): any {
+        return {
             'has': {
                 'ws': true,
                 'watchTicker': true,
@@ -75,7 +79,7 @@ export default class hitbtc extends hitbtcRest {
             'streaming': {
                 'keepAlive': 4000,
             },
-        });
+        };
     }
 
     /**
@@ -214,7 +218,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
      * @param {int} [params.depth] 5 , 10, or 20 (default)
      * @param {int} [params.speed] 100 (default), 500, or 1000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const options = this.safeValue (this.options, 'watchOrderBook');
@@ -829,8 +833,8 @@ export default class hitbtc extends hitbtcRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let marketType = undefined;
-        let market = undefined;
+        let marketType: Str = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1020,14 +1024,14 @@ export default class hitbtc extends hitbtcRest {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'trade_id');
-        let trades = undefined;
+        let trades: List = undefined;
         if (tradeId !== undefined) {
             const trade = this.parseWsOrderTrade (order, market);
             trades = [ trade ];
         }
         const rawStatus = this.safeString (order, 'status');
         const report_type = this.safeString (order, 'report_type');
-        let parsedStatus = undefined;
+        let parsedStatus: Str = undefined;
         if (report_type === 'canceled') {
             parsedStatus = this.parseOrderStatus (report_type);
         } else {
@@ -1073,7 +1077,7 @@ export default class hitbtc extends hitbtcRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const name = this.getSupportedMapping (type, {
             'spot': 'spot_balance_subscribe',
@@ -1111,10 +1115,10 @@ export default class hitbtc extends hitbtcRest {
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = undefined;
-        let marketType = undefined;
+        let request: Dict = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         [ request, params ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, params);
         request = this.extend (request, params);
@@ -1143,14 +1147,14 @@ export default class hitbtc extends hitbtcRest {
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         let request = {
             'client_order_id': id,
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrderWs', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrderWs', params);
         request = this.extend (request, query);
@@ -1177,13 +1181,13 @@ export default class hitbtc extends hitbtcRest {
      */
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersWs', market, params);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrdersWs', params);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_cancel_orders', params);
@@ -1211,15 +1215,15 @@ export default class hitbtc extends hitbtcRest {
      */
     async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrdersWs', market, params);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrdersWs', params);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_get_orders', request);

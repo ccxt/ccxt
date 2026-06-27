@@ -13,23 +13,23 @@ func NewAlpacaCore() *AlpacaCore {
 	return p
 }
 
-func (this *AlpacaCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *AlpacaCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "alpaca",
 		"name":      "Alpaca",
-		"countries": []interface{}{"US"},
+		"countries": []any{"US"},
 		"rateLimit": 333,
 		"hostname":  "alpaca.markets",
 		"pro":       true,
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b",
 			"www":  "https://alpaca.markets",
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"broker": "https://broker-api.{hostname}",
 				"trader": "https://api.{hostname}",
 				"market": "https://data.{hostname}",
 			},
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"broker": "https://broker-api.sandbox.{hostname}",
 				"trader": "https://paper-api.{hostname}",
 				"market": "https://data.{hostname}",
@@ -37,7 +37,7 @@ func (this *AlpacaCore) Describe() interface{} {
 			"doc":  "https://alpaca.markets/docs/",
 			"fees": "https://docs.alpaca.markets/docs/crypto-fees",
 		},
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                                   false,
 			"spot":                                   true,
 			"margin":                                 false,
@@ -150,27 +150,27 @@ func (this *AlpacaCore) Describe() interface{} {
 			"transfer":                               false,
 			"withdraw":                               true,
 		},
-		"api": map[string]interface{}{
-			"broker": map[string]interface{}{},
-			"trader": map[string]interface{}{
-				"private": map[string]interface{}{
-					"get":    []interface{}{"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets", "v2/wallets/transfers"},
-					"post":   []interface{}{"v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/wallets/transfers"},
-					"put":    []interface{}{"v2/orders/{order_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"},
-					"patch":  []interface{}{"v2/orders/{order_id}", "v2/account/configurations"},
-					"delete": []interface{}{"v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/watchlists/{watchlist_id}/{symbol}"},
+		"api": map[string]any{
+			"broker": map[string]any{},
+			"trader": map[string]any{
+				"private": map[string]any{
+					"get":    []any{"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets", "v2/wallets/transfers"},
+					"post":   []any{"v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/wallets/transfers"},
+					"put":    []any{"v2/orders/{order_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"},
+					"patch":  []any{"v2/orders/{order_id}", "v2/account/configurations"},
+					"delete": []any{"v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/watchlists/{watchlist_id}/{symbol}"},
 				},
 			},
-			"market": map[string]interface{}{
-				"public": map[string]interface{}{
-					"get": []interface{}{"v1beta3/crypto/{loc}/bars", "v1beta3/crypto/{loc}/latest/bars", "v1beta3/crypto/{loc}/latest/orderbooks", "v1beta3/crypto/{loc}/latest/quotes", "v1beta3/crypto/{loc}/latest/trades", "v1beta3/crypto/{loc}/quotes", "v1beta3/crypto/{loc}/snapshots", "v1beta3/crypto/{loc}/trades"},
+			"market": map[string]any{
+				"public": map[string]any{
+					"get": []any{"v1beta3/crypto/{loc}/bars", "v1beta3/crypto/{loc}/latest/bars", "v1beta3/crypto/{loc}/latest/orderbooks", "v1beta3/crypto/{loc}/latest/quotes", "v1beta3/crypto/{loc}/latest/trades", "v1beta3/crypto/{loc}/quotes", "v1beta3/crypto/{loc}/snapshots", "v1beta3/crypto/{loc}/trades"},
 				},
-				"private": map[string]interface{}{
-					"get": []interface{}{"v1beta1/corporate-actions", "v1beta1/forex/latest/rates", "v1beta1/forex/rates", "v1beta1/logos/{symbol}", "v1beta1/news", "v1beta1/screener/stocks/most-actives", "v1beta1/screener/{market_type}/movers", "v2/stocks/auctions", "v2/stocks/bars", "v2/stocks/bars/latest", "v2/stocks/meta/conditions/{ticktype}", "v2/stocks/meta/exchanges", "v2/stocks/quotes", "v2/stocks/quotes/latest", "v2/stocks/snapshots", "v2/stocks/trades", "v2/stocks/trades/latest", "v2/stocks/{symbol}/auctions", "v2/stocks/{symbol}/bars", "v2/stocks/{symbol}/bars/latest", "v2/stocks/{symbol}/quotes", "v2/stocks/{symbol}/quotes/latest", "v2/stocks/{symbol}/snapshot", "v2/stocks/{symbol}/trades", "v2/stocks/{symbol}/trades/latest"},
+				"private": map[string]any{
+					"get": []any{"v1beta1/corporate-actions", "v1beta1/forex/latest/rates", "v1beta1/forex/rates", "v1beta1/logos/{symbol}", "v1beta1/news", "v1beta1/screener/stocks/most-actives", "v1beta1/screener/{market_type}/movers", "v2/stocks/auctions", "v2/stocks/bars", "v2/stocks/bars/latest", "v2/stocks/meta/conditions/{ticktype}", "v2/stocks/meta/exchanges", "v2/stocks/quotes", "v2/stocks/quotes/latest", "v2/stocks/snapshots", "v2/stocks/trades", "v2/stocks/trades/latest", "v2/stocks/{symbol}/auctions", "v2/stocks/{symbol}/bars", "v2/stocks/{symbol}/bars/latest", "v2/stocks/{symbol}/quotes", "v2/stocks/{symbol}/quotes/latest", "v2/stocks/{symbol}/snapshot", "v2/stocks/{symbol}/trades", "v2/stocks/{symbol}/trades/latest"},
 				},
 			},
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "1min",
 			"3m":  "3min",
 			"5m":  "5min",
@@ -188,50 +188,50 @@ func (this *AlpacaCore) Describe() interface{} {
 			"1M":  "1M",
 		},
 		"precisionMode": TICK_SIZE,
-		"requiredCredentials": map[string]interface{}{
+		"requiredCredentials": map[string]any{
 			"apiKey": true,
 			"secret": true,
 		},
-		"fees": map[string]interface{}{
-			"trading": map[string]interface{}{
+		"fees": map[string]any{
+			"trading": map[string]any{
 				"tierBased":  true,
 				"percentage": true,
 				"maker":      this.ParseNumber("0.0015"),
 				"taker":      this.ParseNumber("0.0025"),
-				"tiers": map[string]interface{}{
-					"taker": []interface{}{[]interface{}{this.ParseNumber("0"), this.ParseNumber("0.0025")}, []interface{}{this.ParseNumber("100000"), this.ParseNumber("0.0022")}, []interface{}{this.ParseNumber("500000"), this.ParseNumber("0.0020")}, []interface{}{this.ParseNumber("1000000"), this.ParseNumber("0.0018")}, []interface{}{this.ParseNumber("10000000"), this.ParseNumber("0.0015")}, []interface{}{this.ParseNumber("25000000"), this.ParseNumber("0.0013")}, []interface{}{this.ParseNumber("50000000"), this.ParseNumber("0.0012")}, []interface{}{this.ParseNumber("100000000"), this.ParseNumber("0.001")}},
-					"maker": []interface{}{[]interface{}{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []interface{}{this.ParseNumber("100000"), this.ParseNumber("0.0012")}, []interface{}{this.ParseNumber("500000"), this.ParseNumber("0.001")}, []interface{}{this.ParseNumber("1000000"), this.ParseNumber("0.0008")}, []interface{}{this.ParseNumber("10000000"), this.ParseNumber("0.0005")}, []interface{}{this.ParseNumber("25000000"), this.ParseNumber("0.0002")}, []interface{}{this.ParseNumber("50000000"), this.ParseNumber("0.0002")}, []interface{}{this.ParseNumber("100000000"), this.ParseNumber("0.00")}},
+				"tiers": map[string]any{
+					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0022")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0020")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.001")}},
+					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.00")}},
 				},
 			},
 		},
-		"headers": map[string]interface{}{
+		"headers": map[string]any{
 			"APCA-PARTNER-ID": "ccxt",
 		},
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"defaultExchange":    "CBSE",
-			"exchanges":          []interface{}{"CBSE", "FTX", "GNSS", "ERSX"},
+			"exchanges":          []any{"CBSE", "FTX", "GNSS", "ERSX"},
 			"defaultTimeInForce": "gtc",
 			"clientOrderId":      "ccxt_{id}",
 		},
-		"features": map[string]interface{}{
-			"spot": map[string]interface{}{
+		"features": map[string]any{
+			"spot": map[string]any{
 				"sandbox": true,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":       false,
 					"triggerPrice":     true,
 					"triggerPriceType": nil,
 					"triggerDirection": false,
 					"stopLossPrice":    false,
 					"takeProfitPrice":  false,
-					"attachedStopLossTakeProfit": map[string]interface{}{
-						"triggerPriceType": map[string]interface{}{
+					"attachedStopLossTakeProfit": map[string]any{
+						"triggerPriceType": map[string]any{
 							"last":  true,
 							"mark":  true,
 							"index": true,
 						},
 						"price": true,
 					},
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -246,27 +246,27 @@ func (this *AlpacaCore) Describe() interface{} {
 					"iceberg":                false,
 				},
 				"createOrders": nil,
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
 					"daysBack":       100000,
 					"untilDays":      100000,
 					"symbolRequired": false,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          500,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOrders": map[string]interface{}{
+				"fetchOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          500,
 					"daysBack":       100000,
@@ -275,7 +275,7 @@ func (this *AlpacaCore) Describe() interface{} {
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchClosedOrders": map[string]interface{}{
+				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            500,
 					"daysBack":         100000,
@@ -285,21 +285,21 @@ func (this *AlpacaCore) Describe() interface{} {
 					"trailing":         false,
 					"symbolRequired":   false,
 				},
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": 1000,
 				},
 			},
-			"swap": map[string]interface{}{
+			"swap": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
 		},
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"forbidden.": PermissionDenied,
 				"40410000":   InvalidOrder,
 				"40010001":   BadRequest,
@@ -307,7 +307,7 @@ func (this *AlpacaCore) Describe() interface{} {
 				"40310000":   InsufficientFunds,
 				"42910000":   RateLimitExceeded,
 			},
-			"broad": map[string]interface{}{
+			"broad": map[string]any{
 				"Invalid format for parameter": BadRequest,
 				"Invalid symbol":               BadSymbol,
 			},
@@ -322,12 +322,12 @@ func (this *AlpacaCore) Describe() interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *AlpacaCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchTime(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.TraderPrivateGetV2Clock(params))
@@ -340,12 +340,12 @@ func (this *AlpacaCore) FetchTime(optionalArgs ...interface{}) <-chan interface{
 		//         next_close: '2023-11-22T16:00:00-05:00'
 		//     }
 		//
-		var timestamp interface{} = this.SafeString(response, "timestamp")
-		var localTime interface{} = Slice(timestamp, 0, 23)
-		var jetlagStrStart interface{} = Subtract(GetLength(timestamp), 6)
-		var jetlagStrEnd interface{} = Subtract(GetLength(timestamp), 3)
-		var jetlag interface{} = Slice(timestamp, jetlagStrStart, jetlagStrEnd)
-		var iso interface{} = Subtract(this.Parse8601(localTime), Multiply(Multiply(this.ParseToNumeric(jetlag), 3600), 1000))
+		var timestamp any = this.SafeString(response, "timestamp")
+		var localTime any = Slice(timestamp, 0, 23)
+		var jetlagStrStart any = Subtract(GetLength(timestamp), 6)
+		var jetlagStrEnd any = Subtract(GetLength(timestamp), 3)
+		var jetlag any = Slice(timestamp, jetlagStrStart, jetlagStrEnd)
+		var iso any = Subtract(this.ParseToInt(this.Parse8601(localTime)), Multiply(Multiply(this.ParseToNumeric(jetlag), 3600), 1000))
 
 		ch <- iso
 		return nil
@@ -362,14 +362,14 @@ func (this *AlpacaCore) FetchTime(optionalArgs ...interface{}) <-chan interface{
  * @param {object} [params] extra parameters specific to the exchange api endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *AlpacaCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"asset_class": "crypto",
 			"status":      "active",
 		}
@@ -405,7 +405,7 @@ func (this *AlpacaCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *AlpacaCore) ParseMarket(asset interface{}) interface{} {
+func (this *AlpacaCore) ParseMarket(asset any) any {
 	//
 	//     {
 	//         "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
@@ -426,25 +426,25 @@ func (this *AlpacaCore) ParseMarket(asset interface{}) interface{} {
 	//         "price_increment": "1"
 	//     }
 	//
-	var marketId interface{} = this.SafeString(asset, "symbol")
-	var parts interface{} = Split(marketId, "/")
-	var assetClass interface{} = this.SafeString(asset, "class")
-	var baseId interface{} = this.SafeString(parts, 0)
-	var quoteId interface{} = this.SafeString(parts, 1)
-	var base interface{} = this.SafeCurrencyCode(baseId)
-	var quote interface{} = this.SafeCurrencyCode(quoteId)
+	var marketId any = this.SafeString(asset, "symbol")
+	var parts any = Split(marketId, "/")
+	var assetClass any = this.SafeString(asset, "class")
+	var baseId any = this.SafeString(parts, 0)
+	var quoteId any = this.SafeString(parts, 1)
+	var base any = this.SafeCurrencyCode(baseId)
+	var quote any = this.SafeCurrencyCode(quoteId)
 	// Us equity markets do not include quote in symbol.
 	// We can safely coerce us_equity quote to USD
 	if IsTrue(IsTrue(IsEqual(quote, nil)) && IsTrue(IsEqual(assetClass, "us_equity"))) {
 		quote = "USD"
 	}
-	var symbol interface{} = Add(Add(base, "/"), quote)
-	var status interface{} = this.SafeString(asset, "status")
-	var active interface{} = (IsEqual(status, "active"))
-	var minAmount interface{} = this.SafeNumber(asset, "min_order_size")
-	var amount interface{} = this.SafeNumber(asset, "min_trade_increment")
-	var price interface{} = this.SafeNumber(asset, "price_increment")
-	return map[string]interface{}{
+	var symbol any = Add(Add(base, "/"), quote)
+	var status any = this.SafeString(asset, "status")
+	var active any = (IsEqual(status, "active"))
+	var minAmount any = this.SafeNumber(asset, "min_order_size")
+	var amount any = this.SafeNumber(asset, "min_trade_increment")
+	var price any = this.SafeNumber(asset, "price_increment")
+	return map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -468,24 +468,24 @@ func (this *AlpacaCore) ParseMarket(asset interface{}) interface{} {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"amount": amount,
 			"price":  price,
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": minAmount,
 				"max": nil,
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"cost": map[string]interface{}{
+			"cost": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
@@ -509,30 +509,30 @@ func (this *AlpacaCore) ParseMarket(asset interface{}) interface{} {
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *AlpacaCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
 		retRes5908 := (<-this.LoadMarkets())
 		PanicOnError(retRes5908)
-		var market interface{} = this.Market(symbol)
-		var marketId interface{} = GetValue(market, "id")
-		var loc interface{} = this.SafeString(params, "loc", "us")
-		var method interface{} = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var marketId any = GetValue(market, "id")
+		var loc any = this.SafeString(params, "loc", "us")
+		var method any = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
+		var request any = map[string]any{
 			"symbols": marketId,
 			"loc":     loc,
 		}
-		params = this.Omit(params, []interface{}{"loc", "method"})
-		var symbolTrades interface{} = nil
+		params = this.Omit(params, []any{"loc", "method"})
+		var symbolTrades any = nil
 		if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocTrades")) {
 			if IsTrue(!IsEqual(since, nil)) {
 				AddElementToObject(request, "start", this.Iso8601(since))
@@ -559,8 +559,8 @@ func (this *AlpacaCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 			//        }
 			//    }
 			//
-			var trades interface{} = this.SafeDict(response, "trades", map[string]interface{}{})
-			symbolTrades = this.SafeList(trades, marketId, []interface{}{})
+			var trades any = this.SafeDict(response, "trades", map[string]any{})
+			symbolTrades = this.SafeList(trades, marketId, []any{})
 		} else if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocLatestTrades")) {
 
 			response := (<-this.MarketPublicGetV1beta3CryptoLocLatestTrades(this.Extend(request, params)))
@@ -578,9 +578,9 @@ func (this *AlpacaCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 			//        }
 			//    }
 			//
-			var trades interface{} = this.SafeDict(response, "trades", map[string]interface{}{})
-			symbolTrades = this.SafeDict(trades, marketId, map[string]interface{}{})
-			symbolTrades = []interface{}{symbolTrades}
+			var trades any = this.SafeDict(response, "trades", map[string]any{})
+			symbolTrades = this.SafeDict(trades, marketId, map[string]any{})
+			symbolTrades = []any{symbolTrades}
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")))
 		}
@@ -603,22 +603,22 @@ func (this *AlpacaCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
  * @param {string} [params.loc] crypto location, default: us
  * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
  */
-func (this *AlpacaCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes6638 := (<-this.LoadMarkets())
 		PanicOnError(retRes6638)
-		var market interface{} = this.Market(symbol)
-		var id interface{} = GetValue(market, "id")
-		var loc interface{} = this.SafeString(params, "loc", "us")
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var id any = GetValue(market, "id")
+		var loc any = this.SafeString(params, "loc", "us")
+		var request any = map[string]any{
 			"symbols": id,
 			"loc":     loc,
 		}
@@ -662,9 +662,9 @@ func (this *AlpacaCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 		//       }
 		//   }
 		//
-		var orderbooks interface{} = this.SafeDict(response, "orderbooks", map[string]interface{}{})
-		var rawOrderbook interface{} = this.SafeDict(orderbooks, id, map[string]interface{}{})
-		var timestamp interface{} = this.Parse8601(this.SafeString(rawOrderbook, "t"))
+		var orderbooks any = this.SafeDict(response, "orderbooks", map[string]any{})
+		var rawOrderbook any = this.SafeDict(orderbooks, id, map[string]any{})
+		var timestamp any = this.Parse8601(this.SafeString(rawOrderbook, "t"))
 
 		ch <- this.ParseOrderBook(rawOrderbook, GetValue(market, "symbol"), timestamp, "b", "a", "p", "s")
 		return nil
@@ -688,9 +688,9 @@ func (this *AlpacaCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *AlpacaCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -699,21 +699,21 @@ func (this *AlpacaCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes7318 := (<-this.LoadMarkets())
 		PanicOnError(retRes7318)
-		var market interface{} = this.Market(symbol)
-		var marketId interface{} = GetValue(market, "id")
-		var loc interface{} = this.SafeString(params, "loc", "us")
-		var method interface{} = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var marketId any = GetValue(market, "id")
+		var loc any = this.SafeString(params, "loc", "us")
+		var method any = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
+		var request any = map[string]any{
 			"symbols": marketId,
 			"loc":     loc,
 		}
-		params = this.Omit(params, []interface{}{"loc", "method"})
-		var ohlcvs interface{} = nil
+		params = this.Omit(params, []any{"loc", "method"})
+		var ohlcvs any = nil
 		if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocBars")) {
 			if IsTrue(!IsEqual(limit, nil)) {
 				AddElementToObject(request, "limit", limit)
@@ -754,8 +754,8 @@ func (this *AlpacaCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 			//        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
 			//     }
 			//
-			var bars interface{} = this.SafeDict(response, "bars", map[string]interface{}{})
-			ohlcvs = this.SafeList(bars, marketId, []interface{}{})
+			var bars any = this.SafeDict(response, "bars", map[string]any{})
+			ohlcvs = this.SafeList(bars, marketId, []any{})
 		} else if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")) {
 
 			response := (<-this.MarketPublicGetV1beta3CryptoLocLatestBars(this.Extend(request, params)))
@@ -776,9 +776,9 @@ func (this *AlpacaCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 			//        }
 			//     }
 			//
-			var bars interface{} = this.SafeDict(response, "bars", map[string]interface{}{})
-			ohlcvs = this.SafeDict(bars, marketId, map[string]interface{}{})
-			ohlcvs = []interface{}{ohlcvs}
+			var bars any = this.SafeDict(response, "bars", map[string]any{})
+			ohlcvs = this.SafeDict(bars, marketId, map[string]any{})
+			ohlcvs = []any{ohlcvs}
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")))
 		}
@@ -789,7 +789,7 @@ func (this *AlpacaCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 	}()
 	return ch
 }
-func (this *AlpacaCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AlpacaCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	//     {
 	//        "c":22895,
@@ -804,9 +804,9 @@ func (this *AlpacaCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var datetime interface{} = this.SafeString(ohlcv, "t")
-	var timestamp interface{} = this.Parse8601(datetime)
-	return []interface{}{timestamp, this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
+	var datetime any = this.SafeString(ohlcv, "t")
+	var timestamp any = this.Parse8601(datetime)
+	return []any{timestamp, this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
 }
 
 /**
@@ -819,19 +819,19 @@ func (this *AlpacaCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{
  * @param {string} [params.loc] crypto location, default: us
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *AlpacaCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes8458 := (<-this.LoadMarkets())
 		PanicOnError(retRes8458)
 		symbol = this.Symbol(symbol)
 
-		tickers := (<-this.FetchTickers([]interface{}{symbol}, params))
+		tickers := (<-this.FetchTickers([]any{symbol}, params))
 		PanicOnError(tickers)
 
 		ch <- this.SafeDict(tickers, symbol)
@@ -851,14 +851,14 @@ func (this *AlpacaCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
  * @param {string} [params.loc] crypto location, default: us
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *AlpacaCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbols, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTickers() requires a symbols argument")))
@@ -867,9 +867,9 @@ func (this *AlpacaCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 		retRes8658 := (<-this.LoadMarkets())
 		PanicOnError(retRes8658)
 		symbols = this.MarketSymbols(symbols)
-		var loc interface{} = this.SafeString(params, "loc", "us")
-		var ids interface{} = this.MarketIds(symbols)
-		var request interface{} = map[string]interface{}{
+		var loc any = this.SafeString(params, "loc", "us")
+		var ids any = this.MarketIds(symbols)
+		var request any = map[string]any{
 			"symbols": Join(ids, ","),
 			"loc":     loc,
 		}
@@ -929,19 +929,19 @@ func (this *AlpacaCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 		//         }
 		//     }
 		//
-		var results interface{} = []interface{}{}
-		var snapshots interface{} = this.SafeDict(response, "snapshots", map[string]interface{}{})
-		var marketIds interface{} = ObjectKeys(snapshots)
+		var results any = []any{}
+		var snapshots any = this.SafeDict(response, "snapshots", map[string]any{})
+		var marketIds any = ObjectKeys(snapshots)
 		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
-			var marketId interface{} = GetValue(marketIds, i)
-			var market interface{} = this.SafeMarket(marketId)
-			var entry interface{} = this.SafeDict(snapshots, marketId)
-			var dailyBar interface{} = this.SafeDict(entry, "dailyBar", map[string]interface{}{})
-			var prevDailyBar interface{} = this.SafeDict(entry, "prevDailyBar", map[string]interface{}{})
-			var latestQuote interface{} = this.SafeDict(entry, "latestQuote", map[string]interface{}{})
-			var latestTrade interface{} = this.SafeDict(entry, "latestTrade", map[string]interface{}{})
-			var datetime interface{} = this.SafeString(latestQuote, "t")
-			var ticker interface{} = this.SafeTicker(map[string]interface{}{
+			var marketId any = GetValue(marketIds, i)
+			var market any = this.SafeMarket(marketId)
+			var entry any = this.SafeDict(snapshots, marketId)
+			var dailyBar any = this.SafeDict(entry, "dailyBar", map[string]any{})
+			var prevDailyBar any = this.SafeDict(entry, "prevDailyBar", map[string]any{})
+			var latestQuote any = this.SafeDict(entry, "latestQuote", map[string]any{})
+			var latestTrade any = this.SafeDict(entry, "latestTrade", map[string]any{})
+			var datetime any = this.SafeString(latestQuote, "t")
+			var ticker any = this.SafeTicker(map[string]any{
 				"info":          entry,
 				"symbol":        GetValue(market, "symbol"),
 				"timestamp":     this.Parse8601(datetime),
@@ -972,15 +972,15 @@ func (this *AlpacaCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *AlpacaCore) GenerateClientOrderId(params interface{}) interface{} {
-	var clientOrderIdprefix interface{} = this.SafeString(this.Options, "clientOrderId")
-	var uuid interface{} = this.Uuid()
-	var parts interface{} = Split(uuid, "-")
-	var random_id interface{} = Join(parts, "")
-	var defaultClientId interface{} = this.ImplodeParams(clientOrderIdprefix, map[string]interface{}{
+func (this *AlpacaCore) GenerateClientOrderId(params any) any {
+	var clientOrderIdprefix any = this.SafeString(this.Options, "clientOrderId")
+	var uuid any = this.Uuid()
+	var parts any = Split(uuid, "-")
+	var random_id any = Join(parts, "")
+	var defaultClientId any = this.ImplodeParams(clientOrderIdprefix, map[string]any{
 		"id": random_id,
 	})
-	var clientOrderId interface{} = this.SafeString(params, "clientOrderId", defaultClientId)
+	var clientOrderId any = this.SafeString(params, "clientOrderId", defaultClientId)
 	return clientOrderId
 }
 
@@ -995,17 +995,17 @@ func (this *AlpacaCore) GenerateClientOrderId(params interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) CreateMarketOrderWithCost(symbol interface{}, side interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) CreateMarketOrderWithCost(symbol any, side any, cost any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes9888 := (<-this.LoadMarkets())
 		PanicOnError(retRes9888)
-		var req interface{} = map[string]interface{}{
+		var req any = map[string]any{
 			"cost": cost,
 		}
 
@@ -1028,17 +1028,17 @@ func (this *AlpacaCore) CreateMarketOrderWithCost(symbol interface{}, side inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes10068 := (<-this.LoadMarkets())
 		PanicOnError(retRes10068)
-		var req interface{} = map[string]interface{}{
+		var req any = map[string]any{
 			"cost": cost,
 		}
 
@@ -1061,17 +1061,17 @@ func (this *AlpacaCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) CreateMarketSellOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) CreateMarketSellOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes10248 := (<-this.LoadMarkets())
 		PanicOnError(retRes10248)
-		var req interface{} = map[string]interface{}{
+		var req any = map[string]any{
 			"cost": cost,
 		}
 
@@ -1099,28 +1099,28 @@ func (this *AlpacaCore) CreateMarketSellOrderWithCost(symbol interface{}, cost i
  * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes10478 := (<-this.LoadMarkets())
 		PanicOnError(retRes10478)
-		var market interface{} = this.Market(symbol)
-		var id interface{} = GetValue(market, "id")
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var id any = GetValue(market, "id")
+		var request any = map[string]any{
 			"symbol": id,
 			"side":   side,
 			"type":   typeVar,
 		}
-		var triggerPrice interface{} = this.SafeStringN(params, []interface{}{"triggerPrice", "stop_price"})
+		var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stop_price"})
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
-			var newType interface{} = nil
+			var newType any = nil
 			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(typeVar, "limit"), 0)) {
 				newType = "stop_limit"
 			} else {
@@ -1132,18 +1132,18 @@ func (this *AlpacaCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(typeVar, "limit"), 0)) {
 			AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
 		}
-		var cost interface{} = this.SafeString(params, "cost")
+		var cost any = this.SafeString(params, "cost")
 		if IsTrue(!IsEqual(cost, nil)) {
 			params = this.Omit(params, "cost")
 			AddElementToObject(request, "notional", this.CostToPrecision(symbol, cost))
 		} else {
 			AddElementToObject(request, "qty", this.AmountToPrecision(symbol, amount))
 		}
-		var defaultTIF interface{} = this.SafeString(this.Options, "defaultTimeInForce")
+		var defaultTIF any = this.SafeString(this.Options, "defaultTimeInForce")
 		AddElementToObject(request, "time_in_force", this.SafeString(params, "timeInForce", defaultTIF))
-		params = this.Omit(params, []interface{}{"timeInForce", "triggerPrice"})
+		params = this.Omit(params, []any{"timeInForce", "triggerPrice"})
 		AddElementToObject(request, "client_order_id", this.GenerateClientOrderId(params))
-		params = this.Omit(params, []interface{}{"clientOrderId"})
+		params = this.Omit(params, []any{"clientOrderId"})
 
 		order := (<-this.TraderPrivatePostV2Orders(this.Extend(request, params)))
 		PanicOnError(order)
@@ -1201,16 +1201,16 @@ func (this *AlpacaCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"order_id": id,
 		}
 
@@ -1239,14 +1239,14 @@ func (this *AlpacaCore) CancelOrder(id interface{}, optionalArgs ...interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes11558 := (<-this.LoadMarkets())
@@ -1256,11 +1256,11 @@ func (this *AlpacaCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
 		PanicOnError(response)
 		if IsTrue(IsArray(response)) {
 
-			ch <- this.ParseOrders(response, nil)
+			ch <- this.ParseOrders(response)
 			return nil
 		} else {
 
-			ch <- []interface{}{this.SafeOrder(map[string]interface{}{
+			ch <- []any{this.SafeOrder(map[string]any{
 				"info": response,
 			})}
 			return nil
@@ -1280,26 +1280,26 @@ func (this *AlpacaCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes11798 := (<-this.LoadMarkets())
 		PanicOnError(retRes11798)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"order_id": id,
 		}
 
 		order := (<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params)))
 		PanicOnError(order)
-		var marketId interface{} = this.SafeString(order, "symbol")
-		var market interface{} = this.SafeMarket(marketId)
+		var marketId any = this.SafeString(order, "symbol")
+		var market any = this.SafeMarket(marketId)
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -1320,9 +1320,9 @@ func (this *AlpacaCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1331,20 +1331,20 @@ func (this *AlpacaCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes12028 := (<-this.LoadMarkets())
 		PanicOnError(retRes12028)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"status": "all",
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbols", GetValue(market, "id"))
 		}
-		var until interface{} = this.SafeInteger(params, "until")
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, "until")
 			AddElementToObject(request, "endTime", this.Iso8601(until))
@@ -1418,9 +1418,9 @@ func (this *AlpacaCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1429,9 +1429,9 @@ func (this *AlpacaCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"status": "open",
 		}
 
@@ -1456,9 +1456,9 @@ func (this *AlpacaCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1467,9 +1467,9 @@ func (this *AlpacaCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"status": "closed",
 		}
 
@@ -1499,31 +1499,31 @@ func (this *AlpacaCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
  * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AlpacaCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		amount := GetArg(optionalArgs, 0, nil)
 		_ = amount
 		price := GetArg(optionalArgs, 1, nil)
 		_ = price
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
 		retRes13228 := (<-this.LoadMarkets())
 		PanicOnError(retRes13228)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"order_id": id,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
 		if IsTrue(!IsEqual(amount, nil)) {
 			AddElementToObject(request, "qty", this.AmountToPrecision(symbol, amount))
 		}
-		var triggerPrice interface{} = this.SafeStringN(params, []interface{}{"triggerPrice", "stop_price"})
+		var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stop_price"})
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
 			AddElementToObject(request, "stop_price", this.PriceToPrecision(symbol, triggerPrice))
 			params = this.Omit(params, "triggerPrice")
@@ -1531,7 +1531,7 @@ func (this *AlpacaCore) EditOrder(id interface{}, symbol interface{}, typeVar in
 		if IsTrue(!IsEqual(price, nil)) {
 			AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
 		}
-		var timeInForce interface{} = nil
+		var timeInForce any = nil
 		timeInForceparamsVariable := this.HandleOptionAndParams2(params, "editOrder", "timeInForce", "defaultTimeInForce")
 		timeInForce = GetValue(timeInForceparamsVariable, 0)
 		params = GetValue(timeInForceparamsVariable, 1)
@@ -1539,7 +1539,7 @@ func (this *AlpacaCore) EditOrder(id interface{}, symbol interface{}, typeVar in
 			AddElementToObject(request, "time_in_force", timeInForce)
 		}
 		AddElementToObject(request, "client_order_id", this.GenerateClientOrderId(params))
-		params = this.Omit(params, []interface{}{"clientOrderId"})
+		params = this.Omit(params, []any{"clientOrderId"})
 
 		response := (<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1550,7 +1550,7 @@ func (this *AlpacaCore) EditOrder(id interface{}, symbol interface{}, typeVar in
 	}()
 	return ch
 }
-func (this *AlpacaCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AlpacaCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -1591,29 +1591,29 @@ func (this *AlpacaCore) ParseOrder(order interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(order, "symbol")
+	var marketId any = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol interface{} = GetValue(market, "symbol")
-	var alpacaStatus interface{} = this.SafeString(order, "status")
-	var status interface{} = this.ParseOrderStatus(alpacaStatus)
-	var feeValue interface{} = this.SafeString(order, "commission")
-	var fee interface{} = nil
+	var symbol any = GetValue(market, "symbol")
+	var alpacaStatus any = this.SafeString(order, "status")
+	var status any = this.ParseOrderStatus(alpacaStatus)
+	var feeValue any = this.SafeString(order, "commission")
+	var fee any = nil
 	if IsTrue(!IsEqual(feeValue, nil)) {
-		fee = map[string]interface{}{
+		fee = map[string]any{
 			"cost":     feeValue,
 			"currency": "USD",
 		}
 	}
-	var orderType interface{} = this.SafeString(order, "order_type")
+	var orderType any = this.SafeString(order, "order_type")
 	if IsTrue(!IsEqual(orderType, nil)) {
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(orderType, "limit"), 0)) {
 			// might be limit or stop-limit
 			orderType = "limit"
 		}
 	}
-	var datetime interface{} = this.SafeString(order, "submitted_at")
-	var timestamp interface{} = this.Parse8601(datetime)
-	return this.SafeOrder(map[string]interface{}{
+	var datetime any = this.SafeString(order, "submitted_at")
+	var timestamp any = this.Parse8601(datetime)
+	return this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "id"),
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
 		"timestamp":          timestamp,
@@ -1637,8 +1637,8 @@ func (this *AlpacaCore) ParseOrder(order interface{}, optionalArgs ...interface{
 		"info":               order,
 	}, market)
 }
-func (this *AlpacaCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *AlpacaCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"pending_new":      "open",
 		"accepted":         "open",
 		"new":              "open",
@@ -1648,8 +1648,8 @@ func (this *AlpacaCore) ParseOrderStatus(status interface{}) interface{} {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *AlpacaCore) ParseTimeInForce(timeInForce interface{}) interface{} {
-	var timeInForces interface{} = map[string]interface{}{
+func (this *AlpacaCore) ParseTimeInForce(timeInForce any) any {
+	var timeInForces any = map[string]any{
 		"day": "Day",
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
@@ -1668,9 +1668,9 @@ func (this *AlpacaCore) ParseTimeInForce(timeInForce interface{}) interface{} {
  * @param {string} [params.page_token] page_token - used for paging
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *AlpacaCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1679,19 +1679,19 @@ func (this *AlpacaCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes14718 := (<-this.LoadMarkets())
 		PanicOnError(retRes14718)
-		var market interface{} = nil
-		var request interface{} = map[string]interface{}{
+		var market any = nil
+		var request any = map[string]any{
 			"activity_type": "FILL",
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var until interface{} = this.SafeInteger(params, "until")
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, "until")
 			AddElementToObject(request, "until", this.Iso8601(until))
@@ -1734,7 +1734,7 @@ func (this *AlpacaCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 	}()
 	return ch
 }
-func (this *AlpacaCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AlpacaCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// fetchTrades
 	//
@@ -1767,20 +1767,20 @@ func (this *AlpacaCore) ParseTrade(trade interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString2(trade, "S", "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market)
-	var datetime interface{} = this.SafeString2(trade, "t", "transaction_time")
-	var timestamp interface{} = this.Parse8601(datetime)
-	var alpacaSide interface{} = this.SafeString(trade, "tks")
-	var side interface{} = this.SafeString(trade, "side")
+	var marketId any = this.SafeString2(trade, "S", "symbol")
+	var symbol any = this.SafeSymbol(marketId, market)
+	var datetime any = this.SafeString2(trade, "t", "transaction_time")
+	var timestamp any = this.Parse8601(datetime)
+	var alpacaSide any = this.SafeString(trade, "tks")
+	var side any = this.SafeString(trade, "side")
 	if IsTrue(IsEqual(alpacaSide, "B")) {
 		side = "buy"
 	} else if IsTrue(IsEqual(alpacaSide, "S")) {
 		side = "sell"
 	}
-	var priceString interface{} = this.SafeString2(trade, "p", "price")
-	var amountString interface{} = this.SafeString2(trade, "s", "qty")
-	return this.SafeTrade(map[string]interface{}{
+	var priceString any = this.SafeString2(trade, "p", "price")
+	var amountString any = this.SafeString2(trade, "s", "qty")
+	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString2(trade, "i", "id"),
 		"timestamp":    timestamp,
@@ -1806,18 +1806,18 @@ func (this *AlpacaCore) ParseTrade(trade interface{}, optionalArgs ...interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *AlpacaCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes15858 := (<-this.LoadMarkets())
 		PanicOnError(retRes15858)
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"asset": GetValue(currency, "id"),
 		}
 
@@ -1837,7 +1837,7 @@ func (this *AlpacaCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 	}()
 	return ch
 }
-func (this *AlpacaCore) ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AlpacaCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1847,11 +1847,11 @@ func (this *AlpacaCore) ParseDepositAddress(depositAddress interface{}, optional
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var parsedCurrency interface{} = nil
+	var parsedCurrency any = nil
 	if IsTrue(!IsEqual(currency, nil)) {
 		parsedCurrency = GetValue(currency, "id")
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"info":     depositAddress,
 		"currency": parsedCurrency,
 		"network":  nil,
@@ -1872,14 +1872,14 @@ func (this *AlpacaCore) ParseDepositAddress(depositAddress interface{}, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *AlpacaCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
@@ -1888,11 +1888,11 @@ func (this *AlpacaCore) Withdraw(code interface{}, amount interface{}, address i
 
 		retRes16378 := (<-this.LoadMarkets())
 		PanicOnError(retRes16378)
-		var currency interface{} = this.Currency(code)
+		var currency any = this.Currency(code)
 		if IsTrue(tag) {
 			address = Add(Add(address, ":"), tag)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"asset":   GetValue(currency, "id"),
 			"address": address,
 			"amount":  this.NumberToString(amount),
@@ -1924,15 +1924,15 @@ func (this *AlpacaCore) Withdraw(code interface{}, amount interface{}, address i
 	}()
 	return ch
 }
-func (this *AlpacaCore) FetchTransactionsHelper(typeVar interface{}, code interface{}, since interface{}, limit interface{}, params interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchTransactionsHelper(typeVar any, code any, since any, limit any, params any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
 		retRes16698 := (<-this.LoadMarkets())
 		PanicOnError(retRes16698)
-		var currency interface{} = nil
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 		}
@@ -1956,10 +1956,10 @@ func (this *AlpacaCore) FetchTransactionsHelper(typeVar interface{}, code interf
 		//         "fees": "0.1"
 		//     }
 		//
-		var results interface{} = []interface{}{}
+		var results any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var entry interface{} = GetValue(response, i)
-			var direction interface{} = this.SafeString(entry, "direction")
+			var entry any = GetValue(response, i)
+			var direction any = this.SafeString(entry, "direction")
 			if IsTrue(IsEqual(direction, typeVar)) {
 				AppendToArray(&results, entry)
 			} else if IsTrue(IsEqual(typeVar, "BOTH")) {
@@ -1985,9 +1985,9 @@ func (this *AlpacaCore) FetchTransactionsHelper(typeVar interface{}, code interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *AlpacaCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1996,7 +1996,7 @@ func (this *AlpacaCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes171715 := (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
@@ -2019,9 +2019,9 @@ func (this *AlpacaCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *AlpacaCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2030,7 +2030,7 @@ func (this *AlpacaCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes173215 := (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
@@ -2053,9 +2053,9 @@ func (this *AlpacaCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *AlpacaCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2064,7 +2064,7 @@ func (this *AlpacaCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes174715 := (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
@@ -2075,7 +2075,7 @@ func (this *AlpacaCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
 	}()
 	return ch
 }
-func (this *AlpacaCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -2095,17 +2095,17 @@ func (this *AlpacaCore) ParseTransaction(transaction interface{}, optionalArgs .
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var datetime interface{} = this.SafeString(transaction, "created_at")
-	var currencyId interface{} = this.SafeString(transaction, "asset")
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
-	var fees interface{} = this.SafeString(transaction, "fees")
-	var networkFee interface{} = this.SafeString(transaction, "network_fee")
-	var totalFee interface{} = Precise.StringAdd(fees, networkFee)
-	var fee interface{} = map[string]interface{}{
+	var datetime any = this.SafeString(transaction, "created_at")
+	var currencyId any = this.SafeString(transaction, "asset")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var fees any = this.SafeString(transaction, "fees")
+	var networkFee any = this.SafeString(transaction, "network_fee")
+	var totalFee any = Precise.StringAdd(fees, networkFee)
+	var fee any = map[string]any{
 		"cost":     this.ParseNumber(totalFee),
 		"currency": code,
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "id"),
 		"txid":        this.SafeString(transaction, "tx_hash"),
@@ -2128,16 +2128,16 @@ func (this *AlpacaCore) ParseTransaction(transaction interface{}, optionalArgs .
 		"internal":    nil,
 	}
 }
-func (this *AlpacaCore) ParseTransactionStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *AlpacaCore) ParseTransactionStatus(status any) any {
+	var statuses any = map[string]any{
 		"PROCESSING": "pending",
 		"FAILED":     "failed",
 		"COMPLETE":   "ok",
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *AlpacaCore) ParseTransactionType(typeVar interface{}) interface{} {
-	var types interface{} = map[string]interface{}{
+func (this *AlpacaCore) ParseTransactionType(typeVar any) any {
+	var types any = map[string]any{
 		"INCOMING": "deposit",
 		"OUTGOING": "withdrawal",
 	}
@@ -2152,12 +2152,12 @@ func (this *AlpacaCore) ParseTransactionType(typeVar interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *AlpacaCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AlpacaCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes18288 := (<-this.LoadMarkets())
@@ -2220,38 +2220,38 @@ func (this *AlpacaCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *AlpacaCore) ParseBalance(response interface{}) interface{} {
-	var result interface{} = map[string]interface{}{
+func (this *AlpacaCore) ParseBalance(response any) any {
+	var result any = map[string]any{
 		"info": response,
 	}
-	var account interface{} = this.Account()
-	var currencyId interface{} = this.SafeString(response, "currency")
-	var code interface{} = this.SafeCurrencyCode(currencyId)
+	var account any = this.Account()
+	var currencyId any = this.SafeString(response, "currency")
+	var code any = this.SafeCurrencyCode(currencyId)
 	AddElementToObject(account, "free", this.SafeString(response, "cash"))
 	AddElementToObject(account, "total", this.SafeString(response, "equity"))
 	AddElementToObject(result, code, account)
 	return this.SafeBalance(result)
 }
-func (this *AlpacaCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AlpacaCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var endpoint interface{} = Add("/", this.ImplodeParams(path, params))
-	var url interface{} = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), GetValue(api, 0)))
-	headers = Ternary(IsTrue((!IsEqual(headers, nil))), headers, map[string]interface{}{})
+	var endpoint any = Add("/", this.ImplodeParams(path, params))
+	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), GetValue(api, 0)))
+	headers = Ternary(IsTrue((!IsEqual(headers, nil))), headers, map[string]any{})
 	if IsTrue(IsEqual(GetValue(api, 1), "private")) {
 		this.CheckRequiredCredentials()
 		AddElementToObject(headers, "APCA-API-KEY-ID", this.ApiKey)
 		AddElementToObject(headers, "APCA-API-SECRET-KEY", this.Secret)
 	}
-	var query interface{} = this.Omit(params, this.ExtractParams(path))
+	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(GetArrayLength(ObjectKeys(query))) {
 		if IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) {
 			endpoint = Add(endpoint, Add("?", this.Urlencode(query)))
@@ -2261,14 +2261,14 @@ func (this *AlpacaCore) Sign(path interface{}, optionalArgs ...interface{}) inte
 		}
 	}
 	url = Add(url, endpoint)
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *AlpacaCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *AlpacaCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsTrue(IsEqual(response, nil)) {
 		return nil // default error handler
 	}
@@ -2276,12 +2276,12 @@ func (this *AlpacaCore) HandleErrors(code interface{}, reason interface{}, url i
 	//     "code": 40110000,
 	//     "message": "request is not authorized"
 	// }
-	var feedback interface{} = Add(Add(this.Id, " "), body)
-	var errorCode interface{} = this.SafeString(response, "code")
+	var feedback any = Add(Add(this.Id, " "), body)
+	var errorCode any = this.SafeString(response, "code")
 	if IsTrue(!IsEqual(code, nil)) {
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 	}
-	var message interface{} = this.SafeValue(response, "message", nil)
+	var message any = this.SafeValue(response, "message")
 	if IsTrue(!IsEqual(message, nil)) {
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
@@ -2290,8 +2290,8 @@ func (this *AlpacaCore) HandleErrors(code interface{}, reason interface{}, url i
 	return nil
 }
 
-func (this *AlpacaCore) Init(userConfig map[string]interface{}) {
+func (this *AlpacaCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

@@ -5,9 +5,9 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import upbitRest from '../upbit.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { jwt } from '../base/functions/rsa.js';
 import { NotSupported } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
@@ -149,7 +149,7 @@ export default class upbit extends upbitRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const orderbook = await this.watchPublicMultiple([symbol], 'orderbook');
@@ -439,7 +439,7 @@ export default class upbit extends upbitRest {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
-            'watch': 'open',
+            'watch': 'open', // not sure what this status means
             'trade': 'open',
         };
         return this.safeString(statuses, status, status);

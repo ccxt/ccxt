@@ -7,11 +7,11 @@
 import testSharedMethods from './test.sharedMethods.js';
 function testBorrowRate(exchange, skippedProperties, method, entry, requestedCode) {
     const format = {
-        'info': {},
+        'info': {}, // Or []
         'currency': 'USDT',
         'timestamp': 1638230400000,
         'datetime': '2021-11-30T00:00:00.000Z',
-        'rate': exchange.parseNumber('0.0006'),
+        'rate': exchange.parseNumber('0.0006'), // Interest rate
         'period': 86400000, // Amount of time the interest rate is based on in milliseconds
     };
     testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format);

@@ -309,7 +309,7 @@ public partial class digifinex : Exchange
                     { "OTC", "3" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "ARBITRUM", "Arbitrum" },
+                    { "ARBONE", "Arbitrum" },
                     { "AVALANCEC", "AVAX-CCHAIN" },
                     { "AVALANCEX", "AVAX-XCHAIN" },
                     { "BEP20", "BEP20" },
@@ -326,20 +326,19 @@ public partial class digifinex : Exchange
                     { "ETHW", "ETHW" },
                     { "IOTA", "MIOTA" },
                     { "KLAYTN", "KLAY" },
-                    { "MATIC", "Polygon" },
                     { "METIS", "MetisDAO" },
                     { "MOONBEAM", "GLMR" },
                     { "MOONRIVER", "Moonriver" },
                     { "OPTIMISM", "OPETH" },
                     { "POLYGON", "Polygon" },
+                    { "MATIC", "Polygon" },
                     { "RIPPLE", "XRP" },
-                    { "SOLANA", "SOL" },
-                    { "STELLAR", "Stella" },
+                    { "SOL", "SOL" },
+                    { "XLM", "Stella" },
                     { "TERRACLASSIC", "TerraClassic" },
                     { "TERRA", "Terra" },
                     { "TON", "Ton" },
                     { "TRC20", "TRC20" },
-                    { "TRON", "TRC20" },
                     { "TRX", "TRC20" },
                     { "VECHAIN", "Vechain" },
                 } },
@@ -417,48 +416,49 @@ public partial class digifinex : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         object groupedById = this.groupBy(data, "currency");
-        object keys = new List<object>(((IDictionary<string,object>)groupedById).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        object values = new List<object>(((IDictionary<string,object>)groupedById).Values);
+        return this.parseCurrencies(values);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object networkEntries = rawCurrency;
+        object firstEntry = this.safeDict(networkEntries, 0, new Dictionary<string, object>() {}); // it must have at least one entry
+        object id = this.safeString(firstEntry, "currency");
+        object code = this.safeCurrencyCode(id);
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
         {
-            object id = getValue(keys, i);
-            object networkEntries = getValue(groupedById, id);
-            object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
-            {
-                object networkEntry = getValue(networkEntries, j);
-                object networkId = this.safeString2(networkEntry, "chain", "currency");
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "deposit", isEqual(this.safeInteger(networkEntry, "deposit_status"), 1) },
-                    { "withdraw", isEqual(this.safeInteger(networkEntry, "withdraw_status"), 1) },
-                    { "fee", this.safeNumber(networkEntry, "min_withdraw_fee") },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEntry, "min_withdraw_amount") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEntry, "min_deposit_amount") },
-                            { "max", null },
-                        } },
+            object networkEntry = getValue(networkEntries, j);
+            object networkId = this.safeString2(networkEntry, "chain", "currency");
+            object networkCode = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
+                { "active", null },
+                { "deposit", isEqual(this.safeInteger(networkEntry, "deposit_status"), 1) },
+                { "withdraw", isEqual(this.safeInteger(networkEntry, "withdraw_status"), 1) },
+                { "fee", this.safeNumber(networkEntry, "min_withdraw_fee") },
+                { "precision", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(networkEntry, "min_withdraw_amount") },
+                        { "max", null },
                     } },
-                    { "info", networkEntry },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", networkEntries },
-                { "networks", networks },
-            });
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(networkEntry, "min_deposit_amount") },
+                        { "max", null },
+                    } },
+                } },
+                { "info", networkEntry },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", networkEntries },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -595,6 +595,7 @@ public partial class digifinex : Exchange
                     isAllowed = 1;
                 }
             }
+            object isActive = ((bool) isTrue(isAllowed)) ? true : false;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -610,7 +611,7 @@ public partial class digifinex : Exchange
                 { "swap", swap },
                 { "future", false },
                 { "option", false },
-                { "active", ((bool) isTrue(isAllowed)) ? true : false },
+                { "active", isActive },
                 { "contract", swap },
                 { "linear", isLinear },
                 { "inverse", isInverse },
@@ -861,7 +862,7 @@ public partial class digifinex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1490,7 +1491,7 @@ public partial class digifinex : Exchange
         //         0.029927
         //     ]
         //
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(this.safeBool(market, "swap")))
         {
             return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
         } else
@@ -1980,7 +1981,7 @@ public partial class digifinex : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            ((IDictionary<string,object>)request)["instrument_id"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_id"] = this.safeString(market, "id");
         } else
         {
             ((IDictionary<string,object>)request)["market"] = marketType;
@@ -2045,8 +2046,8 @@ public partial class digifinex : Exchange
 
     public virtual object parseCancelOrders(object response)
     {
-        object success = this.safeList(response, "success");
-        object error = this.safeList(response, "error");
+        object success = this.safeList(response, "success", new List<object>() {});
+        object error = this.safeList(response, "error", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
         {
@@ -2673,7 +2674,7 @@ public partial class digifinex : Exchange
         object marketIdRequest = ((bool) isTrue((isEqual(marketType, "swap")))) ? "instrument_id" : "symbol";
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)[(string)marketIdRequest] = getValue(market, "id");
+            ((IDictionary<string,object>)request)[(string)marketIdRequest] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -4442,7 +4443,7 @@ public partial class digifinex : Exchange
                 };
                 if (isTrue(!isEqual(networkId, null)))
                 {
-                    object networkCode = this.networkIdToCode(networkId);
+                    object networkCode = this.networkIdToCode(networkId, code);
                     ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", withdrawResult },
                         { "deposit", depositResult },
@@ -4553,7 +4554,7 @@ public partial class digifinex : Exchange
             { "marginMode", "isolated" },
             { "amount", this.safeNumber(data, "amount") },
             { "total", null },
-            { "code", getValue(market, "settle") },
+            { "code", this.safeString(market, "settle") },
             { "status", null },
             { "timestamp", null },
             { "datetime", null },

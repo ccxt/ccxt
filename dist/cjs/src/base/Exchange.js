@@ -2,38 +2,35 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var secp256k1_js = require('@noble/curves/secp256k1.js');
+var sha3_js = require('@noble/hashes/sha3.js');
+var starknet = require('@scure/starknet');
+var sha2_js = require('@noble/hashes/sha2.js');
+var legacy_js = require('@noble/hashes/legacy.js');
 var functions = require('./functions.js');
 var errors = require('./errors.js');
 var Precise = require('./Precise.js');
 var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
-var crypto = require('./functions/crypto.js');
 var totp = require('./functions/totp.js');
 var index = require('../static_dependencies/ethers/index.js');
 require('../static_dependencies/ethers/utils/base58.js');
 require('../static_dependencies/ethers/utils/errors.js');
-require('../static_dependencies/ethers/utils/events.js');
 require('../static_dependencies/ethers/utils/fixednumber.js');
 require('../static_dependencies/ethers/utils/maths.js');
 require('../static_dependencies/ethers/utils/utf8.js');
-var sha3 = require('../static_dependencies/noble-hashes/sha3.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 require('../static_dependencies/ethers/address/address.js');
 var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
-var secp256k1 = require('../static_dependencies/noble-curves/secp256k1.js');
-var rng = require('../static_dependencies/jsencrypt/lib/jsbn/rng.js');
-var index$1 = require('../static_dependencies/scure-starknet/index.js');
 var zklinkSdkWeb = require('../static_dependencies/zklink/zklink-sdk-web.js');
-require('../static_dependencies/noble-curves/abstract/modular.js');
+require('@noble/curves/abstract/poseidon.js');
 var selector = require('../static_dependencies/starknet/utils/selector.js');
 var classHash = require('../static_dependencies/starknet/utils/hash/classHash.js');
-var index$2 = require('../static_dependencies/starknet/utils/calldata/index.js');
+var index$1 = require('../static_dependencies/starknet/utils/calldata/index.js');
 var typedData$1 = require('../static_dependencies/starknet/utils/typedData.js');
-var sha1 = require('../static_dependencies/noble-hashes/sha1.js');
 var onboarding = require('../static_dependencies/dydx-v4-client/onboarding.js');
 require('../static_dependencies/dydx-v4-client/helpers.js');
-var index$3 = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
+var index$2 = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
 var io = require('./functions/io.js');
 
 function _interopNamespace(e) {
@@ -57,7 +54,7 @@ function _interopNamespace(e) {
 // ----------------------------------------------------------------------------
 const { isNode, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
-arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, } = functions;
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -72,14 +69,30 @@ let SignMode = undefined;
  * @class Exchange
  */
 class Exchange {
+    // this is updated by vss.js when building
+    static { this.ccxtVersion = '4.5.61'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.api = undefined;
         this.certified = false;
         this.pro = false;
         this.countries = undefined;
+        this.proxyUrl = undefined;
+        this.proxy_url = undefined;
+        this.httpProxy = undefined;
+        this.http_proxy = undefined;
+        this.httpsProxy = undefined;
+        this.https_proxy = undefined;
+        this.socksProxy = undefined;
+        this.socks_proxy = undefined;
         this.userAgent = undefined;
         this.user_agent = undefined;
+        this.wsProxy = undefined;
+        this.ws_proxy = undefined;
+        this.wssProxy = undefined;
+        this.wss_proxy = undefined;
+        this.wsSocksProxy = undefined;
+        this.ws_socks_proxy = undefined;
         //
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -107,7 +120,6 @@ class Exchange {
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2-FA)
         this.balance = {};
         this.liquidations = undefined;
         this.orderbooks = {};
@@ -119,7 +131,6 @@ class Exchange {
         this.transactions = {};
         this.myLiquidations = undefined;
         this.requiresWeb3 = false;
-        this.requiresEddsa = false;
         this.precision = undefined;
         this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
@@ -135,10 +146,10 @@ class Exchange {
         this.markets = undefined;
         this.features = undefined;
         this.status = undefined;
-        this.rateLimit = undefined; // milliseconds
+        this.rateLimit = 2000; // milliseconds
         this.tokenBucket = undefined;
         this.throttler = undefined;
-        this.enableRateLimit = undefined;
+        this.enableRateLimit = true;
         this.rollingWindowSize = 0.0; // set to 0.0 to use leaky bucket rate limiter
         this.rateLimiterAlgorithm = 'leakyBucket';
         this.httpExceptions = undefined;
@@ -162,10 +173,8 @@ class Exchange {
         this.exceptions = {};
         this.timeframes = {};
         this.version = undefined;
-        this.marketsByAltname = undefined;
         this.name = undefined;
         this.targetAccount = undefined;
-        this.stablePairs = {};
         this.httpProxyAgentModule = undefined;
         this.httpsProxyAgentModule = undefined;
         this.socksProxyAgentModule = undefined;
@@ -283,7 +292,7 @@ class Exchange {
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //         this.userAgent = {
-        //             'User-Agent': 'ccxt/' + (Exchange as any).ccxtVersion +
+        //             'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
         //                 ' (+https://github.com/ccxt/ccxt)' +
         //                 ' Node.js/' + this.nodeVersion + ' (JavaScript)'
         //         }
@@ -334,7 +343,6 @@ class Exchange {
         this.positions = undefined;
         // web3 and cryptography flags
         this.requiresWeb3 = false;
-        this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
         this.enableLastJsonResponse = false;
@@ -407,10 +415,8 @@ class Exchange {
             .map((byte) => parseInt(byte, 16));
         const nameBytes = new TextEncoder().encode(name);
         const data = new Uint8Array([...nsBytes, ...nameBytes]);
-        const nsHash = sha1.sha1(data);
-        // eslint-disable-next-line
+        const nsHash = legacy_js.sha1(data);
         nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
-        // eslint-disable-next-line
         nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
         const hex = [...nsHash.slice(0, 16)]
             .map((b) => b.toString(16).padStart(2, '0'))
@@ -426,37 +432,6 @@ class Exchange {
     encodeURIComponent(...args) {
         // @ts-expect-error
         return encodeURIComponent(...args);
-    }
-    checkRequiredVersion(requiredVersion, error = true) {
-        let result = true;
-        const [major1, minor1, patch1] = requiredVersion.split('.');
-        const [major2, minor2, patch2] = Exchange.ccxtVersion.split('.');
-        const intMajor1 = this.parseToInt(major1);
-        const intMinor1 = this.parseToInt(minor1);
-        const intPatch1 = this.parseToInt(patch1);
-        const intMajor2 = this.parseToInt(major2);
-        const intMinor2 = this.parseToInt(minor2);
-        const intPatch2 = this.parseToInt(patch2);
-        if (intMajor1 > intMajor2) {
-            result = false;
-        }
-        if (intMajor1 === intMajor2) {
-            if (intMinor1 > intMinor2) {
-                result = false;
-            }
-            else if (intMinor1 === intMinor2 && intPatch1 > intPatch2) {
-                result = false;
-            }
-        }
-        if (!result) {
-            if (error) {
-                throw new errors.NotSupported('Your current version of CCXT is ' + Exchange.ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT');
-            }
-            else {
-                return error;
-            }
-        }
-        return result;
     }
     throttle(cost = undefined) {
         return this.throttler.throttle(cost);
@@ -518,7 +493,6 @@ class Exchange {
         }
     }
     log(...args) {
-        // eslint-disable-next-line no-console
         console.log(...args);
     }
     async loadProxyModules() {
@@ -539,7 +513,7 @@ class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'http-proxy-agent')); });
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); }); // eslint-disable-line
+                        this.httpsProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); });
                     }
                     catch (err) {
                         // TODO: handle error
@@ -618,6 +592,13 @@ class Exchange {
     isBinaryMessage(msg) {
         return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
     }
+    stringToBinary(content) {
+        // same as: this.base64ToBinary (this.stringToBase64 (str));
+        return this.encode(content);
+    }
+    binaryToString(binary) {
+        return this.decode(binary);
+    }
     decodeProtoMsg(data) {
         if (!protobufMexc) {
             throw new errors.NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
@@ -692,7 +673,7 @@ class Exchange {
             if (typeof userAgent === 'string') {
                 headers = this.extend({ 'User-Agent': userAgent }, headers);
             }
-            else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+            else if (this.isDictionary(userAgent) && ('User-Agent' in userAgent)) {
                 headers = this.extend(userAgent, headers);
             }
         }
@@ -741,7 +722,7 @@ class Exchange {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch; // eslint-disable-line
+                        this.fetchImplementation = fetch;
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -1253,8 +1234,8 @@ class Exchange {
             }
         }
     }
-    async close() {
-        // test by running ts/src/pro/test/base/test.close.ts
+    async close(cleanInstanceCache = false) {
+        // [WS]
         await this.sleep(0); // allow other futures to run
         const clients = Object.values(this.clients || {});
         const closedClients = [];
@@ -1268,7 +1249,14 @@ class Exchange {
             delete this.clients[client.url];
             closedClients.push(client.close());
         }
-        return Promise.all(closedClients);
+        await Promise.all(closedClients);
+        if (cleanInstanceCache) {
+            this.cleanWsData();
+        }
+        // [REST]
+        if (cleanInstanceCache) {
+            this.cleanRestData();
+        }
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
@@ -1327,9 +1315,6 @@ class Exchange {
         const length = Math.min(100000, message.length);
         return message.slice(0, length);
     }
-    axolotl(payload, hexKey, ed25519) {
-        return crypto.axolotl(payload, hexKey, ed25519);
-    }
     fixStringifiedJsonMembers(content) {
         // used for instance in bingx
         // when stringified json has members with their values also stringified, like:
@@ -1352,12 +1337,12 @@ class Exchange {
         // Removes the "0x" prefix if present
         const cleanPrivateKey = this.remove0xPrefix(privateKey);
         // Get the public key from the private key using secp256k1 curve
-        const publicKeyBytes = secp256k1.secp256k1.getPublicKey(cleanPrivateKey);
+        const publicKeyBytes = secp256k1_js.secp256k1.getPublicKey(this.base16ToBinary(cleanPrivateKey));
         // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
         // secp256k1.getPublicKey returns compressed key, we need uncompressed
-        const publicKeyUncompressed = secp256k1.secp256k1.ProjectivePoint.fromHex(publicKeyBytes).toRawBytes(false).slice(1); // Remove 0x04 prefix
+        const publicKeyUncompressed = secp256k1_js.secp256k1.Point.fromBytes(publicKeyBytes).toBytes(false).slice(1); // Remove 0x04 prefix
         // Hash the public key with Keccak256
-        const publicKeyHash = sha3.keccak_256(publicKeyUncompressed);
+        const publicKeyHash = sha3_js.keccak_256(publicKeyUncompressed);
         // Take the last 20 bytes (40 hex chars)
         const addressBytes = publicKeyHash.slice(-20);
         // Convert to hex and add 0x prefix
@@ -1365,12 +1350,12 @@ class Exchange {
         return addressHex;
     }
     retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
-        const privateKey = index$1.ethSigToPrivate(signature);
-        const publicKey = index$1.getStarkKey(privateKey);
-        const callData = index$2.CallData.compile({
+        const privateKey = starknet.ethSigToPrivate(signature);
+        const publicKey = starknet.getStarkKey(privateKey);
+        const callData = index$1.CallData.compile({
             'implementation': accountClassHash,
             'selector': selector.getSelectorFromName('initialize'),
-            'calldata': index$2.CallData.compile({
+            'calldata': index$1.CallData.compile({
                 'signer': publicKey,
                 'guardian': '0',
             }),
@@ -1404,12 +1389,22 @@ class Exchange {
     }
     starknetSign(msgHash, pri) {
         // TODO: unify to ecdsa
-        const signature = index$1.sign(msgHash.replace('0x', ''), pri.replace('0x', ''));
+        const signature = starknet.sign(msgHash.replace('0x', ''), pri.replace('0x', ''));
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
+    extendedStarknetSign(msgHash, pri) {
+        const signature = starknet.sign(msgHash.replace('0x', ''), pri.replace('0x', ''));
+        return this.json([signature.r.toString(), signature.s.toString()]);
+    }
+    extendedStarknetGetSelectorFromName(name) {
+        return selector.getSelectorFromName(name);
+    }
+    extendedStarknetComputePoseidonHashOnElements(data) {
+        return classHash.computePoseidonHashOnElements(data);
+    }
     async getZKContractSignatureObj(seed, params = {}) {
-        const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId')), sha256.sha256, 'hex'))).toString();
-        const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'nonce')), sha256.sha256, 'hex'))).toString();
+        const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId')), sha2_js.sha256, 'hex'))).toString();
+        const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'nonce')), sha2_js.sha256, 'hex'))).toString();
         const formattedUint64 = '18446744073709551615';
         const formattedUint32 = '4294967295';
         const accountId = parseInt(Precise["default"].stringMod(this.safeString(params, 'accountId'), formattedUint32), 10);
@@ -1434,7 +1429,7 @@ class Exchange {
         let nonce = this.safeString(params, 'nonce', '0');
         if (this.safeBool(params, 'isContract') === true) {
             const formattedUint32 = '4294967295';
-            const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(nonce), sha256.sha256, 'hex'))).toString();
+            const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(nonce), sha2_js.sha256, 'hex'))).toString();
             nonce = Precise["default"].stringMod(formattedNonce, formattedUint32);
         }
         const tx_builder = new zklinkSdkWeb.TransferBuilder(this.safeNumber(params, 'zkAccountId', 0), this.safeString(params, 'receiverAddress'), this.safeNumber(params, 'subAccountId', 0), this.safeNumber(params, 'receiverSubAccountId', 0), this.safeNumber(params, 'tokenId', 0), this.safeString(params, 'fee', '0'), this.safeString(params, 'amount', '0'), this.parseToInt(nonce), this.safeNumber(params, 'timestampSeconds', 0));
@@ -1463,7 +1458,7 @@ class Exchange {
         SignMode = modules[2].SignMode;
     }
     toDydxLong(numStr) {
-        return index$3["default"].fromString(numStr);
+        return index$2["default"].fromString(numStr);
     }
     retrieveDydxCredentials(entropy) {
         let credentials = undefined;
@@ -1555,7 +1550,7 @@ class Exchange {
             'bodyBytes': txBodyBytes,
             'chainId': chainId,
         });
-        const signingHash = this.hash(SignDoc.encode(signDoc).finish(), sha256.sha256, 'hex');
+        const signingHash = this.hash(SignDoc.encode(signDoc).finish(), sha2_js.sha256, 'hex');
         return [signingHash, signDoc];
     }
     encodeDydxTxRaw(signDoc, signature) {
@@ -1574,18 +1569,16 @@ class Exchange {
     extendExchangeOptions(newOptions) {
         this.options = this.extend(this.options, newOptions);
     }
-    createSafeDictionary() {
+    createSafeDictionary(isWs = false) {
         return {};
     }
     convertToSafeDictionary(dict) {
         return dict;
     }
     randomBytes(length) {
-        const rng$1 = new rng.SecureRandom();
-        const x = [];
-        x.length = length;
-        rng$1.nextBytes(x);
-        return Buffer.from(x).toString('hex');
+        const x = new Uint8Array(length);
+        crypto.getRandomValues(x);
+        return this.binaryToBase16(x);
     }
     randNumber(size) {
         let number = '';
@@ -1603,7 +1596,7 @@ class Exchange {
     unlockId() {
         return undefined; // c# stub
     }
-    async loadLighterLibrary(libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
+    async loadLighterLibrary(libraryPath, chainId, privateKey, apiKeyIndex, accountIndex, createClient = false) {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
         if (libraryPath === undefined || libraryPath === '') {
@@ -1617,19 +1610,23 @@ class Exchange {
         if (wasmExecPath === undefined || wasmExecPath === '') {
             throw new Error('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
         }
-        await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(wasmExecPath);
+        await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(filePathToFileUrlForWindows(wasmExecPath));
         const go = new globalThis.Go();
         // read wasm from disks
         const bytes = new Uint8Array(readFile(libraryPath, null)); // it should point to lighter.wasm
         const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
         go.run(instance);
-        // createCLient
+        if (createClient) {
+            this.lighterCreateClient(undefined, chainId, privateKey, apiKeyIndex, accountIndex);
+        }
+        return {}; // empty object we will read it from globalThis
+    }
+    lighterCreateClient(signer, chainId, privateKey, apiKeyIndex, accountIndex) {
         const url = this.implodeHostname(this.urls['api']['public']);
         const res = globalThis.CreateClient(url, privateKey, chainId, apiKeyIndex, accountIndex);
         this.checkLighterSignedError(res);
-        return {}; // empty object we will read it from globalThis
+        return signer;
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateGroupedOrders(signer, request) {
         const orders = request['orders'];
         const ordersArr = [];
@@ -1648,13 +1645,14 @@ class Exchange {
                 'OrderExpiry': order['order_expiry'],
             });
         }
-        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, orders.length, request['nonce'], request['api_key_index'], request['account_index']);
+        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, orders.length, 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder(signer, request) {
-        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
@@ -1664,38 +1662,44 @@ class Exchange {
         }
     }
     lighterSignCancelOrder(signer, request) {
-        const res = (globalThis.SignCancelOrder(request['market_index'], request['order_index'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignCancelOrder(request['market_index'], request['order_index'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     lighterSignWithdraw(signer, request) {
-        const res = (globalThis.SignWithdraw(request['asset_index'], request['route_type'], request['amount'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignWithdraw(request['asset_index'], request['route_type'], request['amount'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount(signer, request) {
-        const res = (globalThis.SignCreateSubAccount(request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignCreateSubAccount(1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     lighterSignCancelAllOrders(signer, request) {
-        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     lighterSignModifyOrder(signer, request) {
-        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     lighterSignTransfer(signer, request) {
-        const res = globalThis.SignTransfer(request['to_account_index'], request['asset_index'], request['from_route_type'], request['to_route_type'], request['amount'], request['usdc_fee'], request['memo'], request['nonce'], request['api_key_index'], request['account_index']);
+        const res = globalThis.SignTransfer(request['to_account_index'], request['asset_index'], request['from_route_type'], request['to_route_type'], request['amount'], request['usdc_fee'], request['memo'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     lighterSignUpdateLeverage(signer, request) {
-        const res = (globalThis.SignUpdateLeverage(request['market_index'], request['initial_margin_fraction'], request['margin_mode'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignUpdateLeverage(request['market_index'], request['initial_margin_fraction'], request['margin_mode'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
@@ -1705,11 +1709,43 @@ class Exchange {
         return res.authToken;
     }
     lighterSignUpdateMargin(signer, request) {
-        const res = globalThis.SignUpdateMargin(request['market_index'], request['usdc_amount'], request['direction'], request['nonce'], request['api_key_index'], request['account_index']);
+        const res = globalThis.SignUpdateMargin(request['market_index'], request['usdc_amount'], request['direction'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
-    /* eslint-enable */
+    lighterSignApproveIntegrator(signer, request) {
+        const res = globalThis.SignApproveIntegrator(request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['approval_expiry'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo, res.messageToSign];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterGenerateApiKey(signer) {
+        const res = globalThis.GenerateAPIKey();
+        this.checkLighterSignedError(res);
+        return [res.privateKey, res.publicKey];
+    }
+    lighterSignChangePubkey(signer, request) {
+        const res = globalThis.SignChangePubKey(Buffer.from(request['pubkey']).toString(), 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo, res.messageToSign];
+    }
+    setLastRestRequestTimestamp() {
+        // hand-written per language (not transpiled): in most languages this is a
+        // plain assignment, but the Go implementation guards the write with a mutex
+        // because concurrent requests would otherwise data-race on this field
+        this.lastRestRequestTimestamp = this.milliseconds();
+    }
+    setLastRequest(request) {
+        // hand-written per language (not transpiled): plain assignments in most
+        // languages, but the Go implementation guards the writes with a mutex because
+        // concurrent requests would otherwise data-race on these bookkeeping fields
+        this.last_request_headers = request['headers'];
+        this.last_request_body = request['body'];
+        this.last_request_url = request['url'];
+    }
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -1751,15 +1787,16 @@ class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
     describe() {
         return {
-            'id': undefined,
-            'name': undefined,
-            'countries': undefined,
-            'enableRateLimit': true,
-            'rateLimit': 2000,
-            'timeout': this.timeout,
-            'certified': false,
-            'pro': false,
-            'alias': false,
+            'id': this.id,
+            'name': this.name,
+            'countries': this.countries,
+            'enableRateLimit': this.enableRateLimit,
+            'rateLimit': this.rateLimit, // milliseconds = seconds * 1000
+            'rateLimiterAlgorithm': this.rateLimiterAlgorithm,
+            'timeout': this.timeout, // milliseconds = seconds * 1000
+            'certified': this.certified, // if certified by the CCXT dev team
+            'pro': this.pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': this.alias, // whether this exchange is an alias to another exchange
             'dex': false,
             'has': {
                 'publicAPI': true,
@@ -2005,9 +2042,12 @@ class Exchange {
             'urls': {
                 'logo': undefined,
                 'api': undefined,
+                'test': undefined,
                 'www': undefined,
                 'doc': undefined,
+                'api_management': undefined,
                 'fees': undefined,
+                'referral': undefined,
             },
             'api': undefined,
             'requiredCredentials': {
@@ -2017,14 +2057,14 @@ class Exchange {
                 'accountId': false,
                 'login': false,
                 'password': false,
-                'twofa': false,
-                'privateKey': false,
-                'walletAddress': false,
+                'twofa': false, // 2-factor authentication (one-time password key)
+                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
+                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
                 'token': false, // reserved for HTTP auth in some cases
             },
-            'markets': undefined,
-            'currencies': {},
-            'timeframes': undefined,
+            'markets': undefined, // to be filled manually or by fetchMarkets
+            'currencies': {}, // to be filled manually or by fetchMarkets
+            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
             'fees': {
                 'trading': {
                     'tierBased': undefined,
@@ -2044,6 +2084,7 @@ class Exchange {
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
+                'info': undefined,
             },
             'exceptions': undefined,
             'httpExceptions': {
@@ -2088,6 +2129,34 @@ class Exchange {
             'rollingWindowSize': 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         };
     }
+    cleanRestData() {
+        this.ids = undefined;
+        this.markets = undefined;
+        this.markets_by_id = undefined;
+        this.symbols = undefined;
+        this.codes = undefined;
+        this.currencies = this.createSafeDictionary();
+        this.currencies_by_id = undefined;
+        this.baseCurrencies = undefined;
+        this.quoteCurrencies = undefined;
+        this.last_http_response = undefined;
+        // this.last_json_response = undefined; // not unified prop
+        this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+    }
+    cleanWsData() {
+        this.balance = this.createSafeDictionary(true);
+        this.orderbooks = this.createSafeDictionary(true);
+        this.tickers = this.createSafeDictionary(true);
+        this.liquidations = undefined;
+        this.myLiquidations = undefined;
+        this.orders = undefined;
+        this.trades = this.createSafeDictionary(true);
+        this.transactions = this.createSafeDictionary();
+        this.ohlcvs = this.createSafeDictionary(true);
+        this.myTrades = undefined;
+        this.positions = undefined;
+    }
     safeBoolN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
          * @ignore
@@ -2101,23 +2170,31 @@ class Exchange {
         }
         return defaultValue;
     }
-    safeBool2(dictionary, key1, key2, defaultValue = undefined) {
+    safeBool2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN(dictionary, [key1, key2], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key1);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        const value2 = this.safeValue(dictionaryOrList, key2);
+        if (typeof value2 === 'boolean') {
+            return value2;
+        }
+        return defaultValue;
     }
-    safeBool(dictionary, key, defaultValue = undefined) {
+    safeBool(dictionaryOrList, key, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        const value = this.safeValue(dictionary, key, defaultValue);
+        const value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (typeof value === 'boolean') {
             return value;
         }
@@ -2134,35 +2211,43 @@ class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray(value)) {
+        if (this.isDictionary(value)) {
             return value;
         }
         return defaultValue;
     }
-    safeDict(dictionary, key, defaultValue = undefined) {
+    safeDict(dictionaryOrList, key, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        const value = this.safeValue(dictionary, key, defaultValue);
+        const value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray(value)) {
+        if (this.isDictionary(value)) {
             return value;
         }
         return defaultValue;
     }
-    safeDict2(dictionary, key1, key2, defaultValue = undefined) {
+    safeDict2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN(dictionary, [key1, key2], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key1);
+        if (this.isDictionary(value)) {
+            return value;
+        }
+        const value2 = this.safeValue(dictionaryOrList, key2);
+        if (this.isDictionary(value2)) {
+            return value2;
+        }
+        return defaultValue;
     }
     safeListN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
@@ -2180,6 +2265,9 @@ class Exchange {
         }
         return defaultValue;
     }
+    isDictionary(value) {
+        return (value !== undefined) && (typeof value === 'object') && !Array.isArray(value);
+    }
     safeList2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
          * @ignore
@@ -2187,7 +2275,15 @@ class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN(dictionaryOrList, [key1, key2], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key1);
+        if ((value !== undefined) && Array.isArray(value)) {
+            return value;
+        }
+        const value2 = this.safeValue(dictionaryOrList, key2);
+        if ((value2 !== undefined) && Array.isArray(value2)) {
+            return value2;
+        }
+        return defaultValue;
     }
     safeList(dictionaryOrList, key, defaultValue = undefined) {
         /**
@@ -2215,7 +2311,7 @@ class Exchange {
     }
     handleDeltasWithKeys(bookSide, deltas, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         for (let i = 0; i < deltas.length; i++) {
-            const bidAsk = this.parseBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
+            const bidAsk = this.parseOrderBookBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
             bookSide.storeArray(bidAsk);
         }
     }
@@ -2672,6 +2768,9 @@ class Exchange {
         const arr = this.toArray(rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
             const parsed = this.parseCurrency(arr[i]);
+            if (parsed === undefined) {
+                continue;
+            }
             const code = parsed['code'];
             result[code] = parsed;
         }
@@ -2958,7 +3057,7 @@ class Exchange {
             }
             else {
                 if (marketType === 'spot') {
-                    this.features[marketType] = this.featuresMapper(initialFeatures, marketType, undefined);
+                    this.features[marketType] = this.featuresMapper(initialFeatures, marketType);
                 }
                 else {
                     this.features[marketType] = {};
@@ -3023,7 +3122,7 @@ class Exchange {
          * @name exchange#featureValue
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
-         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -3038,7 +3137,7 @@ class Exchange {
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [marketType] supported only: "spot", "swap", "future"
          * @param {string} [subType] supported only: "linear", "inverse"
-         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -3123,10 +3222,10 @@ class Exchange {
     getDefaultOptions() {
         return {
             'defaultNetworkCodeReplacements': {
-                'ETH': { 'ERC20': 'ETH' },
-                'TRX': { 'TRC20': 'TRX' },
-                'CRO': { 'CRC20': 'CRONOS' },
-                'BRC20': { 'BRC20': 'BTC' },
+                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary' },
+                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary' },
+                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
+                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
             },
         };
     }
@@ -3196,21 +3295,6 @@ class Exchange {
                 const currencyWithdraw = this.safeBool(currency, 'withdraw');
                 if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
-                }
-                // set network 'active' to false if D or W is disabled
-                let active = this.safeBool(network, 'active');
-                if (active === undefined) {
-                    if (deposit && withdraw) {
-                        currency['networks'][key]['active'] = true;
-                    }
-                    else if (deposit !== undefined && withdraw !== undefined) {
-                        currency['networks'][key]['active'] = false;
-                    }
-                }
-                active = this.safeBool(currency['networks'][key], 'active'); // dict might have been updated on above lines, so access directly instead of `network` variable
-                const currencyActive = this.safeBool(currency, 'active');
-                if (currencyActive === undefined || active) {
-                    currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString(network, 'fee');
@@ -3825,7 +3909,7 @@ class Exchange {
             'postOnly': postOnly,
             'trades': trades,
             'reduceOnly': this.safeValue(order, 'reduceOnly'),
-            'stopPrice': triggerPrice,
+            'stopPrice': triggerPrice, // ! deprecated, use triggerPrice instead
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -4061,6 +4145,21 @@ class Exchange {
         }
         return arr[length - 1];
     }
+    addKeyInArrayItems(obj, keyName) {
+        const result = [];
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const item = obj[key];
+            if (item === undefined) {
+                continue;
+            }
+            const itemWithKey = this.extend({}, item);
+            itemWithKey[keyName] = key;
+            result.push(itemWithKey);
+        }
+        return result;
+    }
     invertFlatStringDictionary(dict) {
         const reversed = {};
         const keys = Object.keys(dict);
@@ -4072,6 +4171,9 @@ class Exchange {
             }
         }
         return reversed;
+    }
+    stringToBase16(str) {
+        return '0x' + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str)));
     }
     reduceFeesByCurrency(fees) {
         //
@@ -4484,11 +4586,11 @@ class Exchange {
         }
         return result;
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
+            result.push(this.parseOrderBookBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -4515,15 +4617,95 @@ class Exchange {
     parseOHLCV(ohlcv, market = undefined) {
         if (Array.isArray(ohlcv)) {
             return [
-                this.safeInteger(ohlcv, 0),
-                this.safeNumber(ohlcv, 1),
-                this.safeNumber(ohlcv, 2),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
+                this.safeInteger(ohlcv, 0), // timestamp
+                this.safeNumber(ohlcv, 1), // open
+                this.safeNumber(ohlcv, 2), // high
+                this.safeNumber(ohlcv, 3), // low
+                this.safeNumber(ohlcv, 4), // close
                 this.safeNumber(ohlcv, 5), // volume
             ];
         }
         return ohlcv;
+    }
+    safeNetwork(network) {
+        const withdrawEnabled = this.safeBool(network, 'withdraw');
+        const depositEnabled = this.safeBool(network, 'deposit');
+        const limits = this.safeDict(network, 'limits');
+        const withdraw = this.safeDict(limits, 'withdraw');
+        const deposit = this.safeDict(limits, 'deposit');
+        const isEnabled = (withdrawEnabled && depositEnabled);
+        return {
+            'info': network['info'],
+            'id': this.safeString(network, 'id'),
+            'name': this.safeString(network, 'name'),
+            'network': this.safeString(network, 'network'),
+            'active': this.safeBool(network, 'active', isEnabled),
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': this.safeNumber(network, 'fee'),
+            'precision': this.safeNumber(network, 'precision'),
+            'limits': {
+                'withdraw': {
+                    'min': this.safeNumber(withdraw, 'min'),
+                    'max': this.safeNumber(withdraw, 'max'),
+                },
+                'deposit': {
+                    'min': this.safeNumber(deposit, 'min'),
+                    'max': this.safeNumber(deposit, 'max'),
+                },
+            },
+        };
+    }
+    prioritizedNetworkAliases(networkCode = undefined, currencyCode = undefined, allowDefault = false) {
+        /**
+         * @method
+         * @name Exchange#prioritizedNetworkAliases
+         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
+         *   ---------------------------------
+         *   | input          | output       |
+         *   --------------------------------|
+         *   | ETH & USDC     | ERC20, ETH   |
+         *   | ERC20 & USDC   | ERC20, ETH   |
+         *   | ETH & ETH      | ETH, ERC20   |
+         *   | ERC20 & ETH    | ETH, ERC20   |
+         *   | ERC20          | ERC20, ETH   |
+         *   | ETH            | ERC20, ETH   |
+         *   ---------------------------------
+         * @param {string} networkCode unified network-code
+         * @param {string} currencyCode unified currency-code
+         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
+         * @returns {string[]} [preferredChain, alternativeChain]
+         */
+        if (networkCode === undefined) {
+            return undefined;
+        }
+        const replacements = this.safeDict(this.options, 'defaultNetworkCodeReplacements', {});
+        const keys = Object.keys(replacements);
+        for (let i = 0; i < keys.length; i++) {
+            const baseCoin = keys[i];
+            const entry = replacements[baseCoin];
+            const primary = entry['primary'];
+            const secondary = entry['secondary'];
+            if (networkCode !== primary && networkCode !== secondary) {
+                continue;
+            }
+            // pick which form goes first in the returned pair
+            let preferPrimary = false;
+            if (currencyCode === baseCoin) {
+                preferPrimary = true; // mainnet currency uses primary chain
+            }
+            else if (currencyCode !== undefined) {
+                preferPrimary = false; // any other (token) currency uses secondary chain
+            }
+            else if (allowDefault) {
+                preferPrimary = (entry['default'] === 'primary');
+            }
+            else {
+                preferPrimary = (networkCode === primary); // keep user input first
+            }
+            return (preferPrimary) ? [primary, secondary] : [secondary, primary];
+        }
+        return [networkCode, networkCode];
     }
     networkCodeToId(networkCode, currencyCode = undefined) {
         /**
@@ -4538,53 +4720,28 @@ class Exchange {
         if (networkCode === undefined) {
             return undefined;
         }
-        const networkIdsByCodes = this.safeValue(this.options, 'networks', {});
-        let networkId = this.safeString(networkIdsByCodes, networkCode);
-        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
-        if (networkId === undefined) {
-            if (currencyCode === undefined) {
-                const currencies = Object.values(this.currencies);
-                for (let i = 0; i < currencies.length; i++) {
-                    const currency = currencies[i];
-                    const networks = this.safeDict(currency, 'networks');
-                    const network = this.safeDict(networks, networkCode);
-                    networkId = this.safeString(network, 'id');
-                    if (networkId !== undefined) {
-                        break;
-                    }
-                }
-            }
-            else {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
-                const defaultNetworkCodeReplacements = this.safeValue(this.options, 'defaultNetworkCodeReplacements', {});
-                if (currencyCode in defaultNetworkCodeReplacements) {
-                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
-                    const keys = Object.keys(replacementObject);
-                    for (let i = 0; i < keys.length; i++) {
-                        const key = keys[i];
-                        const value = replacementObject[key];
-                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if (value === networkCode) {
-                            networkId = this.safeString(networkIdsByCodes, key);
-                            break;
-                        }
-                    }
-                }
-                else {
-                    // serach for network inside currency
-                    const currency = this.safeDict(this.currencies, currencyCode);
-                    const networks = this.safeDict(currency, 'networks');
-                    const network = this.safeDict(networks, networkCode);
-                    networkId = this.safeString(network, 'id');
-                }
-            }
-            // if it wasn't found, we just set the provided value to network-id
-            if (networkId === undefined) {
-                networkId = networkCode;
+        const networkIdsByCodes = this.safeDict(this.options, 'networks', {});
+        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
+        const [preferredChain, alternativeChain] = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
+        const networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
+        if (networkId !== undefined) {
+            return networkId;
+        }
+        // fall back to scanning loaded currencies
+        let currenciesToCheck = [];
+        if (currencyCode === undefined) {
+            currenciesToCheck = Object.keys(this.currencies);
+        }
+        else {
+            currenciesToCheck = [this.safeDict(this.currencies, currencyCode)];
+        }
+        for (let i = 0; i < currenciesToCheck.length; i++) {
+            const networks = this.safeDict(currenciesToCheck[i], 'networks', {});
+            if (networkCode in networks) {
+                return this.safeString(networks[networkCode], 'id');
             }
         }
-        return networkId;
+        return networkCode;
     }
     networkIdToCode(networkId = undefined, currencyCode = undefined) {
         /**
@@ -4600,16 +4757,17 @@ class Exchange {
             return undefined;
         }
         const networkCodesByIds = this.safeDict(this.options, 'networksById', {});
-        let networkCode = this.safeString(networkCodesByIds, networkId, networkId);
-        // replace mainnet network-codes (i.e. ERC20->ETH)
-        if (currencyCode !== undefined) {
-            const defaultNetworkCodeReplacements = this.safeDict(this.options, 'defaultNetworkCodeReplacements', {});
-            if (currencyCode in defaultNetworkCodeReplacements) {
-                const replacementObject = this.safeDict(defaultNetworkCodeReplacements, currencyCode, {});
-                networkCode = this.safeString(replacementObject, networkCode, networkCode);
+        const networkCode = this.safeString(networkCodesByIds, networkId, networkId);
+        const [preferredChain, alternativeChain] = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
+        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
+        // it disambiguates them — trust the direct id→code inversion instead of guessing
+        if (currencyCode === undefined) {
+            const networkIdsByCodes = this.safeDict(this.options, 'networks', {});
+            if ((preferredChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
+                return networkCode;
             }
         }
-        return networkCode;
+        return preferredChain;
     }
     handleNetworkCodeAndParams(params) {
         const networkCodeInParams = this.safeString2(params, 'networkCode', 'network');
@@ -4682,8 +4840,8 @@ class Exchange {
         return this.parseNumber(value, d);
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -4759,7 +4917,7 @@ class Exchange {
         //
         const percentage = this.safeValue(position, 'percentage');
         if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             const percentageString = Precise["default"].stringMul(Precise["default"].stringDiv(unrealizedPnlString, initialMarginString, 4), '100');
             position['percentage'] = this.parseNumber(percentageString);
         }
@@ -4781,7 +4939,7 @@ class Exchange {
         positions = this.toArray(positions);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const position = this.extend(this.parsePosition(positions[i], undefined), params);
+            const position = this.extend(this.parsePosition(positions[i]), params);
             result.push(position);
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
@@ -4794,7 +4952,7 @@ class Exchange {
         ranks = this.toArray(ranks);
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
-            const rank = this.extend(this.parseADLRank(ranks[i], undefined), params);
+            const rank = this.extend(this.parseADLRank(ranks[i]), params);
             result.push(rank);
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
@@ -5020,6 +5178,30 @@ class Exchange {
         }
         return results;
     }
+    filterOutByArray(objects, key, values = undefined, indexed = true) {
+        objects = this.toArray(objects);
+        // return all of them if no values were passed
+        if (values === undefined || !values) {
+            // return indexed ? this.indexBy (objects, key) : objects;
+            if (indexed) {
+                return this.indexBy(objects, key);
+            }
+            else {
+                return objects;
+            }
+        }
+        const results = [];
+        for (let i = 0; i < objects.length; i++) {
+            if (!this.inArray(objects[i][key], values)) {
+                results.push(objects[i]);
+            }
+        }
+        // return indexed ? this.indexBy (results, key) : results;
+        if (indexed) {
+            return this.indexBy(results, key);
+        }
+        return results;
+    }
     async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost(api, method, path, params, config);
@@ -5029,13 +5211,11 @@ class Exchange {
         [retries, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', 0);
-        this.lastRestRequestTimestamp = this.milliseconds();
-        const request = this.sign(path, api, method, params, headers, body);
-        this.last_request_headers = request['headers'];
-        this.last_request_body = request['body'];
-        this.last_request_url = request['url'];
         for (let i = 0; i < retries + 1; i++) {
             try {
+                this.setLastRestRequestTimestamp();
+                const request = this.sign(path, api, method, params, headers, body);
+                this.setLastRequest(request);
                 return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
             }
             catch (e) {
@@ -5114,12 +5294,12 @@ class Exchange {
             if (isFirstCandle || openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms)) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.push([
-                    openingTime,
-                    price,
-                    price,
-                    price,
-                    price,
-                    trade['amount'],
+                    openingTime, // timestamp
+                    price, // O
+                    price, // H
+                    price, // L
+                    price, // C
+                    trade['amount'], // V
                     1, // count
                 ]);
             }
@@ -5217,7 +5397,7 @@ class Exchange {
     async fetchLedgerEntry(id, code = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchLedgerEntry() is not supported yet');
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeFloat(bidask, priceKey);
         const amount = this.safeFloat(bidask, amountKey);
         const countOrId = this.safeInteger(bidask, countOrIdKey);
@@ -5231,7 +5411,7 @@ class Exchange {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
+        if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
         let code = currencyId;
@@ -5905,7 +6085,7 @@ class Exchange {
         if (triggerPrice === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createTriggerOrder() requires a triggerPrice argument');
         }
-        params['triggerPrice'] = triggerPrice;
+        params = this.extend(params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrder']) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
@@ -5928,7 +6108,7 @@ class Exchange {
         if (triggerPrice === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
         }
-        params['triggerPrice'] = triggerPrice;
+        params = this.extend(params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrderWs']) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
@@ -5951,7 +6131,7 @@ class Exchange {
         if (stopLossPrice === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createStopLossOrder() requires a stopLossPrice argument');
         }
-        params['stopLossPrice'] = stopLossPrice;
+        params = this.extend(params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrder']) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
@@ -5974,7 +6154,7 @@ class Exchange {
         if (stopLossPrice === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
         }
-        params['stopLossPrice'] = stopLossPrice;
+        params = this.extend(params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrderWs']) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
@@ -5997,7 +6177,7 @@ class Exchange {
         if (takeProfitPrice === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
         }
-        params['takeProfitPrice'] = takeProfitPrice;
+        params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrder']) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
@@ -6020,7 +6200,7 @@ class Exchange {
         if (takeProfitPrice === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
         }
-        params['takeProfitPrice'] = takeProfitPrice;
+        params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrderWs']) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
@@ -6423,8 +6603,8 @@ class Exchange {
     }
     isLeveragedCurrency(currencyCode, checkBaseCoin = false, existingCurrencies = undefined) {
         const leverageSuffixes = [
-            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',
-            'UP', 'DOWN',
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
             'BULL', 'BEAR', // similar
         ];
         for (let i = 0; i < leverageSuffixes.length; i++) {
@@ -6445,7 +6625,7 @@ class Exchange {
         return false;
     }
     handleWithdrawTagAndParams(tag, params) {
-        if ((tag !== undefined) && (typeof tag === 'object')) {
+        if (this.isDictionary(tag)) {
             params = this.extend(tag, params);
             tag = undefined;
         }
@@ -6498,7 +6678,7 @@ class Exchange {
             return undefined;
         }
         const market = this.market(symbol);
-        return this.decimalToPrecision(cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(market['precision'], 'cost', 'price'), this.precisionMode, this.paddingMode);
     }
     priceToPrecision(symbol, price) {
         if (price === undefined) {
@@ -7491,7 +7671,7 @@ class Exchange {
                     errors$1 = 0;
                     result = this.arrayConcat(result, response);
                     const last = this.safeValue(response, responseLength - 1);
-                    paginationTimestamp = this.safeInteger(last, 'timestamp') + 1;
+                    paginationTimestamp = this.safeInteger(last, 'timestamp', 0) + 1;
                     if ((until !== undefined) && (paginationTimestamp >= until)) {
                         break;
                     }
@@ -7768,8 +7948,8 @@ class Exchange {
         }
         return this.extend(interest, {
             'symbol': symbol,
-            'baseVolume': this.safeNumber(interest, 'baseVolume'),
-            'quoteVolume': this.safeNumber(interest, 'quoteVolume'),
+            'baseVolume': this.safeNumber(interest, 'baseVolume'), // deprecated
+            'quoteVolume': this.safeNumber(interest, 'quoteVolume'), // deprecated
             'openInterestAmount': this.safeNumber(interest, 'openInterestAmount'),
             'openInterestValue': this.safeNumber(interest, 'openInterestValue'),
             'timestamp': this.safeInteger(interest, 'timestamp'),
@@ -8148,7 +8328,7 @@ class Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
          */
         throw new errors.NotSupported(this.id + ' fetchOrdersByStatusWs () is not supported yet');
     }
@@ -8300,6 +8480,9 @@ class Exchange {
             return (ms / second) + 's';
         }
         return '';
+    }
+    async isUTAEnabled(params = {}) {
+        return false; // stub
     }
 }
 

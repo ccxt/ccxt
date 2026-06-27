@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import htxRest from '../htx.js';
 import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Dict, Bool } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, SubType, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -33,10 +33,10 @@ export default class htx extends htxRest {
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
-                'unwatchTicker': true,
-                'unwatchOHLCV': true,
-                'unwatchTrades': true,
-                'unwatchOrderBook': true,
+                'unWatchTicker': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -421,7 +421,7 @@ export default class htx extends htxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -439,7 +439,7 @@ export default class htx extends htxRest {
         if (!this.inArray (limit, allowedLimits)) {
             throw new ExchangeError (this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
-        let messageHash = undefined;
+        let messageHash: Str = undefined;
         if (market['spot']) {
             messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (limit);
         } else {
@@ -466,7 +466,7 @@ export default class htx extends htxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
@@ -474,7 +474,7 @@ export default class htx extends htxRest {
         const topic = 'orderbook';
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const depth = this.safeInteger (options, 'depth', 150);
-        let subMessageHash = undefined;
+        let subMessageHash: Str = undefined;
         if (market['spot']) {
             subMessageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (depth);
         } else {
@@ -693,7 +693,7 @@ export default class htx extends htxRest {
             orderbook.reset (snapshot);
             orderbook['nonce'] = version;
         }
-        if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
+        if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger (orderbook, 'nonce', 0)) {
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
                 throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
@@ -804,13 +804,13 @@ export default class htx extends htxRest {
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         let marketId = '*'; // wildcard
-        let market = undefined;
-        let messageHash = undefined;
-        let channel = undefined;
+        let market: Market = undefined;
+        let messageHash: Str = undefined;
+        let channel: Str = undefined;
         let trades = undefined;
-        let subType = undefined;
+        let subType: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -825,7 +825,7 @@ export default class htx extends htxRest {
             params = this.omit (params, [ 'type', 'subType' ]);
         }
         if (type === 'spot') {
-            let mode = undefined;
+            let mode: Str = undefined;
             if (mode === undefined) {
                 mode = this.safeString2 (this.options, 'watchMyTrades', 'mode', '0');
                 mode = this.safeString (params, 'mode', mode);
@@ -849,8 +849,8 @@ export default class htx extends htxRest {
     }
 
     getOrderChannelAndMessageHash (type, subType, market = undefined, params = {}) {
-        let messageHash = undefined;
-        let channel = undefined;
+        let messageHash: Str = undefined;
+        let channel: Str = undefined;
         let orderType = this.safeString (this.options, 'orderType', 'orders'); // orders or matchOrders
         orderType = this.safeString (params, 'orderType', orderType);
         params = this.omit (params, 'orderType');
@@ -902,9 +902,9 @@ export default class htx extends htxRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let type = undefined;
-        let subType = undefined;
-        let market = undefined;
+        let type: Str = undefined;
+        let subType: Str = undefined;
+        let market: Market = undefined;
         let suffix = '*'; // wildcard
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -919,8 +919,8 @@ export default class htx extends htxRest {
             subType = this.safeString (params, 'subType', subType);
             params = this.omit (params, [ 'type', 'subType' ]);
         }
-        let messageHash = undefined;
-        let channel = undefined;
+        let messageHash: Str = undefined;
+        let channel: Str = undefined;
         if (type === 'spot') {
             messageHash = 'orders' + '#' + suffix;
             channel = messageHash;
@@ -1258,7 +1258,7 @@ export default class htx extends htxRest {
         const filled = this.safeString (order, 'execAmt');
         const typeSide = this.safeString (order, 'type');
         const feeCost = this.safeString (order, 'fee');
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fee_asset');
             fee = {
@@ -1334,14 +1334,14 @@ export default class htx extends htxRest {
         const order = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'tradeTime');
         let type = this.safeString (trade, 'type');
-        let side = undefined;
+        let side: Str = undefined;
         if (type !== undefined) {
             const typeParts = type.split ('-');
             side = typeParts[0];
             type = typeParts[1];
         }
         const aggressor = this.safeValue (trade, 'aggressor');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (aggressor !== undefined) {
             takerOrMaker = aggressor ? 'taker' : 'maker';
         }
@@ -1370,22 +1370,22 @@ export default class htx extends htxRest {
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
      * @description watch all open positions. Note: huobi has one channel for each marginMode and type
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
-        let type = undefined;
-        let subType = undefined;
+        let type: Str = undefined;
+        let subType: SubType = undefined;
         if (market !== undefined) {
             type = market['type'];
             subType = market['linear'] ? 'linear' : 'inverse';
@@ -1397,7 +1397,7 @@ export default class htx extends htxRest {
             [ subType, params ] = this.handleOptionAndParams (params, 'watchPositions', 'subType', subType);
         }
         symbols = this.marketSymbols (symbols);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchPositions', params, 'cross');
         const isLinear = (subType === 'linear');
         const url = this.getUrlByMarketType (type, isLinear, true);
@@ -1498,16 +1498,16 @@ export default class htx extends htxRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params, 'linear');
         const isUnifiedAccount = this.safeValue2 (params, 'isUnifiedAccount', 'unified', false);
         params = this.omit (params, [ 'isUnifiedAccount', 'unified' ]);
         await this.loadMarkets ();
-        let messageHash = undefined;
-        let channel = undefined;
-        let marginMode = undefined;
+        let messageHash: Str = undefined;
+        let channel: Str = undefined;
+        let marginMode: Str = undefined;
         if (type === 'spot') {
             let mode = this.safeString2 (this.options, 'watchBalance', 'mode', '2');
             mode = this.safeString (params, 'mode', mode);
@@ -2373,17 +2373,17 @@ export default class htx extends htxRest {
         market = this.market (symbol);
         const orderType = this.safeString (trade, 'orderType');
         const aggressor = this.safeValue (trade, 'aggressor');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (aggressor !== undefined) {
             takerOrMaker = aggressor ? 'taker' : 'maker';
         }
-        let type = undefined;
+        let type: Str = undefined;
         let orderTypeParts = [];
         if (orderType !== undefined) {
             orderTypeParts = orderType.split ('-');
             type = this.safeString (orderTypeParts, 1);
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
         if (feeCurrency !== undefined) {
             fee = {
@@ -2411,8 +2411,8 @@ export default class htx extends htxRest {
     getUrlByMarketType (type, isLinear = true, isPrivate = false, isFeed = false) {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname: Dict = { 'hostname': this.hostname };
-        let hostnameURL = undefined;
-        let url = undefined;
+        let hostnameURL: Str = undefined;
+        let url: Str = undefined;
         if (type === 'spot') {
             if (isPrivate) {
                 hostnameURL = this.urls['api']['ws'][api]['spot']['private'];
@@ -2483,7 +2483,7 @@ export default class htx extends htxRest {
             'params': params,
         };
         const extendedSubsription = this.extend (subscription, subscriptionParams);
-        let request = undefined;
+        let request: Dict = undefined;
         if (type === 'spot') {
             request = {
                 'action': 'sub',
@@ -2523,7 +2523,7 @@ export default class htx extends htxRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
-            let signatureParams = undefined;
+            let signatureParams: Dict = undefined;
             if (type === 'spot') {
                 signatureParams = {
                     'accessKey': this.apiKey,
@@ -2543,7 +2543,7 @@ export default class htx extends htxRest {
             const auth = this.urlencode (signatureParams, true); // true required in go
             const payload = [ 'GET', hostname, relativePath, auth ].join ("\n"); // eslint-disable-line quotes
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
-            let request = undefined;
+            let request: Dict = undefined;
             if (type === 'spot') {
                 const newParams: Dict = {
                     'authType': 'api',

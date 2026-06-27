@@ -62,7 +62,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-ascendex.fetchCurrencies ([params])
+ascendex.fetchCurrencies (params?)
 ```
 
 
@@ -81,7 +81,7 @@ retrieves data on all markets for ascendex
 
 
 ```javascript
-ascendex.fetchMarkets ([params])
+ascendex.fetchMarkets (params?)
 ```
 
 
@@ -100,7 +100,7 @@ fetches the current integer timestamp in milliseconds from the ascendex server
 
 
 ```javascript
-ascendex.fetchTime ([params])
+ascendex.fetchTime (params?)
 ```
 
 
@@ -119,7 +119,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-ascendex.fetchAccounts ([params])
+ascendex.fetchAccounts (params?)
 ```
 
 
@@ -146,7 +146,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-ascendex.fetchBalance ([params])
+ascendex.fetchBalance (params?)
 ```
 
 
@@ -156,7 +156,7 @@ ascendex.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -167,7 +167,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-ascendex.fetchOrderBook (symbol[, limit, params])
+ascendex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -187,7 +187,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-ascendex.fetchTicker (symbol[, params])
+ascendex.fetchTicker (symbol, params?)
 ```
 
 
@@ -212,7 +212,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-ascendex.fetchTickers (symbols[, params])
+ascendex.fetchTickers (symbols, params?)
 ```
 
 
@@ -236,7 +236,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-ascendex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+ascendex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -259,7 +259,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-ascendex.fetchTrades (symbol[, since, limit, params])
+ascendex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -278,7 +278,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-ascendex.fetchTradingFees ([params])
+ascendex.fetchTradingFees (params?)
 ```
 
 
@@ -314,7 +314,7 @@ create a trade order on the exchange
 
 
 ```javascript
-ascendex.createOrder (symbol, type, side, amount[, price, params])
+ascendex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -342,7 +342,7 @@ create a list of trade orders
 
 
 ```javascript
-ascendex.createOrders (orders[, params])
+ascendex.createOrders (orders, params?)
 ```
 
 
@@ -368,7 +368,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-ascendex.fetchOrder (id, symbol[, params])
+ascendex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -395,7 +395,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-ascendex.fetchOpenOrders (symbol[, since, limit, params])
+ascendex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -423,7 +423,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-ascendex.fetchClosedOrders (symbol[, since, limit, params])
+ascendex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -449,7 +449,7 @@ cancels an open order
 
 
 ```javascript
-ascendex.cancelOrder (id, symbol[, params])
+ascendex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -474,7 +474,7 @@ cancel all open orders
 
 
 ```javascript
-ascendex.cancelAllOrders (symbol[, params])
+ascendex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -496,7 +496,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-ascendex.fetchDepositAddress (code[, params])
+ascendex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -518,7 +518,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-ascendex.fetchDeposits (code[, since, limit, params])
+ascendex.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -540,7 +540,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-ascendex.fetchWithdrawals (code[, since, limit, params])
+ascendex.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -562,7 +562,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-ascendex.fetchDepositsWithdrawals ([code, since, limit, params])
+ascendex.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -582,7 +582,7 @@ fetch all open positions
 
 
 ```javascript
-ascendex.fetchPositions (symbols[, params])
+ascendex.fetchPositions (symbols, params?)
 ```
 
 
@@ -602,7 +602,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-ascendex.fetchFundingRates (symbols[, params])
+ascendex.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -623,7 +623,7 @@ remove margin from a position
 
 
 ```javascript
-ascendex.reduceMargin (symbol, amount[, params])
+ascendex.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -644,7 +644,7 @@ add margin
 
 
 ```javascript
-ascendex.addMargin (symbol, amount[, params])
+ascendex.addMargin (symbol, amount, params?)
 ```
 
 
@@ -666,7 +666,7 @@ set the level of leverage for a market
 
 
 ```javascript
-ascendex.setLeverage (leverage, symbol[, params])
+ascendex.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -688,7 +688,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-ascendex.setMarginMode (marginMode, symbol[, params])
+ascendex.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -708,7 +708,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-ascendex.fetchLeverageTiers (symbols[, params])
+ascendex.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -729,7 +729,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-ascendex.fetchDepositWithdrawFees (codes[, params])
+ascendex.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -752,7 +752,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-ascendex.transfer (code, amount, fromAccount, toAccount[, params])
+ascendex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -776,7 +776,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-ascendex.fetchFundingHistory ([symbol, since, limit, params])
+ascendex.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -797,7 +797,7 @@ fetches the set margin mode of the user
 
 
 ```javascript
-ascendex.fetchMarginModes ([symbols, params])
+ascendex.fetchMarginModes (symbols?, params?)
 ```
 
 
@@ -818,7 +818,7 @@ fetch the set leverage for all contract markets
 
 
 ```javascript
-ascendex.fetchLeverages ([symbols, params])
+ascendex.fetchLeverages (symbols?, params?)
 ```
 
 
@@ -839,7 +839,7 @@ Retrieves the open interest for a list of symbols
 
 
 ```javascript
-ascendex.fetchOpenInterests ([symbols, params])
+ascendex.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -863,7 +863,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-ascendex.watchOHLCV (symbol, timeframe[, since, limit, params])
+ascendex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -886,7 +886,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-ascendex.watchTrades (symbol[, since, limit, params])
+ascendex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -910,7 +910,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-ascendex.watchTradesForSymbols (symbols[, since, limit, params])
+ascendex.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -920,7 +920,7 @@ ascendex.watchTradesForSymbols (symbols[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://ascendex.github.io/ascendex-pro-api/#channel-level-2-order-book-updates  
 
@@ -932,7 +932,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-ascendex.watchOrderBook (symbol[, limit, params])
+ascendex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -952,7 +952,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-ascendex.watchBalance ([params])
+ascendex.watchBalance (params?)
 ```
 
 
@@ -975,6 +975,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-ascendex.watchOrders (symbol[, since, limit, params])
+ascendex.watchOrders (symbol, since?, limit?, params?)
 ```
 

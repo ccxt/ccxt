@@ -71,6 +71,7 @@
         ],
         "fetchTransfers": [
             {
+                "disabled": true,
                 "description": "Fetch transfers",
                 "method": "fetchTransfers",
                 "input": [

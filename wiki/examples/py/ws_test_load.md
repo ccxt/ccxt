@@ -1,8 +1,5 @@
-- [Ws_test_load](./examples/py/)
-
-
- ```python
- import asyncio
+```python
+import asyncio
 import os
 import sys
 import psutil
@@ -116,5 +113,5 @@ if __name__ == '__main__':
 # Memory usage: 79.78 MB
 # CPU usage: 7.5%
 # Elapsed time: 401.3 seconds
- 
+
 ```

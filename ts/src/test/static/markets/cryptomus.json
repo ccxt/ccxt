@@ -29,8 +29,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.01,
-            "price": 0.000001
+            "amount": 0.000001,
+            "price": 1e-8
         },
         "limits": {
             "leverage": {
@@ -38,12 +38,12 @@
                 "max": null
             },
             "amount": {
-                "min": 5,
-                "max": 10000000
+                "min": 0.665352,
+                "max": 99999999
             },
             "price": {
-                "min": 0.00005,
-                "max": 4
+                "min": 0.00001,
+                "max": 10000000000
             },
             "cost": {
                 "min": null,
@@ -60,12 +60,13 @@
             "symbol": "BTC_USDT",
             "baseCurrency": "BTC",
             "quoteCurrency": "USDT",
-            "baseMinSize": "0.00005000",
-            "quoteMinSize": "5.00000000",
-            "baseMaxSize": "4.00000000",
-            "quoteMaxSize": "10000000.00000000",
-            "basePrec": "6",
-            "quotePrec": "2",
+            "baseMinSize": "0.0000100000000000",
+            "quoteMinSize": "0.6653520000000000",
+            "baseMaxSize": "10000000000.0000000000000000",
+            "quoteMaxSize": "99999999.0000000000000000",
+            "basePrec": "8",
+            "quotePrec": "6",
+            "pricePrec": "1",
             "baseCurrencyFullName": "Bitcoin",
             "quoteCurrencyFullName": "Tether USD"
         },
@@ -104,7 +105,7 @@
         "optionType": null,
         "precision": {
             "amount": 0.01,
-            "price": 0.00001
+            "price": 0.001
         },
         "limits": {
             "leverage": {
@@ -112,12 +113,12 @@
                 "max": null
             },
             "amount": {
-                "min": 5,
-                "max": 100000000
+                "min": 0.1,
+                "max": 99999999
             },
             "price": {
-                "min": 0.05462,
-                "max": 200
+                "min": 0.001,
+                "max": 10000000000
             },
             "cost": {
                 "min": null,
@@ -134,12 +135,13 @@
             "symbol": "LTC_USDT",
             "baseCurrency": "LTC",
             "quoteCurrency": "USDT",
-            "baseMinSize": "0.05462000",
-            "quoteMinSize": "5.00000000",
-            "baseMaxSize": "200.00000000",
-            "quoteMaxSize": "100000000.00000000",
-            "basePrec": "5",
+            "baseMinSize": "0.0010000000000000",
+            "quoteMinSize": "0.1000000000000000",
+            "baseMaxSize": "10000000000.0000000000000000",
+            "quoteMaxSize": "99999999.0000000000000000",
+            "basePrec": "3",
             "quotePrec": "2",
+            "pricePrec": "2",
             "baseCurrencyFullName": "Litecoin",
             "quoteCurrencyFullName": "Tether USD"
         },
@@ -177,8 +179,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.0001,
-            "price": 0.0001
+            "amount": 0.01,
+            "price": 0.001
         },
         "limits": {
             "leverage": {
@@ -186,12 +188,12 @@
                 "max": null
             },
             "amount": {
-                "min": 5,
-                "max": 10000000
+                "min": 0.1,
+                "max": 99999999
             },
             "price": {
-                "min": 0.0311,
-                "max": 500
+                "min": 0.001,
+                "max": 10000000000
             },
             "cost": {
                 "min": null,
@@ -208,12 +210,13 @@
             "symbol": "SOL_USDT",
             "baseCurrency": "SOL",
             "quoteCurrency": "USDT",
-            "baseMinSize": "0.03110000",
-            "quoteMinSize": "5.00000000",
-            "baseMaxSize": "500.00000000",
-            "quoteMaxSize": "10000000.00000000",
-            "basePrec": "4",
-            "quotePrec": "4",
+            "baseMinSize": "0.0010000000000000",
+            "quoteMinSize": "0.1000000000000000",
+            "baseMaxSize": "10000000000.0000000000000000",
+            "quoteMaxSize": "99999999.0000000000000000",
+            "basePrec": "3",
+            "quotePrec": "2",
+            "pricePrec": "2",
             "baseCurrencyFullName": "Solana",
             "quoteCurrencyFullName": "Tether USD"
         },
@@ -251,7 +254,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.000001,
+            "amount": 0.0001,
             "price": 0.01
         },
         "limits": {
@@ -260,12 +263,12 @@
                 "max": null
             },
             "amount": {
-                "min": 5,
-                "max": 10000000
+                "min": 0.2867,
+                "max": 99999999
             },
             "price": {
-                "min": 19.12,
-                "max": 100000
+                "min": 1,
+                "max": 10000000000
             },
             "cost": {
                 "min": null,
@@ -282,12 +285,13 @@
             "symbol": "TRX_USDT",
             "baseCurrency": "TRX",
             "quoteCurrency": "USDT",
-            "baseMinSize": "19.12000000",
-            "quoteMinSize": "5.00000000",
-            "baseMaxSize": "100000.00000000",
-            "quoteMaxSize": "10000000.00000000",
+            "baseMinSize": "1.0000000000000000",
+            "quoteMinSize": "0.2867000000000000",
+            "baseMaxSize": "10000000000.0000000000000000",
+            "quoteMaxSize": "99999999.0000000000000000",
             "basePrec": "2",
-            "quotePrec": "6",
+            "quotePrec": "4",
+            "pricePrec": "4",
             "baseCurrencyFullName": "Tron",
             "quoteCurrencyFullName": "Tether USD"
         },
@@ -325,8 +329,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.01,
-            "price": 0.00001
+            "amount": 0.000001,
+            "price": 1e-7
         },
         "limits": {
             "leverage": {
@@ -334,12 +338,12 @@
                 "max": null
             },
             "amount": {
-                "min": 5,
-                "max": 100000000
+                "min": 0.19629,
+                "max": 999999999
             },
             "price": {
-                "min": 0.00209,
-                "max": 100
+                "min": 0.0001,
+                "max": 10000000000
             },
             "cost": {
                 "min": null,
@@ -356,12 +360,13 @@
             "symbol": "ETH_USDT",
             "baseCurrency": "ETH",
             "quoteCurrency": "USDT",
-            "baseMinSize": "0.00209000",
-            "quoteMinSize": "5.00000000",
-            "baseMaxSize": "100.00000000",
-            "quoteMaxSize": "100000000.00000000",
-            "basePrec": "5",
-            "quotePrec": "2",
+            "baseMinSize": "0.0001000000000000",
+            "quoteMinSize": "0.1962900000000000",
+            "baseMaxSize": "10000000000.0000000000000000",
+            "quoteMaxSize": "999999999.0000000000000000",
+            "basePrec": "7",
+            "quotePrec": "6",
+            "pricePrec": "2",
             "baseCurrencyFullName": "Ethereum",
             "quoteCurrencyFullName": "Tether USD"
         },

@@ -20,13 +20,13 @@ class blockchaincom extends blockchaincom$1["default"] {
             'secret': undefined,
             'name': 'Blockchain.com',
             'countries': ['LX'],
-            'rateLimit': 500,
+            'rateLimit': 500, // prev 1000
             'version': 'v3',
             'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // on exchange but not implemented in CCXT
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -73,7 +73,7 @@ class blockchaincom extends blockchaincom$1["default"] {
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
-                'fetchWithdrawalWhitelist': true,
+                'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
                 'transfer': false,
                 'withdraw': true,
             },
@@ -97,37 +97,37 @@ class blockchaincom extends blockchaincom$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'tickers': 1,
-                        'tickers/{symbol}': 1,
-                        'symbols': 1,
-                        'symbols/{symbol}': 1,
-                        'l2/{symbol}': 1,
+                        'tickers': 1, // fetchTickers
+                        'tickers/{symbol}': 1, // fetchTicker
+                        'symbols': 1, // fetchMarkets
+                        'symbols/{symbol}': 1, // fetchMarket
+                        'l2/{symbol}': 1, // fetchL2OrderBook
                         'l3/{symbol}': 1, // fetchL3OrderBook
                     },
                 },
                 'private': {
                     'get': {
-                        'fees': 1,
-                        'orders': 1,
-                        'orders/{orderId}': 1,
+                        'fees': 1, // fetchFees
+                        'orders': 1, // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': 1, // fetchOrder(id)
                         'trades': 1,
-                        'fills': 1,
-                        'deposits': 1,
-                        'deposits/{depositId}': 1,
-                        'accounts': 1,
+                        'fills': 1, // fetchMyTrades
+                        'deposits': 1, // fetchDeposits
+                        'deposits/{depositId}': 1, // fetchDeposit
+                        'accounts': 1, // fetchBalance
                         'accounts/{account}/{currency}': 1,
-                        'whitelist': 1,
-                        'whitelist/{currency}': 1,
-                        'withdrawals': 1,
+                        'whitelist': 1, // fetchWithdrawalWhitelist
+                        'whitelist/{currency}': 1, // fetchWithdrawalWhitelistByCurrency
+                        'withdrawals': 1, // fetchWithdrawalWhitelist
                         'withdrawals/{withdrawalId}': 1, // fetchWithdrawalById
                     },
                     'post': {
-                        'orders': 1,
-                        'deposits/{currency}': 1,
+                        'orders': 1, // createOrder
+                        'deposits/{currency}': 1, // fetchDepositAddress by currency (only crypto supported)
                         'withdrawals': 1, // withdraw
                     },
                     'delete': {
-                        'orders': 1,
+                        'orders': 1, // cancelOrders
                         'orders/{orderId}': 1, // cancelOrder
                     },
                 },
@@ -224,8 +224,8 @@ class blockchaincom extends blockchaincom$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -245,8 +245,8 @@ class blockchaincom extends blockchaincom$1["default"] {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo implementation
+                        'untilDays': 100000, // todo implementation
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -262,7 +262,7 @@ class blockchaincom extends blockchaincom$1["default"] {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': undefined, // todo implement
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
@@ -362,15 +362,12 @@ class blockchaincom extends blockchaincom$1["default"] {
             const minOrderSize = this.parseNumber(minOrderSizePreciseString);
             // maximum order size
             let maxOrderSize = undefined;
-            maxOrderSize = this.safeString(market, 'max_order_size');
-            if (maxOrderSize !== '0') {
+            const maxOrderSizeRaw = this.safeString(market, 'max_order_size');
+            if (maxOrderSizeRaw !== '0') {
                 const maxOrderSizeScaleString = this.safeString(market, 'max_order_size_scale');
                 const maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
-                const maxOrderSizeString = Precise["default"].stringMul(maxOrderSize, maxOrderSizeScalePrecisionString);
-                maxOrderSize = this.parseNumber(maxOrderSizeString);
-            }
-            else {
-                maxOrderSize = undefined;
+                const maxOrderSizeValueString = Precise["default"].stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
+                maxOrderSize = this.parseNumber(maxOrderSizeValueString);
             }
             result.push({
                 'info': market,
@@ -433,7 +430,7 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.fetchL3OrderBook(symbol, limit, params);
@@ -830,7 +827,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         //
         const orderId = this.safeString(trade, 'exOrdId');
         const tradeId = this.safeString(trade, 'tradeId');
-        const side = this.safeString(trade, 'side').toLowerCase();
+        const side = this.safeStringLower(trade, 'side');
         const marketId = this.safeString(trade, 'symbol');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'qty');
@@ -920,7 +917,7 @@ class blockchaincom extends blockchaincom$1["default"] {
     }
     parseTransactionState(state) {
         const states = {
-            'COMPLETED': 'ok',
+            'COMPLETED': 'ok', //
             'REJECTED': 'failed',
             'PENDING': 'pending',
             'FAILED': 'failed',
@@ -992,7 +989,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             'type': type,
             'amount': amount,
             'currency': code,
-            'status': this.parseTransactionState(state),
+            'status': this.parseTransactionState(state), // 'status':   'pending',   // 'ok', 'failed', 'canceled', string
             'updated': undefined,
             'comment': undefined,
             'internal': undefined,

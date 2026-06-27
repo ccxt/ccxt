@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bit2c.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -369,7 +369,7 @@ export default class bit2c extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -454,7 +454,7 @@ export default class bit2c extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000
         }
-        let response = undefined;
+        let response: List = undefined;
         if (method === 'public_get_exchanges_pair_trades') {
             response = await this.publicGetExchangesPairTrades (this.extend (request, params));
         } else {
@@ -667,7 +667,7 @@ export default class bit2c extends Exchange {
         //          "initialAmount": 2.00000000
         //      }
         //
-        let orderUnified = undefined;
+        let orderUnified: Dict = undefined;
         let isNewOrder = false;
         if ('NewOrder' in order) {
             orderUnified = order['NewOrder'];
@@ -683,7 +683,7 @@ export default class bit2c extends Exchange {
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        let status: string;
+        let status: Str = undefined;
         if (isNewOrder) {
             const tempStatus = this.safeInteger (orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {
@@ -716,8 +716,8 @@ export default class bit2c extends Exchange {
             side = 'sell';
         }
         const price = this.safeString (orderUnified, 'price');
-        let amount = undefined;
-        let remaining = undefined;
+        let amount: Str = undefined;
+        let remaining: Str = undefined;
         if (isNewOrder) {
             amount = this.safeString (orderUnified, 'amount');  // NOTE:'initialAmount' is currently not set on new order
             remaining = this.safeString (orderUnified, 'amount');
@@ -763,7 +763,7 @@ export default class bit2c extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (limit !== undefined) {
             request['take'] = limit;
@@ -863,12 +863,12 @@ export default class bit2c extends Exchange {
         //
         let timestamp: Int;
         let id: Str;
-        let price = undefined;
-        let amount = undefined;
-        let orderId = undefined;
-        let fee = undefined;
+        let price: Str = undefined;
+        let amount: Str = undefined;
+        let orderId: Str = undefined;
+        let fee: Dict = undefined;
         let side: string;
-        let makerOrTaker = undefined;
+        let makerOrTaker: Str = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
             id = reference;
@@ -983,7 +983,7 @@ export default class bit2c extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             url += '.json';

@@ -3871,6 +3871,11 @@ public partial class binanceusdm : binance
         return await this.callAsync ("papiPostUmFeeBurn",parameters);
     }
 
+    public async Task<object> papiPostUmStockContract (object parameters = null)
+    {
+        return await this.callAsync ("papiPostUmStockContract",parameters);
+    }
+
     public async Task<object> papiPutListenKey (object parameters = null)
     {
         return await this.callAsync ("papiPutListenKey",parameters);

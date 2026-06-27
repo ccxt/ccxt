@@ -10,35 +10,35 @@ abstract class bydfi extends \ccxt\async\Exchange {
     public function public_get_v1_public_api_limits($params = array()) {
         return $this->request('v1/public/api_limits', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_v1_swap_market_exchange_info($params = array()) {
-        return $this->request('v1/swap/market/exchange_info', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_v1_fapi_market_exchange_info($params = array()) {
+        return $this->request('v1/fapi/market/exchange_info', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_v1_swap_market_depth($params = array()) {
-        return $this->request('v1/swap/market/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_v1_fapi_market_depth($params = array()) {
+        return $this->request('v1/fapi/market/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_v1_swap_market_trades($params = array()) {
-        return $this->request('v1/swap/market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_v1_fapi_market_trades($params = array()) {
+        return $this->request('v1/fapi/market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_v1_swap_market_klines($params = array()) {
-        return $this->request('v1/swap/market/klines', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_v1_fapi_market_klines($params = array()) {
+        return $this->request('v1/fapi/market/klines', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_v1_swap_market_ticker_24hr($params = array()) {
-        return $this->request('v1/swap/market/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_v1_fapi_market_ticker_24hr($params = array()) {
+        return $this->request('v1/fapi/market/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_v1_swap_market_ticker_price($params = array()) {
-        return $this->request('v1/swap/market/ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_v1_fapi_market_ticker_price($params = array()) {
+        return $this->request('v1/fapi/market/ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_v1_swap_market_mark_price($params = array()) {
-        return $this->request('v1/swap/market/mark_price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_v1_fapi_market_mark_price($params = array()) {
+        return $this->request('v1/fapi/market/mark_price', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_v1_swap_market_funding_rate($params = array()) {
-        return $this->request('v1/swap/market/funding_rate', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_v1_fapi_market_funding_rate($params = array()) {
+        return $this->request('v1/fapi/market/funding_rate', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_v1_swap_market_funding_rate_history($params = array()) {
-        return $this->request('v1/swap/market/funding_rate_history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_v1_fapi_market_funding_rate_history($params = array()) {
+        return $this->request('v1/fapi/market/funding_rate_history', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_v1_swap_market_risk_limit($params = array()) {
-        return $this->request('v1/swap/market/risk_limit', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_v1_fapi_market_risk_limit($params = array()) {
+        return $this->request('v1/fapi/market/risk_limit', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_v1_account_assets($params = array()) {
         return $this->request('v1/account/assets', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -52,35 +52,35 @@ abstract class bydfi extends \ccxt\async\Exchange {
     public function private_get_v1_spot_withdraw_records($params = array()) {
         return $this->request('v1/spot/withdraw_records', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v1_swap_trade_open_order($params = array()) {
-        return $this->request('v1/swap/trade/open_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_v1_fapi_trade_open_order($params = array()) {
+        return $this->request('v1/fapi/trade/open_order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v1_swap_trade_plan_order($params = array()) {
-        return $this->request('v1/swap/trade/plan_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_v1_fapi_trade_plan_order($params = array()) {
+        return $this->request('v1/fapi/trade/plan_order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v1_swap_trade_leverage($params = array()) {
-        return $this->request('v1/swap/trade/leverage', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_v1_fapi_trade_leverage($params = array()) {
+        return $this->request('v1/fapi/trade/leverage', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v1_swap_trade_history_order($params = array()) {
-        return $this->request('v1/swap/trade/history_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_v1_fapi_trade_history_order($params = array()) {
+        return $this->request('v1/fapi/trade/history_order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v1_swap_trade_history_trade($params = array()) {
-        return $this->request('v1/swap/trade/history_trade', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_v1_fapi_trade_history_trade($params = array()) {
+        return $this->request('v1/fapi/trade/history_trade', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v1_swap_trade_position_history($params = array()) {
-        return $this->request('v1/swap/trade/position_history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_v1_fapi_trade_position_history($params = array()) {
+        return $this->request('v1/fapi/trade/position_history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v1_swap_trade_positions($params = array()) {
-        return $this->request('v1/swap/trade/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_v1_fapi_trade_positions($params = array()) {
+        return $this->request('v1/fapi/trade/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v1_swap_account_balance($params = array()) {
-        return $this->request('v1/swap/account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_v1_fapi_account_balance($params = array()) {
+        return $this->request('v1/fapi/account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v1_swap_user_data_assets_margin($params = array()) {
-        return $this->request('v1/swap/user_data/assets_margin', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_v1_fapi_user_data_assets_margin($params = array()) {
+        return $this->request('v1/fapi/user_data/assets_margin', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v1_swap_user_data_position_side_dual($params = array()) {
-        return $this->request('v1/swap/user_data/position_side/dual', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_v1_fapi_user_data_position_side_dual($params = array()) {
+        return $this->request('v1/fapi/user_data/position_side/dual', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_v1_agent_teams($params = array()) {
         return $this->request('v1/agent/teams', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -112,32 +112,32 @@ abstract class bydfi extends \ccxt\async\Exchange {
     public function private_post_v1_account_transfer($params = array()) {
         return $this->request('v1/account/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_v1_swap_trade_place_order($params = array()) {
-        return $this->request('v1/swap/trade/place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_v1_fapi_trade_place_order($params = array()) {
+        return $this->request('v1/fapi/trade/place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_v1_swap_trade_batch_place_order($params = array()) {
-        return $this->request('v1/swap/trade/batch_place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_v1_fapi_trade_batch_place_order($params = array()) {
+        return $this->request('v1/fapi/trade/batch_place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_v1_swap_trade_edit_order($params = array()) {
-        return $this->request('v1/swap/trade/edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_v1_fapi_trade_edit_order($params = array()) {
+        return $this->request('v1/fapi/trade/edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_v1_swap_trade_batch_edit_order($params = array()) {
-        return $this->request('v1/swap/trade/batch_edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_v1_fapi_trade_batch_edit_order($params = array()) {
+        return $this->request('v1/fapi/trade/batch_edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_v1_swap_trade_cancel_all_order($params = array()) {
-        return $this->request('v1/swap/trade/cancel_all_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_v1_fapi_trade_cancel_all_order($params = array()) {
+        return $this->request('v1/fapi/trade/cancel_all_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_v1_swap_trade_leverage($params = array()) {
-        return $this->request('v1/swap/trade/leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_v1_fapi_trade_leverage($params = array()) {
+        return $this->request('v1/fapi/trade/leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_v1_swap_trade_batch_leverage_margin($params = array()) {
-        return $this->request('v1/swap/trade/batch_leverage_margin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_v1_fapi_trade_batch_leverage_margin($params = array()) {
+        return $this->request('v1/fapi/trade/batch_leverage_margin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_v1_swap_user_data_margin_type($params = array()) {
-        return $this->request('v1/swap/user_data/margin_type', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_v1_fapi_user_data_margin_type($params = array()) {
+        return $this->request('v1/fapi/user_data/margin_type', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_v1_swap_user_data_position_side_dual($params = array()) {
-        return $this->request('v1/swap/user_data/position_side/dual', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_v1_fapi_user_data_position_side_dual($params = array()) {
+        return $this->request('v1/fapi/user_data/position_side/dual', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_v1_agent_internal_withdrawal($params = array()) {
         return $this->request('v1/agent/internal_withdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -145,35 +145,35 @@ abstract class bydfi extends \ccxt\async\Exchange {
     public function publicGetV1PublicApiLimits($params = array()) {
         return $this->request('v1/public/api_limits', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetV1SwapMarketExchangeInfo($params = array()) {
-        return $this->request('v1/swap/market/exchange_info', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetV1FapiMarketExchangeInfo($params = array()) {
+        return $this->request('v1/fapi/market/exchange_info', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetV1SwapMarketDepth($params = array()) {
-        return $this->request('v1/swap/market/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetV1FapiMarketDepth($params = array()) {
+        return $this->request('v1/fapi/market/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetV1SwapMarketTrades($params = array()) {
-        return $this->request('v1/swap/market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetV1FapiMarketTrades($params = array()) {
+        return $this->request('v1/fapi/market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetV1SwapMarketKlines($params = array()) {
-        return $this->request('v1/swap/market/klines', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetV1FapiMarketKlines($params = array()) {
+        return $this->request('v1/fapi/market/klines', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetV1SwapMarketTicker24hr($params = array()) {
-        return $this->request('v1/swap/market/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetV1FapiMarketTicker24hr($params = array()) {
+        return $this->request('v1/fapi/market/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetV1SwapMarketTickerPrice($params = array()) {
-        return $this->request('v1/swap/market/ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetV1FapiMarketTickerPrice($params = array()) {
+        return $this->request('v1/fapi/market/ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetV1SwapMarketMarkPrice($params = array()) {
-        return $this->request('v1/swap/market/mark_price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetV1FapiMarketMarkPrice($params = array()) {
+        return $this->request('v1/fapi/market/mark_price', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetV1SwapMarketFundingRate($params = array()) {
-        return $this->request('v1/swap/market/funding_rate', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetV1FapiMarketFundingRate($params = array()) {
+        return $this->request('v1/fapi/market/funding_rate', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetV1SwapMarketFundingRateHistory($params = array()) {
-        return $this->request('v1/swap/market/funding_rate_history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetV1FapiMarketFundingRateHistory($params = array()) {
+        return $this->request('v1/fapi/market/funding_rate_history', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetV1SwapMarketRiskLimit($params = array()) {
-        return $this->request('v1/swap/market/risk_limit', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetV1FapiMarketRiskLimit($params = array()) {
+        return $this->request('v1/fapi/market/risk_limit', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetV1AccountAssets($params = array()) {
         return $this->request('v1/account/assets', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -187,35 +187,35 @@ abstract class bydfi extends \ccxt\async\Exchange {
     public function privateGetV1SpotWithdrawRecords($params = array()) {
         return $this->request('v1/spot/withdraw_records', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetV1SwapTradeOpenOrder($params = array()) {
-        return $this->request('v1/swap/trade/open_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetV1FapiTradeOpenOrder($params = array()) {
+        return $this->request('v1/fapi/trade/open_order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetV1SwapTradePlanOrder($params = array()) {
-        return $this->request('v1/swap/trade/plan_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetV1FapiTradePlanOrder($params = array()) {
+        return $this->request('v1/fapi/trade/plan_order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetV1SwapTradeLeverage($params = array()) {
-        return $this->request('v1/swap/trade/leverage', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetV1FapiTradeLeverage($params = array()) {
+        return $this->request('v1/fapi/trade/leverage', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetV1SwapTradeHistoryOrder($params = array()) {
-        return $this->request('v1/swap/trade/history_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetV1FapiTradeHistoryOrder($params = array()) {
+        return $this->request('v1/fapi/trade/history_order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetV1SwapTradeHistoryTrade($params = array()) {
-        return $this->request('v1/swap/trade/history_trade', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetV1FapiTradeHistoryTrade($params = array()) {
+        return $this->request('v1/fapi/trade/history_trade', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetV1SwapTradePositionHistory($params = array()) {
-        return $this->request('v1/swap/trade/position_history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetV1FapiTradePositionHistory($params = array()) {
+        return $this->request('v1/fapi/trade/position_history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetV1SwapTradePositions($params = array()) {
-        return $this->request('v1/swap/trade/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetV1FapiTradePositions($params = array()) {
+        return $this->request('v1/fapi/trade/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetV1SwapAccountBalance($params = array()) {
-        return $this->request('v1/swap/account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetV1FapiAccountBalance($params = array()) {
+        return $this->request('v1/fapi/account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetV1SwapUserDataAssetsMargin($params = array()) {
-        return $this->request('v1/swap/user_data/assets_margin', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetV1FapiUserDataAssetsMargin($params = array()) {
+        return $this->request('v1/fapi/user_data/assets_margin', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetV1SwapUserDataPositionSideDual($params = array()) {
-        return $this->request('v1/swap/user_data/position_side/dual', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetV1FapiUserDataPositionSideDual($params = array()) {
+        return $this->request('v1/fapi/user_data/position_side/dual', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetV1AgentTeams($params = array()) {
         return $this->request('v1/agent/teams', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -247,32 +247,32 @@ abstract class bydfi extends \ccxt\async\Exchange {
     public function privatePostV1AccountTransfer($params = array()) {
         return $this->request('v1/account/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostV1SwapTradePlaceOrder($params = array()) {
-        return $this->request('v1/swap/trade/place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostV1FapiTradePlaceOrder($params = array()) {
+        return $this->request('v1/fapi/trade/place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostV1SwapTradeBatchPlaceOrder($params = array()) {
-        return $this->request('v1/swap/trade/batch_place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostV1FapiTradeBatchPlaceOrder($params = array()) {
+        return $this->request('v1/fapi/trade/batch_place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostV1SwapTradeEditOrder($params = array()) {
-        return $this->request('v1/swap/trade/edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostV1FapiTradeEditOrder($params = array()) {
+        return $this->request('v1/fapi/trade/edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostV1SwapTradeBatchEditOrder($params = array()) {
-        return $this->request('v1/swap/trade/batch_edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostV1FapiTradeBatchEditOrder($params = array()) {
+        return $this->request('v1/fapi/trade/batch_edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostV1SwapTradeCancelAllOrder($params = array()) {
-        return $this->request('v1/swap/trade/cancel_all_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostV1FapiTradeCancelAllOrder($params = array()) {
+        return $this->request('v1/fapi/trade/cancel_all_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostV1SwapTradeLeverage($params = array()) {
-        return $this->request('v1/swap/trade/leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostV1FapiTradeLeverage($params = array()) {
+        return $this->request('v1/fapi/trade/leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostV1SwapTradeBatchLeverageMargin($params = array()) {
-        return $this->request('v1/swap/trade/batch_leverage_margin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostV1FapiTradeBatchLeverageMargin($params = array()) {
+        return $this->request('v1/fapi/trade/batch_leverage_margin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostV1SwapUserDataMarginType($params = array()) {
-        return $this->request('v1/swap/user_data/margin_type', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostV1FapiUserDataMarginType($params = array()) {
+        return $this->request('v1/fapi/user_data/margin_type', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostV1SwapUserDataPositionSideDual($params = array()) {
-        return $this->request('v1/swap/user_data/position_side/dual', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostV1FapiUserDataPositionSideDual($params = array()) {
+        return $this->request('v1/fapi/user_data/position_side/dual', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostV1AgentInternalWithdrawal($params = array()) {
         return $this->request('v1/agent/internal_withdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));

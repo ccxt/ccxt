@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinsph$1 = require('./abstract/coinsph.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 /**
@@ -18,9 +18,9 @@ class coinsph extends coinsph$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'coinsph',
             'name': 'Coins.ph',
-            'countries': ['PH'],
+            'countries': ['PH'], // Philippines
             'version': 'v1',
-            'rateLimit': 50,
+            'rateLimit': 50, // 1200 per minute
             'certified': false,
             'pro': false,
             'has': {
@@ -183,6 +183,10 @@ class coinsph extends coinsph$1["default"] {
                     'https://coins-docs.github.io/rest-api',
                 ],
                 'fees': 'https://support.coins.ph/hc/en-us/sections/4407198694681-Limits-Fees',
+                'referral': {
+                    'url': 'https://www.coins.ph/en-ph/register?invite_code=1371062463303277512&broker=9001',
+                    'discount': 0.2,
+                },
             },
             'api': {
                 'public': {
@@ -203,8 +207,8 @@ class coinsph extends coinsph$1["default"] {
                         'openapi/v1/exchangeInfo': 10,
                         // cost 1 if limit <= 100; 5 if limit > 100.
                         'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [[101, 5], [0, 1]] },
-                        'openapi/quote/v1/klines': 1,
-                        'openapi/quote/v1/trades': 1,
+                        'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
+                        'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
                         'openapi/v1/pairs': 1,
                         'openapi/quote/v1/avgPrice': 1,
                     },
@@ -320,7 +324,7 @@ class coinsph extends coinsph$1["default"] {
             'precisionMode': number.TICK_SIZE,
             // exchange-specific options
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
+                'createMarketBuyOrderRequiresPrice': true, // true or false
                 'withdraw': {
                     'warning': false,
                 },
@@ -328,9 +332,9 @@ class coinsph extends coinsph$1["default"] {
                     'warning': false,
                 },
                 'createOrder': {
-                    'timeInForce': 'GTC',
+                    'timeInForce': 'GTC', // FOK, IOC
                     'newOrderRespType': {
-                        'market': 'FULL',
+                        'market': 'FULL', // FULL, RESULT. ACK
                         'limit': 'FULL', // we change it from 'ACK' by default to 'FULL'
                     },
                 },
@@ -360,8 +364,8 @@ class coinsph extends coinsph$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -374,7 +378,7 @@ class coinsph extends coinsph$1["default"] {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo implement
                         'iceberg': false,
                     },
                     'createOrders': undefined,
@@ -382,7 +386,7 @@ class coinsph extends coinsph$1["default"] {
                         'marginMode': false,
                         'limit': 1000,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -425,116 +429,116 @@ class coinsph extends coinsph$1["default"] {
             // https://coins-docs.github.io/errors/
             'exceptions': {
                 'exact': {
-                    '-1000': errors.BadRequest,
-                    '-1001': errors.BadRequest,
-                    '-1002': errors.AuthenticationError,
-                    '-1003': errors.RateLimitExceeded,
-                    '-1004': errors.InvalidOrder,
-                    '-1006': errors.BadResponse,
-                    '-1007': errors.BadResponse,
-                    '-1014': errors.InvalidOrder,
-                    '-1015': errors.RateLimitExceeded,
-                    '-1016': errors.NotSupported,
-                    '-1020': errors.NotSupported,
-                    '-1021': errors.BadRequest,
-                    '-1022': errors.BadRequest,
-                    '-1023': errors.AuthenticationError,
-                    '-1024': errors.BadRequest,
-                    '-1025': errors.BadRequest,
-                    '-1030': errors.ExchangeError,
-                    '-1100': errors.BadRequest,
-                    '-1101': errors.BadRequest,
-                    '-1102': errors.BadRequest,
-                    '-1103': errors.BadRequest,
-                    '-1104': errors.BadRequest,
-                    '-1105': errors.BadRequest,
-                    '-1106': errors.BadRequest,
-                    '-1111': errors.BadRequest,
-                    '-1112': errors.BadResponse,
-                    '-1114': errors.BadRequest,
-                    '-1115': errors.InvalidOrder,
-                    '-1116': errors.InvalidOrder,
-                    '-1117': errors.InvalidOrder,
-                    '-1118': errors.InvalidOrder,
-                    '-1119': errors.InvalidOrder,
-                    '-1120': errors.BadRequest,
-                    '-1121': errors.BadSymbol,
-                    '-1122': errors.InvalidOrder,
-                    '-1125': errors.BadRequest,
-                    '-1127': errors.BadRequest,
-                    '-1128': errors.BadRequest,
-                    '-1130': errors.BadRequest,
-                    '-1131': errors.InsufficientFunds,
-                    '-1132': errors.InvalidOrder,
-                    '-1133': errors.InvalidOrder,
-                    '-1134': errors.InvalidOrder,
-                    '-1135': errors.InvalidOrder,
-                    '-1136': errors.InvalidOrder,
-                    '-1137': errors.InvalidOrder,
-                    '-1138': errors.InvalidOrder,
-                    '-1139': errors.InvalidOrder,
-                    '-1140': errors.InvalidOrder,
-                    '-1141': errors.DuplicateOrderId,
-                    '-1142': errors.InvalidOrder,
-                    '-1143': errors.OrderNotFound,
-                    '-1144': errors.InvalidOrder,
-                    '-1145': errors.InvalidOrder,
-                    '-1146': errors.InvalidOrder,
-                    '-1147': errors.InvalidOrder,
-                    '-1148': errors.InvalidOrder,
-                    '-1149': errors.InvalidOrder,
-                    '-1150': errors.InvalidOrder,
-                    '-1151': errors.BadSymbol,
-                    '-1152': errors.NotSupported,
-                    '-1153': errors.AuthenticationError,
-                    '-1154': errors.BadRequest,
-                    '-1155': errors.BadRequest,
-                    '-1156': errors.InvalidOrder,
-                    '-1157': errors.BadSymbol,
-                    '-1158': errors.InvalidOrder,
-                    '-1159': errors.InvalidOrder,
-                    '-1160': errors.BadRequest,
-                    '-1161': errors.BadRequest,
-                    '-2010': errors.InvalidOrder,
-                    '-2013': errors.OrderNotFound,
-                    '-2011': errors.BadRequest,
-                    '-2014': errors.BadRequest,
-                    '-2015': errors.AuthenticationError,
-                    '-2016': errors.BadResponse,
-                    '-3126': errors.InvalidOrder,
-                    '-3127': errors.InvalidOrder,
-                    '-4001': errors.BadRequest,
-                    '-100011': errors.BadSymbol,
-                    '-100012': errors.BadSymbol,
-                    '-30008': errors.InsufficientFunds,
-                    '-30036': errors.InsufficientFunds,
+                    '-1000': errors.BadRequest, // An unknown error occured while processing the request.
+                    '-1001': errors.BadRequest, // {"code":-1001,"msg":"Internal error."}
+                    '-1002': errors.AuthenticationError, // You are not authorized to execute this request. Request need API Key included in . We suggest that API Key be included in any request.
+                    '-1003': errors.RateLimitExceeded, // Too many requests; please use the websocket for live updates. Too many requests; current limit is %s requests per minute. Please use the websocket for live updates to avoid polling the API. Way too many requests; IP banned until %s. Please use the websocket for live updates to avoid bans.
+                    '-1004': errors.InvalidOrder, // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
+                    '-1006': errors.BadResponse, // An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request .Please report to Customer service.
+                    '-1007': errors.BadResponse, // Timeout waiting for response from backend server. Send status unknown; execution status unknown.
+                    '-1014': errors.InvalidOrder, // Unsupported order combination.
+                    '-1015': errors.RateLimitExceeded, // Reach the rate limit .Please slow down your request speed. Too many new orders. Too many new orders; current limit is %s orders per %s.
+                    '-1016': errors.NotSupported, // This service is no longer available.
+                    '-1020': errors.NotSupported, // This operation is not supported.
+                    '-1021': errors.BadRequest, // {"code":-1021,"msg":"Timestamp for this request is outside of the recvWindow."}
+                    '-1022': errors.BadRequest, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1023': errors.AuthenticationError, // Please set IP whitelist before using API.
+                    '-1024': errors.BadRequest, // {"code":-1024,"msg":"recvWindow is not valid."}
+                    '-1025': errors.BadRequest, // {"code":-1025,"msg":"recvWindow cannot be greater than 60000"}
+                    '-1030': errors.ExchangeError, // Business error.
+                    '-1100': errors.BadRequest, // Illegal characters found in a parameter. Illegal characters found in parameter ‘%s’; legal range is ‘%s’.
+                    '-1101': errors.BadRequest, // Too many parameters sent for this endpoint. Too many parameters; expected ‘%s’ and received ‘%s’. Duplicate values for a parameter detected.
+                    '-1102': errors.BadRequest, // A mandatory parameter was not sent, was empty/null, or malformed. Mandatory parameter ‘%s’ was not sent, was empty/null, or malformed. Param ‘%s’ or ‘%s’ must be sent, but both were empty/null!
+                    '-1103': errors.BadRequest, // An unknown parameter was sent. In BHEx Open Api , each request requires at least one parameter. {Timestamp}.
+                    '-1104': errors.BadRequest, // Not all sent parameters were read. Not all sent parameters were read; read ‘%s’ parameter(s) but was sent ‘%s’.
+                    '-1105': errors.BadRequest, // {"code":-1105,"msg":"Parameter \u0027orderId and origClientOrderId\u0027 is empty."}
+                    '-1106': errors.BadRequest, // A parameter was sent when not required. Parameter ‘%s’ sent when not required.
+                    '-1111': errors.BadRequest, // Precision is over the maximum defined for this asset.
+                    '-1112': errors.BadResponse, // No orders on book for symbol.
+                    '-1114': errors.BadRequest, // TimeInForce parameter sent when not required.
+                    '-1115': errors.InvalidOrder, // {"code":-1115,"msg":"Invalid timeInForce."}
+                    '-1116': errors.InvalidOrder, // {"code":-1116,"msg":"Invalid orderType."}
+                    '-1117': errors.InvalidOrder, // {"code":-1117,"msg":"Invalid side."}
+                    '-1118': errors.InvalidOrder, // New client order ID was empty.
+                    '-1119': errors.InvalidOrder, // Original client order ID was empty.
+                    '-1120': errors.BadRequest, // Invalid interval.
+                    '-1121': errors.BadSymbol, // Invalid symbol.
+                    '-1122': errors.InvalidOrder, // Invalid newOrderRespType.
+                    '-1125': errors.BadRequest, // This listenKey does not exist.
+                    '-1127': errors.BadRequest, // Lookup interval is too big. More than %s hours between startTime and endTime.
+                    '-1128': errors.BadRequest, // Combination of optional parameters invalid.
+                    '-1130': errors.BadRequest, // Invalid data sent for a parameter. Data sent for paramter ‘%s’ is not valid.
+                    '-1131': errors.InsufficientFunds, // {"code":-1131,"msg":"Balance insufficient "}
+                    '-1132': errors.InvalidOrder, // Order price too high.
+                    '-1133': errors.InvalidOrder, // Order price lower than the minimum,please check general broker info.
+                    '-1134': errors.InvalidOrder, // Order price decimal too long,please check general broker info.
+                    '-1135': errors.InvalidOrder, // Order quantity too large.
+                    '-1136': errors.InvalidOrder, // Order quantity lower than the minimum.
+                    '-1137': errors.InvalidOrder, // Order quantity decimal too long.
+                    '-1138': errors.InvalidOrder, // Order price exceeds permissible range.
+                    '-1139': errors.InvalidOrder, // Order has been filled.
+                    '-1140': errors.InvalidOrder, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                    '-1141': errors.DuplicateOrderId, // {"code":-1141,"msg":"Duplicate clientOrderId"}
+                    '-1142': errors.InvalidOrder, // {"code":-1142,"msg":"Order has been canceled"}
+                    '-1143': errors.OrderNotFound, // Cannot be found on order book
+                    '-1144': errors.InvalidOrder, // Order has been locked
+                    '-1145': errors.InvalidOrder, // This order type does not support cancellation
+                    '-1146': errors.InvalidOrder, // Order creation timeout
+                    '-1147': errors.InvalidOrder, // Order cancellation timeout
+                    '-1148': errors.InvalidOrder, // Market order amount decimal too long
+                    '-1149': errors.InvalidOrder, // Create order failed
+                    '-1150': errors.InvalidOrder, // Cancel order failed
+                    '-1151': errors.BadSymbol, // The trading pair is not open yet
+                    '-1152': errors.NotSupported, // Coming soon
+                    '-1153': errors.AuthenticationError, // User not exist
+                    '-1154': errors.BadRequest, // Invalid price type
+                    '-1155': errors.BadRequest, // Invalid position side
+                    '-1156': errors.InvalidOrder, // Order quantity invalid
+                    '-1157': errors.BadSymbol, // The trading pair is not available for api trading
+                    '-1158': errors.InvalidOrder, // create limit maker order failed
+                    '-1159': errors.InvalidOrder, // {"code":-1159,"msg":"STOP_LOSS/TAKE_PROFIT order is not allowed to trade immediately"}
+                    '-1160': errors.BadRequest, // Modify futures margin error
+                    '-1161': errors.BadRequest, // Reduce margin forbidden
+                    '-2010': errors.InvalidOrder, // {"code":-2010,"msg":"New order rejected."}
+                    '-2013': errors.OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
+                    '-2011': errors.BadRequest, // CANCEL_REJECTED
+                    '-2014': errors.BadRequest, // API-key format invalid.
+                    '-2015': errors.AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    '-2016': errors.BadResponse, // No trading window could be found for the symbol. Try ticker/24hrs instead
+                    '-3126': errors.InvalidOrder, // {"code":-3126,"msg":"Order price lower than 72005.93415"}
+                    '-3127': errors.InvalidOrder, // {"code":-3127,"msg":"Order price higher than 1523.192"}
+                    '-4001': errors.BadRequest, // {"code":-4001,"msg":"start time must less than end time"}
+                    '-100011': errors.BadSymbol, // {"code":-100011,"msg":"Not supported symbols"}
+                    '-100012': errors.BadSymbol, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                    '-30008': errors.InsufficientFunds, // {"code":-30008,"msg":"withdraw balance insufficient"}
+                    '-30036': errors.InsufficientFunds, // {"code":-30036,"msg":"Available balance not enough!"}
                     '403': errors.ExchangeNotAvailable,
                 },
                 'broad': {
-                    'Unknown order sent': errors.OrderNotFound,
-                    'Duplicate order sent': errors.DuplicateOrderId,
-                    'Market is closed': errors.BadSymbol,
-                    'Account has insufficient balance for requested action': errors.InsufficientFunds,
-                    'Market orders are not supported for this symbol': errors.BadSymbol,
-                    'Iceberg orders are not supported for this symbol': errors.BadSymbol,
-                    'Stop loss orders are not supported for this symbol': errors.BadSymbol,
-                    'Stop loss limit orders are not supported for this symbol': errors.BadSymbol,
-                    'Take profit orders are not supported for this symbol': errors.BadSymbol,
-                    'Take profit limit orders are not supported for this symbol': errors.BadSymbol,
-                    'Price* QTY is zero or less': errors.BadRequest,
-                    'IcebergQty exceeds QTY': errors.BadRequest,
-                    'This action disabled is on this account': errors.PermissionDenied,
-                    'Unsupported order combination': errors.InvalidOrder,
-                    'Order would trigger immediately': errors.InvalidOrder,
-                    'Cancel order is invalid. Check origClOrdId and orderId': errors.InvalidOrder,
-                    'Order would immediately match and take': errors.OrderImmediatelyFillable,
-                    'PRICE_FILTER': errors.InvalidOrder,
-                    'LOT_SIZE': errors.InvalidOrder,
-                    'MIN_NOTIONAL': errors.InvalidOrder,
-                    'MAX_NUM_ORDERS': errors.InvalidOrder,
-                    'MAX_ALGO_ORDERS': errors.InvalidOrder,
-                    'BROKER_MAX_NUM_ORDERS': errors.InvalidOrder,
-                    'BROKER_MAX_ALGO_ORDERS': errors.InvalidOrder,
+                    'Unknown order sent': errors.OrderNotFound, // The order (by either orderId, clOrdId, origClOrdId) could not be found
+                    'Duplicate order sent': errors.DuplicateOrderId, // The clOrdId is already in use
+                    'Market is closed': errors.BadSymbol, // The symbol is not trading
+                    'Account has insufficient balance for requested action': errors.InsufficientFunds, // Not enough funds to complete the action
+                    'Market orders are not supported for this symbol': errors.BadSymbol, // MARKET is not enabled on the symbol
+                    'Iceberg orders are not supported for this symbol': errors.BadSymbol, // icebergQty is not enabled on the symbol
+                    'Stop loss orders are not supported for this symbol': errors.BadSymbol, // STOP_LOSS is not enabled on the symbol
+                    'Stop loss limit orders are not supported for this symbol': errors.BadSymbol, // STOP_LOSS_LIMIT is not enabled on the symbol
+                    'Take profit orders are not supported for this symbol': errors.BadSymbol, // TAKE_PROFIT is not enabled on the symbol
+                    'Take profit limit orders are not supported for this symbol': errors.BadSymbol, // TAKE_PROFIT_LIMIT is not enabled on the symbol
+                    'Price* QTY is zero or less': errors.BadRequest, // price* quantity is too low
+                    'IcebergQty exceeds QTY': errors.BadRequest, // icebergQty must be less than the order quantity
+                    'This action disabled is on this account': errors.PermissionDenied, // Contact customer support; some actions have been disabled on the account.
+                    'Unsupported order combination': errors.InvalidOrder, // The orderType, timeInForce, stopPrice, and or icebergQty combination isn’t allowed.
+                    'Order would trigger immediately': errors.InvalidOrder, // The order’s stop price is not valid when compared to the last traded price.
+                    'Cancel order is invalid. Check origClOrdId and orderId': errors.InvalidOrder, // No origClOrdId or orderId was sent in.
+                    'Order would immediately match and take': errors.OrderImmediatelyFillable, // LIMIT_MAKER order type would immediately match and trade, and not be a pure maker order.
+                    'PRICE_FILTER': errors.InvalidOrder, // price is too high, too low, and or not following the tick size rule for the symbol.
+                    'LOT_SIZE': errors.InvalidOrder, // quantity is too high, too low, and or not following the step size rule for the symbol.
+                    'MIN_NOTIONAL': errors.InvalidOrder, // price* quantity is too low to be a valid order for the symbol.
+                    'MAX_NUM_ORDERS': errors.InvalidOrder, // Account has too many open orders on the symbol.
+                    'MAX_ALGO_ORDERS': errors.InvalidOrder, // Account has too many open stop loss and or take profit orders on the symbol.
+                    'BROKER_MAX_NUM_ORDERS': errors.InvalidOrder, // Account has too many open orders on the broker.
+                    'BROKER_MAX_ALGO_ORDERS': errors.InvalidOrder, // Account has too many open stop loss and or take profit orders on the broker.
                     'ICEBERG_PARTS': errors.BadRequest, // Iceberg order would break into too many parts; icebergQty is too small.
                 },
             },
@@ -614,56 +618,54 @@ class coinsph extends coinsph$1["default"] {
         //        }
         //    ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const id = this.safeString(entry, 'coin');
-            const code = this.safeCurrencyCode(id);
-            const isFiat = this.safeBool(entry, 'isLegalMoney');
-            const networkList = this.safeList(entry, 'networkList', []);
-            const networks = {};
-            for (let j = 0; j < networkList.length; j++) {
-                const networkItem = networkList[j];
-                const network = this.safeString(networkItem, 'network');
-                const networkCode = this.networkIdToCode(network);
-                networks[networkCode] = {
-                    'info': networkItem,
-                    'id': network,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeBool(networkItem, 'depositEnable'),
-                    'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
-                    'fee': this.safeNumber(networkItem, 'withdrawFee'),
-                    'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(networkItem, 'withdrawMin'),
-                            'max': this.safeNumber(networkItem, 'withdrawMax'),
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': this.safeString(entry, 'name'),
-                'code': code,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'transferPrecision'))),
-                'info': entry,
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'coin');
+        const code = this.safeCurrencyCode(id);
+        const isFiat = this.safeBool(rawCurrency, 'isLegalMoney');
+        const networkList = this.safeList(rawCurrency, 'networkList', []);
+        const networks = {};
+        for (let j = 0; j < networkList.length; j++) {
+            const networkItem = networkList[j];
+            const network = this.safeString(networkItem, 'network');
+            const networkCode = this.networkIdToCode(network, code);
+            networks[networkCode] = {
+                'info': networkItem,
+                'id': network,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': this.safeBool(entry, 'depositAllEnable'),
-                'withdraw': this.safeBool(entry, 'withdrawAllEnable'),
-                'networks': networks,
-                'fee': undefined,
-                'fees': undefined,
-                'limits': {},
-            });
+                'deposit': this.safeBool(networkItem, 'depositEnable'),
+                'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
+                'fee': this.safeNumber(networkItem, 'withdrawFee'),
+                'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber(networkItem, 'withdrawMin'),
+                        'max': this.safeNumber(networkItem, 'withdrawMax'),
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'name': this.safeString(rawCurrency, 'name'),
+            'code': code,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'transferPrecision'))),
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': this.safeBool(rawCurrency, 'depositAllEnable'),
+            'withdraw': this.safeBool(rawCurrency, 'withdrawAllEnable'),
+            'networks': networks,
+            'fee': undefined,
+            'fees': undefined,
+            'limits': {},
+        });
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
@@ -706,7 +708,7 @@ class coinsph extends coinsph$1["default"] {
     async fetchStatus(params = {}) {
         const response = await this.publicGetOpenapiV1Ping(params);
         return {
-            'status': 'ok',
+            'status': 'ok', // if there's no Errors, status = 'ok'
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -1021,7 +1023,7 @@ class coinsph extends coinsph$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1276,12 +1278,12 @@ class coinsph extends coinsph$1["default"] {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             };
         }
-        const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker');
         let side = undefined;
         if (isBuyer !== undefined) {
             side = (isBuyer === true) ? 'buy' : 'sell';
         }
-        const isMaker = this.safeString2(trade, 'isMaker', undefined);
+        const isMaker = this.safeString(trade, 'isMaker');
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = (isMaker === 'true') ? 'maker' : 'taker';
@@ -1676,7 +1678,7 @@ class coinsph extends coinsph$1["default"] {
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'time', 'transactTime');
-        const trades = this.safeValue(order, 'fills', undefined);
+        const trades = this.safeValue(order, 'fills');
         let triggerPrice = this.safeString(order, 'stopPrice');
         if (Precise["default"].stringEq(triggerPrice, '0')) {
             triggerPrice = undefined;
@@ -2199,7 +2201,7 @@ class coinsph extends coinsph$1["default"] {
                 }
             }
             query = this.urlEncodeQuery(query);
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
             url = url + '?' + query + '&signature=' + signature;
             headers = {
                 'X-COINS-APIKEY': this.apiKey,
@@ -2217,7 +2219,7 @@ class coinsph extends coinsph$1["default"] {
         if (response === undefined) {
             return undefined;
         }
-        const responseCode = this.safeString(response, 'code', undefined);
+        const responseCode = this.safeString(response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);

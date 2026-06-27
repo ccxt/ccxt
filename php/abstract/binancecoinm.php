@@ -2323,6 +2323,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function papi_post_um_feeburn($params = array()) {
         return $this->request('um/feeBurn', 'papi', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function papi_post_um_stock_contract($params = array()) {
+        return $this->request('um/stock/contract', 'papi', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function papi_put_listenkey($params = array()) {
         return $this->request('listenKey', 'papi', 'PUT', $params, null, null, array("cost" => 0.2));
     }
@@ -4686,6 +4689,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function papiPostUmFeeBurn($params = array()) {
         return $this->request('um/feeBurn', 'papi', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function papiPostUmStockContract($params = array()) {
+        return $this->request('um/stock/contract', 'papi', 'POST', $params, null, null, array("cost" => 1));
     }
     public function papiPutListenKey($params = array()) {
         return $this->request('listenKey', 'papi', 'PUT', $params, null, null, array("cost" => 0.2));

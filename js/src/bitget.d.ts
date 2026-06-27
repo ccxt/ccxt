@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -20,7 +20,7 @@ export default class bitget extends Exchange {
      * @param enabled
      */
     enableDemoTrading(enabled: boolean): void;
-    handleProductTypeAndParams(market?: any, params?: {}): {}[];
+    handleProductTypeAndParams(market?: Market, params?: {}): [Str, Dict];
     /**
      * @method
      * @name bitget#fetchTime
@@ -54,6 +54,7 @@ export default class bitget extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name bitget#fetchMarketLeverageTiers
@@ -140,7 +141,7 @@ export default class bitget extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -311,7 +312,7 @@ export default class bitget extends Exchange {
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -860,7 +861,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -880,7 +881,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -900,7 +901,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -919,7 +920,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -928,7 +929,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -1127,10 +1128,10 @@ export default class bitget extends Exchange {
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     nonce(): number;
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: any;
+        headers: Dict;
     };
 }

@@ -187,7 +187,7 @@ class xt(ccxt.async_support.xt):
         tail = access
         if isContract:
             tail = 'user' if privateAccess else 'market'
-        subscription: dict = {
+        subscription = {
             'id': id,
         }
         url = self.urls['api']['ws'][tradeType] + '/' + tail
@@ -238,7 +238,7 @@ class xt(ccxt.async_support.xt):
         if isContract:
             tail = 'user' if privateAccess else 'market'
         url = self.urls['api']['ws'][tradeType] + '/' + tail
-        subscription: dict = {
+        subscription = {
             'unsubscribe': True,
             'id': id,
             'subMessageHashes': [subMessageHash],
@@ -572,7 +572,7 @@ class xt(ccxt.async_support.xt):
                 self.spawn(self.load_positions_snapshot, client, messageHash)
 
     async def load_positions_snapshot(self, client, messageHash):
-        positions = await self.fetch_positions(None)
+        positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         for i in range(0, len(positions)):

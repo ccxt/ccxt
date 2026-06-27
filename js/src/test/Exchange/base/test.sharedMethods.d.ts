@@ -1,5 +1,5 @@
-import { Exchange } from "../../../../ccxt";
-import { Str } from '../../../base/types';
+import { Exchange } from "../../../../ccxt.js";
+import { Order, Str } from '../../../base/types.js';
 declare function logTemplate(exchange: Exchange, method: string, entry: object): string;
 declare function isTemporaryFailure(e: any): boolean;
 declare function assertType(exchange: Exchange, skippedProperties: object, entry: object, key: string | number, format: object): boolean;
@@ -21,8 +21,8 @@ declare function assertFeeStructure(exchange: Exchange, skippedProperties: objec
 declare function assertTimestampOrder(exchange: Exchange, method: string, codeOrSymbol: string, items: any[], ascending?: boolean): void;
 declare function assertInteger(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, allowNull?: boolean): void;
 declare function checkPrecisionAccuracy(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number): void;
-declare function fetchBestBidAsk(exchange: any, method: any, symbol: any): Promise<any[]>;
-declare function fetchOrder(exchange: any, symbol: any, orderId: any, skippedProperties: any): Promise<any>;
+declare function fetchBestBidAsk(exchange: any, method: any, symbol: any): Promise<number[]>;
+declare function fetchOrder(exchange: any, symbol: any, orderId: any, skippedProperties: any): Promise<Order>;
 declare function assertOrderState(exchange: any, skippedProperties: any, method: any, order: any, assertedStatus: any, strictCheck: any): void;
 declare function getActiveMarkets(exchange: any, includeUnknown?: boolean): any;
 declare function removeProxyOptions(exchange: Exchange, skippedProperties: object): any[];
@@ -32,7 +32,9 @@ declare function assertNonEmtpyArray(exchange: Exchange, skippedProperties: obje
 declare function assertRoundMinuteTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, key: string | number): void;
 declare function deepEqual(exchange: Exchange, a: any, b: any): boolean;
 declare function assertDeepEqual(exchange: Exchange, skippedProperties: any, method: string, a: any, b: any): void;
+declare function exchangeProp(exchange: Exchange, key: string, defaultValue?: any): any;
 declare const _default: {
+    exchangeProp: typeof exchangeProp;
     deepEqual: typeof deepEqual;
     assertDeepEqual: typeof assertDeepEqual;
     logTemplate: typeof logTemplate;

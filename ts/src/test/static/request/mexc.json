@@ -6,6 +6,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.mexc.com/api/v3/capital/config/getall?timestamp=1780312477164&recvWindow=5000&signature=cf1f8a11e21c847264b68f4cf6fe6a87bd12558a16c515b47710e06ae6ca2da3",
+                "input": [],
+                "output": null
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer from swap to spot",
@@ -44,6 +53,18 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "place swap order",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/create",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"vol\":1,\"type\":6,\"openType\":2,\"side\":1}"
+            },
             {
                 "description": "tif FOK",
                 "method": "createOrder",
@@ -141,7 +162,7 @@
             {
                 "description": "Swap limit sell",
                 "method": "createOrder",
-                "url": "https://api.mexc.com/api/v1/private/order/submit",
+                "url": "https://api.mexc.com/api/v1/private/order/create",
                 "input": [
                     "ADA/USDT:USDT",
                     "limit",
@@ -181,6 +202,38 @@
                     "cost": 5
                   }
                 ]
+            },
+            {
+                "description": "Swap limit buy reduceOnly non-hedged - side must be 2, reduceOnly absent from body",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/create",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    0.6,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"price\":0.6,\"side\":2}"
+            },
+            {
+                "description": "Swap limit sell reduceOnly non-hedged - side must be 4, reduceOnly absent from body",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/create",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    0.6,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"price\":0.6,\"side\":4}"
             }
         ],
         "createOrders": [
@@ -188,6 +241,7 @@
                 "description": "Spot create multiple buy orders at once",
                 "method": "createOrders",
                 "disabledGO": true,
+                "disabledJava": true,
                 "url": "https://api.mexc.com/api/v3/batchOrders?batchOrders=%5B%7B%22symbol%22%3A%22ATLASUSDT%22%2C%22side%22%3A%22BUY%22%2C%22type%22%3A%22LIMIT%22%2C%22quantity%22%3A%221000%22%2C%22price%22%3A%220.005%22%7D%2C%7B%22symbol%22%3A%22ATLASUSDT%22%2C%22side%22%3A%22BUY%22%2C%22type%22%3A%22LIMIT%22%2C%22quantity%22%3A%221100%22%2C%22price%22%3A%220.0054%22%7D%5D&timestamp=1701304049492&recvWindow=5000&signature=2b277d28ccda099ffe176604ab3e87f27fb151180a6d7a35d3ad1640ae6839f3",
                 "input": [
                     [
@@ -334,6 +388,16 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "swap open orders",
+                "options": {
+                    "defaultType": "swap"
+                },
+                "method": "fetchOpenOrders",
+                "url": "https://api.mexc.com/api/v1/private/order/list/open_orders?page_size=100",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "spot orders no symbol",
                 "method": "fetchOpenOrders",
                 "url": "https://api.mexc.com/api/v3/openOrders?timestamp=1763377014861&recvWindow=5000&signature=d4ab06a30c313ed081606309119306439861b1f6aad77d17fe68dfda798a332d",
@@ -346,14 +410,6 @@
                 "url": "https://api.mexc.com/api/v3/openOrders?symbol=LTCUSDT&timestamp=1699458297358&recvWindow=5000&signature=6c929bb88a2d7bf13ef808b5ceb47101119c8f0a9bd395c6032fece0353e4647",
                 "input": [
                     "LTC/USDT"
-                ]
-            },
-            {
-                "description": "Swap open orders",
-                "method": "fetchOpenOrders",
-                "url": "https://api.mexc.com/api/v1/private/order/list/history_orders?states=2&symbol=LTC_USDT",
-                "input": [
-                    "LTC/USDT:USDT"
                 ]
             }
         ],

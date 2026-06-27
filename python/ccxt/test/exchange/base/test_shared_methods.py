@@ -23,7 +23,7 @@ def log_template(exchange, method, entry):
     # there are cases when exchange is undefined (eg. base tests)
     id = exchange.id if (exchange is not None) else 'undefined'
     method_string = method if (method is not None) else 'undefined'
-    entry_string = exchange.json(entry) if (exchange is not None) else ''
+    entry_string = exchange.json(entry) if (exchange is not None and entry is not None) else ''
     return ' <<< ' + id + ' ' + method_string + ' ::: ' + entry_string + ' >>> '
 
 
@@ -52,7 +52,7 @@ def assert_type(exchange, skipped_properties, entry, key, format):
     same_numeric = (isinstance(entry_key_val, numbers.Real)) and (isinstance(format_key_val, numbers.Real))
     same_boolean = ((entry_key_val) or (entry_key_val is False)) and ((format_key_val) or (format_key_val is False))
     same_array = isinstance(entry_key_val, list) and isinstance(format_key_val, list)
-    same_object = (isinstance(entry_key_val, dict)) and (isinstance(format_key_val, dict))
+    same_object = exchange.is_dictionary(entry_key_val) and exchange.is_dictionary(format_key_val)
     result = (entry_key_val is None) or same_string or same_numeric or same_boolean or same_array or same_object
     return result
 
@@ -84,7 +84,7 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             type_assertion = assert_type(exchange, skipped_properties, entry, i, format)
             assert type_assertion, str(i) + ' index does not have an expected type ' + log_text
     else:
-        assert isinstance(entry, dict), 'entry is not an object' + log_text
+        assert exchange.is_dictionary(entry), 'entry is not a dict' + log_text
         keys = list(format.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -107,7 +107,7 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
                 type_assertion = assert_type(exchange, skipped_properties, entry, key, format)
                 assert type_assertion, '"' + string_value(key) + '" key is neither undefined, neither of expected type' + log_text
                 if deep:
-                    if isinstance(value, dict):
+                    if exchange.is_dictionary(value) or isinstance(value, list):
                         assert_structure(exchange, skipped_properties, method, value, format[key], empty_allowed_for, deep)
 
 
@@ -290,7 +290,7 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key, allow
         assert isinstance(entry, list), 'fee container is expected to be an array' + log_text
         assert key < len(entry), 'fee key ' + key_string + ' was expected to be present in entry' + log_text
     else:
-        assert isinstance(entry, dict), 'fee container is expected to be an object' + log_text
+        assert exchange.is_dictionary(entry), 'fee container is expected to be a dict' + log_text
         assert key in entry, 'fee key "' + key + '" was expected to be present in entry' + log_text
     fee_object = exchange.safe_value(entry, key)
     assert fee_object is not None or allow_null, 'fee object is null' + log_text
@@ -550,3 +550,12 @@ def deep_equal(exchange, a, b):
 def assert_deep_equal(exchange, skipped_properties, method, a, b):
     log_text = log_template(exchange, method, {})
     assert deep_equal(exchange, a, b), 'two dicts do not match: ' + json.dumps(a) + ' != ' + json.dumps(b) + log_text
+
+
+def exchange_prop(exchange, key, default_value=None):
+    value = exchange.get_property(exchange, str(key))
+    if value is not None:
+        return value
+    # try UpperCase key also, for other langs
+    key_upper = exchange.capitalize(str(key))
+    return exchange.get_property(exchange, key_upper, default_value)

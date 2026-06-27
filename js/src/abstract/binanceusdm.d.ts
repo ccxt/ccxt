@@ -773,6 +773,7 @@ interface binance {
     papiPostAssetCollection(params?: {}): Promise<implicitReturnType>;
     papiPostMarginRepayDebt(params?: {}): Promise<implicitReturnType>;
     papiPostUmFeeBurn(params?: {}): Promise<implicitReturnType>;
+    papiPostUmStockContract(params?: {}): Promise<implicitReturnType>;
     papiPutListenKey(params?: {}): Promise<implicitReturnType>;
     papiPutUmOrder(params?: {}): Promise<implicitReturnType>;
     papiPutCmOrder(params?: {}): Promise<implicitReturnType>;

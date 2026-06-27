@@ -16,7 +16,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
         $exchange = new \ccxt\async\bingx(array(
@@ -25,7 +24,7 @@ function example() {
         ));
         // exchange.setSandboxMode (true);
         // exchange.verbose = true; // uncomment for debugging purposes if necessary
-        Async\await($exchange->load_markets());
+        \React\Async\await($exchange->load_markets());
         $symbol = 'BTC/USDT:USDT';
         $order_type = 'market';
         $side = 'sell';
@@ -39,7 +38,7 @@ function example() {
             'trailingPercent' => $trailing_percent,
         );
         try {
-            $create_order = Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
+            $create_order = \React\Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
             // Alternatively use the createTrailingAmountOrder method:
             // const create_order = await exchange.createTrailingPercentOrder (symbol, order_type, side, amount, price, trailingPercent, trailingTriggerPrice, {
             //     'reduceOnly': reduceOnly,
@@ -52,4 +51,4 @@ function example() {
 }
 
 
-Async\await(example());
+\React\Async\await(example());

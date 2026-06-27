@@ -1,12 +1,12 @@
 
 // ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/hashkey.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, NullableDict, NullableList, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -174,7 +174,7 @@ export default class hashkey extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/6dd6127b-cc19-4a13-9b29-a98d81f80e98',
+                'logo': 'https://github.com/user-attachments/assets/3dd65db2-5da9-4ecc-93ac-6d420f36261c',
                 'api': {
                     'public': 'https://api-glb.hashkey.com',
                     'private': 'https://api-glb.hashkey.com',
@@ -857,8 +857,8 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const spotMarkets = this.safeList (response, 'symbols', []);
-        const swapMarkets = this.safeList (response, 'contracts', []);
+        const spotMarkets = this.safeList (response, 'symbols', []) as List;
+        const swapMarkets = this.safeList (response, 'contracts', []) as List;
         let markets = this.arrayConcat (spotMarkets, swapMarkets);
         if (this.isEmpty (markets)) {
             markets = [ response ]; // if user provides params.symbol the exchange returns a single object insted of list of objects
@@ -1036,7 +1036,7 @@ export default class hashkey extends Exchange {
         const status = this.safeString (market, 'status');
         const active = status === 'TRADING';
         let isLinear: Bool = undefined;
-        let subType = undefined;
+        let subType: SubType = undefined;
         const isInverse = this.safeBool (market, 'inverse');
         if (isInverse !== undefined) {
             if (isInverse) {
@@ -1047,7 +1047,7 @@ export default class hashkey extends Exchange {
                 subType = 'linear';
             }
         }
-        const filtersList = this.safeList (market, 'filters', []);
+        const filtersList = this.safeList (market, 'filters', []) as List;
         const filters = this.indexBy (filtersList, 'filterType');
         const priceFilter = this.safeDict (filters, 'PRICE_FILTER', {});
         const amountFilter = this.safeDict (filters, 'LOT_SIZE', {});
@@ -1174,65 +1174,64 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const result: Dict = {};
-        for (let i = 0; i < coins.length; i++) {
-            const currecy = coins[i];
-            const currencyId = this.safeString (currecy, 'coinId');
-            const code = this.safeCurrencyCode (currencyId);
-            const networks = this.safeList (currecy, 'chainTypes');
-            const parsedNetworks: Dict = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                const networkId = this.safeString (network, 'chainType');
-                const networkCode = this.networkCodeToId (networkId);
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (network, 'minWithdrawQuantity'),
-                            'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity'))),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (network, 'minDepositQuantity'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeBool (network, 'allowDeposit'),
-                    'withdraw': this.safeBool (network, 'allowWithdraw'),
-                    'fee': this.safeNumber (network, 'withdrawFee'),
-                    'precision': undefined,
-                    'info': network,
-                };
-            }
-            const rawType = this.safeString (currecy, 'tokenType');
-            const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
-            result[code] = this.safeCurrencyStructure ({
-                'id': currencyId,
-                'code': code,
-                'precision': undefined,
-                'type': type,
-                'name': this.safeString (currecy, 'coinFullName'),
-                'active': undefined,
-                'deposit': this.safeBool (currecy, 'allowDeposit'),
-                'withdraw': this.safeBool (currecy, 'allowWithdraw'),
-                'fee': undefined,
+        return this.parseCurrencies (coins);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'coinId');
+        const code = this.safeCurrencyCode (currencyId);
+        const networks = this.safeList (rawCurrency, 'chainTypes') as List;
+        const parsedNetworks: Dict = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = networks[j];
+            const networkId = this.safeString (network, 'chainType');
+            const networkCode = this.networkCodeToId (networkId, code);
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber (network, 'minWithdrawQuantity'),
+                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity'))),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (network, 'minDepositQuantity'),
                         'max': undefined,
                     },
                 },
-                'networks': parsedNetworks,
-                'info': currecy,
-            });
+                'active': undefined,
+                'deposit': this.safeBool (network, 'allowDeposit'),
+                'withdraw': this.safeBool (network, 'allowWithdraw'),
+                'fee': this.safeNumber (network, 'withdrawFee'),
+                'precision': undefined,
+                'info': network,
+            };
         }
-        return result;
+        const rawType = this.safeString (rawCurrency, 'tokenType');
+        const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'code': code,
+            'precision': undefined,
+            'type': type,
+            'name': this.safeString (rawCurrency, 'coinFullName'),
+            'active': undefined,
+            'deposit': this.safeBool (rawCurrency, 'allowDeposit'),
+            'withdraw': this.safeBool (rawCurrency, 'allowWithdraw'),
+            'fee': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': parsedNetworks,
+            'info': rawCurrency,
+        });
     }
 
     /**
@@ -1243,7 +1242,7 @@ export default class hashkey extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -1351,7 +1350,7 @@ export default class hashkey extends Exchange {
         }
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
-        let response = undefined;
+        let response: NullableList = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
@@ -1393,7 +1392,7 @@ export default class hashkey extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
             if (accountId !== undefined) {
                 request['subAccountId'] = accountId;
                 response = await this.privateGetApiV1FuturesSubAccountUserTrades (this.extend (request, params));
@@ -1422,7 +1421,7 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response as List, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1490,7 +1489,7 @@ export default class hashkey extends Exchange {
         if (isBuyer !== undefined) {
             side = isBuyer ? 'buy' : 'sell';
         }
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         const isMaker = this.safeBoolN (trade, [ 'isMaker', 'isMarker' ]);
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
@@ -1504,7 +1503,7 @@ export default class hashkey extends Exchange {
         let feeCost = this.safeString (trade, 'commission');
         let feeCurrncyId = this.safeString (trade, 'commissionAsset');
         const feeInfo = this.safeDict (trade, 'fee');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeInfo !== undefined) {
             feeCost = this.safeString (feeInfo, 'fee');
             feeCurrncyId = this.safeString (feeInfo, 'feeCoinId');
@@ -1555,7 +1554,7 @@ export default class hashkey extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
         const market = this.market (symbol);
-        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
+        timeframe = this.safeString (this.timeframes, timeframe, timeframe) as string;
         const request: Dict = {
             'symbol': market['id'],
             'interval': timeframe,
@@ -1745,7 +1744,7 @@ export default class hashkey extends Exchange {
             'symbol': market['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumber (entry, 'p'),
+            'price': this.safeNumber (entry, 'p') as number,
             'side': undefined,
             'info': entry,
         };
@@ -1827,7 +1826,7 @@ export default class hashkey extends Exchange {
         const result: Dict = {
             'info': balance,
         };
-        const balances = this.safeList (balance, 'balances', []);
+        const balances = this.safeList (balance, 'balances', []) as List;
         for (let i = 0; i < balances.length; i++) {
             const balanceEntry = balances[i];
             const currencyId = this.safeString (balanceEntry, 'asset');
@@ -2072,7 +2071,7 @@ export default class hashkey extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chainType'] = this.networkCodeToId (networkCode);
+            request['chainType'] = this.networkCodeToId (networkCode, currency['code']);
         }
         const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, params));
         //
@@ -2147,7 +2146,7 @@ export default class hashkey extends Exchange {
         const timestamp = this.safeInteger (transaction, 'time');
         const amount = this.safeNumber (transaction, 'quantity');
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -2357,12 +2356,12 @@ export default class hashkey extends Exchange {
             request['limit'] = limit;
         }
         request['endTime'] = until;
-        let flowType = undefined;
+        let flowType: Str = undefined;
         [ flowType, params ] = this.handleOptionAndParams (params, methodName, 'flowType');
         if (flowType !== undefined) {
             request['flowType'] = this.encodeFlowType (flowType);
         }
-        let accountType = undefined;
+        let accountType: Str = undefined;
         [ accountType, params ] = this.handleOptionAndParams (params, methodName, 'accountType');
         if (accountType !== undefined) {
             request['accountType'] = this.encodeAccountType (accountType);
@@ -2722,7 +2721,7 @@ export default class hashkey extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
             request['priceType'] = 'INPUT';
         }
-        let reduceOnly = false;
+        let reduceOnly: Bool = false;
         [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly', reduceOnly);
         let suffix = '_OPEN';
         if (reduceOnly) {
@@ -2811,7 +2810,7 @@ export default class hashkey extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const ordersRequests = [];
+        const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -2833,7 +2832,7 @@ export default class hashkey extends Exchange {
         const request: Dict = {
             'orders': ordersRequests,
         };
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             response = await this.privatePostApiV1SpotBatchOrders (this.extend (request, params));
             //
@@ -2903,8 +2902,8 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets');
         }
-        const result = this.safeList (response, 'result', []);
-        const responseOrders = [];
+        const result = this.safeList (response, 'result', []) as List;
+        const responseOrders: List = [];
         for (let i = 0; i < result.length; i++) {
             const responseEntry = this.safeDict (result, i, {});
             const responseOrder = this.safeDict (responseEntry, 'order', {});
@@ -2943,7 +2942,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
             //
@@ -3000,7 +2999,7 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        return this.parseOrder (response);
+        return this.parseOrder (response as Dict);
     }
 
     /**
@@ -3029,7 +3028,7 @@ export default class hashkey extends Exchange {
         if (side !== undefined) {
             request['side'] = side;
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
             //
@@ -3043,7 +3042,7 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
         }
-        const order = this.safeOrder (response);
+        const order = this.safeOrder (response as Dict);
         order['info'] = response;
         return [ order ];
     }
@@ -3072,9 +3071,9 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
-            response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request));
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds (request);
             //
             //     {
             //         "code": "0000",
@@ -3082,11 +3081,11 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else if (marketType === 'swap') {
-            response = this.privateDeleteApiV1FuturesCancelOrderByIds (this.extend (request));
+            response = await this.privateDeleteApiV1FuturesCancelOrderByIds (request);
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        const order = this.safeOrder (response);
+        const order = this.safeOrder (response as Dict);
         order['info'] = response;
         return [ order ];
     }
@@ -3123,7 +3122,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             if (clientOrderId !== undefined) {
                 request['origClientOrderId'] = clientOrderId;
@@ -3191,7 +3190,7 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        return this.parseOrder (response);
+        return this.parseOrder (response as Dict);
     }
 
     /**
@@ -3257,7 +3256,7 @@ export default class hashkey extends Exchange {
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         let market: Market = undefined;
         const request: Dict = {};
-        let response = undefined;
+        let response: NullableDict = undefined;
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
@@ -3301,7 +3300,7 @@ export default class hashkey extends Exchange {
             //     ]
             //
         }
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (response as Dict, market, since, limit);
     }
 
     /**
@@ -3341,7 +3340,7 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
@@ -3393,7 +3392,7 @@ export default class hashkey extends Exchange {
             //         }
             //     ]
         }
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (response as Dict, market, since, limit);
     }
 
     /**
@@ -3441,7 +3440,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
@@ -3483,7 +3482,7 @@ export default class hashkey extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
             let isTrigger = false;
             [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
             if (isTrigger) {
@@ -3525,7 +3524,7 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (response as Dict, market, since, limit);
     }
 
     checkTypeParam (methodName, params) {
@@ -3663,7 +3662,7 @@ export default class hashkey extends Exchange {
         if (priceType === 'MARKET') {
             type = 'market';
         }
-        let price = this.omitZero (this.safeString (order, 'price'));
+        let price = this.omitZero (this.safeString (order, 'price') as string);
         if (type === 'STOP') {
             if (price === undefined) {
                 type = 'market';
@@ -3674,7 +3673,7 @@ export default class hashkey extends Exchange {
         let timeInForce = this.safeString (order, 'timeInForce');
         let postOnly: Bool = undefined;
         [ type, timeInForce, postOnly ] = this.parseOrderTypeTimeInForceAndPostOnly (type, timeInForce);
-        const average = this.omitZero (this.safeString (order, 'avgPrice'));
+        const average = this.omitZero (this.safeString (order, 'avgPrice') as string);
         if (price === undefined) {
             price = average;
         }
@@ -3699,17 +3698,17 @@ export default class hashkey extends Exchange {
             'side': side,
             'price': price,
             'average': average,
-            'amount': this.omitZero (this.safeString (order, 'origQty')),
+            'amount': this.omitZero (this.safeString (order, 'origQty') as string),
             'filled': this.safeString (order, 'executedQty'),
             'remaining': undefined,
-            'triggerPrice': this.omitZero (this.safeString (order, 'stopPrice')),
+            'triggerPrice': this.omitZero (this.safeString (order, 'stopPrice') as string),
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
-            'cost': this.omitZero (this.safeString2 (order, 'cumulativeQuoteQty', 'cummulativeQuoteQty')),
+            'cost': this.omitZero (this.safeString2 (order, 'cumulativeQuoteQty', 'cummulativeQuoteQty') as string),
             'trades': undefined,
             'fee': {
                 'currency': this.safeCurrencyCode (feeCurrncyId),
-                'amount': this.omitZero (this.safeString (order, 'feeAmount')),
+                'amount': this.omitZero (this.safeString (order, 'feeAmount') as string),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
@@ -3891,7 +3890,7 @@ export default class hashkey extends Exchange {
         //         ...
         //     ]
         //
-        const rates = [];
+        const rates: List = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const timestamp = this.safeInteger (entry, 'settleTime');
@@ -4040,7 +4039,7 @@ export default class hashkey extends Exchange {
         //         }
         //     ]
         //
-        const leverage = this.safeDict (response, 0, {});
+        const leverage = this.safeDict (response, 0, {}) as Dict;
         return this.parseLeverage (leverage, market);
     }
 
@@ -4049,7 +4048,7 @@ export default class hashkey extends Exchange {
         const leverageValue = this.safeNumber (leverage, 'leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -4183,10 +4182,10 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const riskLimits = this.safeList (info, 'riskLimits', []);
+        const riskLimits = this.safeList (info, 'riskLimits', []) as List;
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
-        const tiers = [];
+        const tiers: List = [];
         for (let i = 0; i < riskLimits.length; i++) {
             const tier = riskLimits[i];
             const initialMarginRate = this.safeString (tier, 'initialMargin');
@@ -4218,13 +4217,13 @@ export default class hashkey extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const methodName = 'fetchTradingFee';
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             response = await this.fetchTradingFees (params);
             return this.safeDict (response, symbol) as TradingFeeInterface;
         } else if (market['swap']) {
             response = await this.privateGetApiV1FuturesCommissionRate (this.extend ({ 'symbol': market['id'] }, params));
-            return this.parseTradingFee (response, market);
+            return this.parseTradingFee (response as Dict, market);
             //
             //     {
             //         "openMakerFee": "0.00025",
@@ -4271,12 +4270,12 @@ export default class hashkey extends Exchange {
         //         "updateTimestamp": "1722320137809"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const fee = this.safeDict (data, i, {});
+            const fee = this.safeDict (data, i, {}) as Dict;
             const parsedFee = this.parseTradingFee (fee);
-            result[parsedFee['symbol']] = parsedFee;
+            result[parsedFee['symbol'] as string] = parsedFee;
         }
         return result;
     }
@@ -4315,7 +4314,7 @@ export default class hashkey extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         let query: Str = undefined;
         if (api === 'private') {
@@ -4372,10 +4371,10 @@ export default class hashkey extends Exchange {
             return undefined;
         }
         let errorInArray = false;
-        let responseCodeString = this.safeString (response, 'code', undefined);
-        const responseCodeInteger = this.safeInteger (response, 'code', undefined); // some codes in response are returned as '0000' others as 0
+        let responseCodeString = this.safeString (response, 'code');
+        const responseCodeInteger = this.safeInteger (response, 'code'); // some codes in response are returned as '0000' others as 0
         if (responseCodeInteger === 0) {
-            const result = this.safeList (response, 'result', []); // for batch methods
+            const result = this.safeList (response, 'result', []) as List; // for batch methods
             for (let i = 0; i < result.length; i++) {
                 const entry = this.safeDict (result, i);
                 const entryCodeInteger = this.safeInteger (entry, 'code');

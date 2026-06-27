@@ -1,8 +1,5 @@
-- [Shared Markets](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -54,5 +51,5 @@ if (file_exists($markets_on_disk)) {
 }
 
 $exchange->fetch_ticker('ETH/BTC');
- 
+
 ```

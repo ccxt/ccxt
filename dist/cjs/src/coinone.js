@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinone$1 = require('./abstract/coinone.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class coinone extends coinone$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
-            'countries': ['KR'],
+            'countries': ['KR'], // Korea
             'rateLimit': 50,
             'version': 'v2',
             'pro': false,
@@ -53,7 +53,7 @@ class coinone extends coinone$1["default"] {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -254,9 +254,9 @@ class coinone extends coinone$1["default"] {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'limit': 100, // todo implement
+                        'daysBack': 100000, // todo implement
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -273,7 +273,7 @@ class coinone extends coinone$1["default"] {
                         'symbolRequired': true,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined, // todo implement
                 },
                 'swap': {
@@ -327,40 +327,38 @@ class coinone extends coinone$1["default"] {
         //         ]
         //     }
         //
-        const result = {};
         const currencies = this.safeList(response, 'currencies', []);
-        for (let i = 0; i < currencies.length; i++) {
-            const entry = currencies[i];
-            const id = this.safeString(entry, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const isWithdrawEnabled = this.safeString(entry, 'withdraw_status', '') === 'normal';
-            const isDepositEnabled = this.safeString(entry, 'deposit_status', '') === 'normal';
-            const type = (code !== 'KRW') ? 'crypto' : 'fiat';
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': entry,
-                'name': this.safeString(entry, 'name'),
-                'active': undefined,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': this.safeNumber(entry, 'withdrawal_fee'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'max_precision'))),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber(entry, 'withdrawal_min_amount'),
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const isWithdrawEnabled = this.safeString(rawCurrency, 'withdraw_status', '') === 'normal';
+        const isDepositEnabled = this.safeString(rawCurrency, 'deposit_status', '') === 'normal';
+        const type = (code !== 'KRW') ? 'crypto' : 'fiat';
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': this.safeString(rawCurrency, 'name'),
+            'active': undefined,
+            'deposit': isDepositEnabled,
+            'withdraw': isWithdrawEnabled,
+            'fee': this.safeNumber(rawCurrency, 'withdrawal_fee'),
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'max_precision'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': {},
-                'type': type,
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': this.safeNumber(rawCurrency, 'withdrawal_min_amount'),
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+            'type': type,
+        });
     }
     /**
      * @method
@@ -510,7 +508,7 @@ class coinone extends coinone$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1131,14 +1129,12 @@ class coinone extends coinone$1["default"] {
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            // eslint-disable-next-line quotes
             throw new errors.ArgumentsRequired(this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
         }
         const price = this.safeNumber(params, 'price');
         const qty = this.safeNumber(params, 'qty');
         const isAsk = this.safeInteger(params, 'is_ask');
         if ((price === undefined) || (qty === undefined) || (isAsk === undefined)) {
-            // eslint-disable-next-line quotes
             throw new errors.ArgumentsRequired(this.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
         }
         await this.loadMarkets();
@@ -1249,7 +1245,7 @@ class coinone extends coinone$1["default"] {
             const payload = this.stringToBase64(json);
             body = payload;
             const secret = this.secret.toUpperCase();
-            const signature = this.hmac(this.encode(payload), this.encode(secret), sha512.sha512);
+            const signature = this.hmac(this.encode(payload), this.encode(secret), sha2_js.sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

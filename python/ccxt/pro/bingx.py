@@ -116,7 +116,7 @@ class bingx(ccxt.async_support.bingx):
         else:
             url = self.safe_string(self.urls['api']['ws'], marketType)
         id = self.uuid()
-        request: dict = {
+        request = {
             'id': id,
             'dataType': dataType,
             'reqType': 'unsub',
@@ -124,7 +124,7 @@ class bingx(ccxt.async_support.bingx):
         symbols = []
         if market is not None:
             symbols.append(market['symbol'])
-        subscription: dict = {
+        subscription = {
             'unsubscribe': True,
             'id': id,
             'subMessageHashes': [subMessageHash],
@@ -164,13 +164,13 @@ class bingx(ccxt.async_support.bingx):
         dataType = market['id'] + '@ticker'
         messageHash = self.get_message_hash('ticker', market['symbol'])
         uuid = self.uuid()
-        request: dict = {
+        request = {
             'id': uuid,
             'dataType': dataType,
         }
         if marketType == 'swap':
             request['reqType'] = 'sub'
-        subscription: dict = {
+        subscription = {
             'unsubscribe': False,
             'id': uuid,
         }
@@ -265,7 +265,7 @@ class bingx(ccxt.async_support.bingx):
         if self.safe_string(message, 'dataType') == 'all@ticker':
             client.resolve(ticker, self.get_message_hash('ticker'))
 
-    def parse_ws_ticker(self, message, market=None):
+    def parse_ws_ticker(self, message, market: Market = None):
         #
         #     {
         #         "e": "24hTicker",
@@ -330,7 +330,7 @@ class bingx(ccxt.async_support.bingx):
         if symbol is not None:
             hash += '::' + symbol
         else:
-            hash += 's'  # tickers, orderbooks, ohlcvs ...
+            hash += 's'  # tickers, orderbooks, ohlcvs, etc ...
         if extra is not None:
             hash += '::' + extra
         return hash
@@ -364,13 +364,13 @@ class bingx(ccxt.async_support.bingx):
         rawHash = market['id'] + '@trade'
         messageHash = 'trade::' + symbol
         uuid = self.uuid()
-        request: dict = {
+        request = {
             'id': uuid,
             'dataType': rawHash,
         }
         if marketType == 'swap':
             request['reqType'] = 'sub'
-        subscription: dict = {
+        subscription = {
             'unsubscribe': False,
             'id': uuid,
         }
@@ -489,14 +489,14 @@ class bingx(ccxt.async_support.bingx):
         #     }
         #
         data = self.safe_value(message, 'data', [])
-        rawHash = self.safe_string(message, 'dataType')
+        rawHash = self.safe_string(message, 'dataType', '')
         marketId = rawHash.split('@')[0]
         isSwap = client.url.find('swap') >= 0
         marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'trade::' + symbol
-        trades = None
+        trades: List[Trade]
         if isinstance(data, list):
             trades = self.parse_trades(data, market)
         else:
@@ -521,7 +521,7 @@ class bingx(ccxt.async_support.bingx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -539,13 +539,13 @@ class bingx(ccxt.async_support.bingx):
         subscriptionHash = market['id'] + '@' + 'depth' + self.number_to_string(depth)
         messageHash = self.get_message_hash('orderbook', market['symbol'])
         uuid = self.uuid()
-        request: dict = {
+        request = {
             'id': uuid,
             'dataType': subscriptionHash,
         }
         if marketType == 'swap':
             request['reqType'] = 'sub'
-        subscriptionArgs: dict = {}
+        subscriptionArgs = {}
         if market['inverse']:
             subscriptionArgs = {
                 'id': uuid,
@@ -573,7 +573,7 @@ class bingx(ccxt.async_support.bingx):
 
         :param str symbol: unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -659,7 +659,7 @@ class bingx(ccxt.async_support.bingx):
         #     }
         #
         data = self.safe_dict(message, 'data', {})
-        dataType = self.safe_string(message, 'dataType')
+        dataType = self.safe_string(message, 'dataType', '')
         parts = dataType.split('@')
         firstPart = parts[0]
         isAllEndpoint = (firstPart == 'all')
@@ -673,10 +673,12 @@ class bingx(ccxt.async_support.bingx):
             # limit = [5, 10, 20, 50, 100]
             subscriptionHash = dataType
             subscription = client.subscriptions[subscriptionHash]
-            limit = self.safe_integer(subscription, 'limit')
+            # see handleOHLCV — subscription.limit may be missing for non-orderbook callers
+            # default to a reasonable depth instead of throwing NPE in the Java port.
+            limit = self.safe_integer(subscription, 'limit', 100)
             self.orderbooks[symbol] = self.order_book({}, limit)
         orderbook = self.orderbooks[symbol]
-        snapshot = None
+        snapshot: OrderBook
         timestamp = self.safe_integer_2(message, 'timestamp', 'ts')
         timestamp = self.safe_integer_2(data, 'timestamp', 'ts', timestamp)
         if market['inverse']:
@@ -693,7 +695,7 @@ class bingx(ccxt.async_support.bingx):
             messageHashForAll = self.get_message_hash('orderbook')
             client.resolve(orderbook, messageHashForAll)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #    {
         #        "c": "28909.0",
@@ -707,9 +709,9 @@ class bingx(ccxt.async_support.bingx):
         #
         # for spot, opening-time(t) is used instead of closing-time(T), to be compatible with fetchOHLCV
         # for linear swap,(T) is the opening time
-        timestamp = 't' if (market['spot']) else 'T'
-        if market['swap']:
-            timestamp = 't' if (market['inverse']) else 'T'
+        timestamp = 't' if self.safe_bool(market, 'spot') else 'T'
+        if self.safe_bool(market, 'swap'):
+            timestamp = 't' if self.safe_bool(market, 'inverse') else 'T'
         return [
             self.safe_integer(ohlcv, timestamp),
             self.safe_number(ohlcv, 'o'),
@@ -785,7 +787,7 @@ class bingx(ccxt.async_support.bingx):
         #     }
         #
         isSwap = client.url.find('swap') >= 0
-        dataType = self.safe_string(message, 'dataType')
+        dataType = self.safe_string(message, 'dataType', '')
         parts = dataType.split('@')
         firstPart = parts[0]
         isAllEndpoint = (firstPart == 'all')
@@ -810,7 +812,10 @@ class bingx(ccxt.async_support.bingx):
         if self.safe_value(self.ohlcvs[symbol], rawTimeframe) is None:
             subscriptionHash = dataType
             subscription = client.subscriptions[subscriptionHash]
-            limit = self.safe_integer(subscription, 'limit')
+            # subscription.limit is only set when watchOHLCV registers the subscription
+            # when handleMessage routes a non-OHLCV-originated subscription here(or the
+            # subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
+            limit = self.safe_integer(subscription, 'limit', self.safe_integer(self.options, 'OHLCVLimit', 1000))
             self.ohlcvs[symbol][unifiedTimeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][unifiedTimeframe]
         for i in range(0, len(candles)):
@@ -859,13 +864,13 @@ class bingx(ccxt.async_support.bingx):
         messageHash = self.get_message_hash('ohlcv', market['symbol'], timeframe)
         subscriptionHash = market['id'] + '@kline_' + rawTimeframe
         uuid = self.uuid()
-        request: dict = {
+        request = {
             'id': uuid,
             'dataType': subscriptionHash,
         }
         if marketType == 'swap':
             request['reqType'] = 'sub'
-        subscriptionArgs: dict = {
+        subscriptionArgs = {
             'id': uuid,
             'unsubscribe': False,
             'interval': rawTimeframe,
@@ -938,7 +943,7 @@ class bingx(ccxt.async_support.bingx):
             messageHash += ':' + symbol
         uuid = self.uuid()
         baseUrl = None
-        request = None
+        request = {}
         if type == 'swap':
             if subType == 'inverse':
                 raise NotSupported(self.id + ' watchOrders is not supported for inverse swap markets yet')
@@ -951,7 +956,7 @@ class bingx(ccxt.async_support.bingx):
                 'dataType': 'spot.executionReport',
             }
         url = baseUrl + '?listenKey=' + self.options['listenKey']
-        subscription: dict = {
+        subscription = {
             'unsubscribe': False,
             'id': uuid,
         }
@@ -995,7 +1000,7 @@ class bingx(ccxt.async_support.bingx):
             messageHash += ':' + symbol
         uuid = self.uuid()
         baseUrl = None
-        request = None
+        request = {}
         if type == 'swap':
             if subType == 'inverse':
                 raise NotSupported(self.id + ' watchMyTrades is not supported for inverse swap markets yet')
@@ -1008,7 +1013,7 @@ class bingx(ccxt.async_support.bingx):
                 'dataType': 'spot.executionReport',
             }
         url = baseUrl + '?listenKey=' + self.options['listenKey']
-        subscription: dict = {
+        subscription = {
             'unsubscribe': False,
             'id': uuid,
         }
@@ -1041,7 +1046,7 @@ class bingx(ccxt.async_support.bingx):
         swapMessageHash = 'swap:balance'
         messageHash = spotMessageHash if isSpot else swapMessageHash
         subscriptionHash = spotSubHash if isSpot else swapSubHash
-        request = None
+        request = {}
         baseUrl = None
         uuid = self.uuid()
         if type == 'swap':
@@ -1063,7 +1068,7 @@ class bingx(ccxt.async_support.bingx):
         awaitBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'awaitBalanceSnapshot', False)
         if fetchBalanceSnapshot and awaitBalanceSnapshot:
             await client.future(type + ':fetchBalanceSnapshot')
-        subscription: dict = {
+        subscription = {
             'unsubscribe': False,
             'id': uuid,
         }
@@ -1107,7 +1112,7 @@ class bingx(ccxt.async_support.bingx):
         market = None
         messageHash = ''
         symbols = self.market_symbols(symbols)
-        if not self.is_empty(symbols):
+        if (symbols is not None) and not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
             messageHash = '::' + ','.join(symbols)
         type = None
@@ -1129,7 +1134,7 @@ class bingx(ccxt.async_support.bingx):
         fetchPositionsSnapshot, params = self.handle_option_and_params(params, 'watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot, params = self.handle_option_and_params(params, 'watchPositions', 'awaitPositionsSnapshot', False)
         uuid = self.uuid()
-        subscription: dict = {
+        subscription = {
             'unsubscribe': False,
             'id': uuid,
         }

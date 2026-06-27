@@ -75,13 +75,13 @@ class aftermath(ccxt.async_support.aftermath):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@trade'
-        request: dict = {
+        request = {
             'chId': market['id'],
         }
         message = self.extend(request, params)
@@ -129,13 +129,13 @@ class aftermath(ccxt.async_support.aftermath):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@orderbook'
-        request: dict = {
+        request = {
             'chId': market['id'],
         }
         message = self.extend(request, params)
@@ -336,7 +336,7 @@ class aftermath(ccxt.async_support.aftermath):
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
-        # methods: Dict = {
+        # methods = {
         #     'trade': self.handle_trade,
         # }
         if 'asks' in message:

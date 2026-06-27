@@ -44,7 +44,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-btcmarkets.fetchDepositsWithdrawals ([code, since, limit, params])
+btcmarkets.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -67,7 +67,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-btcmarkets.fetchDeposits (code[, since, limit, params])
+btcmarkets.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -90,7 +90,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-btcmarkets.fetchWithdrawals (code[, since, limit, params])
+btcmarkets.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -110,7 +110,7 @@ retrieves data on all markets for btcmarkets
 
 
 ```javascript
-btcmarkets.fetchMarkets ([params])
+btcmarkets.fetchMarkets (params?)
 ```
 
 
@@ -130,7 +130,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-btcmarkets.fetchTime ([params])
+btcmarkets.fetchTime (params?)
 ```
 
 
@@ -150,7 +150,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-btcmarkets.fetchBalance ([params])
+btcmarkets.fetchBalance (params?)
 ```
 
 
@@ -174,7 +174,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-btcmarkets.fetchOHLCV (symbol, timeframe[, since, limit, params])
+btcmarkets.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -184,7 +184,7 @@ btcmarkets.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>btcmarkets</code>](#btcmarkets)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1orderbook/get  
 
@@ -196,7 +196,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-btcmarkets.fetchOrderBook (symbol[, limit, params])
+btcmarkets.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -217,7 +217,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-btcmarkets.fetchTicker (symbol[, params])
+btcmarkets.fetchTicker (symbol, params?)
 ```
 
 
@@ -240,7 +240,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-btcmarkets.fetchTrades (symbol[, since, limit, params])
+btcmarkets.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -266,7 +266,7 @@ create a trade order
 
 
 ```javascript
-btcmarkets.createOrder (symbol, type, side, amount[, price, params])
+btcmarkets.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -288,7 +288,7 @@ cancel multiple orders
 
 
 ```javascript
-btcmarkets.cancelOrders (ids, symbol[, params])
+btcmarkets.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -310,7 +310,7 @@ cancels an open order
 
 
 ```javascript
-btcmarkets.cancelOrder (id, symbol[, params])
+btcmarkets.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -332,7 +332,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-btcmarkets.fetchOrder (id, symbol[, params])
+btcmarkets.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -355,7 +355,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-btcmarkets.fetchOrders (symbol[, since, limit, params])
+btcmarkets.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -378,7 +378,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-btcmarkets.fetchOpenOrders (symbol[, since, limit, params])
+btcmarkets.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -401,7 +401,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-btcmarkets.fetchClosedOrders (symbol[, since, limit, params])
+btcmarkets.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -424,7 +424,7 @@ fetch all trades made by the user
 
 
 ```javascript
-btcmarkets.fetchMyTrades (symbol[, since, limit, params])
+btcmarkets.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -448,6 +448,6 @@ make a withdrawal
 
 
 ```javascript
-btcmarkets.withdraw (code, amount, address, tag[, params])
+btcmarkets.withdraw (code, amount, address, tag, params?)
 ```
 

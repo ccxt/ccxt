@@ -90,8 +90,7 @@ public partial class apex : ccxt.apex
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        object timeStamp = ((object)this.milliseconds()).ToString();
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+        object url = this.getWsPublicUrl();
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -208,7 +207,7 @@ public partial class apex : ccxt.apex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -224,7 +223,7 @@ public partial class apex : ccxt.apex
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -236,8 +235,7 @@ public partial class apex : ccxt.apex
             throw new ArgumentsRequired ((string)add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
         symbols = this.marketSymbols(symbols);
-        object timeStamp = ((object)this.milliseconds()).ToString();
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+        object url = this.getWsPublicUrl();
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -259,13 +257,61 @@ public partial class apex : ccxt.apex
 
     public async virtual Task<object> watchTopics(object url, object messageHashes, object topics, object parameters = null)
     {
+        // apex's server rejects a subscribe whose args include any
+        // already-subscribed topic ("topic:already subscribed ..."). Since the
+        // connection is now reused across watch* calls, filter to only the
+        // topics whose messageHash isn't yet tracked on this client; if all
+        // are already subscribed, skip the subscribe entirely.
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
-            { "op", "subscribe" },
-            { "args", topics },
-        };
-        object message = this.extend(request, parameters);
+        var client = this.client(url);
+        object newTopics = new List<object>() {};
+        object newTopicsCount = 0;
+        for (object i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
+        {
+            if (!isTrue((inOp(((WebSocketClient)client).subscriptions, getValue(messageHashes, i)))))
+            {
+                ((IList<object>)newTopics).Add(getValue(topics, i));
+                newTopicsCount = add(newTopicsCount, 1);
+            }
+        }
+        object message = null;
+        if (isTrue(isGreaterThan(newTopicsCount, 0)))
+        {
+            object request = new Dictionary<string, object>() {
+                { "op", "subscribe" },
+                { "args", newTopics },
+            };
+            message = this.extend(request, parameters);
+        }
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
+    }
+
+    public virtual object getWsPublicUrl()
+    {
+        // apex appends a millisecond timestamp to the WS URL for connection-time
+        // signing. CCXT's client manager keys clients by URL, so recomputing the
+        // timestamp on every watch* call would open a new connection each time.
+        // Cache it per exchange instance.
+        object url = this.safeString(this.options, "wsPublicUrl");
+        if (isTrue(isEqual(url, null)))
+        {
+            object timeStamp = ((object)this.milliseconds()).ToString();
+            url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+            ((IDictionary<string,object>)this.options)["wsPublicUrl"] = url;
+        }
+        return url;
+    }
+
+    public virtual object getWsPrivateUrl()
+    {
+        object url = this.safeString(this.options, "wsPrivateUrl");
+        if (isTrue(isEqual(url, null)))
+        {
+            object timeStamp = ((object)this.milliseconds()).ToString();
+            url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "&timestamp="), timeStamp);
+            ((IDictionary<string,object>)this.options)["wsPrivateUrl"] = url;
+        }
+        return url;
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -335,7 +381,7 @@ public partial class apex : ccxt.apex
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, 0, 1);
+        object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -362,8 +408,7 @@ public partial class apex : ccxt.apex
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object timeStamp = ((object)this.milliseconds()).ToString();
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+        object url = this.getWsPublicUrl();
         object messageHash = add("ticker:", symbol);
         object topic = add(add("instrumentInfo", ".H."), getValue(market, "id2"));
         object topics = new List<object>() {topic};
@@ -385,8 +430,7 @@ public partial class apex : ccxt.apex
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
-        object timeStamp = ((object)this.milliseconds()).ToString();
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+        object url = this.getWsPublicUrl();
         object topics = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -495,8 +539,7 @@ public partial class apex : ccxt.apex
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object timeStamp = ((object)this.milliseconds()).ToString();
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+        object url = this.getWsPublicUrl();
         object rawHashes = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
@@ -619,8 +662,7 @@ public partial class apex : ccxt.apex
             symbol = this.symbol(symbol);
             messageHash = add(messageHash, add(":", symbol));
         }
-        object timeStamp = ((object)this.milliseconds()).ToString();
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "&timestamp="), timeStamp);
+        object url = this.getWsPrivateUrl();
         await this.authenticate(url);
         object trades = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {"myTrades"}, parameters);
         if (isTrue(this.newUpdates))
@@ -651,8 +693,7 @@ public partial class apex : ccxt.apex
             symbols = this.marketSymbols(symbols);
             messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
-        object timeStamp = ((object)this.milliseconds()).ToString();
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "&timestamp="), timeStamp);
+        object url = this.getWsPrivateUrl();
         messageHash = add("positions", messageHash);
         var client = this.client(url);
         await this.authenticate(url);
@@ -693,8 +734,7 @@ public partial class apex : ccxt.apex
             symbol = this.symbol(symbol);
             messageHash = add(messageHash, add(":", symbol));
         }
-        object timeStamp = ((object)this.milliseconds()).ToString();
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "&timestamp="), timeStamp);
+        object url = this.getWsPrivateUrl();
         await this.authenticate(url);
         object topics = new List<object>() {"orders"};
         object orders = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
@@ -824,7 +864,7 @@ public partial class apex : ccxt.apex
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        object fetchFunctions = new List<object> {this.fetchPositions(null)};
+        object fetchFunctions = new List<object> {this.fetchPositions()};
         object promises = await promiseAll(fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
@@ -1012,6 +1052,16 @@ public partial class apex : ccxt.apex
                 object ret_msg = this.safeString(message, "ret_msg");
                 object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
                 object op = this.safeString(request, "op");
+                // Benign re-subscribe notice (same shape as bitmart 90008 /
+                // krakenfutures "Already subscribed"): the original subscription
+                // is still active and delivering data on this socket. Without
+                // this short-circuit the catch-clause's `((WebSocketClient)client).reject(error,
+                // messageHash)` rejects every in-flight future on the connection
+                // because apex doesn't echo a `reqId` on these warnings.
+                if (isTrue(isTrue(!isEqual(ret_msg, null)) && isTrue(isGreaterThanOrEqual(getIndexOf(ret_msg, "already subscribed"), 0))))
+                {
+                    return false;
+                }
                 if (isTrue(isEqual(op, "auth")))
                 {
                     throw new AuthenticationError ((string)add("Authentication failed: ", ret_msg)) ;

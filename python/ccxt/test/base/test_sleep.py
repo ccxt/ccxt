@@ -26,5 +26,8 @@ async def test_sleep():
     # Allow a small margin of error due to execution time
     margin_of_error = 20
     max_elapsed = sleep_amount + margin_of_error
-    assert elapsed >= sleep_amount, 'Elapsed time ' + str(elapsed) + 'ms is less than sleep amount ' + str(sleep_amount) + 'ms'
-    assert elapsed <= max_elapsed, 'Elapsed time ' + str(elapsed) + 'ms exceeds sleep amount ' + str(max_elapsed) + 'ms'
+    elapsed_bigger_than_sleep = elapsed >= sleep_amount
+    elapsed_less_than_max = elapsed <= max_elapsed
+    assert elapsed_bigger_than_sleep, 'Elapsed time ' + str(elapsed) + 'ms is less than sleep amount ' + str(sleep_amount) + 'ms'
+    assert elapsed_less_than_max, 'Elapsed time ' + str(elapsed) + 'ms exceeds sleep amount ' + str(max_elapsed) + 'ms'
+    return True

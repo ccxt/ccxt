@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
+import { sha384 } from '@noble/hashes/sha2.js';
 import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 // ----------------------------------------------------------------------------
 export default class bitopro extends bitoproRest {
     describe() {
@@ -60,7 +60,7 @@ export default class bitopro extends bitoproRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
@@ -359,7 +359,7 @@ export default class bitopro extends bitoproRest {
         //
         const marketId = this.safeString(message, 'pair');
         // market-ids are lowercase in REST API and uppercase in WS API
-        const market = this.safeMarket(marketId.toLowerCase(), undefined, '_');
+        const market = this.safeMarket(marketId !== undefined ? marketId.toLowerCase() : undefined, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
         const messageHash = event + ':' + symbol;

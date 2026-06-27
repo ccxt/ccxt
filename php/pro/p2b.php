@@ -8,11 +8,10 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\BadRequest;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class p2b extends \ccxt\async\p2b {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -65,7 +64,7 @@ class p2b extends \ccxt\async\p2b {
         ));
     }
 
-    public function subscribe(string $name, string $messageHash, $request, $params = array ()) {
+    public function subscribe(string $name, string $messageHash, $request, $params = array()) {
         return Async\async(function () use ($name, $messageHash, $request, $params) {
             /**
              * @ignore
@@ -84,10 +83,10 @@ class p2b extends \ccxt\async\p2b {
             );
             $query = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $query, $messageHash));
-        }) ();
+        })();
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '15m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '15m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market-> Can only subscribe to one $timeframe at a time for each $symbol
@@ -108,20 +107,20 @@ class p2b extends \ccxt\async\p2b {
                 throw new BadRequest($this->id . ' watchOHLCV cannot take a $timeframe of ' . $timeframe);
             }
             $market = $this->market($symbol);
-            $request = [
+            $request = array(
                 $market['id'],
                 $channel,
-            ];
+            );
             $messageHash = 'kline::' . $market['symbol'];
             $ohlcv = Async\await($this->subscribe('kline.subscribe', $messageHash, $request, $params));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -145,10 +144,10 @@ class p2b extends \ccxt\async\p2b {
             $request = is_array($tickerSubs) ? array_keys($tickerSubs) : array();
             $messageHash = $name . '::' . $market['symbol'];
             return Async\await($this->subscribe($name . '.subscribe', $messageHash, $request, $params));
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -181,10 +180,10 @@ class p2b extends \ccxt\async\p2b {
             );
             Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -198,10 +197,10 @@ class p2b extends \ccxt\async\p2b {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
@@ -234,13 +233,13 @@ class p2b extends \ccxt\async\p2b {
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit ($tradeSymbol, $limit);
+                $limit = $trades->getLimit($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -251,7 +250,7 @@ class p2b extends \ccxt\async\p2b {
              * @param {int} [$limit] 1-100, default=100
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, $interval of precision for order, default=0.001
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -261,14 +260,14 @@ class p2b extends \ccxt\async\p2b {
             if ($limit === null) {
                 $limit = 100;
             }
-            $request = [
+            $request = array(
                 $market['id'],
                 $limit,
                 $interval,
-            ];
+            );
             $orderbook = Async\await($this->subscribe($name, $messageHash, $request, $params));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -307,11 +306,11 @@ class p2b extends \ccxt\async\p2b {
         if ($symbol !== null) {
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCacheByTimestamp ($limit);
+                $stored = new ArrayCacheByTimestamp($limit);
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
-            $stored->append ($parsed);
-            $client->resolve ($stored, $messageHash);
+            $stored->append($parsed);
+            $client->resolve($stored, $messageHash);
         }
         return $message;
     }
@@ -344,16 +343,16 @@ class p2b extends \ccxt\async\p2b {
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
             $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $tradesArray = new ArrayCache ($tradesLimit);
+            $tradesArray = new ArrayCache($tradesLimit);
             $this->trades[$symbol] = $tradesArray;
         }
         for ($i = 0; $i < count($trades); $i++) {
             $item = $trades[$i];
             $trade = $this->parse_trade($item, $market);
-            $tradesArray->append ($trade);
+            $tradesArray->append($trade);
         }
         $messageHash = 'deals::' . $symbol;
-        $client->resolve ($tradesArray, $messageHash);
+        $client->resolve($tradesArray, $messageHash);
         return $message;
     }
 
@@ -397,7 +396,6 @@ class p2b extends \ccxt\async\p2b {
         $splitMethod = explode('.', $method);
         $messageHashStart = $this->safe_string($splitMethod, 0);
         $tickerData = $this->safe_dict($data, 1);
-        $ticker = null;
         if ($method === 'price.update') {
             $lastPrice = $this->safe_string($data, 1);
             $ticker = $this->safe_ticker(array(
@@ -411,7 +409,7 @@ class p2b extends \ccxt\async\p2b {
         $symbol = $ticker['symbol'];
         $this->tickers[$symbol] = $ticker;
         $messageHash = $messageHashStart . '::' . $symbol;
-        $client->resolve ($ticker, $messageHash);
+        $client->resolve($ticker, $messageHash);
         return $message;
     }
 
@@ -455,7 +453,7 @@ class p2b extends \ccxt\async\p2b {
                 $price = $this->safe_number($bid, 0);
                 $amount = $this->safe_number($bid, 1);
                 $bookSide = $orderbook['bids'];
-                $bookSide->store ($price, $amount);
+                $bookSide->store($price, $amount);
             }
         }
         if ($asks !== null) {
@@ -464,11 +462,11 @@ class p2b extends \ccxt\async\p2b {
                 $price = $this->safe_number($ask, 0);
                 $amount = $this->safe_number($ask, 1);
                 $bookside = $orderbook['asks'];
-                $bookside->store ($price, $amount);
+                $bookside->store($price, $amount);
             }
         }
         $orderbook['symbol'] = $symbol;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
     public function handle_message(Client $client, $message) {
@@ -494,7 +492,7 @@ class p2b extends \ccxt\async\p2b {
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' $error => ' . $this->json($error));

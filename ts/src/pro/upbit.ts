@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import upbitRest from '../upbit.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances, Tickers, Strings, OHLCV } from '../base/types.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances, Tickers, Strings, OHLCV, Market, NullableDict } from '../base/types.js';
 import { jwt } from '../base/functions/rsa.js';
 import Client from '../base/ws/Client.js';
 import { NotSupported } from '../base/errors.js';
@@ -155,7 +155,7 @@ export default class upbit extends upbitRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const orderbook = await this.watchPublicMultiple ([ symbol ], 'orderbook');
@@ -461,7 +461,7 @@ export default class upbit extends upbitRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         // {
         //     "type": "myOrder",
@@ -497,7 +497,7 @@ export default class upbit extends upbitRest {
         const status = this.parseWsOrderStatus (this.safeString (order, 'state'));
         const marketId = this.safeString (order, 'code');
         market = this.safeMarket (marketId, market);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (order, 'paid_fee');
         if (feeCost !== undefined) {
             fee = {
@@ -531,7 +531,7 @@ export default class upbit extends upbitRest {
         });
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         // see: parseWsOrder
         let side = this.safeStringLower (trade, 'ask_bid');
         if (side === 'bid') {
@@ -542,7 +542,7 @@ export default class upbit extends upbitRest {
         const timestamp = this.parse8601 (this.safeString (trade, 'trade_timestamp'));
         const marketId = this.safeString (trade, 'code');
         market = this.safeMarket (marketId, market);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (trade, 'paid_fee');
         if (feeCost !== undefined) {
             fee = {

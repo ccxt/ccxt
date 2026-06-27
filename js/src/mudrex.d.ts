@@ -1,15 +1,13 @@
 import Exchange from './abstract/mudrex.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
+import type { Balances, Dict, Int, Leverage, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
 /**
  * @class mudrex
  * @augments Exchange
  */
 export default class mudrex extends Exchange {
-    leverageCache: Dict;
     describe(): any;
     mudrexSymbol(unified: string): string;
     unifiedSymbol(raw: string): string;
-    resolveMarketOptional(symbol: string): Market | undefined;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
@@ -27,8 +25,8 @@ export default class mudrex extends Exchange {
     parseMarket(asset: Dict): Market;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
-    fetchLeverage(symbol: string, params?: {}): Promise<any>;
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    setLeverage(leverage: number, symbol?: Str, params?: {}): Promise<any>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;

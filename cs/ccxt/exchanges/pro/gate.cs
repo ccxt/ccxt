@@ -9,7 +9,13 @@ public partial class gate : ccxt.gate
 {
     public override object describe()
     {
-        return this.deepExtend(base.describe(), new Dictionary<string, object>() {
+        object superDescribe = base.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+
+    public virtual object describeData()
+    {
+        return new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "cancelAllOrdersWs", true },
@@ -48,6 +54,19 @@ public partial class gate : ccxt.gate
                 { "watchMyLiquidations", true },
                 { "watchMyLiquidationsForSymbols", true },
                 { "watchPositions", true },
+                { "unWatchTicker", false },
+                { "unWatchTickers", false },
+                { "unWatchOHLCV", false },
+                { "unWatchOHLCVForSymbols", false },
+                { "unWatchOrderBook", true },
+                { "unWatchOrderBookForSymbols", false },
+                { "unWatchTrades", true },
+                { "unWatchTradesForSymbols", true },
+                { "unWatchMyTrades", false },
+                { "unWatchOrders", false },
+                { "unWatchPositions", false },
+                { "unWatchMarkPrices", false },
+                { "unWatchMarkPrice", false },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -68,16 +87,16 @@ public partial class gate : ccxt.gate
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "swap", new Dictionary<string, object>() {
-                        { "usdt", "wss://fx-ws-testnet.gateio.ws/v4/ws/usdt" },
+                        { "usdt", "wss://ws-testnet.gate.com/v4/ws/futures/usdt" },
                         { "btc", "wss://fx-ws-testnet.gateio.ws/v4/ws/btc" },
                     } },
                     { "future", new Dictionary<string, object>() {
-                        { "usdt", "wss://fx-ws-testnet.gateio.ws/v4/ws/usdt" },
-                        { "btc", "wss://fx-ws-testnet.gateio.ws/v4/ws/btc" },
+                        { "usdt", "wss://fx-ws-testnet.gateio.ws/v4/ws/delivery/usdt" },
+                        { "btc", "wss://fx-ws-testnet.gateio.ws/v4/ws/delivery/btc" },
                     } },
                     { "option", new Dictionary<string, object>() {
-                        { "usdt", "wss://op-ws-testnet.gateio.live/v4/ws/usdt" },
-                        { "btc", "wss://op-ws-testnet.gateio.live/v4/ws/btc" },
+                        { "usdt", "wss://ws-testnet.gate.com/v4/ws/options/usdt" },
+                        { "btc", "wss://ws-testnet.gate.com/v4/ws/options/btc" },
                     } },
                 } },
             } },
@@ -91,7 +110,6 @@ public partial class gate : ccxt.gate
                     { "name", "tickers" },
                 } },
                 { "watchOrderBook", new Dictionary<string, object>() {
-                    { "interval", "100ms" },
                     { "snapshotDelay", 10 },
                     { "snapshotMaxRetries", 3 },
                     { "checksum", true },
@@ -117,7 +135,7 @@ public partial class gate : ccxt.gate
                     { "broad", new Dictionary<string, object>() {} },
                 } },
             } },
-        });
+        };
     }
 
     /**
@@ -209,6 +227,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrdersWs() requires a symbol argument")) ;
+        }
         await this.loadMarkets();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object trigger = this.safeBool2(parameters, "stop", "trigger");
@@ -412,7 +434,7 @@ public partial class gate : ccxt.gate
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -421,24 +443,41 @@ public partial class gate : ccxt.gate
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object marketId = getValue(market, "id");
-        var intervalqueryVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", "100ms");
+        object url = this.getUrlByMarket(market);
+        object isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
+        object intervalDefault = ((bool) isTrue((isTrue(getValue(market, "spot")) && !isTrue(isEuUrl)))) ? "50" : "100ms";
+        var intervalqueryVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
         var interval = ((IList<object>) intervalqueryVariable)[0];
         var query = ((IList<object>) intervalqueryVariable)[1];
         object messageType = this.getTypeByMarket(market);
-        object channel = add(messageType, ".order_book_update");
         object messageHash = add(add("orderbook", ":"), symbol);
-        object url = this.getUrlByMarket(market);
-        object payload = new List<object>() {marketId, interval};
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100; // max 100 atm
+            limit = ((bool) isTrue((getValue(market, "spot")))) ? 50 : 100; // max 100 atm
             if (isTrue(isEqual(messageType, "options")))
             {
                 limit = 50; // max 50 for options
             }
         }
-        if (isTrue(getValue(market, "contract")))
+        object payload = new List<object>() {};
+        object channel = "";
+        if (isTrue(isEuUrl))
         {
+            channel = "spot.order_book_update";
+            payload = new List<object>() {marketId, interval};
+        } else if (isTrue(getValue(market, "spot")))
+        {
+            channel = "spot.obu";
+            object finalInterval = interval;
+            if (isTrue(isEqual(limit, 400)))
+            {
+                finalInterval = "400";
+            }
+            payload = new List<object>() {add(add(add("ob.", getValue(market, "id")), "."), finalInterval)};
+        } else
+        {
+            channel = add(messageType, ".order_book_update");
+            payload = new List<object>() {marketId, interval};
             object stringLimit = ((object)limit).ToString();
             ((IList<object>)payload).Add(stringLimit);
         }
@@ -456,31 +495,56 @@ public partial class gate : ccxt.gate
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object url = this.getUrlByMarket(market);
         symbol = getValue(market, "symbol");
         object marketId = getValue(market, "id");
-        object interval = "100ms";
+        object isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
+        object intervalDefault = ((bool) isTrue((isTrue(getValue(market, "spot")) && !isTrue(isEuUrl)))) ? "50" : "100ms";
+        object interval = intervalDefault;
         var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
         interval = ((IList<object>)intervalparametersVariable)[0];
         parameters = ((IList<object>)intervalparametersVariable)[1];
         object messageType = this.getTypeByMarket(market);
-        object channel = add(messageType, ".order_book_update");
-        object subMessageHash = add(add("orderbook", ":"), symbol);
-        object messageHash = add(add("unsubscribe:orderbook", ":"), symbol);
-        object url = this.getUrlByMarket(market);
-        object payload = new List<object>() {marketId, interval};
-        object limit = this.safeInteger(parameters, "limit", 100);
-        if (isTrue(getValue(market, "contract")))
+        object limit = this.safeInteger(parameters, "limit");
+        if (isTrue(isEqual(limit, null)))
         {
+            limit = ((bool) isTrue((getValue(market, "spot")))) ? 50 : 100; // max 100 atm
+            if (isTrue(isEqual(messageType, "options")))
+            {
+                limit = 50; // max 50 for options
+            }
+        }
+        object payload = new List<object>() {};
+        object channel = "";
+        if (isTrue(isEuUrl))
+        {
+            channel = "spot.order_book_update";
+            payload = new List<object>() {marketId, interval};
+        } else if (isTrue(getValue(market, "spot")))
+        {
+            channel = "spot.obu";
+            object finalInterval = interval;
+            if (isTrue(isEqual(limit, 400)))
+            {
+                finalInterval = "400";
+            }
+            payload = new List<object>() {add(add(add("ob.", getValue(market, "id")), "."), finalInterval)};
+        } else
+        {
+            channel = add(messageType, ".order_book_update");
+            payload = new List<object>() {marketId, interval};
             object stringLimit = ((object)limit).ToString();
             ((IList<object>)payload).Add(stringLimit);
         }
+        object subMessageHash = add(add("orderbook", ":"), symbol);
+        object messageHash = add(add("unsubscribe:orderbook", ":"), symbol);
         return await this.unSubscribePublicMultiple(url, "orderbook", new List<object>() {symbol}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, payload, channel, parameters);
     }
 
@@ -489,6 +553,63 @@ public partial class gate : ccxt.gate
         object symbol = this.safeString(subscription, "symbol");
         object limit = this.safeInteger(subscription, "limit");
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+    }
+
+    public virtual void handleNewSpotOrderBook(WebSocketClient client, object message)
+    {
+        //
+        //   {
+        //      "channel":"spot.obu",
+        //      "result":{
+        //         "t":1777275365213,
+        //         "full":true,
+        //         "s":"ob.XRP_USDT.50",
+        //         "u":9649549324,
+        //         "b":[
+        //            [
+        //               "1.414",
+        //               "1397.899"
+        //            ]
+        //         ],
+        //         "a":[
+        //            [
+        //               "1.415",
+        //               "17344.926"
+        //            ]
+        //         ]
+        //      },
+        //      "time_ms":1777275365214,
+        //      "event":"update"
+        //   }
+        object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+        object full = this.safeBool(result, "full", false);
+        object marketIdWithPrefix = this.safeString(result, "s");
+        object marketIdParts = ((string)marketIdWithPrefix).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        object marketId = this.safeString(marketIdParts, 1);
+        object symbol = this.safeSymbol(marketId, null, "_", "spot");
+        object messageHash = add("orderbook:", symbol);
+        if (isTrue(isEqual(this.safeValue(this.orderbooks, symbol), null)))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, 1000);
+        }
+        object orderbook = getValue(this.orderbooks, symbol);
+        if (isTrue(full))
+        {
+            object snapshopt = this.parseOrderBook(result, symbol, null, "b", "a");
+            ((IDictionary<string,object>)snapshopt)["nonce"] = this.safeInteger(result, "u");
+            ((IDictionary<string,object>)snapshopt)["timestamp"] = this.safeInteger(result, "t");
+            (orderbook as IOrderBook).reset(snapshopt);
+        } else
+        {
+            object nonce = this.safeInteger(orderbook, "nonce");
+            object deltaStart = this.safeInteger(result, "u");
+            if (isTrue(isTrue(isEqual(nonce, null)) || isTrue(isGreaterThanOrEqual(nonce, deltaStart))))
+            {
+                return;
+            }
+            this.handleDelta(orderbook, result);
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -546,7 +667,12 @@ public partial class gate : ccxt.gate
         //         }
         //     }
         //
-        object channel = this.safeString(message, "channel");
+        object channel = ((string)this.safeString(message, "channel"));
+        if (isTrue(isEqual(channel, "spot.obu")))
+        {
+            this.handleNewSpotOrderBook(client as WebSocketClient, message);
+            return;
+        }
         object channelParts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeString(channelParts, 0);
         object isSpot = isEqual(rawMarketType, "spot");
@@ -626,7 +752,7 @@ public partial class gate : ccxt.gate
             object bidAsk = getValue(bidAsks, i);
             if (isTrue(((bidAsk is IList<object>) || (bidAsk.GetType().IsGenericType && bidAsk.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                (bookSide as IOrderBookSide).storeArray(this.parseBidAsk(bidAsk));
+                (bookSide as IOrderBookSide).storeArray(this.parseOrderBookBidAsk(bidAsk));
             } else
             {
                 object price = this.safeFloat(bidAsk, "p");
@@ -793,7 +919,7 @@ public partial class gate : ccxt.gate
 
     public virtual void handleTickerAndBidAsk(object objectName, object client, object message)
     {
-        object channel = this.safeString(message, "channel");
+        object channel = ((string)this.safeString(message, "channel"));
         object parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeString(parts, 0);
         object marketType = ((bool) isTrue((isEqual(rawMarketType, "futures")))) ? "contract" : "spot";
@@ -1026,7 +1152,7 @@ public partial class gate : ccxt.gate
         //     }
         //   }
         //
-        object channel = this.safeString(message, "channel");
+        object channel = ((string)this.safeString(message, "channel"));
         object channelParts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeString(channelParts, 0);
         object marketType = ((bool) isTrue((isEqual(rawMarketType, "spot")))) ? "spot" : "contract";
@@ -1186,11 +1312,11 @@ public partial class gate : ccxt.gate
     /**
      * @method
      * @name gate#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel
      * @see https://www.gate.com/docs/developers/futures/ws/en/#balances-api
      * @see https://www.gate.com/docs/developers/delivery/ws/en/#balances-api
      * @see https://www.gate.com/docs/developers/options/ws/en/#balances-channel
-     * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1226,22 +1352,26 @@ public partial class gate : ccxt.gate
     {
         //
         // spot order fill
-        //   {
-        //       "time": 1653664351,
-        //       "channel": "spot.balances",
-        //       "event": "update",
-        //       "result": [
-        //         {
-        //           "timestamp": "1653664351",
-        //           "timestamp_ms": "1653664351017",
-        //           "user": "10406147",
-        //           "currency": "LTC",
-        //           "change": "-0.0002000000000000",
-        //           "total": "0.09986000000000000000",
-        //           "available": "0.09986000000000000000"
-        //         }
-        //       ]
-        //   }
+        //     {
+        //         "time": 1653664351,
+        //         "time_ms": 1605248616763,
+        //         "channel": "spot.balances",
+        //         "event": "update",
+        //         "result": [
+        //             {
+        //                 "timestamp": "1667556323",
+        //                 "timestamp_ms": "1667556323730",
+        //                 "user": "1000001",
+        //                 "currency": "USDT",
+        //                 "change": "0",
+        //                 "total": "222244.3827652",
+        //                 "available": "222244.3827",
+        //                 "freeze": "5",
+        //                 "freeze_change": "5.000000",
+        //                 "change_type": "order-create"
+        //             }
+        //         ]
+        //     }
         //
         // account transfer
         //
@@ -1285,21 +1415,22 @@ public partial class gate : ccxt.gate
         //   }
         //
         object result = this.safeValue(message, "result", new List<object>() {});
-        object timestamp = this.safeInteger(message, "time_ms");
         ((IDictionary<string,object>)this.balance)["info"] = result;
-        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
         for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object rawBalance = getValue(result, i);
             object account = this.account();
             object currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             object code = this.safeCurrencyCode(currencyId);
+            object timestamp = this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
+            ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
+            ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "freeze");
             ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString2(rawBalance, "total", "balance");
             ((IDictionary<string,object>)this.balance)[(string)code] = account;
         }
-        object channel = this.safeString(message, "channel");
+        object channel = ((string)this.safeString(message, "channel"));
         object parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawType = this.safeString(parts, 0);
         object channelType = this.getSupportedMapping(rawType, new Dictionary<string, object>() {
@@ -1520,11 +1651,11 @@ public partial class gate : ccxt.gate
     /**
      * @method
      * @name gate#watchOrders
+     * @description watches information on multiple orders made by the user
      * @see https://www.gate.com/docs/developers/apiv4/ws/en/#orders-channel
      * @see https://www.gate.com/docs/developers/futures/ws/en/#orders-api
      * @see https://www.gate.com/docs/developers/delivery/ws/en/#orders-api
      * @see https://www.gate.com/docs/developers/options/ws/en/#orders-channel
-     * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1582,39 +1713,46 @@ public partial class gate : ccxt.gate
     public virtual void handleOrder(WebSocketClient client, object message)
     {
         //
-        // {
-        //     "time": 1605175506,
-        //     "channel": "spot.orders",
-        //     "event": "update",
-        //     "result": [
-        //       {
-        //         "id": "30784435",
-        //         "user": 123456,
-        //         "text": "t-abc",
-        //         "create_time": "1605175506",
-        //         "create_time_ms": "1605175506123",
-        //         "update_time": "1605175506",
-        //         "update_time_ms": "1605175506123",
-        //         "event": "put",
-        //         "currency_pair": "BTC_USDT",
-        //         "type": "limit",
-        //         "account": "spot",
-        //         "side": "sell",
-        //         "amount": "1",
-        //         "price": "10001",
-        //         "time_in_force": "gtc",
-        //         "left": "1",
-        //         "filled_total": "0",
-        //         "fee": "0",
-        //         "fee_currency": "USDT",
-        //         "point_fee": "0",
-        //         "gt_fee": "0",
-        //         "gt_discount": true,
-        //         "rebated_fee": "0",
-        //         "rebated_fee_currency": "USDT"
-        //       }
-        //     ]
-        // }
+        //     {
+        //         "time": 1774613210,
+        //         "time_ms": 1774613210392,
+        //         "channel": "spot.orders",
+        //         "event": "update",
+        //         "result": [
+        //             {
+        //                 "id": "1036717689726",
+        //                 "text": "apiv4",
+        //                 "create_time": "1774613210",
+        //                 "update_time": "1774613210",
+        //                 "currency_pair": "BTC_USDT",
+        //                 "type": "limit",
+        //                 "account": "unified",
+        //                 "side": "buy",
+        //                 "amount": "0.1",
+        //                 "price": "200",
+        //                 "time_in_force": "gtc",
+        //                 "left": "0.1",
+        //                 "filled_amount": "0",
+        //                 "filled_total": "0",
+        //                 "avg_deal_price": "0",
+        //                 "fee": "0",
+        //                 "fee_currency": "BTC",
+        //                 "point_fee": "0",
+        //                 "gt_fee": "0",
+        //                 "rebated_fee": "0",
+        //                 "rebated_fee_currency": "BTC",
+        //                 "create_time_ms": "1774613210391",
+        //                 "update_time_ms": "1774613210391",
+        //                 "user": 10406147,
+        //                 "event": "put",
+        //                 "stp_id": 0,
+        //                 "stp_act": "-",
+        //                 "finish_as": "open",
+        //                 "biz_info": "ch:ccxt",
+        //                 "amend_text": "-"
+        //             }
+        //         ]
+        //     }
         //
         object orders = this.safeValue(message, "result", new List<object>() {});
         object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1930,7 +2068,7 @@ public partial class gate : ccxt.gate
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
                 // remove subscriptions for watchSymbols
-                object channel = this.safeString(message, "channel");
+                object channel = ((string)this.safeString(message, "channel"));
                 if (isTrue(isTrue((!isEqual(channel, null))) && isTrue((isGreaterThan(getIndexOf(channel, "."), 0)))))
                 {
                     object parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
@@ -1963,7 +2101,7 @@ public partial class gate : ccxt.gate
 
     public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
     {
-        object channel = this.safeString(message, "channel");
+        object channel = ((string)this.safeString(message, "channel"));
         object methods = new Dictionary<string, object>() {
             { "balance", this.handleBalanceSubscription },
             { "spot.order_book_update", this.handleOrderBookSubscription },
@@ -2141,6 +2279,12 @@ public partial class gate : ccxt.gate
             return;
         }
         object channel = this.safeString(message, "channel", "");
+        // after supporting more method we can create a mapping for this
+        if (isTrue(isEqual(channel, "spot.obu")))
+        {
+            this.handleOrderBook(client as WebSocketClient, message);
+            return;
+        }
         object channelParts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object channelType = this.safeValue(channelParts, 1);
         object v4Methods = new Dictionary<string, object>() {

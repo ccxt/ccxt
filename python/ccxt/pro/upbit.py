@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -97,7 +97,7 @@ class upbit(ccxt.async_support.upbit):
         """
         newTickers = await self.watch_public_multiple(symbols, 'ticker')
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[newTickers['symbol']] = newTickers
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -144,7 +144,7 @@ class upbit(ccxt.async_support.upbit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         orderbook = await self.watch_public_multiple([symbol], 'orderbook')
         return orderbook.limit()
@@ -312,10 +312,10 @@ class upbit(ccxt.async_support.upbit):
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
-        wsOptions: dict = self.safe_dict(self.options, 'ws', {})
+        wsOptions = self.safe_dict(self.options, 'ws', {})
         authenticated = self.safe_string(wsOptions, 'token')
         if authenticated is None:
-            auth: dict = {
+            auth = {
                 'access_key': self.apiKey,
                 'nonce': self.uuid(),
             }
@@ -416,7 +416,7 @@ class upbit(ccxt.async_support.upbit):
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def parse_ws_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
@@ -425,7 +425,7 @@ class upbit(ccxt.async_support.upbit):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         # {
         #     "type": "myOrder",
@@ -492,7 +492,7 @@ class upbit(ccxt.async_support.upbit):
             'trades': None,
         })
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         # see: parseWsOrder
         side = self.safe_string_lower(trade, 'ask_bid')
         if side == 'bid':
@@ -621,7 +621,7 @@ class upbit(ccxt.async_support.upbit):
         client.resolve(self.balance, messageHash)
 
     def handle_message(self, client: Client, message):
-        methods: dict = {
+        methods = {
             'ticker': self.handle_ticker,
             'orderbook': self.handle_order_book,
             'trade': self.handle_trades,

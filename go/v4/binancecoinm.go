@@ -13,15 +13,15 @@ func NewBinancecoinmCore() *BinancecoinmCore {
 	return p
 }
 
-func (this *BinancecoinmCore) Describe() interface{} {
-	return this.DeepExtend(this.BinanceCore.Describe(), map[string]interface{}{
+func (this *BinancecoinmCore) Describe() any {
+	return this.DeepExtend(this.BinanceCore.Describe(), map[string]any{
 		"id":   "binancecoinm",
 		"name": "Binance COIN-M",
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c",
-			"doc":  []interface{}{"https://binance-docs.github.io/apidocs/delivery/en/", "https://binance-docs.github.io/apidocs/spot/en", "https://developers.binance.com/en"},
+			"doc":  []any{"https://binance-docs.github.io/apidocs/delivery/en/", "https://binance-docs.github.io/apidocs/spot/en", "https://developers.binance.com/en"},
 		},
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                  nil,
 			"spot":                  false,
 			"margin":                false,
@@ -30,22 +30,22 @@ func (this *BinancecoinmCore) Describe() interface{} {
 			"option":                nil,
 			"createStopMarketOrder": true,
 		},
-		"options": map[string]interface{}{
-			"fetchMarkets": map[string]interface{}{
-				"types": []interface{}{"inverse"},
+		"options": map[string]any{
+			"fetchMarkets": map[string]any{
+				"types": []any{"inverse"},
 			},
 			"defaultSubType":   "inverse",
 			"leverageBrackets": nil,
 		},
 	})
 }
-func (this *BinancecoinmCore) TransferIn(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BinancecoinmCore) TransferIn(code any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		// transfer from spot wallet to coinm futures wallet
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes4315 := (<-this.FuturesTransfer(code, amount, 3, params))
@@ -56,13 +56,13 @@ func (this *BinancecoinmCore) TransferIn(code interface{}, amount interface{}, o
 	}()
 	return ch
 }
-func (this *BinancecoinmCore) TransferOut(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BinancecoinmCore) TransferOut(code any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		// transfer from coinm futures wallet to spot wallet
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes4815 := (<-this.FuturesTransfer(code, amount, 4, params))
@@ -74,7 +74,7 @@ func (this *BinancecoinmCore) TransferOut(code interface{}, amount interface{}, 
 	return ch
 }
 
-func (this *BinancecoinmCore) Init(userConfig map[string]interface{}) {
+func (this *BinancecoinmCore) Init(userConfig map[string]any) {
 	this.BinanceCore.Init(this.DeepExtend(this.Describe(), userConfig))
 	this.Itf = this
 	this.Exchange.DerivedExchange = this

@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bithumb.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bithumb
@@ -20,7 +20,7 @@ export default class bithumb extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bithumb',
             'name': 'Bithumb',
-            'countries': ['KR'],
+            'countries': ['KR'], // South Korea
             'rateLimit': 500,
             'pro': true,
             'has': {
@@ -227,9 +227,9 @@ export default class bithumb extends Exchange {
             'exceptions': {
                 'Bad Request(SSL)': BadRequest,
                 'Bad Request(Bad Method)': BadRequest,
-                'Bad Request.(Auth Data)': AuthenticationError,
+                'Bad Request.(Auth Data)': AuthenticationError, // { "status": "5100", "message": "Bad Request.(Auth Data)" }
                 'Not Member': AuthenticationError,
-                'Invalid Apikey': AuthenticationError,
+                'Invalid Apikey': AuthenticationError, // {"status":"5300","message":"Invalid Apikey"}
                 'Method Not Allowed.(Access IP)': PermissionDenied,
                 'Method Not Allowed.(BTC Adress)': InvalidAddress,
                 'Method Not Allowed.(Access)': PermissionDenied,
@@ -346,7 +346,7 @@ export default class bithumb extends Exchange {
             const quote = quotes[i];
             const quoteId = quote;
             const response = results[i];
-            const data = this.safeDict(response, 'data');
+            const data = this.safeDict(response, 'data', {});
             const extension = this.safeDict(quoteCurrencies, quote, {});
             const currencyIds = Object.keys(data);
             for (let j = 0; j < currencyIds.length; j++) {
@@ -454,7 +454,7 @@ export default class bithumb extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();

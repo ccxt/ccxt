@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbaseinternational$1 = require('../coinbaseinternational.js');
 var errors = require('../base/errors.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         const timestamp = this.nonce().toString();
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
-        const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
+        const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
         const subscribe = {
             'type': 'SUBSCRIBE',
             // 'product_ids': productIds,
@@ -160,7 +160,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         const timestamp = this.numberToString(this.seconds());
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
-        const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
+        const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
         const subscribe = {
             'type': 'SUBSCRIBE',
             'time': timestamp,
@@ -602,7 +602,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.watchOrderBookForSymbols([symbol], limit, params);
@@ -615,7 +615,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {string[]} symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         await this.loadMarkets();

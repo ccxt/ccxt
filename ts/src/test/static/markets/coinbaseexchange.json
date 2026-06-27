@@ -387,7 +387,7 @@
             "status_message": "",
             "trading_disabled": false,
             "fx_stablecoin": false,
-            "max_slippage_percentage": "0.05000000",
+            "max_slippage_percentage": "0.03000000",
             "auction_mode": false,
             "high_bid_limit_percentage": ""
         },

@@ -9,11 +9,10 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\RateLimitExceeded;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class mudrex extends \ccxt\async\mudrex {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -50,7 +49,7 @@ class mudrex extends \ccxt\async\mudrex {
         return $reqid;
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -58,24 +57,24 @@ class mudrex extends \ccxt\async\mudrex {
             $messageHash = 'ticker:' . $symbol;
             $url = $this->urls['api']['ws'];
             $brokerId = $this->safe_string($this->options, 'broker');
-            $headers = null;
+            $this->options['ws'] = $this->options['ws'] || array();
+            $this->options['ws']['options'] = $this->options['ws']['options'] || array();
+            $this->options['ws']['options']['headers'] = $this->options['ws']['options']['headers'] || array();
             if ($brokerId !== null) {
-                $headers = array(
-                    'Partner-Id' => $brokerId,
-                );
+                $this->options['ws']['options']['headers']['Partner-Id'] = $brokerId;
             }
             $subscribe = array(
                 'id' => $this->request_id(),
                 'method' => 'SUBSCRIBE',
                 'params' => array( 'ticker@1s' ),
-                'assets' => [ strtolower($market['baseId']) . strtolower($market['quoteId']) ],
+                'assets' => array( strtolower($market['baseId']) . strtolower($market['quoteId']) ),
             );
             $request = $this->extend($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash, null, $headers));
-        }) ();
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -90,11 +89,11 @@ class mudrex extends \ccxt\async\mudrex {
             }
             $url = $this->urls['api']['ws'];
             $brokerId = $this->safe_string($this->options, 'broker');
-            $headers = null;
+            $this->options['ws'] = $this->options['ws'] || array();
+            $this->options['ws']['options'] = $this->options['ws']['options'] || array();
+            $this->options['ws']['options']['headers'] = $this->options['ws']['options']['headers'] || array();
             if ($brokerId !== null) {
-                $headers = array(
-                    'Partner-Id' => $brokerId,
-                );
+                $this->options['ws']['options']['headers']['Partner-Id'] = $brokerId;
             }
             $subscribe = array(
                 'id' => $this->request_id(),
@@ -103,21 +102,17 @@ class mudrex extends \ccxt\async\mudrex {
                 'assets' => $assets,
             );
             $request = $this->extend($subscribe, $params);
-            $messageHash = 'tickers';
-            if ($symbols !== null) {
-                $messageHash = 'tickers::' . implode(',', $symbols);
-            }
-            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes, null, $headers));
+            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
             if ($this->newUpdates) {
                 $result = array();
                 $result[$ticker['symbol']] = $ticker;
                 return $result;
             }
             return $this->filter_by_array_tickers($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -136,11 +131,11 @@ class mudrex extends \ccxt\async\mudrex {
             $messageHash = $stream;
             $url = $this->urls['api']['ws'];
             $brokerId = $this->safe_string($this->options, 'broker');
-            $headers = null;
+            $this->options['ws'] = $this->options['ws'] || array();
+            $this->options['ws']['options'] = $this->options['ws']['options'] || array();
+            $this->options['ws']['options']['headers'] = $this->options['ws']['options']['headers'] || array();
             if ($brokerId !== null) {
-                $headers = array(
-                    'Partner-Id' => $brokerId,
-                );
+                $this->options['ws']['options']['headers']['Partner-Id'] = $brokerId;
             }
             $subscribe = array(
                 'id' => $this->request_id(),
@@ -148,12 +143,12 @@ class mudrex extends \ccxt\async\mudrex {
                 'params' => array( $stream ),
             );
             $request = $this->extend($subscribe, $params);
-            $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash, null, $headers));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
     public function handle_message($client, $message) {
@@ -219,12 +214,12 @@ class mudrex extends \ccxt\async\mudrex {
         $stored = $this->safe_value($this->ohlcvs[$symbol], $tf);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp ($limit);
+            $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$tf] = $stored;
         }
-        $stored->append ($parsed);
+        $stored->append($parsed);
         $messageHash = $stream;
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
     public function handle_ticker($client, $message) {
@@ -255,8 +250,8 @@ class mudrex extends \ccxt\async\mudrex {
             ));
             $this->tickers[$symbol] = $result;
             $messageHash = 'ticker:' . $symbol;
-            $client->resolve ($result, $messageHash);
-            $client->resolve ($result, 'tickers');
+            $client->resolve($result, $messageHash);
+            $client->resolve($result, 'tickers');
         }
     }
 }

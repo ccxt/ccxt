@@ -44,9 +44,15 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $log_text = log_template($exchange, $method, $entry);
     // check market
     $market = null;
+    $is_unrecognized_symbol = false;
+    $is_fetch_ticker_called = $method === 'fetchTicker';
     $symbol_for_market = ($symbol !== null) ? $symbol : $exchange->safe_string($entry, 'symbol');
-    if ($symbol_for_market !== null && (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets))) {
-        $market = $exchange->market($symbol_for_market);
+    if ($symbol_for_market !== null) {
+        if (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets)) {
+            $market = $exchange->market($symbol_for_market);
+        } else {
+            $is_unrecognized_symbol = true;
+        }
     }
     // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
     if (!(is_array($skipped_properties) && array_key_exists('checkInactiveMarkets', $skipped_properties))) {
@@ -151,9 +157,17 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     if (($ask_string !== null) && ($bid_string !== null) && !(is_array($skipped_properties) && array_key_exists('spread', $skipped_properties))) {
         assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', $exchange->safe_string($entry, 'bid'));
     }
+    // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
+    $allowed_percentage_variation = '0.01';
+    if ($is_fetch_ticker_called && $last_string !== null && $bid_string !== null && $ask_string !== null && !(is_array($skipped_properties) && array_key_exists('lastBetweenBidAsk', $skipped_properties))) {
+        $median_price = Precise::string_div(Precise::string_add($bid_string, $ask_string), '2');
+        $median_low = Precise::string_mul($median_price, Precise::string_sub('1', $allowed_percentage_variation));
+        $median_high = Precise::string_mul($median_price, Precise::string_add('1', $allowed_percentage_variation));
+        assert(Precise::string_ge($last_string, $median_low) && Precise::string_le($last_string, $median_high), 'last price should be within 1% of the bid/ask median price' . $log_text);
+    }
     $percentage = $exchange->safe_string($entry, 'percentage');
     $change = $exchange->safe_string($entry, 'change');
-    if (!(is_array($skipped_properties) && array_key_exists('maxIncrease', $skipped_properties))) {
+    if (!(is_array($skipped_properties) && array_key_exists('maxIncrease', $skipped_properties)) && !$is_unrecognized_symbol) {
         //
         // percentage
         //

@@ -49,7 +49,7 @@ class bydfi(ccxt.async_support.bydfi):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://stream.bydfi.com/v1/public/swap',
+                    'ws': 'wss://stream.bydfi.com/v1/public/fapi',
                 },
             },
             'options': {
@@ -100,7 +100,7 @@ class bydfi(ccxt.async_support.bydfi):
     async def watch_public(self, messageHashes, channels, params={}, subscription={}):
         url = self.urls['api']['ws']
         id = self.request_id()
-        subscriptionParams: dict = {
+        subscriptionParams = {
             'id': id,
         }
         unsubscribe = self.safe_bool(params, 'unsubscribe', False)
@@ -110,7 +110,7 @@ class bydfi(ccxt.async_support.bydfi):
             params = self.omit(params, 'unsubscribe')
             subscriptionParams['unsubscribe'] = True
             subscriptionParams['messageHashes'] = messageHashes
-        message: dict = {
+        message = {
             'id': id,
             'method': method,
             'params': channels,
@@ -123,13 +123,13 @@ class bydfi(ccxt.async_support.bydfi):
         subHash = 'private'
         client = self.client(url)
         privateSubscription = self.safe_value(client.subscriptions, subHash)
-        subscription: dict = {}
+        subscription = {}
         if privateSubscription is None:
             id = self.request_id()
             timestamp = str(self.milliseconds())
             payload = self.apiKey + timestamp
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
-            request: dict = {
+            request = {
                 'id': id,
                 'method': 'LOGIN',
                 'params': {
@@ -146,7 +146,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
+        https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -163,7 +163,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
+        https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -175,8 +175,8 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
-        https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
-        https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+        https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
+        https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -204,8 +204,8 @@ class bydfi(ccxt.async_support.bydfi):
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
-        https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
-        https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+        https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
+        https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -216,7 +216,7 @@ class bydfi(ccxt.async_support.bydfi):
         messageHash = 'unsubscribe::ticker::'
         channels = []
         channel = '@ticker'
-        subscription: dict = {
+        subscription = {
             'topic': 'ticker',
         }
         if symbols is None:
@@ -281,7 +281,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
-        https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+        https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -297,7 +297,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+        https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -310,7 +310,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
-        https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+        https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -343,7 +343,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+        https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -364,7 +364,7 @@ class bydfi(ccxt.async_support.bydfi):
             channels.append(market['id'] + '@kline_' + interval)
             messageHashes.append('unsubscribe::ohlcv::' + market['symbol'] + '::' + interval)
         params = self.extend(params, {'unsubscribe': True})
-        subscription: dict = {
+        subscription = {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': symbolsAndTimeframes,
         }
@@ -407,12 +407,12 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+        https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default and maxi is 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -420,11 +420,11 @@ class bydfi(ccxt.async_support.bydfi):
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+        https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
 
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.un_watch_order_book_for_symbols([symbol], params)
 
@@ -432,12 +432,12 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+        https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
 
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return(default and max is 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -462,12 +462,12 @@ class bydfi(ccxt.async_support.bydfi):
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+        https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
 
         :param str[] symbols: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -485,7 +485,7 @@ class bydfi(ccxt.async_support.bydfi):
             market = self.market(symbol)
             channels.append(market['id'] + '@depth' + depth + channelSuffix)
             messageHashes.append('unsubscribe::orderbook::' + symbol)
-        subscription: dict = {
+        subscription = {
             'topic': 'orderbook',
             'symbols': symbols,
         }
@@ -518,7 +518,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watches information on multiple orders made by the user
 
-        https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+        https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -535,7 +535,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watches information on multiple orders made by the user
 
-        https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+        https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
 
         :param str[] symbols: unified symbol of the market to fetch orders for
         :param int [since]: the earliest time in ms to fetch orders for
@@ -672,7 +672,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watch all open positions
 
-        https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+        https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
 
         :param str[] [symbols]: list of unified market symbols
         :param int [since]: the earliest time in ms to fetch positions for
@@ -820,7 +820,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
-        https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+        https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -847,7 +847,7 @@ class bydfi(ccxt.async_support.bydfi):
                 self.spawn(self.load_balance_snapshot, client, messageHash)
 
     async def load_balance_snapshot(self, client, messageHash):
-        params: dict = {
+        params = {
             'type': 'swap',
         }
         response = await self.fetch_balance(params)
@@ -903,7 +903,7 @@ class bydfi(ccxt.async_support.bydfi):
             data = self.safe_dict(message, 'a', {})
             balances = self.safe_list(data, 'B', [])
             timestamp = self.safe_integer(message, 'T')
-            result: dict = {
+            result = {
                 'info': message,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),

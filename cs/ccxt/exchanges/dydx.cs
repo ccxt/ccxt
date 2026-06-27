@@ -119,7 +119,7 @@ public partial class dydx : Exchange
                 { "1d", "1DAY" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1" },
+                { "logo", "https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d" },
                 { "api", new Dictionary<string, object>() {
                     { "indexer", "https://indexer.dydx.trade/v4" },
                     { "nodeRpc", "https://dydx-ops-rpc.kingnodes.com" },
@@ -133,7 +133,7 @@ public partial class dydx : Exchange
                 { "www", "https://www.dydx.xyz" },
                 { "doc", new List<object>() {"https://docs.dydx.xyz"} },
                 { "fees", new List<object>() {"https://docs.dydx.exchange/introduction-trading_fees"} },
-                { "referral", "dydx.trade?ref=ccxt" },
+                { "referral", "https://dydx.trade?ref=ccxt" },
             } },
             { "api", new Dictionary<string, object>() {
                 { "indexer", new Dictionary<string, object>() {
@@ -623,7 +623,7 @@ public partial class dydx : Exchange
         // }
         //
         object timestamp = this.parse8601(this.safeString(trade, "createdAt"));
-        object symbol = getValue(market, "symbol");
+        object symbol = this.safeString(market, "symbol");
         object price = this.safeString(trade, "price");
         object amount = this.safeString(trade, "size");
         object side = this.safeStringLower(trade, "side");
@@ -666,7 +666,7 @@ public partial class dydx : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = await this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters));
         //
@@ -1329,7 +1329,7 @@ public partial class dydx : Exchange
         // }
         //
         object response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request);
-        object account = this.safeDict(response, "info");
+        object account = this.safeDict(response, "info", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)account)["pub_key"] = new Dictionary<string, object>() {
             { "key", getValue(getValue(account, "pub_key"), "key") },
         };
@@ -1369,7 +1369,7 @@ public partial class dydx : Exchange
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         object amountStr = this.amountToPrecision(symbol, amount);
         object priceStr = this.priceToPrecision(symbol, price);
-        object marketInfo = this.safeDict(market, "info");
+        object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         object atomicResolution = getValue(marketInfo, "atomicResolution");
         object quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
         object quantums = Precise.stringMul(amountStr, quantumScale);
@@ -1791,7 +1791,7 @@ public partial class dydx : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1946,7 +1946,7 @@ public partial class dydx : Exchange
         }
         object defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
         object defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
-        object feeDenom = this.safeDict(this.options, "feeDenom");
+        object feeDenom = this.safeDict(this.options, "feeDenom", new Dictionary<string, object>() {});
         object gasPrice = null;
         object denom = null;
         if (isTrue(isEqual(defaultFeeDenom, "uusdc")))

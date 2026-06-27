@@ -8,15 +8,15 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestUrlencodeWithArrayRepeat() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var dict2 map[string]interface{} = map[string]interface{}{
+	}, map[string]any{}, exchange)
+	var dict2 map[string]any = map[string]any{
 		"a":           1,
-		"product_ids": []interface{}{"AA", "BB"},
+		"product_ids": []any{"AA", "BB"},
 	}
-	var expected2a interface{} = "a=1&product_ids=AA&product_ids=BB"
-	var expected2b interface{} = "product_ids=AA&product_ids=BB&a=1"
-	var result2 interface{} = exchange.UrlencodeWithArrayRepeat(dict2)
+	var expected2a any = "a=1&product_ids=AA&product_ids=BB"
+	var expected2b any = "product_ids=AA&product_ids=BB&a=1"
+	var result2 any = exchange.UrlencodeWithArrayRepeat(dict2)
 	assert(ccxt.IsTrue(ccxt.IsEqual(result2, expected2a)) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2b)), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("urlencodeWithArrayRepeat: expected ", expected2a), " or "), expected2b), " but got "), result2))
 }

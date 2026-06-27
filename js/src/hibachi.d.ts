@@ -1,5 +1,5 @@
 import Exchange from './abstract/hibachi.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict } from './base/types.js';
 /**
  * @class hibachi
  * @augments Exchange
@@ -69,11 +69,11 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchTradingFees
      * @description fetch the trading fee
-     * @param params extra parameters
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    orderMessage(market: any, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price?: Num): Uint8Array;
+    orderMessage(market: any, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price?: Num): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
     createOrderRequest(nonce: number, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
@@ -161,7 +161,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    encodeWithdrawMessage(amount: number, maxFees: number, address: string): Uint8Array;
+    encodeWithdrawMessage(amount: number, maxFees: number, address: string): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
     /**
      * @method
      * @name hibachi#withdraw
@@ -237,11 +237,11 @@ export default class hibachi extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     parseTransactionType(type: any): string;

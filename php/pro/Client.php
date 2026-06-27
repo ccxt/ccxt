@@ -64,7 +64,9 @@ class Client {
     public $heartbeat = null;
     public int $cost = 1;
     public $timeframes = null;
+    public $listenKeyRefreshRate = null;
     public $watchTradesForSymbols = null;
+    public $watchOrderBook = null;
     public $watchOrderBookForSymbols = null;
 
     public $decompressBinary = true;
@@ -125,13 +127,13 @@ class Client {
     }
 
     public function __construct(
-            $url,
-            callable $on_message_callback,
-            callable $on_error_callback,
-            callable $on_close_callback,
-            callable $on_connected_callback,
-            $config
-        ) {
+        $url,
+        callable $on_message_callback,
+        callable $on_error_callback,
+        callable $on_close_callback,
+        callable $on_connected_callback,
+        $config
+    ) {
 
         $this->url = $url;
         $this->futures = array();
@@ -146,8 +148,8 @@ class Client {
         foreach ($config as $key => $value) {
             $this->{$key} =
                 (property_exists($this, $key) && is_array($this->{$key}) && is_array($value)) ?
-                    array_replace_recursive($this->{$key}, $value) :
-                    $value;
+                array_replace_recursive($this->{$key}, $value) :
+                $value;
         }
         $this->connected = new Future();
     }
@@ -186,7 +188,7 @@ class Client {
             }
             $promise = call_user_func($this->connector, $this->url, [], $headers);
             Timer\timeout($promise, $timeout, Loop::get())->then(
-                function(WebSocket $connection) {
+                function (WebSocket $connection) {
                     if ($this->verbose) {
                         echo date('c'), " connected\n";
                     }
@@ -200,7 +202,7 @@ class Client {
                     $on_connected_callback = $this->on_connected_callback;
                     $on_connected_callback($this);
                 },
-                function(\Exception $error) {
+                function (\Exception $error) {
                     // echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";
                     // the ordering of these exceptions is important
                     // since one inherits another
@@ -283,7 +285,43 @@ class Client {
         }
     }
 
+    public $messageQueue = array();
+    public $processingQueue = false;
+    public $isNewPacket = true;
+
     public function on_message(Message $message) {
+        if ($this->isNewPacket) {
+            // If the queue still has unprocessed messages from a previous packet, we flush them 
+            // synchronously to prevent the backlog from growing infinitely (memory leak).
+            while (count($this->messageQueue) > 0) {
+                $msg = array_shift($this->messageQueue);
+                $this->handle_message($msg);
+            }
+            $this->isNewPacket = false;
+            // futureTick schedules this closure to run on the next event loop tick, 
+            // which runs after the current TCP packet has finished synchronously parsing.
+            Loop::futureTick(function () {
+                $this->isNewPacket = true;
+            });
+        }
+
+        $this->messageQueue[] = $message;
+        if (!$this->processingQueue) {
+            $this->processingQueue = true;
+            $callback_loop = function () use (&$callback_loop) {
+                if (count($this->messageQueue) > 0) {
+                    $msg = array_shift($this->messageQueue);
+                    $this->handle_message($msg);
+                    Loop::futureTick($callback_loop);
+                } else {
+                    $this->processingQueue = false;
+                }
+            };
+            Loop::futureTick($callback_loop);
+        }
+    }
+
+    public function handle_message(Message $message) {
         $is_binary = preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0;
         if ($is_binary) { // only decompress if the message is a binary
             if (!$this->decompressBinary) {
@@ -346,7 +384,7 @@ class Client {
     public function on_ping_interval() {
         if ($this->keepAlive && !$this->closed) {
             $now = $this->milliseconds();
-            $this->lastPong = isset ($this->lastPong) ? $this->lastPong : $now;
+            $this->lastPong = isset($this->lastPong) ? $this->lastPong : $now;
             if (($this->lastPong + $this->keepAlive * $this->maxPingPongMisses) < $now) {
                 $this->on_error(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
             } else {

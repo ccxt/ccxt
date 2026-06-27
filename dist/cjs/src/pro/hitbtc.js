@@ -2,16 +2,19 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var hitbtc$1 = require('../hitbtc.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var errors = require('../base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class hitbtc extends hitbtc$1["default"] {
     describe() {
-        return this.deepExtend(super.describe(), {
+        return this.deepExtend(super.describe(), this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'watchTicker': true,
@@ -73,7 +76,7 @@ class hitbtc extends hitbtc$1["default"] {
             'streaming': {
                 'keepAlive': 4000,
             },
-        });
+        };
     }
     /**
      * @ignore
@@ -91,7 +94,7 @@ class hitbtc extends hitbtc$1["default"] {
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.milliseconds();
-            const signature = this.hmac(this.encode(this.numberToString(timestamp)), this.encode(this.secret), sha256.sha256, 'hex');
+            const signature = this.hmac(this.encode(this.numberToString(timestamp)), this.encode(this.secret), sha2_js.sha256, 'hex');
             const request = {
                 'method': 'login',
                 'params': {
@@ -208,7 +211,7 @@ class hitbtc extends hitbtc$1["default"] {
      * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
      * @param {int} [params.depth] 5 , 10, or 20 (default)
      * @param {int} [params.speed] 100 (default), 500, or 1000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const options = this.safeValue(this.options, 'watchOrderBook');

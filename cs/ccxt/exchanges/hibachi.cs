@@ -115,14 +115,14 @@ public partial class hibachi : Exchange
                 { "1w", "1w" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973" },
+                { "logo", "https://github.com/user-attachments/assets/f267bf5b-5c6c-45e2-9ce4-fb0af8a9d9ab" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://data-api.hibachi.xyz" },
                     { "private", "https://api.hibachi.xyz" },
                 } },
                 { "www", "https://www.hibachi.xyz/" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "hibachi.xyz/r/ZBL2YFWIHU" },
+                    { "url", "https://hibachi.xyz/r/ZBL2YFWIHU" },
                 } },
             } },
             { "api", new Dictionary<string, object>() {
@@ -304,7 +304,7 @@ public partial class hibachi : Exchange
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "underlyingDecimals"))) },
-                { "price", divide(this.parseNumber(getValue(this.safeList(market, "orderbookGranularities"), 0)), 10000) },
+                { "price", divide(this.parseNumber(this.safeValue(this.safeList(market, "orderbookGranularities", new List<object>() {}), 0)), 10000) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -777,7 +777,7 @@ public partial class hibachi : Exchange
      * @method
      * @name hibachi#fetchTradingFees
      * @description fetch the trading fee
-     * @param params extra parameters
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
@@ -856,6 +856,7 @@ public partial class hibachi : Exchange
             object priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             object price16 = this.intToBase16(this.parseToInt(priceInternal));
             object pricePadded = (price16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
+            // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
         object message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
@@ -983,7 +984,7 @@ public partial class hibachi : Exchange
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         object ret = new List<object>() {};
-        object responseOrders = this.safeList(response, "orders");
+        object responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(responseOrders)); postFixIncrement(ref i))
         {
             object responseOrder = getValue(responseOrders, i);
@@ -1084,7 +1085,7 @@ public partial class hibachi : Exchange
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         object ret = new List<object>() {};
-        object responseOrders = this.safeList(response, "orders");
+        object responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(responseOrders)); postFixIncrement(ref i))
         {
             object responseOrder = getValue(responseOrders, i);
@@ -1166,7 +1167,7 @@ public partial class hibachi : Exchange
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         object ret = new List<object>() {};
-        object responseOrders = this.safeList(response, "orders");
+        object responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(responseOrders)); postFixIncrement(ref i))
         {
             object responseOrder = getValue(responseOrders, i);
@@ -1879,7 +1880,7 @@ public partial class hibachi : Exchange
         //             "status": "pending",
         //             "timestampSec": 1752692872,
         //             "token": "USDT",
-        //             "transactionHash": "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b5e",
+        //             "transactionHash": "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
         //             "transactionType": "deposit"
         //         },
         //         {
@@ -2064,7 +2065,7 @@ public partial class hibachi : Exchange
         //         },
         //     ]
         // }
-        object transactions = this.safeList(response, "transactions");
+        object transactions = this.safeList(response, "transactions", new List<object>() {});
         object deposits = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
         {
@@ -2127,7 +2128,7 @@ public partial class hibachi : Exchange
         //         },
         //     ]
         // }
-        object transactions = this.safeList(response, "transactions");
+        object transactions = this.safeList(response, "transactions", new List<object>() {});
         object withdrawals = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
         {
@@ -2279,7 +2280,7 @@ public partial class hibachi : Exchange
         //     ]
         // }
         //
-        object data = this.safeList(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         object rates = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {

@@ -45,6 +45,7 @@ public partial class binanceus : binance
                 { "defaultType", "spot" },
                 { "fetchMargins", false },
                 { "quoteOrderQty", false },
+                { "fetchCurrencies", false },
             } },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },

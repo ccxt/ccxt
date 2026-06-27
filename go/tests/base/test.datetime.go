@@ -8,9 +8,9 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestIso8601() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	Assert(ccxt.IsEqual(exchange.Iso8601(514862627000), "1986-04-26T01:23:47.000Z"))
 	Assert(ccxt.IsEqual(exchange.Iso8601(514862627559), "1986-04-26T01:23:47.559Z"))
 	Assert(ccxt.IsEqual(exchange.Iso8601(514862627062), "1986-04-26T01:23:47.062Z"))
@@ -21,14 +21,14 @@ func TestIso8601() {
 	Assert(ccxt.IsEqual(exchange.Iso8601(nil), nil))
 	Assert(ccxt.IsEqual(exchange.Iso8601(""), nil))
 	Assert(ccxt.IsEqual(exchange.Iso8601("a"), nil))
-	Assert(ccxt.IsEqual(exchange.Iso8601(map[string]interface{}{}), nil))
+	Assert(ccxt.IsEqual(exchange.Iso8601(map[string]any{}), nil))
 }
 func TestParse8601() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	Assert(ccxt.IsEqual(exchange.Parse8601("1986-04-26T01:23:47.000Z"), 514862627000))
 	Assert(ccxt.IsEqual(exchange.Parse8601("1986-04-26T01:23:47.559Z"), 514862627559))
 	Assert(ccxt.IsEqual(exchange.Parse8601("1986-04-26T01:23:47.062Z"), 514862627062))
@@ -42,15 +42,15 @@ func TestParse8601() {
 	// assert (exchange.parse8601 () === undefined);
 	// todo: assert (exchange.parse8601 () === undefined);
 	Assert(ccxt.IsEqual(exchange.Parse8601(nil), nil))
-	Assert(ccxt.IsEqual(exchange.Parse8601(map[string]interface{}{}), nil))
+	Assert(ccxt.IsEqual(exchange.Parse8601(map[string]any{}), nil))
 	Assert(ccxt.IsEqual(exchange.Parse8601(33), nil))
 }
 func TestParseDate() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	Assert(ccxt.IsEqual(exchange.ParseDate("1986-04-26 00:00:00"), 514857600000))
 	Assert(ccxt.IsEqual(exchange.ParseDate("1986-04-26T01:23:47.000Z"), 514862627000))
 	Assert(ccxt.IsEqual(exchange.ParseDate("1986-13-13 00:00:00"), nil))
@@ -58,92 +58,92 @@ func TestParseDate() {
 func TestMicroseconds() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var value interface{} = exchange.Microseconds()
-	var valueString interface{} = ccxt.ToString(value)
+	}, map[string]any{}, exchange)
+	var value any = exchange.Microseconds()
+	var valueString any = ccxt.ToString(value)
 	Assert(ccxt.IsGreaterThan(value, 0))
 	Assert(ccxt.IsEqual(ccxt.GetLength(valueString), 16))
 }
 func TestMilliseconds() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var value interface{} = exchange.Milliseconds()
-	var valueString interface{} = ccxt.ToString(value)
+	}, map[string]any{}, exchange)
+	var value any = exchange.Milliseconds()
+	var valueString any = ccxt.ToString(value)
 	Assert(ccxt.IsGreaterThan(value, 0))
 	Assert(ccxt.IsEqual(ccxt.GetLength(valueString), 13))
 }
 func TestSeconds() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var value interface{} = exchange.Seconds()
-	var valueString interface{} = ccxt.ToString(value)
+	}, map[string]any{}, exchange)
+	var value any = exchange.Seconds()
+	var valueString any = ccxt.ToString(value)
 	Assert(ccxt.IsGreaterThan(value, 0))
 	Assert(ccxt.IsEqual(ccxt.GetLength(valueString), 10))
 }
 func TestYymmdd() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var testMs interface{} = 1750123456789 // 17 June 2025
-	var value interface{} = exchange.Yymmdd(testMs, "_")
+	}, map[string]any{}, exchange)
+	var testMs any = 1750123456789 // 17 June 2025
+	var value any = exchange.Yymmdd(testMs, "_")
 	Assert(ccxt.IsEqual(value, "25_06_17"))
-	var value2 interface{} = exchange.Yymmdd(exchange.Milliseconds())
+	var value2 any = exchange.Yymmdd(exchange.Milliseconds())
 	Assert(ccxt.IsEqual(ccxt.GetLength(value2), 6))
-	var intNum interface{} = exchange.ParseToInt(value2)
+	var intNum any = exchange.ParseToInt(value2)
 	Assert(ccxt.IsTrue(ccxt.IsGreaterThan(intNum, 260000)) && ccxt.IsTrue(ccxt.IsLessThan(intNum, 360000))) // date between 2026 and 2036
 }
 func TestYyyymmdd() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var testMs interface{} = 1750123456789 // 17 June 2025
-	var value interface{} = exchange.Yyyymmdd(testMs, "_")
+	}, map[string]any{}, exchange)
+	var testMs any = 1750123456789 // 17 June 2025
+	var value any = exchange.Yyyymmdd(testMs, "_")
 	Assert(ccxt.IsEqual(value, "2025_06_17"))
-	var value2 interface{} = exchange.Yyyymmdd(exchange.Milliseconds())
+	var value2 any = exchange.Yyyymmdd(exchange.Milliseconds())
 	Assert(ccxt.IsEqual(ccxt.GetLength(value2), 10))
-	var intNum interface{} = exchange.ParseToInt(ccxt.Replace((ccxt.Replace(value2, "-", "")), "-", ""))
+	var intNum any = exchange.ParseToInt(ccxt.Replace((ccxt.Replace(value2, "-", "")), "-", ""))
 	Assert(ccxt.IsTrue(ccxt.IsGreaterThan(intNum, 20260000)) && ccxt.IsTrue(ccxt.IsLessThan(intNum, 20360000))) // date between 2026 and 2036
 }
 func TestYmd() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var testMs interface{} = 1750123456789 // 17 June 2025
-	var value interface{} = exchange.Ymd(testMs, "_")
+	}, map[string]any{}, exchange)
+	var testMs any = 1750123456789 // 17 June 2025
+	var value any = exchange.Ymd(testMs, "_")
 	Assert(ccxt.IsEqual(value, "2025_06_17"))
 }
 func TestYmdhms() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var testMs interface{} = 1750123456789 // 17 June 2025
-	var value interface{} = exchange.Ymdhms(testMs, "_")
+	}, map[string]any{}, exchange)
+	var testMs any = 1750123456789 // 17 June 2025
+	var value any = exchange.Ymdhms(testMs, "_")
 	Assert(ccxt.IsTrue(ccxt.IsEqual(value, "2025-06-17_01:24:16")) || ccxt.IsTrue(ccxt.IsEqual(value, "2025-06-17_01:24:17"))) // todo: php/py rounds up to 17
 }
 func TestDatetime() {
 	TestIso8601()
 	TestParse8601()
 	TestParseDate()
+	//
 	TestMicroseconds()
 	TestMilliseconds()
 	TestSeconds()
 	TestYymmdd()
 	TestYyyymmdd()
-
 }

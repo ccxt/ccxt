@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var deribit$1 = require('./abstract/deribit.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var totp = require('./base/functions/totp.js');
 
 // ----------------------------------------------------------------------------
@@ -20,7 +20,7 @@ class deribit extends deribit$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'deribit',
             'name': 'Deribit',
-            'countries': ['NL'],
+            'countries': ['NL'], // Netherlands
             'version': 'v2',
             'userAgent': undefined,
             // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
@@ -258,7 +258,7 @@ class deribit extends deribit$1["default"] {
                         'get_order_history_by_instrument': 1,
                         'get_order_margin_by_ids': 1,
                         'get_order_state': 1,
-                        'get_stop_order_history': 1,
+                        'get_stop_order_history': 1, // deprecated
                         'get_trigger_order_history': 1,
                         'get_user_trades_by_currency': 1,
                         'get_user_trades_by_currency_and_time': 1,
@@ -288,7 +288,7 @@ class deribit extends deribit$1["default"] {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo
                         // todo implement
                         'triggerPriceType': {
                             'last': true,
@@ -296,8 +296,8 @@ class deribit extends deribit$1["default"] {
                             'index': true,
                         },
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -307,16 +307,16 @@ class deribit extends deribit$1["default"] {
                         },
                         'hedged': false,
                         'selfTradePrevention': false,
-                        'trailing': true,
+                        'trailing': true, // todo
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': true, // todo
                         'marketBuyRequiresPrice': false,
                         'iceberg': true, // todo
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': 100, // todo: revise
                         'daysBack': 100000,
                         'untilDays': 100000,
                         'symbolRequired': true, // todo
@@ -371,117 +371,117 @@ class deribit extends deribit$1["default"] {
             },
             'exceptions': {
                 // 0 or absent Success, No error.
-                '9999': errors.PermissionDenied,
-                '10000': errors.AuthenticationError,
-                '10001': errors.ExchangeError,
-                '10002': errors.InvalidOrder,
-                '10003': errors.InvalidOrder,
-                '10004': errors.OrderNotFound,
-                '10005': errors.InvalidOrder,
-                '10006': errors.InvalidOrder,
-                '10007': errors.InvalidOrder,
-                '10008': errors.InvalidOrder,
-                '10009': errors.InsufficientFunds,
-                '10010': errors.OrderNotFound,
-                '10011': errors.InvalidOrder,
-                '10012': errors.InvalidOrder,
-                '10013': errors.PermissionDenied,
-                '10014': errors.PermissionDenied,
-                '10015': errors.PermissionDenied,
-                '10016': errors.PermissionDenied,
-                '10017': errors.PermissionDenied,
-                '10018': errors.PermissionDenied,
-                '10019': errors.PermissionDenied,
-                '10020': errors.ExchangeError,
-                '10021': errors.InvalidOrder,
-                '10022': errors.InvalidOrder,
-                '10023': errors.InvalidOrder,
-                '10024': errors.InvalidOrder,
-                '10025': errors.InvalidOrder,
-                '10026': errors.InvalidOrder,
-                '10027': errors.InvalidOrder,
-                '10028': errors.DDoSProtection,
-                '10029': errors.OrderNotFound,
-                '10030': errors.ExchangeError,
-                '10031': errors.ExchangeError,
-                '10032': errors.InvalidOrder,
-                '10033': errors.NotSupported,
-                '10034': errors.InvalidOrder,
-                '10035': errors.InvalidOrder,
-                '10036': errors.InvalidOrder,
-                '10040': errors.ExchangeNotAvailable,
-                '10041': errors.OnMaintenance,
-                '10043': errors.InvalidOrder,
-                '10044': errors.InvalidOrder,
-                '10045': errors.InvalidOrder,
-                '10046': errors.InvalidOrder,
-                '10047': errors.DDoSProtection,
-                '10048': errors.ExchangeError,
-                '11008': errors.InvalidOrder,
-                '11029': errors.BadRequest,
-                '11030': errors.ExchangeError,
-                '11031': errors.ExchangeError,
-                '11035': errors.DDoSProtection,
-                '11036': errors.InvalidOrder,
-                '11037': errors.BadRequest,
-                '11038': errors.InvalidOrder,
-                '11039': errors.InvalidOrder,
-                '11041': errors.InvalidOrder,
-                '11042': errors.PermissionDenied,
-                '11043': errors.BadRequest,
-                '11044': errors.InvalidOrder,
-                '11045': errors.BadRequest,
-                '11046': errors.BadRequest,
-                '11047': errors.BadRequest,
-                '11048': errors.ExchangeError,
-                '11049': errors.BadRequest,
-                '11050': errors.BadRequest,
-                '11051': errors.OnMaintenance,
-                '11052': errors.ExchangeError,
-                '11053': errors.ExchangeError,
-                '11090': errors.InvalidAddress,
-                '11091': errors.InvalidAddress,
-                '11092': errors.InvalidAddress,
-                '11093': errors.DDoSProtection,
-                '11094': errors.ExchangeError,
-                '11095': errors.ExchangeError,
-                '11096': errors.ExchangeError,
-                '12000': errors.AuthenticationError,
-                '12001': errors.DDoSProtection,
-                '12002': errors.ExchangeError,
-                '12998': errors.AuthenticationError,
-                '12003': errors.AuthenticationError,
-                '12004': errors.AuthenticationError,
-                '12005': errors.AuthenticationError,
-                '12100': errors.ExchangeError,
-                '12999': errors.AuthenticationError,
-                '13000': errors.AuthenticationError,
-                '13001': errors.AuthenticationError,
-                '13002': errors.PermissionDenied,
-                '13003': errors.AuthenticationError,
-                '13004': errors.AuthenticationError,
-                '13005': errors.AuthenticationError,
-                '13006': errors.AuthenticationError,
-                '13007': errors.AuthenticationError,
-                '13008': errors.ExchangeError,
-                '13009': errors.AuthenticationError,
-                '13010': errors.BadRequest,
-                '13011': errors.BadRequest,
-                '13012': errors.PermissionDenied,
-                '13013': errors.BadRequest,
-                '13014': errors.BadRequest,
-                '13015': errors.BadRequest,
-                '13016': errors.BadRequest,
-                '13017': errors.ExchangeError,
-                '13018': errors.ExchangeError,
-                '13019': errors.ExchangeError,
-                '13020': errors.ExchangeError,
-                '13021': errors.PermissionDenied,
-                '13025': errors.ExchangeError,
-                '-32602': errors.BadRequest,
-                '-32601': errors.BadRequest,
-                '-32700': errors.BadRequest,
-                '-32000': errors.BadRequest,
+                '9999': errors.PermissionDenied, // 'api_not_enabled' User didn't enable API for the Account.
+                '10000': errors.AuthenticationError, // 'authorization_required' Authorization issue, invalid or absent signature etc.
+                '10001': errors.ExchangeError, // 'error' Some general failure, no public information available.
+                '10002': errors.InvalidOrder, // 'qty_too_low' Order quantity is too low.
+                '10003': errors.InvalidOrder, // 'order_overlap' Rejection, order overlap is found and self-trading is not enabled.
+                '10004': errors.OrderNotFound, // 'order_not_found' Attempt to operate with order that can't be found by specified id.
+                '10005': errors.InvalidOrder, // 'price_too_low <Limit>' Price is too low, <Limit> defines current limit for the operation.
+                '10006': errors.InvalidOrder, // 'price_too_low4idx <Limit>' Price is too low for current index, <Limit> defines current bottom limit for the operation.
+                '10007': errors.InvalidOrder, // 'price_too_high <Limit>' Price is too high, <Limit> defines current up limit for the operation.
+                '10008': errors.InvalidOrder, // 'price_too_high4idx <Limit>' Price is too high for current index, <Limit> defines current up limit for the operation.
+                '10009': errors.InsufficientFunds, // 'not_enough_funds' Account has not enough funds for the operation.
+                '10010': errors.OrderNotFound, // 'already_closed' Attempt of doing something with closed order.
+                '10011': errors.InvalidOrder, // 'price_not_allowed' This price is not allowed for some reason.
+                '10012': errors.InvalidOrder, // 'book_closed' Operation for instrument which order book had been closed.
+                '10013': errors.PermissionDenied, // 'pme_max_total_open_orders <Limit>' Total limit of open orders has been exceeded, it is applicable for PME users.
+                '10014': errors.PermissionDenied, // 'pme_max_future_open_orders <Limit>' Limit of count of futures' open orders has been exceeded, it is applicable for PME users.
+                '10015': errors.PermissionDenied, // 'pme_max_option_open_orders <Limit>' Limit of count of options' open orders has been exceeded, it is applicable for PME users.
+                '10016': errors.PermissionDenied, // 'pme_max_future_open_orders_size <Limit>' Limit of size for futures has been exceeded, it is applicable for PME users.
+                '10017': errors.PermissionDenied, // 'pme_max_option_open_orders_size <Limit>' Limit of size for options has been exceeded, it is applicable for PME users.
+                '10018': errors.PermissionDenied, // 'non_pme_max_future_position_size <Limit>' Limit of size for futures has been exceeded, it is applicable for non-PME users.
+                '10019': errors.PermissionDenied, // 'locked_by_admin' Trading is temporary locked by admin.
+                '10020': errors.ExchangeError, // 'invalid_or_unsupported_instrument' Instrument name is not valid.
+                '10021': errors.InvalidOrder, // 'invalid_amount' Amount is not valid.
+                '10022': errors.InvalidOrder, // 'invalid_quantity' quantity was not recognized as a valid number (for API v1).
+                '10023': errors.InvalidOrder, // 'invalid_price' price was not recognized as a valid number.
+                '10024': errors.InvalidOrder, // 'invalid_max_show' max_show parameter was not recognized as a valid number.
+                '10025': errors.InvalidOrder, // 'invalid_order_id' Order id is missing or its format was not recognized as valid.
+                '10026': errors.InvalidOrder, // 'price_precision_exceeded' Extra precision of the price is not supported.
+                '10027': errors.InvalidOrder, // 'non_integer_contract_amount' Futures contract amount was not recognized as integer.
+                '10028': errors.DDoSProtection, // 'too_many_requests' Allowed request rate has been exceeded.
+                '10029': errors.OrderNotFound, // 'not_owner_of_order' Attempt to operate with not own order.
+                '10030': errors.ExchangeError, // 'must_be_websocket_request' REST request where Websocket is expected.
+                '10031': errors.ExchangeError, // 'invalid_args_for_instrument' Some of arguments are not recognized as valid.
+                '10032': errors.InvalidOrder, // 'whole_cost_too_low' Total cost is too low.
+                '10033': errors.NotSupported, // 'not_implemented' Method is not implemented yet.
+                '10034': errors.InvalidOrder, // 'stop_price_too_high' Stop price is too high.
+                '10035': errors.InvalidOrder, // 'stop_price_too_low' Stop price is too low.
+                '10036': errors.InvalidOrder, // 'invalid_max_show_amount' Max Show Amount is not valid.
+                '10040': errors.ExchangeNotAvailable, // 'retry' Request can't be processed right now and should be retried.
+                '10041': errors.OnMaintenance, // 'settlement_in_progress' Settlement is in progress. Every day at settlement time for several seconds, the system calculates user profits and updates balances. That time trading is paused for several seconds till the calculation is completed.
+                '10043': errors.InvalidOrder, // 'price_wrong_tick' Price has to be rounded to a certain tick size.
+                '10044': errors.InvalidOrder, // 'stop_price_wrong_tick' Stop Price has to be rounded to a certain tick size.
+                '10045': errors.InvalidOrder, // 'can_not_cancel_liquidation_order' Liquidation order can't be canceled.
+                '10046': errors.InvalidOrder, // 'can_not_edit_liquidation_order' Liquidation order can't be edited.
+                '10047': errors.DDoSProtection, // 'matching_engine_queue_full' Reached limit of pending Matching Engine requests for user.
+                '10048': errors.ExchangeError, // 'not_on_this_server' The requested operation is not available on this server.
+                '11008': errors.InvalidOrder, // 'already_filled' This request is not allowed in regards to the filled order.
+                '11029': errors.BadRequest, // 'invalid_arguments' Some invalid input has been detected.
+                '11030': errors.ExchangeError, // 'other_reject <Reason>' Some rejects which are not considered as very often, more info may be specified in <Reason>.
+                '11031': errors.ExchangeError, // 'other_error <Error>' Some errors which are not considered as very often, more info may be specified in <Error>.
+                '11035': errors.DDoSProtection, // 'no_more_stops <Limit>' Allowed amount of stop orders has been exceeded.
+                '11036': errors.InvalidOrder, // 'invalid_stoppx_for_index_or_last' Invalid StopPx (too high or too low) as to current index or market.
+                '11037': errors.BadRequest, // 'outdated_instrument_for_IV_order' Instrument already not available for trading.
+                '11038': errors.InvalidOrder, // 'no_adv_for_futures' Advanced orders are not available for futures.
+                '11039': errors.InvalidOrder, // 'no_adv_postonly' Advanced post-only orders are not supported yet.
+                '11041': errors.InvalidOrder, // 'not_adv_order' Advanced order properties can't be set if the order is not advanced.
+                '11042': errors.PermissionDenied, // 'permission_denied' Permission for the operation has been denied.
+                '11043': errors.BadRequest, // 'bad_argument' Bad argument has been passed.
+                '11044': errors.InvalidOrder, // 'not_open_order' Attempt to do open order operations with the not open order.
+                '11045': errors.BadRequest, // 'invalid_event' Event name has not been recognized.
+                '11046': errors.BadRequest, // 'outdated_instrument' At several minutes to instrument expiration, corresponding advanced implied volatility orders are not allowed.
+                '11047': errors.BadRequest, // 'unsupported_arg_combination' The specified combination of arguments is not supported.
+                '11048': errors.ExchangeError, // 'wrong_max_show_for_option' Wrong Max Show for options.
+                '11049': errors.BadRequest, // 'bad_arguments' Several bad arguments have been passed.
+                '11050': errors.BadRequest, // 'bad_request' Request has not been parsed properly.
+                '11051': errors.OnMaintenance, // 'system_maintenance' System is under maintenance.
+                '11052': errors.ExchangeError, // 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
+                '11053': errors.ExchangeError, // 'transfer_not_found' Specified transfer is not found.
+                '11090': errors.InvalidAddress, // 'invalid_addr' Invalid address.
+                '11091': errors.InvalidAddress, // 'invalid_transfer_address' Invalid addres for the transfer.
+                '11092': errors.InvalidAddress, // 'address_already_exist' The address already exists.
+                '11093': errors.DDoSProtection, // 'max_addr_count_exceeded' Limit of allowed addresses has been reached.
+                '11094': errors.ExchangeError, // 'internal_server_error' Some unhandled error on server. Please report to admin. The details of the request will help to locate the problem.
+                '11095': errors.ExchangeError, // 'disabled_deposit_address_creation' Deposit address creation has been disabled by admin.
+                '11096': errors.ExchangeError, // 'address_belongs_to_user' Withdrawal instead of transfer.
+                '12000': errors.AuthenticationError, // 'bad_tfa' Wrong TFA code
+                '12001': errors.DDoSProtection, // 'too_many_subaccounts' Limit of subbacounts is reached.
+                '12002': errors.ExchangeError, // 'wrong_subaccount_name' The input is not allowed as name of subaccount.
+                '12998': errors.AuthenticationError, // 'tfa_over_limit' The number of failed TFA attempts is limited.
+                '12003': errors.AuthenticationError, // 'login_over_limit' The number of failed login attempts is limited.
+                '12004': errors.AuthenticationError, // 'registration_over_limit' The number of registration requests is limited.
+                '12005': errors.AuthenticationError, // 'country_is_banned' The country is banned (possibly via IP check).
+                '12100': errors.ExchangeError, // 'transfer_not_allowed' Transfer is not allowed. Possible wrong direction or other mistake.
+                '12999': errors.AuthenticationError, // 'tfa_used' TFA code is correct but it is already used. Please, use next code.
+                '13000': errors.AuthenticationError, // 'invalid_login' Login name is invalid (not allowed or it contains wrong characters).
+                '13001': errors.AuthenticationError, // 'account_not_activated' Account must be activated.
+                '13002': errors.PermissionDenied, // 'account_blocked' Account is blocked by admin.
+                '13003': errors.AuthenticationError, // 'tfa_required' This action requires TFA authentication.
+                '13004': errors.AuthenticationError, // 'invalid_credentials' Invalid credentials has been used.
+                '13005': errors.AuthenticationError, // 'pwd_match_error' Password confirmation error.
+                '13006': errors.AuthenticationError, // 'security_error' Invalid Security Code.
+                '13007': errors.AuthenticationError, // 'user_not_found' User's security code has been changed or wrong.
+                '13008': errors.ExchangeError, // 'request_failed' Request failed because of invalid input or internal failure.
+                '13009': errors.AuthenticationError, // 'unauthorized' Wrong or expired authorization token or bad signature. For example, please check scope of the token, 'connection' scope can't be reused for other connections.
+                '13010': errors.BadRequest, // 'value_required' Invalid input, missing value.
+                '13011': errors.BadRequest, // 'value_too_short' Input is too short.
+                '13012': errors.PermissionDenied, // 'unavailable_in_subaccount' Subaccount restrictions.
+                '13013': errors.BadRequest, // 'invalid_phone_number' Unsupported or invalid phone number.
+                '13014': errors.BadRequest, // 'cannot_send_sms' SMS sending failed -- phone number is wrong.
+                '13015': errors.BadRequest, // 'invalid_sms_code' Invalid SMS code.
+                '13016': errors.BadRequest, // 'invalid_input' Invalid input.
+                '13017': errors.ExchangeError, // 'subscription_failed' Subscription hailed, invalid subscription parameters.
+                '13018': errors.ExchangeError, // 'invalid_content_type' Invalid content type of the request.
+                '13019': errors.ExchangeError, // 'orderbook_closed' Closed, expired order book.
+                '13020': errors.ExchangeError, // 'not_found' Instrument is not found, invalid instrument name.
+                '13021': errors.PermissionDenied, // 'forbidden' Not enough permissions to execute the request, forbidden.
+                '13025': errors.ExchangeError, // 'method_switched_off_by_admin' API method temporarily switched off by administrator.
+                '-32602': errors.BadRequest, // 'Invalid params' see JSON-RPC spec.
+                '-32601': errors.BadRequest, // 'Method not found' see JSON-RPC spec.
+                '-32700': errors.BadRequest, // 'Parse error' see JSON-RPC spec.
+                '-32000': errors.BadRequest, // 'Missing params' see JSON-RPC spec.
                 '11054': errors.InvalidOrder, // 'post_only_reject' post order would be filled immediately
             },
             'precisionMode': number.TICK_SIZE,
@@ -531,9 +531,11 @@ class deribit extends deribit$1["default"] {
         const optionType = this.safeString(optionParts, 3);
         const datetime = this.convertExpireDate(expiry);
         const timestamp = this.parse8601(datetime);
+        const id = base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType;
+        const symbolExpired = splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType;
         return {
-            'id': base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType,
-            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'id': id,
+            'symbol': symbolExpired,
             'base': base,
             'quote': quote,
             'settle': settle,
@@ -641,40 +643,38 @@ class deribit extends deribit$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'result', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const currencyId = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': this.safeString(currency, 'currency_long'),
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'type': 'crypto',
-                'fee': this.safeNumber(currency, 'withdrawal_fee'),
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': this.safeString(rawCurrency, 'currency_long'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'type': 'crypto',
+            'fee': this.safeNumber(rawCurrency, 'withdrawal_fee'),
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': undefined,
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': undefined,
+        });
     }
     codeFromOptions(methodName, params = {}) {
         const defaultCode = this.safeValue(this.options, 'code', 'BTC');
@@ -1323,7 +1323,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseTicker(result, market);
     }
     /**
@@ -1775,7 +1775,7 @@ class deribit extends deribit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2004,7 +2004,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     /**
@@ -2778,7 +2778,7 @@ class deribit extends deribit$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parsePosition(result);
     }
     /**
@@ -3070,7 +3070,7 @@ class deribit extends deribit$1["default"] {
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
-            'address': address,
+            'address': address, // must be in the address book
             'amount': amount,
             // 'priority': 'high', // low, mid, high, very_high, extreme_high, insane
             // 'tfa': '123456', // if enabled
@@ -3161,7 +3161,7 @@ class deribit extends deribit$1["default"] {
         const time = this.milliseconds();
         const request = {
             'instrument_name': market['id'],
-            'start_timestamp': time - (8 * 60 * 60 * 1000),
+            'start_timestamp': time - (8 * 60 * 60 * 1000), // 8h ago,
             'end_timestamp': time,
         };
         const response = await this.publicGetGetFundingRateValue(this.extend(request, params));
@@ -3862,7 +3862,7 @@ class deribit extends deribit$1["default"] {
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
             const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             headers = {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };

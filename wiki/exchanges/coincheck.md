@@ -35,7 +35,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coincheck.fetchBalance ([params])
+coincheck.fetchBalance (params?)
 ```
 
 
@@ -58,7 +58,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-coincheck.fetchOpenOrders (symbol[, since, limit, params])
+coincheck.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -68,7 +68,7 @@ coincheck.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#order-book  
 
@@ -80,7 +80,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coincheck.fetchOrderBook (symbol[, limit, params])
+coincheck.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -101,7 +101,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coincheck.fetchTicker (symbol[, params])
+coincheck.fetchTicker (symbol, params?)
 ```
 
 
@@ -124,7 +124,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coincheck.fetchMyTrades (symbol[, since, limit, params])
+coincheck.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -147,7 +147,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coincheck.fetchTrades (symbol[, since, limit, params])
+coincheck.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -167,7 +167,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-coincheck.fetchTradingFees ([params])
+coincheck.fetchTradingFees (params?)
 ```
 
 
@@ -192,7 +192,7 @@ create a trade order
 
 
 ```javascript
-coincheck.createOrder (symbol, type, side, amount[, price, params])
+coincheck.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -214,7 +214,7 @@ cancels an open order
 
 
 ```javascript
-coincheck.cancelOrder (id, symbol[, params])
+coincheck.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -237,7 +237,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-coincheck.fetchDeposits (code[, since, limit, params])
+coincheck.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -260,7 +260,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-coincheck.fetchWithdrawals (code[, since, limit, params])
+coincheck.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -270,7 +270,7 @@ coincheck.fetchWithdrawals (code[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#websocket-order-book  
 
@@ -282,7 +282,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coincheck.watchOrderBook (symbol[, limit, params])
+coincheck.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -305,6 +305,6 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-coincheck.watchTrades (symbol[, since, limit, params])
+coincheck.watchTrades (symbol, since?, limit?, params?)
 ```
 

@@ -5,14 +5,17 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class hitbtc extends hitbtcRest {
     describe() {
-        return this.deepExtend(super.describe(), {
+        return this.deepExtend(super.describe(), this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'watchTicker': true,
@@ -74,7 +77,7 @@ export default class hitbtc extends hitbtcRest {
             'streaming': {
                 'keepAlive': 4000,
             },
-        });
+        };
     }
     /**
      * @ignore
@@ -209,7 +212,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
      * @param {int} [params.depth] 5 , 10, or 20 (default)
      * @param {int} [params.speed] 100 (default), 500, or 1000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const options = this.safeValue(this.options, 'watchOrderBook');

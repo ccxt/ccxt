@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var whitebit$1 = require('./abstract/whitebit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -296,10 +296,10 @@ class whitebit extends whitebit$1["default"] {
                 },
             },
             'options': {
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
-                'nonceWindow': false,
+                'nonceWindow': false, // controls nonce validation behavior in API requests. Set to true for time-based validation. Useful for high-frequency trading systems with concurrent requests. For more details, see https://docs.whitebit.com/private/http-auth/
                 'fetchBalance': {
                     'account': 'spot',
                 },
@@ -322,13 +322,13 @@ class whitebit extends whitebit$1["default"] {
                         'triggerPrice': true,
                         'triggerDirection': false,
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': true,
+                            'IOC': true, // todo
                             'FOK': false,
-                            'PO': true,
+                            'PO': true, // todo
                             'GTD': false,
                         },
                         'hedged': false,
@@ -411,28 +411,31 @@ class whitebit extends whitebit$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Unauthorized request.': errors.AuthenticationError,
-                    'The market format is invalid.': errors.BadSymbol,
-                    'Market is not available': errors.BadSymbol,
-                    'Invalid payload.': errors.BadRequest,
-                    'Amount must be greater than 0': errors.InvalidOrder,
-                    'Not enough balance.': errors.InsufficientFunds,
-                    'The order id field is required.': errors.InvalidOrder,
-                    'Not enough balance': errors.InsufficientFunds,
-                    'This action is unauthorized.': errors.PermissionDenied,
-                    'This API Key is not authorized to perform this action.': errors.PermissionDenied,
-                    'Unexecuted order was not found.': errors.OrderNotFound,
-                    'The selected from is invalid.': errors.BadRequest,
-                    '503': errors.ExchangeNotAvailable,
+                    'Unauthorized request.': errors.AuthenticationError, // {"code":10,"message":"Unauthorized request."}
+                    'The market format is invalid.': errors.BadSymbol, // {"code":0,"message":"Validation failed","errors":{"market":["The market format is invalid."]}}
+                    'Market is not available': errors.BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                    'Invalid payload.': errors.BadRequest, // {"code":9,"message":"Invalid payload."}
+                    'Amount must be greater than 0': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+                    'Not enough balance.': errors.InsufficientFunds, // {"code":10,"message":"Inner validation failed","errors":{"amount":["Not enough balance."]}}
+                    'The order id field is required.': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
+                    'Not enough balance': errors.InsufficientFunds, // {"code":0,"message":"Validation failed","errors":{"amount":["Not enough balance"]}}
+                    'This action is unauthorized.': errors.PermissionDenied, // {"code":0,"message":"This action is unauthorized."}
+                    'This API Key is not authorized to perform this action.': errors.PermissionDenied, // {"code":4,"message":"This API Key is not authorized to perform this action."}
+                    'Unexecuted order was not found.': errors.OrderNotFound, // {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
+                    'The selected from is invalid.': errors.BadRequest, // {"code":0,"message":"Validation failed","errors":{"from":["The selected from is invalid."]}}
+                    '503': errors.ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
                     '422': errors.OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
-                    'This action is unauthorized': errors.PermissionDenied,
-                    'Given amount is less than min amount': errors.InvalidOrder,
-                    'Min amount step': errors.InvalidOrder,
-                    'Total is less than': errors.InvalidOrder,
-                    'fee must be no less than': errors.InvalidOrder,
-                    'Enable your key in API settings': errors.PermissionDenied,
+                    'limit must be less than or equal to': errors.BadRequest,
+                    'The Price should be less than or equal to': errors.InvalidOrder, // {"code":250,"errors":{"price":["The Price should be less than or equal to 1.277"]},"message":"Validation failed"}
+                    'The Price should be greater than or equal to': errors.InvalidOrder, // {"code":250,"errors":{"price":["The Price should be greater than or equal to 0.0029"]},"message":"Validation failed"}
+                    'This action is unauthorized': errors.PermissionDenied, // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
+                    'Given amount is less than min amount': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'Min amount step': errors.InvalidOrder, // {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
+                    'Total is less than': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'fee must be no less than': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
+                    'Enable your key in API settings': errors.PermissionDenied, // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'You don\'t have such amount for transfer': errors.InsufficientFunds, // {"code":3,"message":"Inner validation failed","errors":{"amount":["You don't have such amount for transfer (available 0.44523433, in amount: 2)"]}}
                 },
             },
@@ -641,76 +644,74 @@ class whitebit extends whitebit$1["default"] {
         //   }
         // }
         //
-        const ids = Object.keys(response);
-        const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currency = response[id];
-            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
-            const code = this.safeCurrencyCode(id);
-            const hasProvider = ('providers' in currency);
-            const networks = {};
-            const rawNetworks = this.safeDict(currency, 'networks', {});
-            const depositsNetworks = this.safeList(rawNetworks, 'deposits', []);
-            const withdrawsNetworks = this.safeList(rawNetworks, 'withdraws', []);
-            const networkLimits = this.safeDict(currency, 'limits', {});
-            const depositLimits = this.safeDict(networkLimits, 'deposit', {});
-            const withdrawLimits = this.safeDict(networkLimits, 'withdraw', {});
-            const allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
-            for (let j = 0; j < allNetworks.length; j++) {
-                const networkId = allNetworks[j];
-                const networkCode = this.networkIdToCode(networkId);
-                const networkDepositLimits = this.safeDict(depositLimits, networkId, {});
-                const networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, {});
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.inArray(networkId, depositsNetworks),
-                    'withdraw': this.inArray(networkId, withdrawsNetworks),
-                    'fee': undefined,
-                    'precision': undefined,
-                    'limits': {
-                        'deposit': {
-                            'min': this.safeNumber(networkDepositLimits, 'min'),
-                            'max': this.safeNumber(networkDepositLimits, 'max'),
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber(networkWithdrawLimits, 'min'),
-                            'max': this.safeNumber(networkWithdrawLimits, 'max'),
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': undefined,
+        const enhancedArray = this.addKeyInArrayItems(response, '_coin_id');
+        return this.parseCurrencies(enhancedArray);
+    }
+    parseCurrency(rawCurrency) {
+        // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
+        const id = this.safeString(rawCurrency, '_coin_id');
+        const code = this.safeCurrencyCode(id);
+        const hasProvider = ('providers' in rawCurrency);
+        const networks = {};
+        const rawNetworks = this.safeDict(rawCurrency, 'networks', {});
+        const depositsNetworks = this.safeList(rawNetworks, 'deposits', []);
+        const withdrawsNetworks = this.safeList(rawNetworks, 'withdraws', []);
+        const networkLimits = this.safeDict(rawCurrency, 'limits', {});
+        const depositLimits = this.safeDict(networkLimits, 'deposit', {});
+        const withdrawLimits = this.safeDict(networkLimits, 'withdraw', {});
+        const allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+        for (let j = 0; j < allNetworks.length; j++) {
+            const networkId = allNetworks[j];
+            const networkCode = this.networkIdToCode(networkId, code);
+            const networkDepositLimits = this.safeDict(depositLimits, networkId, {});
+            const networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, {});
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': this.safeBool(currency, 'can_deposit'),
-                'withdraw': this.safeBool(currency, 'can_withdraw'),
+                'deposit': this.inArray(networkId, depositsNetworks),
+                'withdraw': this.inArray(networkId, withdrawsNetworks),
                 'fee': undefined,
-                'networks': networks,
-                'type': hasProvider ? 'fiat' : 'crypto',
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'currency_precision'))),
+                'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                    'deposit': {
+                        'min': this.safeNumber(networkDepositLimits, 'min'),
+                        'max': this.safeNumber(networkDepositLimits, 'max'),
                     },
                     'withdraw': {
-                        'min': this.safeNumber(currency, 'min_withdraw'),
-                        'max': this.safeNumber(currency, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': this.safeNumber(currency, 'min_deposit'),
-                        'max': this.safeNumber(currency, 'max_deposit'),
+                        'min': this.safeNumber(networkWithdrawLimits, 'min'),
+                        'max': this.safeNumber(networkWithdrawLimits, 'max'),
                     },
                 },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency, // the original payload
+            'name': undefined, // see the comment above
+            'active': undefined,
+            'deposit': this.safeBool(rawCurrency, 'can_deposit'),
+            'withdraw': this.safeBool(rawCurrency, 'can_withdraw'),
+            'fee': undefined,
+            'networks': networks,
+            'type': hasProvider ? 'fiat' : 'crypto',
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'currency_precision'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(rawCurrency, 'min_withdraw'),
+                    'max': this.safeNumber(rawCurrency, 'max_withdraw'),
+                },
+                'deposit': {
+                    'min': this.safeNumber(rawCurrency, 'min_deposit'),
+                    'max': this.safeNumber(rawCurrency, 'max_deposit'),
+                },
+            },
+        });
     }
     /**
      * @method
@@ -898,7 +899,7 @@ class whitebit extends whitebit$1["default"] {
                 if (networkId !== undefined) {
                     const networkLength = networkId.length;
                     networkId = networkId.slice(1, networkLength - 1);
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
@@ -1363,13 +1364,13 @@ class whitebit extends whitebit$1["default"] {
             'ask': this.safeString2(ticker, 'ask', 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
+            'open': this.safeString(ticker, 'open'), // can not be defined in v4PublicGetFutures
             'close': close,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': this.safeString(ticker, 'change'),
-            'average': undefined,
+            'change': undefined, // can not be defined in v4PublicGetFutures
+            'percentage': this.safeString(ticker, 'change'), // can not be defined in v4PublicGetFutures
+            'average': undefined, // can not be defined in v4PublicGetFutures
             'baseVolume': this.safeStringN(ticker, ['base_volume', 'volume', 'baseVolume24h', 'stock_volume']),
             'quoteVolume': this.safeStringN(ticker, ['quote_volume', 'deal', 'quoteVolume24h', 'money_volume']),
             'indexPrice': this.safeString(ticker, 'index_price'),
@@ -1492,7 +1493,7 @@ class whitebit extends whitebit$1["default"] {
                 method = 'v4PublicGetTicker';
             }
         }
-        let response = undefined;
+        let response;
         if (method === 'v4PublicGetTicker') {
             //
             //      "BCH_RUB": {
@@ -1575,7 +1576,7 @@ class whitebit extends whitebit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1856,11 +1857,11 @@ class whitebit extends whitebit$1["default"] {
         //     ]
         //
         return [
-            this.safeTimestamp(ohlcv, 0),
-            this.safeNumber(ohlcv, 1),
-            this.safeNumber(ohlcv, 3),
-            this.safeNumber(ohlcv, 4),
-            this.safeNumber(ohlcv, 2),
+            this.safeTimestamp(ohlcv, 0), // timestamp
+            this.safeNumber(ohlcv, 1), // open
+            this.safeNumber(ohlcv, 3), // high
+            this.safeNumber(ohlcv, 4), // low
+            this.safeNumber(ohlcv, 2), // close
             this.safeNumber(ohlcv, 5), // volume
         ];
     }
@@ -2000,7 +2001,7 @@ class whitebit extends whitebit$1["default"] {
         }
         params = this.omit(query, ['postOnly', 'triggerPrice', 'stopPrice']);
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
-        let response = undefined;
+        let response;
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision(symbol, triggerPrice);
             if (isLimitOrder) {
@@ -2276,7 +2277,7 @@ class whitebit extends whitebit$1["default"] {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode(id);
             const balance = response[id];
-            if (typeof balance === 'object' && balance !== undefined) {
+            if (balance !== undefined && this.isDictionary(balance)) {
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'available', 'main_balance');
                 account['used'] = this.safeString(balance, 'freeze');
@@ -2304,7 +2305,7 @@ class whitebit extends whitebit$1["default"] {
         await this.loadMarkets();
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        let response = undefined;
+        let response;
         if (marketType === 'swap') {
             response = await this.v4PrivatePostCollateralAccountBalance(params);
         }
@@ -2730,7 +2731,7 @@ class whitebit extends whitebit$1["default"] {
         const request = {
             'ticker': currency['id'],
         };
-        let response = undefined;
+        let response;
         if (this.isFiat(code)) {
             const provider = this.safeString(params, 'provider');
             if (provider === undefined) {
@@ -3292,7 +3293,7 @@ class whitebit extends whitebit$1["default"] {
             'symbol': symbol,
             'currency': 'USDT',
             'interest': this.safeNumber(info, 'unrealizedFunding'),
-            'interestRate': 0.00098,
+            'interestRate': 0.00098, // https://whitebit.com/fees
             'amountBorrowed': this.safeNumber(info, 'amount'),
             'marginMode': 'cross',
             'timestamp': timestamp,
@@ -4020,7 +4021,7 @@ class whitebit extends whitebit$1["default"] {
      * @see https://docs.whitebit.com/api-reference/market-data/funding-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 1000)
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
@@ -4029,7 +4030,7 @@ class whitebit extends whitebit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const maxLimit = 1000;
+        const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -4099,7 +4100,7 @@ class whitebit extends whitebit$1["default"] {
             const [nonceWindow, requestParams] = this.handleOptionAndParams(params, 'sign', 'nonceWindow', false);
             body = this.json(this.extend({ 'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow }, requestParams));
             const payload = this.stringToBase64(body);
-            const signature = this.hmac(this.encode(payload), secret, sha512.sha512);
+            const signature = this.hmac(this.encode(payload), secret, sha2_js.sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
@@ -4144,6 +4145,24 @@ class whitebit extends whitebit$1["default"] {
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }
                 }
+                this.throwExactlyMatchedException(this.exceptions['exact'], errorInfo, feedback);
+                this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
+                throw new errors.ExchangeError(feedback);
+            }
+            // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
+            const success = this.safeBool(response, 'success', true);
+            if (!success) {
+                const errMsg = this.safeDict(response, 'message', {});
+                const errKeys = Object.keys(errMsg);
+                const errKeysLength = errKeys.length;
+                let errorInfo = body;
+                if (errKeysLength > 0) {
+                    const errorKey = errKeys[0];
+                    const errorMessageArray = this.safeList(errMsg, errorKey, []);
+                    const errorMessageLength = errorMessageArray.length;
+                    errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
+                }
+                const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorInfo, feedback);
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
                 throw new errors.ExchangeError(feedback);

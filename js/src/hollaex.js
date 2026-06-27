@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class hollaex
@@ -177,8 +177,8 @@ export default class hollaex extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -199,7 +199,7 @@ export default class hollaex extends Exchange {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -218,8 +218,8 @@ export default class hollaex extends Exchange {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -227,9 +227,9 @@ export default class hollaex extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -492,66 +492,63 @@ export default class hollaex extends Exchange {
         //     }
         //
         const coins = this.safeDict(response, 'coins', {});
-        const keys = Object.keys(coins);
-        const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const currency = coins[key];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const withdrawalLimits = this.safeList(currency, 'withdrawal_limits', []);
-            const rawType = this.safeString(currency, 'type');
-            const type = (rawType === 'blockchain') ? 'crypto' : 'other';
-            const rawNetworks = this.safeDict(currency, 'withdrawal_fees', {});
-            const networks = {};
-            const networkIds = Object.keys(rawNetworks);
-            for (let j = 0; j < networkIds.length; j++) {
-                const networkId = networkIds[j];
-                const networkEntry = this.safeDict(rawNetworks, networkId);
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': this.safeBool(networkEntry, 'active'),
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber(networkEntry, 'value'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'info': networkEntry,
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'numericId': this.safeInteger(currency, 'id'),
-                'code': code,
-                'info': currency,
-                'name': this.safeString(currency, 'fullname'),
-                'active': this.safeBool(currency, 'active'),
-                'deposit': this.safeBool(currency, 'allow_deposit'),
-                'withdraw': this.safeBool(currency, 'allow_withdrawal'),
-                'fee': this.safeNumber(currency, 'withdrawal_fee'),
-                'precision': this.safeNumber(currency, 'increment_unit'),
+        const values = Object.values(coins);
+        return this.parseCurrencies(values);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const withdrawalLimits = this.safeList(rawCurrency, 'withdrawal_limits', []);
+        const rawType = this.safeString(rawCurrency, 'type');
+        const type = (rawType === 'blockchain') ? 'crypto' : 'other';
+        const rawNetworks = this.safeDict(rawCurrency, 'withdrawal_fees', {});
+        const networks = {};
+        const networkIds = Object.keys(rawNetworks);
+        for (let j = 0; j < networkIds.length; j++) {
+            const networkId = networkIds[j];
+            const networkEntry = this.safeDict(rawNetworks, networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': this.safeBool(networkEntry, 'active'),
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber(networkEntry, 'value'),
+                'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': this.safeNumber(currency, 'min'),
-                        'max': this.safeNumber(currency, 'max'),
-                    },
                     'withdraw': {
                         'min': undefined,
-                        'max': this.safeValue(withdrawalLimits, 0),
+                        'max': undefined,
                     },
                 },
-                'networks': networks,
-                'type': type,
-            });
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'numericId': this.safeInteger(rawCurrency, 'id'),
+            'code': code,
+            'info': rawCurrency,
+            'name': this.safeString(rawCurrency, 'fullname'),
+            'active': this.safeBool(rawCurrency, 'active'),
+            'deposit': this.safeBool(rawCurrency, 'allow_deposit'),
+            'withdraw': this.safeBool(rawCurrency, 'allow_withdrawal'),
+            'fee': this.safeNumber(rawCurrency, 'withdrawal_fee'),
+            'precision': this.safeNumber(rawCurrency, 'increment_unit'),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(rawCurrency, 'min'),
+                    'max': this.safeNumber(rawCurrency, 'max'),
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': this.safeValue(withdrawalLimits, 0),
+                },
+            },
+            'networks': networks,
+            'type': type,
+        });
     }
     /**
      * @method
@@ -585,7 +582,7 @@ export default class hollaex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -641,7 +638,7 @@ export default class hollaex extends Exchange {
         //         "low": 8607,
         //         "last": 8841.05,
         //         "volume": 20.2802,
-        //         "timestamp": "2020-03-03T03:11:18.964Z"
+        //         "timestamp": "2020-03-03T03:11:18.965Z"
         //     }
         //
         return this.parseTicker(response, market);
@@ -925,14 +922,10 @@ export default class hollaex extends Exchange {
         const timeDelta = this.parseTimeframe(timeframe) * maxLimit * 1000;
         let start = since;
         const now = this.milliseconds();
-        if (until === undefined && start === undefined) {
-            until = now;
-            start = until - timeDelta;
-        }
-        else if (until === undefined) {
+        if (until === undefined) {
             until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
         }
-        else if (start === undefined) {
+        if (start === undefined) {
             start = until - timeDelta;
         }
         request['from'] = this.parseToInt(start / 1000); // convert to seconds

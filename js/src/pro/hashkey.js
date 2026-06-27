@@ -41,7 +41,7 @@ export default class hashkey extends hashkeyRest {
                 'listenKeyRefreshRate': 3600000,
                 'listenKey': undefined,
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // or false
                     'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
             },
@@ -296,7 +296,7 @@ export default class hashkey extends hashkeyRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -557,14 +557,18 @@ export default class hashkey extends hashkeyRest {
         const marketId = this.safeString(trade, 's');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 't');
-        const isMaker = this.safeBool(trade, 'm');
+        const isBuyerMaker = this.safeBool(trade, 'm');
+        const isPublicTrade = this.safeString(trade, 'e') === undefined;
+        let side = undefined;
         let takerOrMaker = undefined;
-        if (isMaker !== undefined) {
-            if (isMaker) {
-                takerOrMaker = 'maker';
+        if (isBuyerMaker !== undefined) {
+            if (isPublicTrade) {
+                takerOrMaker = 'taker';
+                side = isBuyerMaker ? 'sell' : 'buy';
             }
             else {
-                takerOrMaker = 'taker';
+                takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
+                side = this.safeStringLower(trade, 'S');
             }
         }
         return this.safeTrade({
@@ -572,7 +576,7 @@ export default class hashkey extends hashkeyRest {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
-            'side': this.safeStringLower(trade, 'S'),
+            'side': side,
             'price': this.safeString(trade, 'p'),
             'amount': this.safeString(trade, 'q'),
             'cost': undefined,
@@ -673,7 +677,7 @@ export default class hashkey extends hashkeyRest {
             'hedged': true,
             'maintenanceMargin': this.safeNumber(position, 'mm'),
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': this.safeNumber(position, 'm'),
+            'initialMargin': this.safeNumber(position, 'm'), // todo check
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': undefined,

@@ -89,7 +89,7 @@ fetches the current integer timestamp in milliseconds from the bingx server
 
 
 ```javascript
-bingx.fetchTime ([params])
+bingx.fetchTime (params?)
 ```
 
 
@@ -109,7 +109,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bingx.fetchCurrencies ([params])
+bingx.fetchCurrencies (params?)
 ```
 
 
@@ -134,7 +134,7 @@ retrieves data on all markets for bingx
 
 
 ```javascript
-bingx.fetchMarkets ([params])
+bingx.fetchMarkets (params?)
 ```
 
 
@@ -166,7 +166,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bingx.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bingx.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -193,7 +193,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bingx.fetchTrades (symbol[, since, limit, params])
+bingx.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -203,7 +203,7 @@ bingx.fetchTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -220,7 +220,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bingx.fetchOrderBook (symbol[, limit, params])
+bingx.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -245,7 +245,7 @@ fetch the current funding rate
 
 
 ```javascript
-bingx.fetchFundingRate (symbol[, params])
+bingx.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -271,7 +271,7 @@ fetch the current funding rate for multiple symbols
 
 
 ```javascript
-bingx.fetchFundingRates ([symbols, params])
+bingx.fetchFundingRates (symbols?, params?)
 ```
 
 
@@ -296,7 +296,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-bingx.fetchFundingRateHistory (symbol[, since, limit, params])
+bingx.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -320,7 +320,7 @@ fetches historical funding received
 
 
 ```javascript
-bingx.fetchFundingHistory (symbol[, since, limit, params])
+bingx.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -345,7 +345,7 @@ retrieves the open interest of a trading pair
 
 
 ```javascript
-bingx.fetchOpenInterest (symbol[, params])
+bingx.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -371,7 +371,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bingx.fetchTicker (symbol[, params])
+bingx.fetchTicker (symbol, params?)
 ```
 
 
@@ -397,7 +397,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bingx.fetchTickers (symbols[, params])
+bingx.fetchTickers (symbols, params?)
 ```
 
 
@@ -422,7 +422,7 @@ fetches mark prices for the market
 
 
 ```javascript
-bingx.fetchMarkPrice (symbol[, params])
+bingx.fetchMarkPrice (symbol, params?)
 ```
 
 
@@ -447,7 +447,7 @@ fetches mark prices for multiple markets
 
 
 ```javascript
-bingx.fetchMarkPrices ([symbols, params])
+bingx.fetchMarkPrices (symbols?, params?)
 ```
 
 
@@ -475,7 +475,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bingx.fetchBalance ([params])
+bingx.fetchBalance (params?)
 ```
 
 
@@ -499,7 +499,7 @@ fetches historical positions
 
 
 ```javascript
-bingx.fetchPositionHistory (symbol[, since, limit, params])
+bingx.fetchPositionHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -526,7 +526,7 @@ fetch all open positions
 
 
 ```javascript
-bingx.fetchPositions (symbols[, params])
+bingx.fetchPositions (symbols, params?)
 ```
 
 
@@ -551,7 +551,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-bingx.fetchPosition (symbol[, params])
+bingx.fetchPosition (symbol, params?)
 ```
 
 
@@ -573,7 +573,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-bingx.createMarketOrderWithCost (symbol, side, cost[, params])
+bingx.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -594,7 +594,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-bingx.createMarketBuyOrderWithCost (symbol, cost[, params])
+bingx.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -615,7 +615,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-bingx.createMarketSellOrderWithCost (symbol, cost[, params])
+bingx.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -663,7 +663,7 @@ create a trade order
 
 
 ```javascript
-bingx.createOrder (symbol, type, side, amount[, price, params])
+bingx.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -689,7 +689,7 @@ create a list of trade orders
 
 
 ```javascript
-bingx.createOrders (orders[, params])
+bingx.createOrders (orders, params?)
 ```
 
 
@@ -718,7 +718,7 @@ cancels an open order
 
 
 ```javascript
-bingx.cancelOrder (id, symbol[, params])
+bingx.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -746,7 +746,7 @@ cancel all open orders
 
 
 ```javascript
-bingx.cancelAllOrders ([symbol, params])
+bingx.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -773,7 +773,7 @@ cancel multiple orders
 
 
 ```javascript
-bingx.cancelOrders (ids, symbol[, params])
+bingx.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -799,7 +799,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-bingx.cancelAllOrdersAfter (timeout[, params])
+bingx.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -828,7 +828,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bingx.fetchOrder (id, symbol[, params])
+bingx.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -857,7 +857,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bingx.fetchOrders (symbol[, since, limit, params])
+bingx.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -887,7 +887,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bingx.fetchOpenOrders (symbol[, since, limit, params])
+bingx.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -918,7 +918,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bingx.fetchClosedOrders (symbol[, since, limit, params])
+bingx.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -949,7 +949,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bingx.fetchCanceledOrders (symbol[, since, limit, params])
+bingx.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -982,7 +982,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bingx.fetchCanceledAndClosedOrders ([symbol, since, limit, params])
+bingx.fetchCanceledAndClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1006,7 +1006,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bingx.transfer (code, amount, fromAccount, toAccount[, params])
+bingx.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1032,7 +1032,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-bingx.fetchTransfers ([code, since, limit, params])
+bingx.fetchTransfers (code?, since?, limit?, params?)
 ```
 
 
@@ -1053,7 +1053,7 @@ fetch the deposit addresses for a currency associated with this account
 
 
 ```javascript
-bingx.fetchDepositAddressesByNetwork (code[, params])
+bingx.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -1075,7 +1075,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bingx.fetchDepositAddress (code[, params])
+bingx.fetchDepositAddress (code, params?)
 ```
 
 
@@ -1098,7 +1098,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bingx.fetchDeposits ([code, since, limit, params])
+bingx.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -1121,7 +1121,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bingx.fetchWithdrawals ([code, since, limit, params])
+bingx.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -1147,7 +1147,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-bingx.setMarginMode (marginMode, symbol[, params])
+bingx.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -1169,7 +1169,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 
 
 ```javascript
-bingx.setMargin (symbol, amount[, params])
+bingx.setMargin (symbol, amount, params?)
 ```
 
 
@@ -1194,7 +1194,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-bingx.fetchLeverage (symbol[, params])
+bingx.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1221,7 +1221,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bingx.setLeverage (leverage, symbol[, params])
+bingx.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1252,7 +1252,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bingx.fetchMyTrades ([symbol, since, limit, params])
+bingx.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1273,7 +1273,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bingx.fetchDepositWithdrawFees (codes[, params])
+bingx.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -1298,7 +1298,7 @@ make a withdrawal
 
 
 ```javascript
-bingx.withdraw (code, amount, address[, tag, params])
+bingx.withdraw (code, amount, address, tag?, params?)
 ```
 
 
@@ -1326,7 +1326,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-bingx.fetchMyLiquidations ([symbol, since, limit, params])
+bingx.fetchMyLiquidations (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1354,7 +1354,7 @@ closes open positions for a market
 
 
 ```javascript
-bingx.closePosition (symbol[, side, params])
+bingx.closePosition (symbol, side?, params?)
 ```
 
 
@@ -1375,7 +1375,7 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 
 
 ```javascript
-bingx.fetchPositionMode (symbol[, params])
+bingx.fetchPositionMode (symbol, params?)
 ```
 
 
@@ -1397,7 +1397,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-bingx.setPositionMode (hedged, symbol[, params])
+bingx.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1441,7 +1441,7 @@ cancels an order and places a new order
 
 
 ```javascript
-bingx.editOrder (id, symbol, type, side, amount[, price, params])
+bingx.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -1466,7 +1466,7 @@ fetches the margin mode of the trading pair
 
 
 ```javascript
-bingx.fetchMarginMode (symbol[, params])
+bingx.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -1492,7 +1492,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-bingx.fetchTradingFee (symbol[, params])
+bingx.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -1513,7 +1513,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 
 
 ```javascript
-bingx.fetchMarketLeverageTiers (symbol[, params])
+bingx.fetchMarketLeverageTiers (symbol, params?)
 ```
 
 
@@ -1539,7 +1539,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bingx.watchTicker (symbol[, params])
+bingx.watchTicker (symbol, params?)
 ```
 
 
@@ -1565,7 +1565,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-bingx.unWatchTicker (symbol[, params])
+bingx.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1593,7 +1593,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-bingx.watchTrades (symbol[, since, limit, params])
+bingx.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1620,7 +1620,7 @@ unsubscribes from the trades channel
 
 
 ```javascript
-bingx.unWatchTrades (symbol[, params])
+bingx.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1630,7 +1630,7 @@ bingx.unWatchTrades (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1647,7 +1647,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bingx.watchOrderBook (symbol[, limit, params])
+bingx.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1657,7 +1657,7 @@ bingx.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1673,7 +1673,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-bingx.unWatchOrderBook (symbol[, params])
+bingx.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1702,7 +1702,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bingx.watchOHLCV (symbol, timeframe[, since, limit, params])
+bingx.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1729,7 +1729,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-bingx.unWatchOHLCV (symbol, timeframe[, params])
+bingx.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1757,7 +1757,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bingx.watchOrders ([symbol, since, limit, params])
+bingx.watchOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1785,7 +1785,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bingx.watchMyTrades ([symbol, since, limit, params])
+bingx.watchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1810,7 +1810,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bingx.watchBalance ([params])
+bingx.watchBalance (params?)
 ```
 
 
@@ -1833,6 +1833,6 @@ watch all open positions
 
 
 ```javascript
-bingx.watchPositions ([symbols, since, limit, params])
+bingx.watchPositions (symbols?, since?, limit?, params?)
 ```
 

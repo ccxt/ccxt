@@ -14,11 +14,11 @@ class bittrade extends bittrade$1["default"] {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
-                'watchBalance': false,
+                'watchBalance': false, // for now
                 'watchOHLCV': true,
             },
             'urls': {
@@ -34,7 +34,7 @@ class bittrade extends bittrade$1["default"] {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'api': 'api',
+                'api': 'api', // or api-aws for clients hosted on AWS
                 'ws': {
                     'gunzip': true,
                 },
@@ -268,7 +268,7 @@ class bittrade extends bittrade$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if ((limit !== undefined) && (limit !== 150)) {
@@ -304,6 +304,7 @@ class bittrade extends bittrade$1["default"] {
         //     {
         //         "id": 1583473663565,
         //         "rep": "market.btcusdt.mbp.150",
+        //         "ts": 1774979531056,
         //         "status": "ok",
         //         "data": {
         //             "seqNum": 104999417756,
@@ -322,10 +323,13 @@ class bittrade extends bittrade$1["default"] {
         //
         const symbol = this.safeString(subscription, 'symbol');
         const messageHash = this.safeString(subscription, 'messageHash');
+        const timestamp = this.safeInteger(message, 'ts');
         const orderbook = this.orderbooks[symbol];
         const data = this.safeValue(message, 'data');
         const snapshot = this.parseOrderBook(data, symbol);
         snapshot['nonce'] = this.safeInteger(data, 'seqNum');
+        snapshot['timestamp'] = timestamp;
+        snapshot['datetime'] = this.iso8601(timestamp);
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
         const messages = orderbook.cache;
@@ -577,7 +581,7 @@ class bittrade extends bittrade$1["default"] {
             }
             return false;
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message)) {

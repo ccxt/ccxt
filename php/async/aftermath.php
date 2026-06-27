@@ -10,16 +10,15 @@ use ccxt\async\abstract\aftermath as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class aftermath extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'aftermath',
             'name' => 'AftermathFinance',
-            'countries' => [ ],
+            'countries' => array(),
             'version' => 'v1',
             'rateLimit' => 50, // 1200 requests per minute, 20 request per second
             'certified' => false,
@@ -83,7 +82,8 @@ class aftermath extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807',
+                'www' => 'https://aftermath.finance',
+                'logo' => 'https://github.com/user-attachments/assets/f3104ea3-e9ab-4d4e-ad22-0ce772a407b7',
                 'api' => array(
                     'rest' => 'https://aftermath.finance/api/ccxt',
                 ),
@@ -167,7 +167,7 @@ class aftermath extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -177,7 +177,7 @@ class aftermath extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
-            $response = Async\await($this->publicGetCurrencies ($params));
+            $response = Async\await($this->publicGetCurrencies($params));
             $currencies = $this->parse_currencies($response);
             //
             // {
@@ -198,7 +198,7 @@ class aftermath extends Exchange {
             // }
             //
             return $currencies;
-        }) ();
+        })();
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -215,7 +215,7 @@ class aftermath extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -225,7 +225,7 @@ class aftermath extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $response = Async\await($this->publicGetMarkets ($params));
+            $response = Async\await($this->publicGetMarkets($params));
             //
             // array(
             //     {
@@ -273,7 +273,7 @@ class aftermath extends Exchange {
             // )
             //
             return $this->parse_markets($response);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -322,7 +322,7 @@ class aftermath extends Exchange {
         //     }
         //
         $precision = $this->safe_dict($market, 'precision');
-        $limits = $this->safe_dict($market, 'limits');
+        $limits = $this->safe_dict($market, 'limits', array());
         return $this->safe_market_structure(array(
             'id' => $this->safe_string($market, 'id'),
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -380,7 +380,7 @@ class aftermath extends Exchange {
         ));
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -389,12 +389,12 @@ class aftermath extends Exchange {
              * fetch the trading fees for a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             return $this->parse_trading_fee($market);
-        }) ();
+        })();
     }
 
     public function parse_trading_fee(?array $market = null): array {
@@ -409,7 +409,7 @@ class aftermath extends Exchange {
         );
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -418,14 +418,14 @@ class aftermath extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'chId' => $market['id'],
             );
-            $response = Async\await($this->publicPostTicker ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostTicker($this->extend($request, $params)));
             //
             // {
             //     "ask" => 0.1,
@@ -451,7 +451,7 @@ class aftermath extends Exchange {
             // }
             //
             return $this->parse_ticker($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -482,7 +482,7 @@ class aftermath extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
@@ -492,7 +492,7 @@ class aftermath extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -500,15 +500,15 @@ class aftermath extends Exchange {
             $request = array(
                 'chId' => $chId,
             );
-            $response = Async\await($this->publicPostOrderbook ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostOrderbook($this->extend($request, $params)));
             //
             // {
-            //     "asks":[
+            //     "asks":array(
             //         [76228.1534,11.58777]
-            //     ],
-            //     "bids":[
+            //     ),
+            //     "bids":array(
             //         [76213.4842,11.96145],
-            //     ],
+            //     ),
             //     "datetime":"2025-04-07 09:29:28.213 UTC",
             //     "timestamp":1744018168213,
             //     "symbol":"BTC/USD:USDC"
@@ -518,10 +518,10 @@ class aftermath extends Exchange {
             $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
             $orderbook['nonce'] = $this->safe_integer($response, 'nonce');
             return $orderbook;
-        }) ();
+        })();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -533,7 +533,7 @@ class aftermath extends Exchange {
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch trades for
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -542,9 +542,9 @@ class aftermath extends Exchange {
                 'chId' => $chId,
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 50);
+                $request['limit'] = min($limit, 50);
             }
-            $response = Async\await($this->publicPostTrades ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostTrades($this->extend($request, $params)));
             //
             //     {
             //         "trades" => array(
@@ -562,7 +562,7 @@ class aftermath extends Exchange {
             //
             $data = $this->safe_list($response, 'trades', array());
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $rawTrade, ?array $market = null): array {
@@ -574,7 +574,7 @@ class aftermath extends Exchange {
         return $trade;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -601,7 +601,7 @@ class aftermath extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicPostOHLCV ($this->extend($request, $params)));
+            $response = Async\await($this->publicPostOHLCV($this->extend($request, $params)));
             //
             // array(
             //     array(
@@ -615,10 +615,10 @@ class aftermath extends Exchange {
             // )
             //
             return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -627,7 +627,7 @@ class aftermath extends Exchange {
              * query for balance and get the amount of funds available for trading or funds locked in positions
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->account] $account object ID, required
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             $account = null;
             list($account, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'account');
@@ -637,7 +637,7 @@ class aftermath extends Exchange {
             if ($account === null) {
                 throw new ArgumentsRequired($this->id . ' fetchBalance() requires account');
             }
-            $response = Async\await($this->privatePostBalance ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostBalance($this->extend($request, $params)));
             //
             // {
             //     "timestamp" => 1744045700352,
@@ -651,7 +651,7 @@ class aftermath extends Exchange {
             // }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -675,7 +675,7 @@ class aftermath extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_accounts($params = array ()): PromiseInterface {
+    public function fetch_accounts($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -689,11 +689,11 @@ class aftermath extends Exchange {
             $request = array(
                 'address' => $this->walletAddress,
             );
-            $response = Async\await($this->privatePostAccounts ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAccounts($this->extend($request, $params)));
             //
             // array(
             //     {
-            //         "id" => "0x21c5e3d2f5bcfd4351a62cd70874878b7923b56d79d04225ed96370a7ac844c4",
+            //         "id" => "0x22c5e3d2f5bcfd4351a62cd70874878b7923b56d79d04225ed96370a7ac844c4",
             //         "type" => "primary",
             //         "code" => "USDC",
             //         "accountNumber" => 14822
@@ -701,7 +701,7 @@ class aftermath extends Exchange {
             // )
             //
             return $this->parse_accounts($response);
-        }) ();
+        })();
     }
 
     public function parse_account(array $account): array {
@@ -713,7 +713,7 @@ class aftermath extends Exchange {
         );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -725,7 +725,7 @@ class aftermath extends Exchange {
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->accountNumber] account number to query orders for, required
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -738,7 +738,7 @@ class aftermath extends Exchange {
                 'chId' => $this->safe_string($market, 'id'),
                 'accountNumber' => $accountNumber,
             );
-            $response = Async\await($this->privatePostMyPendingOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostMyPendingOrders($this->extend($request, $params)));
             //
             // array(
             //     {
@@ -760,10 +760,10 @@ class aftermath extends Exchange {
             // )
             //
             return $this->parse_orders($response);
-        }) ();
+        })();
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on an open position
@@ -773,14 +773,14 @@ class aftermath extends Exchange {
              * @param {string} $symbol unified market $symbol of the market the position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->accountNumber] account number to query $positions for, required
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
             return $this->safe_dict($positions, 0, array());
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -790,7 +790,7 @@ class aftermath extends Exchange {
              * @param {string[]} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->accountNumber] account number to query positions for, required
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $accountNumber = null;
@@ -801,7 +801,7 @@ class aftermath extends Exchange {
             $request = array(
                 'accountNumber' => $accountNumber,
             );
-            $response = Async\await($this->privatePostPositions ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostPositions($this->extend($request, $params)));
             //
             // array(
             //     {
@@ -828,14 +828,14 @@ class aftermath extends Exchange {
             // )
             //
             return $this->parse_positions($response, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null): array {
         return $this->safe_position($position);
     }
 
-    public function parse_create_edit_order_args(?string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function parse_create_edit_order_args(?string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $order = array(
@@ -852,7 +852,7 @@ class aftermath extends Exchange {
         return $order;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -868,18 +868,19 @@ class aftermath extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
              * @param {Account} [$params->account] $account id to use, required
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $account = null;
             list($account, $params) = $this->handle_option_and_params($params, 'createOrder', 'account');
             $order = $this->parse_create_edit_order_args(null, $symbol, $type, $side, $amount, $price, $params);
-            $orders = Async\await($this->create_orders(array( $order ), array( 'account' => $account )));
+            $accountObj = array( 'account' => $account );
+            $orders = Async\await($this->create_orders(array( $order ), $accountObj));
             return $orders[0];
-        }) ();
+        })();
     }
 
-    public function create_orders(array $orders, $params = array ()): PromiseInterface {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(function () use ($orders, $params) {
             /**
              *
@@ -890,7 +891,7 @@ class aftermath extends Exchange {
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, type, side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {Account} [$params->account] $account id to use, required
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $ordersRequest = array();
@@ -924,9 +925,9 @@ class aftermath extends Exchange {
                 'orders' => $ordersRequest,
                 'deallocateFreeCollateral' => false,
             );
-            $tx = Async\await($this->privatePostBuildCreateOrders ($this->extend($txRequest, $params)));
+            $tx = Async\await($this->privatePostBuildCreateOrders($this->extend($txRequest, $params)));
             $request = $this->sign_tx_ed25519($tx);
-            $response = Async\await($this->privatePostSubmitCreateOrders ($request));
+            $response = Async\await($this->privatePostSubmitCreateOrders($request));
             //
             // array(
             //     {
@@ -949,10 +950,10 @@ class aftermath extends Exchange {
             // )
             //
             return $this->parse_orders($response);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -963,14 +964,14 @@ class aftermath extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             $orders = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
             return $this->safe_dict($orders, 0);
-        }) ();
+        })();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              *
@@ -982,7 +983,7 @@ class aftermath extends Exchange {
              * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {Account} [$params->account] $account to cancel orders for, required
-             * @return {Order[]} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -996,9 +997,9 @@ class aftermath extends Exchange {
                 'chId' => $market['id'],
                 'orderIds' => $ids,
             );
-            $tx = Async\await($this->privatePostBuildCancelOrders ($txRequest));
+            $tx = Async\await($this->privatePostBuildCancelOrders($txRequest));
             $request = $this->sign_tx_ed25519($tx);
-            $response = Async\await($this->privatePostSubmitCancelOrders ($request));
+            $response = Async\await($this->privatePostSubmitCancelOrders($request));
             //
             // array(
             //     {
@@ -1020,10 +1021,10 @@ class aftermath extends Exchange {
             // )
             //
             return $this->parse_orders($response);
-        }) ();
+        })();
     }
 
-    public function create_account(string $symbol, $params = array ()): PromiseInterface {
+    public function create_account(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1034,9 +1035,9 @@ class aftermath extends Exchange {
                 ),
                 'settleId' => $settleId,
             );
-            $tx = Async\await($this->privatePostBuildCreateAccount ($txRequest));
+            $tx = Async\await($this->privatePostBuildCreateAccount($txRequest));
             $request = $this->sign_tx_ed25519($tx);
-            $response = Async\await($this->privatePostSubmitCreateAccount ($request));
+            $response = Async\await($this->privatePostSubmitCreateAccount($request));
             //
             // array(
             //     array(
@@ -1054,10 +1055,10 @@ class aftermath extends Exchange {
             // )
             //
             return $response;
-        }) ();
+        })();
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              *
@@ -1069,7 +1070,7 @@ class aftermath extends Exchange {
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {Account} [$params->account] $account id to use, required
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1083,9 +1084,9 @@ class aftermath extends Exchange {
                     'sender' => $this->walletAddress,
                 ),
             );
-            $tx = Async\await($this->privatePostBuildAllocate ($txRequest));
+            $tx = Async\await($this->privatePostBuildAllocate($txRequest));
             $request = $this->sign_tx_ed25519($tx);
-            $response = Async\await($this->privatePostSubmitAllocate ($request));
+            $response = Async\await($this->privatePostSubmitAllocate($request));
             //
             // {
             //     "id" => "0xb60c5078b060e4aede8e670089c9b1bc6eb231b4bcc0bfb3e97534770ace4d0c:101",
@@ -1104,10 +1105,10 @@ class aftermath extends Exchange {
             // }
             //
             return $response;
-        }) ();
+        })();
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              *
@@ -1119,7 +1120,7 @@ class aftermath extends Exchange {
              * @param {float} $amount amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {Account} [$params->account] $account id to use, required
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1133,9 +1134,9 @@ class aftermath extends Exchange {
                     'sender' => $this->walletAddress,
                 ),
             );
-            $tx = Async\await($this->privatePostBuildDeallocate ($txRequest));
+            $tx = Async\await($this->privatePostBuildDeallocate($txRequest));
             $request = $this->sign_tx_ed25519($tx);
-            $response = Async\await($this->privatePostSubmitDeallocate ($request));
+            $response = Async\await($this->privatePostSubmitDeallocate($request));
             //
             // {
             //     "id" => "0xb60c5078b060e4aede8e670089c9b1bc6eb231b4bcc0bfb3e97534770ace4d0c:101",
@@ -1154,10 +1155,10 @@ class aftermath extends Exchange {
             // }
             //
             return $response;
-        }) ();
+        })();
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              *
@@ -1170,7 +1171,7 @@ class aftermath extends Exchange {
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1181,9 +1182,9 @@ class aftermath extends Exchange {
                 'accountId' => $toAccount,
                 'amount' => $amount,
             );
-            $tx = Async\await($this->privatePostBuildDeposit ($txRequest));
+            $tx = Async\await($this->privatePostBuildDeposit($txRequest));
             $request = $this->sign_tx_ed25519($tx);
-            $response = Async\await($this->privatePostSubmitDeposit ($request));
+            $response = Async\await($this->privatePostSubmitDeposit($request));
             //
             // {
             //     "id" => "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
@@ -1198,7 +1199,7 @@ class aftermath extends Exchange {
                 'toAccount' => $toAccount,
                 'amount' => $amount,
             ));
-        }) ();
+        })();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -1216,7 +1217,7 @@ class aftermath extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              *
@@ -1230,7 +1231,7 @@ class aftermath extends Exchange {
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {Account} [$params->account] $account id to use, required
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1246,9 +1247,9 @@ class aftermath extends Exchange {
                 ),
                 'amount' => $amount,
             );
-            $tx = Async\await($this->privatePostBuildWithdraw ($txRequest));
+            $tx = Async\await($this->privatePostBuildWithdraw($txRequest));
             $request = $this->sign_tx_ed25519($tx);
-            $response = Async\await($this->privatePostSubmitWithdraw ($request));
+            $response = Async\await($this->privatePostSubmitWithdraw($request));
             //
             // {
             //     "id" => "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
@@ -1258,11 +1259,15 @@ class aftermath extends Exchange {
             //     "collateral" => 39.0
             // }
             //
-            return $this->extend($this->parse_transaction($response, $currency), array(
-                'addressFrom' => $account,
-                'amount' => $amount,
-            ));
-        }) ();
+            $parsedTx = $this->parse_transaction($response, $currency);
+            $parsedTx['addressFrom '] = $account;
+            $parsedTx['amount'] = $amount;
+            return $parsedTx;
+            // return $this->extend(, array(
+            //     'addressFrom' => $account,
+            //     'amount' => $amount,
+            // ));
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1290,7 +1295,7 @@ class aftermath extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -1319,9 +1324,9 @@ class aftermath extends Exchange {
                     'sender' => $this->walletAddress,
                 ),
             );
-            $tx = Async\await($this->privatePostBuildSetLeverage ($txRequest));
+            $tx = Async\await($this->privatePostBuildSetLeverage($txRequest));
             $request = $this->sign_tx_ed25519($tx);
-            $response = Async\await($this->privatePostSubmitSetLeverage ($request));
+            $response = Async\await($this->privatePostSubmitSetLeverage($request));
             //
             // {
             //     "id" => "0xyydsxxxxxxxxyydsxxxxxxx:141",
@@ -1344,7 +1349,7 @@ class aftermath extends Exchange {
             // }
             //
             return $response;
-        }) ();
+        })();
     }
 
     public function sign_tx_ed25519(array $tx): array {
@@ -1390,7 +1395,7 @@ class aftermath extends Exchange {
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'POST', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'POST', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $path;
         if ($api === 'private') {
             $this->check_required_credentials();

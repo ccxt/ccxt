@@ -2,6 +2,7 @@
     "exchange": "lighter",
     "disabledGO": true,
     "disabledCS": true,
+    "disabledJava": true,
     "privateKey": "e5b975b33b81e53fb5333bd84553f12b3b5327ce5b1595139f49e8bebf734d9b1b81d3351b487d1b",
     "skipKeys": [
         "vwap",
@@ -13,8 +14,18 @@
     ],
     "options": {
         "accountIndex": 715085,
-        "apiKeyIndex": 0,
-        "nonce": 0
+        "nonce": 0,
+        "auths": {
+            "715085": {
+                "30": {
+                    "lighterPrivateKey": "e5b975b33b81e53fb5333bd84553f12b3b5327ce5b1595139f49e8bebf734d9b1b81d3351b487d1b"
+                }
+            }
+        },
+        "apiKeyIndex": 30,
+        "integratorAccountIndex": 130303,
+        "integratorMakerFee": 10,
+        "integratorTakerFee": 10
     },
     "methods": {
         "fetchClosedOrders": [
@@ -433,7 +444,10 @@
                         "client_order_index": 489057754,
                         "base_amount": 1000,
                         "avg_execution_price": 40000,
-                        "trigger_price": 0
+                        "trigger_price": 0,
+                        "integrator_account_index": 130303,
+                        "integrator_taker_fee": 10,
+                        "integrator_maker_fee": 10
                     },
                     "id": null,
                     "clientOrderId": "489057754",
@@ -442,11 +456,11 @@
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
                     "symbol": "LTC/USDC:USDC",
-                    "type": null,
-                    "timeInForce": "1",
+                    "type": "limit",
+                    "timeInForce": "GTC",
                     "postOnly": false,
-                    "reduceOnly": null,
-                    "side": null,
+                    "reduceOnly": false,
+                    "side": "buy",
                     "price": null,
                     "triggerPrice": null,
                     "stopLossPrice": null,
@@ -497,7 +511,10 @@
                         "client_order_index": 911280573,
                         "base_amount": 100,
                         "avg_execution_price": 60000,
-                        "trigger_price": 0
+                        "trigger_price": 0,
+                        "integrator_account_index": 130303,
+                        "integrator_taker_fee": 10,
+                        "integrator_maker_fee": 10
                     },
                     "id": null,
                     "clientOrderId": "911280573",
@@ -506,11 +523,11 @@
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
                     "symbol": "LTC/USDC:USDC",
-                    "type": null,
-                    "timeInForce": "0",
+                    "type": "market",
+                    "timeInForce": "IOC",
                     "postOnly": false,
-                    "reduceOnly": null,
-                    "side": null,
+                    "reduceOnly": false,
+                    "side": "buy",
                     "price": null,
                     "triggerPrice": null,
                     "stopLossPrice": null,
@@ -618,6 +635,7 @@
             {
                 "description": "fetchMarkets",
                 "method": "fetchMarkets",
+                "disabled": true,
                 "input": [],
                 "httpResponse": {
                     "code": 200,
@@ -754,7 +772,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {
@@ -1329,18 +1347,18 @@
                         ]
                     },
                     "USDC": {
-                        "free": null,
-                        "used": null,
-                        "total": 30
+                        "free": 12636.880799,
+                        "used": -3506.638093,
+                        "total": 9130.242706
                     },
                     "free": {
-                        "USDC": null
+                        "USDC": 12636.880799
                     },
                     "used": {
-                        "USDC": null
+                        "USDC": -3506.638093
                     },
                     "total": {
-                        "USDC": 30
+                        "USDC": 9130.242706
                     }
                 }
             }

@@ -17,13 +17,16 @@ function test_sleep() {
         ));
         $start = $exchange->milliseconds();
         $sleep_amount = 100; // milliseconds
-        Async\await($exchange->sleep($sleep_amount));
+        \React\Async\await($exchange->sleep($sleep_amount));
         $end = $exchange->milliseconds();
         $elapsed = $end - $start;
         // Allow a small margin of error due to execution time
         $margin_of_error = 20;
         $max_elapsed = $sleep_amount + $margin_of_error;
-        assert($elapsed >= $sleep_amount, 'Elapsed time ' . ((string) $elapsed) . 'ms is less than sleep amount ' . ((string) $sleep_amount) . 'ms');
-        assert($elapsed <= $max_elapsed, 'Elapsed time ' . ((string) $elapsed) . 'ms exceeds sleep amount ' . ((string) $max_elapsed) . 'ms');
+        $elapsed_bigger_than_sleep = $elapsed >= $sleep_amount;
+        $elapsed_less_than_max = $elapsed <= $max_elapsed;
+        assert($elapsed_bigger_than_sleep, 'Elapsed time ' . ((string) $elapsed) . 'ms is less than sleep amount ' . ((string) $sleep_amount) . 'ms');
+        assert($elapsed_less_than_max, 'Elapsed time ' . ((string) $elapsed) . 'ms exceeds sleep amount ' . ((string) $max_elapsed) . 'ms');
+        return true;
     }) ();
 }

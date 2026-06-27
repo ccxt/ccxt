@@ -515,54 +515,26 @@ public partial class ascendex : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        return this.parseCurrencies(data);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "assetCode");
+        object code = this.safeCurrencyCode(id);
+        object chains = this.safeList(rawCurrency, "blockChain", new List<object>() {});
+        object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "nativeScale")));
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = getValue(data, i);
-            object id = this.safeString(currency, "assetCode");
-            object code = this.safeCurrencyCode(id);
-            object chains = this.safeList(currency, "blockChain", new List<object>() {});
-            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "nativeScale")));
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object networkEtnry = getValue(chains, j);
-                object networkId = this.safeString(networkEtnry, "chainName");
-                object networkCode = this.networkCodeToId(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "fee", this.safeNumber(networkEtnry, "withdrawFee") },
-                    { "active", null },
-                    { "withdraw", this.safeBool(networkEtnry, "allowWithdraw") },
-                    { "deposit", this.safeBool(networkEtnry, "allowDeposit") },
-                    { "precision", precision },
-                    { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEtnry, "minWithdrawal") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEtnry, "minDepositAmt") },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "type", null },
-                { "margin", null },
-                { "name", this.safeString(currency, "assetName") },
+            object networkEtnry = getValue(chains, j);
+            object networkId = this.safeString(networkEtnry, "chainName");
+            object networkCode = this.networkCodeToId(((string)networkId), code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "fee", this.safeNumber(networkEtnry, "withdrawFee") },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
+                { "withdraw", this.safeBool(networkEtnry, "allowWithdraw") },
+                { "deposit", this.safeBool(networkEtnry, "allowDeposit") },
                 { "precision", precision },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
@@ -570,14 +542,41 @@ public partial class ascendex : Exchange
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "minWithdrawalAmt") },
+                        { "min", this.safeNumber(networkEtnry, "minWithdrawal") },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(networkEtnry, "minDepositAmt") },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-            });
+            };
         }
-        return result;
+        // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", rawCurrency },
+            { "type", null },
+            { "margin", null },
+            { "name", this.safeString(rawCurrency, "assetName") },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", precision },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawCurrency, "minWithdrawalAmt") },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -923,11 +922,13 @@ public partial class ascendex : Exchange
             accountGroup = this.safeString(data, "accountGroup");
             ((IDictionary<string,object>)this.options)["account-group"] = accountGroup;
         }
+        object finalResponse = response; // java req
+        object finalAccountGroup = accountGroup;
         return new List<object>() {new Dictionary<string, object>() {
-    { "id", accountGroup },
+    { "id", finalAccountGroup },
     { "type", null },
     { "code", null },
-    { "info", response },
+    { "info", finalResponse },
 }};
     }
 
@@ -1111,7 +1112,7 @@ public partial class ascendex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1257,7 +1258,7 @@ public partial class ascendex : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object symbol = this.safeString(symbols, 0);
-            market = this.market(symbol);
+            market = this.market(((string)symbol));
             object marketIds = this.marketIds(symbols);
             ((IDictionary<string,object>)request)["symbol"] = String.Join(",", ((IList<object>)marketIds).ToArray());
         }
@@ -1494,7 +1495,7 @@ public partial class ascendex : Exchange
             { "Canceled", "canceled" },
             { "Rejected", "rejected" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1652,7 +1653,7 @@ public partial class ascendex : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
+        object triggerPrice = this.omitZero(((string)this.safeString(order, "stopPrice")));
         object reduceOnly = null;
         object execInst = this.safeStringLower(order, "execInst");
         if (isTrue(isEqual(execInst, "reduceonly")))
@@ -2009,10 +2010,10 @@ public partial class ascendex : Exchange
                     }
                 }
             }
-            object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            object orderRequest = this.createOrderRequest(((string)marketId), ((string)type), side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, getValue(market, "type"), "cash");
         if (isTrue(!isEqual(marginMode, null)))
@@ -2640,7 +2641,7 @@ public partial class ascendex : Exchange
         };
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = null;
         if (isTrue(isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")))))
@@ -2710,7 +2711,7 @@ public partial class ascendex : Exchange
         //
         object address = this.safeString(depositAddress, "address");
         object tagId = this.safeString(depositAddress, "tagId");
-        object tag = this.safeString(depositAddress, tagId);
+        object tag = this.safeString(depositAddress, ((string)tagId));
         this.checkAddress(address);
         object code = ((bool) isTrue((isEqual(currency, null)))) ? null : getValue(currency, "code");
         object chainName = this.safeString(depositAddress, "blockchain");
@@ -2740,7 +2741,7 @@ public partial class ascendex : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object networkCode = this.safeString2(parameters, "network", "chainName");
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(((string)networkCode), getValue(currency, "code"));
         parameters = this.omit(parameters, new List<object>() {"chainName"});
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -2911,7 +2912,7 @@ public partial class ascendex : Exchange
             { "confirmed", "ok" },
             { "rejected", "rejected" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -3218,8 +3219,9 @@ public partial class ascendex : Exchange
         {
             amount = Precise.stringAbs(amount);
         }
+        object parsedAmount = this.parseNumber(amount);
         return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
-            { "amount", this.parseNumber(amount) },
+            { "amount", parsedAmount },
             { "type", type },
         });
     }
@@ -3237,12 +3239,12 @@ public partial class ascendex : Exchange
         object status = ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
-            { "code", getValue(market, "quote") },
+            { "code", this.safeString(market, "quote") },
             { "status", status },
             { "timestamp", null },
             { "datetime", null },
@@ -3855,8 +3857,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object response = null;
-        response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
+        object response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
         //
         //    {
         //        code: '0',

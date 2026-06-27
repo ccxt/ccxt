@@ -139,12 +139,12 @@ def test_datetime():
     test_iso8601()
     test_parse8601()
     test_parse_date()
+    # @SKIP_START_GO
+    test_ymd()
+    test_ymdhms()
+    # @SKIP_END_GO
     test_microseconds()
     test_milliseconds()
     test_seconds()
     test_yymmdd()
     test_yyyymmdd()
-    assert 'GO_SKIP_START'
-    test_ymd()
-    test_ymdhms()
-    assert 'GO_SKIP_END'

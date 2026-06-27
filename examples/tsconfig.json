@@ -5,7 +5,7 @@
     "types": ["node"],
     "module": "ES2022",
     "moduleResolution": "Node",
-    "allowJs": true,
+    "allowJs": false,
     "checkJs": false,
     "rootDir": "./ts",
     "outDir": "./js",
@@ -15,7 +15,8 @@
     "strict": true,
     "noImplicitAny": false,
     "skipLibCheck": true,
-    "strictNullChecks":false
+    "strictNullChecks":false,
+    "useUnknownInCatchVariables":false
   },
   "include": [
     "./ts/*.ts",
@@ -23,5 +24,6 @@
   "exclude": [
     "node_modules/",
     "./ts/cli.ts",
+    "build/",
   ]
 }

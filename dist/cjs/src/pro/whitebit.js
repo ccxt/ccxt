@@ -51,9 +51,9 @@ class whitebit extends whitebit$1["default"] {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        '1': errors.BadRequest,
-                        '2': errors.BadRequest,
-                        '4': errors.BadRequest,
+                        '1': errors.BadRequest, // { error: { code: 1, message: 'invalid argument' }, result: null, id: 1656404342 }
+                        '2': errors.BadRequest, // { error: { code: 2, message: 'internal error' }, result: null, id: 1656404075 }
+                        '4': errors.BadRequest, // { error: { code: 4, message: 'method not found' }, result: null, id: 1656404250 }
                         '6': errors.AuthenticationError, // { error: { code: 6, message: 'require authentication' }, result: null, id: 1656404076 }
                     },
                 },
@@ -143,7 +143,7 @@ class whitebit extends whitebit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -897,7 +897,7 @@ class whitebit extends whitebit$1["default"] {
                 return false;
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         //

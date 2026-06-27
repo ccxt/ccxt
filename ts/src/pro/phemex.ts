@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market, List } from '../base/types.js';
 import { AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
@@ -112,9 +112,9 @@ export default class phemex extends phemexRest {
         const last = this.parseNumber (lastString);
         const quoteVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 'turnover'), market));
         const baseVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 'volume'), market));
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
+        let change: Num = undefined;
+        let percentage: Num = undefined;
+        let average: Num = undefined;
         const openString = this.omitZero (this.fromEp (this.safeString (ticker, 'open'), market));
         const open = this.parseNumber (openString);
         if ((openString !== undefined) && (lastString !== undefined)) {
@@ -172,9 +172,9 @@ export default class phemex extends phemexRest {
         const last = this.parseNumber (lastString);
         const quoteVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 6), market));
         const baseVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 5), market));
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
+        let change: Num = undefined;
+        let percentage: Num = undefined;
+        let average: Num = undefined;
         const openString = this.omitZero (this.fromEp (this.safeString (ticker, 1), market));
         const open = this.parseNumber (openString);
         if ((openString !== undefined) && (lastString !== undefined)) {
@@ -282,7 +282,7 @@ export default class phemex extends phemexRest {
         //        "type": "snapshot",
         //    }
         //
-        const tickers = [];
+        const tickers: List = [];
         if ('market24h' in message) {
             const ticker = this.safeValue (message, 'market24h');
             tickers.push (this.parseSwapTicker (ticker));
@@ -320,7 +320,7 @@ export default class phemex extends phemexRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const usePerpetualApi = this.safeString (params, 'settle') === 'USDT';
         let messageHash = ':balance';
@@ -566,7 +566,7 @@ export default class phemex extends phemexRest {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const subscriptionHash = name + '.subscribe';
-        const messageHashes = [];
+        const messageHashes: List = [];
         for (let i = 0; i < symbols.length; i++) {
             messageHashes.push ('ticker:' + symbols[i]);
         }
@@ -635,7 +635,7 @@ export default class phemex extends phemexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -801,8 +801,8 @@ export default class phemex extends phemexRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let market = undefined;
-        let type = undefined;
+        let market: Market = undefined;
+        let type: Str = undefined;
         let messageHash = 'trades:';
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -930,7 +930,7 @@ export default class phemex extends phemexRest {
             cachedTrades = new ArrayCacheBySymbolById (limit);
         }
         const marketIds: Dict = {};
-        let type = undefined;
+        let type: Str = undefined;
         for (let i = 0; i < message.length; i++) {
             const rawTrade = message[i];
             const marketId = this.safeString (rawTrade, 'symbol');
@@ -967,8 +967,8 @@ export default class phemex extends phemexRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let messageHash = 'orders:';
-        let market = undefined;
-        let type = undefined;
+        let market: Market = undefined;
+        let type: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1149,8 +1149,8 @@ export default class phemex extends phemexRest {
         //        ...
         //    ]
         //
-        let trades = [];
-        const parsedOrders = [];
+        let trades: List = [];
+        const parsedOrders: List = [];
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
             const closed = this.safeValue (message, 'closed', []);
             const open = this.safeValue (message, 'open', []);
@@ -1187,7 +1187,7 @@ export default class phemex extends phemexRest {
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        let type = undefined;
+        let type: Str = undefined;
         const stored = this.orders;
         for (let i = 0; i < parsedOrders.length; i++) {
             const parsed = parsedOrders[i];

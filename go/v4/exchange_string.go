@@ -37,12 +37,12 @@ func (this *Exchange) Uuid22() string {
 }
 
 // strip trims whitespace from both ends of a string.
-func (this *Exchange) Strip(str interface{}) interface{} {
+func (this *Exchange) Strip(str any) any {
 	return strings.TrimSpace(str.(string))
 }
 
 // capitalize capitalizes the first letter of a string.
-func (this *Exchange) Capitalize(str2 interface{}) string {
+func (this *Exchange) Capitalize(str2 any) string {
 	str := str2.(string)
 	if len(str) == 0 {
 		return str

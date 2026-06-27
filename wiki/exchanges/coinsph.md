@@ -46,7 +46,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-coinsph.fetchCurrencies ([params])
+coinsph.fetchCurrencies (params?)
 ```
 
 
@@ -66,7 +66,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-coinsph.fetchStatus ([params])
+coinsph.fetchStatus (params?)
 ```
 
 
@@ -86,7 +86,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-coinsph.fetchTime ([params])
+coinsph.fetchTime (params?)
 ```
 
 
@@ -106,7 +106,7 @@ retrieves data on all markets for coinsph
 
 
 ```javascript
-coinsph.fetchMarkets ([params])
+coinsph.fetchMarkets (params?)
 ```
 
 
@@ -132,7 +132,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinsph.fetchTickers (symbols[, params])
+coinsph.fetchTickers (symbols, params?)
 ```
 
 
@@ -158,7 +158,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinsph.fetchTicker (symbol[, params])
+coinsph.fetchTicker (symbol, params?)
 ```
 
 
@@ -168,7 +168,7 @@ coinsph.fetchTicker (symbol[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#order-book  
 
@@ -180,7 +180,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinsph.fetchOrderBook (symbol[, limit, params])
+coinsph.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -205,7 +205,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-coinsph.fetchOHLCV (symbol, timeframe[, since, limit, params])
+coinsph.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -228,7 +228,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coinsph.fetchTrades (symbol[, since, limit, params])
+coinsph.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -251,7 +251,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinsph.fetchMyTrades (symbol[, since, limit, params])
+coinsph.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -275,7 +275,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-coinsph.fetchOrderTrades (id, symbol[, since, limit, params])
+coinsph.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -295,7 +295,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinsph.fetchBalance ([params])
+coinsph.fetchBalance (params?)
 ```
 
 
@@ -322,7 +322,7 @@ create a trade order
 
 
 ```javascript
-coinsph.createOrder (symbol, type, side, amount[, price, params])
+coinsph.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -344,7 +344,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-coinsph.fetchOrder (id, symbol[, params])
+coinsph.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -367,7 +367,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-coinsph.fetchOpenOrders (symbol[, since, limit, params])
+coinsph.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -390,7 +390,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-coinsph.fetchClosedOrders (symbol[, since, limit, params])
+coinsph.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -412,7 +412,7 @@ cancels an open order
 
 
 ```javascript
-coinsph.cancelOrder (id, symbol[, params])
+coinsph.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -433,7 +433,7 @@ cancel open orders of market
 
 
 ```javascript
-coinsph.cancelAllOrders (symbol[, params])
+coinsph.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -454,7 +454,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-coinsph.fetchTradingFee (symbol[, params])
+coinsph.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -474,7 +474,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-coinsph.fetchTradingFees ([params])
+coinsph.fetchTradingFees (params?)
 ```
 
 
@@ -498,7 +498,7 @@ make a withdrawal to coins_ph account
 
 
 ```javascript
-coinsph.withdraw (code, amount, address, tag[, params])
+coinsph.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -521,7 +521,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-coinsph.fetchDeposits (code[, since, limit, params])
+coinsph.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -544,7 +544,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-coinsph.fetchWithdrawals (code[, since, limit, params])
+coinsph.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -566,6 +566,6 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-coinsph.fetchDepositAddress (code[, params])
+coinsph.fetchDepositAddress (code, params?)
 ```
 

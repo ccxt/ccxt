@@ -7,106 +7,106 @@
 
 package ccxt
 
-func (this *MudrexCore) MarketGetPriceKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("marketGetPriceKline", args...)
+func (this *MudrexCore) MarketGetPriceKline(args ...any) <-chan any {
+	return this.callEndpointAsync("marketGetPriceKline", args...)
 }
 
-func (this *MudrexCore) MarketGetPriceMarkKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("marketGetPriceMarkKline", args...)
+func (this *MudrexCore) MarketGetPriceMarkKline(args ...any) <-chan any {
+	return this.callEndpointAsync("marketGetPriceMarkKline", args...)
 }
 
-func (this *MudrexCore) PrivateGetFutures (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFutures", args...)
+func (this *MudrexCore) PrivateGetFutures(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFutures", args...)
 }
 
-func (this *MudrexCore) PrivateGetFuturesAssetId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesAssetId", args...)
+func (this *MudrexCore) PrivateGetFuturesAssetId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesAssetId", args...)
 }
 
-func (this *MudrexCore) PrivateGetWalletFunds (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletFunds", args...)
+func (this *MudrexCore) PrivateGetWalletFunds(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletFunds", args...)
 }
 
-func (this *MudrexCore) PrivateGetFuturesFunds (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesFunds", args...)
+func (this *MudrexCore) PrivateGetFuturesFunds(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesFunds", args...)
 }
 
-func (this *MudrexCore) PrivateGetFuturesOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesOrders", args...)
+func (this *MudrexCore) PrivateGetFuturesOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesOrders", args...)
 }
 
-func (this *MudrexCore) PrivateGetFuturesOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesOrdersHistory", args...)
+func (this *MudrexCore) PrivateGetFuturesOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesOrdersHistory", args...)
 }
 
-func (this *MudrexCore) PrivateGetFuturesOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesOrdersOrderId", args...)
+func (this *MudrexCore) PrivateGetFuturesOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesOrdersOrderId", args...)
 }
 
-func (this *MudrexCore) PrivateGetFuturesPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesPositions", args...)
+func (this *MudrexCore) PrivateGetFuturesPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesPositions", args...)
 }
 
-func (this *MudrexCore) PrivateGetFuturesPositionsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesPositionsHistory", args...)
+func (this *MudrexCore) PrivateGetFuturesPositionsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesPositionsHistory", args...)
 }
 
-func (this *MudrexCore) PrivateGetFuturesFeeHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesFeeHistory", args...)
+func (this *MudrexCore) PrivateGetFuturesFeeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesFeeHistory", args...)
 }
 
-func (this *MudrexCore) PrivateGetFuturesAssetIdLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesAssetIdLeverage", args...)
+func (this *MudrexCore) PrivateGetFuturesAssetIdLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesAssetIdLeverage", args...)
 }
 
-func (this *MudrexCore) PrivateGetFuturesPositionsPositionIdLiqPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesPositionsPositionIdLiqPrice", args...)
+func (this *MudrexCore) PrivateGetFuturesPositionsPositionIdLiqPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesPositionsPositionIdLiqPrice", args...)
 }
 
-func (this *MudrexCore) PrivatePostWalletFuturesTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletFuturesTransfer", args...)
+func (this *MudrexCore) PrivatePostWalletFuturesTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletFuturesTransfer", args...)
 }
 
-func (this *MudrexCore) PrivatePostFuturesTransfersInr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesTransfersInr", args...)
+func (this *MudrexCore) PrivatePostFuturesTransfersInr(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesTransfersInr", args...)
 }
 
-func (this *MudrexCore) PrivatePostFuturesAssetIdOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesAssetIdOrder", args...)
+func (this *MudrexCore) PrivatePostFuturesAssetIdOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesAssetIdOrder", args...)
 }
 
-func (this *MudrexCore) PrivatePostFuturesPositionsPositionIdClose (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesPositionsPositionIdClose", args...)
+func (this *MudrexCore) PrivatePostFuturesPositionsPositionIdClose(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesPositionsPositionIdClose", args...)
 }
 
-func (this *MudrexCore) PrivatePostFuturesPositionsPositionIdClosePartial (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesPositionsPositionIdClosePartial", args...)
+func (this *MudrexCore) PrivatePostFuturesPositionsPositionIdClosePartial(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesPositionsPositionIdClosePartial", args...)
 }
 
-func (this *MudrexCore) PrivatePostFuturesPositionsPositionIdReverse (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesPositionsPositionIdReverse", args...)
+func (this *MudrexCore) PrivatePostFuturesPositionsPositionIdReverse(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesPositionsPositionIdReverse", args...)
 }
 
-func (this *MudrexCore) PrivatePostFuturesPositionsPositionIdAddMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesPositionsPositionIdAddMargin", args...)
+func (this *MudrexCore) PrivatePostFuturesPositionsPositionIdAddMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesPositionsPositionIdAddMargin", args...)
 }
 
-func (this *MudrexCore) PrivatePostFuturesPositionsPositionIdRiskorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesPositionsPositionIdRiskorder", args...)
+func (this *MudrexCore) PrivatePostFuturesPositionsPositionIdRiskorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesPositionsPositionIdRiskorder", args...)
 }
 
-func (this *MudrexCore) PrivatePostFuturesAssetIdLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesAssetIdLeverage", args...)
+func (this *MudrexCore) PrivatePostFuturesAssetIdLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesAssetIdLeverage", args...)
 }
 
-func (this *MudrexCore) PrivatePatchFuturesOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePatchFuturesOrdersOrderId", args...)
+func (this *MudrexCore) PrivatePatchFuturesOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchFuturesOrdersOrderId", args...)
 }
 
-func (this *MudrexCore) PrivatePatchFuturesPositionsPositionIdRiskorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePatchFuturesPositionsPositionIdRiskorder", args...)
+func (this *MudrexCore) PrivatePatchFuturesPositionsPositionIdRiskorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchFuturesPositionsPositionIdRiskorder", args...)
 }
 
-func (this *MudrexCore) PrivateDeleteFuturesOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteFuturesOrdersOrderId", args...)
+func (this *MudrexCore) PrivateDeleteFuturesOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteFuturesOrdersOrderId", args...)
 }

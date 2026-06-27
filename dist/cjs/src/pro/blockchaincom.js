@@ -584,7 +584,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             'timestamp': this.parse8601(datetime),
             'status': this.parseWsOrderStatus(status),
             'symbol': this.safeSymbol(marketId, market),
-            'type': this.safeString(order, 'ordType'),
+            'type': this.safeString(order, 'ordType'), // limit, market, stop, stopLimit, trailingStop, fillOrKill
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': this.safeString(order, 'execInst') === 'ALO',
             'side': this.safeString(order, 'side'),
@@ -626,7 +626,7 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -711,7 +711,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bookArray = this.parseBidAsk(delta, 'px', 'qty', 'num');
+        const bookArray = this.parseOrderBookBidAsk(delta, 'px', 'qty', 'num');
         bookside.storeArray(bookArray);
     }
     handleDeltas(bookside, deltas) {

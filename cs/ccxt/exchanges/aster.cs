@@ -12,12 +12,11 @@ public partial class aster : Exchange
             { "name", "Aster" },
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 333 },
-            { "hostname", "aster.markets" },
             { "certified", false },
             { "pro", true },
             { "dex", true },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609" },
+                { "logo", "https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7" },
                 { "www", "https://www.asterdex.com/en" },
                 { "api", new Dictionary<string, object>() {
                     { "fapiPublic", "https://fapi.asterdex.com/fapi" },
@@ -173,28 +172,218 @@ public partial class aster : Exchange
                 { "setMargin", false },
                 { "setMarginMode", true },
                 { "setPositionMode", true },
-                { "signIn", false },
+                { "signIn", true },
                 { "transfer", true },
                 { "withdraw", true },
             } },
             { "api", new Dictionary<string, object>() {
                 { "fapiPublic", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"v1/ping", "v1/time", "v1/exchangeInfo", "v1/depth", "v1/trades", "v1/historicalTrades", "v1/aggTrades", "v1/klines", "v1/indexPriceKlines", "v1/markPriceKlines", "v1/premiumIndex", "v1/fundingRate", "v1/fundingInfo", "v1/ticker/24hr", "v1/ticker/price", "v1/ticker/bookTicker", "v1/adlQuantile", "v1/forceOrders"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "v1/ping", 1 },
+                        { "v3/ping", 1 },
+                        { "v1/time", 1 },
+                        { "v3/time", 1 },
+                        { "v1/exchangeInfo", 1 },
+                        { "v3/exchangeInfo", 1 },
+                        { "v1/depth", 1 },
+                        { "v3/depth", 2 },
+                        { "v1/trades", 1 },
+                        { "v3/trades", 1 },
+                        { "v1/historicalTrades", 1 },
+                        { "v3/historicalTrades", 20 },
+                        { "v1/aggTrades", 1 },
+                        { "v3/aggTrades", 20 },
+                        { "v1/klines", 1 },
+                        { "v3/klines", 1 },
+                        { "v1/indexPriceKlines", 1 },
+                        { "v3/indexPriceKlines", 1 },
+                        { "v1/markPriceKlines", 1 },
+                        { "v3/markPriceKlines", 1 },
+                        { "v1/premiumIndex", 1 },
+                        { "v3/premiumIndex", 1 },
+                        { "v1/fundingRate", 1 },
+                        { "v3/fundingRate", 1 },
+                        { "v1/fundingInfo", 1 },
+                        { "v3/fundingInfo", 1 },
+                        { "v1/ticker/24hr", 1 },
+                        { "v3/ticker/24hr", 1 },
+                        { "v1/ticker/price", 1 },
+                        { "v3/ticker/price", 1 },
+                        { "v1/ticker/bookTicker", 1 },
+                        { "v3/ticker/bookTicker", 1 },
+                        { "v1/adlQuantile", 1 },
+                        { "v1/forceOrders", 1 },
+                        { "v3/indexreferences", 1 },
+                    } },
                 } },
                 { "fapiPrivate", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"v1/positionSide/dual", "v1/multiAssetsMargin", "v1/order", "v1/openOrder", "v1/openOrders", "v1/allOrders", "v2/balance", "v3/balance", "v3/account", "v4/account", "v1/positionMargin/history", "v2/positionRisk", "v3/positionRisk", "v1/userTrades", "v1/income", "v1/leverageBracket", "v1/commissionRate"} },
-                    { "post", new List<object>() {"v1/positionSide/dual", "v1/multiAssetsMargin", "v1/order", "v1/order/test", "v1/batchOrders", "v1/asset/wallet/transfer", "v1/countdownCancelAll", "v1/leverage", "v1/marginType", "v1/positionMargin", "v1/listenKey"} },
-                    { "put", new List<object>() {"v1/listenKey"} },
-                    { "delete", new List<object>() {"v1/order", "v1/allOpenOrders", "v1/batchOrders", "v1/listenKey"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "v1/positionSide/dual", 1 },
+                        { "v3/positionSide/dual", 30 },
+                        { "v1/multiAssetsMargin", 1 },
+                        { "v3/multiAssetsMargin", 1 },
+                        { "v1/order", 1 },
+                        { "v3/order", 1 },
+                        { "v1/openOrder", 1 },
+                        { "v3/openOrder", 1 },
+                        { "v1/openOrders", 1 },
+                        { "v3/openOrders", 1 },
+                        { "v1/allOrders", 1 },
+                        { "v3/allOrders", 1 },
+                        { "v2/balance", 1 },
+                        { "v3/balance", 1 },
+                        { "v3/account", 1 },
+                        { "v1/positionMargin/history", 1 },
+                        { "v3/positionMargin/history", 1 },
+                        { "v2/positionRisk", 1 },
+                        { "v3/positionRisk", 1 },
+                        { "v1/userTrades", 1 },
+                        { "v3/userTrades", 5 },
+                        { "v1/income", 1 },
+                        { "v3/income", 1 },
+                        { "v1/leverageBracket", 1 },
+                        { "v3/leverageBracket", 1 },
+                        { "v1/commissionRate", 1 },
+                        { "v3/commissionRate", 1 },
+                        { "v3/adlQuantile", 1 },
+                        { "v3/forceOrders", 1 },
+                        { "v3/mmp", 1 },
+                        { "v3/accountWithJoinMargin", 1 },
+                        { "v4/account", 1 },
+                        { "v3/agent", 1 },
+                        { "v3/builder", 1 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "v1/positionSide/dual", 1 },
+                        { "v3/positionSide/dual", 1 },
+                        { "v1/multiAssetsMargin", 1 },
+                        { "v3/multiAssetsMargin", 1 },
+                        { "v1/order", 1 },
+                        { "v3/order", 1 },
+                        { "v1/order/test", 1 },
+                        { "v3/order/test", 1 },
+                        { "v1/batchOrders", 1 },
+                        { "v3/batchOrders", 1 },
+                        { "v1/asset/wallet/transfer", 1 },
+                        { "v3/asset/wallet/transfer", 1 },
+                        { "v1/countdownCancelAll", 1 },
+                        { "v3/countdownCancelAll", 1 },
+                        { "v1/leverage", 1 },
+                        { "v3/leverage", 1 },
+                        { "v1/marginType", 1 },
+                        { "v3/marginType", 1 },
+                        { "v1/positionMargin", 1 },
+                        { "v3/positionMargin", 1 },
+                        { "v1/listenKey", 1 },
+                        { "v3/listenKey", 1 },
+                        { "v3/mmp", 1 },
+                        { "v3/mmpReset", 1 },
+                        { "v3/noop", 1 },
+                        { "v3/approveAgent", 1 },
+                        { "v3/updateAgent", 1 },
+                        { "v3/approveBuilder", 1 },
+                        { "v3/updateBuilder", 1 },
+                    } },
+                    { "put", new Dictionary<string, object>() {
+                        { "v1/listenKey", 1 },
+                        { "v3/listenKey", 1 },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "v1/order", 1 },
+                        { "v3/order", 1 },
+                        { "v1/allOpenOrders", 1 },
+                        { "v3/allOpenOrders", 1 },
+                        { "v1/batchOrders", 1 },
+                        { "v3/batchOrders", 1 },
+                        { "v3/mmp", 1 },
+                        { "v1/listenKey", 1 },
+                        { "v3/listenKey", 1 },
+                        { "v3/agent", 1 },
+                        { "v3/builder", 1 },
+                    } },
                 } },
                 { "sapiPublic", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"v1/ping", "v1/time", "v1/exchangeInfo", "v1/depth", "v1/trades", "v1/historicalTrades", "v1/aggTrades", "v1/klines", "v1/ticker/24hr", "v1/ticker/price", "v1/ticker/bookTicker", "v1/aster/withdraw/estimateFee"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "v1/ping", 1 },
+                        { "v1/time", 1 },
+                        { "v1/exchangeInfo", 1 },
+                        { "v1/depth", 1 },
+                        { "v1/trades", 1 },
+                        { "v1/historicalTrades", 1 },
+                        { "v1/aggTrades", 1 },
+                        { "v1/klines", 1 },
+                        { "v1/ticker/24hr", 1 },
+                        { "v1/ticker/price", 1 },
+                        { "v1/ticker/bookTicker", 1 },
+                        { "v1/aster/withdraw/estimateFee", 1 },
+                        { "v3/ping", 1 },
+                        { "v3/time", 1 },
+                        { "v3/exchangeInfo", 1 },
+                        { "v3/depth", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                            { "byLimit", new List<object>() {new List<object>() {50, 2}, new List<object>() {100, 5}, new List<object>() {500, 10}, new List<object>() {1000, 20}} },
+                        } },
+                        { "v3/trades", 1 },
+                        { "v3/historicalTrades", 20 },
+                        { "v3/aggTrades", 20 },
+                        { "v3/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "byLimit", new List<object>() {new List<object>() {99, 1}, new List<object>() {499, 2}, new List<object>() {1000, 5}, new List<object>() {10000, 10}} },
+                        } },
+                        { "v3/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noSymbol", 40 },
+                        } },
+                        { "v3/ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noSymbol", 2 },
+                        } },
+                        { "v3/ticker/bookTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noSymbol", 2 },
+                        } },
+                        { "v3/aster/withdraw/estimateFee", 1 },
+                    } },
                 } },
                 { "sapiPrivate", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"v1/commissionRate", "v1/order", "v1/openOrders", "v1/allOrders", "v1/transactionHistory", "v1/account", "v1/userTrades"} },
-                    { "post", new List<object>() {"v1/order", "v1/asset/wallet/transfer", "v1/asset/sendToAddress", "v1/aster/user-withdraw", "v1/listenKey"} },
-                    { "put", new List<object>() {"v1/listenKey"} },
-                    { "delete", new List<object>() {"v1/order", "v1/allOpenOrders", "v1/listenKey"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "v1/commissionRate", 1 },
+                        { "v1/order", 1 },
+                        { "v1/openOrders", 1 },
+                        { "v1/allOrders", 1 },
+                        { "v1/transactionHistory", 1 },
+                        { "v1/account", 1 },
+                        { "v1/userTrades", 1 },
+                        { "v3/commissionRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noSymbol", 2 },
+                        } },
+                        { "v3/order", 1 },
+                        { "v3/openOrders", 1 },
+                        { "v3/allOrders", 5 },
+                        { "v3/account", 5 },
+                        { "v3/userTrades", 5 },
+                        { "v3/openOrder", 1 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "v1/order", 1 },
+                        { "v1/asset/wallet/transfer", 5 },
+                        { "v1/asset/sendToAddress", 1 },
+                        { "v1/listenKey", 1 },
+                        { "v3/order", 1 },
+                        { "v3/asset/wallet/transfer", 5 },
+                        { "v3/aster/user-withdraw", 1 },
+                        { "v3/listenKey", 1 },
+                    } },
+                    { "put", new List<object>() {"v1/listenKey", "v3/listenKey"} },
+                    { "delete", new Dictionary<string, object>() {
+                        { "v1/order", 1 },
+                        { "v1/allOpenOrders", 1 },
+                        { "v1/listenKey", 1 },
+                        { "v3/allOpenOrders", 1 },
+                        { "v3/order", 1 },
+                        { "v3/listenKey", 1 },
+                    } },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -216,8 +405,9 @@ public partial class aster : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "requiredCredentials", new Dictionary<string, object>() {
-                { "apiKey", true },
-                { "secret", true },
+                { "apiKey", false },
+                { "secret", false },
+                { "privateKey", true },
             } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
@@ -232,27 +422,34 @@ public partial class aster : Exchange
                 { "recvWindow", multiply(10, 1000) },
                 { "defaultTimeInForce", "GTC" },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
+                { "v3ChainId", 1666 },
                 { "quoteOrderQty", true },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "SPOT" },
+                    { "swap", "FUTURE" },
                     { "future", "FUTURE" },
                     { "linear", "FUTURE" },
-                    { "swap", "FUTURE" },
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
-                    { "ARB", "Arbitrum" },
+                    { "ARBONE", "Arbitrum" },
                 } },
                 { "networksToChainId", new Dictionary<string, object>() {
                     { "ETH", 1 },
                     { "BSC", 56 },
                     { "Arbitrum", 42161 },
                 } },
+                { "fetchOpenOrders", new Dictionary<string, object>() {
+                    { "warnIfNoSymbol", true },
+                } },
+                { "builderFee", true },
+                { "builder", "0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39" },
+                { "builderRate", "0.001" },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
-                    { "-1000", typeof(OperationFailed) },
+                    { "-1000", typeof(OperationRejected) },
                     { "-1001", typeof(NetworkError) },
                     { "-1002", typeof(AuthenticationError) },
                     { "-1003", typeof(RateLimitExceeded) },
@@ -260,7 +457,7 @@ public partial class aster : Exchange
                     { "-1005", typeof(BadRequest) },
                     { "-1006", typeof(BadResponse) },
                     { "-1007", typeof(RequestTimeout) },
-                    { "-1010", typeof(OperationFailed) },
+                    { "-1010", typeof(OperationRejected) },
                     { "-1011", typeof(PermissionDenied) },
                     { "-1013", typeof(BadRequest) },
                     { "-1014", typeof(OrderNotFillable) },
@@ -412,6 +609,7 @@ public partial class aster : Exchange
                     { "-4184", typeof(InvalidOrder) },
                     { "-5060", typeof(OperationRejected) },
                     { "-5076", typeof(OperationRejected) },
+                    { "-4168", typeof(OperationRejected) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
@@ -444,321 +642,326 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#trading-specification-information
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object promises = new List<object> {this.sapiPublicGetV1ExchangeInfo(parameters), this.fapiPublicGetV1ExchangeInfo(parameters)};
-        object results = await promiseAll(promises);
-        object sapiResult = this.safeDict(results, 0, new Dictionary<string, object>() {});
+        object sapiResult = await this.sapiPublicGetV3ExchangeInfo(parameters);
         object sapiRows = this.safeList(sapiResult, "assets", new List<object>() {});
-        object fapiResult = this.safeDict(results, 1, new Dictionary<string, object>() {});
-        object fapiRows = this.safeList(fapiResult, "assets", new List<object>() {});
-        object rows = this.arrayConcat(sapiRows, fapiRows);
         //
         //     [
         //         {
         //             "asset": "USDT",
-        //             "marginAvailable": true,
-        //             "autoAssetExchange": "-10000"
+        //             "marginAvailable": true,           // only in PERP
+        //             "autoAssetExchange": "-10000"      // only in PERP
         //         }
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
-        {
-            object currency = getValue(rows, i);
-            object currencyId = this.safeString(currency, "asset");
-            object code = this.safeCurrencyCode(currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "code", code },
-                { "id", currencyId },
-                { "name", code },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(sapiRows);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "asset");
+        object code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "code", code },
+            { "id", currencyId },
+            { "name", code },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "margin", this.safeBool(rawCurrency, "marginAvailable") },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
                 } },
-                { "networks", null },
-                { "type", "crypto" },
-            });
-        }
-        return result;
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", null },
+            { "type", "crypto" },
+        });
     }
 
     /**
      * @method
      * @name aster#fetchMarkets
      * @description retrieves data on all markets for bigone
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#trading-specification-information
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object promises = new List<object> {this.sapiPublicGetV1ExchangeInfo(parameters), this.fapiPublicGetV1ExchangeInfo(parameters)};
+        object promises = new List<object> {this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)};
+        ((IList<object>)promises).Add(this.signIn());
         object results = await promiseAll(promises);
         object sapiResult = this.safeDict(results, 0, new Dictionary<string, object>() {});
         object sapiRows = this.safeList(sapiResult, "symbols", new List<object>() {});
         object fapiResult = this.safeDict(results, 1, new Dictionary<string, object>() {});
         object fapiRows = this.safeList(fapiResult, "symbols", new List<object>() {});
-        object rows = this.arrayConcat(sapiRows, fapiRows);
+        //
+        // example:
         //
         //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "pair": "BTCUSDT",
-        //             "contractType": "PERPETUAL",
-        //             "deliveryDate": 4133404800000,
-        //             "onboardDate": 1627628400000,
-        //             "status": "TRADING",
-        //             "maintMarginPercent": "2.5000",
-        //             "requiredMarginPercent": "5.0000",
-        //             "baseAsset": "BTC",
-        //             "quoteAsset": "USDT",
-        //             "marginAsset": "USDT",
-        //             "pricePrecision": 1,
-        //             "quantityPrecision": 3,
-        //             "baseAssetPrecision": 8,
-        //             "quotePrecision": 8,
-        //             "underlyingType": "COIN",
-        //             "underlyingSubType": [],
-        //             "settlePlan": 0,
-        //             "triggerProtect": "0.0200",
-        //             "liquidationFee": "0.025000",
-        //             "marketTakeBound": "0.02",
-        //             "filters": [
-        //                 {
-        //                     "minPrice": "1",
-        //                     "maxPrice": "1000000",
-        //                     "filterType": "PRICE_FILTER",
-        //                     "tickSize": "0.1"
-        //                 },
-        //                 {
-        //                     "stepSize": "0.001",
-        //                     "filterType": "LOT_SIZE",
-        //                     "maxQty": "100",
-        //                     "minQty": "0.001"
-        //                 },
-        //                 {
-        //                     "stepSize": "0.001",
-        //                     "filterType": "MARKET_LOT_SIZE",
-        //                     "maxQty": "10",
-        //                     "minQty": "0.001"
-        //                 },
-        //                 {
-        //                     "limit": 200,
-        //                     "filterType": "MAX_NUM_ORDERS"
-        //                 },
-        //                 {
-        //                     "limit": 10,
-        //                     "filterType": "MAX_NUM_ALGO_ORDERS"
-        //                 },
-        //                 {
-        //                     "notional": "5",
-        //                     "filterType": "MIN_NOTIONAL"
-        //                 },
-        //                 {
-        //                     "multiplierDown": "0.9800",
-        //                     "multiplierUp": "1.0200",
-        //                     "multiplierDecimal": "4",
-        //                     "filterType": "PERCENT_PRICE"
-        //                 }
-        //             ],
-        //             "orderTypes": [
-        //                 "LIMIT",
-        //                 "MARKET",
-        //                 "STOP",
-        //                 "STOP_MARKET",
-        //                 "TAKE_PROFIT",
-        //                 "TAKE_PROFIT_MARKET",
-        //                 "TRAILING_STOP_MARKET"
-        //             ],
-        //             "timeInForce": [
-        //                 "GTC",
-        //                 "IOC",
-        //                 "FOK",
-        //                 "GTX",
-        //                 "RPI"
-        //             ]
-        //         }
+        //       {
+        //         symbol: "TESTUSDT",
+        //         status: "TRADING",
+        //         baseAsset: "TEST",
+        //         quoteAsset: "USDT",
+        //         pricePrecision: "2",
+        //         quantityPrecision: "5",
+        //         baseAssetPrecision: "8",
+        //         quotePrecision: "8",
+        //         listingTime: "1756289680210",      // only in SPOT
+        //         baseAssetAddress: null,            // only in SPOT
+        //         ocoAllowed: false,                 // only in SPOT
+        //         pair: "ASTERUSDT",                 // only in PERP
+        //         contractType: "PERPETUAL",         // only in PERP
+        //         deliveryDate: "4133404800000",     // only in PERP
+        //         onboardDate: "1758178800000",      // only in PERP
+        //         maintMarginPercent: "12.5000",     // only in PERP
+        //         requiredMarginPercent: "25.0000",  // only in PERP
+        //         marginAsset: "USDT",               // only in PERP
+        //         underlyingType: "COIN",            // only in PERP
+        //         underlyingSubType: [ "Top", ],     // only in PERP
+        //         symbolType: "0",                   // only in PERP
+        //         tradingMode: "0",                  // only in PERP
+        //         name: "",                          // only in PERP
+        //         channel: "{}",                     // only in PERP
+        //         sequenceNo: "100",                 // only in PERP
+        //         twapMinNotional: "1000",           // only in PERP
+        //         imn: "4000.00",                    // only in PERP
+        //         tags: [],                          // only in PERP
+        //         settlePlan: "0",                   // only in PERP
+        //         triggerProtect: "0.1500",          // only in PERP
+        //         liquidationFee: "0.025000",        // only in PERP
+        //         marketTakeBound: "0.05",           // only in PERP
+        //         createTime: "1758215451058",       // only in PERP
+        //         filters: [
+        //           {
+        //             minPrice: "0.01",
+        //             maxPrice: "1000000",
+        //             filterType: "PRICE_FILTER",
+        //             tickSize: "0.01",
+        //           },
+        //           {
+        //             stepSize: "0.00001",
+        //             filterType: "LOT_SIZE",
+        //             maxQty: "9000",
+        //             minQty: "0.00001",
+        //           },
+        //           {
+        //             stepSize: "0.00001",
+        //             filterType: "MARKET_LOT_SIZE",
+        //             maxQty: "9000",
+        //             minQty: "0.00001",
+        //           },
+        //           {
+        //             limit: "200",
+        //             filterType: "MAX_NUM_ORDERS",
+        //           },
+        //           {
+        //             minNotional: "5",
+        //             filterType: "MIN_NOTIONAL",
+        //           },
+        //           {
+        //             minNotional: "5",
+        //             avgPriceMins: "5",
+        //             applyMinToMarket: true,
+        //             filterType: "NOTIONAL",            // only in SPOT
+        //             applyMaxToMarket: true,
+        //           },
+        //           {
+        //             multiplierDown: "0.2",
+        //             multiplierUp: "5",
+        //             multiplierDecimal: "1",
+        //             filterType: "PERCENT_PRICE",
+        //           },
+        //           {
+        //             bidMultiplierUp: "5",
+        //             askMultiplierUp: "5",
+        //             bidMultiplierDown: "0.2",
+        //             avgPriceMins: "5",
+        //             multiplierDecimal: "1",
+        //             filterType: "PERCENT_PRICE_BY_SIDE",  // only in SPOT
+        //             askMultiplierDown: "0.2",
+        //           },
+        //         ],
+        //         orderTypes: [ "LIMIT", "MARKET", "STOP", "STOP_MARKET", "TAKE_PROFIT", "TAKE_PROFIT_MARKET", "TRAILING_STOP_MARKET", ],
+        //         timeInForce: [ "GTC", "IOC", "FOK", "GTX", "HIDDEN", ],
+        //       }
         //     ]
         //
-        object fees = this.fees;
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        //
+        object fapiRowsFiltered = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(fapiRows)); postFixIncrement(ref i))
         {
-            object swap = false;
-            object market = getValue(rows, i);
-            object id = this.safeString(market, "symbol");
-            object baseId = this.safeString(market, "baseAsset");
-            object quoteId = this.safeString(market, "quoteAsset");
-            object bs = this.safeCurrencyCode(baseId);
-            object quote = this.safeCurrencyCode(quoteId);
-            object contractType = this.safeString(market, "contractType");
-            object contract = !isEqual(contractType, null);
-            object spot = true;
-            if (isTrue(isEqual(contractType, "PERPETUAL")))
+            object market = getValue(fapiRows, i);
+            // tmp skip some markets with base = undefined
+            if (isTrue(this.safeString(market, "baseAsset")))
             {
-                swap = true;
-                spot = false;
+                ((IList<object>)fapiRowsFiltered).Add(market);
             }
-            object contractSize = null;
-            object linear = null;
-            object inverse = null;
-            object symbol = add(add(bs, "/"), quote);
-            object settle = null;
-            object settleId = null;
-            if (isTrue(contract))
-            {
-                settleId = this.safeString(market, "marginAsset");
-                settle = this.safeCurrencyCode(settleId);
-                if (isTrue(swap))
-                {
-                    symbol = add(add(symbol, ":"), settle);
-                }
-                linear = isEqual(settle, quote);
-                inverse = isEqual(settle, bs);
-                contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
-            }
-            object unifiedType = null;
-            if (isTrue(spot))
-            {
-                unifiedType = "spot";
-            } else if (isTrue(swap))
-            {
-                unifiedType = "swap";
-            }
-            object status = this.safeString(market, "status");
-            object active = isEqual(status, "TRADING");
-            object filters = this.safeList(market, "filters", new List<object>() {});
-            object filtersByType = this.indexBy(filters, "filterType");
-            object entry = this.safeMarketStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "symbol", symbol },
-                { "base", bs },
-                { "quote", quote },
-                { "settle", settle },
-                { "baseId", baseId },
-                { "quoteId", quoteId },
-                { "settleId", settleId },
-                { "type", unifiedType },
-                { "spot", spot },
-                { "margin", false },
-                { "swap", swap },
-                { "future", false },
-                { "option", false },
-                { "active", active },
-                { "contract", contract },
-                { "linear", linear },
-                { "inverse", inverse },
-                { "taker", getValue(getValue(fees, "trading"), "taker") },
-                { "maker", getValue(getValue(fees, "trading"), "maker") },
-                { "contractSize", contractSize },
-                { "expiry", null },
-                { "expiryDatetime", null },
-                { "strike", null },
-                { "optionType", null },
-                { "precision", new Dictionary<string, object>() {
-                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision"))) },
-                    { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
-                    { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseAssetPrecision"))) },
-                    { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
-                } },
-                { "limits", new Dictionary<string, object>() {
-                    { "leverage", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "price", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "cost", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "created", this.safeInteger(market, "onboardDate") },
-                { "info", market },
-            });
-            if (isTrue(inOp(filtersByType, "PRICE_FILTER")))
-            {
-                object filter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)getValue(entry, "limits"))["price"] = new Dictionary<string, object>() {
-                    { "min", this.safeNumber(filter, "minPrice") },
-                    { "max", this.safeNumber(filter, "maxPrice") },
-                };
-                ((IDictionary<string,object>)getValue(entry, "precision"))["price"] = this.safeNumber(filter, "tickSize");
-            }
-            if (isTrue(inOp(filtersByType, "LOT_SIZE")))
-            {
-                object filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)getValue(entry, "precision"))["amount"] = this.safeNumber(filter, "stepSize");
-                ((IDictionary<string,object>)getValue(entry, "limits"))["amount"] = new Dictionary<string, object>() {
-                    { "min", this.safeNumber(filter, "minQty") },
-                    { "max", this.safeNumber(filter, "maxQty") },
-                };
-            }
-            if (isTrue(inOp(filtersByType, "MARKET_LOT_SIZE")))
-            {
-                object filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)getValue(entry, "limits"))["market"] = new Dictionary<string, object>() {
-                    { "min", this.safeNumber(filter, "minQty") },
-                    { "max", this.safeNumber(filter, "maxQty") },
-                };
-            }
-            if (isTrue(isTrue((inOp(filtersByType, "MIN_NOTIONAL"))) || isTrue((inOp(filtersByType, "NOTIONAL")))))
-            {
-                object filter = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)getValue(getValue(entry, "limits"), "cost"))["min"] = this.safeNumber(filter, "notional");
-            }
-            ((IList<object>)result).Add(entry);
         }
-        return result;
+        object rows = this.arrayConcat(sapiRows, fapiRowsFiltered);
+        return this.parseMarkets(rows);
+    }
+
+    public override object parseMarket(object market)
+    {
+        object id = this.safeString(market, "symbol");
+        object baseId = this.safeString(market, "baseAsset");
+        object quoteId = this.safeString(market, "quoteAsset");
+        object bs = this.safeCurrencyCode(baseId);
+        object quote = this.safeCurrencyCode(quoteId);
+        object active = isEqual(this.safeString(market, "status"), "TRADING");
+        object spot = null;
+        object symbol = null;
+        object settle = null;
+        object settleId = null;
+        object swap = null;
+        object linear = null;
+        object inverse = null;
+        object contractSize = null;
+        object contractType = this.safeString(market, "contractType");
+        object isContract = !isEqual(contractType, null);
+        if (isTrue(isContract))
+        {
+            // currently, there is only perpetuals, not futures
+            spot = false;
+            swap = true;
+            settleId = this.safeString(market, "marginAsset");
+            settle = this.safeCurrencyCode(settleId);
+            symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+            linear = isEqual(settle, quote);
+            inverse = isEqual(settle, bs);
+            contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
+        } else
+        {
+            spot = true;
+            swap = false;
+            symbol = add(add(bs, "/"), quote);
+        }
+        // filters
+        object filters = this.safeList(market, "filters", new List<object>() {});
+        object filtersByType = this.indexBy(filters, "filterType");
+        object filterNotional = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL");
+        object filterPrice = this.safeDict(filtersByType, "PRICE_FILTER");
+        object filterLotSize = this.safeDict(filtersByType, "LOT_SIZE");
+        object filterMarketLotSize = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
+        object pricePrecision = this.safeNumber(filterPrice, "tickSize");
+        if (isTrue(isEqual(pricePrecision, null)))
+        {
+            pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
+        }
+        object amountPrecision = ((bool) isTrue((!isEqual(filterLotSize, null)))) ? this.safeNumber(filterLotSize, "stepSize") : this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
+        return this.safeMarketStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "symbol", symbol },
+            { "base", bs },
+            { "quote", quote },
+            { "settle", settle },
+            { "baseId", baseId },
+            { "quoteId", quoteId },
+            { "settleId", settleId },
+            { "type", ((bool) isTrue(isContract)) ? "swap" : "spot" },
+            { "spot", spot },
+            { "margin", false },
+            { "swap", swap },
+            { "future", false },
+            { "option", false },
+            { "active", active },
+            { "contract", isContract },
+            { "linear", linear },
+            { "inverse", inverse },
+            { "taker", getValue(getValue(this.fees, "trading"), "taker") },
+            { "maker", getValue(getValue(this.fees, "trading"), "maker") },
+            { "contractSize", contractSize },
+            { "expiry", null },
+            { "expiryDatetime", null },
+            { "strike", null },
+            { "optionType", null },
+            { "precision", new Dictionary<string, object>() {
+                { "amount", amountPrecision },
+                { "price", pricePrecision },
+                { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseAssetPrecision"))) },
+                { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
+            } },
+            { "limits", new Dictionary<string, object>() {
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(filterLotSize, "minQty") },
+                    { "max", this.safeNumber(filterLotSize, "maxQty") },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(filterPrice, "minPrice") },
+                    { "max", this.safeNumber(filterPrice, "maxPrice") },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", this.safeNumber2(filterNotional, "notional", "minNotional") },
+                    { "max", null },
+                } },
+                { "market", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(filterMarketLotSize, "minQty") },
+                    { "max", this.safeNumber(filterMarketLotSize, "maxQty") },
+                } },
+            } },
+            { "created", this.safeInteger2(market, "listingTime", "createTime") },
+            { "info", market },
+        });
     }
 
     /**
      * @method
      * @name aster#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#check-server-time
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-server-time
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#check-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     public async override Task<object> fetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.fapiPublicGetV1Time(parameters);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTime", null, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            response = await this.fapiPublicGetV3Time(parameters);
+        } else
+        {
+            response = await this.sapiPublicGetV3Time(parameters);
+        }
         //
-        //     {
-        //         "serverTime": 1499827319559
-        //     }
+        // both SPOT & PERP has same format
+        //
+        // {
+        //     "serverTime": 1499827319559
+        // }
         //
         return this.safeInteger(response, "serverTime");
     }
@@ -766,19 +969,21 @@ public partial class aster : Exchange
     public override object parseOHLCV(object ohlcv, object market = null)
     {
         //
+        // spot:
+        //
         //     [
-        //         1631158560000,
-        //         "208.1850",
-        //         "208.1850",
-        //         "208.1850",
-        //         "208.1850",
-        //         "11.84",
-        //         1631158619999,
-        //         "2464.910400",
-        //         1,
-        //         "11.84",
-        //         "2464.910400",
-        //         "0"
+        //         1499040000000, // Open time
+        //         "0.01634790", // Open
+        //         "0.80000000", // High
+        //         "0.01575800", // Low
+        //         "0.01577100", // Close
+        //         "148976.11427815", // Volume
+        //         1499644799999, // Close time
+        //         "2434.19055334", // Quote asset volume
+        //         308, // Number of trades
+        //         "1756.87402397", // Taker buy base asset volume
+        //         "28.46694368", // Taker buy quote asset volume
+        //         "0"  // ??
         //     ]
         //
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
@@ -788,8 +993,10 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#k-line-data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#klinecandlestick-data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#index-price-klinecandlestick-data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#mark-price-klinecandlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -803,10 +1010,6 @@ public partial class aster : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOHLCV() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
@@ -816,11 +1019,7 @@ public partial class aster : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            if (isTrue(isGreaterThan(limit, 1500)))
-            {
-                limit = 1500; // Default 500; max 1500.
-            }
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1500);
         }
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
@@ -834,40 +1033,22 @@ public partial class aster : Exchange
         if (isTrue(isMark))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            response = await this.fapiPublicGetV1MarkPriceKlines(this.extend(request, parameters));
+            response = await this.fapiPublicGetV3MarkPriceKlines(this.extend(request, parameters));
         } else if (isTrue(isIndex))
         {
             ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
-            response = await this.fapiPublicGetV1IndexPriceKlines(this.extend(request, parameters));
+            response = await this.fapiPublicGetV3IndexPriceKlines(this.extend(request, parameters));
         } else
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             if (isTrue(getValue(market, "linear")))
             {
-                response = await this.fapiPublicGetV1Klines(this.extend(request, parameters));
+                response = await this.fapiPublicGetV3Klines(this.extend(request, parameters));
             } else
             {
-                response = await this.sapiPublicGetV1Klines(this.extend(request, parameters));
+                response = await this.sapiPublicGetV3Klines(this.extend(request, parameters));
             }
         }
-        //
-        //     [
-        //         [
-        //             1631158560000,
-        //             "208.1850",
-        //             "208.1850",
-        //             "208.1850",
-        //             "208.1850",
-        //             "11.84",
-        //             1631158619999,
-        //             "2464.910400",
-        //             1,
-        //             "11.84",
-        //             "2464.910400",
-        //             "0"
-        //         ]
-        //     ]
-        //
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
 
@@ -876,59 +1057,78 @@ public partial class aster : Exchange
         //
         // fetchTrades
         //
+        //     recent trades:
+        //
         //     {
         //         "id": 3913206,
         //         "price": "644.100",
         //         "qty": "0.08",
-        //         "quoteQty": "51.528",
+        //         "quoteQty": "51.528",      // present in PERP
+        //         "baseQty": "4.95049505",   // present in SPOT
         //         "time": 1749784506633,
         //         "isBuyerMaker": true
         //     }
         //
-        //     {
-        //         "id": 657,
-        //         "price": "1.01000000",
-        //         "qty": "5.00000000",
-        //         "baseQty": "4.95049505",
-        //         "time": 1755156533943,
-        //         "isBuyerMaker": false
-        //     }
-        //
-        // fetchMyTrades
+        //     aggrTrades
         //
         //     {
-        //         "buyer": false,
-        //         "commission": "-0.07819010",
-        //         "commissionAsset": "USDT",
-        //         "id": 698759,
-        //         "maker": false,
-        //         "orderId": 25851813,
-        //         "price": "7819.01",
-        //         "qty": "0.002",
-        //         "quoteQty": "15.63802",
-        //         "realizedPnl": "-0.91539999",
-        //         "side": "SELL",
-        //         "positionSide": "SHORT",
-        //         "symbol": "BTCUSDT",
-        //         "time": 1569514978020
+        //         "a": 26129, // Aggregate tradeId
+        //         "p": "0.01633102", // Price
+        //         "q": "4.70443515", // Quantity
+        //         "f": 27781, // First tradeId
+        //         "l": 27781, // Last tradeId
+        //         "T": 1498793709153, // Timestamp
+        //         "m": true, // Was the buyer the maker?
         //     }
         //
-        object id = this.safeString(trade, "id");
-        object symbol = getValue(market, "symbol");
-        object currencyId = this.safeString(trade, "commissionAsset");
+        // fetchMyTrades  (SPOT & PERP have similar format)
+        //
+        // {
+        //     "symbol": "ETHUSDT",
+        //     "id": 2583152,
+        //     "orderId": 418588675,
+        //     "side": "SELL",
+        //     "price": "2330.04",
+        //     "qty": "0.0030",
+        //     "quoteQty": "6.99000000",
+        //     "commission": "0.00279605",
+        //     "commissionAsset": "USDT",
+        //     "time": 1776409179230,
+        //     "counterpartyId": 5143150,   // only in SPOT
+        //     "createUpdateId": null,      // only in SPOT
+        //     "maker": false,              // only in SPOT
+        //     "buyer": false,              // only in SPOT
+        //     "realizedPnl": "0.00029999", // only in PERP
+        //     "marginAsset": "USDT",       // only in PERP
+        //     "positionSide": "BOTH",      // only in PERP
+        // }
+        //
+        object id = this.safeString2(trade, "id", "a");
+        object marketId = this.safeString(trade, "symbol");
+        object marketType = ((bool) isTrue((inOp(trade, "positionSide")))) ? "swap" : "spot";
+        market = this.safeMarket(marketId, market, null, marketType);
+        object currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
         object currencyCode = this.safeCurrencyCode(currencyId);
-        object amountString = this.safeString(trade, "qty");
-        object priceString = this.safeString(trade, "price");
+        object amountString = this.safeString2(trade, "qty", "q");
+        object priceString = this.safeString2(trade, "price", "p");
         object costString = this.safeString2(trade, "quoteQty", "baseQty");
-        object timestamp = this.safeInteger(trade, "time");
+        object timestamp = this.safeInteger2(trade, "time", "T");
         object side = this.safeStringLower(trade, "side");
         object isMaker = this.safeBool(trade, "maker");
         object takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            if (isTrue(isEqual(side, null)))
+            {
+                object isBuyer = this.safeBool(trade, "buyer");
+                if (isTrue(!isEqual(isBuyer, null)))
+                {
+                    side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
+                }
+            }
         }
-        object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
+        object isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
         if (isTrue(!isEqual(isBuyerMaker, null)))
         {
             side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
@@ -938,7 +1138,7 @@ public partial class aster : Exchange
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", symbol },
+            { "symbol", getValue(market, "symbol") },
             { "order", this.safeString(trade, "orderId") },
             { "type", null },
             { "side", side },
@@ -957,21 +1157,19 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#recent-trades-list
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#recent-trades-list
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-list
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-aggregated
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#recent-trades-list
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#compressedaggregate-trades-list
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchTrades() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -979,19 +1177,38 @@ public partial class aster : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            if (isTrue(isGreaterThan(limit, 1000)))
-            {
-                limit = 1000; // Default 500; max 1000.
-            }
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        object sinceDefined = !isEqual(since, null);
+        object untilDefined = (inOp(parameters, "until"));
+        if (isTrue(sinceDefined))
         {
-            response = await this.fapiPublicGetV1Trades(this.extend(request, parameters));
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(untilDefined))
+        {
+            request = this.handleUntilOption("endTime", request, parameters);
+        }
+        // use historical endpoint for targeted requests
+        if (isTrue(inOp(request, "startTime")))
+        {
+            if (isTrue(getValue(market, "swap")))
+            {
+                response = await this.fapiPublicGetV3AggTrades(this.extend(request, parameters));
+            } else
+            {
+                response = await this.sapiPublicGetV3AggTrades(this.extend(request, parameters));
+            }
         } else
         {
-            response = await this.sapiPublicGetV1Trades(this.extend(request, parameters));
+            if (isTrue(getValue(market, "swap")))
+            {
+                response = await this.fapiPublicGetV3Trades(this.extend(request, parameters));
+            } else
+            {
+                response = await this.sapiPublicGetV3Trades(this.extend(request, parameters));
+            }
         }
         return this.parseTrades(response, market, since, limit);
     }
@@ -1000,69 +1217,71 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#account-trade-history-user_data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#account-trade-list-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-trade-history-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#account-trade-list-user_data
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        await this.loadMarketsAndSignIn();
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            if (isTrue(isGreaterThan(limit, 1000)))
-            {
-                limit = 1000; // Default 500; max 1000.
-            }
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(marketType, "swap")))
         {
-            response = await this.fapiPrivateGetV1UserTrades(this.extend(request, parameters));
+            response = await this.fapiPrivateGetV3UserTrades(this.extend(request, parameters));
         } else
         {
-            response = await this.sapiPrivateGetV1UserTrades(this.extend(request, parameters));
+            response = await this.sapiPrivateGetV3UserTrades(this.extend(request, parameters));
         }
         //
-        //     [
-        //         {
-        //             "buyer": false,
-        //             "commission": "-0.07819010",
-        //             "commissionAsset": "USDT",
-        //             "id": 698759,
-        //             "maker": false,
-        //             "orderId": 25851813,
-        //             "price": "7819.01",
-        //             "qty": "0.002",
-        //             "quoteQty": "15.63802",
-        //             "realizedPnl": "-0.91539999",
-        //             "side": "SELL",
-        //             "positionSide": "SHORT",
-        //             "symbol": "BTCUSDT",
-        //             "time": 1569514978020
-        //         }
-        //     ]
+        // SPOT & PERP have similar format
+        //
+        // {
+        //     "symbol": "ETHUSDT",
+        //     "id": 2583152,
+        //     "orderId": 418588675,
+        //     "side": "SELL",
+        //     "price": "2330.04",
+        //     "qty": "0.0030",
+        //     "quoteQty": "6.99000000",
+        //     "commission": "0.00279605",
+        //     "commissionAsset": "USDT",
+        //     "time": 1776409179230,
+        //     "counterpartyId": 5143150,   // only in PERP
+        //     "createUpdateId": null,      // only in PERP
+        //     "maker": false,              // only in PERP
+        //     "buyer": false,              // only in PERP
+        //     "realizedPnl": "0.00029999", // only in SPOT
+        //     "marginAsset": "USDT",       // only in SPOT
+        //     "positionSide": "BOTH",      // only in SPOT
+        // }
         //
         return this.parseTrades(response, market, since, limit, parameters);
     }
@@ -1071,42 +1290,35 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#depth-information
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#order-book
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#depth-information
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrderBook() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        object response = null;
         if (isTrue(!isEqual(limit, null)))
         {
-            // limit: [5, 10, 20, 50, 100, 500, 1000]. Default: 500
-            if (isTrue(isGreaterThan(limit, 1000)))
-            {
-                limit = 1000; // Default 500; max 1000.
-            }
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100, 500, 1000}, limit);
         }
-        object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.fapiPublicGetV1Depth(this.extend(request, parameters));
+            response = await this.fapiPublicGetV3Depth(this.extend(request, parameters));
         } else
         {
-            response = await this.sapiPublicGetV1Depth(this.extend(request, parameters));
+            response = await this.sapiPublicGetV3Depth(this.extend(request, parameters));
         }
+        //
+        // both SPOT & PERP has same format
         //
         //     {
         //         "lastUpdateId": 1027024,
@@ -1130,140 +1342,71 @@ public partial class aster : Exchange
         return this.parseOrderBook(response, symbol, timestamp, "bids", "asks");
     }
 
-    /**
-     * @method
-     * @name aster#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-history
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest funding rate
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-     */
-    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(symbol, null)))
-        {
-            object market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-        }
-        if (isTrue(!isEqual(since, null)))
-        {
-            ((IDictionary<string,object>)request)["startTime"] = since;
-        }
-        if (isTrue(!isEqual(limit, null)))
-        {
-            if (isTrue(isGreaterThan(limit, 1000)))
-            {
-                limit = 1000; // Default 100; max 1000
-            }
-            ((IDictionary<string,object>)request)["limit"] = limit;
-        }
-        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.fapiPublicGetV1FundingRate(this.extend(request, parameters));
-        //
-        //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "fundingTime": 1747209600000,
-        //             "fundingRate": "0.00010000"
-        //         }
-        //     ]
-        //
-        object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object entry = getValue(response, i);
-            object timestamp = this.safeInteger(entry, "fundingTime");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
-                { "info", entry },
-                { "symbol", this.safeSymbol(this.safeString(entry, "symbol"), null, null, "swap") },
-                { "fundingRate", this.safeNumber(entry, "fundingRate") },
-                { "timestamp", timestamp },
-                { "datetime", this.iso8601(timestamp) },
-            });
-        }
-        object sorted = this.sortBy(rates, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-    }
-
     public override object parseTicker(object ticker, object market = null)
     {
         //
-        // spot
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "priceChange": "-2274.38",
-        //         "priceChangePercent": "-2.049",
-        //         "weightedAvgPrice": "109524.37084136",
-        //         "lastPrice": "108738.78",
-        //         "lastQty": "0.00034",
-        //         "openPrice": "111013.16",
-        //         "highPrice": "111975.81",
-        //         "lowPrice": "107459.25",
-        //         "volume": "28.67876",
-        //         "quoteVolume": "3141023.14551030",
-        //         "openTime": "1760578800000",
-        //         "closeTime": "1760665024749",
-        //         "firstId": "37447",
-        //         "lastId": "39698",
-        //         "count": "2252",
-        //         "baseAsset": "BTC",
-        //         "quoteAsset": "USDT",
-        //         "bidPrice": "108705.11",
-        //         "bidQty": "0.03351",
-        //         "askPrice": "108725.99",
-        //         "askQty": "0.08724"
-        //     }
-        // swap
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "priceChange": "1845.7",
-        //         "priceChangePercent": "1.755",
-        //         "weightedAvgPrice": "105515.5",
-        //         "lastPrice": "107037.7",
-        //         "lastQty": "0.004",
-        //         "openPrice": "105192.0",
-        //         "highPrice": "107223.5",
-        //         "lowPrice": "104431.6",
-        //         "volume": "8753.286",
-        //         "quoteVolume": "923607368.61",
-        //         "openTime": 1749976620000,
-        //         "closeTime": 1750063053754,
-        //         "firstId": 24195078,
-        //         "lastId": 24375783,
-        //         "count": 180706
-        //     }
+        // fetchTicker & fetchTickers: both SPOT & PERP has similar format
+        //
+        //    {
+        //        "symbol": "ETHUSDT",
+        //        "priceChange": "6.54",
+        //        "priceChangePercent": "0.279",
+        //        "weightedAvgPrice": "2330.70",
+        //        "lastPrice": "2350.00",
+        //        "lastQty": "4.437",
+        //        "openPrice": "2343.46",
+        //        "highPrice": "2363.20",
+        //        "lowPrice": "2283.86",
+        //        "volume": "267154.248",
+        //        "quoteVolume": "622657018.70",
+        //        "openTime": "1776329400000",
+        //        "closeTime": "1776415832593",
+        //        "firstId": "73520536",
+        //        "lastId": "73630176",
+        //        "count": "109640",
+        //        "baseAsset": "BTC",            // only in SPOT
+        //        "quoteAsset": "USDT",          // only in SPOT
+        //        "bidPrice": "71125.98",        // only in SPOT
+        //        "bidQty": "0.00737",           // only in SPOT
+        //        "askPrice": "71152.10",        // only in SPOT
+        //        "askQty": "0.32399"            // only in SPOT
+        //    }
+        //
+        //
+        // fetchBidsAsks: SPOT & PERP have only one field difference
+        //
+        //     [
+        //        {
+        //            "symbol": "BMTUSDT",
+        //            "bidPrice": "0.004000",
+        //            "bidQty": "1250.0",
+        //            "askPrice": "0.000000",
+        //            "askQty": "0.0",
+        //            "time": "1776411276072",
+        //            "lastUpdateId": "453174307613"   // only in PERP
+        //        }, ...
         //
         object timestamp = this.safeInteger(ticker, "closeTime");
-        object marketType = null;
-        if (isTrue(inOp(ticker, "bidQty")))
-        {
-            marketType = "spot";
-        } else
-        {
-            marketType = "contract";
-        }
-        object marketId = this.safeString(ticker, "symbol");
-        market = this.safeMarket(marketId, market, null, marketType);
-        object symbol = getValue(market, "symbol");
         object last = this.safeString(ticker, "lastPrice");
         object open = this.safeString(ticker, "openPrice");
         object percentage = this.safeString(ticker, "priceChangePercent");
-        percentage = Precise.stringMul(percentage, "100");
         object quoteVolume = this.safeString(ticker, "quoteVolume");
         object baseVolume = this.safeString(ticker, "volume");
         object high = this.safeString(ticker, "highPrice");
         object low = this.safeString(ticker, "lowPrice");
+        object isTickerResponse = (inOp(ticker, "priceChange"));
+        object marketType = null;
+        if (isTrue(isTickerResponse))
+        {
+            marketType = ((bool) isTrue((inOp(ticker, "baseAsset")))) ? "spot" : "swap";
+        } else
+        {
+            marketType = ((bool) isTrue((inOp(ticker, "lastUpdateId")))) ? "swap" : "spot";
+        }
+        object marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market, null, marketType);
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", symbol },
+            { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", high },
@@ -1292,19 +1435,15 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchTicker() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -1313,11 +1452,39 @@ public partial class aster : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.fapiPublicGetV1Ticker24hr(this.extend(request, parameters));
+            response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, parameters));
         } else
         {
-            response = await this.sapiPublicGetV1Ticker24hr(this.extend(request, parameters));
+            response = await this.sapiPublicGetV3Ticker24hr(this.extend(request, parameters));
         }
+        //
+        // both SPOT & PERP has same format
+        //
+        //    {
+        //        "symbol": "ETHUSDT",
+        //        "priceChange": "6.54",
+        //        "priceChangePercent": "0.279",
+        //        "weightedAvgPrice": "2330.70",
+        //        "lastPrice": "2350.00",
+        //        "lastQty": "4.437",
+        //        "openPrice": "2343.46",
+        //        "highPrice": "2363.20",
+        //        "lowPrice": "2283.86",
+        //        "volume": "267154.248",
+        //        "quoteVolume": "622657018.70",
+        //        "openTime": "1776329400000",
+        //        "closeTime": "1776415832593",
+        //        "firstId": "73520536",
+        //        "lastId": "73630176",
+        //        "count": "109640",
+        //        "baseAsset": "BTC",            // only in SPOT
+        //        "quoteAsset": "USDT",          // only in SPOT
+        //        "bidPrice": "71125.98",        // only in SPOT
+        //        "bidQty": "0.00737",           // only in SPOT
+        //        "askPrice": "71152.10",        // only in SPOT
+        //        "askQty": "0.32399"            // only in SPOT
+        //    }
+        //
         return this.parseTicker(response, market);
     }
 
@@ -1325,13 +1492,13 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -1339,24 +1506,17 @@ public partial class aster : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = this.getMarketFromSymbols(symbols);
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (isTrue(isEqual(marketType, "swap")))
         {
-            response = await this.fapiPublicGetV1Ticker24hr(parameters);
-        } else if (isTrue(isEqual(type, "spot")))
+            response = await this.fapiPublicGetV3Ticker24hr(parameters);
+        } else if (isTrue(isEqual(marketType, "spot")))
         {
-            response = await this.sapiPublicGetV1Ticker24hr(parameters);
-        } else
-        {
-            throw new NotSupported ((string)add(add(add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
+            response = await this.sapiPublicGetV3Ticker24hr(parameters);
         }
         //
         //     [
@@ -1376,15 +1536,144 @@ public partial class aster : Exchange
         //             "closeTime": 1750063053754,
         //             "firstId": 24195078,
         //             "lastId": 24375783,
-        //             "count": 180706
+        //             "count": 180706,
+        //             "baseAsset": "BTC",              // only in SPOT
+        //             "quoteAsset": "USDT",            // only in SPOT
+        //             "bidPrice": "71125.98",          // only in SPOT
+        //             "bidQty": "0.00737",             // only in SPOT
+        //             "askPrice": "71152.10",          // only in SPOT
+        //             "askQty": "0.32399"              // only in SPOT
         //         }
         //     ]
         //
         return this.parseTickers(response, symbols);
     }
 
+    /**
+     * @method
+     * @name aster#fetchLastPrices
+     * @description fetches the last price for multiple markets
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#latest-price
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a dictionary of lastprices structures
+     */
+    public async override Task<object> fetchLastPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object market = this.getMarketFromSymbols(symbols);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            response = await this.fapiPublicGetV3TickerPrice(parameters);
+        } else if (isTrue(isEqual(marketType, "spot")))
+        {
+            response = await this.sapiPublicGetV3TickerPrice(parameters);
+        }
+        //
+        // both SPOT & SWAP has same format
+        //
+        //     [
+        //         {
+        //             "symbol": "LTCBTC",
+        //             "price": "4.00000200"
+        //             "time": "1649666690902"
+        //         },
+        //         ...
+        //     ]
+        //
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object marketId = this.safeString(getValue(response, i), "symbol");
+            object safeMarket = this.safeMarket(marketId, null, null, marketType);
+            object priceData = this.extend(this.parseLastPrice(getValue(response, i), safeMarket), parameters);
+            ((IList<object>)results).Add(priceData);
+        }
+        symbols = this.marketSymbols(symbols);
+        return this.filterByArray(results, "symbol", symbols);
+    }
+
+    public override object parseLastPrice(object entry, object market = null)
+    {
+        //
+        // spot & swap
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "price": "4.00000200"
+        //         "time": "1649666690902"
+        //     }
+        //
+        object timestamp = this.safeInteger(entry, "time");
+        return new Dictionary<string, object>() {
+            { "symbol", this.safeString(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "price", this.safeNumberOmitZero(entry, "price") },
+            { "side", null },
+            { "info", entry },
+        };
+    }
+
+    /**
+     * @method
+     * @name aster#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#current-best-order
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-order-book-ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object market = this.getMarketFromSymbols(symbols);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            response = await this.fapiPublicGetV3TickerBookTicker(parameters);
+        } else if (isTrue(isEqual(marketType, "spot")))
+        {
+            response = await this.sapiPublicGetV3TickerBookTicker(parameters);
+        }
+        //
+        // SPOT & PERP have only one field difference
+        //
+        //     [
+        //        {
+        //            "symbol": "BMTUSDT",
+        //            "bidPrice": "0.004000",
+        //            "bidQty": "1250.0",
+        //            "askPrice": "0.000000",
+        //            "askQty": "0.0",
+        //            "time": "1776411276072",
+        //            "lastUpdateId": "453174307613"   // only in PERP
+        //        }, ...
+        //
+        return this.parseTickers(response, symbols);
+    }
+
     public override object parseFundingRate(object contract, object market = null)
     {
+        //
+        // fundingRate
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -1396,6 +1685,9 @@ public partial class aster : Exchange
         //         "nextFundingTime": 1750147200000,
         //         "time": 1750146970000
         //     }
+        //
+        // funding interval
+        //
         //     {
         //         "symbol": "INJUSDT",
         //         "interestRate": "0.00010000",
@@ -1440,10 +1732,10 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
@@ -1457,7 +1749,7 @@ public partial class aster : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.fapiPublicGetV1PremiumIndex(this.extend(request, parameters));
+        object response = await this.fapiPublicGetV3PremiumIndex(this.extend(request, parameters));
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -1477,17 +1769,17 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchFundingRates
      * @description fetch the current funding rate for multiple symbols
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object response = await this.fapiPublicGetV1PremiumIndex(this.extend(parameters));
+        object response = await this.fapiPublicGetV3PremiumIndex(this.extend(parameters));
         //
         //     [
         //         {
@@ -1509,10 +1801,10 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchFundingIntervals
      * @description fetch the funding rate interval for multiple markets
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-config
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingIntervals(object symbols = null, object parameters = null)
     {
@@ -1522,7 +1814,7 @@ public partial class aster : Exchange
         {
             symbols = this.marketSymbols(symbols);
         }
-        object response = await this.fapiPublicGetV1FundingInfo(parameters);
+        object response = await this.fapiPublicGetV3FundingInfo(parameters);
         //
         //     [
         //         {
@@ -1538,6 +1830,104 @@ public partial class aster : Exchange
         return this.parseFundingRates(response, symbols);
     }
 
+    /**
+     * @method
+     * @name aster#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
+        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.fapiPublicGetV3FundingRate(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "fundingTime": 1747209600000,
+        //             "fundingRate": "0.00010000"
+        //         }
+        //     ]
+        //
+        return this.parseFundingRateHistories(response, market);
+    }
+
+    public override object parseFundingRateHistory(object contract, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "fundingRate": "0.00063521",
+        //         "fundingTime": "1621267200000",
+        //     }
+        //
+        object timestamp = this.safeInteger(contract, "fundingTime");
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeSymbol(this.safeString(contract, "symbol"), null, null, "swap") },
+            { "fundingRate", this.safeNumber(contract, "fundingRate") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
+    }
+
+    /**
+     * @method
+     * @name aster#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-information-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#futures-account-balance-v3-user_data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public async override Task<object> fetchBalance(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarketsAndSignIn();
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object response = null;
+        object data = null;
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            data = await this.fapiPrivateGetV3Balance(parameters);
+        } else if (isTrue(isEqual(marketType, "spot")))
+        {
+            response = await this.sapiPrivateGetV3Account(parameters);
+            data = this.safeList(response, "balances", new List<object>() {});
+        }
+        return this.parseBalance(data);
+    }
+
     public override object parseBalance(object response)
     {
         object result = new Dictionary<string, object>() {
@@ -1549,9 +1939,9 @@ public partial class aster : Exchange
             object currencyId = this.safeString(balance, "asset");
             object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "free", "maxWithdrawAmount");
+            ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "free", "availableBalance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
-            ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "walletBalance");
+            ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
         return this.safeBalance(result);
@@ -1559,48 +1949,9 @@ public partial class aster : Exchange
 
     /**
      * @method
-     * @name aster#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#account-information-v4-user_data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#account-information-user_data
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] "linear" or "inverse"
-     * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-     */
-    public async override Task<object> fetchBalance(object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object response = null;
-        object data = null;
-        if (isTrue(this.isLinear(type, subType)))
-        {
-            response = await this.fapiPrivateGetV4Account(parameters);
-            data = this.safeList(response, "assets", new List<object>() {});
-        } else if (isTrue(isEqual(type, "spot")))
-        {
-            response = await this.sapiPrivateGetV1Account(parameters);
-            data = this.safeList(response, "balances", new List<object>() {});
-        } else
-        {
-            throw new NotSupported ((string)add(add(add(this.id, " fetchBalance() does not support "), type), " markets yet")) ;
-        }
-        return this.parseBalance(data);
-    }
-
-    /**
-     * @method
      * @name aster#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-margin-type-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-margin-type-trade
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1622,20 +1973,15 @@ public partial class aster : Exchange
         {
             throw new BadRequest ((string)add(this.id, " marginMode must be either isolated or cross")) ;
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "marginType", marginMode },
         };
-        object response = await this.fapiPrivatePostV1MarginType(this.extend(request, parameters));
+        object response = await this.fapiPrivatePostV3MarginType(this.extend(request, parameters));
         //
-        //     {
-        //         "amount": 100.0,
-        //         "code": 200,
-        //         "msg": "Successfully modify position margin.",
-        //         "type": 1
-        //     }
+        //     { "code": 200,"msg": "success" }
         //
         return response;
     }
@@ -1644,7 +1990,7 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-current-position-modeuser_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-current-position-modeuser_data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
@@ -1652,16 +1998,15 @@ public partial class aster : Exchange
     public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.fapiPrivateGetV1PositionSideDual(parameters);
+        object response = await this.fapiPrivateGetV3PositionSideDual(parameters);
         //
         //     {
         //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
         //     }
         //
-        object dualSidePosition = this.safeBool(response, "dualSidePosition");
         return new Dictionary<string, object>() {
             { "info", response },
-            { "hedged", (isEqual(dualSidePosition, true)) },
+            { "hedged", this.safeBool(response, "dualSidePosition") },
         };
     }
 
@@ -1669,7 +2014,7 @@ public partial class aster : Exchange
      * @method
      * @name aster#setPositionMode
      * @description set hedged to true or false for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-position-modetrade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
      * @param {bool} hedged set to true to use dualSidePosition
      * @param {string} symbol not used by bingx setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1678,8 +2023,9 @@ public partial class aster : Exchange
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object strValue = ((bool) isTrue(hedged)) ? "true" : "false";
         object request = new Dictionary<string, object>() {
-            { "dualSidePosition", hedged },
+            { "dualSidePosition", strValue },
         };
         //
         //     {
@@ -1687,7 +2033,7 @@ public partial class aster : Exchange
         //         "msg": "success"
         //     }
         //
-        return await this.fapiPrivatePostV1PositionSideDual(this.extend(request, parameters));
+        return await this.fapiPrivatePostV3PositionSideDual(this.extend(request, parameters));
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
@@ -1709,16 +2055,16 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#get-symbol-fees
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#user-commission-rate-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-symbol-fees
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#user-commission-rate-user_data
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1726,11 +2072,13 @@ public partial class aster : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.fapiPrivateGetV1CommissionRate(this.extend(request, parameters));
+            response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, parameters));
         } else
         {
-            response = await this.sapiPrivateGetV1CommissionRate(this.extend(request, parameters));
+            response = await this.sapiPrivateGetV3CommissionRate(this.extend(request, parameters));
         }
+        //
+        // both SPOT & SWAP has same format
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -1751,7 +2099,7 @@ public partial class aster : Exchange
             { "REJECTED", "canceled" },
             { "EXPIRED", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseOrderType(object type)
@@ -1765,7 +2113,7 @@ public partial class aster : Exchange
             { "TAKE_PROFIT_MARKET", "market" },
             { "TRAILING_STOP_MARKET", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1797,36 +2145,42 @@ public partial class aster : Exchange
         //         "workingType": "CONTRACT_PRICE",
         //         "priceProtect": false
         //     }
+        //
         // spot
-        //     {
-        //         "orderId": 38,
-        //         "symbol": "ADA25SLP25",
-        //         "status": "FILLED",
-        //         "clientOrderId": "afMd4GBQyHkHpGWdiy34Li",
-        //         "price": "20",
-        //         "avgPrice": "12.0000000000000000",
-        //         "origQty": "10",
-        //         "executedQty": "10",
-        //         "cumQuote": "120",
-        //         "timeInForce": "GTC",
-        //         "type": "LIMIT",
-        //         "side": "BUY",
-        //         "stopPrice": "0",
-        //         "origType": "LIMIT",
-        //         "time": 1649913186270,
-        //         "updateTime": 1649913186297
-        //     }
+        //
+        //   fetchOrders, fetchOpenOrders, fetchOpenOrder, fetchOrder, cancelOrder, createOrder
+        //
+        //        {
+        //            "orderId": "417594542",
+        //            "symbol": "ETHUSDT",
+        //            "status": "FILLED",
+        //            "clientOrderId": "web_qnvMAhOJsiVbSyu0BdKG",
+        //            "price": "0",                     // value set for unfilled
+        //            "avgPrice": "2351.580000",        // value zero for unfilled
+        //            "origQty": "0.0054",
+        //            "executedQty": "0.0054",          // value zero for unfilled
+        //            "cumQuote": "12.69853200",        // value zero for unfilled
+        //            "timeInForce": "GTC",
+        //            "type": "MARKET",
+        //            "side": "SELL",
+        //            "stopPrice": "0",
+        //            "origType": "MARKET",
+        //            "time": "1776274219582",
+        //            "updateTime": "1776274219609",
+        //            "orderListId": "-1"
+        //        }
         //
         object info = order;
+        object positionSide = this.safeString(order, "positionSide");
+        object defaultType = ((bool) isTrue((!isEqual(positionSide, null)))) ? "swap" : "spot";
         object marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, defaultType);
         object side = this.safeStringLower(order, "side");
         object timestamp = this.safeInteger(order, "time");
-        object lastTradeTimestamp = this.safeInteger(order, "updateTime");
         object statusId = this.safeStringUpper(order, "status");
         object rawType = this.safeStringUpper(order, "type");
         object stopPriceString = this.safeString(order, "stopPrice");
-        object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
+        object triggerPrice = this.parseNumber(this.omitZero(((string)stopPriceString)));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", info },
             { "id", this.safeString(order, "orderId") },
@@ -1834,7 +2188,7 @@ public partial class aster : Exchange
             { "symbol", this.safeSymbol(marketId, market) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastTradeTimestamp", lastTradeTimestamp },
+            { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeInteger(order, "updateTime") },
             { "type", this.parseOrderType(rawType) },
             { "timeInForce", this.safeString(order, "timeInForce") },
@@ -1858,13 +2212,13 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#query-order-user_data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#query-order-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-order-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-order-user_data
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1873,7 +2227,7 @@ public partial class aster : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1890,11 +2244,40 @@ public partial class aster : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.fapiPrivateGetV1Order(this.extend(request, parameters));
+            response = await this.fapiPrivateGetV3Order(this.extend(request, parameters));
         } else
         {
-            response = await this.sapiPrivateGetV1Order(this.extend(request, parameters));
+            response = await this.sapiPrivateGetV3Order(this.extend(request, parameters));
         }
+        //
+        // SPOT & SWAP has similar formats
+        //
+        //    {
+        //        "orderId": "17338441758",
+        //        "symbol": "ETHUSDT",
+        //        "status": "FILLED",
+        //        "clientOrderId": "727Wt3TIUgkUCxXp20E543",
+        //        "price": "0",
+        //        "avgPrice": "2304.56000",
+        //        "origQty": "0.010",
+        //        "executedQty": "0.010",
+        //        "cumQuote": "23.04560",
+        //        "timeInForce": "GTC",
+        //        "type": "MARKET",
+        //        "side": "BUY",
+        //        "stopPrice": "0",
+        //        "origType": "MARKET",
+        //        "time": "1776800300736",
+        //        "updateTime": "1776800300700",
+        //        "orderListId": "-1"                                   // only in SPOT
+        //        "positionSide": "BOTH",                               // only in SWAP
+        //        "reduceOnly": false,                                  // only in SWAP
+        //        "closePosition": false,                               // only in SWAP
+        //        "workingType": "CONTRACT_PRICE",                      // only in SWAP
+        //        "priceProtect": false,                                // only in SWAP
+        //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
+        //    }
+        //
         return this.parseOrder(response, market);
     }
 
@@ -1902,11 +2285,12 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchOpenOrder
      * @description fetch an open order by the id
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#query-current-open-order-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-current-open-order-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-current-open-order-user_data
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1915,7 +2299,7 @@ public partial class aster : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1929,7 +2313,43 @@ public partial class aster : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        object response = await this.fapiPrivateGetV1OpenOrder(this.extend(request, parameters));
+        object response = null;
+        if (isTrue(getValue(market, "spot")))
+        {
+            response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, parameters));
+        } else
+        {
+            response = await this.fapiPrivateGetV3OpenOrder(this.extend(request, parameters));
+        }
+        //
+        // SPOT & SWAP has similar formats
+        //
+        //    {
+        //        "orderId": "17338441758",
+        //        "symbol": "ETHUSDT",
+        //        "status": "FILLED",
+        //        "clientOrderId": "727Wt3TIUgkUCxXp20E543",
+        //        "price": "0",
+        //        "avgPrice": "2304.56000",
+        //        "origQty": "0.010",
+        //        "executedQty": "0.010",
+        //        "cumQuote": "23.04560",
+        //        "timeInForce": "GTC",
+        //        "type": "MARKET",
+        //        "side": "BUY",
+        //        "stopPrice": "0",
+        //        "origType": "MARKET",
+        //        "time": "1776800300736",
+        //        "updateTime": "1776800300700",
+        //        "orderListId": "-1"                                   // only in SPOT
+        //        "positionSide": "BOTH",                               // only in SWAP
+        //        "reduceOnly": false,                                  // only in SWAP
+        //        "closePosition": false,                               // only in SWAP
+        //        "workingType": "CONTRACT_PRICE",                      // only in SWAP
+        //        "priceProtect": false,                                // only in SWAP
+        //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
+        //    }
+        //
         return this.parseOrder(response, market);
     }
 
@@ -1937,38 +2357,34 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#query-all-orders-user_data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#all-orders-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-all-orders-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#all-orders-user_data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrders() requires a symbol argument")) ;
         }
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
+        }
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
-        }
-        if (isTrue(!isEqual(limit, null)))
-        {
-            if (isTrue(isGreaterThan(limit, 1000)))
-            {
-                limit = 1000; // Default 500; max 1000
-            }
-            ((IDictionary<string,object>)request)["limit"] = limit;
         }
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
@@ -1976,11 +2392,41 @@ public partial class aster : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.fapiPrivateGetV1AllOrders(this.extend(request, parameters));
+            response = await this.fapiPrivateGetV3AllOrders(this.extend(request, parameters));
         } else
         {
-            response = await this.sapiPrivateGetV1AllOrders(this.extend(request, parameters));
+            response = await this.sapiPrivateGetV3AllOrders(this.extend(request, parameters));
         }
+        //
+        // SPOT & SWAP has similar responses
+        //
+        //    [
+        //        {
+        //            "orderId": "417594542",
+        //            "symbol": "ETHUSDT",
+        //            "status": "FILLED",
+        //            "clientOrderId": "web_qnvMAhOJsiVbSyu0BdKG",
+        //            "price": "0",                     // value set for unfilled
+        //            "avgPrice": "2351.580000",        // value zero for unfilled
+        //            "origQty": "0.0054",
+        //            "executedQty": "0.0054",          // value zero for unfilled
+        //            "cumQuote": "12.69853200",        // value zero for unfilled
+        //            "timeInForce": "GTC",
+        //            "type": "MARKET",
+        //            "side": "SELL",
+        //            "stopPrice": "0",
+        //            "origType": "MARKET",
+        //            "time": "1776274219582",
+        //            "updateTime": "1776274219609",
+        //            "orderListId": "-1",                                     // only in SPOT
+        //            "reduceOnly": false,                                     // only in PERP
+        //            "closePosition": false,                                  // only in PERP
+        //            "positionSide": "BOTH",                                  // only in PERP
+        //            "workingType": "CONTRACT_PRICE",                         // only in PERP
+        //            "priceProtect": false,                                   // only in PERP
+        //            "newChainData": { "hash": "0xe17d3d5b...dbca8b01" }      // only in PERP
+        //        }, ...
+        //
         return this.parseOrders(response, market, since, limit);
     }
 
@@ -1988,74 +2434,84 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#current-open-orders-user_data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#current-all-open-orders-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#current-open-orders-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object request = new Dictionary<string, object>() {};
         object market = null;
-        object type = null;
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object marketType = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        object response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (isTrue(isEqual(symbol, null)))
         {
-            response = await this.fapiPrivateGetV1OpenOrders(this.extend(request, parameters));
-        } else if (isTrue(isEqual(type, "spot")))
-        {
-            response = await this.sapiPrivateGetV1OpenOrders(this.extend(request, parameters));
+            if (isTrue(getValue(getValue(this.options, "fetchOpenOrders"), "warnIfNoSymbol")))
+            {
+                throw new ExchangeError ((string)add(add(add(this.id, " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
+            }
         } else
         {
-            throw new NotSupported ((string)add(add(add(this.id, " fetchOpenOrders() does not support "), type), " markets yet")) ;
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(this.isLinear(marketType, subType)))
+        {
+            response = await this.fapiPrivateGetV3OpenOrders(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marketType, "spot")))
+        {
+            response = await this.sapiPrivateGetV3OpenOrders(this.extend(request, parameters));
         }
         //
-        //     [
-        //         {
-        //             "avgPrice": "0.00000",
-        //             "clientOrderId": "abc",
-        //             "cumQuote": "0",
-        //             "executedQty": "0",
-        //             "orderId": 1917641,
-        //             "origQty": "0.40",
-        //             "origType": "TRAILING_STOP_MARKET",
-        //             "price": "0",
-        //             "reduceOnly": false,
-        //             "side": "BUY",
-        //             "positionSide": "SHORT",
-        //             "status": "NEW",
-        //             "stopPrice": "9300",
-        //             "closePosition": false,
-        //             "symbol": "BTCUSDT",
-        //             "time": 1579276756075,
-        //             "timeInForce": "GTC",
-        //             "type": "TRAILING_STOP_MARKET",
-        //             "activatePrice": "9020",
-        //             "priceRate": "0.3",
-        //             "updateTime": 1579276756075,
-        //             "workingType": "CONTRACT_PRICE",
-        //             "priceProtect": false
-        //         }
-        //     ]
+        // SPOT & SWAP has similar responses
+        //
+        //    [
+        //        {
+        //            "orderId": "17338239315",
+        //            "symbol": "ETHUSDT",
+        //            "status": "NEW",
+        //            "clientOrderId": "web_AD_mbhgla7k15gptmwyr_x",
+        //            "price": "2216.62",
+        //            "avgPrice": "0",
+        //            "origQty": "0.012",
+        //            "executedQty": "0",
+        //            "cumQuote": "0",
+        //            "timeInForce": "GTC",
+        //            "type": "LIMIT",
+        //            "side": "BUY",
+        //            "stopPrice": "0",
+        //            "origType": "LIMIT",
+        //            "time": "1776798208476",
+        //            "updateTime": "1776798208450",
+        //            "orderListId": "-1"                                   // only in SPOT
+        //            "reduceOnly": false,                                  // only in PERP
+        //            "closePosition": false,                               // only in PERP
+        //            "positionSide": "BOTH",                               // only in PERP
+        //            "workingType": "CONTRACT_PRICE",                      // only in PERP
+        //            "priceProtect": false,                                // only in PERP
+        //            "newChainData": { "hash": "0xf8a496....a7fd5" }       // only in PERP
+        //        }
+        //    ]
         //
         return this.parseOrders(response, market, since, limit);
     }
@@ -2064,8 +2520,8 @@ public partial class aster : Exchange
      * @method
      * @name aster#createOrder
      * @description create a trade order
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#place-order-trade
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#new-order--trade
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#place-order-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' or 'STOP' or 'STOP_MARKET' or 'TAKE_PROFIT' or 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET'
      * @param {string} side 'buy' or 'sell'
@@ -2080,30 +2536,52 @@ public partial class aster : Exchange
      * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
      * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
-        object test = this.safeBool(parameters, "test", false);
-        parameters = this.omit(parameters, "test");
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            if (isTrue(test))
-            {
-                response = await this.fapiPrivatePostV1OrderTest(request);
-            } else
-            {
-                response = await this.fapiPrivatePostV1Order(request);
-            }
+            response = await this.fapiPrivatePostV3Order(request);
         } else
         {
-            response = await this.sapiPrivatePostV1Order(request);
+            response = await this.sapiPrivatePostV3Order(request);
         }
+        //
+        // SPOT & SWAP has similar responses
+        //
+        //    {
+        //        "orderId": "17338441758",
+        //        "symbol": "ETHUSDT",
+        //        "status": "NEW",
+        //        "clientOrderId": "727Wt3TIUgkUCxXp20E543",
+        //        "price": "0",
+        //        "avgPrice": "0.00000",
+        //        "origQty": "0.010",
+        //        "executedQty": "0",
+        //        "cumQty": "0",
+        //        "cumQuote": "0",
+        //        "timeInForce": "GTC",
+        //        "type": "MARKET",
+        //        "side": "BUY",
+        //        "stopPrice": "0",
+        //        "origType": "MARKET",
+        //        "time": "1776800300700",
+        //        "updateTime": "1776800300700",
+        //        "orderListId": "-1",                              // only in SPOT
+        //        "workingType": "CONTRACT_PRICE",                  // only in PERP
+        //        "positionSide": "BOTH",                           // only in PERP
+        //        "reduceOnly": false,                              // only in PERP
+        //        "closePosition": false,                           // only in PERP
+        //        "priceProtect": false,                            // only in PERP
+        //        "newChainData": { "hash": "0x46ae....c8ba" }      // only in PERP
+        //    }
+        //
         return this.parseOrder(response, market);
     }
 
@@ -2111,15 +2589,15 @@ public partial class aster : Exchange
      * @method
      * @name aster#createOrders
      * @description create a list of trade orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#place-multiple-orders--trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object ordersRequests = new List<object>() {};
         object orderSymbols = new List<object>() {};
         if (isTrue(isGreaterThan(getArrayLength(orders), 5)))
@@ -2130,12 +2608,14 @@ public partial class aster : Exchange
         {
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
+            object currentMarket = this.market(((string)marketId));
+            ((IList<object>)orderSymbols).Add(getValue(currentMarket, "symbol"));
             object type = this.safeString(rawOrder, "type");
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            object orderRequest = this.createOrderRequest(((string)marketId), ((string)type), side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -2147,7 +2627,37 @@ public partial class aster : Exchange
         object request = new Dictionary<string, object>() {
             { "batchOrders", ordersRequests },
         };
-        object response = await this.fapiPrivatePostV1BatchOrders(this.extend(request, parameters));
+        object response = await this.fapiPrivatePostV3BatchOrders(this.extend(request, parameters));
+        //
+        //    [
+        //        {
+        //            "orderId": 17338699853,
+        //            "symbol": "ETHUSDT",
+        //            "status": "NEW",
+        //            "clientOrderId": "NxMWPvOEyiF6TWh5UB8BQf0",
+        //            "price": "0",
+        //            "avgPrice": "0.00000",
+        //            "origQty": "0.010",
+        //            "executedQty": "0",
+        //            "cumQty": "0",
+        //            "cumQuote": "0",
+        //            "timeInForce": "GTC",
+        //            "type": "MARKET",
+        //            "reduceOnly": false,
+        //            "closePosition": false,
+        //            "side": "BUY",
+        //            "positionSide": "BOTH",
+        //            "stopPrice": "0",
+        //            "workingType": "CONTRACT_PRICE",
+        //            "priceProtect": false,
+        //            "origType": "MARKET",
+        //            "updateTime": 1776802276050,
+        //            "newChainData": {
+        //                "hash": "0x5e569d9794cf726f72c2d000d401d20315e78e4df7b58023a489864624527dfe"
+        //            }
+        //        }
+        //    ]
+        //
         return this.parseOrders(response);
     }
 
@@ -2173,7 +2683,7 @@ public partial class aster : Exchange
         object isLimitOrder = isEqual(initialUppercaseType, "LIMIT");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
         };
         object clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -2265,7 +2775,7 @@ public partial class aster : Exchange
                         object amountString = this.numberToString(amount);
                         object priceString = this.numberToString(price);
                         object quoteOrderQuantity = Precise.stringMul(amountString, priceString);
-                        ((IDictionary<string,object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
+                        ((IDictionary<string,object>)request)["quoteOrderQty"] = this.decimalToPrecision(((string)quoteOrderQuantity), TRUNCATE, precision, this.precisionMode);
                     } else
                     {
                         quantityIsRequired = true;
@@ -2347,6 +2857,11 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["timeInForce"] = this.safeString(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         object requestParams = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"});
+        if (isTrue(isTrue(this.safeBool(this.options, "builderFee")) && isTrue(getValue(market, "swap"))))
+        {
+            ((IDictionary<string,object>)request)["builder"] = this.safeString(this.options, "builder");
+            ((IDictionary<string,object>)request)["feeRate"] = this.safeString(this.options, "builderRate");
+        }
         return this.extend(request, requestParams);
     }
 
@@ -2354,11 +2869,11 @@ public partial class aster : Exchange
      * @method
      * @name aster#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#cancel-all-open-orders-trade
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-all-open-orders-trade
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -2367,7 +2882,7 @@ public partial class aster : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2375,11 +2890,13 @@ public partial class aster : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.fapiPrivateDeleteV1AllOpenOrders(this.extend(request, parameters));
+            response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters));
         } else
         {
-            response = await this.sapiPrivateDeleteV1AllOpenOrders(this.extend(request, parameters));
+            response = await this.sapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters));
         }
+        //
+        // SPOT & SWAP has same response
         //
         //     {
         //         "code": "200",
@@ -2395,12 +2912,12 @@ public partial class aster : Exchange
      * @method
      * @name aster#cancelOrder
      * @description cancels an open order
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#cancel-order-trade
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-order-trade
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-order-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-order-trade
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2409,12 +2926,12 @@ public partial class aster : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object clientOrderId = this.safeStringN(parameters, new List<object>() {"origClientOrderId", "clientOrderId", "newClientStrategyId"});
+        object clientOrderId = this.safeStringN(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["origClientOrderId"] = clientOrderId;
@@ -2422,14 +2939,14 @@ public partial class aster : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId", "newClientStrategyId"});
+        parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.fapiPrivateDeleteV1Order(this.extend(request, parameters));
+            response = await this.fapiPrivateDeleteV3Order(this.extend(request, parameters));
         } else
         {
-            response = await this.sapiPrivateDeleteV1Order(this.extend(request, parameters));
+            response = await this.sapiPrivateDeleteV3Order(this.extend(request, parameters));
         }
         return this.parseOrder(response, market);
     }
@@ -2438,7 +2955,8 @@ public partial class aster : Exchange
      * @method
      * @name aster#cancelOrders
      * @description cancel multiple orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-multiple-orders-trade
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-multiple-orders-trade
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2446,7 +2964,7 @@ public partial class aster : Exchange
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
      * @param {int[]} [params.recvWindow]
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
@@ -2455,12 +2973,8 @@ public partial class aster : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
-        if (isTrue(getValue(market, "spot")))
-        {
-            throw new NotSupported ((string)add(add(add(this.id, " cancelOrders() does not support "), getValue(market, "type")), " orders")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -2472,39 +2986,14 @@ public partial class aster : Exchange
         {
             ((IDictionary<string,object>)request)["orderIdList"] = ids;
         }
-        object response = await this.fapiPrivateDeleteV1BatchOrders(this.extend(request, parameters));
-        //
-        //    [
-        //        {
-        //            "clientOrderId": "myOrder1",
-        //            "cumQty": "0",
-        //            "cumQuote": "0",
-        //            "executedQty": "0",
-        //            "orderId": 283194212,
-        //            "origQty": "11",
-        //            "origType": "TRAILING_STOP_MARKET",
-        //            "price": "0",
-        //            "reduceOnly": false,
-        //            "side": "BUY",
-        //            "positionSide": "SHORT",
-        //            "status": "CANCELED",
-        //            "stopPrice": "9300",                  // please ignore when order type is TRAILING_STOP_MARKET
-        //            "closePosition": false,               // if Close-All
-        //            "symbol": "BTCUSDT",
-        //            "timeInForce": "GTC",
-        //            "type": "TRAILING_STOP_MARKET",
-        //            "activatePrice": "9020",              // activation price, only return with TRAILING_STOP_MARKET order
-        //            "priceRate": "0.3",                   // callback rate, only return with TRAILING_STOP_MARKET order
-        //            "updateTime": 1571110484038,
-        //            "workingType": "CONTRACT_PRICE",
-        //            "priceProtect": false,                // if conditional order trigger is protected
-        //        },
-        //        {
-        //            "code": -2011,
-        //            "msg": "Unknown order sent."
-        //        }
-        //    ]
-        //
+        object response = null;
+        if (isTrue(getValue(market, "swap")))
+        {
+            response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, parameters));
+        } else
+        {
+            response = await this.sapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters));
+        }
         return this.parseOrders(response, market);
     }
 
@@ -2512,7 +3001,7 @@ public partial class aster : Exchange
      * @method
      * @name aster#setLeverage
      * @description set the level of leverage for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-initial-leverage-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-initial-leverage-trade
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2529,13 +3018,13 @@ public partial class aster : Exchange
         {
             throw new BadRequest ((string)add(this.id, " leverage should be between 1 and 125")) ;
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "leverage", leverage },
         };
-        object response = await this.fapiPrivatePostV1Leverage(this.extend(request, parameters));
+        object response = await this.fapiPrivatePostV3Leverage(this.extend(request, parameters));
         //
         //     {
         //         "leverage": 21,
@@ -2550,16 +3039,16 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchLeverages
      * @description fetch the set leverage for all markets
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object response = await this.fapiPrivateGetV2PositionRisk(parameters);
+        await this.loadMarketsAndSignIn();
+        object response = await this.fapiPrivateGetV3PositionRisk(parameters);
         //
         //     [
         //         {
@@ -2635,16 +3124,16 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchMarginModes
      * @description fetches margin mode of the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object response = await this.fapiPrivateGetV2PositionRisk(parameters);
+        await this.loadMarketsAndSignIn();
+        object response = await this.fapiPrivateGetV3PositionRisk(parameters);
         //
         //
         //     [
@@ -2693,10 +3182,10 @@ public partial class aster : Exchange
         //     }
         //
         object marketId = this.safeString(marginMode, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         return new Dictionary<string, object>() {
             { "info", marginMode },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", this.safeStringLower(marginMode, "marginType") },
         };
     }
@@ -2705,23 +3194,23 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchMarginAdjustmentHistory
      * @description fetches the history of margin added or reduced from contract isolated positions
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-position-margin-change-history-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-position-margin-change-history-trade
      * @param {string} symbol unified market symbol
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
-     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
         }
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
@@ -2732,19 +3221,19 @@ public partial class aster : Exchange
         {
             ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(type, "add")))) ? 1 : 2;
         }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
+        }
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
-        }
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["limit"] = limit;
         }
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
-        object response = await this.fapiPrivateGetV1PositionMarginHistory(this.extend(request, parameters));
+        object response = await this.fapiPrivateGetV3PositionMarginHistory(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -2804,7 +3293,7 @@ public partial class aster : Exchange
     public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object addOrReduce, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         amount = this.amountToPrecision(symbol, amount);
         object request = new Dictionary<string, object>() {
@@ -2813,7 +3302,7 @@ public partial class aster : Exchange
             { "amount", amount },
         };
         object code = getValue(market, "quote");
-        object response = await this.fapiPrivatePostV1PositionMargin(this.extend(request, parameters));
+        object response = await this.fapiPrivatePostV3PositionMargin(this.extend(request, parameters));
         //
         //     {
         //         "amount": 100.0,
@@ -2831,11 +3320,11 @@ public partial class aster : Exchange
      * @method
      * @name aster#reduceMargin
      * @description remove margin from a position
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#modify-isolated-position-margin-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -2847,11 +3336,11 @@ public partial class aster : Exchange
      * @method
      * @name aster#addMargin
      * @description add margin
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#modify-isolated-position-margin-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -2891,7 +3380,7 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-income-historyuser_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -2899,12 +3388,12 @@ public partial class aster : Exchange
      * @param {int} [params.until] timestamp in ms of the latest funding history entry
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object market = null;
         object request = new Dictionary<string, object>() {
             { "incomeType", "FUNDING_FEE" },
@@ -2925,7 +3414,7 @@ public partial class aster : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // max 1000
         }
-        object response = await this.fapiPrivateGetV1Income(this.extend(request, parameters));
+        object response = await this.fapiPrivateGetV3Income(this.extend(request, parameters));
         return this.parseIncomes(response, market, since, limit);
     }
 
@@ -2995,18 +3484,18 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-income-historyuser_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
@@ -3027,7 +3516,7 @@ public partial class aster : Exchange
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
-        object response = await this.fapiPrivateGetV1Income(this.extend(request, parameters));
+        object response = await this.fapiPrivateGetV3Income(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -3069,7 +3558,7 @@ public partial class aster : Exchange
         object symbol = this.safeString(market, "symbol");
         object isolatedMarginString = this.safeString(position, "isolatedMargin");
         object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
-        object leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
+        object leverageBracket = this.safeList(leverageBrackets, ((string)symbol), new List<object>() {});
         object notionalString = this.safeString2(position, "notional", "notionalValue");
         object notionalStringAbs = Precise.stringAbs(notionalString);
         object maintenanceMarginPercentageString = null;
@@ -3087,7 +3576,7 @@ public partial class aster : Exchange
         object contracts = this.parseNumber(contractsAbs);
         object unrealizedPnlString = this.safeString(position, "unRealizedProfit");
         object unrealizedPnl = this.parseNumber(unrealizedPnlString);
-        object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
+        object liquidationPriceString = this.omitZero(((string)this.safeString(position, "liquidationPrice")));
         object liquidationPrice = this.parseNumber(liquidationPriceString);
         object collateralString = null;
         object marginMode = this.safeString(position, "marginType");
@@ -3133,7 +3622,7 @@ public partial class aster : Exchange
                     }
                     object inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     object leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    object quotePrecision = this.precisionFromString(((string)this.safeString2(precision, "quote", "price")));
                     if (isTrue(!isEqual(quotePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
@@ -3153,7 +3642,7 @@ public partial class aster : Exchange
                     }
                     object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     object rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    object basePrecision = this.precisionFromString(((string)this.safeString(precision, "base")));
                     if (isTrue(!isEqual(basePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
@@ -3166,7 +3655,7 @@ public partial class aster : Exchange
         }
         collateralString = ((bool) isTrue((isEqual(collateralString, null)))) ? "0" : collateralString;
         object collateral = this.parseNumber(collateralString);
-        object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
+        object markPrice = this.parseNumber(this.omitZero(((string)this.safeString(position, "markPrice"))));
         object timestamp = this.safeInteger(position, "updateTime");
         if (isTrue(isEqual(timestamp, 0)))
         {
@@ -3242,7 +3731,7 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchPositionsRisk
      * @description fetch positions risk
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on the positions risk
@@ -3257,10 +3746,10 @@ public partial class aster : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " fetchPositionsRisk() requires an array argument for symbols")) ;
             }
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         await this.loadLeverageBrackets(false, parameters);
         object request = new Dictionary<string, object>() {};
-        object response = await this.fapiPrivateGetV2PositionRisk(this.extend(request, parameters));
+        object response = await this.fapiPrivateGetV3PositionRisk(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -3298,11 +3787,11 @@ public partial class aster : Exchange
      * @method
      * @name aster#fetchPositions
      * @description fetch all open positions
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -3337,7 +3826,7 @@ public partial class aster : Exchange
     public virtual object parseAccountPositions(object account, object filterClosed = null)
     {
         filterClosed ??= false;
-        object positions = this.safeList(account, "positions");
+        object positions = this.safeList(account, "positions", new List<object>() {});
         object assets = this.safeList(account, "assets", new List<object>() {});
         object balances = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
@@ -3417,7 +3906,7 @@ public partial class aster : Exchange
         }
         object contracts = this.parseNumber(contractsStringAbs);
         object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
-        object leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
+        object leverageBracket = this.safeList(leverageBrackets, ((string)symbol), new List<object>() {});
         object maintenanceMarginPercentageString = null;
         for (object i = 0; isLessThan(i, getArrayLength(leverageBracket)); postFixIncrement(ref i))
         {
@@ -3515,7 +4004,7 @@ public partial class aster : Exchange
                 object rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            object pricePrecision = this.precisionFromString(this.safeString(getValue(market, "precision"), "price"));
+            object pricePrecision = this.precisionFromString(((string)this.safeString(getValue(market, "precision"), "price")));
             object pricePrecisionPlusOne = add(pricePrecision, 1);
             object pricePrecisionPlusOneString = ((object)pricePrecisionPlusOne).ToString();
             // round half up
@@ -3565,7 +4054,7 @@ public partial class aster : Exchange
      * @name aster#fetchAccountPositions
      * @ignore
      * @description fetch account positions
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+    https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions
@@ -3580,7 +4069,7 @@ public partial class aster : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " fetchPositions() requires an array argument for symbols")) ;
             }
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         await this.loadLeverageBrackets(false, parameters);
         object response = await this.fapiPrivateGetV4Account(parameters);
         object filterClosed = null;
@@ -3596,13 +4085,36 @@ public partial class aster : Exchange
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         object leverageBrackets = this.safeDict(this.options, "leverageBrackets");
         if (isTrue(isTrue((isEqual(leverageBrackets, null))) || isTrue((reload))))
         {
-            object response = await this.fapiPrivateGetV1LeverageBracket(parameters);
+            object response = await this.fapiPrivateGetV3LeverageBracket(parameters);
+            //
+            //    [
+            //        {
+            //            "symbol": "TRUTHUSDT",
+            //            "brackets": [
+            //                {
+            //                    "bracket": "1",
+            //                    "initialLeverage": "50",
+            //                    "notionalCap": "5000",
+            //                    "notionalFloor": "0",
+            //                    "maintMarginRatio": "0.01",
+            //                    "cum": "0.0"
+            //                },
+            //                {
+            //                    "bracket": "2",
+            //                    "initialLeverage": "20",
+            //                    "notionalCap": "10000",
+            //                    "notionalFloor": "5000",
+            //                    "maintMarginRatio": "0.025",
+            //                    "cum": "75.0"
+            //                },
+            //                ...
+            //
             ((IDictionary<string,object>)this.options)["leverageBrackets"] = this.createSafeDictionary();
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
@@ -3636,12 +4148,11 @@ public partial class aster : Exchange
 
     public virtual object signWithdrawPayload(object withdrawPayload, object network)
     {
-        object zeroAddress = this.safeString(this.options, "zeroAddress");
         object chainId = this.safeInteger(withdrawPayload, "chainId");
         object domain = new Dictionary<string, object>() {
             { "chainId", chainId },
             { "name", "Aster" },
-            { "verifyingContract", zeroAddress },
+            { "verifyingContract", this.safeString(this.options, "zeroAddress") },
             { "version", "1" },
         };
         object messageTypes = new Dictionary<string, object>() {
@@ -3671,17 +4182,17 @@ public partial class aster : Exchange
     { "type", "string" },
 }} },
         };
-        object withdraw = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "type", "Withdraw" },
             { "destination", this.safeString(withdrawPayload, "receiver") },
             { "destination Chain", network },
             { "token", this.safeString(withdrawPayload, "asset") },
             { "amount", this.safeString(withdrawPayload, "amount") },
             { "fee", this.safeString(withdrawPayload, "fee") },
-            { "nonce", this.safeInteger(withdrawPayload, "nonce") },
+            { "nonce", this.safeInteger(withdrawPayload, "userNonce") },
             { "aster chain", "Mainnet" },
         };
-        object msg = this.ethEncodeStructuredData(domain, messageTypes, withdraw);
+        object msg = this.ethEncodeStructuredData(domain, messageTypes, request);
         object signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
@@ -3690,13 +4201,15 @@ public partial class aster : Exchange
      * @method
      * @name aster#withdraw
      * @description make a withdrawal
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#withdraw-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#withdraw-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-futures
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-spot
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -3705,18 +4218,19 @@ public partial class aster : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object currency = this.currency(code);
+        object nonce = multiply(this.milliseconds(), 1000);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
             { "receiver", address },
-            { "nonce", multiply(this.milliseconds(), 1000) },
+            { "userNonce", ((object)nonce).ToString() },
         };
         object chainId = this.safeInteger(parameters, "chainId");
         // TODO: check how ARBI signature would work
         object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network");
-        network = this.safeString(networks, network, network);
+        network = this.safeString(networks, ((string)network), network);
         if (isTrue(isTrue((isEqual(chainId, null))) && isTrue((!isEqual(network, null)))))
         {
             object chainIds = this.safeDict(this.options, "networksToChainId", new Dictionary<string, object>() {});
@@ -3736,23 +4250,34 @@ public partial class aster : Exchange
         parameters = this.omit(parameters, new List<object>() {"chainId", "network", "fee"});
         ((IDictionary<string,object>)request)["amount"] = this.currencyToPrecision(code, amount, network);
         ((IDictionary<string,object>)request)["userSignature"] = this.signWithdrawPayload(request, network);
-        object response = await this.sapiPrivatePostV1AsterUserWithdraw(this.extend(request, parameters));
+        object response = await this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, parameters));
+        //
+        //   {
+        //       "withdrawId": "1097219372504338432",
+        //       "hash": "0x9e6baa3eb75d92a1164eef51a0cc97b9591930518ba3e8e5ab40ce524ba4e463"
+        //   }
+        //
+        return this.parseTransaction(response, currency);
+    }
+
+    public override object parseTransaction(object transaction, object currency = null)
+    {
         return new Dictionary<string, object>() {
-            { "info", response },
-            { "id", this.safeString(response, "withdrawId") },
-            { "txid", this.safeString(response, "hash") },
+            { "info", transaction },
+            { "id", this.safeString(transaction, "withdrawId") },
+            { "txid", this.safeString(transaction, "hash") },
             { "timestamp", null },
             { "datetime", null },
-            { "network", network },
-            { "address", address },
-            { "addressTo", address },
+            { "network", null },
+            { "address", null },
+            { "addressTo", null },
             { "addressFrom", null },
-            { "tag", tag },
-            { "tagTo", tag },
+            { "tag", null },
+            { "tagTo", null },
             { "tagFrom", null },
             { "type", "withdrawal" },
-            { "amount", amount },
-            { "currency", code },
+            { "amount", null },
+            { "currency", null },
             { "status", null },
             { "updated", null },
             { "internal", null },
@@ -3765,19 +4290,19 @@ public partial class aster : Exchange
      * @method
      * @name aster#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#transfer-asset-to-other-address-trade
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#transfer-between-futures-and-spot-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#perp-spot-transfer-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#transfer-between-futures-and-spot-transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -3801,48 +4326,40 @@ public partial class aster : Exchange
         {
             type = "FUTURE_SPOT";
         }
-        object response = null;
-        if (isTrue(!isEqual(type, null)))
+        if (isTrue(isEqual(type, null)))
         {
-            object defaultClientTranId = this.numberToString(this.milliseconds());
-            object clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
-            ((IDictionary<string,object>)request)["kindType"] = type;
-            ((IDictionary<string,object>)request)["clientTranId"] = clientTranId;
-            response = await this.fapiPrivatePostV1AssetWalletTransfer(this.extend(request, parameters));
-        } else
-        {
-            // transfer asset to other address
-            ((IDictionary<string,object>)request)["toAddress"] = toAccount;
-            response = await this.sapiPrivatePostV1AssetSendToAddress(this.extend(request, parameters));
+            throw new ArgumentsRequired ((string)add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
         }
-        //
-        //     {
-        //         "tranId":13526853623,
-        //         "status": "SUCCESS"
-        //     }
-        //
+        object defaultClientTranId = this.numberToString(this.milliseconds());
+        object clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
+        ((IDictionary<string,object>)request)["kindType"] = type;
+        ((IDictionary<string,object>)request)["clientTranId"] = clientTranId;
+        object response = await this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters));
+        return this.parseTransfer(response, currency);
+    }
+
+    public override object parseTransfer(object transfer, object currency = null)
+    {
+        object currencyId = this.safeString(transfer, "code");
         return new Dictionary<string, object>() {
-            { "info", response },
-            { "id", this.safeString(response, "tranId") },
-            { "txid", null },
+            { "info", transfer },
+            { "id", this.safeString(transfer, "tranId") },
             { "timestamp", null },
             { "datetime", null },
-            { "network", null },
-            { "address", null },
-            { "addressTo", fromAccount },
-            { "addressFrom", toAccount },
-            { "tag", null },
-            { "tagTo", null },
-            { "tagFrom", null },
-            { "type", "transfer" },
-            { "amount", amount },
-            { "currency", code },
-            { "status", null },
-            { "updated", null },
-            { "internal", null },
-            { "comment", null },
-            { "fee", null },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "amount", null },
+            { "fromAccount", null },
+            { "toAccount", null },
+            { "status", this.parseTransferStatus(this.safeString(transfer, "status")) },
         };
+    }
+
+    public virtual object parseTransferStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "SUCCESS", "ok" },
+        };
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object hashMessage(object binaryMessage)
@@ -3851,7 +4368,7 @@ public partial class aster : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((string)this.numberToString(binaryMessageLength))));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
@@ -3870,7 +4387,7 @@ public partial class aster : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/"), path);
+        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
         if (isTrue(isTrue(isEqual(api, "fapiPublic")) || isTrue(isEqual(api, "sapiPublic"))))
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
@@ -3880,81 +4397,83 @@ public partial class aster : Exchange
         } else if (isTrue(isTrue(isEqual(api, "fapiPrivate")) || isTrue(isEqual(api, "sapiPrivate"))))
         {
             this.checkRequiredCredentials();
-            headers = new Dictionary<string, object>() {
-                { "X-MBX-APIKEY", this.apiKey },
+            object nonce = multiply(this.milliseconds(), 1000);
+            // Sign using EIP-712 typed data per the AsterSignTransaction spec
+            object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
+            object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
+            object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            object signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
+            if (isTrue(isEqual(signerAddress, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " requires signerAddress in options when use v3 api")) ;
+            }
+            object domain = new Dictionary<string, object>() {
+                { "name", "AsterSignTransaction" },
+                { "version", "1" },
+                { "chainId", v3ChainId },
+                { "verifyingContract", zeroAddress },
             };
-            object timestamp = this.milliseconds();
-            // Nonce is in microseconds
-            object nonce = this.microseconds();
-            object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-            object extendedParams = this.extend(new Dictionary<string, object>() {
-                { "timestamp", timestamp },
+            object messageTypes = new Dictionary<string, object>() {
+                { "Message", new List<object>() {new Dictionary<string, object>() {
+    { "name", "msg" },
+    { "type", "string" },
+}} },
+            };
+            // Build v3 params: original endpoint params + nonce (macroseconds) + user + signer
+            // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
+            object finalParams = this.extend(new Dictionary<string, object>() {
+                { "nonce", ((object)nonce).ToString() },
+                { "user", walletAddress },
+                { "signer", signerAddress },
             }, parameters);
-            if (isTrue(!isEqual(defaultRecvWindow, null)))
+            object paramString = null;
+            object paramsToEncode = null;
+            object isApproveBuilder = (isGreaterThanOrEqual(getIndexOf(path, "/approveBuilder"), 0));
+            if (isTrue(isApproveBuilder))
             {
-                ((IDictionary<string,object>)extendedParams)["recvWindow"] = defaultRecvWindow;
-            }
-            object recvWindow = this.safeInteger(parameters, "recvWindow");
-            if (isTrue(!isEqual(recvWindow, null)))
-            {
-                ((IDictionary<string,object>)extendedParams)["recvWindow"] = recvWindow;
-            }
-            object query = null;
-            if (isTrue(isTrue((isEqual(method, "DELETE"))) && isTrue((isEqual(path, "v1/batchOrders")))))
-            {
-                object orderidlist = this.safeList(extendedParams, "orderIdList", new List<object>() {});
-                object origclientorderidlist = this.safeList(extendedParams, "origClientOrderIdList", new List<object>() {});
-                extendedParams = this.omit(extendedParams, new List<object>() {"orderIdList", "origClientOrderIdList"});
-                query = this.rawencode(extendedParams);
-                object orderidlistLength = getArrayLength(orderidlist);
-                object origclientorderidlistLength = getArrayLength(origclientorderidlist);
-                if (isTrue(isGreaterThan(orderidlistLength, 0)))
-                {
-                    query = add(add(add(add(query, "&"), "orderidlist=%5B"), String.Join("%2C", ((IList<object>)orderidlist).ToArray())), "%5D");
-                }
-                if (isTrue(isGreaterThan(origclientorderidlistLength, 0)))
-                {
-                    query = add(add(add(add(query, "&"), "origclientorderidlist=%5B"), String.Join("%2C", ((IList<object>)origclientorderidlist).ToArray())), "%5D");
-                }
+                // domain['name'] = 'Aster';
+                messageTypes = new Dictionary<string, object>() {
+                    { "ApproveBuilder", new List<object>() {new Dictionary<string, object>() {
+    { "name", "Builder" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "MaxFeeRate" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "BuilderName" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "AsterChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "User" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "Nonce" },
+    { "type", "uint256" },
+}} },
+                };
+                ((IDictionary<string,object>)finalParams).Remove((string)"signer"); // signer is not needed for approveBuilder endpoint
+                paramString = this.encodeValuesWithJson(finalParams);
+                paramsToEncode = this.capitalizeKeys(finalParams);
             } else
             {
-                query = this.rawencode(extendedParams);
+                paramString = this.encodeValuesWithJson(finalParams);
+                paramsToEncode = new Dictionary<string, object>() {
+                    { "msg", paramString },
+                };
             }
-            object signature = "";
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(path, "v3"), 0)))
-            {
-                object signerAddress = getValue(this.options, "signerAddress");
-                if (isTrue(isEqual(signerAddress, null)))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, " requires signerAddress in options when use v3 api")) ;
-                }
-                // the keys order matter
-                object keys = new List<object>(((IDictionary<string,object>)extendedParams).Keys);
-                object sortedKeys = this.sort(keys);
-                object signingPayload = new Dictionary<string, object>() {};
-                for (object i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
-                {
-                    object key = getValue(sortedKeys, i);
-                    ((IDictionary<string,object>)signingPayload)[(string)key] = ((object)getValue(extendedParams, key)).ToString();
-                }
-                object signingHash = this.hashMessage(this.hash(this.ethAbiEncode(new List<object>() {"string", "address", "address", "uint256"}, new List<object> {this.json(signingPayload), this.walletAddress, signerAddress, nonce}), keccak, "binary"));
-                signature = this.signHash(signingHash, this.privateKey);
-                ((IDictionary<string,object>)extendedParams)["user"] = this.walletAddress;
-                ((IDictionary<string,object>)extendedParams)["signer"] = signerAddress;
-                ((IDictionary<string,object>)extendedParams)["nonce"] = nonce;
-                query = this.rawencode(extendedParams);
-            } else
-            {
-                signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
-            }
-            query = add(query, add(add("&", "signature="), signature));
+            object encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
+            object signature = this.signMessage(encodedMessage, this.privateKey);
+            object queryString = add(add(add(paramString, "&"), "signature="), signature);
             if (isTrue(isEqual(method, "GET")))
             {
-                url = add(url, add("?", query));
+                url = add(url, add("?", queryString));
             } else
             {
-                body = query;
+                headers = new Dictionary<string, object>() {};
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/x-www-form-urlencoded";
+                body = queryString;
             }
         }
         return new Dictionary<string, object>() {
@@ -3963,6 +4482,135 @@ public partial class aster : Exchange
             { "body", body },
             { "headers", headers },
         };
+    }
+
+    public virtual object encodeValuesWithJson(object values)
+    {
+        object encodedString = "";
+        object keys = new List<object>(((IDictionary<string,object>)values).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object value = getValue(values, key);
+            object isObj = isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) || isTrue(this.isDictionary(value));
+            object valueJsonified = ((bool) isTrue(isObj)) ? this.json(value) : ((object)value).ToString();
+            object encoded = this.encodeURIComponent(valueJsonified);
+            encodedString = add(encodedString, add(add(add(key, "="), encoded), "&"));
+        }
+        return slice(encodedString, 0, -1);
+    }
+
+    public virtual object capitalizeKeys(object dict)
+    {
+        object capitalized = new Dictionary<string, object>() {};
+        object keys = new List<object>(((IDictionary<string,object>)dict).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object value = getValue(dict, key);
+            object capitalizedKey = this.capitalize(key);
+            ((IDictionary<string,object>)capitalized)[(string)capitalizedKey] = value;
+        }
+        return capitalized;
+    }
+
+    public async override Task loadMarketsAndSignIn()
+    {
+        await promiseAll(new List<object> {this.loadMarkets(), this.signIn()});
+    }
+
+    /**
+     * @method
+     * @name aster#signIn
+     * @description sign in, must be called prior to using other authenticated methods
+     * @see https://asterdex.github.io/aster-api-website/asterCode/integration-flow/
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns response from exchange
+     */
+    public async override Task<object> signIn(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(this.isEmptyString(this.privateKey)))
+        {
+            if (isTrue(!isTrue(this.isEmptyString(this.apiKey)) || !isTrue(this.isEmptyString(this.secret))))
+            {
+                throw new NotSupported ((string)add(this.id, "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
+            }
+            return false;
+        }
+        if (isTrue(isGreaterThan(((string)this.privateKey).Length, 66)))
+        {
+            throw new NotSupported ((string)add(this.id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
+        }
+        await this.initializeClient(parameters);
+        return true;
+    }
+
+    public async virtual Task<object> initializeClient(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
+        if (!isTrue(builderFee))
+        {
+            return false;  // skip if builder fee is not enabled
+        }
+        object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        if (isTrue(approvedBuilderFee))
+        {
+            return true;  // skip if builder fee is already approved
+        }
+        object result = await this.fapiPrivateGetV3Builder();
+        //
+        //    [
+        //        {
+        //            "userAddress": "0x35a5B33Be664B09F78b5089eb6185f71c8a7f11f",
+        //            "builderAddress": "0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39",
+        //            "maxFeeRate": "0.001",
+        //            "builderName": "ccxt"
+        //        }
+        //    ]
+        //
+        object approvedBuilders = result;
+        object length = getArrayLength(approvedBuilders);
+        object found = false;
+        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+        {
+            object builderInfo = this.safeDict(approvedBuilders, i, new Dictionary<string, object>() {});
+            object builderAccountId = this.safeString(builderInfo, "builderAddress");
+            if (isTrue(isEqual(builderAccountId, this.safeString(this.options, "builder"))))
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!isTrue(found))
+        {
+            ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
+            try
+            {
+                object request = new Dictionary<string, object>() {
+                    { "builder", this.safeString(this.options, "builder") },
+                    { "builderName", this.safeString(this.options, "builderName", "ccxt") },
+                    { "maxFeeRate", this.safeString(this.options, "builderRate") },
+                    { "signatureChainId", this.safeInteger(this.options, "v3ChainId", 1666) },
+                    { "asterChain", "Mainnet" },
+                };
+                object authResponse = await this.fapiPrivatePostV3ApproveBuilder(this.extend(request, parameters));
+                //
+                // {"code": 200,"msg": "success"}
+                //
+                object codeRes = this.safeInteger(authResponse, "code");
+                if (isTrue(!isEqual(codeRes, 200)))
+                {
+                    throw new ExchangeError ((string)add("Builder authorization failed, ", this.json(authResponse))) ;
+                }
+            } catch(Exception e)
+            {
+                ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = false;
+                ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable if err
+            }
+        }
+        return null;  // just c#
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

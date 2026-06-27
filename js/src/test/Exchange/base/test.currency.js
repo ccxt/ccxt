@@ -7,8 +7,11 @@
 import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 function testCurrency(exchange, skippedProperties, method, entry) {
+    if (entry === undefined) {
+        return;
+    }
     const format = {
-        'id': 'btc',
+        'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
     };
     // todo: remove fee from empty

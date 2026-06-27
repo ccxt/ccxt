@@ -2,8 +2,8 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/mudrex.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded, NotSupported } from './base/errors.js';
-import type { Balances, Dict, FundingRate, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import type { Balances, Dict, Int, Leverage, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -202,8 +202,8 @@ export default class mudrex extends Exchange {
         if (base === undefined) {
             throw new ExchangeError (this.id + ' unknown API namespace: ' + api);
         }
-        let url = base + '/' + this.implodeParams(path, params);
-        const query = this.omit(params, this.extractParams(path));
+        let url = base + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         headers = (headers !== undefined) ? this.extend ({}, headers) : {};
         const brokerId = this.safeString (this.options, 'broker');
         if (brokerId !== undefined) {
@@ -278,8 +278,8 @@ export default class mudrex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const ms = market['baseId'] + '/' + market['quoteId'];
-        let priceType = this.safeString(params, 'price');
-        params = this.omit(params, 'price');
+        const priceType = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
         let path = 'price/kline';
         if (priceType === 'mark') {
             path = 'price/mark-kline';
@@ -470,8 +470,8 @@ export default class mudrex extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const tradeCurrency = this.safeString2 (params, 'trade_currency', 'tradeCurrency');
-        let spotReq: Dict = {};
-        let futReq: Dict = {};
+        const spotReq: Dict = {};
+        const futReq: Dict = {};
         if (tradeCurrency !== undefined) {
             spotReq['currency'] = tradeCurrency;
             futReq['trade_currency'] = tradeCurrency;
@@ -479,7 +479,7 @@ export default class mudrex extends Exchange {
             spotReq['currency'] = params['currency'];
             futReq['trade_currency'] = params['currency'];
         }
-        const p1 = this.omit (params, ['trade_currency', 'tradeCurrency', 'currency']);
+        const p1 = this.omit (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         const spot = await this.request ('wallet/funds', 'private', 'GET', this.extend (spotReq, p1));
         const fut = await this.request ('futures/funds', 'private', 'GET', this.extend (futReq, p1));
         return this.parseBalance ({ 'spot': spot, 'futures': fut, 'currency': spotReq['currency'] || 'USDT' });
@@ -519,7 +519,7 @@ export default class mudrex extends Exchange {
         return this.safeBalance (balance);
     }
 
-    async fetchLeverage (symbol: string, params = {}): Promise<any> {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const path = 'futures/' + market['id'] + '/leverage';
@@ -528,17 +528,18 @@ export default class mudrex extends Exchange {
         if (tradeCurrency !== undefined) {
             request['trade_currency'] = tradeCurrency;
         }
-        const response = await this.request (path, 'private', 'GET', this.extend (request, this.omit (params, ['trade_currency', 'tradeCurrency'])));
+        const response = await this.request (path, 'private', 'GET', this.extend (request, this.omit (params, [ 'trade_currency', 'tradeCurrency' ])));
         const data = this.safeDict (response, 'data', {});
         return {
             'info': response,
             'symbol': symbol,
             'marginMode': this.safeStringLower (data, 'margin_type'),
-            'leverage': this.safeNumber (data, 'leverage'),
+            'longLeverage': this.safeNumber (data, 'leverage'),
+            'shortLeverage': this.safeNumber (data, 'leverage'),
         };
     }
 
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<any> {
+    async setLeverage (leverage: number, symbol: Str = undefined, params = {}): Promise<any> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol');
         }
@@ -554,8 +555,8 @@ export default class mudrex extends Exchange {
             body['trade_currency'] = tradeCurrency;
         }
         const path = 'futures/' + market['id'] + '/leverage?is_symbol=1';
-        const response = await this.request (path, 'private', 'POST', this.extend(body, this.omit(params, ['trade_currency', 'tradeCurrency', 'marginType'])));
-        let leverages = this.safeDict (this.options, 'leverages', {});
+        const response = await this.request (path, 'private', 'POST', this.extend (body, this.omit (params, [ 'trade_currency', 'tradeCurrency', 'marginType' ])));
+        const leverages = this.safeDict (this.options, 'leverages', {});
         this.options['leverages'] = this.extend (leverages, { [market['symbol']]: leverage });
         return response;
     }
@@ -610,7 +611,7 @@ export default class mudrex extends Exchange {
             }
         }
         const path = 'futures/' + ms + '/order?is_symbol=1';
-        const response = await this.request (path, 'private', 'POST', this.extend(body, this.omit(params, ['leverage', 'reduceOnly', 'takeProfit', 'stopLoss', 'takeprofit_price', 'takeProfitPrice', 'stoploss_price', 'stopLossPrice', 'trade_currency', 'tradeCurrency'])));
+        const response = await this.request (path, 'private', 'POST', this.extend (body, this.omit (params, [ 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss', 'takeprofit_price', 'takeProfitPrice', 'stoploss_price', 'stopLossPrice', 'trade_currency', 'tradeCurrency' ])));
         leverages = this.safeDict (this.options, 'leverages', {});
         this.options['leverages'] = this.extend (leverages, { [market['symbol']]: lev });
         const data = this.safeDict (response, 'data', response);
@@ -637,7 +638,7 @@ export default class mudrex extends Exchange {
         if (tradeCurrency !== undefined) {
             request['trade_currency'] = tradeCurrency;
         }
-        const response = await this.request ('futures/orders/' + id, 'private', 'PATCH', this.extend (request, this.omit (params, ['trade_currency', 'tradeCurrency'])));
+        const response = await this.request ('futures/orders/' + id, 'private', 'PATCH', this.extend (request, this.omit (params, [ 'trade_currency', 'tradeCurrency' ])));
         const data = this.safeDict (response, 'data', response);
         return this.parseOrder (data, market);
     }
@@ -713,7 +714,7 @@ export default class mudrex extends Exchange {
         if (tradeCurrency !== undefined) {
             request['trade_currency'] = tradeCurrency;
         }
-        const response = await this.request (path, 'private', 'DELETE', this.extend (request, this.omit (params, ['trade_currency', 'tradeCurrency'])));
+        const response = await this.request (path, 'private', 'DELETE', this.extend (request, this.omit (params, [ 'trade_currency', 'tradeCurrency' ])));
         const data = this.safeDict (response, 'data', response);
         return this.parseOrder (data, market);
     }
@@ -730,7 +731,7 @@ export default class mudrex extends Exchange {
         if (tradeCurrency !== undefined) {
             request['trade_currency'] = tradeCurrency;
         }
-        const response = await this.request (path, 'private', 'GET', this.extend (request, this.omit (params, ['trade_currency', 'tradeCurrency'])));
+        const response = await this.request (path, 'private', 'GET', this.extend (request, this.omit (params, [ 'trade_currency', 'tradeCurrency' ])));
         const data = this.safeDict (response, 'data', response);
         return this.parseOrder (data, market);
     }
@@ -749,7 +750,7 @@ export default class mudrex extends Exchange {
         if (state === 'closed') {
             path = 'futures/orders/history';
         }
-        const response = await this.request (path, 'private', 'GET', this.extend (q, this.omit (params, ['trade_currency', 'tradeCurrency'])));
+        const response = await this.request (path, 'private', 'GET', this.extend (q, this.omit (params, [ 'trade_currency', 'tradeCurrency' ])));
         const data = this.safeValue (response, 'data', []);
         const rows = this.toArray (data);
         let market: Market = undefined;
@@ -782,7 +783,7 @@ export default class mudrex extends Exchange {
         if (tradeCurrency !== undefined) {
             q['trade_currency'] = tradeCurrency;
         }
-        const response = await this.request ('futures/positions', 'private', 'GET', this.extend (q, this.omit (params, ['trade_currency', 'tradeCurrency'])));
+        const response = await this.request ('futures/positions', 'private', 'GET', this.extend (q, this.omit (params, [ 'trade_currency', 'tradeCurrency' ])));
         const data = this.safeValue (response, 'data', []);
         if (data === undefined) {
             return [];
@@ -795,7 +796,7 @@ export default class mudrex extends Exchange {
             let m: Market = undefined;
             if (symRaw !== undefined) {
                 const u = this.unifiedSymbol (symRaw);
-                m = this.resolveMarketOptional (u);
+                m = this.safeMarket (u);
             }
             const pos = this.parsePosition (p, m);
             out.push (pos);
@@ -882,10 +883,10 @@ export default class mudrex extends Exchange {
             if (orderType === 'LIMIT' && lp !== undefined) {
                 body['limit_price'] = lp;
             }
-            return await this.request (partialPath, 'private', 'POST', this.extend (body, this.omit (params, ['trade_currency', 'tradeCurrency', 'order_type', 'limit_price', 'amount'])));
+            return await this.request (partialPath, 'private', 'POST', this.extend (body, this.omit (params, [ 'trade_currency', 'tradeCurrency', 'order_type', 'limit_price', 'amount' ])));
         }
         const closePath = 'futures/positions/' + positionId + '/close';
-        return await this.request (closePath, 'private', 'POST', this.extend (request, this.omit (params, ['trade_currency', 'tradeCurrency'])));
+        return await this.request (closePath, 'private', 'POST', this.extend (request, this.omit (params, [ 'trade_currency', 'tradeCurrency' ])));
     }
     
     async addMargin (symbol: string, amount: number, params = {}) {
@@ -905,13 +906,13 @@ export default class mudrex extends Exchange {
             throw new OrderNotFound (this.id + ' addMargin() could not resolve position_id');
         }
         const request: Dict = {
-            'margin': amount.toString(),
+            'margin': amount.toString (),
         };
         const tradeCurrency = this.safeString2 (params, 'trade_currency', 'tradeCurrency');
         if (tradeCurrency !== undefined) {
             request['trade_currency'] = tradeCurrency;
         }
-        return await this.request ('futures/positions/' + positionId + '/add-margin', 'private', 'POST', this.extend (request, this.omit (params, ['trade_currency', 'tradeCurrency', 'position_id'])));
+        return await this.request ('futures/positions/' + positionId + '/add-margin', 'private', 'POST', this.extend (request, this.omit (params, [ 'trade_currency', 'tradeCurrency', 'position_id' ])));
     }
 
     async reduceMargin (symbol: string, amount: number, params = {}) {
@@ -932,7 +933,7 @@ export default class mudrex extends Exchange {
         if (tradeCurrency !== undefined) {
             request['trade_currency'] = tradeCurrency;
         }
-        const response = await this.request ('futures/fee/history', 'private', 'GET', this.extend (request, this.omit (params, ['trade_currency', 'tradeCurrency'])));
+        const response = await this.request ('futures/fee/history', 'private', 'GET', this.extend (request, this.omit (params, [ 'trade_currency', 'tradeCurrency' ])));
         const data = this.safeValue (response, 'data', []);
         const rows = this.toArray (data);
         return this.parseTrades (rows, market, since, limit);

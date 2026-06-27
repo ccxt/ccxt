@@ -5,7 +5,8 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ChecksumError, AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool } from '../base/types.js';
+import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List } from '../base/types.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
@@ -128,7 +129,7 @@ export default class kraken extends krakenRest {
             request['params']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
         }
         const isMarket = (type === 'market');
-        let postOnly = undefined;
+        let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
         if (postOnly) {
             request['params']['post_only'] = true;
@@ -161,11 +162,11 @@ export default class kraken extends krakenRest {
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailingLimitAmountOrder = trailingLimitAmount !== undefined;
         const isTrailingLimitPercentOrder = trailingLimitPercent !== undefined;
-        const offset = this.safeString (params, 'offset', ''); // can set this to - for minus
-        const trailingAmountString = (trailingAmount !== undefined) ? offset + this.numberToString (trailingAmount) : undefined;
-        const trailingPercentString = (trailingPercent !== undefined) ? offset + this.numberToString (trailingPercent) : undefined;
-        const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString (trailingLimitAmount) : undefined;
-        const trailingLimitPercentString = (trailingLimitPercent !== undefined) ? offset + this.numberToString (trailingLimitPercent) : undefined;
+        const offset = this.safeString (params, 'offset', '') as string; // can set this to - for minus
+        const trailingAmountString = (trailingAmount !== undefined) ? offset + (this.numberToString (trailingAmount) as string) : undefined;
+        const trailingPercentString = (trailingPercent !== undefined) ? offset + (this.numberToString (trailingPercent) as string) : undefined;
+        const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + (this.numberToString (trailingLimitAmount) as string) : undefined;
+        const trailingLimitPercentString = (trailingLimitPercent !== undefined) ? offset + (this.numberToString (trailingLimitPercent) as string) : undefined;
         const priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if (method === 'createOrderWs') {
             const reduceOnly = this.safeBool (params, 'reduceOnly');
@@ -282,9 +283,9 @@ export default class kraken extends krakenRest {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const market = this.market (symbol);
-        const url = this.urls['api']['ws']['privateV2'];
+        const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
-        const messageHash = this.numberToString (requestId);
+        const messageHash = this.numberToString (requestId) as string;
         let request: Dict = {
             'method': 'add_order',
             'params': {
@@ -328,7 +329,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const result = this.safeDict (message, 'result', {});
-        const order = this.parseOrder (result);
+        const order = this.parseOrder (result as Dict);
         const messageHash = this.safeString2 (message, 'reqid', 'req_id');
         client.resolve (order, messageHash);
     }
@@ -350,9 +351,9 @@ export default class kraken extends krakenRest {
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const token = await this.authenticate ();
-        const url = this.urls['api']['ws']['privateV2'];
+        const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
-        const messageHash = this.numberToString (requestId);
+        const messageHash = this.numberToString (requestId) as string;
         let request: Dict = {
             'method': 'amend_order',
             'params': {
@@ -382,9 +383,9 @@ export default class kraken extends krakenRest {
         }
         await this.loadMarkets ();
         const token = await this.authenticate ();
-        const url = this.urls['api']['ws']['privateV2'];
+        const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
-        const messageHash = this.numberToString (requestId);
+        const messageHash = this.numberToString (requestId) as string;
         const request: Dict = {
             'method': 'cancel_order',
             'params': {
@@ -412,9 +413,9 @@ export default class kraken extends krakenRest {
         }
         await this.loadMarkets ();
         const token = await this.authenticate ();
-        const url = this.urls['api']['ws']['privateV2'];
+        const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
-        const messageHash = this.numberToString (requestId);
+        const messageHash = this.numberToString (requestId) as string;
         const request: Dict = {
             'method': 'cancel_order',
             'params': {
@@ -458,9 +459,9 @@ export default class kraken extends krakenRest {
         }
         await this.loadMarkets ();
         const token = await this.authenticate ();
-        const url = this.urls['api']['ws']['privateV2'];
+        const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
-        const messageHash = this.numberToString (requestId);
+        const messageHash = this.numberToString (requestId) as string;
         const request: Dict = {
             'method': 'cancel_all',
             'params': {
@@ -511,12 +512,12 @@ export default class kraken extends krakenRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeList (message, 'data', []) as List;
         const ticker = data[0];
-        const symbol = this.safeString (ticker, 'symbol');
+        const symbol = this.safeString (ticker, 'symbol') as string;
         const messageHash = this.getMessageHash ('ticker', undefined, symbol);
         const vwap = this.safeString (ticker, 'vwap');
-        let quoteVolume = undefined;
+        let quoteVolume: Str = undefined;
         const baseVolume = this.safeString (ticker, 'volume');
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = Precise.stringMul (baseVolume, vwap);
@@ -566,9 +567,9 @@ export default class kraken extends krakenRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeList (message, 'data', []) as List;
         const trade = data[0];
-        const symbol = this.safeString (trade, 'symbol');
+        const symbol = this.safeString (trade, 'symbol') as string;
         const messageHash = this.getMessageHash ('trade', undefined, symbol);
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -607,7 +608,7 @@ export default class kraken extends krakenRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeList (message, 'data', []) as List;
         const first = data[0];
         const marketId = this.safeString (first, 'symbol');
         const symbol = this.safeSymbol (marketId);
@@ -615,7 +616,7 @@ export default class kraken extends krakenRest {
             this.ohlcvs[symbol] = {};
         }
         const interval = this.safeInteger (first, 'interval');
-        const timeframe = this.findTimeframe (interval);
+        const timeframe = this.findTimeframe (interval) as string;
         const messageHash = this.getMessageHash ('ohlcv', undefined, symbol);
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -754,7 +755,7 @@ export default class kraken extends krakenRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
@@ -768,7 +769,7 @@ export default class kraken extends krakenRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         const requiredParams: Dict = {};
@@ -800,7 +801,7 @@ export default class kraken extends krakenRest {
         const name = 'ohlc';
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.urls['api']['ws']['publicV2'];
+        const url = (this.urls['api'] as Dict)['ws']['publicV2'];
         const requestId = this.requestId ();
         const messageHash = this.getMessageHash ('ohlcv', undefined, symbol);
         const subscribe: Dict = {
@@ -825,12 +826,15 @@ export default class kraken extends krakenRest {
         let marketsByWsName = this.safeValue (this.options, 'marketsByWsName');
         if ((marketsByWsName === undefined) || reload) {
             marketsByWsName = {};
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
-                const market = this.markets[symbol];
-                const info = this.safeValue (market, 'info', {});
-                const wsName = this.safeString (info, 'wsname');
-                marketsByWsName[wsName] = market;
+            const symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+            if (symbols !== undefined) {
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
+                    const market = this.markets[symbol];
+                    const info = this.safeValue (market, 'info', {});
+                    const wsName = this.safeString (info, 'wsname') as string;
+                    marketsByWsName[wsName] = market;
+                }
             }
             this.options['marketsByWsName'] = marketsByWsName;
         }
@@ -856,7 +860,7 @@ export default class kraken extends krakenRest {
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
-        const url = this.urls['api']['ws']['publicV2'];
+        const url = (this.urls['api'] as Dict)['ws']['publicV2'];
         return await this.watch (url, event);
     }
 
@@ -927,16 +931,16 @@ export default class kraken extends krakenRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeList (message, 'data', []) as List;
         const first = this.safeDict (data, 0, {});
-        const symbol = this.safeString (first, 'symbol');
+        const symbol = this.safeString (first, 'symbol') as string;
         const a = this.safeValue (first, 'asks', []);
         const b = this.safeValue (first, 'bids', []);
         const c = this.safeInteger (first, 'checksum');
         const messageHash = this.getMessageHash ('orderbook', undefined, symbol);
-        let orderbook = undefined;
+        let orderbook: Ob | undefined = undefined;
         if (type === 'update') {
-            orderbook = this.orderbooks[symbol];
+            orderbook = this.orderbooks[symbol] as Ob;
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             if (a !== undefined) {
@@ -953,7 +957,7 @@ export default class kraken extends krakenRest {
             // snapshot
             const depth = a.length;
             this.orderbooks[symbol] = this.orderBook ({}, depth);
-            orderbook = this.orderbooks[symbol];
+            orderbook = this.orderbooks[symbol] as Ob;
             const keys = [ 'asks', 'bids' ];
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
@@ -969,7 +973,7 @@ export default class kraken extends krakenRest {
         // checksum temporarily disabled because the exchange checksum was not reliable
         const checksum = this.handleOption ('watchOrderBook', 'checksum', false);
         if (checksum) {
-            const payloadArray = [];
+            const payloadArray: string[] = [];
             if (c !== undefined) {
                 const checkAsks = orderbook['asks'];
                 const checkBids = orderbook['bids'];
@@ -1019,8 +1023,8 @@ export default class kraken extends krakenRest {
 
     formatNumber (data) {
         const parts = data.split ('.');
-        const integer = this.safeString (parts, 0);
-        const decimals = this.safeString (parts, 1, '');
+        const integer = this.safeString (parts, 0) as string;
+        const decimals = this.safeString (parts, 1, '') as string;
         let joinedResult = integer + decimals;
         let i = 0;
         while (joinedResult[i] === '0') {
@@ -1063,13 +1067,13 @@ export default class kraken extends krakenRest {
     }
 
     async authenticate (params = {}) {
-        const url = this.urls['api']['ws']['private'];
+        const url = (this.urls['api'] as Dict)['ws']['private'];
         const client = this.client (url);
         const authenticated = 'authenticated';
         let subscription = this.safeValue (client.subscriptions, authenticated);
         const now = this.seconds ();
-        const start = this.safeInteger (subscription, 'start');
-        const expires = this.safeInteger (subscription, 'expires');
+        const start = this.safeInteger (subscription, 'start') as number;
+        const expires = this.safeInteger (subscription, 'expires') as number;
         if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
             // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
             const response = await this.privatePostGetWebSocketsToken (params);
@@ -1098,7 +1102,7 @@ export default class kraken extends krakenRest {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
-        const url = this.urls['api']['ws']['privateV2'];
+        const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
         const subscribe: Dict = {
             'method': 'subscribe',
@@ -1166,7 +1170,7 @@ export default class kraken extends krakenRest {
         //         "sequence": 10
         //     }
         //
-        const allTrades = this.safeList (message, 'data', []);
+        const allTrades = this.safeList (message, 'data', []) as List;
         const allTradesLength = allTrades.length;
         if (allTradesLength > 0) {
             if (this.myTrades === undefined) {
@@ -1179,7 +1183,7 @@ export default class kraken extends krakenRest {
                 const trade = this.safeDict (allTrades, i, {});
                 const parsed = this.parseWsTrade (trade);
                 stored.append (parsed);
-                const symbol = parsed['symbol'];
+                const symbol = parsed['symbol'] as string;
                 symbols[symbol] = true;
             }
             const name = 'myTrades';
@@ -1293,7 +1297,7 @@ export default class kraken extends krakenRest {
         //         "sequence": 8
         //     }
         //
-        const allOrders = this.safeList (message, 'data', []);
+        const allOrders = this.safeList (message, 'data', []) as List;
         const allOrdersLength = allOrders.length;
         if (allOrdersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1307,8 +1311,8 @@ export default class kraken extends krakenRest {
                 const id = this.safeString (order, 'order_id');
                 const parsed = this.parseWsOrder (order);
                 const symbol = this.safeString (order, 'symbol');
-                const previousOrders = this.safeValue (stored.hashmap, symbol);
-                const previousOrder = this.safeValue (previousOrders, id);
+                const previousOrders = this.safeValue (stored.hashmap, symbol as string);
+                const previousOrder = this.safeValue (previousOrders, id as string);
                 let newOrder = parsed;
                 if (previousOrder !== undefined) {
                     const newRawOrder = this.extend (previousOrder['info'], newOrder['info']);
@@ -1413,7 +1417,10 @@ export default class kraken extends krakenRest {
         await this.loadMarkets ();
         // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
-        const messageHashes = [];
+        if (symbols === undefined) {
+            return undefined;
+        }
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const eventTrigger = this.safeString (params, 'event_trigger');
             if (eventTrigger !== undefined) {
@@ -1431,7 +1438,7 @@ export default class kraken extends krakenRest {
             'req_id': this.requestId (),
         };
         request['params'] = this.deepExtend (request['params'], params);
-        const url = this.urls['api']['ws']['publicV2'];
+        const url = (this.urls['api'] as Dict)['ws']['publicV2'];
         return await this.watchMultiple (url, messageHashes, request, messageHashes, subscriptionArgs);
     }
 
@@ -1447,7 +1454,7 @@ export default class kraken extends krakenRest {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const messageHash = 'balances';
-        const url = this.urls['api']['ws']['privateV2'];
+        const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
         const subscribe: Dict = {
             'method': 'subscribe',
@@ -1483,11 +1490,11 @@ export default class kraken extends krakenRest {
         //         "sequence": 1
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeList (message, 'data', []) as List;
         const result: Dict = { 'info': message };
         for (let i = 0; i < data.length; i++) {
             const currencyId = this.safeString (data[i], 'asset');
-            const code = this.safeCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId) as string;
             const account = this.account ();
             const eq = this.safeString (data[i], 'balance');
             account['total'] = eq;
@@ -1595,7 +1602,7 @@ export default class kraken extends krakenRest {
         let channel = this.safeString (message, 'channel');
         if (channel !== undefined) {
             if (channel === 'executions') {
-                const data = this.safeList (message, 'data', []);
+                const data = this.safeList (message, 'data', []) as List;
                 const first = this.safeDict (data, 0, {});
                 const execType = this.safeString (first, 'exec_type');
                 channel = (execType === 'trade') ? 'myTrades' : 'orders';
@@ -1627,7 +1634,7 @@ export default class kraken extends krakenRest {
                 'cancel_all': this.handleCancelAllOrders,
                 'pong': this.handlePong,
             };
-            const method = this.safeValue (methods, event);
+            const method = this.safeValue (methods, event as string);
             if (method !== undefined) {
                 method.call (this, client, message);
             }

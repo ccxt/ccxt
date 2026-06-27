@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        async public Task testSleep()
+        async public Task<object> testSleep()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
@@ -20,7 +20,10 @@ public partial class BaseTest
             // Allow a small margin of error due to execution time
             object marginOfError = 20;
             object maxElapsed = add(sleepAmount, marginOfError);
-            Assert(isGreaterThanOrEqual(elapsed, sleepAmount), add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms is less than sleep amount "), ((object)sleepAmount).ToString()), "ms"));
-            Assert(isLessThanOrEqual(elapsed, maxElapsed), add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms exceeds sleep amount "), ((object)maxElapsed).ToString()), "ms"));
+            object elapsedBiggerThanSleep = isGreaterThanOrEqual(elapsed, sleepAmount);
+            object elapsedLessThanMax = isLessThanOrEqual(elapsed, maxElapsed);
+            Assert(elapsedBiggerThanSleep, add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms is less than sleep amount "), ((object)sleepAmount).ToString()), "ms"));
+            Assert(elapsedLessThanMax, add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms exceeds sleep amount "), ((object)maxElapsed).ToString()), "ms"));
+            return true;
         }
 }

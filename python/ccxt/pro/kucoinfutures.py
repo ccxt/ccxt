@@ -35,7 +35,6 @@ class kucoinfutures(kucoin):
                 },
                 'defaultType': 'swap',
                 'defaultAccountType': 'contract',
-                'uta': False,
             },
         })
 
@@ -64,7 +63,7 @@ class kucoinfutures(kucoin):
         await self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        request: dict = {
+        request = {
             'currency': self.safe_string(currency, 'id'),
             'amount': amountToPrecision,
         }
@@ -118,7 +117,7 @@ class kucoinfutures(kucoin):
         })
 
     def parse_transfer_type(self, transferType):
-        transferTypes: dict = {
+        transferTypes = {
             'spot': 'TRADE',
             'funding': 'MAIN',
         }

@@ -18,7 +18,7 @@ class onetrading extends onetrading$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'onetrading',
             'name': 'One Trading',
-            'countries': ['AT'],
+            'countries': ['AT'], // Austria
             'rateLimit': 300,
             'version': 'v1',
             'pro': true,
@@ -150,7 +150,7 @@ class onetrading extends onetrading$1["default"] {
                 '1M': '1/MONTHS',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
+                'logo': 'https://github.com/user-attachments/assets/341a1b01-7660-402a-9a2b-876391e52f15',
                 'api': {
                     'public': 'https://api.onetrading.com/fast',
                     'private': 'https://api.onetrading.com/fast',
@@ -353,8 +353,8 @@ class onetrading extends onetrading$1["default"] {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -370,13 +370,13 @@ class onetrading extends onetrading$1["default"] {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': undefined, // todo
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1 / 12,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1 / 12, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -435,29 +435,27 @@ class onetrading extends onetrading$1["default"] {
         //         },
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'code');
-            const code = this.safeCurrencyCode(id);
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 'name'),
-                'info': currency,
-                'active': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision'))),
-                'withdraw': undefined,
-                'deposit': undefined,
-                'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
-                },
-                'networks': {},
-            });
-        }
-        return result;
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'code');
+        const code = this.safeCurrencyCode(id);
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'info': rawCurrency,
+            'active': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision'))),
+            'withdraw': undefined,
+            'deposit': undefined,
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
+            },
+            'networks': {},
+        });
     }
     /**
      * @method
@@ -905,7 +903,7 @@ class onetrading extends onetrading$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1353,8 +1351,8 @@ class onetrading extends onetrading$1["default"] {
         const uppercaseType = type.toUpperCase();
         const request = {
             'instrument_code': market['id'],
-            'type': uppercaseType,
-            'side': side.toUpperCase(),
+            'type': uppercaseType, // LIMIT, MARKET, STOP
+            'side': side.toUpperCase(), // or SELL
             'amount': this.amountToPrecision(symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
             // "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206", // optional

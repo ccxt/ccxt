@@ -826,6 +826,7 @@ class ImplicitAPI:
     papi_post_asset_collection = papiPostAssetCollection = Entry('asset-collection', 'papi', 'POST', {'cost': 6})
     papi_post_margin_repay_debt = papiPostMarginRepayDebt = Entry('margin/repay-debt', 'papi', 'POST', {'cost': 3000})
     papi_post_um_feeburn = papiPostUmFeeBurn = Entry('um/feeBurn', 'papi', 'POST', {'cost': 1})
+    papi_post_um_stock_contract = papiPostUmStockContract = Entry('um/stock/contract', 'papi', 'POST', {'cost': 1})
     papi_put_listenkey = papiPutListenKey = Entry('listenKey', 'papi', 'PUT', {'cost': 0.2})
     papi_put_um_order = papiPutUmOrder = Entry('um/order', 'papi', 'PUT', {'cost': 1})
     papi_put_cm_order = papiPutCmOrder = Entry('cm/order', 'papi', 'PUT', {'cost': 1})

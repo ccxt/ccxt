@@ -88,7 +88,7 @@ public partial class toobit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -762,7 +762,7 @@ public partial class toobit
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
-    public async Task<List<Transaction>> FetchDepositsOrWithdrawalsHelper(object type, object code, object since, object limit, object parameters)
+    public async Task<List<Transaction>> FetchDepositsOrWithdrawalsHelper(object type, object code, object since, object limit, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositsOrWithdrawalsHelper(type, code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();

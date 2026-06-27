@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.backpack import ImplicitAPI
-from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -156,7 +156,7 @@ class backpack(Exchange, ImplicitAPI):
                 '1M': '1month',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f',
+                'logo': 'https://github.com/user-attachments/assets/7f682234-3eb1-48ab-a5ec-250a3227c985',
                 'api': {
                     'public': 'https://api.backpack.exchange',
                     'private': 'https://api.backpack.exchange',
@@ -479,7 +479,7 @@ class backpack(Exchange, ImplicitAPI):
                     'INSUFFICIENT_SUPPLY': InsufficientFunds,
                     'INVALID_ASSET': BadRequest,
                     'INVALID_MARKET': BadSymbol,
-                    'INVALID_PRICE': BadRequest,
+                    'INVALID_PRICE': InvalidOrder,  # {"code":"INVALID_PRICE","message":"Price is too far from the last active price"}
                     'INVALID_POSITION_ID': BadRequest,
                     'INVALID_QUANTITY': BadRequest,
                     'INVALID_RANGE': BadRequest,
@@ -541,69 +541,68 @@ class backpack(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currecy = response[i]
-            currencyId = self.safe_string(currecy, 'symbol')
-            code = self.safe_currency_code(currencyId)
-            networks = self.safe_list(currecy, 'tokens', [])
-            parsedNetworks: dict = {}
-            for j in range(0, len(networks)):
-                network = networks[j]
-                networkId = self.safe_string(network, 'blockchain')
-                networkIdLowerCase = self.safe_string_lower(network, 'blockchain')
-                networkCode = self.network_id_to_code(networkIdLowerCase)
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(network, 'minimumWithdrawal'),
-                            'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maximumWithdrawal'))),
-                        },
-                        'deposit': {
-                            'min': self.safe_number(network, 'minimumDeposit'),
-                            'max': None,
-                        },
-                    },
-                    'active': None,
-                    'deposit': self.safe_bool(network, 'depositEnabled'),
-                    'withdraw': self.safe_bool(network, 'withdrawEnabled'),
-                    'fee': self.safe_number(network, 'withdrawalFee'),
-                    'precision': None,
-                    'info': network,
-                }
-            active = None
-            deposit = None
-            withdraw = None
-            if self.is_empty(parsedNetworks):  # if networks are not provided
-                active = False
-                deposit = False
-                withdraw = False
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'code': code,
-                'precision': None,
-                'type': 'crypto',  # todo check if it is always crypto
-                'name': self.safe_string(currecy, 'displayName'),
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': None,
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(currencyId)
+        networks = self.safe_list(rawCurrency, 'tokens', [])
+        parsedNetworks = {}
+        for j in range(0, len(networks)):
+            network = networks[j]
+            networkId = self.safe_string(network, 'blockchain')
+            networkIdLowerCase = self.safe_string_lower(network, 'blockchain')
+            networkCode = self.network_id_to_code(networkIdLowerCase, code)
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(network, 'minimumWithdrawal'),
+                        'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maximumWithdrawal'))),
+                    },
+                    'deposit': {
+                        'min': self.safe_number(network, 'minimumDeposit'),
                         'max': None,
                     },
                 },
-                'networks': parsedNetworks,
-                'info': currecy,
-            })
-        return result
+                'active': None,
+                'deposit': self.safe_bool(network, 'depositEnabled'),
+                'withdraw': self.safe_bool(network, 'withdrawEnabled'),
+                'fee': self.safe_number(network, 'withdrawalFee'),
+                'precision': None,
+                'info': network,
+            }
+        active = None
+        deposit = None
+        withdraw = None
+        if self.is_empty(parsedNetworks):  # if networks are not provided
+            active = False
+            deposit = False
+            withdraw = False
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'code': code,
+            'precision': None,
+            'type': 'crypto',  # todo check if it is always crypto
+            'name': self.safe_string(rawCurrency, 'displayName'),
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': None,
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': parsedNetworks,
+            'info': rawCurrency,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -723,13 +722,13 @@ class backpack(Exchange, ImplicitAPI):
         maxQuantity = self.safe_number(quantityFilter, 'maxQuantity')
         minQuantity = self.safe_number(quantityFilter, 'minQuantity')
         amountPrecision = self.safe_number(quantityFilter, 'stepSize')
-        type: MarketType
+        type = None
         typeOfMarket = self.parse_market_type(self.safe_string(market, 'marketType'))
-        linear: Bool = None
-        inverse: Bool = None
-        settle: Str = None
-        settleId: Str = None
-        contractSize: Num = None
+        linear = None
+        inverse = None
+        settle = None
+        settleId = None
+        contractSize = None
         if typeOfMarket == 'spot':
             type = 'spot'
         elif typeOfMarket == 'swap':
@@ -816,7 +815,7 @@ class backpack(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         response = await self.publicGetApiV1Tickers(self.extend(request, params))
         tickers = self.parse_tickers(response)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
@@ -833,7 +832,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetApiV1Ticker(self.extend(request, params))
@@ -905,7 +904,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetApiV1Depth(self.extend(request, params))
@@ -945,11 +944,11 @@ class backpack(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'interval': interval,
         }
-        until: Int = None
+        until = None
         until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
         if until is not None:
             request['endTime'] = self.parse_to_int(until / 1000)  # convert milliseconds to seconds
@@ -1010,7 +1009,7 @@ class backpack(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['spot']:
             raise BadRequest(self.id + ' fetchFundingRate() symbol does not support market ' + symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetApiV1MarkPrices(self.extend(request, params))
@@ -1066,7 +1065,7 @@ class backpack(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['spot']:
             raise BadRequest(self.id + ' fetchOpenInterest() symbol does not support market ' + symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetApiV1OpenInterest(self.extend(request, params))
@@ -1086,7 +1085,7 @@ class backpack(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(interest, 'timestamp')
         openInterest = self.safe_number(interest, 'openInterest')
         return self.safe_open_interest({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'openInterestAmount': None,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
@@ -1110,7 +1109,7 @@ class backpack(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1156,7 +1155,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1184,7 +1183,7 @@ class backpack(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1236,10 +1235,16 @@ class backpack(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')
-        isMaker = self.safe_bool(trade, 'isMaker')
-        takerOrMaker = 'maker' if isMaker else 'taker'
-        orderId = self.safe_string(trade, 'orderId')
+        isBuyerMaker = self.safe_bool(trade, 'isBuyerMaker')
         side = self.parse_order_side(self.safe_string(trade, 'side'))
+        isMaker = self.safe_bool(trade, 'isMaker')
+        takerOrMaker = None
+        if isMaker is not None:
+            takerOrMaker = 'maker' if isMaker else 'taker'
+        elif isBuyerMaker is not None:
+            takerOrMaker = 'taker'
+            side = 'sell' if isBuyerMaker else 'buy'
+        orderId = self.safe_string(trade, 'orderId')
         fee = None
         feeAmount = self.safe_string(trade, 'fee')
         timestamp = self.safe_integer(trade, 'timestamp')
@@ -1334,7 +1339,7 @@ class backpack(Exchange, ImplicitAPI):
         #     }
         #
         balanceKeys = list(response.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(balanceKeys)):
             id = balanceKeys[i]
             code = self.safe_currency_code(id)
@@ -1362,16 +1367,16 @@ class backpack(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
         }
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
         if since is not None:
             request['from'] = since
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
-        until: Int = None
+        until = None
         until, params = self.handle_option_and_params(params, 'fetchDeposits', 'until')
         if until is not None:
             request['endTime'] = until
@@ -1392,15 +1397,15 @@ class backpack(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        request: dict = {}
-        currency: Currency = None
+        request = {}
+        currency = None
         if code is not None:
             currency = self.currency(code)
         if since is not None:
             request['from'] = since
         if limit is not None:
             request['limit'] = limit
-        until: Int = None
+        until = None
         until, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'until')
         if until is not None:
             request['to'] = until
@@ -1423,7 +1428,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': currency['id'],
             'quantity': self.number_to_string(amount),
             'address': address,
@@ -1431,7 +1436,7 @@ class backpack(Exchange, ImplicitAPI):
         if tag is not None:
             request['clientId'] = tag  # memo or tag
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, currency['code'])
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() requires a network parameter')
         request['blockchain'] = networkId
@@ -1519,7 +1524,7 @@ class backpack(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
         amount = self.safe_number(transaction, 'quantity')
         networkId = self.safe_string_lower_2(transaction, 'source', 'blockchain')
-        network = self.network_id_to_code(networkId)
+        network = self.network_id_to_code(networkId, code)
         addressTo = self.safe_string(transaction, 'toAddress')
         addressFrom = self.safe_string(transaction, 'fromAddress')
         tag = self.safe_string(transaction, 'platformMemo')
@@ -1555,7 +1560,7 @@ class backpack(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'cancelled': 'cancelled',
             'confirmed': 'ok',
             'declined': 'declined',
@@ -1584,8 +1589,8 @@ class backpack(Exchange, ImplicitAPI):
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes')
         currency = self.currency(code)
-        request: dict = {
-            'blockchain': self.network_code_to_id(networkCode),
+        request = {
+            'blockchain': self.network_code_to_id(networkCode, currency['code']),
         }
         response = await self.privateGetWapiV1CapitalDepositAddress(self.extend(request, params))
         return self.parse_deposit_address(response, currency)
@@ -1672,7 +1677,7 @@ class backpack(Exchange, ImplicitAPI):
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': self.encode_order_side(side),
             'orderType': self.capitalize(type),
@@ -1733,7 +1738,7 @@ class backpack(Exchange, ImplicitAPI):
         return self.extend(request, params)
 
     def encode_order_side(self, side):
-        sides: dict = {
+        sides = {
             'buy': 'Bid',
             'sell': 'Ask',
         }
@@ -1752,7 +1757,7 @@ class backpack(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1775,7 +1780,7 @@ class backpack(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'orderId': id,
         }
@@ -1797,7 +1802,7 @@ class backpack(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'orderId': id,
             'symbol': market['id'],
         }
@@ -1818,7 +1823,7 @@ class backpack(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.privateDeleteApiV1Orders(self.extend(request, params))
@@ -1837,7 +1842,7 @@ class backpack(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1988,7 +1993,7 @@ class backpack(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'New': 'open',
             'Filled': 'closed',
             'Cancelled': 'canceled',
@@ -2000,7 +2005,7 @@ class backpack(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_side(self, side: Str):
-        sides: dict = {
+        sides = {
             'Bid': 'buy',
             'Ask': 'sell',
         }
@@ -2121,7 +2126,7 @@ class backpack(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2162,7 +2167,7 @@ class backpack(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + path
         url = self.urls['api'][api]
         sortedParams = params if isinstance(params, list) else self.keysort(params)

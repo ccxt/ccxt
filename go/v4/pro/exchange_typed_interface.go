@@ -13,7 +13,7 @@ type IExchange interface {
 }
 
 
-func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExchange {
+func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
     case "aftermath":
@@ -24,9 +24,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
         return itf
     case "apex":
         itf := NewApex(options)
-        return itf
-    case "arkham":
-        itf := NewArkham(options)
         return itf
     case "ascendex":
         itf := NewAscendex(options)
@@ -97,6 +94,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
     case "bybit":
         itf := NewBybit(options)
         return itf
+    case "bybiteu":
+        itf := NewBybiteu(options)
+        return itf
     case "bydfi":
         itf := NewBydfi(options)
         return itf
@@ -106,17 +106,11 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
     case "coinbase":
         itf := NewCoinbase(options)
         return itf
-    case "coinbaseadvanced":
-        itf := NewCoinbaseadvanced(options)
-        return itf
     case "coinbaseexchange":
         itf := NewCoinbaseexchange(options)
         return itf
     case "coinbaseinternational":
         itf := NewCoinbaseinternational(options)
-        return itf
-    case "coincatch":
-        itf := NewCoincatch(options)
         return itf
     case "coincheck":
         itf := NewCoincheck(options)
@@ -145,11 +139,14 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
     case "exmo":
         itf := NewExmo(options)
         return itf
+    case "extended":
+        itf := NewExtended(options)
+        return itf
     case "gate":
         itf := NewGate(options)
         return itf
-    case "gateio":
-        itf := NewGateio(options)
+    case "gateeu":
+        itf := NewGateeu(options)
         return itf
     case "gemini":
         itf := NewGemini(options)
@@ -168,9 +165,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
         return itf
     case "htx":
         itf := NewHtx(options)
-        return itf
-    case "huobi":
-        itf := NewHuobi(options)
         return itf
     case "hyperliquid":
         itf := NewHyperliquid(options)
@@ -220,11 +214,11 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
     case "onetrading":
         itf := NewOnetrading(options)
         return itf
-    case "oxfun":
-        itf := NewOxfun(options)
-        return itf
     case "p2b":
         itf := NewP2b(options)
+        return itf
+    case "pacifica":
+        itf := NewPacifica(options)
         return itf
     case "paradex":
         itf := NewParadex(options)
@@ -240,6 +234,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
         return itf
     case "upbit":
         itf := NewUpbit(options)
+        return itf
+    case "weex":
+        itf := NewWeex(options)
         return itf
     case "whitebit":
         itf := NewWhitebit(options)

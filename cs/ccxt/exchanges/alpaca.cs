@@ -332,7 +332,7 @@ public partial class alpaca : Exchange
         object jetlagStrStart = subtract(((string)timestamp).Length, 6);
         object jetlagStrEnd = subtract(((string)timestamp).Length, 3);
         object jetlag = slice(timestamp, jetlagStrStart, jetlagStrEnd);
-        object iso = subtract(this.parse8601(localTime), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
+        object iso = subtract(this.parseToInt(this.parse8601(localTime)), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
         return iso;
     }
 
@@ -1091,7 +1091,7 @@ public partial class alpaca : Exchange
         object response = await this.traderPrivateDeleteV2Orders(parameters);
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            return this.parseOrders(response, null);
+            return this.parseOrders(response);
         } else
         {
             return new List<object> {this.safeOrder(new Dictionary<string, object>() {
@@ -1941,7 +1941,7 @@ public partial class alpaca : Exchange
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
         }
-        object message = this.safeValue(response, "message", null);
+        object message = this.safeValue(response, "message");
         if (isTrue(!isEqual(message, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

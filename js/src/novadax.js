@@ -5,12 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
+import { md5 } from '@noble/hashes/legacy.js';
 import Exchange from './abstract/novadax.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired, AccountNotEnabled } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class novadax
@@ -21,7 +21,7 @@ export default class novadax extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'novadax',
             'name': 'NovaDAX',
-            'countries': ['BR'],
+            'countries': ['BR'], // Brazil
             // 6000 weight per min => 100 weight per second => min weight = 1
             // 100 requests per second => ( 1000ms / 100 ) = 10 ms between requests on average
             'rateLimit': 10,
@@ -175,7 +175,7 @@ export default class novadax extends Exchange {
                     'get': {
                         'orders/get': 1,
                         'orders/list': 10,
-                        'orders/fill': 3,
+                        'orders/fill': 3, // not found in doc
                         'orders/fills': 10,
                         'account/getBalance': 1,
                         'account/subs': 1,
@@ -210,30 +210,30 @@ export default class novadax extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'A99999': ExchangeError,
+                    'A99999': ExchangeError, // 500 Failed Internal error
                     // 'A10000': ExchangeError, // 200 Success Successful request
-                    'A10001': BadRequest,
-                    'A10002': ExchangeError,
-                    'A10003': AuthenticationError,
-                    'A10004': RateLimitExceeded,
-                    'A10005': PermissionDenied,
-                    'A10006': AccountSuspended,
-                    'A10007': AccountNotEnabled,
-                    'A10011': BadSymbol,
-                    'A10012': BadSymbol,
-                    'A10013': OnMaintenance,
-                    'A30001': OrderNotFound,
-                    'A30002': InvalidOrder,
-                    'A30003': InvalidOrder,
-                    'A30004': InvalidOrder,
-                    'A30005': InvalidOrder,
-                    'A30006': InvalidOrder,
-                    'A30007': InsufficientFunds,
-                    'A30008': InvalidOrder,
-                    'A30009': InvalidOrder,
-                    'A30010': CancelPending,
-                    'A30011': InvalidOrder,
-                    'A30012': InvalidOrder,
+                    'A10001': BadRequest, // 400 Params error Parameter is invalid
+                    'A10002': ExchangeError, // 404 Api not found API used is irrelevant
+                    'A10003': AuthenticationError, // 403 Authentication failed Authentication is failed
+                    'A10004': RateLimitExceeded, // 429 Too many requests Too many requests are made
+                    'A10005': PermissionDenied, // 403 Kyc required Need to complete KYC firstly
+                    'A10006': AccountSuspended, // 403 Customer canceled Account is canceled
+                    'A10007': AccountNotEnabled, // 400 Account not exist Sub account does not exist
+                    'A10011': BadSymbol, // 400 Symbol not exist Trading symbol does not exist
+                    'A10012': BadSymbol, // 400 Symbol not trading Trading symbol is temporarily not available
+                    'A10013': OnMaintenance, // 503 Symbol maintain Trading symbol is in maintain
+                    'A30001': OrderNotFound, // 400 Order not found Queried order is not found
+                    'A30002': InvalidOrder, // 400 Order amount is too small Order amount is too small
+                    'A30003': InvalidOrder, // 400 Order amount is invalid Order amount is invalid
+                    'A30004': InvalidOrder, // 400 Order value is too small Order value is too small
+                    'A30005': InvalidOrder, // 400 Order value is invalid Order value is invalid
+                    'A30006': InvalidOrder, // 400 Order price is invalid Order price is invalid
+                    'A30007': InsufficientFunds, // 400 Insufficient balance The balance is insufficient
+                    'A30008': InvalidOrder, // 400 Order was closed The order has been executed
+                    'A30009': InvalidOrder, // 400 Order canceled The order has been cancelled
+                    'A30010': CancelPending, // 400 Order cancelling The order is being cancelled
+                    'A30011': InvalidOrder, // 400 Order price too high The order price is too high
+                    'A30012': InvalidOrder, // 400 Order price too low The order price is too low
                     'A40004': InsufficientFunds, // {"code":"A40004","data":[],"message":"sub account balance Insufficient"}
                 },
                 'broad': {},
@@ -252,10 +252,10 @@ export default class novadax extends Exchange {
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,
-                        'triggerDirection': true,
+                        'triggerDirection': true, // todo
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         // todo
                         'timeInForce': {
@@ -272,12 +272,12 @@ export default class novadax extends Exchange {
                         'selfTradePrevention': false,
                         'iceberg': true, // todo
                     },
-                    'createOrders': undefined,
+                    'createOrders': undefined, // todo: add implementation
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -296,8 +296,8 @@ export default class novadax extends Exchange {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -305,9 +305,9 @@ export default class novadax extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -570,7 +570,7 @@ export default class novadax extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();

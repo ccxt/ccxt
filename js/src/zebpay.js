@@ -5,14 +5,14 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/zebpay.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, InsufficientFunds } from './base/errors.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
- * @class
+ * @class zebpay
  * @augments Exchange
  */
 export default class zebpay extends Exchange {
@@ -85,7 +85,7 @@ export default class zebpay extends Exchange {
                 '1w': 10080,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad',
+                'logo': 'https://github.com/user-attachments/assets/0e88d86a-a1cd-49df-a826-054cd8caafa6',
                 'api': {
                     'spot': 'https://sapi.zebpay.com',
                     'swap': 'https://futuresbe.zebpay.com',
@@ -195,13 +195,13 @@ export default class zebpay extends Exchange {
             'exceptions': {
                 'exact': {
                     '77': InvalidOrder,
-                    '400': BadRequest,
-                    '401': AuthenticationError,
-                    '403': NotSupported,
-                    '404': NotSupported,
-                    '429': RateLimitExceeded,
-                    '500': ExchangeNotAvailable,
-                    '503': ExchangeNotAvailable,
+                    '400': BadRequest, // Bad Request -- Invalid request format
+                    '401': AuthenticationError, // Unauthorized -- Invalid API Key
+                    '403': NotSupported, // Forbidden -- The request is forbidden
+                    '404': NotSupported, // Not Found -- The specified resource could not be found
+                    '429': RateLimitExceeded, // Too Many Requests -- Access limit breached
+                    '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                    '503': ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
                     '3013': OrderNotFound,
                     'Order quantity is out of range': InvalidOrder,
                     'Invalid trade order type': InvalidOrder,
@@ -261,7 +261,7 @@ export default class zebpay extends Exchange {
     }
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -369,89 +369,87 @@ export default class zebpay extends Exchange {
         //     }
         //
         const rows = this.safeList(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'name');
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision')));
-            const chains = this.safeList(currency, 'chains', []);
-            const networks = {};
-            let minWithdrawFeeString = undefined;
-            let minWithdrawString = undefined;
-            let minDepositString = undefined;
-            let deposit = false;
-            let withdraw = false;
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'chainId');
-                const networkCode = this.networkIdToCode(networkId);
-                const depositAllowed = this.safeBool(chain, 'isDepositEnabled') === true;
-                deposit = (depositAllowed) ? depositAllowed : deposit;
-                const withdrawAllowed = this.safeBool(chain, 'isWithdrawEnabled') === true;
-                withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
-                const withdrawFeeString = this.safeString(chain, 'withdrawalFee');
-                if (withdrawFeeString !== undefined) {
-                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
-                }
-                const minNetworkWithdrawString = this.safeString(chain, 'withdrawalMinSize');
-                if (minNetworkWithdrawString !== undefined) {
-                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
-                }
-                const minNetworkDepositString = this.safeString(chain, 'depositMinSize');
-                if (minNetworkDepositString !== undefined) {
-                    minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
-                }
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': depositAllowed && withdrawAllowed,
-                    'deposit': depositAllowed,
-                    'withdraw': withdrawAllowed,
-                    'fee': this.parseNumber(withdrawFeeString),
-                    'precision': precision,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.parseNumber(minNetworkWithdrawString),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.parseNumber(minNetworkDepositString),
-                            'max': undefined,
-                        },
-                    },
-                };
+        return this.parseCurrencies(rows);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        const name = this.safeString(rawCurrency, 'name');
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision')));
+        const chains = this.safeList(rawCurrency, 'chains', []);
+        const networks = {};
+        let minWithdrawFeeString = undefined;
+        let minWithdrawString = undefined;
+        let minDepositString = undefined;
+        let deposit = false;
+        let withdraw = false;
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'chainId');
+            const networkCode = this.networkIdToCode(networkId, code);
+            const depositAllowed = this.safeBool(chain, 'isDepositEnabled') === true;
+            deposit = (depositAllowed) ? depositAllowed : deposit;
+            const withdrawAllowed = this.safeBool(chain, 'isWithdrawEnabled') === true;
+            withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
+            const withdrawFeeString = this.safeString(chain, 'withdrawalFee');
+            if (withdrawFeeString !== undefined) {
+                minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
             }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': name,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': this.parseNumber(minWithdrawFeeString),
+            const minNetworkWithdrawString = this.safeString(chain, 'withdrawalMinSize');
+            if (minNetworkWithdrawString !== undefined) {
+                minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
+            }
+            const minNetworkDepositString = this.safeString(chain, 'depositMinSize');
+            if (minNetworkDepositString !== undefined) {
+                minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
+            }
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
+                'active': depositAllowed && withdrawAllowed,
+                'deposit': depositAllowed,
+                'withdraw': withdrawAllowed,
+                'fee': this.parseNumber(withdrawFeeString),
                 'precision': precision,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': this.parseNumber(minWithdrawString),
+                        'min': this.parseNumber(minNetworkWithdrawString),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.parseNumber(minDepositString),
+                        'min': this.parseNumber(minNetworkDepositString),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': name,
+            'active': deposit && withdraw,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': this.parseNumber(minWithdrawFeeString),
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.parseNumber(minWithdrawString),
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': this.parseNumber(minDepositString),
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -512,7 +510,7 @@ export default class zebpay extends Exchange {
     }
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -560,7 +558,7 @@ export default class zebpay extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1269,7 +1267,7 @@ export default class zebpay extends Exchange {
         //         }
         //     }
         //
-        const responseData = this.safeDict(response, 'data');
+        const responseData = this.safeDict(response, 'data', {});
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {
@@ -1391,7 +1389,7 @@ export default class zebpay extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id'].toUpperCase(),
+            'symbol': this.safeStringUpper(market, 'id'),
         };
         const response = await this.privateSwapGetV1TradeUserLeverage(this.extend(request, params));
         //
@@ -1463,7 +1461,7 @@ export default class zebpay extends Exchange {
     }
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -1507,7 +1505,7 @@ export default class zebpay extends Exchange {
     }
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.
@@ -1792,11 +1790,11 @@ export default class zebpay extends Exchange {
         //        }
         //     ]
         //
-        const timestamp = this.safeInteger2(ticker, 'timestamp', 'ts', undefined);
+        const timestamp = this.safeInteger2(ticker, 'timestamp', 'ts');
         const marketId = this.safeString(ticker, 'symbol');
         market = this.safeMarket(marketId);
-        const close = this.safeString(ticker, 'close', undefined);
-        const last = this.safeString(ticker, 'last', undefined);
+        const close = this.safeString(ticker, 'close');
+        const last = this.safeString(ticker, 'last');
         const percentage = this.safeString(ticker, 'percentage');
         const bidVolume = this.safeString(ticker, 'bidVolume');
         const askVolume = this.safeString(ticker, 'askVolume');
@@ -1838,7 +1836,7 @@ export default class zebpay extends Exchange {
         const timestamp = this.milliseconds();
         return {
             'info': info,
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
             'type': undefined,
             'marginMode': undefined,
             'amount': this.safeNumber(info, 'amount'),

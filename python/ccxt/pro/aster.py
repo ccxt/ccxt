@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -86,25 +86,27 @@ class aster(ccxt.async_support.aster):
             'exceptions': {},
         })
 
-    def get_account_type_from_subscriptions(self, subscriptions: List[str]) -> str:
-        accountType = ''
-        for i in range(0, len(subscriptions)):
-            subscription = subscriptions[i]
-            if (subscription == 'spot') or (subscription == 'swap'):
-                accountType = subscription
-                break
-        return accountType
+    def get_account_type_from_url(self, url: str) -> str:
+        if url.find('fstream') > -1:
+            return 'swap'
+        return 'spot'
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#simplified-ticker-by-symbol
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#full-ticker-per-symbol
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-mini-ticker-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-ticker-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         params['callerMethodName'] = 'watchTicker'
         await self.load_markets()
@@ -116,12 +118,18 @@ class aster(ccxt.async_support.aster):
         """
         unWatches a price ticker
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#simplified-ticker-by-symbol
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#full-ticker-per-symbol
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-mini-ticker-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-ticker-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         params['callerMethodName'] = 'unWatchTicker'
         return await self.un_watch_tickers([symbol], params)
@@ -130,12 +138,14 @@ class aster(ccxt.async_support.aster):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
@@ -150,7 +160,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -159,9 +169,9 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@ticker')
             messageHashes.append('ticker:' + market['symbol'])
-        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -170,12 +180,14 @@ class aster(ccxt.async_support.aster):
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
@@ -190,7 +202,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -199,18 +211,19 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@ticker')
             messageHashes.append('unsubscribe:ticker:' + market['symbol'])
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
         """
         watches a mark price for a specific market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         params['callerMethodName'] = 'watchMarkPrice'
         await self.load_markets()
@@ -222,12 +235,13 @@ class aster(ccxt.async_support.aster):
         """
         unWatches a mark price for a specific market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         params['callerMethodName'] = 'unWatchMarkPrice'
         return await self.un_watch_mark_prices([symbol], params)
@@ -236,12 +250,13 @@ class aster(ccxt.async_support.aster):
         """
         watches the mark price for all markets
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
@@ -256,7 +271,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -267,7 +282,7 @@ class aster(ccxt.async_support.aster):
             suffix = '@1s' if (use1sFreq) else ''
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('ticker:' + market['symbol'])
-        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             result = {}
             result[newTicker['symbol']] = newTicker
@@ -278,12 +293,13 @@ class aster(ccxt.async_support.aster):
         """
         watches the mark price for all markets
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
@@ -298,7 +314,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -309,13 +325,11 @@ class aster(ccxt.async_support.aster):
             suffix = '@1s' if (use1sFreq) else ''
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('unsubscribe:ticker:' + market['symbol'])
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         "stream": "trumpusdt@ticker",
-        #         "data": {
         #             "e": "24hrTicker",
         #             "E": 1754451187277,
         #             "s": "CAKEUSDT",
@@ -334,11 +348,8 @@ class aster(ccxt.async_support.aster):
         #             "F": 6571389,
         #             "L": 6574507,
         #             "n": 3119
-        #         }
         #     }
         #     {
-        #         "stream": "btcusdt@markPrice",
-        #         "data": {
         #             "e": "markPriceUpdate",
         #             "E": 1754660466000,
         #             "s": "BTCUSDT",
@@ -347,13 +358,10 @@ class aster(ccxt.async_support.aster):
         #             "i": "116836.93534884",
         #             "r": "0.00010000",
         #             "T": 1754668800000
-        #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
-        ticker = self.safe_dict(message, 'data')
+        marketType = self.get_account_type_from_url(client.url)
+        ticker = message
         parsed = self.parse_ws_ticker(ticker, marketType)
         symbol = parsed['symbol']
         messageHash = 'ticker:' + symbol
@@ -362,13 +370,11 @@ class aster(ccxt.async_support.aster):
 
     def parse_ws_ticker(self, message, marketType):
         event = self.safe_string(message, 'e')
-        part = event.split('@')
-        channel = self.safe_string(part, 1)
         marketId = self.safe_string(message, 's')
         timestamp = self.safe_integer(message, 'E')
         market = self.safe_market(marketId, None, None, marketType)
         last = self.safe_string(message, 'c')
-        if channel == 'markPriceUpdate':
+        if event == 'markPriceUpdate':
             return self.safe_ticker({
                 'symbol': market['symbol'],
                 'timestamp': timestamp,
@@ -404,12 +410,14 @@ class aster(ccxt.async_support.aster):
         """
         watches best bid & ask for symbols
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-symbol
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-book-ticker-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#best-order-book-information-by-symbol
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#best-order-book-information-across-the-entire-market
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-book-ticker-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-book-tickers-stream
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
@@ -421,7 +429,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -430,7 +438,7 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@bookTicker')
             messageHashes.append('bidask:' + market['symbol'])
-        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             result = {}
             result[newTicker['symbol']] = newTicker
@@ -441,12 +449,14 @@ class aster(ccxt.async_support.aster):
         """
         unWatches best bid & ask for symbols
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-symbol
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-book-ticker-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#best-order-book-information-by-symbol
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#best-order-book-information-across-the-entire-market
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-book-ticker-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-book-tickers-stream
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
@@ -458,7 +468,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -467,13 +477,11 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@bookTicker')
             messageHashes.append('unsubscribe:bidask:' + market['symbol'])
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_bid_ask(self, client: Client, message):
         #
         #     {
-        #         "stream": "btcusdt@bookTicker",
-        #         "data": {
         #             "e": "bookTicker",
         #             "u": 157240846459,
         #             "s": "BTCUSDT",
@@ -483,13 +491,10 @@ class aster(ccxt.async_support.aster):
         #             "A": "0.001",
         #             "T": 1754896692922,
         #             "E": 1754896692926
-        #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
-        data = self.safe_dict(message, 'data', {})
+        marketType = self.get_account_type_from_url(client.url)
+        data = message
         marketId = self.safe_string(data, 's')
         market = self.safe_market(marketId, None, None, marketType)
         ticker = self.parse_ws_bid_ask(data, market)
@@ -498,7 +503,7 @@ class aster(ccxt.async_support.aster):
         messageHash = 'bidask:' + symbol
         client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, message, market=None):
+    def parse_ws_bid_ask(self, message, market: Market = None):
         timestamp = self.safe_integer(message, 'T')
         return self.safe_ticker({
             'symbol': market['symbol'],
@@ -515,14 +520,15 @@ class aster(ccxt.async_support.aster):
         """
         watches information on multiple trades made in a market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
 
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         params['callerMethodName'] = 'watchTrades'
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
@@ -531,12 +537,13 @@ class aster(ccxt.async_support.aster):
         """
         unsubscribe from the trades channel
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
 
         :param str symbol: unified market symbol of the market trades were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         params['callerMethodName'] = 'unWatchTrades'
         return await self.un_watch_trades_for_symbols([symbol], params)
@@ -545,14 +552,15 @@ class aster(ccxt.async_support.aster):
         """
         get the list of most recent trades for a list of symbols
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
 
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
@@ -567,16 +575,18 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
+            'id': 1,
         }
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@aggTrade')
-            messageHashes.append('trade:' + market['symbol'])
-        trades = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+            marketId = self.safe_string_lower(market, 'id')
+            subscriptionArgs.append(marketId + '@aggTrade')
+            messageHashes.append('trade::' + market['symbol'])
+        trades = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
@@ -592,7 +602,7 @@ class aster(ccxt.async_support.aster):
 
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
@@ -607,7 +617,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -616,60 +626,39 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@aggTrade')
             messageHashes.append('unsubscribe:trade:' + market['symbol'])
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_trade(self, client: Client, message):
         #
         #     {
-        #         "stream": "btcusdt@aggTrade",
-        #         "data": {
-        #             "e": "aggTrade",
-        #             "E": 1754551358681,
-        #             "a": 20505890,
-        #             "s": "BTCUSDT",
-        #             "p": "114783.7",
-        #             "q": "0.020",
-        #             "f": 26024678,
-        #             "l": 26024682,
-        #             "T": 1754551358528,
-        #             "m": False
-        #         }
+        #         "e": "aggTrade",
+        #         "E": 1754551358681,
+        #         "a": 20505890,
+        #         "s": "BTCUSDT",
+        #         "p": "114783.7",
+        #         "q": "0.020",
+        #         "f": 26024678,
+        #         "l": 26024682,
+        #         "T": 1754551358528,
+        #         "m": False
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
-        trade = self.safe_dict(message, 'data')
+        marketType = self.get_account_type_from_url(client.url)
+        trade = message
         marketId = self.safe_string(trade, 's')
         market = self.safe_market(marketId, None, None, marketType)
         parsed = self.parse_ws_trade(trade, market)
         symbol = parsed['symbol']
-        stored = self.safe_value(self.trades, symbol)
-        if stored is None:
+        if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            stored = ArrayCache(limit)
-            self.trades[symbol] = stored
+            self.trades[symbol] = ArrayCache(limit)
+        stored = self.trades[symbol]
         stored.append(parsed)
-        messageHash = 'trade' + ':' + symbol
-        client.resolve(stored, messageHash)
+        client.resolve(stored, 'trade::' + symbol)
 
-    def parse_ws_trade(self, trade, market=None) -> Trade:
+    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
         #
-        # public watchTrades
-        #
-        #     {
-        #         "e": "trade",       # event type
-        #         "E": 1579481530911,  # event time
-        #         "s": "ETHBTC",      # symbol
-        #         "t": 158410082,     # trade id
-        #         "p": "0.01914100",  # price
-        #         "q": "0.00700000",  # quantity
-        #         "b": 586187049,     # buyer order id
-        #         "a": 586186710,     # seller order id
-        #         "T": 1579481530910,  # trade time
-        #         "m": False,         # is the buyer the market maker
-        #         "M": True           # binance docs say it should be ignored
-        #     }
+        # public watchTrades(spot)
         #
         #     {
         #        "e": "aggTrade",  # Event type
@@ -813,13 +802,15 @@ class aster(ccxt.async_support.aster):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         params['callerMethodName'] = 'watchOrderBook'
         return await self.watch_order_book_for_symbols([symbol], limit, params)
@@ -828,13 +819,15 @@ class aster(ccxt.async_support.aster):
         """
         unsubscribe from the orderbook channel
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
 
         :param str symbol: symbol of the market to unwatch the trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         params['callerMethodName'] = 'unWatchOrderBook'
         return await self.un_watch_order_book_for_symbols([symbol], params)
@@ -843,13 +836,15 @@ class aster(ccxt.async_support.aster):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
 
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
@@ -864,7 +859,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -875,20 +870,22 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@depth' + str(limit))
             messageHashes.append('orderbook:' + market['symbol'])
-        orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         return orderbook.limit()
 
     async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
         unsubscribe from the orderbook channel
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
 
         :param str[] symbols: unified symbol of the market to unwatch the trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
@@ -903,7 +900,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -916,13 +913,11 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@depth' + limit)
             messageHashes.append('unsubscribe:orderbook:' + market['symbol'])
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_order_book(self, client: Client, message):
         #
         #     {
-        #         "stream": "btcusdt@depth20",
-        #         "data": {
         #             "e": "depthUpdate",
         #             "E": 1754556878284,
         #             "T": 1754556878031,
@@ -942,13 +937,10 @@ class aster(ccxt.async_support.aster):
         #                     "1.060"
         #                 ]
         #             ]
-        #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
-        data = self.safe_dict(message, 'data')
+        marketType = self.get_account_type_from_url(client.url)
+        data = message
         marketId = self.safe_string(data, 's')
         timestamp = self.safe_integer(data, 'T')
         market = self.safe_market(marketId, None, None, marketType)
@@ -966,8 +958,8 @@ class aster(ccxt.async_support.aster):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -986,8 +978,8 @@ class aster(ccxt.async_support.aster):
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1001,8 +993,8 @@ class aster(ccxt.async_support.aster):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1024,7 +1016,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -1037,7 +1029,7 @@ class aster(ccxt.async_support.aster):
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@kline_' + timeframeId)
             messageHashes.append('ohlcv:' + market['symbol'] + ':' + unfiedTimeframe)
-        symbol, timeframe, stored = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        symbol, timeframe, stored = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             limit = stored.getLimit(symbol, limit)
         filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
@@ -1047,8 +1039,8 @@ class aster(ccxt.async_support.aster):
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+        https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1068,7 +1060,7 @@ class aster(ccxt.async_support.aster):
         url = self.urls['api']['ws']['public'][type]
         subscriptionArgs = []
         messageHashes = []
-        request: dict = {
+        request = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         }
@@ -1081,13 +1073,11 @@ class aster(ccxt.async_support.aster):
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@kline_' + timeframeId)
             messageHashes.append('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe)
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
-        #         "stream": "btcusdt@kline_1m",
-        #         "data": {
         #             "e": "kline",
         #             "E": 1754655777119,
         #             "s": "BTCUSDT",
@@ -1110,13 +1100,10 @@ class aster(ccxt.async_support.aster):
         #                 "Q": "0.0000",
         #                 "B": "0"
         #             }
-        #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
-        data = self.safe_dict(message, 'data')
+        marketType = self.get_account_type_from_url(client.url)
+        data = message
         marketId = self.safe_string(data, 's')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
@@ -1136,7 +1123,7 @@ class aster(ccxt.async_support.aster):
         resolveData = [symbol, timeframe, stored]
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),
@@ -1155,9 +1142,9 @@ class aster(ccxt.async_support.aster):
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
             response = None
             if type == 'spot':
-                response = await self.sapiPrivatePostV1ListenKey(params)
+                response = await self.sapiPrivatePostV3ListenKey(params)
             else:
-                response = await self.fapiPrivatePostV1ListenKey(params)
+                response = await self.fapiPrivatePostV3ListenKey(params)
             self.options['listenKey'][type] = self.safe_string(response, 'listenKey')
             self.options['lastAuthenticatedTime'][type] = time
             params = self.extend({'type': type}, params)
@@ -1170,7 +1157,10 @@ class aster(ccxt.async_support.aster):
         if listenKey is None:
             return
         try:
-            await self.sapiPrivatePutV1ListenKey()  # self.extend the expiry
+            if type == 'spot':
+                await self.sapiPrivatePutV3ListenKey()  # self.extend the expiry
+            else:
+                await self.fapiPrivatePutV3ListenKey()  # self.extend the expiry
         except Exception as error:
             url = self.urls['api']['ws']['private'][type] + '/' + listenKey
             client = self.client(url)
@@ -1196,8 +1186,8 @@ class aster(ccxt.async_support.aster):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-account_update
+        https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-balance-and-position-update
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap', default is 'spot'
@@ -1233,7 +1223,7 @@ class aster(ccxt.async_support.aster):
             self.balance[type] = {}
 
     async def load_balance_snapshot(self, client, messageHash, type):
-        params: dict = {
+        params = {
             'type': type,
         }
         response = await self.fetch_balance(params)
@@ -1298,9 +1288,7 @@ class aster(ccxt.async_support.aster):
         #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        accountType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        accountType = self.get_account_type_from_url(client.url)
         messageHash = accountType + ':balance'
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
@@ -1327,7 +1315,7 @@ class aster(ccxt.async_support.aster):
         """
         watch all open positions
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+        https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-balance-and-position-update
 
         :param str[]|None symbols: list of unified market symbols
         :param number [since]: since timestamp
@@ -1444,7 +1432,7 @@ class aster(ccxt.async_support.aster):
                 client.resolve(position, symbolMessageHash)
             client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         #
         #     {
         #         "s": "BTCUSDT",  # Symbol
@@ -1499,8 +1487,8 @@ class aster(ccxt.async_support.aster):
         """
         watches information on multiple orders made by the user
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-order-update
+        https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-order-update
 
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1532,8 +1520,8 @@ class aster(ccxt.async_support.aster):
         """
         watches information on multiple trades made by the user
 
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
-        https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+        https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-order-update
+        https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-order-update
 
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1717,7 +1705,7 @@ class aster(ccxt.async_support.aster):
             client.resolve(cache, symbolMessageHash)
             client.resolve(cache, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         executionType = self.safe_string(order, 'x')
         marketId = self.safe_string(order, 's')
         market = self.safe_market(marketId, market)
@@ -1778,38 +1766,28 @@ class aster(ccxt.async_support.aster):
 
     def get_market_from_order(self, client: Client, order):
         marketId = self.safe_string(order, 's')
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        marketType = self.get_account_type_from_url(client.url)
         return self.safe_market(marketId, None, None, marketType)
 
+    def handle_balance_and_position(self, client: Client, message):
+        self.handle_balance(client, message)
+        self.handle_positions(client, message)
+
     def handle_message(self, client: Client, message):
-        stream = self.safe_string(message, 'stream')
-        if stream is not None:
-            part = stream.split('@')
-            topic = self.safe_string(part, 1, '')
-            part2 = topic.split('_')
-            topic = self.safe_string(part2, 0, '')
-            methods: dict = {
-                'ticker': self.handle_ticker,
-                'aggTrade': self.handle_trade,
-                'depth5': self.handle_order_book,
-                'depth10': self.handle_order_book,
-                'depth20': self.handle_order_book,
-                'kline': self.handle_ohlcv,
-                'markPrice': self.handle_ticker,
-                'bookTicker': self.handle_bid_ask,
-            }
-            method = self.safe_value(methods, topic)
-            if method is not None:
-                method(client, message)
-        else:
-            # private messages
-            event = self.safe_string(message, 'e')
-            if event == 'outboundAccountPosition':
-                self.handle_balance(client, message)
-            elif event == 'ACCOUNT_UPDATE':
-                self.handle_balance(client, message)
-                self.handle_positions(client, message)
-            elif (event == 'ORDER_TRADE_UPDATE') or (event == 'executionReport'):
-                self.handle_order_update(client, message)
+        messageInner = self.safe_dict(message, 'data', message)  # can be either wrapped in 'data' or full object itself
+        event = self.safe_string(messageInner, 'e')
+        methods = {
+            '24hrTicker': self.handle_ticker,
+            'aggTrade': self.handle_trade,
+            'depthUpdate': self.handle_order_book,
+            'kline': self.handle_ohlcv,
+            'markPriceUpdate': self.handle_ticker,
+            'bookTicker': self.handle_bid_ask,
+            'outboundAccountPosition': self.handle_balance,
+            'ACCOUNT_UPDATE': self.handle_balance_and_position,
+            'executionReport': self.handle_order_update,
+            'ORDER_TRADE_UPDATE': self.handle_order_update,
+        }
+        method = self.safe_value(methods, event)
+        if method is not None:
+            method(client, messageInner)

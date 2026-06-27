@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/toobit.js';
 import { OperationFailed, ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol, NotSupported, PermissionDenied, RateLimitExceeded, OperationRejected, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class toobit
@@ -20,9 +20,9 @@ export default class toobit extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'toobit',
             'name': 'Toobit',
-            'countries': ['KY'],
+            'countries': ['KY'], // Cayman Islands
             'version': 'v1',
-            'rateLimit': 20,
+            'rateLimit': 20, // 50 requests per second
             'certified': false,
             'pro': true,
             'has': {
@@ -84,7 +84,7 @@ export default class toobit extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e',
+                'logo': 'https://github.com/user-attachments/assets/58e1b718-c6fd-49e2-8a49-797da6b9c008',
                 'api': {
                     'common': 'https://api.toobit.com',
                     'private': 'https://api.toobit.com',
@@ -106,7 +106,7 @@ export default class toobit extends Exchange {
                         'api/v1/time': 1,
                         'api/v1/ping': 1,
                         'api/v1/exchangeInfo': 1,
-                        'quote/v1/depth': 1,
+                        'quote/v1/depth': 1, // todo: by limit 1-10
                         'quote/v1/depth/merged': 1,
                         'quote/v1/trades': 1,
                         'quote/v1/klines': 1,
@@ -114,8 +114,8 @@ export default class toobit extends Exchange {
                         'quote/v1/markPrice/klines': 1,
                         'quote/v1/markPrice': 1,
                         'quote/v1/index': 1,
-                        'quote/v1/ticker/24hr': 40,
-                        'quote/v1/contract/ticker/24hr': 40,
+                        'quote/v1/ticker/24hr': 40, // todo: 1-40 depenidng noSymbol
+                        'quote/v1/contract/ticker/24hr': 40, // todo: 1-40 depenidng noSymbol
                         'quote/v1/ticker/price': 1,
                         'quote/v1/ticker/bookTicker': 1,
                         'api/v1/futures/fundingRate': 1,
@@ -196,94 +196,94 @@ export default class toobit extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '-1000': OperationFailed,
-                    '-1001': OperationFailed,
-                    '-1002': PermissionDenied,
-                    '-1003': RateLimitExceeded,
-                    '-1004': BadRequest,
-                    '-1006': OperationFailed,
-                    '-1007': OperationFailed,
-                    '-1014': OperationFailed,
-                    '-1015': RateLimitExceeded,
-                    '-1016': OperationRejected,
-                    '-1020': OperationRejected,
-                    '-1021': OperationRejected,
-                    '-1022': OperationRejected,
-                    '-1100': BadRequest,
-                    '-1101': BadRequest,
-                    '-1102': BadRequest,
-                    '-1103': BadRequest,
-                    '-1104': BadRequest,
-                    '-1105': BadRequest,
-                    '-1106': BadRequest,
-                    '-1111': BadRequest,
-                    '-1112': OperationRejected,
-                    '-1114': BadRequest,
-                    '-1115': BadRequest,
-                    '-1116': BadRequest,
-                    '-1117': BadRequest,
-                    '-1118': InvalidOrder,
-                    '-1119': InvalidOrder,
-                    '-1120': BadRequest,
-                    '-1121': BadRequest,
-                    '-1125': OperationRejected,
-                    '-1127': OperationRejected,
-                    '-1128': BadRequest,
-                    '-1130': BadRequest,
-                    '-1132': OperationRejected,
-                    '-1133': OperationRejected,
-                    '-1134': OperationRejected,
-                    '-1135': OperationRejected,
-                    '-1136': OperationRejected,
-                    '-1137': OperationRejected,
-                    '-1138': OperationRejected,
-                    '-1139': OperationRejected,
-                    '-1140': OperationRejected,
-                    '-1141': InvalidOrder,
-                    '-1142': InvalidOrder,
-                    '-1143': InvalidOrder,
-                    '-1144': OperationRejected,
-                    '-1145': OperationRejected,
-                    '-1146': OperationFailed,
-                    '-1147': OperationFailed,
-                    '-1193': OperationRejected,
-                    '-1194': OperationRejected,
-                    '-1195': OperationRejected,
-                    '-1196': OperationRejected,
-                    '-1197': OperationRejected,
-                    '-1198': OperationRejected,
-                    '-1199': OperationRejected,
-                    '-1200': OperationRejected,
-                    '-1201': OperationRejected,
-                    '-1202': OperationRejected,
-                    '-1203': OperationRejected,
-                    '-1206': OperationRejected,
-                    '-2010': OperationFailed,
-                    '-2011': OperationFailed,
-                    '-2013': InvalidOrder,
-                    '-2014': PermissionDenied,
-                    '-2015': PermissionDenied,
-                    '-2016': BadRequest,
+                    '-1000': OperationFailed, // An unknown error occurred while processing the request.
+                    '-1001': OperationFailed, // Internal error; unable to process your request. Please try again.
+                    '-1002': PermissionDenied, // You are not authorized to execute this request.
+                    '-1003': RateLimitExceeded, // TOO_MANY_REQUESTS
+                    '-1004': BadRequest, // {"code":-1004,"msg":"Missing required parameter \u0027xyz\u0027"} | {"code":-1004,"msg":"Bad request"}
+                    '-1006': OperationFailed, // An unexpected response was received from the message bus. Execution status unknown
+                    '-1007': OperationFailed, // Timeout waiting for response from backend server. Send status unknown; execution status unknown.
+                    '-1014': OperationFailed, // Unsupported order combination.
+                    '-1015': RateLimitExceeded, // Too many new orders
+                    '-1016': OperationRejected, // This service is no longer available.
+                    '-1020': OperationRejected, // This operation is not supported.
+                    '-1021': OperationRejected, // Timestamp for this request is outside of the recvWindow.
+                    '-1022': OperationRejected, // Signature for this request is not valid.
+                    '-1100': BadRequest, // Illegal characters found in a parameter.
+                    '-1101': BadRequest, // Too many parameters sent for this endpoint.
+                    '-1102': BadRequest, // A mandatory parameter was not sent, was empty/null, or malformed
+                    '-1103': BadRequest, // An unknown parameter was sent
+                    '-1104': BadRequest, // Not all sent parameters were read
+                    '-1105': BadRequest, // A parameter was empty
+                    '-1106': BadRequest, // A parameter was sent when not required
+                    '-1111': BadRequest, // Precision is over the maximum defined for this asset.
+                    '-1112': OperationRejected, // No orders on book for symbol.
+                    '-1114': BadRequest, // TimeInForce parameter sent when not required.
+                    '-1115': BadRequest, // Invalid timeInForce
+                    '-1116': BadRequest, // Invalid orderType
+                    '-1117': BadRequest, // Invalid side
+                    '-1118': InvalidOrder, // New client order ID was empty.
+                    '-1119': InvalidOrder, // Original client order ID was empty
+                    '-1120': BadRequest, // Invalid interval
+                    '-1121': BadRequest, // Invalid symbol
+                    '-1125': OperationRejected, // This listenKey does not exist.
+                    '-1127': OperationRejected, // Lookup interval is too big
+                    '-1128': BadRequest, // Combination of optional parameters invalid
+                    '-1130': BadRequest, // Invalid data sent for a parameter
+                    '-1132': OperationRejected, // Order price too high
+                    '-1133': OperationRejected, // Order price lower than the minimum,please check general broker info
+                    '-1134': OperationRejected, // Order price decimal too long,please check general broker info
+                    '-1135': OperationRejected, // Order quantity too large
+                    '-1136': OperationRejected, // Order quantity lower than the minimum
+                    '-1137': OperationRejected, // Order quantity decimal too long
+                    '-1138': OperationRejected, // Order price exceeds permissible range
+                    '-1139': OperationRejected, // Order has been filled
+                    '-1140': OperationRejected, // Transaction amount lower than the minimum
+                    '-1141': InvalidOrder, // Duplicate clientOrderId
+                    '-1142': InvalidOrder, // Order has been canceled
+                    '-1143': InvalidOrder, // Cannot be found on order book
+                    '-1144': OperationRejected, // Order has been locked
+                    '-1145': OperationRejected, // This order type does not support cancellation
+                    '-1146': OperationFailed, // Order creation timeout
+                    '-1147': OperationFailed, // Order cancellation timeout
+                    '-1193': OperationRejected, // Create order count limit
+                    '-1194': OperationRejected, // Create market order forbidden
+                    '-1195': OperationRejected, // Create limit order price too small
+                    '-1196': OperationRejected, // Create limit order price too big
+                    '-1197': OperationRejected, // Create limit order buy price too big
+                    '-1198': OperationRejected, // Create limit order sell price too small
+                    '-1199': OperationRejected, // Create order buy quantity too small
+                    '-1200': OperationRejected, // Create order buy quantity too big
+                    '-1201': OperationRejected, // Create limit order sell price too big
+                    '-1202': OperationRejected, // Create order sell quantity too small
+                    '-1203': OperationRejected, // Create order sell quantity too big
+                    '-1206': OperationRejected, // Orders over the maximum transaction amount
+                    '-2010': OperationFailed, // NEW_ORDER_REJECTED
+                    '-2011': OperationFailed, // CANCEL_REJECTED
+                    '-2013': InvalidOrder, // Order does not exist.
+                    '-2014': PermissionDenied, // API-key format invalid.
+                    '-2015': PermissionDenied, // Invalid API-key, IP, or permissions for action.
+                    '-2016': BadRequest, // No trading window could be found for the symbol. Try ticker/24hrs instead.
                     // errors above 3xxx are from swap API
-                    '-3050': ExchangeError,
-                    '-3101': OperationRejected,
-                    '-3102': OperationRejected,
-                    '-3103': BadRequest,
-                    '-3105': OperationRejected,
-                    '-3107': OperationRejected,
-                    '-3108': OperationRejected,
-                    '-3109': OperationRejected,
-                    '-3110': InsufficientFunds,
-                    '-3116': OperationRejected,
-                    '-3117': OperationRejected,
-                    '-3120': OperationRejected,
-                    '-3124': OperationRejected,
-                    '-3125': OperationRejected,
-                    '-3126': OperationRejected,
-                    '-3127': OperationFailed,
-                    '-3128': OperationRejected,
-                    '-3129': BadRequest,
-                    '-3130': OperationRejected,
+                    '-3050': ExchangeError, // CREATE_API_KEY_EXCEED_LIMIT
+                    '-3101': OperationRejected, // open margin account error
+                    '-3102': OperationRejected, // get margin safety error
+                    '-3103': BadRequest, // risk config is not exit
+                    '-3105': OperationRejected, // token can not borrow
+                    '-3107': OperationRejected, // token can not withdraw
+                    '-3108': OperationRejected, // get token avail withdraw error
+                    '-3109': OperationRejected, // margin withdraw failed
+                    '-3110': InsufficientFunds, // margin avail withdraw not enough failed
+                    '-3116': OperationRejected, // repay fail
+                    '-3117': OperationRejected, // get margin all position fail
+                    '-3120': OperationRejected, // get repay order fail
+                    '-3124': OperationRejected, // Position and order data error
+                    '-3125': OperationRejected, // Position size cannot meet target leverage
+                    '-3126': OperationRejected, // Adjust leverage fail
+                    '-3127': OperationFailed, // Adjust leverage timeout
+                    '-3128': OperationRejected, // The margin mode cannot be changed while you have an open order/position
+                    '-3129': BadRequest, // cone futures change position type error
+                    '-3130': OperationRejected, // order margin insufficient
                     '-3131': NotSupported, // Leverage reduction is not supported in Isolated Margin Mode with open positions.
                 },
                 'broad': {
@@ -609,11 +609,11 @@ export default class toobit extends Exchange {
         const id = this.safeString(rawCurrency, 'coinId');
         const code = this.safeCurrencyCode(id);
         const networks = {};
-        const rawNetworks = this.safeList(rawCurrency, 'chainTypes');
+        const rawNetworks = this.safeList(rawCurrency, 'chainTypes', []);
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString(rawNetwork, 'chainType');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -898,7 +898,7 @@ export default class toobit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2519,7 +2519,7 @@ export default class toobit extends Exchange {
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchDepositsOrWithdrawalsHelper('withdrawals', code, since, limit, params);
     }
-    async fetchDepositsOrWithdrawalsHelper(type, code, since, limit, params) {
+    async fetchDepositsOrWithdrawalsHelper(type, code, since, limit, params = {}) {
         await this.loadMarkets();
         let currency = undefined;
         let request = {};
@@ -2701,7 +2701,7 @@ export default class toobit extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchDepositAddress() : param["network"] is required');
         }
-        request['chainType'] = this.networkCodeToId(networkCode);
+        request['chainType'] = this.networkCodeToId(networkCode, code);
         const response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted));
         //
         //     {

@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var upbit$1 = require('../upbit.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var rsa = require('../base/functions/rsa.js');
 var errors = require('../base/errors.js');
 
@@ -148,7 +148,7 @@ class upbit extends upbit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const orderbook = await this.watchPublicMultiple([symbol], 'orderbook');
@@ -328,7 +328,7 @@ class upbit extends upbit$1["default"] {
                 'access_key': this.apiKey,
                 'nonce': this.uuid(),
             };
-            const token = rsa.jwt(auth, this.encode(this.secret), sha256.sha256, false);
+            const token = rsa.jwt(auth, this.encode(this.secret), sha2_js.sha256, false);
             wsOptions['token'] = token;
             wsOptions['options'] = {
                 'headers': {
@@ -438,7 +438,7 @@ class upbit extends upbit$1["default"] {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
-            'watch': 'open',
+            'watch': 'open', // not sure what this status means
             'trade': 'open',
         };
         return this.safeString(statuses, status, status);

@@ -10,12 +10,11 @@ use ccxt\async\abstract\coinmetro as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 
 class coinmetro extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinmetro',
@@ -325,7 +324,7 @@ class coinmetro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -335,7 +334,7 @@ class coinmetro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicGetAssets ($params));
+            $response = Async\await($this->publicGetAssets($params));
             //
             //     array(
             //         array(
@@ -378,62 +377,60 @@ class coinmetro extends Exchange {
             //         ...
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $id = $this->safe_string($currency, 'symbol');
-                $code = $this->safe_currency_code($id);
-                $typeRaw = $this->safe_string($currency, 'type');
-                $type = null;
-                if ($typeRaw === 'coin' || $typeRaw === 'token' || $typeRaw === 'erc20' || $typeRaw === 'crypto') {
-                    $type = 'crypto';
-                } elseif ($typeRaw === 'fiat') {
-                    $type = 'fiat';
-                }
-                $precisionDigits = $this->safe_string_2($currency, 'digits', 'notabeneDecimals');
-                if ($code === 'RENDER') {
-                    // RENDER is an exception (with broken info)
-                    $precisionDigits = '4';
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'name' => $code,
-                    'type' => $type,
-                    'info' => $currency,
-                    'active' => $this->safe_bool($currency, 'canTrade'),
-                    'deposit' => $this->safe_bool($currency, 'canDeposit'),
-                    'withdraw' => $this->safe_bool($currency, 'canWithdraw'),
-                    'fee' => null,
-                    'precision' => $this->parse_number($this->parse_precision($precisionDigits)),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $this->safe_number($currency, 'minQty'),
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => array(),
-                ));
+            $result = $this->parse_currencies($response);
+            $currenciesById = $this->index_by($result, 'id');
+            $this->options['currenciesByIdForParseMarket'] = $currenciesById;
+            $currentCurrencyIdsList = $this->safe_list($this->options, 'currencyIdsListForParseMarket', array());
+            $currencyIdsList = is_array($currenciesById) ? array_keys($currenciesById) : array();
+            for ($i = 0; $i < count($currencyIdsList); $i++) {
+                $currentCurrencyIdsList[] = $currencyIdsList[$i];
             }
-            if ($this->safe_value($this->options, 'currenciesByIdForParseMarket') === null) {
-                $currenciesById = $this->index_by($result, 'id');
-                $this->options['currenciesByIdForParseMarket'] = $currenciesById;
-                $currentCurrencyIdsList = $this->safe_list($this->options, 'currencyIdsListForParseMarket', array());
-                $currencyIdsList = is_array($currenciesById) ? array_keys($currenciesById) : array();
-                for ($i = 0; $i < count($currencyIdsList); $i++) {
-                    $currentCurrencyIdsList[] = $currencyIdsList[$i];
-                }
-                $this->options['currencyIdsListForParseMarket'] = $currentCurrencyIdsList;
-            }
+            $this->options['currencyIdsListForParseMarket'] = $currentCurrencyIdsList;
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $typeRaw = $this->safe_string($rawCurrency, 'type');
+        $type = null;
+        if ($typeRaw === 'coin' || $typeRaw === 'token' || $typeRaw === 'erc20' || $typeRaw === 'crypto') {
+            $type = 'crypto';
+        } elseif ($typeRaw === 'fiat') {
+            $type = 'fiat';
+        }
+        $precisionDigits = $this->safe_string_2($rawCurrency, 'digits', 'notabeneDecimals');
+        if ($code === 'RENDER') {
+            // RENDER is an exception (with broken info)
+            $precisionDigits = '4';
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'name' => $code,
+            'type' => $type,
+            'info' => $rawCurrency,
+            'active' => $this->safe_bool($rawCurrency, 'canTrade'),
+            'deposit' => $this->safe_bool($rawCurrency, 'canDeposit'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'canWithdraw'),
+            'fee' => null,
+            'precision' => $this->parse_number($this->parse_precision($precisionDigits)),
+            'limits' => array(
+                'amount' => array(
+                    'min' => $this->safe_number($rawCurrency, 'minQty'),
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => array(),
+        ));
+    }
+
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for coinmetro
@@ -444,10 +441,7 @@ class coinmetro extends Exchange {
              * @return {array[]} an array of objects representing $market data
              */
             $promises = array();
-            $promises[] = $this->publicGetMarkets ($params);
-            if ($this->safe_value($this->options, 'currenciesByIdForParseMarket') === null) {
-                $promises[] = $this->fetch_currencies();
-            }
+            $promises[] = $this->publicGetMarkets($params);
             $responses = Async\await(Promise\all($promises));
             $response = $responses[0];
             //
@@ -469,13 +463,13 @@ class coinmetro extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 $market = $this->parse_market($response[$i]);
                 // there are several broken (unavailable info) markets
-                if ($market['base'] === null || $market['quote'] === null) {
+                if ($this->safe_string($market, 'base') === null || $this->safe_string($market, 'quote') === null) {
                     continue;
                 }
                 $result[] = $market;
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -606,7 +600,7 @@ class coinmetro extends Exchange {
         return $result;
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -644,7 +638,7 @@ class coinmetro extends Exchange {
             } else {
                 $request['to'] = ':to';
             }
-            $response = Async\await($this->publicGetExchangeCandlesPairTimeframeFromTo ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetExchangeCandlesPairTimeframeFromTo($this->extend($request, $params)));
             //
             //     {
             //         "candleHistory" => array(
@@ -674,7 +668,7 @@ class coinmetro extends Exchange {
             //
             $candleHistory = $this->safe_list($response, 'candleHistory', array());
             return $this->parse_ohlcvs($candleHistory, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -688,7 +682,7 @@ class coinmetro extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -712,7 +706,7 @@ class coinmetro extends Exchange {
                 // this endpoint accepts empty from param
                 $request['from'] = '';
             }
-            $response = Async\await($this->publicGetExchangeTicksPairFrom ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetExchangeTicksPairFrom($this->extend($request, $params)));
             //
             //     {
             //         "tickHistory" => array(
@@ -743,10 +737,10 @@ class coinmetro extends Exchange {
             //
             $tickHistory = $this->safe_list($response, 'tickHistory', array());
             return $this->parse_trades($tickHistory, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -771,7 +765,7 @@ class coinmetro extends Exchange {
                 // the exchange requires a value for the $since param
                 $request['since'] = 0;
             }
-            $response = Async\await($this->privateGetExchangeFillsSince ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetExchangeFillsSince($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -787,7 +781,7 @@ class coinmetro extends Exchange {
             //     )
             //
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -859,7 +853,7 @@ class coinmetro extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -869,14 +863,14 @@ class coinmetro extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order $book for
              * @param {int} [$limit] the maximum amount of order $book entries to return (default 100, max 200)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-$book-structure order $book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-$book-structure order $book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetExchangeBookPair ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetExchangeBookPair($this->extend($request, $params)));
             //
             //     {
             //         "book" => {
@@ -914,22 +908,22 @@ class coinmetro extends Exchange {
             $orderbook = $this->parse_order_book($rawOrderbook, $symbol);
             $orderbook['nonce'] = $this->safe_integer($book, 'seqNumber');
             return $orderbook;
-        }) ();
+        })();
     }
 
-    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $prices = is_array($bidasks) ? array_keys($bidasks) : array();
         $result = array();
         for ($i = 0; $i < count($prices); $i++) {
             $priceString = $this->safe_string($prices, $i);
             $price = $this->safe_number($prices, $i);
             $volume = $this->safe_number($bidasks, $priceString);
-            $result[] = array( $price, $volume );
+            ($result)[] = array( $price, $volume );
         }
         return $result;
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -941,7 +935,7 @@ class coinmetro extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->publicGetExchangePrices ($params));
+            $response = Async\await($this->publicGetExchangePrices($params));
             //
             //     {
             //         "latestPrices" => array(
@@ -1011,10 +1005,10 @@ class coinmetro extends Exchange {
             }
             $tickers = is_array($tickersObject) ? array_values($tickersObject) : array();
             return $this->parse_tickers($tickers, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
@@ -1026,10 +1020,10 @@ class coinmetro extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->publicGetExchangePrices ($params));
+            $response = Async\await($this->publicGetExchangePrices($params));
             $latestPrices = $this->safe_list($response, 'latestPrices', array());
             return $this->parse_tickers($latestPrices, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1086,7 +1080,7 @@ class coinmetro extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1097,10 +1091,10 @@ class coinmetro extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetUsersWallets ($params));
+            $response = Async\await($this->privateGetUsersWallets($params));
             $list = $this->safe_list($response, 'list', array());
             return $this->parse_balance($list);
-        }) ();
+        })();
     }
 
     public function parse_balance($balances): array {
@@ -1141,7 +1135,7 @@ class coinmetro extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -1167,7 +1161,7 @@ class coinmetro extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $response = Async\await($this->privateGetUsersWalletsHistorySince ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetUsersWalletsHistorySince($this->extend($request, $params)));
             //
             //     {
             //         "list" => array(
@@ -1269,7 +1263,7 @@ class coinmetro extends Exchange {
                 }
             }
             return $this->parse_ledger($ledger, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -1342,7 +1336,7 @@ class coinmetro extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1423,7 +1417,7 @@ class coinmetro extends Exchange {
             if (!$this->is_empty($userData)) {
                 $request['userData'] = $userData;
             }
-            $response = Async\await($this->privatePostExchangeOrdersCreate ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostExchangeOrdersCreate($this->extend($request, $params)));
             //
             //     {
             //         "userID" => "65671262d93d9525ac009e36",
@@ -1452,11 +1446,11 @@ class coinmetro extends Exchange {
             //         "takerQty" => 0.002
             //     }
             //
-            return $this->parse_order($response, $market);
-        }) ();
+            return $this->parse_order($response);
+        })();
     }
 
-    public function handle_create_order_side($sellingCurrency, $buyingCurrency, $sellingQty, $buyingQty, $request = array ()) {
+    public function handle_create_order_side($sellingCurrency, $buyingCurrency, $sellingQty, $buyingQty, $request = array()) {
         $request['sellingCurrency'] = $sellingCurrency;
         $request['buyingCurrency'] = $buyingCurrency;
         if ($sellingQty !== null) {
@@ -1478,7 +1472,7 @@ class coinmetro extends Exchange {
         return $this->safe_value($timeInForceTypes, $timeInForce, $timeInForce);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1502,9 +1496,9 @@ class coinmetro extends Exchange {
             $params = $this->omit($params, 'margin');
             $response = null;
             if ($isMargin || ($marginMode !== null)) {
-                $response = Async\await($this->privatePostExchangeOrdersCloseOrderID ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostExchangeOrdersCloseOrderID($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePutExchangeOrdersCancelOrderID ($this->extend($request, $params)));
+                $response = Async\await($this->privatePutExchangeOrdersCancelOrderID($this->extend($request, $params)));
             }
             //
             //     {
@@ -1526,10 +1520,10 @@ class coinmetro extends Exchange {
             //     }
             //
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function close_position(string $symbol, ?string $side = null, $params = array ()) {
+    public function close_position(string $symbol, ?string $side = null, $params = array()) {
         return Async\async(function () use ($symbol, $side, $params) {
             /**
              * closes an open position
@@ -1551,7 +1545,7 @@ class coinmetro extends Exchange {
             $request = array(
                 'orderID' => $orderId,
             );
-            $response = Async\await($this->privatePostExchangeOrdersCloseOrderID ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostExchangeOrdersCloseOrderID($this->extend($request, $params)));
             //
             //     {
             //         "userID" => "65671262d93d9525ac009e36",
@@ -1582,10 +1576,10 @@ class coinmetro extends Exchange {
             //     }
             //
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -1603,17 +1597,17 @@ class coinmetro extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $response = Async\await($this->privateGetExchangeOrdersActive ($params));
+            $response = Async\await($this->privateGetExchangeOrdersActive($params));
             $orders = $this->parse_orders($response, $market, $since, $limit);
             for ($i = 0; $i < count($orders); $i++) {
                 $order = $orders[$i];
                 $order['status'] = 'open';
             }
             return $orders;
-        }) ();
+        })();
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled and closed orders made by the user
@@ -1635,12 +1629,12 @@ class coinmetro extends Exchange {
             if ($since !== null) {
                 $request['since'] = $since;
             }
-            $response = Async\await($this->privateGetExchangeOrdersHistorySince ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetExchangeOrdersHistorySince($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1656,7 +1650,7 @@ class coinmetro extends Exchange {
             $request = array(
                 'orderID' => $id,
             );
-            $response = Async\await($this->privateGetExchangeOrdersStatusOrderID ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetExchangeOrdersStatusOrderID($this->extend($request, $params)));
             //
             //     {
             //         "_id" => "657b4e6d60a954244939ac6f",
@@ -1693,7 +1687,7 @@ class coinmetro extends Exchange {
             //     }
             //
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1984,7 +1978,7 @@ class coinmetro extends Exchange {
         return $this->safe_value($timeInForceTypes, $timeInForce, $timeInForce);
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -2001,7 +1995,7 @@ class coinmetro extends Exchange {
             $currencyId = $currency['id'];
             $request = array();
             $request[$currencyId] = $this->currency_to_precision($code, $amount);
-            $response = Async\await($this->privatePutUsersMarginCollateral ($this->extend($request, $params)));
+            $response = Async\await($this->privatePutUsersMarginCollateral($this->extend($request, $params)));
             //
             //     array( "message" => "OK" )
             //
@@ -2010,7 +2004,7 @@ class coinmetro extends Exchange {
             return $this->extend($transaction, array(
                 'amount' => $amount,
             ));
-        }) ();
+        })();
     }
 
     public function parse_margin_loan($info, ?array $currency = null) {
@@ -2026,7 +2020,7 @@ class coinmetro extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;

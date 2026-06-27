@@ -79,6 +79,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function private_get_user_info($params = array()) {
         return $this->request('user-info', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function private_get_user_api_key($params = array()) {
+        return $this->request('user/api-key', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -943,6 +946,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function uta_get_server_status($params = array()) {
         return $this->request('server/status', 'uta', 'GET', $params, null, null, array("cost" => 6));
     }
+    public function uta_get_market_borrowable_currency($params = array()) {
+        return $this->request('market/borrowable-currency', 'uta', 'GET', $params, null, null, array("cost" => 30));
+    }
     public function utaprivate_get_market_orderbook($params = array()) {
         return $this->request('market/orderbook', 'utaPrivate', 'GET', $params, null, null, array("cost" => 6));
     }
@@ -991,6 +997,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function utaprivate_get_accountmode_position_history($params = array()) {
         return $this->request('{accountMode}/position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function utaprivate_get_position_history($params = array()) {
+        return $this->request('position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function utaprivate_get_accountmode_position_tiers($params = array()) {
         return $this->request('{accountMode}/position/tiers', 'utaPrivate', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -1002,6 +1011,15 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function utaprivate_get_dcp_query($params = array()) {
         return $this->request('dcp/query', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaprivate_get_unified_account_leverage($params = array()) {
+        return $this->request('unified/account/leverage', 'utaPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function utaprivate_get_position_funding_history($params = array()) {
+        return $this->request('position/funding-history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function utaprivate_get_account_interest_limits($params = array()) {
+        return $this->request('account/interest-limits', 'utaPrivate', 'GET', $params, null, null, array("cost" => 20));
     }
     public function utaprivate_post_account_transfer($params = array()) {
         return $this->request('account/transfer', 'utaPrivate', 'POST', $params, null, null, array("cost" => 8));
@@ -1032,6 +1050,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function utaprivate_post_dcp_set($params = array()) {
         return $this->request('dcp/set', 'utaPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function utaprivate_post_accountmode_account_modify_leverage_margin_cross($params = array()) {
+        return $this->request('{accountMode}/account/modify-leverage-margin-cross', 'utaPrivate', 'POST', $params, null, null, array("cost" => 40));
     }
     public function publicGetCurrencies($params = array()) {
         return $this->request('currencies', 'public', 'GET', $params, null, null, array("cost" => 3));
@@ -1104,6 +1125,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function privateGetUserInfo($params = array()) {
         return $this->request('user-info', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateGetUserApiKey($params = array()) {
+        return $this->request('user/api-key', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -1969,6 +1993,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function utaGetServerStatus($params = array()) {
         return $this->request('server/status', 'uta', 'GET', $params, null, null, array("cost" => 6));
     }
+    public function utaGetMarketBorrowableCurrency($params = array()) {
+        return $this->request('market/borrowable-currency', 'uta', 'GET', $params, null, null, array("cost" => 30));
+    }
     public function utaPrivateGetMarketOrderbook($params = array()) {
         return $this->request('market/orderbook', 'utaPrivate', 'GET', $params, null, null, array("cost" => 6));
     }
@@ -2017,6 +2044,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function utaPrivateGetAccountModePositionHistory($params = array()) {
         return $this->request('{accountMode}/position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function utaPrivateGetPositionHistory($params = array()) {
+        return $this->request('position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function utaPrivateGetAccountModePositionTiers($params = array()) {
         return $this->request('{accountMode}/position/tiers', 'utaPrivate', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -2028,6 +2058,15 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function utaPrivateGetDcpQuery($params = array()) {
         return $this->request('dcp/query', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivateGetUnifiedAccountLeverage($params = array()) {
+        return $this->request('unified/account/leverage', 'utaPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function utaPrivateGetPositionFundingHistory($params = array()) {
+        return $this->request('position/funding-history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function utaPrivateGetAccountInterestLimits($params = array()) {
+        return $this->request('account/interest-limits', 'utaPrivate', 'GET', $params, null, null, array("cost" => 20));
     }
     public function utaPrivatePostAccountTransfer($params = array()) {
         return $this->request('account/transfer', 'utaPrivate', 'POST', $params, null, null, array("cost" => 8));
@@ -2058,5 +2097,8 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function utaPrivatePostDcpSet($params = array()) {
         return $this->request('dcp/set', 'utaPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivatePostAccountModeAccountModifyLeverageMarginCross($params = array()) {
+        return $this->request('{accountMode}/account/modify-leverage-margin-cross', 'utaPrivate', 'POST', $params, null, null, array("cost" => 40));
     }
 }

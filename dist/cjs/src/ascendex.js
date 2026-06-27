@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var ascendex$1 = require('./abstract/ascendex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class ascendex extends ascendex$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'ascendex',
             'name': 'AscendEX',
-            'countries': ['SG'],
+            'countries': ['SG'], // Singapore
             // 8 requests per minute = 0.13333 per second => rateLimit = 750
             // testing 400 works
             'rateLimit': 400,
@@ -158,10 +158,10 @@ class ascendex extends ascendex$1["default"] {
                             'barhist': 1,
                             'depth': 1,
                             'trades': 1,
-                            'cash/assets': 1,
-                            'cash/products': 1,
-                            'margin/assets': 1,
-                            'margin/products': 1,
+                            'cash/assets': 1, // not documented
+                            'cash/products': 1, // not documented
+                            'margin/assets': 1, // not documented
+                            'margin/products': 1, // not documented
                             'futures/collateral': 1,
                             'futures/contracts': 1,
                             'futures/ref-px': 1,
@@ -279,12 +279,12 @@ class ascendex extends ascendex$1["default"] {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
-                'account-category': 'cash',
+                'account-category': 'cash', // 'cash', 'margin', 'futures' // obsolete
                 'account-group': undefined,
                 'fetchClosedOrders': {
                     'method': 'v2PrivateDataGetOrderHist', // 'v1PrivateAccountCategoryGetOrderHistCurrent'
                 },
-                'defaultType': 'spot',
+                'defaultType': 'spot', // 'spot', 'margin', 'swap'
                 'accountsByType': {
                     'spot': 'cash',
                     'swap': 'futures',
@@ -319,8 +319,8 @@ class ascendex extends ascendex$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo with triggerprice
+                        'takeProfitPrice': false, // todo with triggerprice
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -412,72 +412,72 @@ class ascendex extends ascendex$1["default"] {
             'exceptions': {
                 'exact': {
                     // not documented
-                    '1900': errors.BadRequest,
-                    '2100': errors.AuthenticationError,
-                    '5002': errors.BadSymbol,
-                    '6001': errors.BadSymbol,
-                    '6010': errors.InsufficientFunds,
-                    '60060': errors.InvalidOrder,
-                    '600503': errors.InvalidOrder,
+                    '1900': errors.BadRequest, // {"code":1900,"message":"Invalid Http Request Input"}
+                    '2100': errors.AuthenticationError, // {"code":2100,"message":"ApiKeyFailure"}
+                    '5002': errors.BadSymbol, // {"code":5002,"message":"Invalid Symbol"}
+                    '6001': errors.BadSymbol, // {"code":6001,"message":"Trading is disabled on symbol."}
+                    '6010': errors.InsufficientFunds, // {'code': 6010, 'message': 'Not enough balance.'}
+                    '60060': errors.InvalidOrder, // { 'code': 60060, 'message': 'The order is already filled or canceled.' }
+                    '600503': errors.InvalidOrder, // {"code":600503,"message":"Notional is too small."}
                     // documented
-                    '100001': errors.BadRequest,
-                    '100002': errors.BadRequest,
-                    '100003': errors.BadRequest,
-                    '100004': errors.BadRequest,
-                    '100005': errors.BadRequest,
-                    '100006': errors.BadRequest,
-                    '100007': errors.BadRequest,
-                    '100008': errors.BadSymbol,
-                    '100009': errors.AuthenticationError,
-                    '100010': errors.BadRequest,
-                    '100011': errors.BadRequest,
-                    '100012': errors.BadRequest,
-                    '100013': errors.BadRequest,
-                    '100101': errors.ExchangeError,
-                    '150001': errors.BadRequest,
-                    '200001': errors.AuthenticationError,
-                    '200002': errors.ExchangeError,
-                    '200003': errors.ExchangeError,
-                    '200004': errors.ExchangeError,
-                    '200005': errors.ExchangeError,
-                    '200006': errors.ExchangeError,
-                    '200007': errors.ExchangeError,
-                    '200008': errors.ExchangeError,
-                    '200009': errors.ExchangeError,
-                    '200010': errors.AuthenticationError,
-                    '200011': errors.ExchangeError,
-                    '200012': errors.ExchangeError,
-                    '200013': errors.ExchangeError,
-                    '200014': errors.PermissionDenied,
-                    '200015': errors.PermissionDenied,
-                    '300001': errors.InvalidOrder,
-                    '300002': errors.InvalidOrder,
-                    '300003': errors.InvalidOrder,
-                    '300004': errors.InvalidOrder,
-                    '300005': errors.InvalidOrder,
-                    '300006': errors.InvalidOrder,
-                    '300007': errors.InvalidOrder,
-                    '300008': errors.InvalidOrder,
-                    '300009': errors.InvalidOrder,
-                    '300011': errors.InsufficientFunds,
-                    '300012': errors.BadSymbol,
-                    '300013': errors.InvalidOrder,
-                    '300014': errors.InvalidOrder,
-                    '300020': errors.InvalidOrder,
-                    '300021': errors.AccountSuspended,
-                    '300031': errors.InvalidOrder,
-                    '310001': errors.InsufficientFunds,
-                    '310002': errors.InvalidOrder,
-                    '310003': errors.InvalidOrder,
-                    '310004': errors.BadSymbol,
-                    '310005': errors.InvalidOrder,
-                    '510001': errors.ExchangeError,
+                    '100001': errors.BadRequest, // INVALID_HTTP_INPUT Http request is invalid
+                    '100002': errors.BadRequest, // DATA_NOT_AVAILABLE Some required data is missing
+                    '100003': errors.BadRequest, // KEY_CONFLICT The same key exists already
+                    '100004': errors.BadRequest, // INVALID_REQUEST_DATA The HTTP request contains invalid field or argument
+                    '100005': errors.BadRequest, // INVALID_WS_REQUEST_DATA Websocket request contains invalid field or argument
+                    '100006': errors.BadRequest, // INVALID_ARGUMENT The arugment is invalid
+                    '100007': errors.BadRequest, // ENCRYPTION_ERROR Something wrong with data encryption
+                    '100008': errors.BadSymbol, // SYMBOL_ERROR Symbol does not exist or not valid for the request
+                    '100009': errors.AuthenticationError, // AUTHORIZATION_NEEDED Authorization is require for the API access or request
+                    '100010': errors.BadRequest, // INVALID_OPERATION The action is invalid or not allowed for the account
+                    '100011': errors.BadRequest, // INVALID_TIMESTAMP Not a valid timestamp
+                    '100012': errors.BadRequest, // INVALID_STR_FORMAT String format does not
+                    '100013': errors.BadRequest, // INVALID_NUM_FORMAT Invalid number input
+                    '100101': errors.ExchangeError, // UNKNOWN_ERROR Some unknown error
+                    '150001': errors.BadRequest, // INVALID_JSON_FORMAT Require a valid json object
+                    '200001': errors.AuthenticationError, // AUTHENTICATION_FAILED Authorization failed
+                    '200002': errors.ExchangeError, // TOO_MANY_ATTEMPTS Tried and failed too many times
+                    '200003': errors.ExchangeError, // ACCOUNT_NOT_FOUND Account not exist
+                    '200004': errors.ExchangeError, // ACCOUNT_NOT_SETUP Account not setup properly
+                    '200005': errors.ExchangeError, // ACCOUNT_ALREADY_EXIST Account already exist
+                    '200006': errors.ExchangeError, // ACCOUNT_ERROR Some error related with error
+                    '200007': errors.ExchangeError, // CODE_NOT_FOUND
+                    '200008': errors.ExchangeError, // CODE_EXPIRED Code expired
+                    '200009': errors.ExchangeError, // CODE_MISMATCH Code does not match
+                    '200010': errors.AuthenticationError, // PASSWORD_ERROR Wrong assword
+                    '200011': errors.ExchangeError, // CODE_GEN_FAILED Do not generate required code promptly
+                    '200012': errors.ExchangeError, // FAKE_COKE_VERIFY
+                    '200013': errors.ExchangeError, // SECURITY_ALERT Provide security alert message
+                    '200014': errors.PermissionDenied, // RESTRICTED_ACCOUNT Account is restricted for certain activity, such as trading, or withdraw.
+                    '200015': errors.PermissionDenied, // PERMISSION_DENIED No enough permission for the operation
+                    '300001': errors.InvalidOrder, // INVALID_PRICE Order price is invalid
+                    '300002': errors.InvalidOrder, // INVALID_QTY Order size is invalid
+                    '300003': errors.InvalidOrder, // INVALID_SIDE Order side is invalid
+                    '300004': errors.InvalidOrder, // INVALID_NOTIONAL Notional is too small or too large
+                    '300005': errors.InvalidOrder, // INVALID_TYPE Order typs is invalid
+                    '300006': errors.InvalidOrder, // INVALID_ORDER_ID Order id is invalid
+                    '300007': errors.InvalidOrder, // INVALID_TIME_IN_FORCE Time In Force in order request is invalid
+                    '300008': errors.InvalidOrder, // INVALID_ORDER_PARAMETER Some order parameter is invalid
+                    '300009': errors.InvalidOrder, // TRADING_VIOLATION Trading violation on account or asset
+                    '300011': errors.InsufficientFunds, // INVALID_BALANCE No enough account or asset balance for the trading
+                    '300012': errors.BadSymbol, // INVALID_PRODUCT Not a valid product supported by exchange
+                    '300013': errors.InvalidOrder, // INVALID_BATCH_ORDER Some or all orders are invalid in batch order request
+                    '300014': errors.InvalidOrder, // {"code":300014,"message":"Order price doesn't conform to the required tick size: 0.1","reason":"TICK_SIZE_VIOLATION"}
+                    '300020': errors.InvalidOrder, // TRADING_RESTRICTED There is some trading restriction on account or asset
+                    '300021': errors.AccountSuspended, // {"code":300021,"message":"Trading disabled for this account.","reason":"TRADING_DISABLED"}
+                    '300031': errors.InvalidOrder, // NO_MARKET_PRICE No market price for market type order trading
+                    '310001': errors.InsufficientFunds, // INVALID_MARGIN_BALANCE No enough margin balance
+                    '310002': errors.InvalidOrder, // INVALID_MARGIN_ACCOUNT Not a valid account for margin trading
+                    '310003': errors.InvalidOrder, // MARGIN_TOO_RISKY Leverage is too high
+                    '310004': errors.BadSymbol, // INVALID_MARGIN_ASSET This asset does not support margin trading
+                    '310005': errors.InvalidOrder, // INVALID_REFERENCE_PRICE There is no valid reference price
+                    '510001': errors.ExchangeError, // SERVER_ERROR Something wrong with server.
                     '900001': errors.ExchangeError, // HUMAN_CHALLENGE Human change do not pass
                 },
                 'broad': {},
             },
             'commonCurrencies': {
-                'XBT': 'XBT',
+                'XBT': 'XBT', // this is not BTC ! just another token
                 'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
@@ -527,52 +527,23 @@ class ascendex extends ascendex$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const id = this.safeString(currency, 'assetCode');
-            const code = this.safeCurrencyCode(id);
-            const chains = this.safeList(currency, 'blockChain', []);
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'nativeScale')));
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const networkEtnry = chains[j];
-                const networkId = this.safeString(networkEtnry, 'chainName');
-                const networkCode = this.networkCodeToId(networkId);
-                networks[networkCode] = {
-                    'fee': this.safeNumber(networkEtnry, 'withdrawFee'),
-                    'active': undefined,
-                    'withdraw': this.safeBool(networkEtnry, 'allowWithdraw'),
-                    'deposit': this.safeBool(networkEtnry, 'allowDeposit'),
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber(networkEtnry, 'minWithdrawal'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(networkEtnry, 'minDepositAmt'),
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': undefined,
-                'margin': undefined,
-                'name': this.safeString(currency, 'assetName'),
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'assetCode');
+        const code = this.safeCurrencyCode(id);
+        const chains = this.safeList(rawCurrency, 'blockChain', []);
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'nativeScale')));
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const networkEtnry = chains[j];
+            const networkId = this.safeString(networkEtnry, 'chainName');
+            const networkCode = this.networkCodeToId(networkId, code);
+            networks[networkCode] = {
+                'fee': this.safeNumber(networkEtnry, 'withdrawFee'),
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+                'withdraw': this.safeBool(networkEtnry, 'allowWithdraw'),
+                'deposit': this.safeBool(networkEtnry, 'allowDeposit'),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -580,14 +551,41 @@ class ascendex extends ascendex$1["default"] {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber(currency, 'minWithdrawalAmt'),
+                        'min': this.safeNumber(networkEtnry, 'minWithdrawal'),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeNumber(networkEtnry, 'minDepositAmt'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+            };
         }
-        return result;
+        // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'type': undefined,
+            'margin': undefined,
+            'name': this.safeString(rawCurrency, 'assetName'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(rawCurrency, 'minWithdrawalAmt'),
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -909,12 +907,14 @@ class ascendex extends ascendex$1["default"] {
             accountGroup = this.safeString(data, 'accountGroup');
             this.options['account-group'] = accountGroup;
         }
+        const finalResponse = response; // java req
+        const finalAccountGroup = accountGroup;
         return [
             {
-                'id': accountGroup,
+                'id': finalAccountGroup,
                 'type': undefined,
                 'code': undefined,
-                'info': response,
+                'info': finalResponse,
             },
         ];
     }
@@ -1078,7 +1078,7 @@ class ascendex extends ascendex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1154,7 +1154,7 @@ class ascendex extends ascendex$1["default"] {
             'open': open,
             'close': close,
             'last': close,
-            'previousClose': undefined,
+            'previousClose': undefined, // previous day close
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -1706,7 +1706,7 @@ class ascendex extends ascendex$1["default"] {
             'symbol': market['id'],
             'time': this.milliseconds(),
             'orderQty': this.amountToPrecision(symbol, amount),
-            'orderType': type,
+            'orderType': type, // limit, market, stop_market, stop_limit
             'side': side, // buy or sell,
             // 'execInst': // Post for postOnly, ReduceOnly for reduceOnly
             // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
@@ -2504,7 +2504,7 @@ class ascendex extends ascendex$1["default"] {
             'time': this.milliseconds(),
         };
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         let response = undefined;
         if ((type === 'spot') || (type === 'margin')) {
@@ -2598,7 +2598,7 @@ class ascendex extends ascendex$1["default"] {
         await this.loadMarkets();
         const currency = this.currency(code);
         const networkCode = this.safeString2(params, 'network', 'chainName');
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         params = this.omit(params, ['chainName']);
         const request = {
             'asset': currency['id'],
@@ -3048,8 +3048,9 @@ class ascendex extends ascendex$1["default"] {
         if (type === 'reduce') {
             amount = Precise["default"].stringAbs(amount);
         }
+        const parsedAmount = this.parseNumber(amount);
         return this.extend(this.parseMarginModification(response, market), {
-            'amount': this.parseNumber(amount),
+            'amount': parsedAmount,
             'type': type,
         });
     }
@@ -3065,12 +3066,12 @@ class ascendex extends ascendex$1["default"] {
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
-            'code': market['quote'],
+            'code': this.safeString(market, 'quote'),
             'status': status,
             'timestamp': undefined,
             'datetime': undefined,
@@ -3614,8 +3615,7 @@ class ascendex extends ascendex$1["default"] {
     async fetchOpenInterests(symbols = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
-        let response = undefined;
-        response = await this.v2PublicGetFuturesPricingData(this.extend(request, params));
+        const response = await this.v2PublicGetFuturesPricingData(this.extend(request, params));
         //
         //    {
         //        code: '0',
@@ -3665,8 +3665,8 @@ class ascendex extends ascendex$1["default"] {
         return this.safeOpenInterest({
             'info': interest,
             'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
-            'baseVolume': openInterest,
-            'quoteVolume': undefined,
+            'baseVolume': openInterest, // deprecated
+            'quoteVolume': undefined, // deprecated
             'openInterestAmount': openInterest,
             'openInterestValue': undefined,
             'timestamp': timestamp,
@@ -3734,7 +3734,7 @@ class ascendex extends ascendex$1["default"] {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             const payload = timestamp + '+' + request;
-            const hmac = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
+            const hmac = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             headers = {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': timestamp,

@@ -325,16 +325,13 @@ public partial class blockchaincom : Exchange
             object minOrderSize = this.parseNumber(minOrderSizePreciseString);
             // maximum order size
             object maxOrderSize = null;
-            maxOrderSize = this.safeString(market, "max_order_size");
-            if (isTrue(!isEqual(maxOrderSize, "0")))
+            object maxOrderSizeRaw = this.safeString(market, "max_order_size");
+            if (isTrue(!isEqual(maxOrderSizeRaw, "0")))
             {
                 object maxOrderSizeScaleString = this.safeString(market, "max_order_size_scale");
                 object maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
-                object maxOrderSizeString = Precise.stringMul(maxOrderSize, maxOrderSizeScalePrecisionString);
-                maxOrderSize = this.parseNumber(maxOrderSizeString);
-            } else
-            {
-                maxOrderSize = null;
+                object maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
+                maxOrderSize = this.parseNumber(maxOrderSizeValueString);
             }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", market },
@@ -398,7 +395,7 @@ public partial class blockchaincom : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -844,7 +841,7 @@ public partial class blockchaincom : Exchange
         //
         object orderId = this.safeString(trade, "exOrdId");
         object tradeId = this.safeString(trade, "tradeId");
-        object side = ((string)this.safeString(trade, "side")).ToLower();
+        object side = this.safeStringLower(trade, "side");
         object marketId = this.safeString(trade, "symbol");
         object priceString = this.safeString(trade, "price");
         object amountString = this.safeString(trade, "qty");
@@ -1187,7 +1184,7 @@ public partial class blockchaincom : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object accountName = this.safeString(parameters, "account", "primary");
+        object accountName = ((string)this.safeString(parameters, "account", "primary"));
         parameters = this.omit(parameters, "account");
         object request = new Dictionary<string, object>() {
             { "account", accountName },
@@ -1224,7 +1221,7 @@ public partial class blockchaincom : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            ((IDictionary<string,object>)result)[(string)((string)code)] = account;
         }
         return this.safeBalance(result);
     }

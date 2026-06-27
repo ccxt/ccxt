@@ -123,7 +123,7 @@ public partial class bitso : Exchange
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975" },
+                { "logo", "https://github.com/user-attachments/assets/3d0c1e5e-8aaa-419f-968a-2b7409381ce4" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://bitso.com/api" },
                 } },
@@ -628,7 +628,7 @@ public partial class bitso : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1052,8 +1052,9 @@ public partial class bitso : Exchange
         // convert it to an integer unconditionally
         if (isTrue(markerInParams))
         {
+            object marker = parseInt(getValue(parameters, "marker"));
             parameters = this.extend(parameters, new Dictionary<string, object>() {
-                { "marker", parseInt(getValue(parameters, "marker")) },
+                { "marker", marker },
             });
         }
         object request = new Dictionary<string, object>() {
@@ -1299,8 +1300,9 @@ public partial class bitso : Exchange
         // convert it to an integer unconditionally
         if (isTrue(markerInParams))
         {
+            object marker = parseInt(getValue(parameters, "marker"));
             parameters = this.extend(parameters, new Dictionary<string, object>() {
-                { "marker", parseInt(getValue(parameters, "marker")) },
+                { "marker", marker },
             });
         }
         object request = new Dictionary<string, object>() {
@@ -1852,7 +1854,7 @@ public partial class bitso : Exchange
         object networkId = this.safeString2(transaction, "network", "method");
         object status = this.safeString(transaction, "status");
         object withdrawId = this.safeString(transaction, "wid");
-        object networkCode = this.networkIdToCode(networkId);
+        object networkCode = this.networkIdToCode(networkId, getValue(currency, "code"));
         object networkCodeUpper = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
         return new Dictionary<string, object>() {
             { "id", this.safeString2(transaction, "wid", "fid") },
@@ -1914,7 +1916,8 @@ public partial class bitso : Exchange
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
             endpoint = add("/api", endpoint);
-            object request = String.Join("", ((IList<object>)new List<object>() {nonce, method, endpoint}).ToArray());
+            object content = new List<object>() {nonce, method, endpoint};
+            object request = String.Join("", ((IList<object>)content).ToArray());
             if (isTrue(isTrue(!isEqual(method, "GET")) && isTrue(!isEqual(method, "DELETE"))))
             {
                 if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))

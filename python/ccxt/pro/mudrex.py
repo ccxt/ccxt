@@ -54,19 +54,19 @@ class mudrex(ccxt.async_support.mudrex):
         messageHash = 'ticker:' + symbol
         url = self.urls['api']['ws']
         brokerId = self.safe_string(self.options, 'broker')
-        headers = None
+        self.options['ws'] = self.options['ws'] or {}
+        self.options['ws']['options'] = self.options['ws']['options'] or {}
+        self.options['ws']['options']['headers'] = self.options['ws']['options']['headers'] or {}
         if brokerId is not None:
-            headers = {
-                'Partner-Id': brokerId,
-            }
-        subscribe: dict = {
+            self.options['ws']['options']['headers']['Partner-Id'] = brokerId
+        subscribe = {
             'id': self.request_id(),
             'method': 'SUBSCRIBE',
             'params': ['ticker@1s'],
             'assets': [market['baseId'].lower() + market['quoteId'].lower()],
         }
         request = self.extend(subscribe, params)
-        return await self.watch(url, messageHash, request, messageHash, None, headers)
+        return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         await self.load_markets()
@@ -80,24 +80,21 @@ class mudrex(ccxt.async_support.mudrex):
                 assets.append(market['baseId'].lower() + market['quoteId'].lower())
         url = self.urls['api']['ws']
         brokerId = self.safe_string(self.options, 'broker')
-        headers = None
+        self.options['ws'] = self.options['ws'] or {}
+        self.options['ws']['options'] = self.options['ws']['options'] or {}
+        self.options['ws']['options']['headers'] = self.options['ws']['options']['headers'] or {}
         if brokerId is not None:
-            headers = {
-                'Partner-Id': brokerId,
-            }
-        subscribe: dict = {
+            self.options['ws']['options']['headers']['Partner-Id'] = brokerId
+        subscribe = {
             'id': self.request_id(),
             'method': 'SUBSCRIBE',
             'params': ['ticker@1s'],
             'assets': assets,
         }
         request = self.extend(subscribe, params)
-        messageHash = 'tickers'
-        if symbols is not None:
-            messageHash = 'tickers::' + ','.join(symbols)
-        ticker = await self.watch_multiple(url, messageHashes, request, messageHashes, None, headers)
+        ticker = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array_tickers(self.tickers, 'symbol', symbols)
@@ -118,18 +115,18 @@ class mudrex(ccxt.async_support.mudrex):
         messageHash = stream
         url = self.urls['api']['ws']
         brokerId = self.safe_string(self.options, 'broker')
-        headers = None
+        self.options['ws'] = self.options['ws'] or {}
+        self.options['ws']['options'] = self.options['ws']['options'] or {}
+        self.options['ws']['options']['headers'] = self.options['ws']['options']['headers'] or {}
         if brokerId is not None:
-            headers = {
-                'Partner-Id': brokerId,
-            }
-        subscribe: dict = {
+            self.options['ws']['options']['headers']['Partner-Id'] = brokerId
+        subscribe = {
             'id': self.request_id(),
             'method': 'SUBSCRIBE',
             'params': [stream],
         }
         request = self.extend(subscribe, params)
-        ohlcv = await self.watch(url, messageHash, request, messageHash, None, headers)
+        ohlcv = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)

@@ -3,6 +3,356 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "assetID": "2945020447",
+                        "asset": "USDT",
+                        "currency": "USDt",
+                        "majorCurrency": "USDT",
+                        "name": "USD Tether",
+                        "currencyType": "Crypto",
+                        "scale": "6",
+                        "enabled": true,
+                        "isMarginCurrency": true,
+                        "minDepositAmount": "10000000",
+                        "minWithdrawalAmount": "1000000",
+                        "maxWithdrawalAmount": "100000000000000",
+                        "memoRequired": false,
+                        "networks": [
+                            {
+                                "asset": "optimism",
+                                "tokenAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+                                "depositEnabled": true,
+                                "withdrawalEnabled": true,
+                                "withdrawalFee": "100000",
+                                "minFee": "100000",
+                                "maxFee": "100000"
+                            },
+                            {
+                                "asset": "arbitrum",
+                                "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                                "depositEnabled": true,
+                                "withdrawalEnabled": true,
+                                "withdrawalFee": "50000",
+                                "minFee": "50000",
+                                "maxFee": "50000"
+                            },
+                            {
+                                "asset": "sol",
+                                "tokenAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                "depositEnabled": true,
+                                "withdrawalEnabled": true,
+                                "withdrawalFee": "1000000",
+                                "minFee": "1000000",
+                                "maxFee": "1000000"
+                            },
+                            {
+                                "asset": "tron",
+                                "tokenAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                "depositEnabled": true,
+                                "withdrawalEnabled": true,
+                                "withdrawalFee": "1000000",
+                                "minFee": "1000000",
+                                "maxFee": "1000000"
+                            },
+                            {
+                                "asset": "bsc",
+                                "tokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+                                "depositEnabled": true,
+                                "withdrawalEnabled": true,
+                                "withdrawalFee": "1000000",
+                                "minFee": "1000000",
+                                "maxFee": "1000000"
+                            },
+                            {
+                                "asset": "eth",
+                                "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                "depositEnabled": true,
+                                "withdrawalEnabled": true,
+                                "withdrawalFee": "500000",
+                                "minFee": "500000",
+                                "maxFee": "500000"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "assetID": "2945020447",
+                            "asset": "USDT",
+                            "currency": "USDt",
+                            "majorCurrency": "USDT",
+                            "name": "USD Tether",
+                            "currencyType": "Crypto",
+                            "scale": "6",
+                            "enabled": true,
+                            "isMarginCurrency": true,
+                            "minDepositAmount": "10000000",
+                            "minWithdrawalAmount": "1000000",
+                            "maxWithdrawalAmount": "100000000000000",
+                            "memoRequired": false,
+                            "networks": [
+                                {
+                                    "asset": "optimism",
+                                    "tokenAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "100000",
+                                    "minFee": "100000",
+                                    "maxFee": "100000"
+                                },
+                                {
+                                    "asset": "arbitrum",
+                                    "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "50000",
+                                    "minFee": "50000",
+                                    "maxFee": "50000"
+                                },
+                                {
+                                    "asset": "sol",
+                                    "tokenAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "1000000",
+                                    "minFee": "1000000",
+                                    "maxFee": "1000000"
+                                },
+                                {
+                                    "asset": "tron",
+                                    "tokenAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "1000000",
+                                    "minFee": "1000000",
+                                    "maxFee": "1000000"
+                                },
+                                {
+                                    "asset": "bsc",
+                                    "tokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "1000000",
+                                    "minFee": "1000000",
+                                    "maxFee": "1000000"
+                                },
+                                {
+                                    "asset": "eth",
+                                    "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "500000",
+                                    "minFee": "500000",
+                                    "maxFee": "500000"
+                                }
+                            ]
+                        },
+                        "id": "USDt",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "USD Tether",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.05,
+                        "fees": {},
+                        "networks": {
+                            "optimism": {
+                                "info": {
+                                    "asset": "optimism",
+                                    "tokenAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "100000",
+                                    "minFee": "100000",
+                                    "maxFee": "100000"
+                                },
+                                "id": "optimism",
+                                "network": "optimism",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "arbitrum": {
+                                "info": {
+                                    "asset": "arbitrum",
+                                    "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "50000",
+                                    "minFee": "50000",
+                                    "maxFee": "50000"
+                                },
+                                "id": "arbitrum",
+                                "network": "arbitrum",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.05,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "asset": "sol",
+                                    "tokenAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "1000000",
+                                    "minFee": "1000000",
+                                    "maxFee": "1000000"
+                                },
+                                "id": "sol",
+                                "network": "SOL",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "asset": "tron",
+                                    "tokenAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "1000000",
+                                    "minFee": "1000000",
+                                    "maxFee": "1000000"
+                                },
+                                "id": "tron",
+                                "network": "TRC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "BEP20": {
+                                "info": {
+                                    "asset": "bsc",
+                                    "tokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "1000000",
+                                    "minFee": "1000000",
+                                    "maxFee": "1000000"
+                                },
+                                "id": "bsc",
+                                "network": "BEP20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ERC20": {
+                                "info": {
+                                    "asset": "eth",
+                                    "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "depositEnabled": true,
+                                    "withdrawalEnabled": true,
+                                    "withdrawalFee": "500000",
+                                    "minFee": "500000",
+                                    "maxFee": "500000"
+                                },
+                                "id": "eth",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.5,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1,
+                                "max": 100000000
+                            },
+                            "deposit": {
+                                "min": 10,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchClosedOrders": [
             {
                 "description": "Spot market order",
@@ -943,6 +1293,88 @@
                   }
                 ]
               }
+        ],
+        "closePosition":[
+            {
+                "description": "linear swap sell closePosition",
+                "method": "closePosition",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sell"
+                ],
+                "httpResponse": {
+                    "account": "395724",
+                    "avgPx": "66358.8",
+                    "cumQty": "200",
+                    "currency": "USDT",
+                    "execInst": "Close",
+                    "leavesQty": "0",
+                    "ordStatus": "Filled",
+                    "ordType": "Market",
+                    "orderID": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+                    "orderQty": "200",
+                    "pool": "Primary",
+                    "settlCurrency": "USDt",
+                    "side": "Sell",
+                    "strategy": "OneWay",
+                    "symbol": "XBTUSDT",
+                    "text": "Submitted via API.",
+                    "timeInForce": "ImmediateOrCancel",
+                    "timestamp": "2026-04-02T05:20:26.607Z",
+                    "transactTime": "2026-04-02T05:20:26.606Z",
+                    "workingIndicator": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": "395724",
+                        "avgPx": "66358.8",
+                        "cumQty": "200",
+                        "currency": "USDT",
+                        "execInst": "Close",
+                        "leavesQty": "0",
+                        "ordStatus": "Filled",
+                        "ordType": "Market",
+                        "orderID": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+                        "orderQty": "200",
+                        "pool": "Primary",
+                        "settlCurrency": "USDt",
+                        "side": "Sell",
+                        "strategy": "OneWay",
+                        "symbol": "XBTUSDT",
+                        "text": "Submitted via API.",
+                        "timeInForce": "ImmediateOrCancel",
+                        "timestamp": "2026-04-02T05:20:26.607Z",
+                        "transactTime": "2026-04-02T05:20:26.606Z",
+                        "workingIndicator": false
+                    },
+                    "id": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+                    "clientOrderId": null,
+                    "timestamp": 1775107226607,
+                    "datetime": "2026-04-02T05:20:26.607Z",
+                    "lastTradeTimestamp": 1775107226606,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "reduceOnly": true,
+                    "side": "sell",
+                    "price": 66358.8,
+                    "triggerPrice": null,
+                    "amount": 200,
+                    "cost": 13.27176,
+                    "average": 66358.8,
+                    "filled": 200,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
         ],
         "fetchPositionADLRank":[
             {

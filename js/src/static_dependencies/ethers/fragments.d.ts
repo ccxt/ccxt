@@ -91,17 +91,17 @@ export interface JsonFragment {
  *
  *  **``"json"``** - The [JSON ABI format](link-solc-jsonabi).
  */
-export declare type FormatType = "sighash" | "minimal" | "full" | "json";
+export type FormatType = "sighash" | "minimal" | "full" | "json";
 /**
  *  When [walking](ParamType-walk) a [[ParamType]], this is called
  *  on each component.
  */
-export declare type ParamTypeWalkFunc = (type: string, value: any) => any;
+export type ParamTypeWalkFunc = (type: string, value: any) => any;
 /**
  *  When [walking asynchronously](ParamType-walkAsync) a [[ParamType]],
  *  this is called on each component.
  */
-export declare type ParamTypeWalkAsyncFunc = (type: string, value: any) => any | Promise<any>;
+export type ParamTypeWalkAsyncFunc = (type: string, value: any) => any | Promise<any>;
 /**
  *  Each input and output of a [[Fragment]] is an Array of **ParamType**.
  */
@@ -209,7 +209,7 @@ export declare class ParamType {
 /**
  *  The type of a [[Fragment]].
  */
-export declare type FragmentType = "constructor" | "error" | "event" | "fallback" | "function" | "struct";
+export type FragmentType = "constructor" | "error" | "event" | "fallback" | "function" | "struct";
 /**
  *  An abstract class to represent An individual fragment from a parse ABI.
  */

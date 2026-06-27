@@ -1,8 +1,5 @@
-- [Async Orderbooks From Multiple Exchanges At Once](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import ccxt
@@ -49,7 +46,7 @@ async def multi_orderbooks(exchanges):
 if __name__ == '__main__':
 
     # Consider review request rate limit in the methods you call
-    exchanges = ["kucoin", "bittrex", "bitfinex", "poloniex", "huobipro"]
+    exchanges = ["kucoin", "bitfinex", "poloniex", "htx"]
 
     tic = time.time()
     a = asyncio.run(multi_orderbooks(exchanges))
@@ -60,5 +57,5 @@ if __name__ == '__main__':
     tic = time.time()
     a = [sync_client(exchange) for exchange in exchanges]
     print("sync call spend:", time.time() - tic)
- 
+
 ```

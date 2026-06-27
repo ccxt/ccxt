@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/big"
 	random2 "math/rand"
 	"net/http"
 	"net/url"
@@ -19,6 +20,9 @@ import (
 	"sync"
 	"time"
 
+	starkfelt "github.com/NethermindEth/juno/core/felt"
+	starkcurve "github.com/NethermindEth/starknet.go/curve"
+	starkutils "github.com/NethermindEth/starknet.go/utils"
 	pb "github.com/ccxt/ccxt/go/v4/protoc"
 	"golang.org/x/net/proxy"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -31,8 +35,8 @@ type Exchange struct {
 	loadMu                 sync.Mutex
 	marketsLoading         bool
 	marketsLoaded          bool
-	loadMarketsSubscribers []chan interface{}
-	Itf                    interface{}
+	loadMarketsSubscribers []chan any
+	Itf                    any
 	DerivedExchange        IDerivedExchange
 	methodCache            sync.Map
 	cacheLoaded            bool
@@ -40,28 +44,28 @@ type Exchange struct {
 	Id                     string
 	Name                   string
 	Options                *sync.Map
-	Has                    map[string]interface{}
-	Api                    map[string]interface{}
-	TransformedApi         map[string]interface{}
+	Has                    map[string]any
+	Api                    map[string]any
+	TransformedApi         map[string]any
 	Markets                *sync.Map
 	Markets_by_id          *sync.Map
 	Currencies_by_id       *sync.Map
 	Currencies             *sync.Map
-	RequiredCredentials    map[string]interface{}
-	HttpExceptions         map[string]interface{}
+	RequiredCredentials    map[string]any
+	HttpExceptions         map[string]any
 	MarketsById            *sync.Map
-	Timeframes             map[string]interface{}
-	Features               map[string]interface{}
-	Exceptions             map[string]interface{}
-	Precision              map[string]interface{}
-	Urls                   interface{}
-	UserAgents             map[string]interface{}
+	Timeframes             map[string]any
+	Features               map[string]any
+	Exceptions             map[string]any
+	Precision              map[string]any
+	Urls                   any
+	UserAgents             map[string]any
 	Timeout                int64
 	MAX_VALUE              float64
 	RateLimit              float64
 	RollingWindowSize      float64 // set to 0.0 to use leaky bucket rate limiter
 	RateLimiterAlgorithm   string
-	TokenBucket            map[string]interface{}
+	TokenBucket            map[string]any
 	Throttler              *Throttler
 	NewUpdates             bool
 	Alias                  bool
@@ -77,49 +81,59 @@ type Exchange struct {
 	Symbols                []string
 	Codes                  []string
 	Ids                    []string
-	CommonCurrencies       map[string]interface{}
+	CommonCurrencies       map[string]any
 	PrecisionMode          int
 	Limits                 map[string]interface{}
 	Fees                   map[string]interface{}
+	Status                 map[string]interface{}
 	CurrenciesById         *sync.Map
 	ReduceFees             bool
 
-	AccountsById interface{}
-	Accounts     interface{}
+	AccountsById any
+	Accounts     any
 
 	// timestamps
 	LastRestRequestTimestamp int64
-	LastRequestHeaders       interface{}
-	Last_request_headers     interface{}
-	Last_response_headers    interface{}
-	LastResponseHeaders      interface{}
-	Last_http_response       interface{}
-	LastRequestBody          interface{}
-	Last_request_body        interface{}
-	Last_request_url         interface{}
-	LastRequestUrl           string
-	Headers                  interface{}
-	ReturnResponseHeaders    bool
+	// lastMu guards the per-instance "last request/response" bookkeeping fields
+	// (timestamp, request headers/body/url, response headers) which are otherwise
+	// written by concurrent request goroutines that share the same *Exchange.
+	lastMu                sync.Mutex
+	LastRequestHeaders    any
+	Last_request_headers  any
+	Last_response_headers any
+	LastResponseHeaders   any
+	Last_http_response    any
+	LastRequestBody       any
+	Last_request_body     any
+	Last_request_url      any
+	LastRequestUrl        string
+	Headers               any
+	ReturnResponseHeaders bool
 
 	// type check this
-	Number interface{}
+	Number any
 	// keys
-	Secret        string
-	ApiKey        string
-	Password      string
-	Uid           string
-	AccountId     string
+	Secret        interface{}
+	ApiKey        interface{}
+	Password      interface{}
+	Uid           interface{}
+	AccountId     interface{}
 	Token         interface{}
-	Login         string
-	PrivateKey    string
-	WalletAddress string
+	Login         interface{}
+	PrivateKey    interface{}
+	WalletAddress interface{}
+	Twofa         interface{}
 
 	httpClient *http.Client
 
 	HttpProxy            interface{}
-	HttpsProxy           interface{}
 	Http_proxy           interface{}
+	HttpProxyCallback    interface{}
+	Http_proxy_callback  interface{}
+	HttpsProxy           interface{}
 	Https_proxy          interface{}
+	HttpsProxyCallback   interface{}
+	Https_proxy_callback interface{}
 	Proxy                interface{}
 	ProxyUrl             interface{}
 	ProxyUrlCallback     interface{}
@@ -130,65 +144,58 @@ type Exchange struct {
 	SocksProxyCallback   interface{}
 	Socks_proxy_callback interface{}
 
-	HttpsProxyCallback   interface{}
-	Https_proxy_callback interface{}
+	WsProxy        interface{}
+	Ws_proxy       interface{}
+	WssProxy       interface{}
+	Wss_proxy      interface{}
+	WsSocksProxy   interface{}
+	Ws_socks_proxy interface{}
 
-	HttpProxyCallback   interface{}
-	Http_proxy_callback interface{}
-	SocksroxyCallback   interface{}
-
-	WsSocksProxy   string
-	Ws_socks_proxy string
-
-	WssProxy  string
-	Wss_proxy string
-
-	WsProxy  string
-	Ws_proxy string
-
-	HttpProxyAgentModule         interface{} // or interface{} if you don't have a type yet
-	HttpsProxyAgentModule        interface{}
-	SocksProxyAgentModule        interface{}
+	HttpProxyAgentModule         any // or any if you don't have a type yet
+	HttpsProxyAgentModule        any
+	SocksProxyAgentModule        any
 	SocksProxyAgentModuleChecked bool
-	ProxyDictionaries            map[string]interface{}
+	ProxyDictionaries            map[string]any
 	ProxiesModulesLoading        chan struct{} // or something to represent a Promise/future
 
 	SubstituteCommonCurrencyCodes bool
 
-	Twofa string
-
 	// WS - updated to use thread-safe sync.Map (except cache objects)
-	Ohlcvs         interface{} // map[string]map[string]*ArrayCacheByTimestamp
-	Trades         interface{} // map[string]*ArrayCache
+	Ohlcvs         any // map[string]map[string]*ArrayCacheByTimestamp
+	Trades         any // map[string]*ArrayCache
 	Tickers        *sync.Map
-	Orders         interface{} // *ArrayCache  // cache object, not a map
-	MyTrades       interface{} // *ArrayCache  // cache object, not a map
+	Orders         any // *ArrayCache  // cache object, not a map
+	MyTrades       any // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
-	Liquidations   interface{} // *ArrayCacheBySymbolBySide
-	FundingRates   interface{}
+	Liquidations   any // *ArrayCacheBySymbolBySide
+	FundingRates   any
 	Bidsasks       *sync.Map
-	TriggerOrders  interface{} // *ArrayCache
+	TriggerOrders  any // *ArrayCache
 	Transactions   *sync.Map
-	MyLiquidations interface{} // *ArrayCacheBySymbolBySide
+	MyLiquidations any // *ArrayCacheBySymbolBySide
 
 	PaddingMode int
+
+	Countries map[string]interface{}
+	Certified bool
+	Pro       bool
 
 	MinFundingAddressLength int
 	MaxEntriesPerRequest    int
 
 	// tests only
-	FetchResponse interface{}
+	FetchResponse any
 
 	IsSandboxModeEnabled bool
 
 	// ws
-	WsClients   map[string]interface{} // one websocket client per URL
+	WsClients   map[string]any // one websocket client per URL
 	WsClientsMu sync.Mutex
-	Balance     interface{}
-	Positions   interface{}
-	Clients     map[string]interface{}
+	Balance     any
+	Positions   any
+	Clients     map[string]any
 	newUpdates  bool
-	streaming   map[string]interface{}
+	streaming   map[string]any
 
 	// id lock
 	idMutex sync.Mutex
@@ -209,7 +216,7 @@ const (
 
 // var ROUND int = 0
 
-func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
+func (this *Exchange) InitParent(userConfig map[string]any, exchangeConfig map[string]any, itf any) {
 	// this = &Exchange{}
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
@@ -219,7 +226,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	}
 	describeValues := this.Describe()
 	if userConfig == nil {
-		userConfig = map[string]interface{}{}
+		userConfig = map[string]any{}
 	}
 
 	extendedProperties := this.DeepExtend(describeValues, exchangeConfig)
@@ -245,8 +252,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.Transactions = &sync.Map{}
 	this.Liquidations = &sync.Map{}
 	this.MyLiquidations = &sync.Map{}
-	this.Clients = make(map[string]interface{})
-	// this.Balance = make(map[string]interface{})
+	this.Clients = make(map[string]any)
+	// this.Balance = make(map[string]any)
 	this.Balance = &sync.Map{}
 
 	// beforeNs := time.Now().UnixNano()
@@ -255,17 +262,17 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
 	this.Currencies = &sync.Map{}
-	// this.FundingRates = make(map[string]interface{})
+	// this.FundingRates = make(map[string]any)
 	this.FundingRates = &sync.Map{}
 	this.Bidsasks = &sync.Map{}
-	this.ProxyDictionaries = make(map[string]interface{})
-	this.AccountsById = make(map[string]interface{})
-	this.Accounts = make([]interface{}, 0)
+	this.ProxyDictionaries = make(map[string]any)
+	this.AccountsById = make(map[string]any)
+	this.Accounts = make([]any, 0)
 
 	this.initializeProperties(extendedProperties)
 	this.AfterConstruct()
 
-	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]interface{}{}).(map[string]interface{})
+	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)
 	transport := &http.Transport{}
 
@@ -275,7 +282,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	}
 }
 
-func (this *Exchange) Init(userConfig map[string]interface{}) {
+func (this *Exchange) Init(userConfig map[string]any) {
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
 	}
@@ -288,7 +295,7 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 
 func NewExchange() ICoreExchange {
 	exchange := &Exchange{}
-	exchange.Init(map[string]interface{}{})
+	exchange.Init(map[string]any{})
 	return exchange
 }
 
@@ -312,7 +319,7 @@ func (this *Exchange) WarmUpCache() {
 		numIn := methodType.NumIn()
 		isVariadic := methodType.IsVariadic()
 
-		cacheValue := map[string]interface{}{
+		cacheValue := map[string]any{
 			"method":      method,
 			"methodValue": methodValue,
 			"methodType":  methodType,
@@ -337,19 +344,19 @@ func (this *Exchange) InitThrottler() {
   - @param {object} params - Additional exchange-specific parameters for the request.
   - @throws An error if the markets cannot be loaded or prepared.
 */
-func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
+func (this *Exchange) LoadMarkets(params ...any) <-chan any {
 	reload := GetArg(params, 0, false).(bool)
 	this.loadMu.Lock()
 
 	if this.marketsLoaded && !reload {
-		out := make(chan interface{}, 1)
+		out := make(chan any, 1)
 		out <- this.Markets
 		close(out)
 		this.loadMu.Unlock()
 		return out
 	}
 
-	ch := make(chan interface{}, 1)
+	ch := make(chan any, 1)
 	this.loadMarketsSubscribers = append(this.loadMarketsSubscribers, ch)
 
 	if !this.marketsLoading || reload {
@@ -368,8 +375,8 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	return ch
 }
 
-func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
+func (this *Exchange) LoadMarketsHelper(params ...any) <-chan any {
+	ch := make(chan any)
 
 	go func() {
 		defer close(ch)
@@ -381,7 +388,7 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 			}
 		}()
 		reload := GetArg(params, 0, false).(bool)
-		params := GetArg(params, 1, map[string]interface{}{})
+		params := GetArg(params, 1, map[string]any{})
 		if !reload {
 			if this.Markets != nil {
 				if this.Markets_by_id == nil {
@@ -397,7 +404,7 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 			}
 		}
 
-		var currencies interface{} = nil
+		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
 			currencies = <-this.DerivedExchange.FetchCurrencies(params)
@@ -426,9 +433,9 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 	return ch
 }
 
-func (this *Exchange) Throttle(cost interface{}) <-chan interface{} {
+func (this *Exchange) Throttle(cost any) <-chan any {
 	// to do
-	ch := make(chan interface{})
+	ch := make(chan any)
 	go func() {
 		defer close(ch)
 		task := <-this.Throttler.Throttle(cost)
@@ -437,9 +444,9 @@ func (this *Exchange) Throttle(cost interface{}) <-chan interface{} {
 	return ch
 }
 
-func (this *Exchange) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *Exchange) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		// defer close(ch)
 		// markets := <-this.callInternal("fetchMarkets", optionalArgs)
 		// return markets
@@ -448,9 +455,9 @@ func (this *Exchange) FetchMarkets(optionalArgs ...interface{}) <-chan interface
 	return ch
 }
 
-func (this *Exchange) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *Exchange) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		// markets := <-this.callInternal("fetchCurrencies", optionalArgs)
 		// return markets
@@ -459,12 +466,12 @@ func (this *Exchange) FetchCurrencies(optionalArgs ...interface{}) <-chan interf
 	return ch
 }
 
-func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
+func (this *Exchange) Sleep(milliseconds any) <-chan bool {
 	var duration time.Duration
 
 	// Type assertion to handle various types for milliseconds
 	ch := make(chan bool)
-	go func() interface{} {
+	go func() any {
 		switch v := milliseconds.(type) {
 		case int:
 			duration = time.Duration(v) * time.Millisecond
@@ -485,13 +492,13 @@ func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
 	return ch
 }
 
-func (this *Exchange) Log(args ...interface{}) {
+func (this *Exchange) Log(args ...any) {
 	// convert to str and print
 	fmt.Println(args...)
 }
 
-func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) <-chan interface{} {
-	ch := make(chan interface{})
+func (this *Exchange) callEndpoint(endpoint2 any, parameters any) <-chan any {
+	ch := make(chan any)
 
 	go func() {
 		defer close(ch)
@@ -505,8 +512,8 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 
 		endpoint := endpoint2.(string)
 		if val, ok := this.TransformedApi[endpoint]; ok {
-			endPointData := val.(map[string]interface{})
-			// endPointData := this.TransformedApi[endpoint].(map[string]interface{})
+			endPointData := val.(map[string]any)
+			// endPointData := this.TransformedApi[endpoint].(map[string]any)
 			method := endPointData["method"].(string)
 			path := endPointData["path"].(string)
 			api := endPointData["api"]
@@ -514,7 +521,7 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 			if valCost, ok := endPointData["cost"]; ok {
 				cost = valCost.(float64)
 			}
-			res := <-this.Fetch2(path, api, method, parameters, map[string]interface{}{}, nil, map[string]interface{}{"cost": cost})
+			res := <-this.Fetch2(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
 			PanicOnError(res)
 			ch <- res
 		} else {
@@ -524,11 +531,15 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 	return ch
 }
 
-func (this *Exchange) ConvertToBigInt(data interface{}) interface{} {
-	return ParseInt(data)
+func (this *Exchange) ConvertToBigInt(data any) any {
+	bigValue := parseStarknetBigInt(data)
+	if bigValue == nil {
+		return nil
+	}
+	return bigValue.String()
 }
 
-func (this *Exchange) CreateSafeDictionary() *sync.Map {
+func (this *Exchange) CreateSafeDictionary(isWs ...bool) *sync.Map {
 	// Create a new sync.Map to hold the safe dictionary
 	return &sync.Map{}
 }
@@ -547,7 +558,7 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("[ccxtError]::[%s]::[%s]\nStack:\n%s", e.Type, e.Message, e.Stack)
 }
 
-func NewError(errType interface{}, message ...interface{}) error {
+func NewError(errType any, message ...any) error {
 	typeErr := ToString(errType)
 	msg := ""
 	stack := ""
@@ -562,11 +573,11 @@ func NewError(errType interface{}, message ...interface{}) error {
 	return &Error{Type: ErrorType(string(typeErr)), Message: msg, Stack: stack}
 }
 
-func Exception(v ...interface{}) error {
+func Exception(v ...any) error {
 	return NewError("Exception", v...)
 }
 
-func IsError(res interface{}) bool {
+func IsError(res any) bool {
 	resStr, ok := res.(string)
 	if ok {
 		return strings.HasPrefix(resStr, "panic:")
@@ -574,7 +585,7 @@ func IsError(res interface{}) bool {
 	return false
 }
 
-func CreateReturnError(res interface{}) error {
+func CreateReturnError(res any) error {
 	resStr := res.(string)
 	resStr = strings.ReplaceAll(resStr, "panic:", "")
 	if strings.Contains(resStr, "ccxtError") {
@@ -592,7 +603,7 @@ func CreateReturnError(res interface{}) error {
 
 // emd of error related functions
 
-func ToSafeFloat(v interface{}) (float64, error) {
+func ToSafeFloat(v any) (float64, error) {
 	switch v := v.(type) {
 	case float64:
 		return v, nil
@@ -610,7 +621,7 @@ func ToSafeFloat(v interface{}) (float64, error) {
 }
 
 // json converts an object to a JSON string
-func (this *Exchange) Json(object interface{}) interface{} {
+func (this *Exchange) Json(object any) any {
 	jsonBytes, err := j.Marshal(object)
 	if err != nil {
 		return nil
@@ -618,7 +629,7 @@ func (this *Exchange) Json(object interface{}) interface{} {
 	return string(jsonBytes)
 }
 
-func (this *Exchange) ParseNumber(v interface{}, a ...interface{}) interface{} {
+func (this *Exchange) ParseNumber(v any, a ...any) any {
 	if (v == nil) || (v == "") {
 		// return default value if exists
 		if len(a) > 0 {
@@ -633,39 +644,64 @@ func (this *Exchange) ParseNumber(v interface{}, a ...interface{}) interface{} {
 	return nil
 }
 
-func (this *Exchange) ValueIsDefined(v interface{}) bool {
+func (this *Exchange) ValueIsDefined(v any) bool {
 	if v == nil {
 		return false
 	}
 	if str, ok := v.(string); ok {
 		return str != ""
 	}
+	val := reflect.ValueOf(v)
+	switch val.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func, reflect.Interface:
+		return !val.IsNil()
+	}
 	return true
 }
 
-// func (this *Exchange) CreateSafeDictionary() interface{} {
-// 	return map[string]interface{}{}
+// func (this *Exchange) CreateSafeDictionary() any {
+// 	return map[string]any{}
 // }
 
-func (this *Exchange) ConvertToSafeDictionary(data interface{}) interface{} {
+func (this *Exchange) ConvertToSafeDictionary(data any) any {
 	return data
 }
 
-func (this *Exchange) callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
+func (this *Exchange) callDynamically(name2 any, args ...any) <-chan any {
 	return this.callInternal(name2.(string), args...)
 }
 
-func (this *Exchange) CallDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
+func (this *Exchange) CallDynamically(name2 any, args ...any) <-chan any {
 	return this.callInternal(name2.(string), args...)
 }
 
 // clone creates a deep copy of the input object. It supports arrays, slices, and maps.
-func (this *Exchange) Clone(object interface{}) interface{} {
-	return this.DeepCopy(reflect.ValueOf(object)).Interface()
+func (this *Exchange) Clone(object any) any {
+	if object == nil {
+		return nil
+	}
+	result := this.DeepCopy(reflect.ValueOf(object))
+	if !result.IsValid() {
+		return nil
+	}
+	return result.Interface()
 }
 
 func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
+	if !value.IsValid() {
+		// zero / invalid reflect.Value – preserve as-is (callers use IsValid to detect nil)
+		return value
+	}
 	switch value.Kind() {
+	case reflect.Interface:
+		// unwrap the interface; if it holds nil, return a typed nil of the same interface type
+		if value.IsNil() {
+			return reflect.Zero(value.Type())
+		}
+		inner := this.DeepCopy(value.Elem())
+		result := reflect.New(value.Type()).Elem()
+		result.Set(inner)
+		return result
 	case reflect.Array, reflect.Slice:
 		// Create a new slice/array of the same type and length
 		copy := reflect.MakeSlice(value.Type(), value.Len(), value.Cap())
@@ -677,7 +713,12 @@ func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
 		// Create a new map of the same type
 		copy := reflect.MakeMap(value.Type())
 		for _, key := range value.MapKeys() {
-			copy.SetMapIndex(key, this.DeepCopy(value.MapIndex(key)))
+			copiedVal := this.DeepCopy(value.MapIndex(key))
+			if !copiedVal.IsValid() {
+				// nil interface value: store as zero of the map's element type so the key is preserved
+				copiedVal = reflect.Zero(value.Type().Elem())
+			}
+			copy.SetMapIndex(key, copiedVal)
 		}
 		return copy
 	default:
@@ -687,10 +728,10 @@ func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
 }
 
 type IArrayCache interface {
-	ToArray() []interface{}
+	ToArray() []any
 }
 
-func (this *Exchange) ArraySlice(array interface{}, first interface{}, second ...interface{}) interface{} {
+func (this *Exchange) ArraySlice(array any, first any, second ...any) any {
 	// If the incoming object implements IArrayCache convert it first.
 	if cache, ok := array.(IArrayCache); ok {
 		return this.ArraySlice(cache.ToArray(), first, second...)
@@ -730,9 +771,9 @@ func (this *Exchange) ArraySlice(array interface{}, first interface{}, second ..
 	return this.sliceToInterface(parsedArray.Slice(firstInt, secondInt))
 }
 
-func (this *Exchange) sliceToInterface(value reflect.Value) []interface{} {
+func (this *Exchange) sliceToInterface(value reflect.Value) []any {
 	length := value.Len()
-	result := make([]interface{}, length)
+	result := make([]any, length)
 	for i := 0; i < length; i++ {
 		result[i] = value.Index(i).Interface()
 	}
@@ -741,14 +782,14 @@ func (this *Exchange) sliceToInterface(value reflect.Value) []interface{} {
 
 // Example ArrayCache implementation for testing
 type exampleArrayCache struct {
-	data []interface{}
+	data []any
 }
 
-func (e *exampleArrayCache) ToArray() []interface{} {
+func (e *exampleArrayCache) ToArray() []any {
 	return e.data
 }
 
-func (this *Exchange) ParseTimeframe(timeframe interface{}) interface{} {
+func (this *Exchange) ParseTimeframe(timeframe any) any {
 	str, ok := timeframe.(string)
 	if !ok {
 		return nil
@@ -788,15 +829,15 @@ func (this *Exchange) ParseTimeframe(timeframe interface{}) interface{} {
 	return result
 }
 
-func Totp(secret interface{}) string {
+func Totp(secret any) string {
 	return ""
 }
 
-func (this *Exchange) ParseJson(input interface{}) interface{} {
+func (this *Exchange) ParseJson(input any) any {
 	return ParseJSON(input)
 }
 
-// type Dict map[string]interface{}
+// type Dict map[string]any
 
 func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 	if api == nil {
@@ -810,12 +851,12 @@ func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 	for key, value := range api {
 		if isHttpMethod(key) {
 			var endpoints []string
-			if dictValue, ok := value.(map[string]interface{}); ok {
+			if dictValue, ok := value.(map[string]any); ok {
 				for endpoint := range dictValue {
 					endpoints = append(endpoints, endpoint)
 				}
 			} else {
-				if listValue, ok := value.([]interface{}); ok {
+				if listValue, ok := value.([]any); ok {
 					for _, item := range listValue {
 						if s, ok := item.(string); ok {
 							endpoints = append(endpoints, s)
@@ -826,9 +867,9 @@ func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 
 			for _, endpoint := range endpoints {
 				cost := 1.0
-				if dictValue, ok := value.(map[string]interface{}); ok {
+				if dictValue, ok := value.(map[string]any); ok {
 					if config, ok := dictValue[endpoint]; ok {
-						if dictConfig, ok := config.(map[string]interface{}); ok {
+						if dictConfig, ok := config.(map[string]any); ok {
 							if rl, success := dictConfig["cost"]; success {
 								if rlFloat, ok := rl.(float64); ok {
 									cost = rlFloat
@@ -861,12 +902,12 @@ func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 					path = strings.ToLower(string(path[0])) + path[1:]
 				}
 
-				apiObj := interface{}(paths)
+				apiObj := any(paths)
 				if len(paths) == 1 {
 					apiObj = paths[0]
 				}
 
-				this.TransformedApi[path] = map[string]interface{}{
+				this.TransformedApi[path] = map[string]any{
 					"method": strings.ToUpper(key),
 					"path":   endpoint,
 					"api":    apiObj,
@@ -874,7 +915,7 @@ func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 				}
 			}
 		} else {
-			if nestedDict, ok := value.(map[string]interface{}); ok {
+			if nestedDict, ok := value.(map[string]any); ok {
 				this.transformApiNew(nestedDict, append(paths, key)...)
 			}
 		}
@@ -899,7 +940,7 @@ func parseCost(costStr string) float64 {
 	return cost
 }
 
-// func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
+// func (this *Exchange) callInternal(name2 string, args ...any) any {
 // 	name := strings.Title(strings.ToLower(name2))
 // 	baseType := reflect.TypeOf(this.Itf)
 
@@ -955,14 +996,14 @@ func (this *Exchange) CheckRequiredDependencies() {
 	// to do
 }
 
-func (this *Exchange) FixStringifiedJsonMembers(a interface{}) string {
+func (this *Exchange) FixStringifiedJsonMembers(a any) string {
 	aStr := a.(string)
 	aStr = strings.ReplaceAll(aStr, "\\", "")
 	aStr = strings.ReplaceAll(aStr, "\"{", "{")
 	aStr = strings.ReplaceAll(aStr, "}\"", "}")
 	return aStr
 }
-func (this *Exchange) IsEmpty(a interface{}) bool {
+func (this *Exchange) IsEmpty(a any) bool {
 	if a == nil {
 		return true
 	}
@@ -988,12 +1029,12 @@ func (this *Exchange) IsEmpty(a interface{}) bool {
 	}
 }
 
-func (this *Exchange) CallInternal(name2 string, args ...interface{}) <-chan interface{} {
+func (this *Exchange) CallInternal(name2 string, args ...any) <-chan any {
 	return this.callInternal(name2, args...)
 }
 
-func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
+func (this *Exchange) callInternal(name2 string, args ...any) <-chan any {
+	ch := make(chan any)
 	go func() {
 		defer close(ch)
 		defer func() {
@@ -1016,11 +1057,11 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 	return ch
 }
 
-func (this *Exchange) BinaryLength(binary interface{}) int {
+func (this *Exchange) BinaryLength(binary any) int {
 	return this.binaryLength(binary)
 }
 
-func (this *Exchange) binaryLength(binary interface{}) int {
+func (this *Exchange) binaryLength(binary any) int {
 	var length int
 
 	// Handle different types for the length parameter
@@ -1036,7 +1077,7 @@ func (this *Exchange) binaryLength(binary interface{}) int {
 	return length
 }
 
-func (this *Exchange) RandomBytes(length interface{}) string {
+func (this *Exchange) RandomBytes(length any) string {
 	var byteLength int
 
 	// Handle different types for the length parameter
@@ -1068,7 +1109,7 @@ func (this *Exchange) RandomBytes(length interface{}) string {
 	return hex.EncodeToString(x)
 }
 
-func (this *Exchange) IsJsonEncodedObject(str interface{}) bool {
+func (this *Exchange) IsJsonEncodedObject(str any) bool {
 	// Attempt to assert the input to a string type
 	str2, ok := str.(string)
 	if !ok {
@@ -1082,7 +1123,7 @@ func (this *Exchange) IsJsonEncodedObject(str interface{}) bool {
 	return false
 }
 
-func (this *Exchange) StringToCharsArray(value interface{}) []string {
+func (this *Exchange) StringToCharsArray(value any) []string {
 	// Attempt to assert the input to a string type
 	str, ok := value.(string)
 	if !ok {
@@ -1117,7 +1158,7 @@ func (this *Exchange) GetMarketsList() []MarketInterface {
 	// for _, market := range this.Markets {
 	// 	markets = append(markets, NewMarketInterface(market))
 	// }
-	this.Markets.Range(func(key, value interface{}) bool {
+	this.Markets.Range(func(key, value any) bool {
 		markets = append(markets, NewMarketInterface(value))
 		return true
 
@@ -1140,14 +1181,14 @@ func (this *Exchange) GetCurrenciesList() []Currency {
 	// 	currencies = append(currencies, NewCurrency(currency))
 	// }
 	// }
-	this.Currencies.Range(func(key, value interface{}) bool {
+	this.Currencies.Range(func(key, value any) bool {
 		currencies = append(currencies, NewCurrency(value))
 		return true
 	})
 	return currencies
 }
 
-func (this *Exchange) SetProperty(obj interface{}, property interface{}, defaultValue interface{}) {
+func (this *Exchange) SetProperty(obj any, property any, defaultValue any) {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
@@ -1170,7 +1211,7 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, default
 	}
 }
 
-func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{} {
+func (this *Exchange) ExceptionMessage(exc any, includeStack ...any) any {
 	include := true
 	if len(includeStack) > 0 {
 		include = includeStack[0].(bool)
@@ -1192,11 +1233,14 @@ func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interfac
 	return message[:length]
 }
 
-func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
+func (this *Exchange) GetProperty(obj any, property any, defaultValue ...any) any {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
 		// fmt.Println("Property should be a string")
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
 		return nil
 	}
 
@@ -1208,30 +1252,33 @@ func (this *Exchange) GetProperty(obj interface{}, property interface{}) interfa
 
 	// Check if the field exists and can be accessed
 	if field.IsValid() && field.CanInterface() {
-		// Return the field value as an interface{}
+		// Return the field value as an any
 		return field.Interface()
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be accessed\n", propName)
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
 		return nil
 	}
 }
 
-func (this *Exchange) Unique(obj interface{}) []interface{} {
-	var list []interface{}
+func (this *Exchange) Unique(obj any) []any {
+	var list []any
 
 	switch v := obj.(type) {
 	case []string:
 		for _, item := range v {
 			list = append(list, item)
 		}
-	case []interface{}:
+	case []any:
 		list = v
 	default:
-		return []interface{}{}
+		return []any{}
 	}
 
-	uniqueMap := make(map[interface{}]bool)
-	uniqueList := []interface{}{}
+	uniqueMap := make(map[any]bool)
+	uniqueList := []any{}
 	for _, item := range list {
 		if !uniqueMap[item] {
 			uniqueMap[item] = true
@@ -1241,7 +1288,7 @@ func (this *Exchange) Unique(obj interface{}) []interface{} {
 	return uniqueList
 }
 
-// func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
+// func (this *Exchange) callInternal(name2 string, args ...any) any {
 // 	name := strings.Title(strings.ToLower(name2))
 // 	baseType := reflect.TypeOf(this.Itf)
 
@@ -1274,26 +1321,110 @@ func (this *Exchange) Unique(obj interface{}) []interface{} {
 // 			/*temp := reflect.ValueOf(this.Itf).MethodByName(name)
 // 			x1 := reflect.ValueOf(temp).FieldByName("flag").Uint()*/
 // 			res = reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
-// 			return res[0].Interface().(interface{})
+// 			return res[0].Interface().(any)
 // 		}
 // 	}
 // 	return nil
 // }
 
-func (this *Exchange) RetrieveStarkAccount(sig interface{}, account interface{}, hash interface{}) interface{} {
+func (this *Exchange) RetrieveStarkAccount(sig any, account any, hash any) any {
 	return nil // to do
 }
 
-func (this *Exchange) StarknetEncodeStructuredData(a interface{}, b interface{}, c interface{}, d interface{}) interface{} {
+func (this *Exchange) StarknetEncodeStructuredData(a any, b any, c any, d any) any {
 	return nil // to do
 }
 
-func (this *Exchange) StarknetSign(a interface{}, b interface{}) interface{} {
+func (this *Exchange) StarknetSign(a any, b any) any {
 	return nil // to do
 }
 
-func (this *Exchange) GetZKContractSignatureObj(seed interface{}, params interface{}) <-chan interface{} {
-	ch := make(chan interface{})
+func (this *Exchange) ExtendedStarknetSign(a any, b any) any {
+	msgHash := parseStarknetBigInt(a)
+	privateKey := parseStarknetBigInt(b)
+	if msgHash == nil || privateKey == nil {
+		panic(AuthenticationError(Add(this.Id, " extendedStarknetSign() invalid msgHash or privateKey")))
+	}
+	r, s, err := starkcurve.Sign(msgHash, privateKey)
+	if err != nil {
+		panic(AuthenticationError(Add(this.Id, Add(" extendedStarknetSign() failed: ", err.Error()))))
+	}
+	return this.Json([]any{r.String(), s.String()})
+}
+
+func (this *Exchange) ExtendedStarknetGetSelectorFromName(a any) any {
+	return starkutils.GetSelectorFromName(ToString(a)).String()
+}
+
+func (this *Exchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
+	values, ok := a.([]any)
+	if !ok {
+		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
+	}
+	felts := make([]*starkfelt.Felt, 0, len(values))
+	for _, value := range values {
+		bigValue := parseStarknetBigInt(value)
+		if bigValue == nil {
+			panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() invalid felt value")))
+		}
+		felts = append(felts, new(starkfelt.Felt).SetBigInt(bigValue))
+	}
+	hash := starkcurve.PoseidonArray(felts...)
+	return hash.BigInt(new(big.Int)).String()
+}
+
+func parseStarknetBigInt(value any) *big.Int {
+	switch v := value.(type) {
+	case nil:
+		return nil
+	case *big.Int:
+		return new(big.Int).Set(v)
+	case big.Int:
+		return new(big.Int).Set(&v)
+	case string:
+		text := strings.TrimSpace(v)
+		if text == "" {
+			return nil
+		}
+		base := 10
+		if strings.HasPrefix(text, "0x") || strings.HasPrefix(text, "0X") {
+			base = 16
+			text = text[2:]
+		}
+		result := new(big.Int)
+		if _, ok := result.SetString(text, base); ok {
+			return result
+		}
+	case int:
+		return big.NewInt(int64(v))
+	case int8:
+		return big.NewInt(int64(v))
+	case int16:
+		return big.NewInt(int64(v))
+	case int32:
+		return big.NewInt(int64(v))
+	case int64:
+		return big.NewInt(v)
+	case uint:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint8:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint16:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint32:
+		return new(big.Int).SetUint64(uint64(v))
+	case uint64:
+		return new(big.Int).SetUint64(v)
+	case float32:
+		return big.NewInt(int64(v))
+	case float64:
+		return big.NewInt(int64(v))
+	}
+	return nil
+}
+
+func (this *Exchange) GetZKContractSignatureObj(seed any, params any) <-chan any {
+	ch := make(chan any)
 
 	go func() {
 		defer close(ch)
@@ -1310,8 +1441,8 @@ func (this *Exchange) GetZKContractSignatureObj(seed interface{}, params interfa
 	return ch
 }
 
-func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interface{}) <-chan interface{} {
-	ch := make(chan interface{})
+func (this *Exchange) GetZKTransferSignatureObj(seed any, params any) <-chan any {
+	ch := make(chan any)
 
 	go func() {
 		defer close(ch)
@@ -1328,8 +1459,8 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 	return ch
 }
 
-func (this *Exchange) LoadDydxProtos() <-chan interface{} {
-	ch := make(chan interface{})
+func (this *Exchange) LoadDydxProtos() <-chan any {
+	ch := make(chan any)
 
 	go func() {
 		defer close(ch)
@@ -1344,47 +1475,47 @@ func (this *Exchange) LoadDydxProtos() <-chan interface{} {
 	return ch
 }
 
-func (this *Exchange) ToDydxLong(numStr interface{}) interface{} {
+func (this *Exchange) ToDydxLong(numStr any) any {
 	return nil
 }
 
-func (this *Exchange) RetrieveDydxCredentials(entropy interface{}) interface{} {
+func (this *Exchange) RetrieveDydxCredentials(entropy any) any {
 	return nil
 }
 
 func (this *Exchange) EncodeDydxTxForSimulation(
-	message interface{},
-	memo interface{},
-	sequence interface{},
-	publicKey interface{}) interface{} {
+	message any,
+	memo any,
+	sequence any,
+	publicKey any) any {
 	return nil
 }
 
 func (this *Exchange) EncodeDydxTxForSigning(
-	message interface{},
-	memo interface{},
-	chainId interface{},
-	account interface{},
-	authenticators interface{},
-	fee interface{}) interface{} {
+	message any,
+	memo any,
+	chainId any,
+	account any,
+	authenticators any,
+	fee any) any {
 	return nil
 }
 
-func (this *Exchange) EncodeDydxTxRaw(signDoc interface{}, signature interface{}) interface{} {
+func (this *Exchange) EncodeDydxTxRaw(signDoc any, signature any) any {
 	return nil
 }
 
-func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
-	options := options2.(map[string]interface{})
+func (this *Exchange) ExtendExchangeOptions(options2 any) {
+	options := options2.(map[string]any)
 	extended := this.Extend(this.SafeMapToMap(this.Options), options)
 	this.Options = this.MapToSafeMap(extended)
 }
 
-// func (this *Exchange) Init(userConfig map[string]interface{}) {
+// func (this *Exchange) Init(userConfig map[string]any) {
 // }
 
-func (this *Exchange) RandNumber(size interface{}) int64 {
-	// Try casting interface{} to int
+func (this *Exchange) RandNumber(size any) int64 {
+	// Try casting any to int
 	intSize, ok := size.(int)
 	if !ok {
 		fmt.Println("Invalid size type; expected int")
@@ -1439,9 +1570,9 @@ func (this *Exchange) UpdateProxySettings() {
 	}
 }
 
-func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}) <-chan interface{} {
+func (this *Exchange) callEndpointAsync(endpointName string, args ...any) <-chan any {
 	parameters := GetArg(args, 0, nil)
-	ch := make(chan interface{})
+	ch := make(chan any)
 	go func() {
 		defer close(ch)
 		defer func() {
@@ -1463,13 +1594,13 @@ func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}
 //   - [message]      subscribe payload (optional)
 //   - [subscribeHash] key for "subscriptions" map (optional)
 //   - [subscription]  arbitrary value stored in subscriptions (optional)
-func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
+func (this *Exchange) Watch(args ...any) <-chan any {
 
 	url, _ := args[0].(string)
 	messageHash, _ := args[1].(string)
-	var message interface{}
-	var subscribeHash interface{}
-	var subscription interface{}
+	var message any
+	var subscribeHash any
+	var subscription any
 
 	if len(args) >= 3 {
 		message = args[2]
@@ -1515,7 +1646,7 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 		if subscription != nil {
 			client.Subscriptions[subscribeHash.(string)] = subscription
 		} else {
-			// client.Subscriptions[subscribeHash.(string)] = make(chan interface{})
+			// client.Subscriptions[subscribeHash.(string)] = make(chan any)
 			client.Subscriptions[subscribeHash.(string)] = true
 		}
 	}
@@ -1545,14 +1676,14 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 				future.Reject(err)
 				return
 			}
-			options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+			options := SafeValue(this.Options, "ws", make(map[string]any))
 			cost := SafeValue(options, "cost", 1)
 			if message != nil {
 				if this.EnableRateLimit && client.Throttle != nil {
 					// add cost here |
 					//               |
 					//               V
-					if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+					if throttleFunc, ok := client.Throttle.(func(any) error); ok {
 						if err := throttleFunc(cost); err != nil {
 							client.OnError(err)
 							return
@@ -1575,23 +1706,23 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 // ------------------- WS helper wrappers (parity with TS) ------------------
 
 // OrderBook returns a new mutable order-book using our Go implementation.
-func (this *Exchange) OrderBook(optionalArgs ...interface{}) *WsOrderBook {
-	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+func (this *Exchange) OrderBook(optionalArgs ...any) *WsOrderBook {
+	snapshot := GetArg(optionalArgs, 0, map[string]any{})
 	depth := GetArg(optionalArgs, 1, math.MaxInt32)
 	orderBook := NewWsOrderBook(snapshot, depth)
 	return orderBook
 }
 
 // IndexedOrderBook and CountedOrderBook share the same implementation for now.
-func (this *Exchange) IndexedOrderBook(optionalArgs ...interface{}) *IndexedOrderBook {
-	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+func (this *Exchange) IndexedOrderBook(optionalArgs ...any) *IndexedOrderBook {
+	snapshot := GetArg(optionalArgs, 0, map[string]any{})
 	depth := GetArg(optionalArgs, 1, 9007199254740991)
 	orderBook := NewIndexedOrderBook(snapshot, depth)
 	return orderBook
 }
 
-func (this *Exchange) CountedOrderBook(optionalArgs ...interface{}) *CountedOrderBook {
-	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+func (this *Exchange) CountedOrderBook(optionalArgs ...any) *CountedOrderBook {
+	snapshot := GetArg(optionalArgs, 0, map[string]any{})
 	depth := GetArg(optionalArgs, 1, 9007199254740991)
 	orderBook := NewCountedOrderBook(snapshot, depth)
 	return orderBook
@@ -1605,7 +1736,7 @@ func (this *Exchange) CountedOrderBook(optionalArgs ...interface{}) *CountedOrde
 // 	}
 // }
 
-func (this *Exchange) SetProxyAgents(httpProxy interface{}, httpsProxy interface{}, socksProxy interface{}) (interface{}, error) {
+func (this *Exchange) SetProxyAgents(httpProxy any, httpsProxy any, socksProxy any) (any, error) {
 	var transport *http.Transport
 
 	// Handle HTTP proxy
@@ -1647,7 +1778,7 @@ func (this *Exchange) SetProxyAgents(httpProxy interface{}, httpsProxy interface
 	return transport, nil
 }
 
-func (this *Exchange) GetHttpAgentIfNeeded(url string) (interface{}, error) {
+func (this *Exchange) GetHttpAgentIfNeeded(url string) (any, error) {
 	// if isNode { // TODO: implement this
 	if len(url) >= 5 && url[:5] == "ws://" {
 		if this.HttpProxy == nil {
@@ -1659,20 +1790,20 @@ func (this *Exchange) GetHttpAgentIfNeeded(url string) (interface{}, error) {
 	return nil, nil // no agent needed
 }
 
-func (this *Exchange) Ping(client interface{}) interface{} {
+func (this *Exchange) Ping(client any) any {
 	return nil
 }
 
-func (this *Exchange) HandleMessage(client interface{}, message interface{}) {
+func (this *Exchange) HandleMessage(client any, message any) {
 	// stub to override
 }
 
-func (this *Exchange) OnConnected(client interface{}, message interface{}) {
+func (this *Exchange) OnConnected(client any, message any) {
 	// for user hooks
 	// fmt.Println('Connected to', client.url)
 }
 
-func (this *Exchange) OnError(client interface{}, err interface{}) {
+func (this *Exchange) OnError(client any, err any) {
 	this.WsClientsMu.Lock()
 	if c, ok := this.Clients[client.(ClientInterface).GetUrl()]; ok && c.(ClientInterface).GetError() != nil {
 		delete(this.Clients, client.(ClientInterface).GetUrl())
@@ -1681,7 +1812,7 @@ func (this *Exchange) OnError(client interface{}, err interface{}) {
 	client.(ClientInterface).SetError(fmt.Errorf("%v", err))
 }
 
-func (this *Exchange) OnClose(client interface{}, err interface{}) {
+func (this *Exchange) OnClose(client any, err any) {
 	if client.(*Client).Error != nil {
 		// connection closed due to an error, do nothing
 	} else {
@@ -1692,7 +1823,7 @@ func (this *Exchange) OnClose(client interface{}, err interface{}) {
 }
 
 // Client returns (and caches) a *WSClient for the given WS URL.
-func (this *Exchange) Client(url interface{}) *WSClient {
+func (this *Exchange) Client(url any) *WSClient {
 	// TODO: what to do with errors
 	this.WsClientsMu.Lock()
 	defer this.WsClientsMu.Unlock()
@@ -1700,11 +1831,11 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 		return client.(*WSClient)
 	}
 	// TODO: add options to NewWSClient
-	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{})
+	wsOptions := SafeValue(this.Options, "ws", map[string]any{})
 	// proxy agents
 	proxies := this.CheckWsProxySettings()
 	var httpProxy, httpsProxy, socksProxy string
-	if proxySlice, ok := proxies.([]interface{}); ok {
+	if proxySlice, ok := proxies.([]any); ok {
 		httpProxy, _ = proxySlice[0].(string)
 		httpsProxy, _ = proxySlice[1].(string)
 		socksProxy, _ = proxySlice[2].(string)
@@ -1718,7 +1849,7 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 	if err != nil {
 		return nil //, err
 	}
-	var finalAgent interface{}
+	var finalAgent any
 	if chosenAgent != nil {
 		finalAgent = chosenAgent
 	} else if httpProxyAgent != nil {
@@ -1727,12 +1858,12 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 
 	options := DeepExtend(
 		this.streaming,
-		map[string]interface{}{
+		map[string]any{
 			"Log":      this.Log,
 			"Ping":     this.DerivedExchange.Ping,
 			"Verbose":  this.Verbose,
 			"Throttle": NewThrottler(this.TokenBucket),
-			"Options": map[string]interface{}{
+			"Options": map[string]any{
 				"Agent": finalAgent,
 			},
 			"DecompressBinary": this.SafeBool(this.Options, "decompressBinary", true),
@@ -1749,7 +1880,7 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 func (this *Exchange) getWsProxy() string {
 	proxies := this.CheckWsProxySettings()
 	var proxyUrl string
-	if proxySlice, ok := proxies.([]interface{}); ok {
+	if proxySlice, ok := proxies.([]any); ok {
 		httpProxy, _ := proxySlice[0].(string)
 		httpsProxy, _ := proxySlice[1].(string)
 		socksProxy, _ := proxySlice[2].(string)
@@ -1764,15 +1895,15 @@ func (this *Exchange) getWsProxy() string {
 	return proxyUrl
 }
 
-func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
+func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 	url, _ := args[0].(string)
 	var messageHashes []string
 
-	// Handle both []string and []interface{} for messageHashes
+	// Handle both []string and []any for messageHashes
 	if hashes, ok := args[1].([]string); ok {
 		messageHashes = hashes
-	} else if hashesInterface, ok := args[1].([]interface{}); ok {
-		// Convert []interface{} to []string
+	} else if hashesInterface, ok := args[1].([]any); ok {
+		// Convert []any to []string
 		messageHashes = make([]string, len(hashesInterface))
 		for i, hash := range hashesInterface {
 			if str, ok := hash.(string); ok {
@@ -1780,9 +1911,9 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 			}
 		}
 	}
-	var message interface{}
-	var subscribeHashes interface{}
-	var subscription interface{}
+	var message any
+	var subscribeHashes any
+	var subscription any
 
 	if len(args) >= 3 {
 		message = args[2]
@@ -1820,14 +1951,14 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	missingSubscriptions := []string{}
 	client.SubscriptionsMu.Lock()
 	if subscribeHashes != nil {
-		// Handle both []string and []interface{} for subscribeHashes
-		var subscribeHashesList []interface{}
+		// Handle both []string and []any for subscribeHashes
+		var subscribeHashesList []any
 		if hashes, ok := subscribeHashes.([]string); ok {
-			subscribeHashesList = make([]interface{}, len(hashes))
+			subscribeHashesList = make([]any, len(hashes))
 			for i, hash := range hashes {
 				subscribeHashesList[i] = hash
 			}
-		} else if hashes, ok := subscribeHashes.([]interface{}); ok {
+		} else if hashes, ok := subscribeHashes.([]any); ok {
 			subscribeHashesList = hashes
 		}
 
@@ -1838,7 +1969,7 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 					if subscription != nil {
 						client.Subscriptions[hashStr] = subscription
 					} else {
-						client.Subscriptions[hashStr] = make(chan interface{})
+						client.Subscriptions[hashStr] = make(chan any)
 					}
 				}
 			}
@@ -1874,14 +2005,14 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 				future.Reject(err)
 				return
 			}
-			options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+			options := SafeValue(this.Options, "ws", make(map[string]any))
 			cost := SafeValue(options, "cost", 1)
 			if message != nil {
 				if this.EnableRateLimit && client.Throttle != nil {
 					// add cost here |
 					//               |
 					//               V
-					if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+					if throttleFunc, ok := client.Throttle.(func(any) error); ok {
 						if err := throttleFunc(cost); err != nil {
 							client.OnError(err)
 						}
@@ -1902,11 +2033,11 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	return future.Await()
 }
 
-// func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan interface{} {
+// func (this *Exchange) Spawn(method any, args ...any) <-chan any {
 // 	future := NewFuture()
 
 // 	go func() {
-// 		response := <-(CallDynamically(method, args...).(<-chan interface{}))
+// 		response := <-(CallDynamically(method, args...).(<-chan any))
 // 		if err, ok := response.(error); ok {
 // 			future.Reject(err)
 // 		} else {
@@ -1916,11 +2047,11 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 // 	return future.Await()
 // }
 
-func (this *Exchange) Spawn(method interface{}, args ...interface{}) *Future {
+func (this *Exchange) Spawn(method any, args ...any) *Future {
 	future := NewFuture()
 
 	go func() {
-		response := <-(CallDynamically(method, args...).(<-chan interface{}))
+		response := <-(CallDynamically(method, args...).(<-chan any))
 		if err, ok := response.(error); ok {
 			future.Reject(err)
 		} else {
@@ -1930,7 +2061,7 @@ func (this *Exchange) Spawn(method interface{}, args ...interface{}) *Future {
 	return future
 }
 
-func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...interface{}) {
+func (this *Exchange) Delay(timeout any, method any, args ...any) {
 	var timeoutMs int64
 	switch v := timeout.(type) {
 	case int:
@@ -1945,22 +2076,22 @@ func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...int
 	})
 }
 
-func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{}, symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
+func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
 	limit := GetArg(optionalArgs, 0, nil)
-	params := GetArg(optionalArgs, 1, map[string]interface{}{})
+	params := GetArg(optionalArgs, 1, map[string]any{})
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
 	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
 		orderBookInterface := stored.(OrderBookInterface)
 		for tries < maxRetries.(int) {
 			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
-			cache := (*orderBookInterface.GetCache()).([]interface{})
+			cache := (*orderBookInterface.GetCache()).([]any)
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
 				// Call Reset method on stored orderbook
 				orderBookInterface.Reset(orderBook)
 				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
-				orderBookInterface.SetCache(map[string]interface{}{})
+				orderBookInterface.SetCache(map[string]any{})
 				// this.SetProperty(cache, "length", 0)
 				client.(*Client).Resolve(stored, messageHash)
 				return nil
@@ -1982,13 +2113,15 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 	return nil
 }
 
-func (this *Exchange) Close() []error {
+func (this *Exchange) Close(cleanInstanceData ...any) []error {
+	// ##### language-specific cleanup of WS & REST resources #####
+	// [WS]
 	this.WsClientsMu.Lock()
 	clients := make([]*WSClient, 0, len(this.Clients))
 	for _, c := range this.Clients {
 		clients = append(clients, c.(*WSClient))
 	}
-	this.Clients = make(map[string]interface{})
+	this.Clients = make(map[string]any)
 	this.WsClientsMu.Unlock()
 	errs := make([]error, 0)
 	for _, c := range clients {
@@ -2001,18 +2134,27 @@ func (this *Exchange) Close() []error {
 			c.OnError(userClosedError)
 		}
 	}
+	firstArg := GetArg(cleanInstanceData, 0, nil)
+	shouldClean, _ := firstArg.(bool)
+	if shouldClean {
+		this.CleanWsData()
+	}
+	// [REST]
+	if shouldClean {
+		this.CleanRestData()
+	}
 	return errs
 }
 
 // ---------------- Connection lifecycle helpers ----------------
 
-func CallDynamically(fn interface{}, args ...interface{}) interface{} {
+func CallDynamically(fn any, args ...any) any {
 	v := reflect.ValueOf(fn)
 	in := make([]reflect.Value, len(args))
 	for i, a := range args {
 		r := reflect.ValueOf(a)
 		if !r.IsValid() {
-			r = reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem())
+			r = reflect.Zero(reflect.TypeOf((*any)(nil)).Elem())
 		}
 		in[i] = r
 	}
@@ -2023,7 +2165,7 @@ func CallDynamically(fn interface{}, args ...interface{}) interface{} {
 	return nil
 }
 
-func (this *Exchange) Crc32(str interface{}, signed2 bool) int64 {
+func (this *Exchange) Crc32(str any, signed2 bool) int64 {
 	// signed := false
 	// if len(signed2) > 0 {
 	// 	if b, ok := signed2[0].(bool); ok {
@@ -2033,25 +2175,25 @@ func (this *Exchange) Crc32(str interface{}, signed2 bool) int64 {
 	return Crc32(str.(string), signed2)
 }
 
-func (this *Exchange) IsBinaryMessage(message interface{}) bool {
+func (this *Exchange) IsBinaryMessage(message any) bool {
 	if _, ok := message.([]byte); ok {
 		return true
 	}
 	return false
 }
 
-func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
+func (this *Exchange) DecodeProtoMsg(message any) any {
 	var msg pb.PushDataV3ApiWrapper
 	if err := proto.Unmarshal(message.([]byte), &msg); err != nil {
 		panic(fmt.Sprintf("failed to unmarshal proto message: %v", err))
 	}
 	jsonBytes, _ := protojson.Marshal(&msg)
-	var v interface{}
+	var v any
 	_ = json.Unmarshal(jsonBytes, &v)
 	return v
 }
 
-func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
+func (this *Exchange) Uuid5(namespace any, name any) string {
 	return ""
 }
 

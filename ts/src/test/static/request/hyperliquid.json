@@ -2,7 +2,8 @@
     "exchange": "hyperliquid",
     "options": {
         "approvedBuilderFee": true,
-        "refSet": true
+        "refSet": true,
+        "enableUnifiedMargin": false
     },
     "skipKeys": [
         "startTime",
@@ -15,6 +16,21 @@
     ],
     "outputType": "json",
     "methods": {
+        "isUnifiedEnabled": [
+            {
+                "disabled": true,
+                "reason": "this test writes in options contaminating the other tests",
+                "description": "is unified account enabled",
+                "method": "isUnifiedEnabled",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "test",
+                    null,
+                    true
+                ],
+                "output": "{\"type\":\"userAbstraction\",\"user\":\"0x193bD350ec838B1e22d6F302Da5343b920aA1c2B\"}"
+            }
+        ],
         "createSubAccount": [
             {
                 "description": "create subAccount using expiresAfter",
@@ -755,6 +771,7 @@
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     {
+                        "enableUnifiedMargin": false,
                         "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
                     }
                 ],
@@ -766,6 +783,7 @@
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     {
+                        "enableUnifiedMargin": false,
                         "type": "spot",
                         "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
                     }
@@ -779,6 +797,7 @@
                 "input": [
                     {
                         "type": "spot",
+                        "enableUnifiedMargin": false,
                         "subAccountAddress": "0x3B3741c0EFf9C6b556Ec813e70589161F416661B"
                     }
                 ],

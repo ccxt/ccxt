@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange, Ticker } from "../../../../ccxt";
+import { Exchange, Ticker, Market } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
@@ -37,10 +37,16 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     // check market
-    let market = undefined;
+    let market: Market = undefined;
+    let isUnrecognizedSymbol = false;
+    const isFetchTickerCalled = method === 'fetchTicker';
     const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString (entry, 'symbol');
-    if (symbolForMarket !== undefined && (symbolForMarket in exchange.markets)) {
-        market = exchange.market (symbolForMarket);
+    if (symbolForMarket !== undefined) {
+        if (symbolForMarket in exchange.markets) {
+            market = exchange.market (symbolForMarket);
+        } else {
+            isUnrecognizedSymbol = true;
+        }
     }
     // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
     if (!('checkInactiveMarkets' in skippedProperties)) {
@@ -145,9 +151,17 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     if ((askString !== undefined) && (bidString !== undefined) && !('spread' in skippedProperties)) {
         testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
     }
+    // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
+    const allowedPercentageVariation = '0.01';
+    if (isFetchTickerCalled && lastString !== undefined && bidString !== undefined && askString !== undefined && !('lastBetweenBidAsk' in skippedProperties)) {
+        const medianPrice = Precise.stringDiv (Precise.stringAdd (bidString, askString), '2');
+        const medianLow = Precise.stringMul (medianPrice, Precise.stringSub ('1', allowedPercentageVariation));
+        const medianHigh = Precise.stringMul (medianPrice, Precise.stringAdd ('1', allowedPercentageVariation));
+        assert (Precise.stringGe (lastString, medianLow) && Precise.stringLe (lastString, medianHigh), 'last price should be within 1% of the bid/ask median price' + logText);
+    }
     const percentage = exchange.safeString (entry, 'percentage');
     const change = exchange.safeString (entry, 'change');
-    if (!('maxIncrease' in skippedProperties)) {
+    if (!('maxIncrease' in skippedProperties) && !isUnrecognizedSymbol) {
         //
         // percentage
         //

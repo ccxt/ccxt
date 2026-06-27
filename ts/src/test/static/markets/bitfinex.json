@@ -165,7 +165,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "BTC/EUR": {
         "id": "tBTCEUR",
@@ -333,7 +334,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "LTC/USD": {
         "id": "tLTCUSD",
@@ -501,7 +503,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "ETH/USD": {
         "id": "tETHUSD",
@@ -669,7 +672,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "BTC/USDT": {
         "id": "tBTCUST",
@@ -837,7 +841,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "LTC/USDT": {
         "id": "tLTCUST",
@@ -1005,7 +1010,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "ADA/USDT": {
         "id": "tADAUST",
@@ -1173,7 +1179,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "XRP/USDT": {
         "id": "tXRPUST",
@@ -1341,7 +1348,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "SOL/USDT": {
         "id": "tSOLUST",
@@ -1509,7 +1517,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "TRX/USDT": {
         "id": "tTRXUST",
@@ -1677,7 +1686,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "LTC/USDT:USDT": {
         "id": "tLTCF0:USTF0",
@@ -1843,7 +1853,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "BTC/USDT:USDT": {
         "id": "tBTCF0:USTF0",
@@ -2009,7 +2020,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "ADA/USDT:USDT": {
         "id": "tADAF0:USTF0",
@@ -2175,7 +2187,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "XRP/USDT:USDT": {
         "id": "tXRPF0:USTF0",
@@ -2341,7 +2354,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "TRX/USDT:USDT": {
         "id": "tTRXF0:USTF0",
@@ -2507,7 +2521,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "ETH/USDT": {
         "id": "tETHUST",
@@ -2675,7 +2690,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "ETH/USDT:USDT": {
         "id": "tETHF0:USTF0",
@@ -2841,6 +2857,7 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     }
 }

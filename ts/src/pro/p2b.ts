@@ -3,7 +3,7 @@
 import p2bRest from '../p2b.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, List, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -132,7 +132,7 @@ export default class p2b extends p2bRest {
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         const market = this.market (symbol);
         symbol = market['symbol'];
-        this.options['tickerSubs'][market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
+        this.options['tickerSubs'][market['id'] as string] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         const tickerSubs = this.options['tickerSubs'];
         const request = Object.keys (tickerSubs);
         const messageHash = name + '::' + market['symbol'];
@@ -156,8 +156,8 @@ export default class p2b extends p2bRest {
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
-        const messageHashes = [];
-        const args = [];
+        const messageHashes: string[] = [];
+        const args: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             messageHashes.push (name + '::' + market['symbol']);
@@ -202,7 +202,7 @@ export default class p2b extends p2bRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 messageHashes.push ('deals::' + symbols[i]);
@@ -234,7 +234,7 @@ export default class p2b extends p2bRest {
      * @param {int} [limit] 1-100, default=100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -285,13 +285,13 @@ export default class p2b extends p2bRest {
         const symbol = this.safeString (market, 'symbol');
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseOHLCV (data, market);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol as string, {});
+        let stored = this.safeValue (this.ohlcvs[symbol as string], timeframe as string);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol as string][timeframe as string] = stored;
             }
             stored.append (parsed);
             client.resolve (stored, messageHash);
@@ -324,11 +324,11 @@ export default class p2b extends p2bRest {
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol');
-        let tradesArray = this.safeValue (this.trades, symbol);
+        let tradesArray = this.safeValue (this.trades, symbol as string);
         if (tradesArray === undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             tradesArray = new ArrayCache (tradesLimit);
-            this.trades[symbol] = tradesArray;
+            this.trades[symbol as string] = tradesArray;
         }
         for (let i = 0; i < trades.length; i++) {
             const item = trades[i];
@@ -380,7 +380,7 @@ export default class p2b extends p2bRest {
         const splitMethod = method.split ('.');
         const messageHashStart = this.safeString (splitMethod, 0);
         const tickerData = this.safeDict (data, 1);
-        let ticker = undefined;
+        let ticker: Ticker;
         if (method === 'price.update') {
             const lastPrice = this.safeString (data, 1);
             ticker = this.safeTicker ({
@@ -471,7 +471,7 @@ export default class p2b extends p2bRest {
             'state.update': this.handleTicker,
             'deals.update': this.handleTrade,
         };
-        const endpoint = this.safeValue (methods, method);
+        const endpoint = this.safeValue (methods, method as string);
         if (endpoint !== undefined) {
             endpoint.call (this, client, message);
         }

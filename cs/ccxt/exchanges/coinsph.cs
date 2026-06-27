@@ -173,6 +173,10 @@ public partial class coinsph : Exchange
                 { "www", "https://coins.ph/" },
                 { "doc", new List<object>() {"https://coins-docs.github.io/rest-api"} },
                 { "fees", "https://support.coins.ph/hc/en-us/sections/4407198694681-Limits-Fees" },
+                { "referral", new Dictionary<string, object>() {
+                    { "url", "https://www.coins.ph/en-ph/register?invite_code=1371062463303277512&broker=9001" },
+                    { "discount", 0.2 },
+                } },
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
@@ -590,58 +594,57 @@ public partial class coinsph : Exchange
         //        }
         //    ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "coin");
+        object code = this.safeCurrencyCode(id);
+        object isFiat = this.safeBool(rawCurrency, "isLegalMoney");
+        object networkList = this.safeList(rawCurrency, "networkList", new List<object>() {});
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
-            object entry = getValue(response, i);
-            object id = this.safeString(entry, "coin");
-            object code = this.safeCurrencyCode(id);
-            object isFiat = this.safeBool(entry, "isLegalMoney");
-            object networkList = this.safeList(entry, "networkList", new List<object>() {});
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
-            {
-                object networkItem = getValue(networkList, j);
-                object network = this.safeString(networkItem, "network");
-                object networkCode = this.networkIdToCode(network);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", networkItem },
-                    { "id", network },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "deposit", this.safeBool(networkItem, "depositEnable") },
-                    { "withdraw", this.safeBool(networkItem, "withdrawEnable") },
-                    { "fee", this.safeNumber(networkItem, "withdrawFee") },
-                    { "precision", this.safeNumber(networkItem, "withdrawIntegerMultiple") },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkItem, "withdrawMin") },
-                            { "max", this.safeNumber(networkItem, "withdrawMax") },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "name", this.safeString(entry, "name") },
-                { "code", code },
-                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "transferPrecision"))) },
-                { "info", entry },
+            object networkItem = getValue(networkList, j);
+            object network = this.safeString(networkItem, "network");
+            object networkCode = this.networkIdToCode(network, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", networkItem },
+                { "id", network },
+                { "network", networkCode },
                 { "active", null },
-                { "deposit", this.safeBool(entry, "depositAllEnable") },
-                { "withdraw", this.safeBool(entry, "withdrawAllEnable") },
-                { "networks", networks },
-                { "fee", null },
-                { "fees", null },
-                { "limits", new Dictionary<string, object>() {} },
-            });
+                { "deposit", this.safeBool(networkItem, "depositEnable") },
+                { "withdraw", this.safeBool(networkItem, "withdrawEnable") },
+                { "fee", this.safeNumber(networkItem, "withdrawFee") },
+                { "precision", this.safeNumber(networkItem, "withdrawIntegerMultiple") },
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(networkItem, "withdrawMin") },
+                        { "max", this.safeNumber(networkItem, "withdrawMax") },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "name", this.safeString(rawCurrency, "name") },
+            { "code", code },
+            { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
+            { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "transferPrecision"))) },
+            { "info", rawCurrency },
+            { "active", null },
+            { "deposit", this.safeBool(rawCurrency, "depositAllEnable") },
+            { "withdraw", this.safeBool(rawCurrency, "withdrawAllEnable") },
+            { "networks", networks },
+            { "fee", null },
+            { "fees", null },
+            { "limits", new Dictionary<string, object>() {} },
+        });
     }
 
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
@@ -1030,7 +1033,7 @@ public partial class coinsph : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1307,13 +1310,13 @@ public partial class coinsph : Exchange
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
             };
         }
-        object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker", null);
+        object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
         object side = null;
         if (isTrue(!isEqual(isBuyer, null)))
         {
             side = ((bool) isTrue((isEqual(isBuyer, true)))) ? "buy" : "sell";
         }
-        object isMaker = this.safeString2(trade, "isMaker", null);
+        object isMaker = this.safeString(trade, "isMaker");
         object takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
@@ -1753,7 +1756,7 @@ public partial class coinsph : Exchange
         object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger2(order, "time", "transactTime");
-        object trades = this.safeValue(order, "fills", null);
+        object trades = this.safeValue(order, "fills");
         object triggerPrice = this.safeString(order, "stopPrice");
         if (isTrue(Precise.stringEq(triggerPrice, "0")))
         {
@@ -2377,7 +2380,7 @@ public partial class coinsph : Exchange
         {
             return null;
         }
-        object responseCode = this.safeString(response, "code", null);
+        object responseCode = this.safeString(response, "code");
         if (isTrue(isTrue(isTrue((!isEqual(responseCode, null))) && isTrue((!isEqual(responseCode, "200")))) && isTrue((!isEqual(responseCode, "0")))))
         {
             object feedback = add(add(this.id, " "), body);

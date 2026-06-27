@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinspot$1 = require('./abstract/coinspot.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class coinspot extends coinspot$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': ['AU'],
+            'countries': ['AU'], // Australia
             'rateLimit': 1000,
             'pro': false,
             'has': {
@@ -277,13 +277,13 @@ class coinspot extends coinspot$1["default"] {
                         'marginMode': false,
                         'limit': undefined,
                         'daysBack': 100000,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': undefined,
-                    'fetchOpenOrders': undefined,
+                    'fetchOpenOrders': undefined, // todo implement
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': undefined,
                 },
                 'swap': {
@@ -365,7 +365,7 @@ class coinspot extends coinspot$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -658,7 +658,7 @@ class coinspot extends coinspot$1["default"] {
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
-        const method = 'privatePostMy' + this.capitalize(side);
+        const sideUpper = side.toUpperCase();
         if (type === 'market') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
@@ -668,8 +668,22 @@ class coinspot extends coinspot$1["default"] {
             'amount': amount,
             'rate': price,
         };
-        const response = await this[method](this.extend(request, params));
-        return this.parseOrder(response);
+        let response;
+        if (sideUpper === 'BUY') {
+            response = await this.privatePostMyBuy(this.extend(request, params));
+        }
+        else if (sideUpper === 'SELL') {
+            response = await this.privatePostMySell(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' createOrder only support buy/sell side');
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     /**
      * @method
@@ -691,7 +705,7 @@ class coinspot extends coinspot$1["default"] {
         const request = {
             'id': id,
         };
-        let response = undefined;
+        let response;
         if (side === 'buy') {
             response = await this.privatePostMyBuyCancel(this.extend(request, params));
         }
@@ -704,6 +718,17 @@ class coinspot extends coinspot$1["default"] {
         return this.safeOrder({
             'info': response,
         });
+    }
+    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        const status = this.safeString(response, 'status');
+        if (status === 'error') {
+            const feedback = this.id + ' ' + this.json(response);
+            throw new errors.ExchangeError(feedback);
+        }
+        return undefined;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isVersionedApi = Array.isArray(api);
@@ -719,7 +744,7 @@ class coinspot extends coinspot$1["default"] {
             headers = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512),
+                'sign': this.hmac(this.encode(body), this.encode(this.secret), sha2_js.sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

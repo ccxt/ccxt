@@ -56,9 +56,102 @@ public partial class BaseTest
                 } },
                 { "other2", "y" },
             };
-            // extend
+            // snapshot originals for mutation checks
+            object obj1SnapshotA = getValue(obj1, "a");
+            object obj1SnapshotB0 = getValue(getValue(obj1, "b"), 0);
+            object obj1SnapshotOther1 = getValue(obj1, "other1");
+            object obj2SnapshotA = getValue(obj2, "a");
+            object obj2SnapshotB0 = getValue(getValue(obj2, "b"), 0);
+            object obj2SnapshotOther2 = getValue(obj2, "other2");
+            // --- test 1: basic extend ---
             object extended = exchange.extend(obj1, obj2);
             tbfeCheckExtended(extended, true);
+            // --- mutation check: obj1 must NOT be mutated ---
+            Assert(isEqual(getValue(obj1, "a"), obj1SnapshotA), "obj1.a was mutated after extend");
+            Assert(isEqual(getValue(getValue(obj1, "b"), 0), obj1SnapshotB0), "obj1.b[0] was mutated after extend");
+            Assert(isEqual(getValue(obj1, "other1"), obj1SnapshotOther1), "obj1['other1'] was mutated after extend");
+            // --- mutation check: obj2 must NOT be mutated ---
+            Assert(isEqual(getValue(obj2, "a"), obj2SnapshotA), "obj2.a was mutated after extend");
+            Assert(isEqual(getValue(getValue(obj2, "b"), 0), obj2SnapshotB0), "obj2.b[0] was mutated after extend");
+            Assert(isEqual(getValue(obj2, "other2"), obj2SnapshotOther2), "obj2['other2'] was mutated after extend");
+            // --- test 2: multi-step extend – apply a third patch on top of the first result ---
+            object obj3 = new Dictionary<string, object>() {
+                { "a", 3 },
+                { "b", new List<object>() {5, 6} },
+                { "c", new List<object>() {new Dictionary<string, object>() {
+            { "test1", 3 },
+            { "test4", 4 },
+        }} },
+                { "d", "step3" },
+                { "e", "back_to_string" },
+                { "other3", "z" },
+            };
+            object extended2 = exchange.extend(extended, obj3);
+            Assert(isEqual(getValue(extended2, "a"), 3), "step2: a");
+            Assert(isEqual(getValue(getValue(extended2, "b"), 0), 5), "step2: b[0]");
+            Assert(isEqual(getValue(getValue(extended2, "b"), 1), 6), "step2: b[1]");
+            Assert(isEqual(getValue(getValue(getValue(extended2, "c"), 0), "test1"), 3), "step2: c[0].test1");
+            Assert(!isTrue((inOp(getValue(getValue(extended2, "c"), 0), "test2"))), "step2: c[0] should not have test2");
+            Assert(!isTrue((inOp(getValue(getValue(extended2, "c"), 0), "test3"))), "step2: c[0] should not have test3");
+            Assert(isEqual(getValue(getValue(getValue(extended2, "c"), 0), "test4"), 4), "step2: c[0].test4");
+            Assert(isEqual(getValue(extended2, "d"), "step3"), "step2: d");
+            Assert(isEqual(getValue(extended2, "e"), "back_to_string"), "step2: e");
+            Assert(isEqual(getValue(extended2, "other1"), "x"), "step2: extended2['other1'] preserved");
+            Assert(isEqual(getValue(extended2, "other2"), "y"), "step2: extended2['other2'] preserved");
+            Assert(isEqual(getValue(extended2, "other3"), "z"), "step2: extended2['other3'] added");
+            // --- mutation check: first result must NOT be mutated by second extend ---
+            Assert(isEqual(getValue(extended, "a"), 2), "extended['a'] was mutated by second extend");
+            Assert(isEqual(getValue(getValue(extended, "b"), 0), 3), "extended['b'][0] was mutated by second extend");
+            Assert(!isTrue((inOp(extended, "other3"))), "extended['other3'] should not exist after second extend");
+            // --- test 3: four-step chained extend on same base object ---
+            object bs = new Dictionary<string, object>() {
+                { "x", 0 },
+                { "keep", "yes" },
+            };
+            object patch1 = new Dictionary<string, object>() {
+                { "x", 1 },
+                { "p1", true },
+            };
+            object patch2 = new Dictionary<string, object>() {
+                { "x", 2 },
+                { "p2", true },
+            };
+            object patch3 = new Dictionary<string, object>() {
+                { "x", 3 },
+                { "p3", true },
+            };
+            object r1 = exchange.extend(bs, patch1);
+            object r2 = exchange.extend(r1, patch2);
+            object r3 = exchange.extend(r2, patch3);
+            Assert(isEqual(getValue(r3, "x"), 3), "chain: r3['x'] should be 3 after 3 patches");
+            Assert(isEqual(getValue(r3, "keep"), "yes"), "chain: r3['keep'] should be preserved");
+            Assert(isEqual(getValue(r3, "p1"), true), "chain: r3['p1'] should be present");
+            Assert(isEqual(getValue(r3, "p2"), true), "chain: r3['p2'] should be present");
+            Assert(isEqual(getValue(r3, "p3"), true), "chain: r3['p3'] should be present");
+            // --- mutation check: each intermediate must be unaffected ---
+            Assert(isEqual(getValue(bs, "x"), 0), "base['x'] was mutated during chain");
+            Assert(isEqual(getValue(r1, "x"), 1), "r1['x'] was mutated during chain");
+            Assert(isEqual(getValue(r2, "x"), 2), "r2['x'] was mutated during chain");
+            Assert(!isTrue((inOp(r1, "p3"))), "r1['p3'] leaked into r1");
+            Assert(!isTrue((inOp(bs, "p2"))), "base['p2'] leaked into base");
+            // --- test 4: extend with undefined values does NOT overwrite existing keys ---
+            object withValues = new Dictionary<string, object>() {
+                { "keep1", "A" },
+                { "keep2", "B" },
+            };
+            object withUndefs = new Dictionary<string, object>() {
+                { "keep1", null },
+                { "keep2", null },
+                { "newKey", "C" },
+            };
+            object extUndef = exchange.extend(withValues, withUndefs);
+            // extend() merges ALL keys (including undefined ones), so undefined wins over previous value
+            Assert(isEqual(getValue(extUndef, "keep1"), null), "extend: extUndef['keep1'] should be undefined");
+            Assert(isEqual(getValue(extUndef, "keep2"), null), "extend: extUndef['keep2'] should be undefined");
+            Assert(isEqual(getValue(extUndef, "newKey"), "C"), "extend: extUndef['newKey'] should be added");
+            // original must not be touched
+            Assert(isEqual(getValue(withValues, "keep1"), "A"), "withValues['keep1'] was mutated");
+            Assert(isEqual(getValue(withValues, "keep2"), "B"), "withValues['keep2'] was mutated");
         }
         public void tbfeCheckExtended(object extended, object hasSub)
         {

@@ -14,8 +14,7 @@ import asyncio
 import ccxt.pro as ccxt  # noqa: E402
 
 
-# AUTO-TRANSPILE #
-# 1) ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
+# 1) ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/README?id=proxy
 # 2) in python, uncomment the below:
 # if sys.platform == 'win32':
 #     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())

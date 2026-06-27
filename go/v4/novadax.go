@@ -13,14 +13,14 @@ func NewNovadaxCore() *NovadaxCore {
 	return p
 }
 
-func (this *NovadaxCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *NovadaxCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "novadax",
 		"name":      "NovaDAX",
-		"countries": []interface{}{"BR"},
+		"countries": []any{"BR"},
 		"rateLimit": 10,
 		"version":   "v1",
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                           nil,
 			"spot":                           true,
 			"margin":                         false,
@@ -128,7 +128,7 @@ func (this *NovadaxCore) Describe() interface{} {
 			"transfer":                       true,
 			"withdraw":                       true,
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "ONE_MIN",
 			"5m":  "FIVE_MIN",
 			"15m": "FIFTEEN_MIN",
@@ -138,20 +138,20 @@ func (this *NovadaxCore) Describe() interface{} {
 			"1w":  "ONE_WEE",
 			"1M":  "ONE_MON",
 		},
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg",
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"public":  "https://api.novadax.com",
 				"private": "https://api.novadax.com",
 			},
 			"www":      "https://www.novadax.com.br",
-			"doc":      []interface{}{"https://doc.novadax.com/pt-BR/"},
+			"doc":      []any{"https://doc.novadax.com/pt-BR/"},
 			"fees":     "https://www.novadax.com.br/fees-and-limits",
 			"referral": "https://www.novadax.com.br/?s=ccxt",
 		},
-		"api": map[string]interface{}{
-			"public": map[string]interface{}{
-				"get": map[string]interface{}{
+		"api": map[string]any{
+			"public": map[string]any{
+				"get": map[string]any{
 					"common/symbol":        1,
 					"common/symbols":       1,
 					"common/timestamp":     1,
@@ -162,8 +162,8 @@ func (this *NovadaxCore) Describe() interface{} {
 					"market/kline/history": 5,
 				},
 			},
-			"private": map[string]interface{}{
-				"get": map[string]interface{}{
+			"private": map[string]any{
+				"get": map[string]any{
 					"orders/get":                    1,
 					"orders/list":                   10,
 					"orders/fill":                   3,
@@ -174,7 +174,7 @@ func (this *NovadaxCore) Describe() interface{} {
 					"account/subs/transfer/record":  10,
 					"wallet/query/deposit-withdraw": 3,
 				},
-				"post": map[string]interface{}{
+				"post": map[string]any{
 					"orders/create":           5,
 					"orders/batch-create":     50,
 					"orders/cancel":           1,
@@ -186,21 +186,21 @@ func (this *NovadaxCore) Describe() interface{} {
 				},
 			},
 		},
-		"fees": map[string]interface{}{
-			"trading": map[string]interface{}{
+		"fees": map[string]any{
+			"trading": map[string]any{
 				"tierBased":  false,
 				"percentage": true,
 				"taker":      this.ParseNumber("0.005"),
 				"maker":      this.ParseNumber("0.0025"),
 			},
 		},
-		"requiredCredentials": map[string]interface{}{
+		"requiredCredentials": map[string]any{
 			"apiKey": true,
 			"secret": true,
 		},
 		"precisionMode": TICK_SIZE,
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"A99999": ExchangeError,
 				"A10001": BadRequest,
 				"A10002": ExchangeError,
@@ -226,20 +226,20 @@ func (this *NovadaxCore) Describe() interface{} {
 				"A30012": InvalidOrder,
 				"A40004": InsufficientFunds,
 			},
-			"broad": map[string]interface{}{},
+			"broad": map[string]any{},
 		},
-		"options": map[string]interface{}{
-			"fetchOHLCV": map[string]interface{}{
+		"options": map[string]any{
+			"fetchOHLCV": map[string]any{
 				"volume": "amount",
 			},
-			"transfer": map[string]interface{}{
+			"transfer": map[string]any{
 				"fillResponseFromRequest": true,
 			},
 		},
-		"features": map[string]interface{}{
-			"spot": map[string]interface{}{
+		"features": map[string]any{
+			"spot": map[string]any{
 				"sandbox": false,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":                 false,
 					"triggerPrice":               true,
 					"triggerDirection":           true,
@@ -247,7 +247,7 @@ func (this *NovadaxCore) Describe() interface{} {
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": false,
 						"FOK": false,
 						"PO":  false,
@@ -262,27 +262,27 @@ func (this *NovadaxCore) Describe() interface{} {
 					"iceberg":                true,
 				},
 				"createOrders": nil,
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
 					"daysBack":       100000,
 					"untilDays":      100000,
 					"symbolRequired": false,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          nil,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOrders": map[string]interface{}{
+				"fetchOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
 					"daysBack":       100000,
@@ -291,7 +291,7 @@ func (this *NovadaxCore) Describe() interface{} {
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchClosedOrders": map[string]interface{}{
+				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            100,
 					"daysBack":         100000,
@@ -301,15 +301,15 @@ func (this *NovadaxCore) Describe() interface{} {
 					"trailing":         false,
 					"symbolRequired":   false,
 				},
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": nil,
 				},
 			},
-			"swap": map[string]interface{}{
+			"swap": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
@@ -325,12 +325,12 @@ func (this *NovadaxCore) Describe() interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *NovadaxCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchTime(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.PublicGetCommonTimestamp(params))
@@ -358,12 +358,12 @@ func (this *NovadaxCore) FetchTime(optionalArgs ...interface{}) <-chan interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *NovadaxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.PublicGetCommonSymbols(params))
@@ -387,7 +387,7 @@ func (this *NovadaxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interf
 		//         "message":"Success"
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "data", []interface{}{})
+		var data any = this.SafeValue(response, "data", []any{})
 
 		ch <- this.ParseMarkets(data)
 		return nil
@@ -395,14 +395,14 @@ func (this *NovadaxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interf
 	}()
 	return ch
 }
-func (this *NovadaxCore) ParseMarket(market interface{}) interface{} {
-	var baseId interface{} = this.SafeString(market, "baseCurrency")
-	var quoteId interface{} = this.SafeString(market, "quoteCurrency")
-	var id interface{} = this.SafeString(market, "symbol")
-	var base interface{} = this.SafeCurrencyCode(baseId)
-	var quote interface{} = this.SafeCurrencyCode(quoteId)
-	var status interface{} = this.SafeString(market, "status")
-	return map[string]interface{}{
+func (this *NovadaxCore) ParseMarket(market any) any {
+	var baseId any = this.SafeString(market, "baseCurrency")
+	var quoteId any = this.SafeString(market, "quoteCurrency")
+	var id any = this.SafeString(market, "symbol")
+	var base any = this.SafeCurrencyCode(baseId)
+	var quote any = this.SafeCurrencyCode(quoteId)
+	var status any = this.SafeString(market, "status")
+	return map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
 		"base":           base,
@@ -426,24 +426,24 @@ func (this *NovadaxCore) ParseMarket(market interface{}) interface{} {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amountPrecision"))),
 			"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision"))),
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": this.SafeNumber(market, "minOrderAmount"),
 				"max": nil,
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"cost": map[string]interface{}{
+			"cost": map[string]any{
 				"min": this.SafeNumber(market, "minOrderValue"),
 				"max": nil,
 			},
@@ -452,7 +452,7 @@ func (this *NovadaxCore) ParseMarket(market interface{}) interface{} {
 		"info":    market,
 	}
 }
-func (this *NovadaxCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NovadaxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	// fetchTicker, fetchTickers
 	//
@@ -471,14 +471,14 @@ func (this *NovadaxCore) ParseTicker(ticker interface{}, optionalArgs ...interfa
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger(ticker, "timestamp")
-	var marketId interface{} = this.SafeString(ticker, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market, "_")
-	var open interface{} = this.SafeString(ticker, "open24h")
-	var last interface{} = this.SafeString(ticker, "lastPrice")
-	var baseVolume interface{} = this.SafeString(ticker, "baseVolume24h")
-	var quoteVolume interface{} = this.SafeString(ticker, "quoteVolume24h")
-	return this.SafeTicker(map[string]interface{}{
+	var timestamp any = this.SafeInteger(ticker, "timestamp")
+	var marketId any = this.SafeString(ticker, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var open any = this.SafeString(ticker, "open24h")
+	var last any = this.SafeString(ticker, "lastPrice")
+	var baseVolume any = this.SafeString(ticker, "baseVolume24h")
+	var quoteVolume any = this.SafeString(ticker, "quoteVolume24h")
+	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -511,18 +511,18 @@ func (this *NovadaxCore) ParseTicker(ticker interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *NovadaxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes5008 := (<-this.LoadMarkets())
 		PanicOnError(retRes5008)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -546,7 +546,7 @@ func (this *NovadaxCore) FetchTicker(symbol interface{}, optionalArgs ...interfa
 		//         "message":"Success"
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseTicker(data, market)
 		return nil
@@ -564,14 +564,14 @@ func (this *NovadaxCore) FetchTicker(symbol interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *NovadaxCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes5388 := (<-this.LoadMarkets())
@@ -600,11 +600,11 @@ func (this *NovadaxCore) FetchTickers(optionalArgs ...interface{}) <-chan interf
 		//         "message":"Success"
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "data", []interface{}{})
-		var result interface{} = map[string]interface{}{}
+		var data any = this.SafeValue(response, "data", []any{})
+		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var ticker interface{} = this.ParseTicker(GetValue(data, i))
-			var symbol interface{} = GetValue(ticker, "symbol")
+			var ticker any = this.ParseTicker(GetValue(data, i))
+			var symbol any = GetValue(ticker, "symbol")
 			AddElementToObject(result, symbol, ticker)
 		}
 
@@ -623,22 +623,22 @@ func (this *NovadaxCore) FetchTickers(optionalArgs ...interface{}) <-chan interf
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *NovadaxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes5828 := (<-this.LoadMarkets())
 		PanicOnError(retRes5828)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -666,8 +666,8 @@ func (this *NovadaxCore) FetchOrderBook(symbol interface{}, optionalArgs ...inte
 		//         "message":"Success"
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "data", map[string]interface{}{})
-		var timestamp interface{} = this.SafeInteger(data, "timestamp")
+		var data any = this.SafeValue(response, "data", map[string]any{})
+		var timestamp any = this.SafeInteger(data, "timestamp")
 
 		ch <- this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bids", "asks")
 		return nil
@@ -675,7 +675,7 @@ func (this *NovadaxCore) FetchOrderBook(symbol interface{}, optionalArgs ...inte
 	}()
 	return ch
 }
-func (this *NovadaxCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NovadaxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// public fetchTrades
 	//
@@ -720,26 +720,26 @@ func (this *NovadaxCore) ParseTrade(trade interface{}, optionalArgs ...interface
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id interface{} = this.SafeString(trade, "id")
-	var orderId interface{} = this.SafeString(trade, "orderId")
-	var timestamp interface{} = this.SafeInteger(trade, "timestamp")
-	var side interface{} = this.SafeStringLower(trade, "side")
-	var priceString interface{} = this.SafeString(trade, "price")
-	var amountString interface{} = this.SafeString(trade, "amount")
-	var marketId interface{} = this.SafeString(trade, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market, "_")
-	var takerOrMaker interface{} = this.SafeStringLower(trade, "role")
-	var feeString interface{} = this.SafeString(trade, "fee")
-	var fee interface{} = nil
+	var id any = this.SafeString(trade, "id")
+	var orderId any = this.SafeString(trade, "orderId")
+	var timestamp any = this.SafeInteger(trade, "timestamp")
+	var side any = this.SafeStringLower(trade, "side")
+	var priceString any = this.SafeString(trade, "price")
+	var amountString any = this.SafeString(trade, "amount")
+	var marketId any = this.SafeString(trade, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var takerOrMaker any = this.SafeStringLower(trade, "role")
+	var feeString any = this.SafeString(trade, "fee")
+	var fee any = nil
 	if IsTrue(!IsEqual(feeString, nil)) {
-		var feeCurrencyId interface{} = this.SafeString(trade, "feeCurrency")
-		var feeCurrencyCode interface{} = this.SafeCurrencyCode(feeCurrencyId)
-		fee = map[string]interface{}{
+		var feeCurrencyId any = this.SafeString(trade, "feeCurrency")
+		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		fee = map[string]any{
 			"cost":     this.SafeString(trade, "feeAmount"),
 			"currency": feeCurrencyCode,
 		}
 	}
-	return this.SafeTrade(map[string]interface{}{
+	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        orderId,
 		"timestamp":    timestamp,
@@ -767,22 +767,22 @@ func (this *NovadaxCore) ParseTrade(trade interface{}, optionalArgs ...interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *NovadaxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
 		retRes7068 := (<-this.LoadMarkets())
 		PanicOnError(retRes7068)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -802,7 +802,7 @@ func (this *NovadaxCore) FetchTrades(symbol interface{}, optionalArgs ...interfa
 		//         "message":"Success"
 		//     }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseTrades(data, market, since, limit)
 		return nil
@@ -823,9 +823,9 @@ func (this *NovadaxCore) FetchTrades(symbol interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *NovadaxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -834,18 +834,18 @@ func (this *NovadaxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes7438 := (<-this.LoadMarkets())
 		PanicOnError(retRes7438)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 			"unit":   this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
-		var duration interface{} = this.ParseTimeframe(timeframe)
-		var now interface{} = this.Seconds()
+		var duration any = this.ParseTimeframe(timeframe)
+		var now any = this.Seconds()
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 3000 // max
 		}
@@ -853,7 +853,7 @@ func (this *NovadaxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfac
 			AddElementToObject(request, "from", Subtract(now, Multiply(limit, duration)))
 			AddElementToObject(request, "to", now)
 		} else {
-			var startFrom interface{} = this.ParseToInt(Divide(since, 1000))
+			var startFrom any = this.ParseToInt(Divide(since, 1000))
 			AddElementToObject(request, "from", startFrom)
 			AddElementToObject(request, "to", this.Sum(startFrom, Multiply(limit, duration)))
 		}
@@ -879,7 +879,7 @@ func (this *NovadaxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfac
 		//         "message": "Success"
 		//     }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 		return nil
@@ -887,7 +887,7 @@ func (this *NovadaxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfac
 	}()
 	return ch
 }
-func (this *NovadaxCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NovadaxCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "amount": 8.25709100,
@@ -903,22 +903,22 @@ func (this *NovadaxCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var options interface{} = this.SafeValue(this.Options, "fetchOHLCV", map[string]interface{}{})
-	var volumeField interface{} = this.SafeString(options, "volume", "amount") // or vol
-	return []interface{}{this.SafeTimestamp(ohlcv, "score"), this.SafeNumber(ohlcv, "openPrice"), this.SafeNumber(ohlcv, "highPrice"), this.SafeNumber(ohlcv, "lowPrice"), this.SafeNumber(ohlcv, "closePrice"), this.SafeNumber(ohlcv, volumeField)}
+	var options any = this.SafeValue(this.Options, "fetchOHLCV", map[string]any{})
+	var volumeField any = this.SafeString(options, "volume", "amount") // or vol
+	return []any{this.SafeTimestamp(ohlcv, "score"), this.SafeNumber(ohlcv, "openPrice"), this.SafeNumber(ohlcv, "highPrice"), this.SafeNumber(ohlcv, "lowPrice"), this.SafeNumber(ohlcv, "closePrice"), this.SafeNumber(ohlcv, volumeField)}
 }
-func (this *NovadaxCore) ParseBalance(response interface{}) interface{} {
-	var data interface{} = this.SafeValue(response, "data", []interface{}{})
-	var result interface{} = map[string]interface{}{
+func (this *NovadaxCore) ParseBalance(response any) any {
+	var data any = this.SafeValue(response, "data", []any{})
+	var result any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-		var balance interface{} = GetValue(data, i)
-		var currencyId interface{} = this.SafeString(balance, "currency")
-		var code interface{} = this.SafeCurrencyCode(currencyId)
-		var account interface{} = this.Account()
+		var balance any = GetValue(data, i)
+		var currencyId any = this.SafeString(balance, "currency")
+		var code any = this.SafeCurrencyCode(currencyId)
+		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "used", this.SafeString(balance, "hold"))
@@ -935,12 +935,12 @@ func (this *NovadaxCore) ParseBalance(response interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *NovadaxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes8418 := (<-this.LoadMarkets())
@@ -984,26 +984,26 @@ func (this *NovadaxCore) FetchBalance(optionalArgs ...interface{}) <-chan interf
  * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NovadaxCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes8758 := (<-this.LoadMarkets())
 		PanicOnError(retRes8758)
-		var market interface{} = this.Market(symbol)
-		var uppercaseType interface{} = ToUpper(typeVar)
-		var uppercaseSide interface{} = ToUpper(side)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var uppercaseType any = ToUpper(typeVar)
+		var uppercaseSide any = ToUpper(side)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 			"side":   uppercaseSide,
 		}
-		var triggerPrice interface{} = this.SafeValue2(params, "triggerPrice", "stopPrice")
+		var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
 		if IsTrue(IsEqual(triggerPrice, nil)) {
 			if IsTrue(IsTrue((IsEqual(uppercaseType, "STOP_LIMIT"))) || IsTrue((IsEqual(uppercaseType, "STOP_MARKET")))) {
 				panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a stopPrice parameter for "), uppercaseType), " orders")))
@@ -1014,10 +1014,10 @@ func (this *NovadaxCore) CreateOrder(symbol interface{}, typeVar interface{}, si
 			} else if IsTrue(IsEqual(uppercaseType, "MARKET")) {
 				uppercaseType = "STOP_MARKET"
 			}
-			var defaultOperator interface{} = Ternary(IsTrue((IsEqual(uppercaseSide, "BUY"))), "LTE", "GTE")
+			var defaultOperator any = Ternary(IsTrue((IsEqual(uppercaseSide, "BUY"))), "LTE", "GTE")
 			AddElementToObject(request, "operator", this.SafeString(params, "operator", defaultOperator))
 			AddElementToObject(request, "stopPrice", this.PriceToPrecision(symbol, triggerPrice))
-			params = this.Omit(params, []interface{}{"triggerPrice", "stopPrice"})
+			params = this.Omit(params, []any{"triggerPrice", "stopPrice"})
 		}
 		if IsTrue(IsTrue((IsEqual(uppercaseType, "LIMIT"))) || IsTrue((IsEqual(uppercaseType, "STOP_LIMIT")))) {
 			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
@@ -1026,12 +1026,12 @@ func (this *NovadaxCore) CreateOrder(symbol interface{}, typeVar interface{}, si
 			if IsTrue(IsEqual(uppercaseSide, "SELL")) {
 				AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
 			} else if IsTrue(IsEqual(uppercaseSide, "BUY")) {
-				var quoteAmount interface{} = nil
-				var createMarketBuyOrderRequiresPrice interface{} = true
+				var quoteAmount any = nil
+				var createMarketBuyOrderRequiresPrice any = true
 				createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 				createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 				params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-				var cost interface{} = this.SafeNumber2(params, "cost", "value")
+				var cost any = this.SafeNumber2(params, "cost", "value")
 				params = this.Omit(params, "cost")
 				if IsTrue(!IsEqual(cost, nil)) {
 					quoteAmount = this.CostToPrecision(symbol, cost)
@@ -1039,9 +1039,9 @@ func (this *NovadaxCore) CreateOrder(symbol interface{}, typeVar interface{}, si
 					if IsTrue(IsEqual(price, nil)) {
 						panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")))
 					} else {
-						var amountString interface{} = this.NumberToString(amount)
-						var priceString interface{} = this.NumberToString(price)
-						var costRequest interface{} = Precise.StringMul(amountString, priceString)
+						var amountString any = this.NumberToString(amount)
+						var priceString any = this.NumberToString(price)
+						var costRequest any = Precise.StringMul(amountString, priceString)
 						quoteAmount = this.CostToPrecision(symbol, costRequest)
 					}
 				} else {
@@ -1077,7 +1077,7 @@ func (this *NovadaxCore) CreateOrder(symbol interface{}, typeVar interface{}, si
 		//         "message": "Success"
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseOrder(data, market)
 		return nil
@@ -1096,19 +1096,19 @@ func (this *NovadaxCore) CreateOrder(symbol interface{}, typeVar interface{}, si
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NovadaxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes9738 := (<-this.LoadMarkets())
 		PanicOnError(retRes9738)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"id": id,
 		}
 
@@ -1123,7 +1123,7 @@ func (this *NovadaxCore) CancelOrder(id interface{}, optionalArgs ...interface{}
 		//         "message": "Success"
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseOrder(data)
 		return nil
@@ -1142,19 +1142,19 @@ func (this *NovadaxCore) CancelOrder(id interface{}, optionalArgs ...interface{}
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NovadaxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes10028 := (<-this.LoadMarkets())
 		PanicOnError(retRes10028)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"id": id,
 		}
 
@@ -1181,7 +1181,7 @@ func (this *NovadaxCore) FetchOrder(id interface{}, optionalArgs ...interface{})
 		//         "message": "Success"
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseOrder(data)
 		return nil
@@ -1201,9 +1201,9 @@ func (this *NovadaxCore) FetchOrder(id interface{}, optionalArgs ...interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NovadaxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1212,13 +1212,13 @@ func (this *NovadaxCore) FetchOrders(optionalArgs ...interface{}) <-chan interfa
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes10448 := (<-this.LoadMarkets())
 		PanicOnError(retRes10448)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1255,7 +1255,7 @@ func (this *NovadaxCore) FetchOrders(optionalArgs ...interface{}) <-chan interfa
 		//         "message": "Success"
 		//     }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseOrders(data, market, since, limit)
 		return nil
@@ -1275,9 +1275,9 @@ func (this *NovadaxCore) FetchOrders(optionalArgs ...interface{}) <-chan interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NovadaxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1286,9 +1286,9 @@ func (this *NovadaxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan int
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"status": "SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING",
 		}
 
@@ -1312,9 +1312,9 @@ func (this *NovadaxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan int
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *NovadaxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1323,9 +1323,9 @@ func (this *NovadaxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan i
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"status": "FILLED,CANCELED,REJECTED",
 		}
 
@@ -1350,9 +1350,9 @@ func (this *NovadaxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *NovadaxCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1361,22 +1361,22 @@ func (this *NovadaxCore) FetchOrderTrades(id interface{}, optionalArgs ...interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes11428 := (<-this.LoadMarkets())
 		PanicOnError(retRes11428)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"id": id,
 		}
 
 		response := (<-this.PrivateGetOrdersFill(this.Extend(request, params)))
 		PanicOnError(response)
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var data interface{} = this.SafeValue(response, "data", []interface{}{})
+		var data any = this.SafeValue(response, "data", []any{})
 
 		//
 		//      {
@@ -1405,8 +1405,8 @@ func (this *NovadaxCore) FetchOrderTrades(id interface{}, optionalArgs ...interf
 	}()
 	return ch
 }
-func (this *NovadaxCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *NovadaxCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"SUBMITTED":      "open",
 		"PROCESSING":     "open",
 		"PARTIAL_FILLED": "open",
@@ -1417,7 +1417,7 @@ func (this *NovadaxCore) ParseOrderStatus(status interface{}) interface{} {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *NovadaxCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NovadaxCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// createOrder, fetchOrders, fetchOrder
 	//
@@ -1447,27 +1447,27 @@ func (this *NovadaxCore) ParseOrder(order interface{}, optionalArgs ...interface
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id interface{} = this.SafeString(order, "id")
-	var amount interface{} = this.SafeString(order, "amount")
-	var price interface{} = this.SafeString(order, "price")
-	var cost interface{} = this.SafeString2(order, "filledValue", "value")
-	var typeVar interface{} = this.SafeStringLower(order, "type")
-	var side interface{} = this.SafeStringLower(order, "side")
-	var status interface{} = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var timestamp interface{} = this.SafeInteger(order, "timestamp")
-	var average interface{} = this.SafeString(order, "averagePrice")
-	var filled interface{} = this.SafeString(order, "filledAmount")
-	var fee interface{} = nil
-	var feeCost interface{} = this.SafeNumber(order, "filledFee")
+	var id any = this.SafeString(order, "id")
+	var amount any = this.SafeString(order, "amount")
+	var price any = this.SafeString(order, "price")
+	var cost any = this.SafeString2(order, "filledValue", "value")
+	var typeVar any = this.SafeStringLower(order, "type")
+	var side any = this.SafeStringLower(order, "side")
+	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var timestamp any = this.SafeInteger(order, "timestamp")
+	var average any = this.SafeString(order, "averagePrice")
+	var filled any = this.SafeString(order, "filledAmount")
+	var fee any = nil
+	var feeCost any = this.SafeNumber(order, "filledFee")
 	if IsTrue(!IsEqual(feeCost, nil)) {
-		fee = map[string]interface{}{
+		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": nil,
 		}
 	}
-	var marketId interface{} = this.SafeString(order, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market, "_")
-	return this.SafeOrder(map[string]interface{}{
+	var marketId any = this.SafeString(order, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market, "_")
+	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
 		"info":               order,
@@ -1504,24 +1504,24 @@ func (this *NovadaxCore) ParseOrder(order interface{}, optionalArgs ...interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *NovadaxCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes12758 := (<-this.LoadMarkets())
 		PanicOnError(retRes12758)
-		var currency interface{} = this.Currency(code)
+		var currency any = this.Currency(code)
 		if IsTrue(IsTrue(!IsEqual(fromAccount, "main")) && IsTrue(!IsEqual(toAccount, "main"))) {
 			panic(ExchangeError(Add(this.Id, " transfer() supports transfers between main account and subaccounts only")))
 		}
 		// master-transfer-in = from master account to subaccount
 		// master-transfer-out = from subaccount to master account
-		var typeVar interface{} = Ternary(IsTrue((IsEqual(fromAccount, "main"))), "master-transfer-in", "master-transfer-out")
-		var request interface{} = map[string]interface{}{
+		var typeVar any = Ternary(IsTrue((IsEqual(fromAccount, "main"))), "master-transfer-in", "master-transfer-out")
+		var request any = map[string]any{
 			"transferAmount": this.CurrencyToPrecision(code, amount),
 			"currency":       GetValue(currency, "id"),
 			"subId":          Ternary(IsTrue((IsEqual(typeVar, "master-transfer-in"))), toAccount, fromAccount),
@@ -1537,9 +1537,9 @@ func (this *NovadaxCore) Transfer(code interface{}, amount interface{}, fromAcco
 		//        "data":40
 		//    }
 		//
-		var transfer interface{} = this.ParseTransfer(response, currency)
-		var transferOptions interface{} = this.SafeValue(this.Options, "transfer", map[string]interface{}{})
-		var fillResponseFromRequest interface{} = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
+		var transfer any = this.ParseTransfer(response, currency)
+		var transferOptions any = this.SafeValue(this.Options, "transfer", map[string]any{})
+		var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 		if IsTrue(fillResponseFromRequest) {
 			AddElementToObject(transfer, "fromAccount", fromAccount)
 			AddElementToObject(transfer, "toAccount", toAccount)
@@ -1552,7 +1552,7 @@ func (this *NovadaxCore) Transfer(code interface{}, amount interface{}, fromAcco
 	}()
 	return ch
 }
-func (this *NovadaxCore) ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NovadaxCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "code":"A10000",
@@ -1562,10 +1562,10 @@ func (this *NovadaxCore) ParseTransfer(transfer interface{}, optionalArgs ...int
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var id interface{} = this.SafeString(transfer, "data")
-	var status interface{} = this.SafeString(transfer, "message")
-	var currencyCode interface{} = this.SafeCurrencyCode(nil, currency)
-	return map[string]interface{}{
+	var id any = this.SafeString(transfer, "data")
+	var status any = this.SafeString(transfer, "message")
+	var currencyCode any = this.SafeCurrencyCode(nil, currency)
+	return map[string]any{
 		"info":        transfer,
 		"id":          id,
 		"amount":      nil,
@@ -1577,8 +1577,8 @@ func (this *NovadaxCore) ParseTransfer(transfer interface{}, optionalArgs ...int
 		"status":      status,
 	}
 }
-func (this *NovadaxCore) ParseTransferStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *NovadaxCore) ParseTransferStatus(status any) any {
+	var statuses any = map[string]any{
 		"SUCCESS": "pending",
 	}
 	return this.SafeString(statuses, status, "failed")
@@ -1596,14 +1596,14 @@ func (this *NovadaxCore) ParseTransferStatus(status interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *NovadaxCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
@@ -1611,8 +1611,8 @@ func (this *NovadaxCore) Withdraw(code interface{}, amount interface{}, address 
 
 		retRes13538 := (<-this.LoadMarkets())
 		PanicOnError(retRes13538)
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"code":   GetValue(currency, "id"),
 			"amount": this.CurrencyToPrecision(code, amount),
 			"wallet": address,
@@ -1646,12 +1646,12 @@ func (this *NovadaxCore) Withdraw(code interface{}, amount interface{}, address 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *NovadaxCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchAccounts(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.PrivateGetAccountSubs(params))
@@ -1670,13 +1670,13 @@ func (this *NovadaxCore) FetchAccounts(optionalArgs ...interface{}) <-chan inter
 		//         "message": "Success"
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "data", []interface{}{})
-		var result interface{} = []interface{}{}
+		var data any = this.SafeValue(response, "data", []any{})
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var account interface{} = GetValue(data, i)
-			var accountId interface{} = this.SafeString(account, "subId")
-			var typeVar interface{} = this.SafeString(account, "subAccount")
-			AppendToArray(&result, map[string]interface{}{
+			var account any = GetValue(data, i)
+			var accountId any = this.SafeString(account, "subId")
+			var typeVar any = this.SafeString(account, "subAccount")
+			AppendToArray(&result, map[string]any{
 				"id":       accountId,
 				"type":     typeVar,
 				"currency": nil,
@@ -1702,9 +1702,9 @@ func (this *NovadaxCore) FetchAccounts(optionalArgs ...interface{}) <-chan inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *NovadaxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1713,9 +1713,9 @@ func (this *NovadaxCore) FetchDeposits(optionalArgs ...interface{}) <-chan inter
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"type": "coin_in",
 		}
 
@@ -1739,9 +1739,9 @@ func (this *NovadaxCore) FetchDeposits(optionalArgs ...interface{}) <-chan inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *NovadaxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1750,9 +1750,9 @@ func (this *NovadaxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan in
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"type": "coin_out",
 		}
 
@@ -1776,9 +1776,9 @@ func (this *NovadaxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *NovadaxCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1787,13 +1787,13 @@ func (this *NovadaxCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes14628 := (<-this.LoadMarkets())
 		PanicOnError(retRes14628)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 			AddElementToObject(request, "currency", GetValue(currency, "id"))
@@ -1825,7 +1825,7 @@ func (this *NovadaxCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <
 		//         "message": "Success"
 		//     }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseTransactions(data, currency, since, limit)
 		return nil
@@ -1833,14 +1833,14 @@ func (this *NovadaxCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <
 	}()
 	return ch
 }
-func (this *NovadaxCore) ParseTransactionStatus(status interface{}) interface{} {
+func (this *NovadaxCore) ParseTransactionStatus(status any) any {
 	// Pending the record is wait broadcast to chain
 	// x/M confirming the comfirming state of tx, the M is total confirmings needed
 	// SUCCESS the record is success full
 	// FAIL the record failed
-	var parts interface{} = Split(status, " ")
+	var parts any = Split(status, " ")
 	status = this.SafeString(parts, 1, status)
-	var statuses interface{} = map[string]interface{}{
+	var statuses any = map[string]any{
 		"Pending":    "pending",
 		"confirming": "pending",
 		"SUCCESS":    "ok",
@@ -1848,7 +1848,7 @@ func (this *NovadaxCore) ParseTransactionStatus(status interface{}) interface{} 
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *NovadaxCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NovadaxCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	// withdraw
 	//
@@ -1876,24 +1876,24 @@ func (this *NovadaxCore) ParseTransaction(transaction interface{}, optionalArgs 
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var id interface{} = this.SafeString2(transaction, "id", "data")
-	var typeVar interface{} = this.SafeString(transaction, "type")
+	var id any = this.SafeString2(transaction, "id", "data")
+	var typeVar any = this.SafeString(transaction, "type")
 	if IsTrue(IsEqual(typeVar, "COIN_IN")) {
 		typeVar = "deposit"
 	} else if IsTrue(IsEqual(typeVar, "COIN_OUT")) {
 		typeVar = "withdraw"
 	}
-	var amount interface{} = this.SafeNumber(transaction, "amount")
-	var address interface{} = this.SafeString(transaction, "address")
-	var tag interface{} = this.SafeString(transaction, "addressTag")
-	var txid interface{} = this.SafeString(transaction, "txHash")
-	var timestamp interface{} = this.SafeInteger(transaction, "createdAt")
-	var updated interface{} = this.SafeInteger(transaction, "updatedAt")
-	var currencyId interface{} = this.SafeString(transaction, "currency")
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
-	var status interface{} = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
-	var network interface{} = this.SafeString(transaction, "chain")
-	return map[string]interface{}{
+	var amount any = this.SafeNumber(transaction, "amount")
+	var address any = this.SafeString(transaction, "address")
+	var tag any = this.SafeString(transaction, "addressTag")
+	var txid any = this.SafeString(transaction, "txHash")
+	var timestamp any = this.SafeInteger(transaction, "createdAt")
+	var updated any = this.SafeInteger(transaction, "updatedAt")
+	var currencyId any = this.SafeString(transaction, "currency")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
+	var network any = this.SafeString(transaction, "chain")
+	return map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"currency":    code,
@@ -1913,7 +1913,7 @@ func (this *NovadaxCore) ParseTransaction(transaction interface{}, optionalArgs 
 		"datetime":    this.Iso8601(timestamp),
 		"comment":     nil,
 		"internal":    nil,
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"currency": nil,
 			"cost":     nil,
 			"rate":     nil,
@@ -1932,9 +1932,9 @@ func (this *NovadaxCore) ParseTransaction(transaction interface{}, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *NovadaxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *NovadaxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1943,13 +1943,13 @@ func (this *NovadaxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inter
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes16038 := (<-this.LoadMarkets())
 		PanicOnError(retRes16038)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1984,7 +1984,7 @@ func (this *NovadaxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inter
 		//          "message": "Success"
 		//      }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseTrades(data, market, since, limit)
 		return nil
@@ -1992,32 +1992,32 @@ func (this *NovadaxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *NovadaxCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *NovadaxCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var request interface{} = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
-	var url interface{} = Add(GetValue(GetValue(this.Urls, "api"), api), request)
-	var query interface{} = this.Omit(params, this.ExtractParams(path))
+	var request any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
+	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), request)
+	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
 		if IsTrue(GetArrayLength(ObjectKeys(query))) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var timestamp interface{} = ToString(this.Milliseconds())
-		headers = map[string]interface{}{
+		var timestamp any = ToString(this.Milliseconds())
+		headers = map[string]any{
 			"X-Nova-Access-Key": this.ApiKey,
 			"X-Nova-Timestamp":  timestamp,
 		}
-		var queryString interface{} = nil
+		var queryString any = nil
 		if IsTrue(IsEqual(method, "POST")) {
 			body = this.Json(query)
 			queryString = this.Hash(this.Encode(body), md5)
@@ -2028,27 +2028,27 @@ func (this *NovadaxCore) Sign(path interface{}, optionalArgs ...interface{}) int
 			}
 			queryString = this.Urlencode(this.Keysort(query))
 		}
-		var auth interface{} = Add(Add(Add(Add(Add(Add(method, "\n"), request), "\n"), queryString), "\n"), timestamp) // eslint-disable-line quotes
+		var auth any = Add(Add(Add(Add(Add(Add(method, "\n"), request), "\n"), queryString), "\n"), timestamp) // eslint-disable-line quotes
 		AddElementToObject(headers, "X-Nova-Signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *NovadaxCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *NovadaxCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsTrue(IsEqual(response, nil)) {
 		return nil
 	}
 	//
 	//     {"code":"A10003","data":[],"message":"Authentication failed, Invalid accessKey."}
 	//
-	var errorCode interface{} = this.SafeString(response, "code")
+	var errorCode any = this.SafeString(response, "code")
 	if IsTrue(!IsEqual(errorCode, "A10000")) {
-		var message interface{} = this.SafeString(response, "message")
-		var feedback interface{} = Add(Add(this.Id, " "), body)
+		var message any = this.SafeString(response, "message")
+		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 		panic(ExchangeError(feedback))
@@ -2056,8 +2056,8 @@ func (this *NovadaxCore) HandleErrors(code interface{}, reason interface{}, url 
 	return nil
 }
 
-func (this *NovadaxCore) Init(userConfig map[string]interface{}) {
+func (this *NovadaxCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

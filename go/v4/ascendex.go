@@ -13,15 +13,15 @@ func NewAscendexCore() *AscendexCore {
 	return p
 }
 
-func (this *AscendexCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *AscendexCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "ascendex",
 		"name":      "AscendEX",
-		"countries": []interface{}{"SG"},
+		"countries": []any{"SG"},
 		"rateLimit": 400,
 		"certified": false,
 		"pro":       true,
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                           nil,
 			"spot":                           true,
 			"margin":                         true,
@@ -109,7 +109,7 @@ func (this *AscendexCore) Describe() interface{} {
 			"setPositionMode":                false,
 			"transfer":                       true,
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "1",
 			"5m":  "5",
 			"15m": "15",
@@ -124,26 +124,26 @@ func (this *AscendexCore) Describe() interface{} {
 			"1M":  "1m",
 		},
 		"version": "v2",
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1",
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"rest": "https://ascendex.com",
 			},
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"rest": "https://api-test.ascendex-sandbox.com",
 			},
 			"www":  "https://ascendex.com",
-			"doc":  []interface{}{"https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation"},
+			"doc":  []any{"https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation"},
 			"fees": "https://ascendex.com/en/feerate/transactionfee-traderate",
-			"referral": map[string]interface{}{
+			"referral": map[string]any{
 				"url":      "https://ascendex.com/en-us/register?inviteCode=EL6BXBQM",
 				"discount": 0.25,
 			},
 		},
-		"api": map[string]interface{}{
-			"v1": map[string]interface{}{
-				"public": map[string]interface{}{
-					"get": map[string]interface{}{
+		"api": map[string]any{
+			"v1": map[string]any{
+				"public": map[string]any{
+					"get": map[string]any{
 						"assets":                1,
 						"products":              1,
 						"ticker":                1,
@@ -164,34 +164,34 @@ func (this *AscendexCore) Describe() interface{} {
 						"exchange-info":         1,
 					},
 				},
-				"private": map[string]interface{}{
-					"get": map[string]interface{}{
+				"private": map[string]any{
+					"get": map[string]any{
 						"info":                   1,
 						"wallet/transactions":    1,
 						"wallet/deposit/address": 1,
 						"data/balance/snapshot":  1,
 						"data/balance/history":   1,
 					},
-					"accountCategory": map[string]interface{}{
-						"get": map[string]interface{}{
+					"accountCategory": map[string]any{
+						"get": map[string]any{
 							"balance":            1,
 							"order/open":         1,
 							"order/status":       1,
 							"order/hist/current": 1,
 							"risk":               1,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"order":       1,
 							"order/batch": 1,
 						},
-						"delete": map[string]interface{}{
+						"delete": map[string]any{
 							"order":       1,
 							"order/all":   1,
 							"order/batch": 1,
 						},
 					},
-					"accountGroup": map[string]interface{}{
-						"get": map[string]interface{}{
+					"accountGroup": map[string]any{
+						"get": map[string]any{
 							"cash/balance":               1,
 							"margin/balance":             1,
 							"margin/risk":                1,
@@ -202,7 +202,7 @@ func (this *AscendexCore) Describe() interface{} {
 							"order/hist":                 1,
 							"spot/fee":                   1,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"transfer":                  1,
 							"futures/transfer/deposit":  1,
 							"futures/transfer/withdraw": 1,
@@ -210,9 +210,9 @@ func (this *AscendexCore) Describe() interface{} {
 					},
 				},
 			},
-			"v2": map[string]interface{}{
-				"public": map[string]interface{}{
-					"get": map[string]interface{}{
+			"v2": map[string]any{
+				"public": map[string]any{
+					"get": map[string]any{
 						"assets":               1,
 						"futures/contract":     1,
 						"futures/collateral":   1,
@@ -221,17 +221,17 @@ func (this *AscendexCore) Describe() interface{} {
 						"risk-limit-info":      1,
 					},
 				},
-				"private": map[string]interface{}{
-					"data": map[string]interface{}{
-						"get": map[string]interface{}{
+				"private": map[string]any{
+					"data": map[string]any{
+						"get": map[string]any{
 							"order/hist": 1,
 						},
 					},
-					"get": map[string]interface{}{
+					"get": map[string]any{
 						"account/info": 1,
 					},
-					"accountGroup": map[string]interface{}{
-						"get": map[string]interface{}{
+					"accountGroup": map[string]any{
+						"get": map[string]any{
 							"order/hist":                 1,
 							"futures/position":           1,
 							"futures/free-margin":        1,
@@ -240,7 +240,7 @@ func (this *AscendexCore) Describe() interface{} {
 							"futures/order/open":         1,
 							"futures/order/status":       1,
 						},
-						"post": map[string]interface{}{
+						"post": map[string]any{
 							"futures/isolated-position-margin": 1,
 							"futures/margin-type":              1,
 							"futures/leverage":                 1,
@@ -252,7 +252,7 @@ func (this *AscendexCore) Describe() interface{} {
 							"subuser/subuser-transfer":         1,
 							"subuser/subuser-transfer-hist":    1,
 						},
-						"delete": map[string]interface{}{
+						"delete": map[string]any{
 							"futures/order":       1,
 							"futures/order/batch": 1,
 							"futures/order/all":   1,
@@ -261,8 +261,8 @@ func (this *AscendexCore) Describe() interface{} {
 				},
 			},
 		},
-		"fees": map[string]interface{}{
-			"trading": map[string]interface{}{
+		"fees": map[string]any{
+			"trading": map[string]any{
 				"feeSide":    "get",
 				"tierBased":  true,
 				"percentage": true,
@@ -271,22 +271,22 @@ func (this *AscendexCore) Describe() interface{} {
 			},
 		},
 		"precisionMode": TICK_SIZE,
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"account-category": "cash",
 			"account-group":    nil,
-			"fetchClosedOrders": map[string]interface{}{
+			"fetchClosedOrders": map[string]any{
 				"method": "v2PrivateDataGetOrderHist",
 			},
 			"defaultType": "spot",
-			"accountsByType": map[string]interface{}{
+			"accountsByType": map[string]any{
 				"spot":   "cash",
 				"swap":   "futures",
 				"margin": "margin",
 			},
-			"transfer": map[string]interface{}{
+			"transfer": map[string]any{
 				"fillResponseFromRequest": true,
 			},
-			"networks": map[string]interface{}{
+			"networks": map[string]any{
 				"BSC":   Add("BEP20 ", "(BSC)"),
 				"ARB":   "arbitrum",
 				"SOL":   "Solana",
@@ -303,10 +303,10 @@ func (this *AscendexCore) Describe() interface{} {
 				"AKT":   "Akash",
 			},
 		},
-		"features": map[string]interface{}{
-			"default": map[string]interface{}{
+		"features": map[string]any{
+			"default": map[string]any{
 				"sandbox": true,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":                 true,
 					"triggerPrice":               true,
 					"triggerPriceType":           nil,
@@ -314,7 +314,7 @@ func (this *AscendexCore) Describe() interface{} {
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -328,18 +328,18 @@ func (this *AscendexCore) Describe() interface{} {
 					"selfTradePrevention":    false,
 					"iceberg":                false,
 				},
-				"createOrders": map[string]interface{}{
+				"createOrders": map[string]any{
 					"max": 10,
 				},
 				"fetchMyTrades": nil,
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"marketType":     true,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          nil,
 					"trigger":        false,
@@ -349,13 +349,13 @@ func (this *AscendexCore) Describe() interface{} {
 				},
 				"fetchOrders":       nil,
 				"fetchClosedOrders": nil,
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": 500,
 				},
 			},
-			"spot": map[string]interface{}{
+			"spot": map[string]any{
 				"extends": "default",
-				"fetchClosedOrders": map[string]interface{}{
+				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            1000,
 					"daysBack":         100000,
@@ -366,11 +366,11 @@ func (this *AscendexCore) Describe() interface{} {
 					"symbolRequired":   false,
 				},
 			},
-			"forDerivatives": map[string]interface{}{
+			"forDerivatives": map[string]any{
 				"extends": "default",
-				"createOrder": map[string]interface{}{
-					"attachedStopLossTakeProfit": map[string]interface{}{
-						"triggerPriceType": map[string]interface{}{
+				"createOrder": map[string]any{
+					"attachedStopLossTakeProfit": map[string]any{
+						"triggerPriceType": map[string]any{
 							"last":  true,
 							"mark":  false,
 							"index": false,
@@ -378,7 +378,7 @@ func (this *AscendexCore) Describe() interface{} {
 						"price": false,
 					},
 				},
-				"fetchClosedOrders": map[string]interface{}{
+				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            1000,
 					"daysBack":         nil,
@@ -389,19 +389,19 @@ func (this *AscendexCore) Describe() interface{} {
 					"symbolRequired":   false,
 				},
 			},
-			"swap": map[string]interface{}{
-				"linear": map[string]interface{}{
+			"swap": map[string]any{
+				"linear": map[string]any{
 					"extends": "forDerivatives",
 				},
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
 		},
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"1900":   BadRequest,
 				"2100":   AuthenticationError,
 				"5002":   BadSymbol,
@@ -463,9 +463,9 @@ func (this *AscendexCore) Describe() interface{} {
 				"510001": ExchangeError,
 				"900001": ExchangeError,
 			},
-			"broad": map[string]interface{}{},
+			"broad": map[string]any{},
 		},
-		"commonCurrencies": map[string]interface{}{
+		"commonCurrencies": map[string]any{
 			"XBT":     "XBT",
 			"BOND":    "BONDED",
 			"BTCBEAR": "BEAR",
@@ -475,12 +475,12 @@ func (this *AscendexCore) Describe() interface{} {
 		},
 	})
 }
-func (this *AscendexCore) GetAccount(optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) GetAccount(optionalArgs ...any) any {
 	// get current or provided bitmax sub-account
-	params := GetArg(optionalArgs, 0, map[string]interface{}{})
+	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var account interface{} = this.SafeValue(params, "account", GetValue(this.Options, "account"))
-	var lowercaseAccount interface{} = ToLower(account)
+	var account any = this.SafeValue(params, "account", GetValue(this.Options, "account"))
+	var lowercaseAccount any = ToLower(account)
 	return this.Capitalize(lowercaseAccount)
 }
 
@@ -491,12 +491,12 @@ func (this *AscendexCore) GetAccount(optionalArgs ...interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *AscendexCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.V2PublicGetAssets(params))
@@ -526,73 +526,71 @@ func (this *AscendexCore) FetchCurrencies(optionalArgs ...interface{}) <-chan in
 		//         ]
 		//    }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
-		var result interface{} = map[string]interface{}{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var currency interface{} = GetValue(data, i)
-			var id interface{} = this.SafeString(currency, "assetCode")
-			var code interface{} = this.SafeCurrencyCode(id)
-			var chains interface{} = this.SafeList(currency, "blockChain", []interface{}{})
-			var precision interface{} = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "nativeScale")))
-			var networks interface{} = map[string]interface{}{}
-			for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
-				var networkEtnry interface{} = GetValue(chains, j)
-				var networkId interface{} = this.SafeString(networkEtnry, "chainName")
-				var networkCode interface{} = this.NetworkCodeToId(networkId)
-				AddElementToObject(networks, networkCode, map[string]interface{}{
-					"fee":       this.SafeNumber(networkEtnry, "withdrawFee"),
-					"active":    nil,
-					"withdraw":  this.SafeBool(networkEtnry, "allowWithdraw"),
-					"deposit":   this.SafeBool(networkEtnry, "allowDeposit"),
-					"precision": precision,
-					"limits": map[string]interface{}{
-						"amount": map[string]interface{}{
-							"min": nil,
-							"max": nil,
-						},
-						"withdraw": map[string]interface{}{
-							"min": this.SafeNumber(networkEtnry, "minWithdrawal"),
-							"max": nil,
-						},
-						"deposit": map[string]interface{}{
-							"min": this.SafeNumber(networkEtnry, "minDepositAmt"),
-							"max": nil,
-						},
-					},
-				})
-			}
-			// todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{}{
-				"id":        id,
-				"code":      code,
-				"info":      currency,
-				"type":      nil,
-				"margin":    nil,
-				"name":      this.SafeString(currency, "assetName"),
-				"active":    nil,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"precision": precision,
-				"limits": map[string]interface{}{
-					"amount": map[string]interface{}{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]interface{}{
-						"min": this.SafeNumber(currency, "minWithdrawalAmt"),
-						"max": nil,
-					},
-				},
-				"networks": networks,
-			}))
-		}
+		var data any = this.SafeList(response, "data", []any{})
 
-		ch <- result
+		ch <- this.ParseCurrencies(data)
 		return nil
 
 	}()
 	return ch
+}
+func (this *AscendexCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(rawCurrency, "assetCode")
+	var code any = this.SafeCurrencyCode(id)
+	var chains any = this.SafeList(rawCurrency, "blockChain", []any{})
+	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "nativeScale")))
+	var networks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
+		var networkEtnry any = GetValue(chains, j)
+		var networkId any = this.SafeString(networkEtnry, "chainName")
+		var networkCode any = this.NetworkCodeToId(networkId, code)
+		AddElementToObject(networks, networkCode, map[string]any{
+			"fee":       this.SafeNumber(networkEtnry, "withdrawFee"),
+			"active":    nil,
+			"withdraw":  this.SafeBool(networkEtnry, "allowWithdraw"),
+			"deposit":   this.SafeBool(networkEtnry, "allowDeposit"),
+			"precision": precision,
+			"limits": map[string]any{
+				"amount": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(networkEtnry, "minWithdrawal"),
+					"max": nil,
+				},
+				"deposit": map[string]any{
+					"min": this.SafeNumber(networkEtnry, "minDepositAmt"),
+					"max": nil,
+				},
+			},
+		})
+	}
+	// todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"code":      code,
+		"info":      rawCurrency,
+		"type":      nil,
+		"margin":    nil,
+		"name":      this.SafeString(rawCurrency, "assetName"),
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"precision": precision,
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": this.SafeNumber(rawCurrency, "minWithdrawalAmt"),
+				"max": nil,
+			},
+		},
+		"networks": networks,
+	})
 }
 
 /**
@@ -602,16 +600,16 @@ func (this *AscendexCore) FetchCurrencies(optionalArgs ...interface{}) <-chan in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *AscendexCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var spotPromise interface{} = this.FetchSpotMarkets(params)
-		var contractPromise interface{} = this.FetchContractMarkets(params)
-		spotMarketscontractMarketsVariable := (<-promiseAll([]interface{}{spotPromise, contractPromise}))
+		var spotPromise any = this.FetchSpotMarkets(params)
+		var contractPromise any = this.FetchContractMarkets(params)
+		spotMarketscontractMarketsVariable := (<-promiseAll([]any{spotPromise, contractPromise}))
 		spotMarkets := GetValue(spotMarketscontractMarketsVariable, 0)
 		contractMarkets := GetValue(spotMarketscontractMarketsVariable, 1)
 
@@ -621,14 +619,14 @@ func (this *AscendexCore) FetchMarkets(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *AscendexCore) FetchSpotMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchSpotMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var productsPromise interface{} = this.V1PublicGetProducts(params)
+		var productsPromise any = this.V1PublicGetProducts(params)
 		//
 		//     {
 		//         "code": 0,
@@ -649,7 +647,7 @@ func (this *AscendexCore) FetchSpotMarkets(optionalArgs ...interface{}) <-chan i
 		//         ]
 		//     }
 		//
-		var cashPromise interface{} = this.V1PublicGetCashProducts(params)
+		var cashPromise any = this.V1PublicGetCashProducts(params)
 		//
 		//     {
 		//         "code": 0,
@@ -679,41 +677,41 @@ func (this *AscendexCore) FetchSpotMarkets(optionalArgs ...interface{}) <-chan i
 		//         ]
 		//     }
 		//
-		productscashVariable := (<-promiseAll([]interface{}{productsPromise, cashPromise}))
+		productscashVariable := (<-promiseAll([]any{productsPromise, cashPromise}))
 		products := GetValue(productscashVariable, 0)
 		cash := GetValue(productscashVariable, 1)
-		var productsData interface{} = this.SafeList(products, "data", []interface{}{})
-		var productsById interface{} = this.IndexBy(productsData, "symbol")
-		var cashData interface{} = this.SafeList(cash, "data", []interface{}{})
-		var cashAndPerpetualsById interface{} = this.IndexBy(cashData, "symbol")
-		var dataById interface{} = this.DeepExtend(productsById, cashAndPerpetualsById)
-		var ids interface{} = ObjectKeys(dataById)
-		var result interface{} = []interface{}{}
+		var productsData any = this.SafeList(products, "data", []any{})
+		var productsById any = this.IndexBy(productsData, "symbol")
+		var cashData any = this.SafeList(cash, "data", []any{})
+		var cashAndPerpetualsById any = this.IndexBy(cashData, "symbol")
+		var dataById any = this.DeepExtend(productsById, cashAndPerpetualsById)
+		var ids any = ObjectKeys(dataById)
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-			var id interface{} = GetValue(ids, i)
+			var id any = GetValue(ids, i)
 			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(id, "-PERP"), 0)) {
 				continue
 			}
-			var market interface{} = GetValue(dataById, id)
-			var status interface{} = this.SafeString(market, "status")
-			var domain interface{} = this.SafeString(market, "domain")
-			var active interface{} = false
+			var market any = GetValue(dataById, id)
+			var status any = this.SafeString(market, "status")
+			var domain any = this.SafeString(market, "domain")
+			var active any = false
 			if IsTrue(IsTrue((IsTrue((IsEqual(status, "Normal"))) || IsTrue((IsEqual(status, "InternalTrading"))))) && IsTrue((!IsEqual(domain, "LeveragedETF")))) {
 				active = true
 			}
-			var minQty interface{} = this.SafeNumber(market, "minQty")
-			var maxQty interface{} = this.SafeNumber(market, "maxQty")
-			var minPrice interface{} = this.SafeNumber(market, "tickSize")
-			var maxPrice interface{} = nil
-			var underlying interface{} = this.SafeString2(market, "underlying", "symbol")
-			var parts interface{} = Split(underlying, "/")
-			var baseId interface{} = this.SafeString(parts, 0)
-			var quoteId interface{} = this.SafeString(parts, 1)
-			var base interface{} = this.SafeCurrencyCode(baseId)
-			var quote interface{} = this.SafeCurrencyCode(quoteId)
-			var fee interface{} = this.SafeNumber(market, "commissionReserveRate")
-			var marginTradable interface{} = this.SafeBool(market, "marginTradable", false)
-			AppendToArray(&result, map[string]interface{}{
+			var minQty any = this.SafeNumber(market, "minQty")
+			var maxQty any = this.SafeNumber(market, "maxQty")
+			var minPrice any = this.SafeNumber(market, "tickSize")
+			var maxPrice any = nil
+			var underlying any = this.SafeString2(market, "underlying", "symbol")
+			var parts any = Split(underlying, "/")
+			var baseId any = this.SafeString(parts, 0)
+			var quoteId any = this.SafeString(parts, 1)
+			var base any = this.SafeCurrencyCode(baseId)
+			var quote any = this.SafeCurrencyCode(quoteId)
+			var fee any = this.SafeNumber(market, "commissionReserveRate")
+			var marginTradable any = this.SafeBool(market, "marginTradable", false)
+			AppendToArray(&result, map[string]any{
 				"id":             id,
 				"symbol":         Add(Add(base, "/"), quote),
 				"base":           base,
@@ -739,24 +737,24 @@ func (this *AscendexCore) FetchSpotMarkets(optionalArgs ...interface{}) <-chan i
 				"expiryDatetime": nil,
 				"strike":         nil,
 				"optionType":     nil,
-				"precision": map[string]interface{}{
+				"precision": map[string]any{
 					"amount": this.SafeNumber(market, "lotSize"),
 					"price":  this.SafeNumber(market, "tickSize"),
 				},
-				"limits": map[string]interface{}{
-					"leverage": map[string]interface{}{
+				"limits": map[string]any{
+					"leverage": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"amount": map[string]interface{}{
+					"amount": map[string]any{
 						"min": minQty,
 						"max": maxQty,
 					},
-					"price": map[string]interface{}{
+					"price": map[string]any{
 						"min": minPrice,
 						"max": maxPrice,
 					},
-					"cost": map[string]interface{}{
+					"cost": map[string]any{
 						"min": this.SafeNumber(market, "minNotional"),
 						"max": this.SafeNumber(market, "maxNotional"),
 					},
@@ -772,12 +770,12 @@ func (this *AscendexCore) FetchSpotMarkets(optionalArgs ...interface{}) <-chan i
 	}()
 	return ch
 }
-func (this *AscendexCore) FetchContractMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchContractMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		contracts := (<-this.V2PublicGetFuturesContract(params))
@@ -819,26 +817,26 @@ func (this *AscendexCore) FetchContractMarkets(optionalArgs ...interface{}) <-ch
 		//        ]
 		//    }
 		//
-		var data interface{} = this.SafeList(contracts, "data", []interface{}{})
-		var result interface{} = []interface{}{}
+		var data any = this.SafeList(contracts, "data", []any{})
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var market interface{} = GetValue(data, i)
-			var id interface{} = this.SafeString(market, "symbol")
-			var underlying interface{} = this.SafeString(market, "underlying")
-			var parts interface{} = Split(underlying, "/")
-			var baseId interface{} = this.SafeString(parts, 0)
-			var base interface{} = this.SafeCurrencyCode(baseId)
-			var quoteId interface{} = this.SafeString(parts, 1)
-			var quote interface{} = this.SafeCurrencyCode(quoteId)
-			var settleId interface{} = this.SafeString(market, "settlementAsset")
-			var settle interface{} = this.SafeCurrencyCode(settleId)
-			var linear interface{} = IsEqual(settle, quote)
-			var inverse interface{} = IsEqual(settle, base)
-			var symbol interface{} = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-			var priceFilter interface{} = this.SafeDict(market, "priceFilter")
-			var lotSizeFilter interface{} = this.SafeDict(market, "lotSizeFilter")
-			var fee interface{} = this.SafeNumber(market, "commissionReserveRate")
-			AppendToArray(&result, map[string]interface{}{
+			var market any = GetValue(data, i)
+			var id any = this.SafeString(market, "symbol")
+			var underlying any = this.SafeString(market, "underlying")
+			var parts any = Split(underlying, "/")
+			var baseId any = this.SafeString(parts, 0)
+			var base any = this.SafeCurrencyCode(baseId)
+			var quoteId any = this.SafeString(parts, 1)
+			var quote any = this.SafeCurrencyCode(quoteId)
+			var settleId any = this.SafeString(market, "settlementAsset")
+			var settle any = this.SafeCurrencyCode(settleId)
+			var linear any = IsEqual(settle, quote)
+			var inverse any = IsEqual(settle, base)
+			var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+			var priceFilter any = this.SafeDict(market, "priceFilter")
+			var lotSizeFilter any = this.SafeDict(market, "lotSizeFilter")
+			var fee any = this.SafeNumber(market, "commissionReserveRate")
+			AppendToArray(&result, map[string]any{
 				"id":             id,
 				"symbol":         symbol,
 				"base":           base,
@@ -864,24 +862,24 @@ func (this *AscendexCore) FetchContractMarkets(optionalArgs ...interface{}) <-ch
 				"expiryDatetime": nil,
 				"strike":         nil,
 				"optionType":     nil,
-				"precision": map[string]interface{}{
+				"precision": map[string]any{
 					"amount": this.SafeNumber(lotSizeFilter, "lotSize"),
 					"price":  this.SafeNumber(priceFilter, "tickSize"),
 				},
-				"limits": map[string]interface{}{
-					"leverage": map[string]interface{}{
+				"limits": map[string]any{
+					"leverage": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"amount": map[string]interface{}{
+					"amount": map[string]any{
 						"min": this.SafeNumber(lotSizeFilter, "minQty"),
 						"max": this.SafeNumber(lotSizeFilter, "maxQty"),
 					},
-					"price": map[string]interface{}{
+					"price": map[string]any{
 						"min": this.SafeNumber(priceFilter, "minPrice"),
 						"max": this.SafeNumber(priceFilter, "maxPrice"),
 					},
-					"cost": map[string]interface{}{
+					"cost": map[string]any{
 						"min": this.SafeNumber(market, "minNotional"),
 						"max": this.SafeNumber(market, "maxNotional"),
 					},
@@ -905,14 +903,14 @@ func (this *AscendexCore) FetchContractMarkets(optionalArgs ...interface{}) <-ch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the ascendex server
  */
-func (this *AscendexCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchTime(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"requestTime": this.Milliseconds(),
 		}
 
@@ -928,7 +926,7 @@ func (this *AscendexCore) FetchTime(optionalArgs ...interface{}) <-chan interfac
 		//        }
 		//    }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.SafeInteger(data, "requestReceiveAt")
 		return nil
@@ -944,15 +942,15 @@ func (this *AscendexCore) FetchTime(optionalArgs ...interface{}) <-chan interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *AscendexCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchAccounts(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var accountGroup interface{} = this.SafeString(this.Options, "account-group")
-		var response interface{} = nil
+		var accountGroup any = this.SafeString(this.Options, "account-group")
+		var response any = nil
 		if IsTrue(IsEqual(accountGroup, nil)) {
 
 			response = (<-this.V1PrivateGetInfo(params))
@@ -973,71 +971,73 @@ func (this *AscendexCore) FetchAccounts(optionalArgs ...interface{}) <-chan inte
 			//         }
 			//     }
 			//
-			var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+			var data any = this.SafeDict(response, "data", map[string]any{})
 			accountGroup = this.SafeString(data, "accountGroup")
 			AddElementToObject(this.Options, "account-group", accountGroup)
 		}
+		var finalResponse any = response // java req
+		var finalAccountGroup any = accountGroup
 
-		ch <- []interface{}{map[string]interface{}{
-			"id":   accountGroup,
+		ch <- []any{map[string]any{
+			"id":   finalAccountGroup,
 			"type": nil,
 			"code": nil,
-			"info": response,
+			"info": finalResponse,
 		}}
 		return nil
 
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseBalance(response interface{}) interface{} {
-	var result interface{} = map[string]interface{}{
+func (this *AscendexCore) ParseBalance(response any) any {
+	var result any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var balances interface{} = this.SafeList(response, "data", []interface{}{})
+	var balances any = this.SafeList(response, "data", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
-		var balance interface{} = GetValue(balances, i)
-		var code interface{} = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
-		var account interface{} = this.Account()
+		var balance any = GetValue(balances, i)
+		var code any = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
+		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "availableBalance"))
 		AddElementToObject(account, "total", this.SafeString(balance, "totalBalance"))
 		AddElementToObject(result, code, account)
 	}
 	return this.SafeBalance(result)
 }
-func (this *AscendexCore) ParseMarginBalance(response interface{}) interface{} {
-	var result interface{} = map[string]interface{}{
+func (this *AscendexCore) ParseMarginBalance(response any) any {
+	var result any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var balances interface{} = this.SafeList(response, "data", []interface{}{})
+	var balances any = this.SafeList(response, "data", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
-		var balance interface{} = GetValue(balances, i)
-		var code interface{} = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
-		var account interface{} = this.Account()
+		var balance any = GetValue(balances, i)
+		var code any = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
+		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "availableBalance"))
 		AddElementToObject(account, "total", this.SafeString(balance, "totalBalance"))
-		var debt interface{} = this.SafeString(balance, "borrowed")
-		var interest interface{} = this.SafeString(balance, "interest")
+		var debt any = this.SafeString(balance, "borrowed")
+		var interest any = this.SafeString(balance, "interest")
 		AddElementToObject(account, "debt", Precise.StringAdd(debt, interest))
 		AddElementToObject(result, code, account)
 	}
 	return this.SafeBalance(result)
 }
-func (this *AscendexCore) ParseSwapBalance(response interface{}) interface{} {
-	var result interface{} = map[string]interface{}{
+func (this *AscendexCore) ParseSwapBalance(response any) any {
+	var result any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-	var collaterals interface{} = this.SafeList(data, "collaterals", []interface{}{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var collaterals any = this.SafeList(data, "collaterals", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(collaterals)); i++ {
-		var balance interface{} = GetValue(collaterals, i)
-		var code interface{} = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
-		var account interface{} = this.Account()
+		var balance any = GetValue(collaterals, i)
+		var code any = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
+		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		AddElementToObject(result, code, account)
 	}
@@ -1056,36 +1056,36 @@ func (this *AscendexCore) ParseSwapBalance(response interface{}) interface{} {
  * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *AscendexCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes9988 := (<-this.LoadMarkets())
-		PanicOnError(retRes9988)
-
-		retRes9998 := (<-this.LoadAccounts())
+		retRes9998 := (<-this.LoadMarkets())
 		PanicOnError(retRes9998)
-		var marketType interface{} = nil
-		var marginMode interface{} = nil
+
+		retRes10008 := (<-this.LoadAccounts())
+		PanicOnError(retRes10008)
+		var marketType any = nil
+		var marginMode any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBalance", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
-		var isMargin interface{} = this.SafeBool(params, "margin", false)
-		var isCross interface{} = IsEqual(marginMode, "cross")
+		var isMargin any = this.SafeBool(params, "margin", false)
+		var isCross any = IsEqual(marginMode, "cross")
 		marketType = Ternary(IsTrue((IsTrue(isMargin) || IsTrue(isCross))), "margin", marketType)
 		params = this.Omit(params, "margin")
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var accountCategory interface{} = this.SafeString(accountsByType, marketType, "cash")
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var accountCategory any = this.SafeString(accountsByType, marketType, "cash")
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group": accountGroup,
 		}
 		if IsTrue(IsTrue((IsEqual(marginMode, "isolated"))) && IsTrue((!IsEqual(marketType, "swap")))) {
@@ -1094,7 +1094,7 @@ func (this *AscendexCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
 		if IsTrue(IsTrue((IsEqual(accountCategory, "cash"))) || IsTrue((IsEqual(accountCategory, "margin")))) {
 			AddElementToObject(request, "account-category", accountCategory)
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsTrue((IsEqual(marketType, "spot"))) || IsTrue((IsEqual(marketType, "margin")))) {
 
 			response = (<-this.V1PrivateAccountCategoryGetBalance(this.Extend(request, params)))
@@ -1174,22 +1174,22 @@ func (this *AscendexCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *AscendexCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes10918 := (<-this.LoadMarkets())
-		PanicOnError(retRes10918)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes10928 := (<-this.LoadMarkets())
+		PanicOnError(retRes10928)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -1218,10 +1218,10 @@ func (this *AscendexCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var orderbook interface{} = this.SafeDict(data, "data", map[string]interface{}{})
-		var timestamp interface{} = this.SafeInteger(orderbook, "ts")
-		var result interface{} = this.ParseOrderBook(orderbook, symbol, timestamp)
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var orderbook any = this.SafeDict(data, "data", map[string]any{})
+		var timestamp any = this.SafeInteger(orderbook, "ts")
+		var result any = this.ParseOrderBook(orderbook, symbol, timestamp)
 		AddElementToObject(result, "nonce", this.SafeInteger(orderbook, "seqnum"))
 
 		ch <- result
@@ -1230,7 +1230,7 @@ func (this *AscendexCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol":"QTUM/BTC",
@@ -1246,16 +1246,16 @@ func (this *AscendexCore) ParseTicker(ticker interface{}, optionalArgs ...interf
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = nil
-	var marketId interface{} = this.SafeString(ticker, "symbol")
-	var typeVar interface{} = this.SafeString(ticker, "type")
-	var delimiter interface{} = Ternary(IsTrue((IsEqual(typeVar, "spot"))), "/", nil)
-	var symbol interface{} = this.SafeSymbol(marketId, market, delimiter)
-	var close interface{} = this.SafeString(ticker, "close")
-	var bid interface{} = this.SafeList(ticker, "bid", []interface{}{})
-	var ask interface{} = this.SafeList(ticker, "ask", []interface{}{})
-	var open interface{} = this.SafeString(ticker, "open")
-	return this.SafeTicker(map[string]interface{}{
+	var timestamp any = nil
+	var marketId any = this.SafeString(ticker, "symbol")
+	var typeVar any = this.SafeString(ticker, "type")
+	var delimiter any = Ternary(IsTrue((IsEqual(typeVar, "spot"))), "/", nil)
+	var symbol any = this.SafeSymbol(marketId, market, delimiter)
+	var close any = this.SafeString(ticker, "close")
+	var bid any = this.SafeList(ticker, "bid", []any{})
+	var ask any = this.SafeList(ticker, "ask", []any{})
+	var open any = this.SafeString(ticker, "open")
+	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      nil,
@@ -1287,18 +1287,18 @@ func (this *AscendexCore) ParseTicker(ticker interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *AscendexCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes11848 := (<-this.LoadMarkets())
-		PanicOnError(retRes11848)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes11858 := (<-this.LoadMarkets())
+		PanicOnError(retRes11858)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -1320,7 +1320,7 @@ func (this *AscendexCore) FetchTicker(symbol interface{}, optionalArgs ...interf
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseTicker(data, market)
 		return nil
@@ -1339,31 +1339,31 @@ func (this *AscendexCore) FetchTicker(symbol interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *AscendexCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes12218 := (<-this.LoadMarkets())
-		PanicOnError(retRes12218)
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		retRes12228 := (<-this.LoadMarkets())
+		PanicOnError(retRes12228)
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
-			var symbol interface{} = this.SafeString(symbols, 0)
+			var symbol any = this.SafeString(symbols, 0)
 			market = this.Market(symbol)
-			var marketIds interface{} = this.MarketIds(symbols)
+			var marketIds any = this.MarketIds(symbols)
 			AddElementToObject(request, "symbol", Join(marketIds, ","))
 		}
-		var typeVar interface{} = nil
+		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(typeVar, "spot")) {
 
 			response = (<-this.V1PublicGetTicker(this.Extend(request, params)))
@@ -1389,10 +1389,10 @@ func (this *AscendexCore) FetchTickers(optionalArgs ...interface{}) <-chan inter
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 		if !IsTrue(IsArray(data)) {
 
-			ch <- this.ParseTickers([]interface{}{data}, symbols)
+			ch <- this.ParseTickers([]any{data}, symbols)
 			return nil
 		}
 
@@ -1402,7 +1402,7 @@ func (this *AscendexCore) FetchTickers(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "m":"bar",
@@ -1420,8 +1420,8 @@ func (this *AscendexCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interfac
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var data interface{} = this.SafeDict(ohlcv, "data", map[string]interface{}{})
-	return []interface{}{this.SafeInteger(data, "ts"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
+	var data any = this.SafeDict(ohlcv, "data", map[string]any{})
+	return []any{this.SafeInteger(data, "ts"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
 }
 
 /**
@@ -1436,9 +1436,9 @@ func (this *AscendexCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interfac
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *AscendexCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -1447,22 +1447,22 @@ func (this *AscendexCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes13018 := (<-this.LoadMarkets())
-		PanicOnError(retRes13018)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes13028 := (<-this.LoadMarkets())
+		PanicOnError(retRes13028)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol":   GetValue(market, "id"),
 			"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
 		// if since and limit are not specified
 		// the exchange will return just 1 last candle by default
-		var duration interface{} = this.ParseTimeframe(timeframe)
-		var options interface{} = this.SafeDict(this.Options, "fetchOHLCV", map[string]interface{}{})
-		var defaultLimit interface{} = this.SafeInteger(options, "limit", 500)
-		var until interface{} = this.SafeInteger(params, "until")
+		var duration any = this.ParseTimeframe(timeframe)
+		var options any = this.SafeDict(this.Options, "fetchOHLCV", map[string]any{})
+		var defaultLimit any = this.SafeInteger(options, "limit", 500)
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "from", since)
 			if IsTrue(IsEqual(limit, nil)) {
@@ -1470,7 +1470,7 @@ func (this *AscendexCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
 			} else {
 				limit = mathMin(limit, defaultLimit)
 			}
-			var toWithLimit interface{} = this.Sum(since, Multiply(Multiply(limit, duration), 1000), 1)
+			var toWithLimit any = this.Sum(since, Multiply(Multiply(limit, duration), 1000), 1)
 			if IsTrue(!IsEqual(until, nil)) {
 				AddElementToObject(request, "to", mathMin(toWithLimit, Add(until, 1)))
 			} else {
@@ -1511,7 +1511,7 @@ func (this *AscendexCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
 		//         ]
 		//     }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 
 		ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
 		return nil
@@ -1519,7 +1519,7 @@ func (this *AscendexCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// public fetchTrades
 	//
@@ -1533,13 +1533,13 @@ func (this *AscendexCore) ParseTrade(trade interface{}, optionalArgs ...interfac
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger(trade, "ts")
-	var priceString interface{} = this.SafeString2(trade, "price", "p")
-	var amountString interface{} = this.SafeString(trade, "q")
-	var buyerIsMaker interface{} = this.SafeBool(trade, "bm", false)
-	var side interface{} = Ternary(IsTrue(buyerIsMaker), "sell", "buy")
+	var timestamp any = this.SafeInteger(trade, "ts")
+	var priceString any = this.SafeString2(trade, "price", "p")
+	var amountString any = this.SafeString(trade, "q")
+	var buyerIsMaker any = this.SafeBool(trade, "bm", false)
+	var side any = Ternary(IsTrue(buyerIsMaker), "sell", "buy")
 	market = this.SafeMarket(nil, market)
-	return this.SafeTrade(map[string]interface{}{
+	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1567,22 +1567,22 @@ func (this *AscendexCore) ParseTrade(trade interface{}, optionalArgs ...interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *AscendexCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes14108 := (<-this.LoadMarkets())
-		PanicOnError(retRes14108)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes14118 := (<-this.LoadMarkets())
+		PanicOnError(retRes14118)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1605,8 +1605,8 @@ func (this *AscendexCore) FetchTrades(symbol interface{}, optionalArgs ...interf
 		//         }
 		//     }
 		//
-		var records interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var trades interface{} = this.SafeList(records, "data", []interface{}{})
+		var records any = this.SafeDict(response, "data", map[string]any{})
+		var trades any = this.SafeList(records, "data", []any{})
 
 		ch <- this.ParseTrades(trades, market, since, limit)
 		return nil
@@ -1614,8 +1614,8 @@ func (this *AscendexCore) FetchTrades(symbol interface{}, optionalArgs ...interf
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *AscendexCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"PendingNew":      "open",
 		"New":             "open",
 		"PartiallyFilled": "open",
@@ -1625,7 +1625,7 @@ func (this *AscendexCore) ParseOrderStatus(status interface{}) interface{} {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *AscendexCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// createOrder
 	//
@@ -1734,27 +1734,27 @@ func (this *AscendexCore) ParseOrder(order interface{}, optionalArgs ...interfac
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var status interface{} = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var marketId interface{} = this.SafeString(order, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market, "/")
-	var timestamp interface{} = this.SafeIntegerN(order, []interface{}{"timestamp", "sendingTime", "time"})
-	var lastTradeTimestamp interface{} = this.SafeInteger(order, "lastExecTime")
+	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var marketId any = this.SafeString(order, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market, "/")
+	var timestamp any = this.SafeIntegerN(order, []any{"timestamp", "sendingTime", "time"})
+	var lastTradeTimestamp any = this.SafeInteger(order, "lastExecTime")
 	if IsTrue(IsEqual(timestamp, nil)) {
 		timestamp = lastTradeTimestamp
 	}
-	var price interface{} = this.SafeString(order, "price")
-	var amount interface{} = this.SafeString(order, "orderQty")
-	var average interface{} = this.SafeString2(order, "avgPx", "avgFilledPx")
-	var filled interface{} = this.SafeStringN(order, []interface{}{"cumFilledQty", "cumQty", "fillQty"})
-	var id interface{} = this.SafeString(order, "orderId")
-	var clientOrderId interface{} = this.SafeString(order, "id")
+	var price any = this.SafeString(order, "price")
+	var amount any = this.SafeString(order, "orderQty")
+	var average any = this.SafeString2(order, "avgPx", "avgFilledPx")
+	var filled any = this.SafeStringN(order, []any{"cumFilledQty", "cumQty", "fillQty"})
+	var id any = this.SafeString(order, "orderId")
+	var clientOrderId any = this.SafeString(order, "id")
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		if IsTrue(IsLessThan(GetLength(clientOrderId), 1)) {
 			clientOrderId = nil
 		}
 	}
-	var rawTypeLower interface{} = this.SafeStringLower(order, "orderType")
-	var typeVar interface{} = rawTypeLower
+	var rawTypeLower any = this.SafeStringLower(order, "orderType")
+	var typeVar any = rawTypeLower
 	if IsTrue(!IsEqual(rawTypeLower, nil)) {
 		if IsTrue(IsEqual(rawTypeLower, "stoplimit")) {
 			typeVar = "limit"
@@ -1763,28 +1763,28 @@ func (this *AscendexCore) ParseOrder(order interface{}, optionalArgs ...interfac
 			typeVar = "market"
 		}
 	}
-	var side interface{} = this.SafeStringLower(order, "side")
-	var feeCost interface{} = this.SafeNumber2(order, "cumFee", "fee")
-	var fee interface{} = nil
+	var side any = this.SafeStringLower(order, "side")
+	var feeCost any = this.SafeNumber2(order, "cumFee", "fee")
+	var fee any = nil
 	if IsTrue(!IsEqual(feeCost, nil)) {
-		var feeCurrencyId interface{} = this.SafeString(order, "feeAsset")
-		var feeCurrencyCode interface{} = this.SafeCurrencyCode(feeCurrencyId)
-		fee = map[string]interface{}{
+		var feeCurrencyId any = this.SafeString(order, "feeAsset")
+		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrencyCode,
 		}
 	}
-	var triggerPrice interface{} = this.OmitZero(this.SafeString(order, "stopPrice"))
-	var reduceOnly interface{} = nil
-	var execInst interface{} = this.SafeStringLower(order, "execInst")
+	var triggerPrice any = this.OmitZero(this.SafeString(order, "stopPrice"))
+	var reduceOnly any = nil
+	var execInst any = this.SafeStringLower(order, "execInst")
 	if IsTrue(IsEqual(execInst, "reduceonly")) {
 		reduceOnly = true
 	}
-	var postOnly interface{} = nil
+	var postOnly any = nil
 	if IsTrue(IsEqual(execInst, "post")) {
 		postOnly = true
 	}
-	return this.SafeOrder(map[string]interface{}{
+	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -1817,22 +1817,22 @@ func (this *AscendexCore) ParseOrder(order interface{}, optionalArgs ...interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *AscendexCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes16418 := (<-this.LoadMarkets())
-		PanicOnError(retRes16418)
-
-		retRes16428 := (<-this.LoadAccounts())
+		retRes16428 := (<-this.LoadMarkets())
 		PanicOnError(retRes16428)
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+
+		retRes16438 := (<-this.LoadAccounts())
+		PanicOnError(retRes16438)
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group": accountGroup,
 		}
 
@@ -1854,15 +1854,15 @@ func (this *AscendexCore) FetchTradingFees(optionalArgs ...interface{}) <-chan i
 		//         }
 		//      }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var fees interface{} = this.SafeList(data, "fees", []interface{}{})
-		var result interface{} = map[string]interface{}{}
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var fees any = this.SafeList(data, "fees", []any{})
+		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
-			var fee interface{} = GetValue(fees, i)
-			var marketId interface{} = this.SafeString(fee, "symbol")
-			var symbol interface{} = this.SafeSymbol(marketId, nil, "/")
-			var takerMaker interface{} = this.SafeDict(fee, "fee", map[string]interface{}{})
-			AddElementToObject(result, symbol, map[string]interface{}{
+			var fee any = GetValue(fees, i)
+			var marketId any = this.SafeString(fee, "symbol")
+			var symbol any = this.SafeSymbol(marketId, nil, "/")
+			var takerMaker any = this.SafeDict(fee, "fee", map[string]any{})
+			AddElementToObject(result, symbol, map[string]any{
 				"info":       fee,
 				"symbol":     symbol,
 				"maker":      this.SafeNumber(takerMaker, "maker"),
@@ -1878,7 +1878,7 @@ func (this *AscendexCore) FetchTradingFees(optionalArgs ...interface{}) <-chan i
 	}()
 	return ch
 }
-func (this *AscendexCore) CreateOrderRequest(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	/**
 	 * @method
 	 * @ignore
@@ -1897,26 +1897,26 @@ func (this *AscendexCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 	 */
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]interface{}{})
+	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market interface{} = this.Market(symbol)
-	var marginMode interface{} = nil
-	var marketType interface{} = nil
+	var market any = this.Market(symbol)
+	var marginMode any = nil
+	var marketType any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrderRequest", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("createOrderRequest", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-	var accountCategory interface{} = this.SafeString(accountsByType, marketType, "cash")
+	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountCategory any = this.SafeString(accountsByType, marketType, "cash")
 	if IsTrue(!IsEqual(marginMode, nil)) {
 		accountCategory = "margin"
 	}
-	var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-	var accountGroup interface{} = this.SafeString(account, "id")
-	var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "id")
-	var request interface{} = map[string]interface{}{
+	var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+	var accountGroup any = this.SafeString(account, "id")
+	var clientOrderId any = this.SafeString2(params, "clientOrderId", "id")
+	var request any = map[string]any{
 		"account-group":    accountGroup,
 		"account-category": accountCategory,
 		"symbol":           GetValue(market, "id"),
@@ -1925,12 +1925,12 @@ func (this *AscendexCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 		"orderType":        typeVar,
 		"side":             side,
 	}
-	var isMarketOrder interface{} = (IsTrue((IsEqual(typeVar, "market"))) || IsTrue((IsEqual(typeVar, "stop_market"))))
-	var isLimitOrder interface{} = (IsTrue((IsEqual(typeVar, "limit"))) || IsTrue((IsEqual(typeVar, "stop_limit"))))
-	var timeInForce interface{} = this.SafeString(params, "timeInForce")
-	var postOnly interface{} = this.IsPostOnly(isMarketOrder, false, params)
-	var reduceOnly interface{} = this.SafeBool(params, "reduceOnly", false)
-	var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
+	var isMarketOrder any = (IsTrue((IsEqual(typeVar, "market"))) || IsTrue((IsEqual(typeVar, "stop_market"))))
+	var isLimitOrder any = (IsTrue((IsEqual(typeVar, "limit"))) || IsTrue((IsEqual(typeVar, "stop_limit"))))
+	var timeInForce any = this.SafeString(params, "timeInForce")
+	var postOnly any = this.IsPostOnly(isMarketOrder, false, params)
+	var reduceOnly any = this.SafeBool(params, "reduceOnly", false)
+	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
 	if IsTrue(isLimitOrder) {
 		AddElementToObject(request, "orderPrice", this.PriceToPrecision(symbol, price))
 	}
@@ -1967,7 +1967,7 @@ func (this *AscendexCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 			AddElementToObject(request, "execInst", "Post")
 		}
 	}
-	params = this.Omit(params, []interface{}{"reduceOnly", "triggerPrice"})
+	params = this.Omit(params, []any{"reduceOnly", "triggerPrice"})
 	return this.Extend(request, params)
 }
 
@@ -1992,24 +1992,24 @@ func (this *AscendexCore) CreateOrderRequest(symbol interface{}, typeVar interfa
  * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
  * @returns [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AscendexCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes17948 := (<-this.LoadMarkets())
-		PanicOnError(retRes17948)
-
-		retRes17958 := (<-this.LoadAccounts())
+		retRes17958 := (<-this.LoadMarkets())
 		PanicOnError(retRes17958)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		var response interface{} = nil
+
+		retRes17968 := (<-this.LoadAccounts())
+		PanicOnError(retRes17968)
+		var market any = this.Market(symbol)
+		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
 
 			response = (<-this.V2PrivateAccountGroupPostFuturesOrder(request))
@@ -2082,8 +2082,8 @@ func (this *AscendexCore) CreateOrder(symbol interface{}, typeVar interface{}, s
 		//          }
 		//      }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var order interface{} = this.SafeDict2(data, "order", "info", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var order any = this.SafeDict2(data, "order", "info", map[string]any{})
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -2105,25 +2105,25 @@ func (this *AscendexCore) CreateOrder(symbol interface{}, typeVar interface{}, s
  * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AscendexCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes18868 := (<-this.LoadMarkets())
-		PanicOnError(retRes18868)
-
-		retRes18878 := (<-this.LoadAccounts())
+		retRes18878 := (<-this.LoadMarkets())
 		PanicOnError(retRes18878)
-		var ordersRequests interface{} = []interface{}{}
-		var symbol interface{} = nil
-		var marginMode interface{} = nil
+
+		retRes18888 := (<-this.LoadAccounts())
+		PanicOnError(retRes18888)
+		var ordersRequests any = []any{}
+		var symbol any = nil
+		var marginMode any = nil
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-			var rawOrder interface{} = GetValue(orders, i)
-			var marketId interface{} = this.SafeString(rawOrder, "symbol")
+			var rawOrder any = GetValue(orders, i)
+			var marketId any = this.SafeString(rawOrder, "symbol")
 			if IsTrue(IsEqual(symbol, nil)) {
 				symbol = marketId
 			} else {
@@ -2131,13 +2131,13 @@ func (this *AscendexCore) CreateOrders(orders interface{}, optionalArgs ...inter
 					panic(BadRequest(Add(this.Id, " createOrders() requires all orders to have the same symbol")))
 				}
 			}
-			var typeVar interface{} = this.SafeString(rawOrder, "type")
-			var side interface{} = this.SafeString(rawOrder, "side")
-			var amount interface{} = this.SafeNumber(rawOrder, "amount")
-			var price interface{} = this.SafeNumber(rawOrder, "price")
-			var orderParams interface{} = this.SafeDict(rawOrder, "params", map[string]interface{}{})
-			var marginResult interface{} = this.HandleMarginModeAndParams("createOrders", orderParams)
-			var currentMarginMode interface{} = GetValue(marginResult, 0)
+			var typeVar any = this.SafeString(rawOrder, "type")
+			var side any = this.SafeString(rawOrder, "side")
+			var amount any = this.SafeNumber(rawOrder, "amount")
+			var price any = this.SafeNumber(rawOrder, "price")
+			var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+			var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
+			var currentMarginMode any = GetValue(marginResult, 0)
 			if IsTrue(!IsEqual(currentMarginMode, nil)) {
 				if IsTrue(IsEqual(marginMode, nil)) {
 					marginMode = currentMarginMode
@@ -2147,19 +2147,19 @@ func (this *AscendexCore) CreateOrders(orders interface{}, optionalArgs ...inter
 					}
 				}
 			}
-			var orderRequest interface{} = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+			var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 			AppendToArray(&ordersRequests, orderRequest)
 		}
-		var market interface{} = this.Market(symbol)
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var accountCategory interface{} = this.SafeString(accountsByType, GetValue(market, "type"), "cash")
+		var market any = this.Market(symbol)
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var accountCategory any = this.SafeString(accountsByType, GetValue(market, "type"), "cash")
 		if IsTrue(!IsEqual(marginMode, nil)) {
 			accountCategory = "margin"
 		}
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{}
-		var response interface{} = nil
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{}
+		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
 			panic(NotSupported(Add(this.Id, " createOrders() is not currently supported for swap markets on ascendex")))
 		} else {
@@ -2192,8 +2192,8 @@ func (this *AscendexCore) CreateOrders(orders interface{}, optionalArgs ...inter
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var info interface{} = this.SafeList(data, "info", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var info any = this.SafeList(data, "info", []any{})
 
 		ch <- this.ParseOrders(info, market)
 		return nil
@@ -2213,38 +2213,38 @@ func (this *AscendexCore) CreateOrders(orders interface{}, optionalArgs ...inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AscendexCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes19818 := (<-this.LoadMarkets())
-		PanicOnError(retRes19818)
-
-		retRes19828 := (<-this.LoadAccounts())
+		retRes19828 := (<-this.LoadMarkets())
 		PanicOnError(retRes19828)
-		var market interface{} = nil
+
+		retRes19838 := (<-this.LoadAccounts())
+		PanicOnError(retRes19838)
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 		typeVar := GetValue(typeVarqueryVariable, 0)
 		query := GetValue(typeVarqueryVariable, 1)
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var accountCategory interface{} = this.SafeString(accountsByType, typeVar, "cash")
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var accountCategory any = this.SafeString(accountsByType, typeVar, "cash")
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group":    accountGroup,
 			"account-category": accountCategory,
 			"orderId":          id,
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))) {
 
 			response = (<-this.V1PrivateAccountCategoryGetOrderStatus(this.Extend(request, query)))
@@ -2324,7 +2324,7 @@ func (this *AscendexCore) FetchOrder(id interface{}, optionalArgs ...interface{}
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseOrder(data, market)
 		return nil
@@ -2345,9 +2345,9 @@ func (this *AscendexCore) FetchOrder(id interface{}, optionalArgs ...interface{}
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AscendexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2356,31 +2356,31 @@ func (this *AscendexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes20908 := (<-this.LoadMarkets())
-		PanicOnError(retRes20908)
-
-		retRes20918 := (<-this.LoadAccounts())
+		retRes20918 := (<-this.LoadMarkets())
 		PanicOnError(retRes20918)
-		var market interface{} = nil
+
+		retRes20928 := (<-this.LoadAccounts())
+		PanicOnError(retRes20928)
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			symbol = GetValue(market, "symbol")
 		}
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 		typeVar := GetValue(typeVarqueryVariable, 0)
 		query := GetValue(typeVarqueryVariable, 1)
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var accountCategory interface{} = this.SafeString(accountsByType, typeVar, "cash")
-		var request interface{} = map[string]interface{}{
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var accountCategory any = this.SafeString(accountsByType, typeVar, "cash")
+		var request any = map[string]any{
 			"account-group":    accountGroup,
 			"account-category": accountCategory,
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))) {
 
 			response = (<-this.V1PrivateAccountCategoryGetOrderOpen(this.Extend(request, query)))
@@ -2460,16 +2460,16 @@ func (this *AscendexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
 		//     ]
 		// }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 		if IsTrue(IsEqual(accountCategory, "futures")) {
 
 			ch <- this.ParseOrders(data, market, since, limit)
 			return nil
 		}
 		// a workaround for https://github.com/ccxt/ccxt/issues/7187
-		var orders interface{} = []interface{}{}
+		var orders any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var order interface{} = this.ParseOrder(GetValue(data, i), market)
+			var order any = this.ParseOrder(GetValue(data, i), market)
 			AppendToArray(&orders, order)
 		}
 
@@ -2493,9 +2493,9 @@ func (this *AscendexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AscendexCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2504,18 +2504,18 @@ func (this *AscendexCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes22098 := (<-this.LoadMarkets())
-		PanicOnError(retRes22098)
-
-		retRes22108 := (<-this.LoadAccounts())
+		retRes22108 := (<-this.LoadMarkets())
 		PanicOnError(retRes22108)
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+
+		retRes22118 := (<-this.LoadAccounts())
+		PanicOnError(retRes22118)
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2523,9 +2523,9 @@ func (this *AscendexCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 		typeVar := GetValue(typeVarqueryVariable, 0)
 		query := GetValue(typeVarqueryVariable, 1)
-		var options interface{} = this.SafeDict(this.Options, "fetchClosedOrders", map[string]interface{}{})
-		var defaultMethod interface{} = this.SafeString(options, "method", "v2PrivateDataGetOrderHist")
-		var method interface{} = this.GetSupportedMapping(typeVar, map[string]interface{}{
+		var options any = this.SafeDict(this.Options, "fetchClosedOrders", map[string]any{})
+		var defaultMethod any = this.SafeString(options, "method", "v2PrivateDataGetOrderHist")
+		var method any = this.GetSupportedMapping(typeVar, map[string]any{
 			"spot":   defaultMethod,
 			"margin": defaultMethod,
 			"swap":   "v2PrivateAccountGroupGetFuturesOrderHistCurrent",
@@ -2533,13 +2533,13 @@ func (this *AscendexCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
 		}
-		var until interface{} = this.SafeString(params, "until")
+		var until any = this.SafeString(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			AddElementToObject(request, "endTime", until)
 		}
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var accountCategory interface{} = this.SafeString(accountsByType, typeVar, "cash") // margin, futures
-		var response interface{} = nil
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var accountCategory any = this.SafeString(accountsByType, typeVar, "cash") // margin, futures
+		var response any = nil
 		if IsTrue(IsEqual(method, "v1PrivateAccountCategoryGetOrderHistCurrent")) {
 			AddElementToObject(request, "account-group", accountGroup)
 			AddElementToObject(request, "account-category", accountCategory)
@@ -2660,9 +2660,9 @@ func (this *AscendexCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
 		//         ]
 		//     }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 		if !IsTrue(IsArray(data)) {
-			data = this.SafeList(data, "data", []interface{}{})
+			data = this.SafeList(data, "data", []any{})
 		}
 
 		ch <- this.ParseOrders(data, market, since, limit)
@@ -2683,47 +2683,47 @@ func (this *AscendexCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *AscendexCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes23838 := (<-this.LoadMarkets())
-		PanicOnError(retRes23838)
-
-		retRes23848 := (<-this.LoadAccounts())
+		retRes23848 := (<-this.LoadMarkets())
 		PanicOnError(retRes23848)
-		var market interface{} = this.Market(symbol)
+
+		retRes23858 := (<-this.LoadAccounts())
+		PanicOnError(retRes23858)
+		var market any = this.Market(symbol)
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params)
 		typeVar := GetValue(typeVarqueryVariable, 0)
 		query := GetValue(typeVarqueryVariable, 1)
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var accountCategory interface{} = this.SafeString(accountsByType, typeVar, "cash")
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var accountCategory any = this.SafeString(accountsByType, typeVar, "cash")
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group":    accountGroup,
 			"account-category": accountCategory,
 			"symbol":           GetValue(market, "id"),
 			"time":             this.Milliseconds(),
 			"id":               "foobar",
 		}
-		var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "id")
+		var clientOrderId any = this.SafeString2(params, "clientOrderId", "id")
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			AddElementToObject(request, "orderId", id)
 		} else {
 			AddElementToObject(request, "id", clientOrderId)
-			params = this.Omit(params, []interface{}{"clientOrderId", "id"})
+			params = this.Omit(params, []any{"clientOrderId", "id"})
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))) {
 
 			response = (<-this.V1PrivateAccountCategoryDeleteOrder(this.Extend(request, query)))
@@ -2799,8 +2799,8 @@ func (this *AscendexCore) CancelOrder(id interface{}, optionalArgs ...interface{
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var order interface{} = this.SafeDict2(data, "order", "info", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var order any = this.SafeDict2(data, "order", "info", map[string]any{})
 
 		ch <- this.ParseOrder(order, market)
 		return nil
@@ -2819,41 +2819,41 @@ func (this *AscendexCore) CancelOrder(id interface{}, optionalArgs ...interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/?id=order-structure} with the response assigned to the info property
  */
-func (this *AscendexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes24938 := (<-this.LoadMarkets())
-		PanicOnError(retRes24938)
-
-		retRes24948 := (<-this.LoadAccounts())
+		retRes24948 := (<-this.LoadMarkets())
 		PanicOnError(retRes24948)
-		var market interface{} = nil
+
+		retRes24958 := (<-this.LoadAccounts())
+		PanicOnError(retRes24958)
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 		typeVar := GetValue(typeVarqueryVariable, 0)
 		query := GetValue(typeVarqueryVariable, 1)
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var accountCategory interface{} = this.SafeString(accountsByType, typeVar, "cash")
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var accountCategory any = this.SafeString(accountsByType, typeVar, "cash")
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group":    accountGroup,
 			"account-category": accountCategory,
 			"time":             this.Milliseconds(),
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))) {
 
 			response = (<-this.V1PrivateAccountCategoryDeleteOrderAll(this.Extend(request, query)))
@@ -2901,7 +2901,7 @@ func (this *AscendexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan in
 		//         }
 		//     }
 		//
-		ch <- []interface{}{this.SafeOrder(map[string]interface{}{
+		ch <- []any{this.SafeOrder(map[string]any{
 			"info": response,
 		})}
 		return nil
@@ -2909,7 +2909,7 @@ func (this *AscendexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan in
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
@@ -2925,14 +2925,14 @@ func (this *AscendexCore) ParseDepositAddress(depositAddress interface{}, option
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var address interface{} = this.SafeString(depositAddress, "address")
-	var tagId interface{} = this.SafeString(depositAddress, "tagId")
-	var tag interface{} = this.SafeString(depositAddress, tagId)
+	var address any = this.SafeString(depositAddress, "address")
+	var tagId any = this.SafeString(depositAddress, "tagId")
+	var tag any = this.SafeString(depositAddress, tagId)
 	this.CheckAddress(address)
-	var code interface{} = Ternary(IsTrue((IsEqual(currency, nil))), nil, GetValue(currency, "code"))
-	var chainName interface{} = this.SafeString(depositAddress, "blockchain")
-	var network interface{} = this.NetworkIdToCode(chainName, code)
-	return map[string]interface{}{
+	var code any = Ternary(IsTrue((IsEqual(currency, nil))), nil, GetValue(currency, "code"))
+	var chainName any = this.SafeString(depositAddress, "blockchain")
+	var network any = this.NetworkIdToCode(chainName, code)
+	return map[string]any{
 		"info":     depositAddress,
 		"currency": code,
 		"network":  network,
@@ -2951,21 +2951,21 @@ func (this *AscendexCore) ParseDepositAddress(depositAddress interface{}, option
  * @param {string} [params.network] unified network code for deposit chain
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *AscendexCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes26018 := (<-this.LoadMarkets())
-		PanicOnError(retRes26018)
-		var currency interface{} = this.Currency(code)
-		var networkCode interface{} = this.SafeString2(params, "network", "chainName")
-		var networkId interface{} = this.NetworkCodeToId(networkCode)
-		params = this.Omit(params, []interface{}{"chainName"})
-		var request interface{} = map[string]interface{}{
+		retRes26028 := (<-this.LoadMarkets())
+		PanicOnError(retRes26028)
+		var currency any = this.Currency(code)
+		var networkCode any = this.SafeString2(params, "network", "chainName")
+		var networkId any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+		params = this.Omit(params, []any{"chainName"})
+		var request any = map[string]any{
 			"asset":      GetValue(currency, "id"),
 			"blockchain": networkId,
 		}
@@ -3005,25 +3005,25 @@ func (this *AscendexCore) FetchDepositAddress(code interface{}, optionalArgs ...
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var addresses interface{} = this.SafeList(data, "address", []interface{}{})
-		var numAddresses interface{} = GetArrayLength(addresses)
-		var address interface{} = nil
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var addresses any = this.SafeList(data, "address", []any{})
+		var numAddresses any = GetArrayLength(addresses)
+		var address any = nil
 		if IsTrue(IsGreaterThan(numAddresses, 1)) {
-			var addressesByChainName interface{} = this.IndexBy(addresses, "chainName")
+			var addressesByChainName any = this.IndexBy(addresses, "chainName")
 			if IsTrue(IsEqual(networkId, nil)) {
-				var chainNames interface{} = ObjectKeys(addressesByChainName)
-				var chains interface{} = Join(chainNames, ", ")
+				var chainNames any = ObjectKeys(addressesByChainName)
+				var chains any = Join(chainNames, ", ")
 				panic(ArgumentsRequired(Add(Add(this.Id, " fetchDepositAddress() returned more than one address, a chainName parameter is required, one of "), chains)))
 			}
-			address = this.SafeDict(addressesByChainName, networkId, map[string]interface{}{})
+			address = this.SafeDict(addressesByChainName, networkId, map[string]any{})
 		} else {
 			// first address
-			address = this.SafeDict(addresses, 0, map[string]interface{}{})
+			address = this.SafeDict(addresses, 0, map[string]any{})
 		}
-		var result interface{} = this.ParseDepositAddress(address, currency)
+		var result any = this.ParseDepositAddress(address, currency)
 
-		ch <- this.Extend(result, map[string]interface{}{
+		ch <- this.Extend(result, map[string]any{
 			"info": response,
 		})
 		return nil
@@ -3042,9 +3042,9 @@ func (this *AscendexCore) FetchDepositAddress(code interface{}, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *AscendexCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -3053,15 +3053,15 @@ func (this *AscendexCore) FetchDeposits(optionalArgs ...interface{}) <-chan inte
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"txType": "deposit",
 		}
 
-		retRes268015 := (<-this.FetchTransactions(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes268015)
-		ch <- retRes268015
+		retRes268115 := (<-this.FetchTransactions(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes268115)
+		ch <- retRes268115
 		return nil
 
 	}()
@@ -3078,9 +3078,9 @@ func (this *AscendexCore) FetchDeposits(optionalArgs ...interface{}) <-chan inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *AscendexCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -3089,15 +3089,15 @@ func (this *AscendexCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"txType": "withdrawal",
 		}
 
-		retRes269715 := (<-this.FetchTransactions(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes269715)
-		ch <- retRes269715
+		retRes269815 := (<-this.FetchTransactions(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes269815)
+		ch <- retRes269815
 		return nil
 
 	}()
@@ -3114,9 +3114,9 @@ func (this *AscendexCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *AscendexCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -3125,13 +3125,13 @@ func (this *AscendexCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) 
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes27118 := (<-this.LoadMarkets())
-		PanicOnError(retRes27118)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+		retRes27128 := (<-this.LoadMarkets())
+		PanicOnError(retRes27128)
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 			AddElementToObject(request, "asset", GetValue(currency, "id"))
@@ -3170,8 +3170,8 @@ func (this *AscendexCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) 
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var transactions interface{} = this.SafeList(data, "data", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var transactions any = this.SafeList(data, "data", []any{})
 
 		ch <- this.ParseTransactions(transactions, currency, since, limit)
 		return nil
@@ -3179,8 +3179,8 @@ func (this *AscendexCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) 
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseTransactionStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *AscendexCore) ParseTransactionStatus(status any) any {
+	var statuses any = map[string]any{
 		"reviewing": "pending",
 		"pending":   "pending",
 		"confirmed": "ok",
@@ -3188,7 +3188,7 @@ func (this *AscendexCore) ParseTransactionStatus(status interface{}) interface{}
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *AscendexCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "requestId": "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
@@ -3209,16 +3209,16 @@ func (this *AscendexCore) ParseTransaction(transaction interface{}, optionalArgs
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var destAddress interface{} = this.SafeDict(transaction, "destAddress", map[string]interface{}{})
-	var address interface{} = this.SafeString(destAddress, "address")
-	var tag interface{} = this.SafeString(destAddress, "destTag")
-	var timestamp interface{} = this.SafeInteger(transaction, "time")
-	var currencyId interface{} = this.SafeString(transaction, "asset")
-	var amountString interface{} = this.SafeString(transaction, "amount")
-	var feeCostString interface{} = this.SafeString(transaction, "commission")
+	var destAddress any = this.SafeDict(transaction, "destAddress", map[string]any{})
+	var address any = this.SafeString(destAddress, "address")
+	var tag any = this.SafeString(destAddress, "destTag")
+	var timestamp any = this.SafeInteger(transaction, "time")
+	var currencyId any = this.SafeString(transaction, "asset")
+	var amountString any = this.SafeString(transaction, "amount")
+	var feeCostString any = this.SafeString(transaction, "commission")
 	amountString = Precise.StringSub(amountString, feeCostString)
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
-	return map[string]interface{}{
+	var code any = this.SafeCurrencyCode(currencyId, currency)
+	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "requestId"),
 		"txid":        this.SafeString(transaction, "networkTransactionId"),
@@ -3237,7 +3237,7 @@ func (this *AscendexCore) ParseTransaction(transaction interface{}, optionalArgs
 		"tagTo":       tag,
 		"updated":     nil,
 		"comment":     nil,
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"currency": code,
 			"cost":     this.ParseNumber(feeCostString),
 			"rate":     nil,
@@ -3254,24 +3254,24 @@ func (this *AscendexCore) ParseTransaction(transaction interface{}, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *AscendexCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchPositions(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes28378 := (<-this.LoadMarkets())
-		PanicOnError(retRes28378)
-
-		retRes28388 := (<-this.LoadAccounts())
+		retRes28388 := (<-this.LoadMarkets())
 		PanicOnError(retRes28388)
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+
+		retRes28398 := (<-this.LoadAccounts())
+		PanicOnError(retRes28398)
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group": accountGroup,
 		}
 
@@ -3316,9 +3316,9 @@ func (this *AscendexCore) FetchPositions(optionalArgs ...interface{}) <-chan int
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var position interface{} = this.SafeList(data, "contracts", []interface{}{})
-		var result interface{} = []interface{}{}
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var position any = this.SafeList(data, "contracts", []any{})
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(position)); i++ {
 			AppendToArray(&result, this.ParsePosition(GetValue(position, i)))
 		}
@@ -3330,7 +3330,7 @@ func (this *AscendexCore) FetchPositions(optionalArgs ...interface{}) <-chan int
 	}()
 	return ch
 }
-func (this *AscendexCore) ParsePosition(position interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol": "BTC-PERP",
@@ -3355,19 +3355,19 @@ func (this *AscendexCore) ParsePosition(position interface{}, optionalArgs ...in
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(position, "symbol")
+	var marketId any = this.SafeString(position, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var notional interface{} = this.SafeString(position, "buyOpenOrderNotional")
+	var notional any = this.SafeString(position, "buyOpenOrderNotional")
 	if IsTrue(Precise.StringEq(notional, "0")) {
 		notional = this.SafeString(position, "sellOpenOrderNotional")
 	}
-	var marginType interface{} = this.SafeString(position, "marginType")
-	var marginMode interface{} = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", "isolated")
-	var collateral interface{} = nil
+	var marginType any = this.SafeString(position, "marginType")
+	var marginMode any = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", "isolated")
+	var collateral any = nil
 	if IsTrue(IsEqual(marginMode, "isolated")) {
 		collateral = this.SafeString(position, "isolatedMargin")
 	}
-	return this.SafePosition(map[string]interface{}{
+	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      GetValue(market, "symbol"),
@@ -3397,7 +3397,7 @@ func (this *AscendexCore) ParsePosition(position interface{}, optionalArgs ...in
 		"takeProfitPrice":             this.SafeNumber(position, "takeProfitPrice"),
 	})
 }
-func (this *AscendexCore) ParseFundingRate(contract interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//
 	//      {
 	//          "time": 1640061364830,
@@ -3411,12 +3411,12 @@ func (this *AscendexCore) ParseFundingRate(contract interface{}, optionalArgs ..
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(contract, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market)
-	var currentTime interface{} = this.SafeInteger(contract, "time")
-	var nextFundingRate interface{} = this.SafeNumber(contract, "fundingRate")
-	var nextFundingRateTimestamp interface{} = this.SafeInteger(contract, "nextFundingTime")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(contract, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market)
+	var currentTime any = this.SafeInteger(contract, "time")
+	var nextFundingRate any = this.SafeNumber(contract, "fundingRate")
+	var nextFundingRateTimestamp any = this.SafeInteger(contract, "nextFundingTime")
+	return map[string]any{
 		"info":                     contract,
 		"symbol":                   symbol,
 		"markPrice":                this.SafeNumber(contract, "markPrice"),
@@ -3446,18 +3446,18 @@ func (this *AscendexCore) ParseFundingRate(contract interface{}, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
  */
-func (this *AscendexCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchFundingRates(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30088 := (<-this.LoadMarkets())
-		PanicOnError(retRes30088)
+		retRes30098 := (<-this.LoadMarkets())
+		PanicOnError(retRes30098)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.V2PublicGetFuturesPricingData(params))
@@ -3486,8 +3486,8 @@ func (this *AscendexCore) FetchFundingRates(optionalArgs ...interface{}) <-chan 
 		//          }
 		//      }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var contracts interface{} = this.SafeList(data, "contracts", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var contracts any = this.SafeList(data, "contracts", []any{})
 
 		ch <- this.ParseFundingRates(contracts, symbols)
 		return nil
@@ -3495,24 +3495,24 @@ func (this *AscendexCore) FetchFundingRates(optionalArgs ...interface{}) <-chan 
 	}()
 	return ch
 }
-func (this *AscendexCore) ModifyMarginHelper(symbol interface{}, amount interface{}, typeVar interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) ModifyMarginHelper(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes30418 := (<-this.LoadMarkets())
-		PanicOnError(retRes30418)
-
-		retRes30428 := (<-this.LoadAccounts())
+		retRes30428 := (<-this.LoadMarkets())
 		PanicOnError(retRes30428)
-		var market interface{} = this.Market(symbol)
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
+
+		retRes30438 := (<-this.LoadAccounts())
+		PanicOnError(retRes30438)
+		var market any = this.Market(symbol)
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
 		amount = this.AmountToPrecision(symbol, amount)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"account-group": accountGroup,
 			"symbol":        GetValue(market, "id"),
 			"amount":        amount,
@@ -3530,9 +3530,10 @@ func (this *AscendexCore) ModifyMarginHelper(symbol interface{}, amount interfac
 		if IsTrue(IsEqual(typeVar, "reduce")) {
 			amount = Precise.StringAbs(amount)
 		}
+		var parsedAmount any = this.ParseNumber(amount)
 
-		ch <- this.Extend(this.ParseMarginModification(response, market), map[string]interface{}{
-			"amount": this.ParseNumber(amount),
+		ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
+			"amount": parsedAmount,
 			"type":   typeVar,
 		})
 		return nil
@@ -3540,7 +3541,7 @@ func (this *AscendexCore) ModifyMarginHelper(symbol interface{}, amount interfac
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseMarginModification(data interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseMarginModification(data any, optionalArgs ...any) any {
 	//
 	// addMargin/reduceMargin
 	//
@@ -3550,16 +3551,16 @@ func (this *AscendexCore) ParseMarginModification(data interface{}, optionalArgs
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var errorCode interface{} = this.SafeString(data, "code")
-	var status interface{} = Ternary(IsTrue((IsEqual(errorCode, "0"))), "ok", "failed")
-	return map[string]interface{}{
+	var errorCode any = this.SafeString(data, "code")
+	var status any = Ternary(IsTrue((IsEqual(errorCode, "0"))), "ok", "failed")
+	return map[string]any{
 		"info":       data,
-		"symbol":     GetValue(market, "symbol"),
+		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
 		"marginMode": "isolated",
 		"amount":     nil,
 		"total":      nil,
-		"code":       GetValue(market, "quote"),
+		"code":       this.SafeString(market, "quote"),
 		"status":     status,
 		"timestamp":  nil,
 		"datetime":   nil,
@@ -3575,17 +3576,17 @@ func (this *AscendexCore) ParseMarginModification(data interface{}, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *AscendexCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes310315 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
-		PanicOnError(retRes310315)
-		ch <- retRes310315
+		retRes310515 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
+		PanicOnError(retRes310515)
+		ch <- retRes310515
 		return nil
 
 	}()
@@ -3601,17 +3602,17 @@ func (this *AscendexCore) ReduceMargin(symbol interface{}, amount interface{}, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *AscendexCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes311615 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes311615)
-		ch <- retRes311615
+		retRes311815 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes311815)
+		ch <- retRes311815
 		return nil
 
 	}()
@@ -3628,14 +3629,14 @@ func (this *AscendexCore) AddMargin(symbol interface{}, amount interface{}, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *AscendexCore) SetLeverage(leverage interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
@@ -3644,26 +3645,26 @@ func (this *AscendexCore) SetLeverage(leverage interface{}, optionalArgs ...inte
 			panic(BadRequest(Add(this.Id, " leverage should be between 1 and 100")))
 		}
 
-		retRes31368 := (<-this.LoadMarkets())
-		PanicOnError(retRes31368)
+		retRes31388 := (<-this.LoadMarkets())
+		PanicOnError(retRes31388)
 
-		retRes31378 := (<-this.LoadAccounts())
-		PanicOnError(retRes31378)
-		var market interface{} = this.Market(symbol)
+		retRes31398 := (<-this.LoadAccounts())
+		PanicOnError(retRes31398)
+		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " setLeverage() supports swap contracts only")))
 		}
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group": accountGroup,
 			"symbol":        GetValue(market, "id"),
 			"leverage":      leverage,
 		}
 
-		retRes314915 := (<-this.V2PrivateAccountGroupPostFuturesLeverage(this.Extend(request, params)))
-		PanicOnError(retRes314915)
-		ch <- retRes314915
+		retRes315115 := (<-this.V2PrivateAccountGroupPostFuturesLeverage(this.Extend(request, params)))
+		PanicOnError(retRes315115)
+		ch <- retRes315115
 		return nil
 
 	}()
@@ -3680,14 +3681,14 @@ func (this *AscendexCore) SetLeverage(leverage interface{}, optionalArgs ...inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *AscendexCore) SetMarginMode(marginMode interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
@@ -3700,15 +3701,15 @@ func (this *AscendexCore) SetMarginMode(marginMode interface{}, optionalArgs ...
 			panic(BadRequest(Add(this.Id, " setMarginMode() marginMode argument should be isolated or cross")))
 		}
 
-		retRes31738 := (<-this.LoadMarkets())
-		PanicOnError(retRes31738)
+		retRes31758 := (<-this.LoadMarkets())
+		PanicOnError(retRes31758)
 
-		retRes31748 := (<-this.LoadAccounts())
-		PanicOnError(retRes31748)
-		var market interface{} = this.Market(symbol)
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+		retRes31768 := (<-this.LoadAccounts())
+		PanicOnError(retRes31768)
+		var market any = this.Market(symbol)
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group": accountGroup,
 			"symbol":        GetValue(market, "id"),
 			"marginType":    marginMode,
@@ -3717,9 +3718,9 @@ func (this *AscendexCore) SetMarginMode(marginMode interface{}, optionalArgs ...
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
 		}
 
-		retRes318615 := (<-this.V2PrivateAccountGroupPostFuturesMarginType(this.Extend(request, params)))
-		PanicOnError(retRes318615)
-		ch <- retRes318615
+		retRes318815 := (<-this.V2PrivateAccountGroupPostFuturesMarginType(this.Extend(request, params)))
+		PanicOnError(retRes318815)
+		ch <- retRes318815
 		return nil
 
 	}()
@@ -3734,18 +3735,18 @@ func (this *AscendexCore) SetMarginMode(marginMode interface{}, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
-func (this *AscendexCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes31988 := (<-this.LoadMarkets())
-		PanicOnError(retRes31988)
+		retRes32008 := (<-this.LoadMarkets())
+		PanicOnError(retRes32008)
 
 		response := (<-this.V2PublicGetFuturesContract(params))
 		PanicOnError(response)
@@ -3777,7 +3778,7 @@ func (this *AscendexCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan
 		//         ]
 		//     }
 		//
-		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var data any = this.SafeList(response, "data", []any{})
 		symbols = this.MarketSymbols(symbols)
 
 		ch <- this.ParseLeverageTiers(data, symbols, "symbol")
@@ -3786,7 +3787,7 @@ func (this *AscendexCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseMarketLeverageTiers(info interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	/**
 	 * @param {object} info Exchange market response for 1 market
 	 * @param {object} market CCXT market
@@ -3816,14 +3817,14 @@ func (this *AscendexCore) ParseMarketLeverageTiers(info interface{}, optionalArg
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marginRequirements interface{} = this.SafeList(info, "marginRequirements", []interface{}{})
-	var marketId interface{} = this.SafeString(info, "symbol")
+	var marginRequirements any = this.SafeList(info, "marginRequirements", []any{})
+	var marketId any = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var tiers interface{} = []interface{}{}
+	var tiers any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(marginRequirements)); i++ {
-		var tier interface{} = GetValue(marginRequirements, i)
-		var initialMarginRate interface{} = this.SafeString(tier, "initialMarginRate")
-		AppendToArray(&tiers, map[string]interface{}{
+		var tier any = GetValue(marginRequirements, i)
+		var initialMarginRate any = this.SafeString(tier, "initialMarginRate")
+		AppendToArray(&tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "contract"),
 			"currency":              GetValue(market, "quote"),
@@ -3836,7 +3837,7 @@ func (this *AscendexCore) ParseMarketLeverageTiers(info interface{}, optionalArg
 	}
 	return tiers
 }
-func (this *AscendexCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	// {
 	//     "assetCode":      "USDT",
@@ -3858,31 +3859,31 @@ func (this *AscendexCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs 
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var blockChains interface{} = this.SafeList(fee, "blockChain", []interface{}{})
-	var blockChainsLength interface{} = GetArrayLength(blockChains)
-	var result interface{} = map[string]interface{}{
+	var blockChains any = this.SafeList(fee, "blockChain", []any{})
+	var blockChainsLength any = GetArrayLength(blockChains)
+	var result any = map[string]any{
 		"info": fee,
-		"withdraw": map[string]interface{}{
+		"withdraw": map[string]any{
 			"fee":        nil,
 			"percentage": nil,
 		},
-		"deposit": map[string]interface{}{
+		"deposit": map[string]any{
 			"fee":        nil,
 			"percentage": nil,
 		},
-		"networks": map[string]interface{}{},
+		"networks": map[string]any{},
 	}
 	for i := 0; IsLessThan(i, blockChainsLength); i++ {
-		var blockChain interface{} = GetValue(blockChains, i)
-		var networkId interface{} = this.SafeString(blockChain, "chainName")
-		var currencyCode interface{} = this.SafeString(currency, "code")
-		var networkCode interface{} = this.NetworkIdToCode(networkId, currencyCode)
-		AddElementToObject(GetValue(result, "networks"), networkCode, map[string]interface{}{
-			"deposit": map[string]interface{}{
+		var blockChain any = GetValue(blockChains, i)
+		var networkId any = this.SafeString(blockChain, "chainName")
+		var currencyCode any = this.SafeString(currency, "code")
+		var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
+		AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+			"deposit": map[string]any{
 				"fee":        nil,
 				"percentage": nil,
 			},
-			"withdraw": map[string]interface{}{
+			"withdraw": map[string]any{
 				"fee":        this.SafeNumber(blockChain, "withdrawFee"),
 				"percentage": false,
 			},
@@ -3904,22 +3905,22 @@ func (this *AscendexCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *AscendexCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		codes := GetArg(optionalArgs, 0, nil)
 		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes33438 := (<-this.LoadMarkets())
-		PanicOnError(retRes33438)
+		retRes33458 := (<-this.LoadMarkets())
+		PanicOnError(retRes33458)
 
 		response := (<-this.V2PublicGetAssets(params))
 		PanicOnError(response)
-		var data interface{} = this.SafeList(response, "data")
+		var data any = this.SafeList(response, "data")
 
 		ch <- this.ParseDepositWithdrawFees(data, codes, "assetCode")
 		return nil
@@ -3939,29 +3940,29 @@ func (this *AscendexCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *AscendexCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes33618 := (<-this.LoadMarkets())
-		PanicOnError(retRes33618)
+		retRes33638 := (<-this.LoadMarkets())
+		PanicOnError(retRes33638)
 
-		retRes33628 := (<-this.LoadAccounts())
-		PanicOnError(retRes33628)
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var currency interface{} = this.Currency(code)
-		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
-		var toId interface{} = this.SafeString(accountsByType, toAccount, toAccount)
+		retRes33648 := (<-this.LoadAccounts())
+		PanicOnError(retRes33648)
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var currency any = this.Currency(code)
+		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
+		var toId any = this.SafeString(accountsByType, toAccount, toAccount)
 		if IsTrue(IsTrue(!IsEqual(fromId, "cash")) && IsTrue(!IsEqual(toId, "cash"))) {
 			panic(ExchangeError(Add(this.Id, " transfer() only supports direct balance transfer between spot and swap, spot and margin")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"account-group": accountGroup,
 			"amount":        this.CurrencyToPrecision(code, amount),
 			"asset":         GetValue(currency, "id"),
@@ -3974,9 +3975,9 @@ func (this *AscendexCore) Transfer(code interface{}, amount interface{}, fromAcc
 		//
 		//    { "code": "0" }
 		//
-		var transferOptions interface{} = this.SafeDict(this.Options, "transfer", map[string]interface{}{})
-		var fillResponseFromRequest interface{} = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-		var transfer interface{} = this.ParseTransfer(response, currency)
+		var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
+		var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
+		var transfer any = this.ParseTransfer(response, currency)
 		if IsTrue(fillResponseFromRequest) {
 			AddElementToObject(transfer, "fromAccount", fromAccount)
 			AddElementToObject(transfer, "toAccount", toAccount)
@@ -3990,15 +3991,15 @@ func (this *AscendexCore) Transfer(code interface{}, amount interface{}, fromAcc
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	//    { "code": "0" }
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var status interface{} = this.SafeString(transfer, "code")
-	var currencyCode interface{} = this.SafeCurrencyCode(nil, currency)
-	return map[string]interface{}{
+	var status any = this.SafeString(transfer, "code")
+	var currencyCode any = this.SafeCurrencyCode(nil, currency)
+	return map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   nil,
@@ -4010,7 +4011,7 @@ func (this *AscendexCore) ParseTransfer(transfer interface{}, optionalArgs ...in
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *AscendexCore) ParseTransferStatus(status interface{}) interface{} {
+func (this *AscendexCore) ParseTransferStatus(status any) any {
 	if IsTrue(IsEqual(status, "0")) {
 		return "ok"
 	}
@@ -4029,9 +4030,9 @@ func (this *AscendexCore) ParseTransferStatus(status interface{}) interface{} {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *AscendexCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -4040,31 +4041,31 @@ func (this *AscendexCore) FetchFundingHistory(optionalArgs ...interface{}) <-cha
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes34348 := (<-this.LoadMarkets())
-		PanicOnError(retRes34348)
+		retRes34368 := (<-this.LoadMarkets())
+		PanicOnError(retRes34368)
 
-		retRes34358 := (<-this.LoadAccounts())
-		PanicOnError(retRes34358)
-		var paginate interface{} = false
+		retRes34378 := (<-this.LoadAccounts())
+		PanicOnError(retRes34378)
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes343919 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 25))
-			PanicOnError(retRes343919)
-			ch <- retRes343919
+			retRes344119 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 25))
+			PanicOnError(retRes344119)
+			ch <- retRes344119
 			return nil
 		}
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group": accountGroup,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -4093,8 +4094,8 @@ func (this *AscendexCore) FetchFundingHistory(optionalArgs ...interface{}) <-cha
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "data", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "data", []any{})
 
 		ch <- this.ParseIncomes(rows, market, since, limit)
 		return nil
@@ -4102,7 +4103,7 @@ func (this *AscendexCore) FetchFundingHistory(optionalArgs ...interface{}) <-cha
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseIncome(income interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseIncome(income any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "timestamp": 1640476800000,
@@ -4113,9 +4114,9 @@ func (this *AscendexCore) ParseIncome(income interface{}, optionalArgs ...interf
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(income, "symbol")
-	var timestamp interface{} = this.SafeInteger(income, "timestamp")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(income, "symbol")
+	var timestamp any = this.SafeInteger(income, "timestamp")
+	return map[string]any{
 		"info":      income,
 		"symbol":    this.SafeSymbol(marketId, market, "-", "swap"),
 		"code":      "USDT",
@@ -4135,24 +4136,24 @@ func (this *AscendexCore) ParseIncome(income interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *AscendexCore) FetchMarginModes(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchMarginModes(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes35108 := (<-this.LoadMarkets())
-		PanicOnError(retRes35108)
+		retRes35128 := (<-this.LoadMarkets())
+		PanicOnError(retRes35128)
 
-		retRes35118 := (<-this.LoadAccounts())
-		PanicOnError(retRes35118)
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+		retRes35138 := (<-this.LoadAccounts())
+		PanicOnError(retRes35138)
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group": accountGroup,
 		}
 
@@ -4197,8 +4198,8 @@ func (this *AscendexCore) FetchMarginModes(optionalArgs ...interface{}) <-chan i
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var marginModes interface{} = this.SafeList(data, "contracts", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var marginModes any = this.SafeList(data, "contracts", []any{})
 
 		ch <- this.ParseMarginModes(marginModes, symbols, "symbol")
 		return nil
@@ -4206,13 +4207,13 @@ func (this *AscendexCore) FetchMarginModes(optionalArgs ...interface{}) <-chan i
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseMarginMode(marginMode interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(marginMode, "symbol")
-	var marginType interface{} = this.SafeString(marginMode, "marginType")
-	var margin interface{} = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", "isolated")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(marginMode, "symbol")
+	var marginType any = this.SafeString(marginMode, "marginType")
+	var margin any = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", "isolated")
+	return map[string]any{
 		"info":       marginMode,
 		"symbol":     this.SafeSymbol(marketId, market),
 		"marginMode": margin,
@@ -4228,24 +4229,24 @@ func (this *AscendexCore) ParseMarginMode(marginMode interface{}, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *AscendexCore) FetchLeverages(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchLeverages(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes35838 := (<-this.LoadMarkets())
-		PanicOnError(retRes35838)
+		retRes35858 := (<-this.LoadMarkets())
+		PanicOnError(retRes35858)
 
-		retRes35848 := (<-this.LoadAccounts())
-		PanicOnError(retRes35848)
-		var account interface{} = this.SafeDict(this.Accounts, 0, map[string]interface{}{})
-		var accountGroup interface{} = this.SafeString(account, "id")
-		var request interface{} = map[string]interface{}{
+		retRes35868 := (<-this.LoadAccounts())
+		PanicOnError(retRes35868)
+		var account any = this.SafeDict(this.Accounts, 0, map[string]any{})
+		var accountGroup any = this.SafeString(account, "id")
+		var request any = map[string]any{
 			"account-group": accountGroup,
 		}
 
@@ -4290,8 +4291,8 @@ func (this *AscendexCore) FetchLeverages(optionalArgs ...interface{}) <-chan int
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var leverages interface{} = this.SafeList(data, "contracts", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var leverages any = this.SafeList(data, "contracts", []any{})
 
 		ch <- this.ParseLeverages(leverages, symbols, "symbol")
 		return nil
@@ -4309,22 +4310,21 @@ func (this *AscendexCore) FetchLeverages(optionalArgs ...interface{}) <-chan int
  * @param {object} [params] exchange specific parameters
  * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *AscendexCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *AscendexCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes36458 := (<-this.LoadMarkets())
-		PanicOnError(retRes36458)
-		var request interface{} = map[string]interface{}{}
-		var response interface{} = nil
+		retRes36478 := (<-this.LoadMarkets())
+		PanicOnError(retRes36478)
+		var request any = map[string]any{}
 
-		response = (<-this.V2PublicGetFuturesPricingData(this.Extend(request, params)))
+		response := (<-this.V2PublicGetFuturesPricingData(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//    {
@@ -4350,8 +4350,8 @@ func (this *AscendexCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan
 		//    }
 		//
 		symbols = this.MarketSymbols(symbols)
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var contracts interface{} = this.SafeList(data, "contracts", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var contracts any = this.SafeList(data, "contracts", []any{})
 
 		ch <- this.ParseOpenInterests(contracts, symbols)
 		return nil
@@ -4359,7 +4359,7 @@ func (this *AscendexCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan
 	}()
 	return ch
 }
-func (this *AscendexCore) ParseOpenInterest(interest interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//
 	// fetchOpenInterests
 	//
@@ -4376,10 +4376,10 @@ func (this *AscendexCore) ParseOpenInterest(interest interface{}, optionalArgs .
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(interest, "symbol")
-	var timestamp interface{} = this.SafeInteger(interest, "time")
-	var openInterest interface{} = this.SafeNumber(interest, "openInterest")
-	return this.SafeOpenInterest(map[string]interface{}{
+	var marketId any = this.SafeString(interest, "symbol")
+	var timestamp any = this.SafeInteger(interest, "time")
+	var openInterest any = this.SafeNumber(interest, "openInterest")
+	return this.SafeOpenInterest(map[string]any{
 		"info":               interest,
 		"symbol":             this.SafeSymbol(marketId, market, nil, "swap"),
 		"baseVolume":         openInterest,
@@ -4390,14 +4390,14 @@ func (this *AscendexCore) ParseOpenInterest(interest interface{}, optionalArgs .
 		"datetime":           this.Iso8601(timestamp),
 	}, market)
 }
-func (this *AscendexCore) ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(leverage, "symbol")
-	var leverageValue interface{} = this.SafeInteger(leverage, "leverage")
-	var marginType interface{} = this.SafeString(leverage, "marginType")
-	var marginMode interface{} = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", "isolated")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(leverage, "symbol")
+	var leverageValue any = this.SafeInteger(leverage, "leverage")
+	var marginType any = this.SafeString(leverage, "marginType")
+	var marginMode any = Ternary(IsTrue((IsEqual(marginType, "crossed"))), "cross", "isolated")
+	return map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),
 		"marginMode":    marginMode,
@@ -4405,27 +4405,27 @@ func (this *AscendexCore) ParseLeverage(leverage interface{}, optionalArgs ...in
 		"shortLeverage": leverageValue,
 	}
 }
-func (this *AscendexCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *AscendexCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var version interface{} = GetValue(api, 0)
-	var access interface{} = GetValue(api, 1)
-	var typeVar interface{} = this.SafeString(api, 2)
-	var url interface{} = ""
-	var accountCategory interface{} = (IsEqual(typeVar, "accountCategory"))
+	var version any = GetValue(api, 0)
+	var access any = GetValue(api, 1)
+	var typeVar any = this.SafeString(api, 2)
+	var url any = ""
+	var accountCategory any = (IsEqual(typeVar, "accountCategory"))
 	if IsTrue(IsTrue(accountCategory) || IsTrue((IsEqual(typeVar, "accountGroup")))) {
 		url = Add(url, this.ImplodeParams("/{account-group}", params))
 		params = this.Omit(params, "account-group")
 	}
-	var request interface{} = this.ImplodeParams(path, params)
+	var request any = this.ImplodeParams(path, params)
 	url = Add(url, "/api/pro/")
 	if IsTrue(IsEqual(version, "v2")) {
 		if IsTrue(IsEqual(typeVar, "data")) {
@@ -4448,7 +4448,7 @@ func (this *AscendexCore) Sign(path interface{}, optionalArgs ...interface{}) in
 		request = "fee"
 	}
 	if IsTrue(IsGreaterThanOrEqual(GetIndexOf(request, "subuser"), 0)) {
-		var parts interface{} = Split(request, "/")
+		var parts any = Split(request, "/")
 		request = GetValue(parts, 2)
 	}
 	params = this.Omit(params, this.ExtractParams(path))
@@ -4458,10 +4458,10 @@ func (this *AscendexCore) Sign(path interface{}, optionalArgs ...interface{}) in
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var timestamp interface{} = ToString(this.Milliseconds())
-		var payload interface{} = Add(Add(timestamp, "+"), request)
-		var hmac interface{} = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
-		headers = map[string]interface{}{
+		var timestamp any = ToString(this.Milliseconds())
+		var payload any = Add(Add(timestamp, "+"), request)
+		var hmac any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
+		headers = map[string]any{
 			"x-auth-key":       this.ApiKey,
 			"x-auth-timestamp": timestamp,
 			"x-auth-signature": hmac,
@@ -4476,14 +4476,14 @@ func (this *AscendexCore) Sign(path interface{}, optionalArgs ...interface{}) in
 		}
 	}
 	url = Add(GetValue(GetValue(this.Urls, "api"), "rest"), url)
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *AscendexCore) HandleErrors(httpCode interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *AscendexCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
@@ -4493,11 +4493,11 @@ func (this *AscendexCore) HandleErrors(httpCode interface{}, reason interface{},
 	//     {"code":2100,"message":"ApiKeyFailure"}
 	//     {"code":300001,"message":"Price is too low from market price.","reason":"INVALID_PRICE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":{"symbol":"BTC/USDT"}}
 	//
-	var code interface{} = this.SafeString(response, "code")
-	var message interface{} = this.SafeString(response, "message")
-	var error interface{} = IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "0")))
+	var code any = this.SafeString(response, "code")
+	var message any = this.SafeString(response, "message")
+	var error any = IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "0")))
 	if IsTrue(IsTrue(error) || IsTrue((!IsEqual(message, nil)))) {
-		var feedback interface{} = Add(Add(this.Id, " "), body)
+		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
@@ -4506,8 +4506,8 @@ func (this *AscendexCore) HandleErrors(httpCode interface{}, reason interface{},
 	return nil
 }
 
-func (this *AscendexCore) Init(userConfig map[string]interface{}) {
+func (this *AscendexCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

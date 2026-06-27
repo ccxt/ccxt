@@ -4,7 +4,7 @@ import Exchange from './abstract/alpaca.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
+import type{ Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -440,7 +440,7 @@ export default class alpaca extends Exchange {
         const jetlagStrStart = timestamp.length - 6;
         const jetlagStrEnd = timestamp.length - 3;
         const jetlag = timestamp.slice (jetlagStrStart, jetlagStrEnd);
-        const iso = this.parse8601 (localTime) - this.parseToNumeric (jetlag) * 3600 * 1000;
+        const iso = this.parseToInt (this.parse8601 (localTime)) - this.parseToNumeric (jetlag) * 3600 * 1000;
         return iso;
     }
 
@@ -710,7 +710,7 @@ export default class alpaca extends Exchange {
         const orderbooks = this.safeDict (response, 'orderbooks', {});
         const rawOrderbook = this.safeDict (orderbooks, id, {});
         const timestamp = this.parse8601 (this.safeString (rawOrderbook, 't'));
-        return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
+        return this.parseOrderBook (rawOrderbook as Dict, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
 
     /**
@@ -1156,7 +1156,7 @@ export default class alpaca extends Exchange {
         await this.loadMarkets ();
         const response = await this.traderPrivateDeleteV2Orders (params);
         if (Array.isArray (response)) {
-            return this.parseOrders (response, undefined);
+            return this.parseOrders (response);
         } else {
             return [
                 this.safeOrder ({
@@ -1204,7 +1204,7 @@ export default class alpaca extends Exchange {
         const request: Dict = {
             'status': 'all',
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbols'] = market['id'];
@@ -1324,7 +1324,7 @@ export default class alpaca extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1339,7 +1339,7 @@ export default class alpaca extends Exchange {
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        let timeInForce = undefined;
+        let timeInForce: Str = undefined;
         [ timeInForce, params ] = this.handleOptionAndParams2 (params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
@@ -1395,7 +1395,7 @@ export default class alpaca extends Exchange {
         const alpacaStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (alpacaStatus);
         const feeValue = this.safeString (order, 'commission');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeValue !== undefined) {
             fee = {
                 'cost': feeValue,
@@ -1470,7 +1470,7 @@ export default class alpaca extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         let request: Dict = {
             'activity_type': 'FILL',
         };
@@ -1607,7 +1607,7 @@ export default class alpaca extends Exchange {
         //         "created_at": "2024-11-03T07:30:05.609976344Z"
         //     }
         //
-        let parsedCurrency = undefined;
+        let parsedCurrency: Str = undefined;
         if (currency !== undefined) {
             parsedCurrency = currency['id'];
         }
@@ -1668,7 +1668,7 @@ export default class alpaca extends Exchange {
 
     async fetchTransactionsHelper (type, code, since, limit, params) {
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1890,7 +1890,7 @@ export default class alpaca extends Exchange {
         return this.safeBalance (result);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
@@ -1925,7 +1925,7 @@ export default class alpaca extends Exchange {
         if (code !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
-        const message = this.safeValue (response, 'message', undefined);
+        const message = this.safeValue (response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);

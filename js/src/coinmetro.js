@@ -19,9 +19,9 @@ export default class coinmetro extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'coinmetro',
             'name': 'Coinmetro',
-            'countries': ['EE'],
+            'countries': ['EE'], // Republic of Estonia
             'version': 'v1',
-            'rateLimit': 200,
+            'rateLimit': 200, // 1 request per 200 ms, 20 per minute, 300 per hour, 1k per day
             'certified': false,
             'pro': false,
             'has': {
@@ -174,19 +174,19 @@ export default class coinmetro extends Exchange {
                         'exchange/margin': 1, // not unified
                     },
                     'post': {
-                        'jwt': 1,
-                        'jwtDevice': 1,
-                        'devices': 1,
-                        'jwt-read-only': 1,
+                        'jwt': 1, // not unified
+                        'jwtDevice': 1, // not unified
+                        'devices': 1, // not unified
+                        'jwt-read-only': 1, // not unified
                         'exchange/orders/create': 1,
-                        'exchange/orders/modify/{orderID}': 1,
-                        'exchange/swap': 1,
-                        'exchange/swap/confirm/{swapId}': 1,
+                        'exchange/orders/modify/{orderID}': 1, // not unified
+                        'exchange/swap': 1, // not unified
+                        'exchange/swap/confirm/{swapId}': 1, // not unified
                         'exchange/orders/close/{orderID}': 1,
                         'exchange/orders/hedge': 1, // not unified
                     },
                     'put': {
-                        'jwt': 1,
+                        'jwt': 1, // not unified
                         'exchange/orders/cancel/{orderID}': 1,
                         'users/margin/collateral': 1,
                         'users/margin/primary/{currency}': 1, // not unified
@@ -218,12 +218,12 @@ export default class coinmetro extends Exchange {
                 'spot': {
                     'sandbox': true,
                     'createOrder': {
-                        'marginMode': true,
+                        'marginMode': true, // todo implement
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
                             'price': false,
@@ -289,35 +289,35 @@ export default class coinmetro extends Exchange {
             'exceptions': {
                 // https://trade-docs.coinmetro.co/?javascript--nodejs#message-codes
                 'exact': {
-                    'Both buyingCurrency and sellingCurrency are required': InvalidOrder,
-                    'One and only one of buyingQty and sellingQty is required': InvalidOrder,
-                    'Invalid buyingCurrency': InvalidOrder,
-                    'Invalid \'from\'': BadRequest,
-                    'Invalid sellingCurrency': InvalidOrder,
-                    'Invalid buyingQty': InvalidOrder,
-                    'Invalid sellingQty': InvalidOrder,
-                    'Insufficient balance': InsufficientFunds,
-                    'Expiration date is in the past or too near in the future': InvalidOrder,
-                    'Forbidden': PermissionDenied,
-                    'Order Not Found': OrderNotFound,
-                    'since must be a millisecond timestamp': BadRequest,
+                    'Both buyingCurrency and sellingCurrency are required': InvalidOrder, // 422 - "Both buyingCurrency and sellingCurrency are required"
+                    'One and only one of buyingQty and sellingQty is required': InvalidOrder, // 422 - "One and only one of buyingQty and sellingQty is required"
+                    'Invalid buyingCurrency': InvalidOrder, // 422 - "Invalid buyingCurrency"
+                    'Invalid \'from\'': BadRequest, // 422 Unprocessable Entity {"message":"Invalid 'from'"}
+                    'Invalid sellingCurrency': InvalidOrder, // 422 - "Invalid sellingCurrency"
+                    'Invalid buyingQty': InvalidOrder, // 422 - "Invalid buyingQty"
+                    'Invalid sellingQty': InvalidOrder, // 422 - "Invalid sellingQty"
+                    'Insufficient balance': InsufficientFunds, // 422 - "Insufficient balance"
+                    'Expiration date is in the past or too near in the future': InvalidOrder, // 422 Unprocessable Entity {"message":"Expiration date is in the past or too near in the future"}
+                    'Forbidden': PermissionDenied, // 403 Forbidden {"message":"Forbidden"}
+                    'Order Not Found': OrderNotFound, // 404 Not Found {"message":"Order Not Found"}
+                    'since must be a millisecond timestamp': BadRequest, // 422 Unprocessable Entity {"message":"since must be a millisecond timestamp"}
                     'This pair is disabled on margin': BadSymbol, // 422 Unprocessable Entity {"message":"This pair is disabled on margin"}
                 },
                 'broad': {
-                    'accessing from a new IP': PermissionDenied,
-                    'available to allocate as collateral': InsufficientFunds,
-                    'At least': BadRequest,
-                    'collateral is not allowed': BadRequest,
-                    'Insufficient liquidity': InvalidOrder,
-                    'Insufficient order size': InvalidOrder,
-                    'Invalid quantity': InvalidOrder,
-                    'Invalid Stop Loss': InvalidOrder,
-                    'Invalid stop price!': InvalidOrder,
-                    'Not enough balance': InsufficientFunds,
-                    'Not enough margin': InsufficientFunds,
-                    'orderType missing': BadRequest,
-                    'Server Timeout': ExchangeError,
-                    'Time in force has to be IOC or FOK for market orders': InvalidOrder,
+                    'accessing from a new IP': PermissionDenied, // 403 Forbidden {"message":"You're accessing from a new IP. Please check your email."}
+                    'available to allocate as collateral': InsufficientFunds, // 403 Forbidden {"message":"Insufficient EUR available to allocate as collateral"}
+                    'At least': BadRequest, // 422 Unprocessable Entity {"message":"At least 5 EUR per operation"}
+                    'collateral is not allowed': BadRequest, // 422 Unprocessable Entity {"message":"DOGE collateral is not allowed"}
+                    'Insufficient liquidity': InvalidOrder, // 503 Service Unavailable {"message":"Insufficient liquidity to fill the FOK order completely."}
+                    'Insufficient order size': InvalidOrder, // 422 Unprocessable Entity {"message":"Insufficient order size - min 0.002 ETH"}
+                    'Invalid quantity': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid quantity!"}
+                    'Invalid Stop Loss': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid Stop Loss!"}
+                    'Invalid stop price!': InvalidOrder, // 422 Unprocessable Entity {"message":"Invalid stop price!"}
+                    'Not enough balance': InsufficientFunds, // 422 Unprocessable Entity {"message":"Not enough balance!"}
+                    'Not enough margin': InsufficientFunds, // Unprocessable Entity {"message":"Not enough margin!"}
+                    'orderType missing': BadRequest, // 422 Unprocessable Entity {"message":"orderType missing!"}
+                    'Server Timeout': ExchangeError, // 503 Service Unavailable {"message":"Server Timeout!"}
+                    'Time in force has to be IOC or FOK for market orders': InvalidOrder, // 422 Unprocessable Entity {"message":"Time in force has to be IOC or FOK for market orders!"}
                     'Too many attempts': RateLimitExceeded, // 429 Too Many Requests {"message":"Too many attempts. Try again in 3 seconds"}
                 },
             },
@@ -375,59 +375,56 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const typeRaw = this.safeString(currency, 'type');
-            let type = undefined;
-            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20' || typeRaw === 'crypto') {
-                type = 'crypto';
-            }
-            else if (typeRaw === 'fiat') {
-                type = 'fiat';
-            }
-            let precisionDigits = this.safeString2(currency, 'digits', 'notabeneDecimals');
-            if (code === 'RENDER') {
-                // RENDER is an exception (with broken info)
-                precisionDigits = '4';
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'name': code,
-                'type': type,
-                'info': currency,
-                'active': this.safeBool(currency, 'canTrade'),
-                'deposit': this.safeBool(currency, 'canDeposit'),
-                'withdraw': this.safeBool(currency, 'canWithdraw'),
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(precisionDigits)),
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(currency, 'minQty'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-            });
+        const result = this.parseCurrencies(response);
+        const currenciesById = this.indexBy(result, 'id');
+        this.options['currenciesByIdForParseMarket'] = currenciesById;
+        const currentCurrencyIdsList = this.safeList(this.options, 'currencyIdsListForParseMarket', []);
+        const currencyIdsList = Object.keys(currenciesById);
+        for (let i = 0; i < currencyIdsList.length; i++) {
+            currentCurrencyIdsList.push(currencyIdsList[i]);
         }
-        if (this.safeValue(this.options, 'currenciesByIdForParseMarket') === undefined) {
-            const currenciesById = this.indexBy(result, 'id');
-            this.options['currenciesByIdForParseMarket'] = currenciesById;
-            const currentCurrencyIdsList = this.safeList(this.options, 'currencyIdsListForParseMarket', []);
-            const currencyIdsList = Object.keys(currenciesById);
-            for (let i = 0; i < currencyIdsList.length; i++) {
-                currentCurrencyIdsList.push(currencyIdsList[i]);
-            }
-            this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
-        }
+        this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
         return result;
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const typeRaw = this.safeString(rawCurrency, 'type');
+        let type = undefined;
+        if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20' || typeRaw === 'crypto') {
+            type = 'crypto';
+        }
+        else if (typeRaw === 'fiat') {
+            type = 'fiat';
+        }
+        let precisionDigits = this.safeString2(rawCurrency, 'digits', 'notabeneDecimals');
+        if (code === 'RENDER') {
+            // RENDER is an exception (with broken info)
+            precisionDigits = '4';
+        }
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'name': code,
+            'type': type,
+            'info': rawCurrency,
+            'active': this.safeBool(rawCurrency, 'canTrade'),
+            'deposit': this.safeBool(rawCurrency, 'canDeposit'),
+            'withdraw': this.safeBool(rawCurrency, 'canWithdraw'),
+            'fee': undefined,
+            'precision': this.parseNumber(this.parsePrecision(precisionDigits)),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(rawCurrency, 'minQty'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+        });
     }
     /**
      * @method
@@ -440,9 +437,6 @@ export default class coinmetro extends Exchange {
     async fetchMarkets(params = {}) {
         const promises = [];
         promises.push(this.publicGetMarkets(params));
-        if (this.safeValue(this.options, 'currenciesByIdForParseMarket') === undefined) {
-            promises.push(this.fetchCurrencies());
-        }
         const responses = await Promise.all(promises);
         const response = responses[0];
         //
@@ -464,7 +458,7 @@ export default class coinmetro extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = this.parseMarket(response[i]);
             // there are several broken (unavailable info) markets
-            if (market['base'] === undefined || market['quote'] === undefined) {
+            if (this.safeString(market, 'base') === undefined || this.safeString(market, 'quote') === undefined) {
                 continue;
             }
             result.push(market);
@@ -851,7 +845,7 @@ export default class coinmetro extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -898,14 +892,14 @@ export default class coinmetro extends Exchange {
         orderbook['nonce'] = this.safeInteger(book, 'seqNumber');
         return orderbook;
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const prices = Object.keys(bidasks);
         const result = [];
         for (let i = 0; i < prices.length; i++) {
             const priceString = this.safeString(prices, i);
             const price = this.safeNumber(prices, i);
             const volume = this.safeNumber(bidasks, priceString);
-            result.push([price, volume]);
+            (result).push([price, volume]);
         }
         return result;
     }
@@ -1418,7 +1412,7 @@ export default class coinmetro extends Exchange {
         //         "takerQty": 0.002
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(response);
     }
     handleCreateOrderSide(sellingCurrency, buyingCurrency, sellingQty, buyingQty, request = {}) {
         request['sellingCurrency'] = sellingCurrency;
@@ -1971,7 +1965,7 @@ export default class coinmetro extends Exchange {
             'info': info,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;

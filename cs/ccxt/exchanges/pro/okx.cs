@@ -1246,7 +1246,7 @@ public partial class okx : ccxt.okx
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1286,7 +1286,7 @@ public partial class okx : ccxt.okx
      * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -1354,7 +1354,7 @@ public partial class okx : ccxt.okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] the maximum amount of order book entries to return
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
@@ -1414,7 +1414,7 @@ public partial class okx : ccxt.okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] the maximum amount of order book entries to return
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -1474,49 +1474,22 @@ public partial class okx : ccxt.okx
         this.handleDeltas(storedBids, bids);
         object marketId = this.safeString(message, "instId");
         object symbol = this.safeSymbol(marketId, market);
-        object checksum = this.handleOption("watchOrderBook", "checksum", true);
         object seqId = this.safeInteger(message, "seqId");
-        if (isTrue(checksum))
+        object prevSeqId = this.safeInteger(message, "prevSeqId");
+        object nonce = getValue(orderbook, "nonce");
+        object error = null;
+        if (isTrue(isTrue(isTrue(!isEqual(prevSeqId, null)) && isTrue(!isEqual(prevSeqId, -1))) && isTrue(!isEqual(nonce, prevSeqId))))
         {
-            object prevSeqId = this.safeInteger(message, "prevSeqId");
-            object nonce = getValue(orderbook, "nonce");
-            object asksLength = getArrayLength(storedAsks);
-            object bidsLength = getArrayLength(storedBids);
-            object payloadArray = new List<object>() {};
-            for (object i = 0; isLessThan(i, 25); postFixIncrement(ref i))
+            error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
+        }
+        if (isTrue(!isEqual(error, null)))
+        {
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            if (isTrue(!isEqual(symbol, null)))
             {
-                if (isTrue(isLessThan(i, bidsLength)))
-                {
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedBids, i), 0)));
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedBids, i), 1)));
-                }
-                if (isTrue(isLessThan(i, asksLength)))
-                {
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedAsks, i), 0)));
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedAsks, i), 1)));
-                }
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             }
-            object payload = String.Join(":", ((IList<object>)payloadArray).ToArray());
-            object responseChecksum = this.safeInteger(message, "checksum");
-            object localChecksum = this.crc32(payload, true);
-            object error = null;
-            if (isTrue(isTrue(!isEqual(prevSeqId, -1)) && isTrue(!isEqual(nonce, prevSeqId))))
-            {
-                error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
-            }
-            if (isTrue(!isEqual(responseChecksum, localChecksum)))
-            {
-                error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
-            }
-            if (isTrue(!isEqual(error, null)))
-            {
-                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
-                if (isTrue(!isEqual(symbol, null)))
-                {
-                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
-                }
-                ((WebSocketClient)client).reject(error, messageHash);
-            }
+            ((WebSocketClient)client).reject(error, messageHash);
         }
         object timestamp = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)orderbook)["nonce"] = seqId;
@@ -1924,10 +1897,10 @@ public partial class okx : ccxt.okx
      * @name okx#watchPositions
      * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
@@ -2668,7 +2641,7 @@ public partial class okx : ccxt.okx
                         {
                             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
                         }
-                        messageString = this.safeValue(message, "sMsg");
+                        messageString = this.safeValue(d, "sMsg");
                         if (isTrue(!isEqual(messageString, null)))
                         {
                             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);

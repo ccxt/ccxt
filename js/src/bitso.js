@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitso
@@ -20,8 +20,8 @@ export default class bitso extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bitso',
             'name': 'Bitso',
-            'countries': ['MX'],
-            'rateLimit': 2000,
+            'countries': ['MX'], // Mexico
+            'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
             'has': {
                 'CORS': undefined,
@@ -133,7 +133,7 @@ export default class bitso extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975',
+                'logo': 'https://github.com/user-attachments/assets/3d0c1e5e-8aaa-419f-968a-2b7409381ce4',
                 'api': {
                     'rest': 'https://bitso.com/api',
                 },
@@ -229,11 +229,11 @@ export default class bitso extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo implementation
                         'triggerPriceType': undefined,
                         'triggerDirection': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         // todo: implementation for TIF
                         'timeInForce': {
@@ -287,8 +287,8 @@ export default class bitso extends Exchange {
                 },
             },
             'exceptions': {
-                '0201': AuthenticationError,
-                '104': InvalidNonce,
+                '0201': AuthenticationError, // Invalid Nonce or Invalid Credentials
+                '104': InvalidNonce, // Cannot perform request - nonce must be higher than 1520307203724237
                 '0304': BadRequest, // {"success":false,"error":{"code":"0304","message":"The field time_bucket () is either invalid or missing"}}
             },
         });
@@ -657,7 +657,7 @@ export default class bitso extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1052,8 +1052,9 @@ export default class bitso extends Exchange {
         }
         // convert it to an integer unconditionally
         if (markerInParams) {
+            const marker = parseInt(params['marker']);
             params = this.extend(params, {
-                'marker': parseInt(params['marker']),
+                'marker': marker,
             });
         }
         const request = {
@@ -1193,7 +1194,7 @@ export default class bitso extends Exchange {
     }
     parseOrderStatus(status) {
         const statuses = {
-            'partial-fill': 'open',
+            'partial-fill': 'open', // this is a common substitution in ccxt
             'partially filled': 'open',
             'queued': 'open',
             'completed': 'closed',
@@ -1272,8 +1273,9 @@ export default class bitso extends Exchange {
         }
         // convert it to an integer unconditionally
         if (markerInParams) {
+            const marker = parseInt(params['marker']);
             params = this.extend(params, {
-                'marker': parseInt(params['marker']),
+                'marker': marker,
             });
         }
         const request = {
@@ -1783,7 +1785,7 @@ export default class bitso extends Exchange {
         const networkId = this.safeString2(transaction, 'network', 'method');
         const status = this.safeString(transaction, 'status');
         const withdrawId = this.safeString(transaction, 'wid');
-        const networkCode = this.networkIdToCode(networkId);
+        const networkCode = this.networkIdToCode(networkId, currency['code']);
         const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
         return {
             'id': this.safeString2(transaction, 'wid', 'fid'),
@@ -1833,7 +1835,8 @@ export default class bitso extends Exchange {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             endpoint = '/api' + endpoint;
-            let request = [nonce, method, endpoint].join('');
+            const content = [nonce, method, endpoint];
+            let request = content.join('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys(query).length) {
                     body = this.json(query);

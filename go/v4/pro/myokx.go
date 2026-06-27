@@ -18,28 +18,28 @@ func NewMyokxCore() *MyokxCore {
     return p
 }
 
-func  (this *MyokxCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
+func  (this *MyokxCore) Describe() any  {
+    return this.DeepExtend(this.base.Describe(), map[string]any {
         "id": "myokx",
         "name": "MyOKX (EEA)",
         "hostname": "eea.okx.com",
-        "urls": map[string]interface{} {
-            "api": map[string]interface{} {
+        "urls": map[string]any {
+            "api": map[string]any {
                 "rest": "https://{hostname}",
                 "ws": "wss://wseea.okx.com:8443/ws/v5",
             },
             "www": "https://my.okx.com",
             "doc": "https://my.okx.com/docs-v5/en/#overview",
             "fees": "https://my.okx.com/pages/products/fees.html",
-            "referral": map[string]interface{} {
+            "referral": map[string]any {
                 "url": "https://www.my.okx.com/join/CCXT2023",
                 "discount": 0.2,
             },
-            "test": map[string]interface{} {
+            "test": map[string]any {
                 "ws": "wss://wseeapap.okx.com:8443/ws/v5",
             },
         },
-        "has": map[string]interface{} {
+        "has": map[string]any {
             "swap": false,
             "future": false,
             "option": false,
@@ -48,7 +48,7 @@ func  (this *MyokxCore) Describe() interface{}  {
 }
 
 
-func (this *MyokxCore) Init(userConfig map[string]interface{}) {
+func (this *MyokxCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

@@ -295,7 +295,7 @@ public partial class ndax : ccxt.ndax
                     ((IDictionary<string,object>)getValue(updates, marketId))[(string)timeframe] = true;
                 } else
                 {
-                    if (isTrue(isTrue(length) && isTrue((isLessThan(getValue(parsed, 0), getValue(getValue(stored, subtract(length, 1)), 0))))))
+                    if (isTrue(isTrue(length) && isTrue((isLessThan(this.parseToInt(getValue(parsed, 0)), this.parseToInt(getValue(getValue(stored, subtract(length, 1)), 0)))))))
                     {
                         continue;
                     } else
@@ -338,7 +338,7 @@ public partial class ndax : ccxt.ndax
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {

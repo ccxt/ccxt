@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testCurrency from './base/test.currency.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
@@ -35,11 +35,11 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
                 numInactiveCurrencies = numInactiveCurrencies + 1;
             }
             // ensure that major currencies are active and enabled for deposit and withdrawal
-            const code = exchange.safeString (currency, 'code', undefined);
+            const code = exchange.safeString (currency, 'code');
             const withdraw = exchange.safeBool (currency, 'withdraw');
             const deposit = exchange.safeBool (currency, 'deposit');
             if (exchange.inArray (code, requiredActiveCurrencies)) {
-                assert (skipMajorCurrencyCheck || (withdraw && deposit), 'Major currency ' + code + ' should have withdraw and deposit flags enabled');
+                assert (skipMajorCurrencyCheck || (withdraw && deposit), 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json (currency));
             }
         }
         // check at least X% of currencies are active

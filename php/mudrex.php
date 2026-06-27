@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\mudrex as Exchange;
 
 class mudrex extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'mudrex',
@@ -168,7 +167,7 @@ class mudrex extends Exchange {
         if (!$unified) {
             throw new BadSymbol($this->id . ' empty symbol');
         }
-        if (!$unified->includes ('/') && !$unified->includes (':')) {
+        if (!$unified->includes('/') && !$unified->includes(':')) {
             return strtoupper($unified);
         }
         $baseQuote = explode(':', $unified)[0];
@@ -184,8 +183,8 @@ class mudrex extends Exchange {
             throw new BadSymbol($this->id . ' empty $raw symbol');
         }
         $r = strtoupper($raw);
-        if ($r->includes ('/')) {
-            return $r->includes (':') ? $r : $r . ':USDT';
+        if ($r->includes('/')) {
+            return $r->includes(':') ? $r : $r . ':USDT';
         }
         if (str_ends_with($r, 'USDT') && strlen($r) > 4) {
             $base = mb_substr($r, 0, -4 - 0);
@@ -194,7 +193,7 @@ class mudrex extends Exchange {
         return $r . '/USDT:USDT';
     }
 
-    public function sign($path, string $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, string $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
         $apiUrls = $this->safe_dict($this->urls, 'api', array());
         $base = $this->safe_string($apiUrls, $api);
         if ($base === null) {
@@ -272,7 +271,7 @@ class mudrex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $ms = $market['baseId'] . '/' . $market['quoteId'];
@@ -298,11 +297,11 @@ class mudrex extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_mark_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_mark_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $this->extend($params, array( 'price' => 'mark' )));
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
@@ -311,7 +310,7 @@ class mudrex extends Exchange {
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         $this->load_markets();
         $request = array();
         $response = $this->request('futures', 'private', 'GET', $this->extend($request, $params));
@@ -367,7 +366,7 @@ class mudrex extends Exchange {
         ), $market);
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         $aggregated = array();
         $offset = 0;
         $pageLimit = 100;
@@ -465,7 +464,7 @@ class mudrex extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         $this->load_markets();
         $tradeCurrency = $this->safe_string_2($params, 'trade_currency', 'tradeCurrency');
         $spotReq = array();
@@ -477,7 +476,7 @@ class mudrex extends Exchange {
             $spotReq['currency'] = $params['currency'];
             $futReq['trade_currency'] = $params['currency'];
         }
-        $p1 = $this->omit($params, ['trade_currency', 'tradeCurrency', 'currency']);
+        $p1 = $this->omit($params, array( 'trade_currency', 'tradeCurrency', 'currency' ));
         $spot = $this->request('wallet/funds', 'private', 'GET', $this->extend($spotReq, $p1));
         $fut = $this->request('futures/funds', 'private', 'GET', $this->extend($futReq, $p1));
         return $this->parse_balance(array( 'spot' => $spot, 'futures' => $fut, 'currency' => $spotReq['currency'] || 'USDT' ));
@@ -517,7 +516,7 @@ class mudrex extends Exchange {
         return $this->safe_balance($balance);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): mixed {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $path = 'futures/' . $market['id'] . '/leverage';
@@ -526,17 +525,18 @@ class mudrex extends Exchange {
         if ($tradeCurrency !== null) {
             $request['trade_currency'] = $tradeCurrency;
         }
-        $response = $this->request($path, 'private', 'GET', $this->extend($request, $this->omit($params, ['trade_currency', 'tradeCurrency'])));
+        $response = $this->request($path, 'private', 'GET', $this->extend($request, $this->omit($params, array( 'trade_currency', 'tradeCurrency' ))));
         $data = $this->safe_dict($response, 'data', array());
         return array(
             'info' => $response,
             'symbol' => $symbol,
             'marginMode' => $this->safe_string_lower($data, 'margin_type'),
-            'leverage' => $this->safe_number($data, 'leverage'),
+            'longLeverage' => $this->safe_number($data, 'leverage'),
+            'shortLeverage' => $this->safe_number($data, 'leverage'),
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()): mixed {
+    public function set_leverage(float $leverage, ?string $symbol = null, $params = array()): mixed {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol');
         }
@@ -552,13 +552,13 @@ class mudrex extends Exchange {
             $body['trade_currency'] = $tradeCurrency;
         }
         $path = 'futures/' . $market['id'] . '/leverage?is_symbol=1';
-        $response = $this->request($path, 'private', 'POST', $this->extend($body, $this->omit($params, ['trade_currency', 'tradeCurrency', 'marginType'])));
+        $response = $this->request($path, 'private', 'POST', $this->extend($body, $this->omit($params, array( 'trade_currency', 'tradeCurrency', 'marginType' ))));
         $leverages = $this->safe_dict($this->options, 'leverages', array());
         $this->options['leverages'] = $this->extend($leverages, array( [$market['symbol']] => $leverage ));
         return $response;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         $this->check_required_credentials();
         $this->load_markets();
         $market = $this->market($symbol);
@@ -608,14 +608,14 @@ class mudrex extends Exchange {
             }
         }
         $path = 'futures/' . $ms . '/order?is_symbol=1';
-        $response = $this->request($path, 'private', 'POST', $this->extend($body, $this->omit($params, ['leverage', 'reduceOnly', 'takeProfit', 'stopLoss', 'takeprofit_price', 'takeProfitPrice', 'stoploss_price', 'stopLossPrice', 'trade_currency', 'tradeCurrency'])));
+        $response = $this->request($path, 'private', 'POST', $this->extend($body, $this->omit($params, array( 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss', 'takeprofit_price', 'takeProfitPrice', 'stoploss_price', 'stopLossPrice', 'trade_currency', 'tradeCurrency' ))));
         $leverages = $this->safe_dict($this->options, 'leverages', array());
         $this->options['leverages'] = $this->extend($leverages, array( [$market['symbol']] => $lev ));
         $data = $this->safe_dict($response, 'data', $response);
         return $this->parse_order($data, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $this->check_required_credentials();
         $this->load_markets();
         $market = null;
@@ -635,7 +635,7 @@ class mudrex extends Exchange {
         if ($tradeCurrency !== null) {
             $request['trade_currency'] = $tradeCurrency;
         }
-        $response = $this->request('futures/orders/' . $id, 'private', 'PATCH', $this->extend($request, $this->omit($params, ['trade_currency', 'tradeCurrency'])));
+        $response = $this->request('futures/orders/' . $id, 'private', 'PATCH', $this->extend($request, $this->omit($params, array( 'trade_currency', 'tradeCurrency' ))));
         $data = $this->safe_dict($response, 'data', $response);
         return $this->parse_order($data, $market);
     }
@@ -699,7 +699,7 @@ class mudrex extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -711,12 +711,12 @@ class mudrex extends Exchange {
         if ($tradeCurrency !== null) {
             $request['trade_currency'] = $tradeCurrency;
         }
-        $response = $this->request($path, 'private', 'DELETE', $this->extend($request, $this->omit($params, ['trade_currency', 'tradeCurrency'])));
+        $response = $this->request($path, 'private', 'DELETE', $this->extend($request, $this->omit($params, array( 'trade_currency', 'tradeCurrency' ))));
         $data = $this->safe_dict($response, 'data', $response);
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -728,12 +728,12 @@ class mudrex extends Exchange {
         if ($tradeCurrency !== null) {
             $request['trade_currency'] = $tradeCurrency;
         }
-        $response = $this->request($path, 'private', 'GET', $this->extend($request, $this->omit($params, ['trade_currency', 'tradeCurrency'])));
+        $response = $this->request($path, 'private', 'GET', $this->extend($request, $this->omit($params, array( 'trade_currency', 'tradeCurrency' ))));
         $data = $this->safe_dict($response, 'data', $response);
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_orders_by_state(string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders_by_state(string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $this->load_markets();
         $q = array();
         if ($limit !== null) {
@@ -747,7 +747,7 @@ class mudrex extends Exchange {
         if ($state === 'closed') {
             $path = 'futures/orders/history';
         }
-        $response = $this->request($path, 'private', 'GET', $this->extend($q, $this->omit($params, ['trade_currency', 'tradeCurrency'])));
+        $response = $this->request($path, 'private', 'GET', $this->extend($q, $this->omit($params, array( 'trade_currency', 'tradeCurrency' ))));
         $data = $this->safe_value($response, 'data', array());
         $rows = $this->to_array($data);
         $market = null;
@@ -761,39 +761,39 @@ class mudrex extends Exchange {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         return $this->fetch_orders_by_state('closed', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         return $this->fetch_orders_by_state('open', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         return $this->fetch_orders_by_state('closed', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         $this->load_markets();
         $q = array();
         $tradeCurrency = $this->safe_string_2($params, 'trade_currency', 'tradeCurrency');
         if ($tradeCurrency !== null) {
             $q['trade_currency'] = $tradeCurrency;
         }
-        $response = $this->request('futures/positions', 'private', 'GET', $this->extend($q, $this->omit($params, ['trade_currency', 'tradeCurrency'])));
+        $response = $this->request('futures/positions', 'private', 'GET', $this->extend($q, $this->omit($params, array( 'trade_currency', 'tradeCurrency' ))));
         $data = $this->safe_value($response, 'data', array());
         if ($data === null) {
             return array();
         }
         $rows = $this->to_array($data);
-        $out => Positionarray() = array();
+        $out = array();
         for ($i = 0; $i < count($rows); $i++) {
             $p = $rows[$i];
             $symRaw = $this->safe_string($p, 'symbol');
             $m = null;
             if ($symRaw !== null) {
                 $u = $this->unified_symbol($symRaw);
-                $m = $this->resolveMarketOptional ($u);
+                $m = $this->safe_market($u);
             }
             $pos = $this->parse_position($p, $m);
             $out[] = $pos;
@@ -843,7 +843,7 @@ class mudrex extends Exchange {
         );
     }
 
-    public function close_position(string $symbol, ?string $side = null, $params = array ()): mixed {
+    public function close_position(string $symbol, ?string $side = null, $params = array()): mixed {
         $this->check_required_credentials();
         $this->load_markets();
         $positionId = $this->safe_string($params, 'position_id');
@@ -880,13 +880,13 @@ class mudrex extends Exchange {
             if ($orderType === 'LIMIT' && $lp !== null) {
                 $body['limit_price'] = $lp;
             }
-            return $this->request($partialPath, 'private', 'POST', $this->extend($body, $this->omit($params, ['trade_currency', 'tradeCurrency', 'order_type', 'limit_price', 'amount'])));
+            return $this->request($partialPath, 'private', 'POST', $this->extend($body, $this->omit($params, array( 'trade_currency', 'tradeCurrency', 'order_type', 'limit_price', 'amount' ))));
         }
         $closePath = 'futures/positions/' . $positionId . '/close';
-        return $this->request($closePath, 'private', 'POST', $this->extend($request, $this->omit($params, ['trade_currency', 'tradeCurrency'])));
+        return $this->request($closePath, 'private', 'POST', $this->extend($request, $this->omit($params, array( 'trade_currency', 'tradeCurrency' ))));
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()) {
+    public function add_margin(string $symbol, float $amount, $params = array()) {
         $this->load_markets();
         $positionId = $this->safe_string($params, 'position_id');
         if ($positionId === null) {
@@ -903,20 +903,20 @@ class mudrex extends Exchange {
             throw new OrderNotFound($this->id . ' addMargin() could not resolve position_id');
         }
         $request = array(
-            'margin' => $amount->toString(),
+            'margin' => (string) $amount,
         );
         $tradeCurrency = $this->safe_string_2($params, 'trade_currency', 'tradeCurrency');
         if ($tradeCurrency !== null) {
             $request['trade_currency'] = $tradeCurrency;
         }
-        return $this->request('futures/positions/' . $positionId . '/add-margin', 'private', 'POST', $this->extend($request, $this->omit($params, ['trade_currency', 'tradeCurrency', 'position_id'])));
+        return $this->request('futures/positions/' . $positionId . '/add-margin', 'private', 'POST', $this->extend($request, $this->omit($params, array( 'trade_currency', 'tradeCurrency', 'position_id' ))));
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, float $amount, $params = array()) {
         return $this->add_margin($symbol, -$amount, $params);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -930,7 +930,7 @@ class mudrex extends Exchange {
         if ($tradeCurrency !== null) {
             $request['trade_currency'] = $tradeCurrency;
         }
-        $response = $this->request('futures/fee/history', 'private', 'GET', $this->extend($request, $this->omit($params, ['trade_currency', 'tradeCurrency'])));
+        $response = $this->request('futures/fee/history', 'private', 'GET', $this->extend($request, $this->omit($params, array( 'trade_currency', 'tradeCurrency' ))));
         $data = $this->safe_value($response, 'data', array());
         $rows = $this->to_array($data);
         return $this->parse_trades($rows, $market, $since, $limit);
@@ -976,7 +976,7 @@ class mudrex extends Exchange {
         ), $market);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         $mp = array(
             'spot' => 'SPOT',
             'SPOT' => 'SPOT',

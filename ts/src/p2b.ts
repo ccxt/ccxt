@@ -1,11 +1,11 @@
 
 // ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market } from './base/types.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market, NullableDict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -145,9 +145,8 @@ export default class p2b extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'extension': '.json',
                 'referral': 'https://p2pb2b.com?referral=ee784c53',
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
+                'logo': 'https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696',
                 'api': {
                     'public': 'https://api.p2pb2b.com/api/v2/public',
                     'private': 'https://api.p2pb2b.com/api/v2',
@@ -379,8 +378,8 @@ export default class p2b extends Exchange {
         const marketId = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         const quoteId = this.safeString (market, 'money');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+        const base = this.safeCurrencyCode (baseId) as string;
+        const quote = this.safeCurrencyCode (quoteId) as string;
         const limits = this.safeValue (market, 'limits');
         const maxAmount = this.safeString (limits, 'max_amount');
         const maxPrice = this.safeString (limits, 'max_price');
@@ -419,11 +418,11 @@ export default class p2b extends Exchange {
                 },
                 'amount': {
                     'min': this.safeNumber (limits, 'min_amount'),
-                    'max': this.parseNumber (this.omitZero (maxAmount)),
+                    'max': this.parseNumber (this.omitZero (maxAmount as string)),
                 },
                 'price': {
                     'min': this.safeNumber (limits, 'min_price'),
-                    'max': this.parseNumber (this.omitZero (maxPrice)),
+                    'max': this.parseNumber (this.omitZero (maxPrice as string)),
                 },
                 'cost': {
                     'min': undefined,
@@ -592,7 +591,7 @@ export default class p2b extends Exchange {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
@@ -746,7 +745,7 @@ export default class p2b extends Exchange {
             'amount': this.safeString (trade, 'amount'),
             'cost': this.safeString (trade, 'deal'),
             'fee': {
-                'currency': market['quote'],
+                'currency': this.safeString (market, 'quote'),
                 'cost': this.safeString2 (trade, 'fee', 'deal_fee'),
             },
         }, market);
@@ -884,7 +883,7 @@ export default class p2b extends Exchange {
                 'free': available,
                 'used': used,
             };
-            result[code] = account;
+            result[code as string] = account;
         }
         return this.safeBalance (result);
     }
@@ -937,7 +936,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result') as Dict;
         return this.parseOrder (result, market);
     }
 
@@ -984,7 +983,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result') as Dict;
         return this.parseOrder (result);
     }
 
@@ -1133,10 +1132,12 @@ export default class p2b extends Exchange {
             throw new BadRequest (this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market (symbol);
+        const sinceSec = this.parseToInt (since / 1000);
+        const untilSec = this.parseToInt (until / 1000);
         const request: Dict = {
             'market': market['id'],
-            'startTime': this.parseToInt (since / 1000),
-            'endTime': this.parseToInt (until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1209,9 +1210,11 @@ export default class p2b extends Exchange {
         if ((until - since) > 86400000) {
             throw new BadRequest (this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
+        const sinceSec = this.parseToInt (since / 1000);
+        const untilSec = this.parseToInt (until / 1000);
         const request: Dict = {
-            'startTime': this.parseToInt (since / 1000),
-            'endTime': this.parseToInt (until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         };
         if (market !== undefined) {
             request['market'] = market['id'];
@@ -1247,7 +1250,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result');
-        let orders = [];
+        let orders: Order[] = [];
         const keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
@@ -1327,7 +1330,7 @@ export default class p2b extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (method === 'GET') {

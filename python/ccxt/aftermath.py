@@ -83,7 +83,8 @@ class aftermath(Exchange, ImplicitAPI):
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807',
+                'www': 'https://aftermath.finance',
+                'logo': 'https://github.com/user-attachments/assets/f3104ea3-e9ab-4d4e-ad22-0ce772a407b7',
                 'api': {
                     'rest': 'https://aftermath.finance/api/ccxt',
                 },
@@ -314,7 +315,7 @@ class aftermath(Exchange, ImplicitAPI):
         #     }
         #
         precision = self.safe_dict(market, 'precision')
-        limits = self.safe_dict(market, 'limits')
+        limits = self.safe_dict(market, 'limits', {})
         return self.safe_market_structure({
             'id': self.safe_string(market, 'id'),
             'symbol': self.safe_string(market, 'symbol'),
@@ -379,7 +380,7 @@ class aftermath(Exchange, ImplicitAPI):
         fetch the trading fees for a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -404,7 +405,7 @@ class aftermath(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -474,7 +475,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -512,7 +513,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -596,7 +597,7 @@ class aftermath(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in positions
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.account]: account object ID, required
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         account = None
         account, params = self.handle_option_and_params(params, 'fetchBalance', 'account')
@@ -621,7 +622,7 @@ class aftermath(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
         }
         balances = self.safe_dict(response, 'balances', [])
@@ -656,7 +657,7 @@ class aftermath(Exchange, ImplicitAPI):
         #
         # [
         #     {
-        #         "id": "0x21c5e3d2f5bcfd4351a62cd70874878b7923b56d79d04225ed96370a7ac844c4",
+        #         "id": "0x22c5e3d2f5bcfd4351a62cd70874878b7923b56d79d04225ed96370a7ac844c4",
         #         "type": "primary",
         #         "code": "USDC",
         #         "accountNumber": 14822
@@ -684,7 +685,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.accountNumber]: account number to query orders for, required
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -728,7 +729,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.accountNumber]: account number to query positions for, required
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         positions = self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
@@ -742,7 +743,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param str[] symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.accountNumber]: account number to query positions for, required
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         accountNumber = None
@@ -813,13 +814,14 @@ class aftermath(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :param Account [params.account]: account id to use, required
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         account = None
         account, params = self.handle_option_and_params(params, 'createOrder', 'account')
         order = self.parse_create_edit_order_args(None, symbol, type, side, amount, price, params)
-        orders = self.create_orders([order], {'account': account})
+        accountObj = {'account': account}
+        orders = self.create_orders([order], accountObj)
         return orders[0]
 
     def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
@@ -832,7 +834,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param Account [params.account]: account id to use, required
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         ordersRequest = []
@@ -899,7 +901,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         orders = self.cancel_orders([id], symbol, params)
         return self.safe_dict(orders, 0)
@@ -915,7 +917,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param Account [params.account]: account to cancel orders for, required
-        :returns Order[]: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -996,7 +998,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param Account [params.account]: account id to use, required
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1043,7 +1045,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param float amount: amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param Account [params.account]: account id to use, required
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1091,7 +1093,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1147,7 +1149,7 @@ class aftermath(Exchange, ImplicitAPI):
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param Account [params.account]: account id to use, required
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1174,10 +1176,14 @@ class aftermath(Exchange, ImplicitAPI):
         #     "collateral": 39.0
         # }
         #
-        return self.extend(self.parse_transaction(response, currency), {
-            'addressFrom': account,
-            'amount': amount,
-        })
+        parsedTx = self.parse_transaction(response, currency)
+        parsedTx['addressFrom '] = account
+        parsedTx['amount'] = amount
+        return parsedTx
+        # return self.extend(, {
+        #     'addressFrom': account,
+        #     'amount': amount,
+        # })
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         return {
@@ -1292,7 +1298,7 @@ class aftermath(Exchange, ImplicitAPI):
             raise ExchangeError(body)
         return None
 
-    def sign(self, path, api='public', method='POST', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='POST', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + path
         if api == 'private':
             self.check_required_credentials()

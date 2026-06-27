@@ -5,7 +5,7 @@ import Exchange from './abstract/coinmetro.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, ExchangeError, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, Dict, IndexType, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, LedgerEntry } from './base/types.js';
+import { Balances, Currencies, Currency, Dict, IndexType, int, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -375,58 +375,56 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'symbol');
-            const code = this.safeCurrencyCode (id);
-            const typeRaw = this.safeString (currency, 'type');
-            let type = undefined;
-            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20' || typeRaw === 'crypto') {
-                type = 'crypto';
-            } else if (typeRaw === 'fiat') {
-                type = 'fiat';
-            }
-            let precisionDigits = this.safeString2 (currency, 'digits', 'notabeneDecimals');
-            if (code === 'RENDER') {
-                // RENDER is an exception (with broken info)
-                precisionDigits = '4';
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'name': code,
-                'type': type,
-                'info': currency,
-                'active': this.safeBool (currency, 'canTrade'),
-                'deposit': this.safeBool (currency, 'canDeposit'),
-                'withdraw': this.safeBool (currency, 'canWithdraw'),
-                'fee': undefined,
-                'precision': this.parseNumber (this.parsePrecision (precisionDigits)),
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber (currency, 'minQty'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-            });
+        const result = this.parseCurrencies (response);
+        const currenciesById = this.indexBy (result, 'id');
+        this.options['currenciesByIdForParseMarket'] = currenciesById;
+        const currentCurrencyIdsList = this.safeList (this.options, 'currencyIdsListForParseMarket', []);
+        const currencyIdsList = Object.keys (currenciesById);
+        for (let i = 0; i < currencyIdsList.length; i++) {
+            currentCurrencyIdsList.push (currencyIdsList[i]);
         }
-        if (this.safeValue (this.options, 'currenciesByIdForParseMarket') === undefined) {
-            const currenciesById = this.indexBy (result, 'id');
-            this.options['currenciesByIdForParseMarket'] = currenciesById;
-            const currentCurrencyIdsList = this.safeList (this.options, 'currencyIdsListForParseMarket', []);
-            const currencyIdsList = Object.keys (currenciesById);
-            for (let i = 0; i < currencyIdsList.length; i++) {
-                currentCurrencyIdsList.push (currencyIdsList[i]);
-            }
-            this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
-        }
+        this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
         return result;
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode (id);
+        const typeRaw = this.safeString (rawCurrency, 'type');
+        let type: Str = undefined;
+        if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20' || typeRaw === 'crypto') {
+            type = 'crypto';
+        } else if (typeRaw === 'fiat') {
+            type = 'fiat';
+        }
+        let precisionDigits = this.safeString2 (rawCurrency, 'digits', 'notabeneDecimals');
+        if (code === 'RENDER') {
+            // RENDER is an exception (with broken info)
+            precisionDigits = '4';
+        }
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'name': code,
+            'type': type,
+            'info': rawCurrency,
+            'active': this.safeBool (rawCurrency, 'canTrade'),
+            'deposit': this.safeBool (rawCurrency, 'canDeposit'),
+            'withdraw': this.safeBool (rawCurrency, 'canWithdraw'),
+            'fee': undefined,
+            'precision': this.parseNumber (this.parsePrecision (precisionDigits)),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber (rawCurrency, 'minQty'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+        });
     }
 
     /**
@@ -440,9 +438,6 @@ export default class coinmetro extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const promises = [];
         promises.push (this.publicGetMarkets (params));
-        if (this.safeValue (this.options, 'currenciesByIdForParseMarket') === undefined) {
-            promises.push (this.fetchCurrencies ());
-        }
         const responses = await Promise.all (promises);
         const response = responses[0];
         //
@@ -460,11 +455,11 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        const result = [];
+        const result: Market[] = [];
         for (let i = 0; i < response.length; i++) {
             const market = this.parseMarket (response[i]);
             // there are several broken (unavailable info) markets
-            if (market['base'] === undefined || market['quote'] === undefined) {
+            if (this.safeString (market, 'base') === undefined || this.safeString (market, 'quote') === undefined) {
                 continue;
             }
             result.push (market);
@@ -537,8 +532,8 @@ export default class coinmetro extends Exchange {
     }
 
     parseMarketId (marketId) {
-        let baseId = undefined;
-        let quoteId = undefined;
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
         const currencyIds = this.safeValue (this.options, 'currencyIdsListForParseMarket', []);
         // Bubble sort by length (longest first)
         const currencyIdsLength = currencyIds.length;
@@ -620,7 +615,7 @@ export default class coinmetro extends Exchange {
             'pair': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        let until = undefined;
+        let until: Int = undefined;
         if (since !== undefined) {
             request['from'] = since;
             if (limit !== undefined) {
@@ -749,7 +744,7 @@ export default class coinmetro extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -855,7 +850,7 @@ export default class coinmetro extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -903,14 +898,14 @@ export default class coinmetro extends Exchange {
         return orderbook;
     }
 
-    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    parseOrderBookBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const prices = Object.keys (bidasks);
         const result = [];
         for (let i = 0; i < prices.length; i++) {
             const priceString = this.safeString (prices, i);
             const price = this.safeNumber (prices, i);
             const volume = this.safeNumber (bidasks, priceString);
-            result.push ([ price, volume ]);
+            (result).push ([ price, volume ]);
         }
         return result;
     }
@@ -1142,7 +1137,7 @@ export default class coinmetro extends Exchange {
             // this endpoint accepts empty since param
             request['since'] = '';
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1264,7 +1259,7 @@ export default class coinmetro extends Exchange {
             'currency': undefined,
         };
         let amount = this.safeString (item, 'amount');
-        let direction = undefined;
+        let direction: Str = undefined;
         if (amount !== undefined) {
             if (Precise.stringLt (amount, '0')) {
                 direction = 'out';
@@ -1297,8 +1292,8 @@ export default class coinmetro extends Exchange {
         if (description !== undefined) {
             descriptionArray = description.split (' ');
         }
-        let type = undefined;
-        let referenceId = undefined;
+        let type: Str = undefined;
+        let referenceId: Str = undefined;
         const length = descriptionArray.length;
         if (length > 1) {
             type = this.parseLedgerEntryType (descriptionArray[0]);
@@ -1348,7 +1343,7 @@ export default class coinmetro extends Exchange {
         let request: Dict = {
         };
         request['orderType'] = type;
-        let formattedAmount = undefined;
+        let formattedAmount: Str = undefined;
         if (amount !== undefined) {
             formattedAmount = this.amountToPrecision (symbol, amount);
         }
@@ -1362,7 +1357,7 @@ export default class coinmetro extends Exchange {
                 cost = this.parseToNumeric (costString);
             }
         }
-        let precisedCost = undefined;
+        let precisedCost: Str = undefined;
         if (cost !== undefined) {
             precisedCost = this.costToPrecision (symbol, cost);
         }
@@ -1429,7 +1424,7 @@ export default class coinmetro extends Exchange {
         //         "takerQty": 0.002
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (response);
     }
 
     handleCreateOrderSide (sellingCurrency, buyingCurrency, sellingQty, buyingQty, request = {}) {
@@ -1475,7 +1470,7 @@ export default class coinmetro extends Exchange {
         [ params, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, 'margin');
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (isMargin || (marginMode !== undefined)) {
             response = await this.privatePostExchangeOrdersCloseOrderID (this.extend (request, params));
         } else {
@@ -1570,7 +1565,7 @@ export default class coinmetro extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1596,7 +1591,7 @@ export default class coinmetro extends Exchange {
      */
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1841,7 +1836,7 @@ export default class coinmetro extends Exchange {
         //
         let timestamp = this.safeInteger (order, 'creationTime');
         const isCanceled = this.safeValue (order, 'canceled');
-        let status = undefined;
+        let status: Str = undefined;
         if (isCanceled === true) {
             if (timestamp === undefined) {
                 timestamp = this.safeInteger (order, 'completionTime'); // market orders with bad price gain IOC - we mark them as 'rejected'?
@@ -1870,13 +1865,13 @@ export default class coinmetro extends Exchange {
         const sellingCurrencyId = this.safeString (order, 'sellingCurrency', '');
         const byuingIdPlusSellingId = buyingCurrencyId + sellingCurrencyId;
         const sellingIdPlusBuyingId = sellingCurrencyId + buyingCurrencyId;
-        let side = undefined;
-        let marketId = undefined;
+        let side: Str = undefined;
+        let marketId: Str = undefined;
         let baseAmount = buyingQty;
         let quoteAmount = buyingQty;
-        let filled = undefined;
-        let cost = undefined;
-        let feeInBaseOrQuote = undefined;
+        let filled: Str = undefined;
+        let cost: Str = undefined;
+        let feeInBaseOrQuote: Str = undefined;
         const marketsById = this.indexBy (this.markets, 'id');
         if (this.safeValue (marketsById, byuingIdPlusSellingId) !== undefined) {
             side = 'buy';
@@ -1893,12 +1888,12 @@ export default class coinmetro extends Exchange {
             cost = boughtQty;
             feeInBaseOrQuote = 'quote';
         }
-        let price = undefined;
+        let price: Str = undefined;
         if ((baseAmount !== undefined) && (quoteAmount !== undefined)) {
             price = Precise.stringDiv (quoteAmount, baseAmount);
         }
         market = this.safeMarket (marketId, market);
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCost = this.safeString (order, 'fees');
         if ((feeCost !== undefined) && (feeInBaseOrQuote !== undefined)) {
             fee = {
@@ -1990,7 +1985,7 @@ export default class coinmetro extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = {}, body: any = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;

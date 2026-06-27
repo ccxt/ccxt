@@ -93,8 +93,7 @@ class apex(ccxt.async_support.apex):
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
-        timeStamp = str(self.milliseconds())
-        url = self.urls['api']['ws']['public'] + '&timestamp=' + timeStamp
+        url = self.get_ws_public_url()
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -199,7 +198,7 @@ class apex(ccxt.async_support.apex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -212,15 +211,14 @@ class apex(ccxt.async_support.apex):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         symbols = self.market_symbols(symbols)
-        timeStamp = str(self.milliseconds())
-        url = self.urls['api']['ws']['public'] + '&timestamp=' + timeStamp
+        url = self.get_ws_public_url()
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -236,12 +234,46 @@ class apex(ccxt.async_support.apex):
         return orderbook.limit()
 
     async def watch_topics(self, url, messageHashes, topics, params={}):
-        request: dict = {
-            'op': 'subscribe',
-            'args': topics,
-        }
-        message = self.extend(request, params)
+        # apex's server rejects a subscribe whose args include any
+        # already-subscribed topic("topic:already subscribed ..."). Since the
+        # connection is now reused across watch* calls, filter to only the
+        # topics whose messageHash isn't yet tracked on self client; if all
+        # are already subscribed, skip the subscribe entirely.
+        client = self.client(url)
+        newTopics = []
+        newTopicsCount = 0
+        for i in range(0, len(topics)):
+            if not (messageHashes[i] in client.subscriptions):
+                newTopics.append(topics[i])
+                newTopicsCount = newTopicsCount + 1
+        message = None
+        if newTopicsCount > 0:
+            request = {
+                'op': 'subscribe',
+                'args': newTopics,
+            }
+            message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
+
+    def get_ws_public_url(self):
+        # apex appends a millisecond timestamp to the WS URL for connection-time
+        # signing. CCXT's client manager keys clients by URL, so recomputing the
+        # timestamp on every watch* call would open a new connection each time.
+        # Cache it per exchange instance.
+        url = self.safe_string(self.options, 'wsPublicUrl')
+        if url is None:
+            timeStamp = str(self.milliseconds())
+            url = self.urls['api']['ws']['public'] + '&timestamp=' + timeStamp
+            self.options['wsPublicUrl'] = url
+        return url
+
+    def get_ws_private_url(self):
+        url = self.safe_string(self.options, 'wsPrivateUrl')
+        if url is None:
+            timeStamp = str(self.milliseconds())
+            url = self.urls['api']['ws']['private'] + '&timestamp=' + timeStamp
+            self.options['wsPrivateUrl'] = url
+        return url
 
     def handle_order_book(self, client: Client, message):
         #
@@ -302,7 +334,7 @@ class apex(ccxt.async_support.apex):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):
@@ -322,8 +354,7 @@ class apex(ccxt.async_support.apex):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        timeStamp = str(self.milliseconds())
-        url = self.urls['api']['ws']['public'] + '&timestamp=' + timeStamp
+        url = self.get_ws_public_url()
         messageHash = 'ticker:' + symbol
         topic = 'instrumentInfo' + '.H.' + market['id2']
         topics = [topic]
@@ -342,8 +373,7 @@ class apex(ccxt.async_support.apex):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
-        timeStamp = str(self.milliseconds())
-        url = self.urls['api']['ws']['public'] + '&timestamp=' + timeStamp
+        url = self.get_ws_public_url()
         topics = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
@@ -354,7 +384,7 @@ class apex(ccxt.async_support.apex):
             messageHashes.append(messageHash)
         ticker = await self.watch_topics(url, messageHashes, topics, params)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -436,8 +466,7 @@ class apex(ccxt.async_support.apex):
         :returns dict: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
-        timeStamp = str(self.milliseconds())
-        url = self.urls['api']['ws']['public'] + '&timestamp=' + timeStamp
+        url = self.get_ws_public_url()
         rawHashes = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
@@ -545,8 +574,7 @@ class apex(ccxt.async_support.apex):
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
-        timeStamp = str(self.milliseconds())
-        url = self.urls['api']['ws']['private'] + '&timestamp=' + timeStamp
+        url = self.get_ws_private_url()
         await self.authenticate(url)
         trades = await self.watch_topics(url, [messageHash], ['myTrades'], params)
         if self.newUpdates:
@@ -570,8 +598,7 @@ class apex(ccxt.async_support.apex):
         if not self.is_empty(symbols):
             symbols = self.market_symbols(symbols)
             messageHash = '::' + ','.join(symbols)
-        timeStamp = str(self.milliseconds())
-        url = self.urls['api']['ws']['private'] + '&timestamp=' + timeStamp
+        url = self.get_ws_private_url()
         messageHash = 'positions' + messageHash
         client = self.client(url)
         await self.authenticate(url)
@@ -603,8 +630,7 @@ class apex(ccxt.async_support.apex):
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
-        timeStamp = str(self.milliseconds())
-        url = self.urls['api']['ws']['private'] + '&timestamp=' + timeStamp
+        url = self.get_ws_private_url()
         await self.authenticate(url)
         topics = ['orders']
         orders = await self.watch_topics(url, [messageHash], topics, params)
@@ -634,7 +660,7 @@ class apex(ccxt.async_support.apex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
-        symbols: dict = {}
+        symbols = {}
         for i in range(0, len(lists)):
             rawTrade = lists[i]
             parsed = None
@@ -684,7 +710,7 @@ class apex(ccxt.async_support.apex):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        symbols: dict = {}
+        symbols = {}
         for i in range(0, len(lists)):
             parsed = None
             parsed = self.parse_order(lists[i])
@@ -709,7 +735,7 @@ class apex(ccxt.async_support.apex):
     async def load_positions_snapshot(self, client, messageHash):
         # one ws channel gives positions for all types, for snapshot must load all positions
         fetchFunctions = [
-            self.fetch_positions(None),
+            self.fetch_positions(),
         ]
         promises = await asyncio.gather(*fetchFunctions)
         self.positions = ArrayCacheBySymbolBySide()
@@ -868,6 +894,14 @@ class apex(ccxt.async_support.apex):
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_value(message, 'request', {})
                 op = self.safe_string(request, 'op')
+                # Benign re-subscribe notice(same shape 90008 /
+                # krakenfutures "Already subscribed"): the original subscription
+                # is still active and delivering data on self socket. Without
+                # self short-circuit the catch-clause's `client.reject(error,
+                # messageHash)` rejects every in-flight future on the connection
+                # because apex doesn't echo a `reqId` on these warnings.
+                if ret_msg is not None and ret_msg.find('already subscribed') >= 0:
+                    return False
                 if op == 'auth':
                     raise AuthenticationError('Authentication failed: ' + ret_msg)
                 else:
@@ -888,7 +922,7 @@ class apex(ccxt.async_support.apex):
         if self.handle_error_message(client, message):
             return
         topic = self.safe_string_2(message, 'topic', 'op', '')
-        methods: dict = {
+        methods = {
             'ws_zk_accounts_v3': self.handle_account,
             'orderBook': self.handle_order_book,
             'depth': self.handle_order_book,

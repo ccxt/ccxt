@@ -13,19 +13,20 @@ public partial class bitrue : ccxt.bitrue
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchBalance", true },
-                { "watchTicker", false },
+                { "watchTicker", true },
                 { "watchTickers", false },
-                { "watchTrades", false },
+                { "watchTrades", true },
                 { "watchMyTrades", false },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
-                { "watchOHLCV", false },
+                { "watchOHLCV", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
                     { "open", "https://open.bitrue.com" },
                     { "ws", new Dictionary<string, object>() {
                         { "public", "wss://ws.bitrue.com/market/ws" },
+                        { "futurePublic", "wss://fmarket-ws.bitrue.com/kline-api/ws" },
                         { "private", "wss://wsapi.bitrue.com" },
                     } },
                 } },
@@ -51,6 +52,17 @@ public partial class bitrue : ccxt.bitrue
                 { "listenKeyRefreshRate", 1800000 },
                 { "ws", new Dictionary<string, object>() {
                     { "gunzip", true },
+                } },
+                { "futuresTimeframes", new Dictionary<string, object>() {
+                    { "1m", "1min" },
+                    { "5m", "5min" },
+                    { "15m", "15min" },
+                    { "30m", "30min" },
+                    { "1h", "60min" },
+                    { "2h", "2h" },
+                    { "4h", "4h" },
+                    { "1d", "1day" },
+                    { "1w", "1week" },
                 } },
             } },
         });
@@ -321,13 +333,28 @@ public partial class bitrue : ccxt.bitrue
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
-        object marketIdLowercase = ((string)getValue(market, "id")).ToLower();
-        object channel = add(add("market_", marketIdLowercase), "_simple_depth_step0");
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object url = null;
+        object channel = null;
+        object cbId = null;
+        if (isTrue(getValue(market, "swap")))
+        {
+            object baseIdLower = this.safeStringLower(market, "baseId");
+            object quoteIdLower = this.safeStringLower(market, "quoteId");
+            object wsId = add(add("e_", baseIdLower), quoteIdLower);
+            channel = add(add("market_", wsId), "_depth_step0");
+            cbId = wsId;
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
+        } else
+        {
+            object marketIdLowercase = this.safeStringLower(market, "id");
+            channel = add(add("market_", marketIdLowercase), "_simple_depth_step0");
+            cbId = marketIdLowercase;
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        }
         object message = new Dictionary<string, object>() {
             { "event", "sub" },
             { "params", new Dictionary<string, object>() {
-                { "cb_id", marketIdLowercase },
+                { "cb_id", cbId },
                 { "channel", channel },
             } },
         };
@@ -371,20 +398,438 @@ public partial class bitrue : ccxt.bitrue
         //
         object channel = this.safeString(message, "channel");
         object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        object marketId = this.safeStringUpper(parts, 1);
-        object market = this.safeMarket(marketId);
+        object channelKind = this.safeString(parts, 1);
+        object isFutures = (isEqual(channelKind, "e"));
+        object market = null;
+        if (isTrue(isFutures))
+        {
+            object wsBaseQuote = this.safeStringLower(parts, 2);
+            market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
+        } else
+        {
+            object marketId = this.safeStringUpper(parts, 1);
+            market = this.safeMarket(marketId);
+        }
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeInteger(message, "ts");
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
+        object parseable = tick;
+        if (isTrue(isFutures))
+        {
+            object rawAsks = this.safeList(tick, "asks", new List<object>() {});
+            object rawBuys = this.safeList(tick, "buys", new List<object>() {});
+            parseable = new Dictionary<string, object>() {
+                { "asks", this.parseContractBidsAsks(rawAsks, symbol) },
+                { "buys", this.parseContractBidsAsks(rawBuys, symbol) },
+            };
+        }
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         object orderbook = getValue(this.orderbooks, symbol);
-        object snapshot = this.parseOrderBook(tick, symbol, timestamp, "buys", "asks");
+        object snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
         (orderbook as IOrderBook).reset(snapshot);
         object messageHash = add("orderbook:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+    }
+
+    public virtual object findSwapMarketByWsBaseQuote(object wsBaseQuote)
+    {
+        object symbols = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object candidate = getValue(this.markets, getValue(symbols, i));
+            if (!isTrue(getValue(candidate, "swap")))
+            {
+                continue;
+            }
+            object baseId = this.safeStringLower(candidate, "baseId", "");
+            object quoteId = this.safeStringLower(candidate, "quoteId", "");
+            if (isTrue(isEqual(add(baseId, quoteId), wsBaseQuote)))
+            {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    public virtual object parseContractBidsAsks(object bidsAsks, object symbol)
+    {
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(bidsAsks)); postFixIncrement(ref i))
+        {
+            object level = getValue(bidsAsks, i);
+            object price = this.safeNumber(level, 0);
+            object rawAmount = this.safeNumber(level, 1);
+            object amount = this.convertFromRawQuantity(symbol, rawAmount);
+            ((IList<object>)result).Add(new List<object>() {price, amount});
+        }
+        return result;
+    }
+
+    public virtual object convertFromRawQuantity(object symbol, object rawQuantity)
+    {
+        if (isTrue(isEqual(rawQuantity, null)))
+        {
+            return null;
+        }
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "contract")))
+        {
+            return rawQuantity;
+        }
+        object contractSize = this.safeNumber(market, "contractSize", 1);
+        return multiply(rawQuantity, contractSize);
+    }
+
+    /**
+     * @method
+     * @name bitrue#watchTrades
+     * @description watches public trades for a swap (futures) market
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new NotSupported ((string)add(this.id, " watchTrades is only supported for swap markets")) ;
+        }
+        object baseIdLower = this.safeStringLower(market, "baseId");
+        object quoteIdLower = this.safeStringLower(market, "quoteId");
+        object wsId = add(add("e_", baseIdLower), quoteIdLower);
+        object channel = add(add("market_", wsId), "_trade_ticker");
+        object messageHash = add("trades:", symbol);
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
+        object message = new Dictionary<string, object>() {
+            { "event", "sub" },
+            { "params", new Dictionary<string, object>() {
+                { "cb_id", wsId },
+                { "channel", channel },
+            } },
+        };
+        object request = this.deepExtend(message, parameters);
+        object trades = await this.watch(url, messageHash, request, messageHash);
+        if (isTrue(this.newUpdates))
+        {
+            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+        }
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+    }
+
+    public virtual void handleTrades(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "event_rep": "",
+        //         "channel": "market_e_btcusdt_trade_ticker",
+        //         "ts": 1721743391000,
+        //         "status": "ok",
+        //         "tick": {
+        //             "data": [
+        //                 {
+        //                     "amount": "1666656191.2",
+        //                     "ds": "2024-07-23 22:03:11",
+        //                     "price": "66008.8",
+        //                     "side": "SELL",
+        //                     "ts": 1721743391398,
+        //                     "vol": "25249"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        object channel = this.safeString(message, "channel");
+        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object wsBaseQuote = this.safeStringLower(parts, 2);
+        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
+        if (isTrue(isEqual(market, null)))
+        {
+            return;
+        }
+        object symbol = getValue(market, "symbol");
+        object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
+        object data = this.safeList(tick, "data", new List<object>() {});
+        object appended = false;
+        object stored = this.safeValue(this.trades, symbol);
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            if (isTrue(isEqual(stored, null)))
+            {
+                object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                stored = new ArrayCache(limit);
+                ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            }
+            object trade = this.parseWsTrade(getValue(data, i), market);
+            callDynamically(stored, "append", new object[] {trade});
+            appended = true;
+        }
+        if (isTrue(appended))
+        {
+            object messageHash = add("trades:", symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        }
+    }
+
+    public override object parseWsTrade(object trade, object market = null)
+    {
+        object symbol = getValue(market, "symbol");
+        object timestamp = this.safeInteger(trade, "ts");
+        object sideLower = this.safeStringLower(trade, "side");
+        object priceString = this.safeString(trade, "price");
+        object rawVol = this.safeNumber(trade, "vol");
+        object baseAmount = this.convertFromRawQuantity(symbol, rawVol);
+        return this.safeTrade(new Dictionary<string, object>() {
+            { "info", trade },
+            { "id", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "symbol", symbol },
+            { "order", null },
+            { "type", null },
+            { "side", sideLower },
+            { "takerOrMaker", "taker" },
+            { "price", priceString },
+            { "amount", this.numberToString(baseAmount) },
+            { "cost", null },
+            { "fee", null },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name bitrue#watchOHLCV
+     * @description watches OHLCV candles for a swap (futures) market
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new NotSupported ((string)add(this.id, " watchOHLCV is only supported for swap markets")) ;
+        }
+        object futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
+        object interval = this.safeString(futuresTimeframes, timeframe);
+        if (isTrue(isEqual(interval, null)))
+        {
+            throw new NotSupported ((string)add(add(this.id, " watchOHLCV does not support timeframe "), timeframe)) ;
+        }
+        object baseIdLower = this.safeStringLower(market, "baseId");
+        object quoteIdLower = this.safeStringLower(market, "quoteId");
+        object wsId = add(add("e_", baseIdLower), quoteIdLower);
+        object channel = add(add(add("market_", wsId), "_kline_"), interval);
+        object messageHash = add(add(add("ohlcv:", symbol), ":"), timeframe);
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
+        object message = new Dictionary<string, object>() {
+            { "event", "sub" },
+            { "params", new Dictionary<string, object>() {
+                { "cb_id", wsId },
+                { "channel", channel },
+            } },
+        };
+        object request = this.deepExtend(message, parameters);
+        object ohlcv = await this.watch(url, messageHash, request, messageHash);
+        if (isTrue(this.newUpdates))
+        {
+            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+        }
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+    }
+
+    public virtual void handleOHLCV(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "channel": "market_e_btcusdt_kline_1min",
+        //         "data": [],
+        //         "tick": {
+        //             "amount": 396539282326.3,
+        //             "close": 19517.1,
+        //             "ds": "2022-07-13 14:00:00",
+        //             "high": 19556.5,
+        //             "id": 1657692000,
+        //             "low": 19465.1,
+        //             "open": 19507.3,
+        //             "vol": 20325940
+        //         },
+        //         "ts": 1657696418000,
+        //         "status": "ok"
+        //     }
+        //
+        object channel = this.safeString(message, "channel");
+        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object wsBaseQuote = this.safeStringLower(parts, 2);
+        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
+        if (isTrue(isEqual(market, null)))
+        {
+            return;
+        }
+        object symbol = getValue(market, "symbol");
+        object wsInterval = this.safeString(parts, 4);
+        object futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
+        object timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
+        object tick = this.safeValue(message, "tick");
+        if (isTrue(isEqual(tick, null)))
+        {
+            return;
+        }
+        object parsed = this.parseWsOHLCV(tick, market);
+        if (!isTrue((inOp(this.ohlcvs, symbol))))
+        {
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+        }
+        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
+        {
+            object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = new ArrayCacheByTimestamp(limit);
+        }
+        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        callDynamically(stored, "append", new object[] {parsed});
+        object messageHash = add(add(add("ohlcv:", symbol), ":"), timeframe);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+    }
+
+    public override object parseWsOHLCV(object tick, object market = null)
+    {
+        object symbol = getValue(market, "symbol");
+        object idSeconds = this.safeInteger(tick, "id");
+        object timestamp = ((bool) isTrue((isEqual(idSeconds, null)))) ? null : multiply(idSeconds, 1000);
+        object open = this.safeNumber(tick, "open");
+        object high = this.safeNumber(tick, "high");
+        object low = this.safeNumber(tick, "low");
+        object close = this.safeNumber(tick, "close");
+        object rawVol = this.safeNumber(tick, "vol");
+        object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
+        return new List<object>() {timestamp, open, high, low, close, baseVolume};
+    }
+
+    /**
+     * @method
+     * @name bitrue#watchTicker
+     * @description watches a 24h ticker for a swap (futures) market
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new NotSupported ((string)add(this.id, " watchTicker is only supported for swap markets")) ;
+        }
+        object baseIdLower = this.safeStringLower(market, "baseId");
+        object quoteIdLower = this.safeStringLower(market, "quoteId");
+        object wsId = add(add("e_", baseIdLower), quoteIdLower);
+        object channel = add(add("market_", wsId), "_ticker");
+        object messageHash = add("ticker:", symbol);
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
+        object message = new Dictionary<string, object>() {
+            { "event", "sub" },
+            { "params", new Dictionary<string, object>() {
+                { "cb_id", wsId },
+                { "channel", channel },
+            } },
+        };
+        object request = this.deepExtend(message, parameters);
+        return await this.watch(url, messageHash, request, messageHash);
+    }
+
+    public virtual void handleTicker(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "channel": "market_e_btcusdt_ticker",
+        //         "ts": 1506584998239,
+        //         "tick": {
+        //             "amount": 123.1221,
+        //             "vol": 1212.12211,
+        //             "open": 2233.22,
+        //             "close": 1221.11,
+        //             "high": 22322.22,
+        //             "low": 2321.22,
+        //             "rose": -0.2922
+        //         },
+        //         "status": "ok"
+        //     }
+        //
+        object channel = this.safeString(message, "channel");
+        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object wsBaseQuote = this.safeStringLower(parts, 2);
+        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
+        if (isTrue(isEqual(market, null)))
+        {
+            return;
+        }
+        object symbol = getValue(market, "symbol");
+        object tick = this.safeValue(message, "tick");
+        if (isTrue(isEqual(tick, null)))
+        {
+            return;
+        }
+        object timestamp = this.safeInteger(message, "ts");
+        object parsed = this.parseWsTicker(tick, market, timestamp);
+        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+        object messageHash = add("ticker:", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, messageHash});
+    }
+
+    public virtual object parseWsTicker(object tick, object market, object timestamp = null)
+    {
+        object symbol = getValue(market, "symbol");
+        object rawVol = this.safeNumber(tick, "vol");
+        object rawAmount = this.safeNumber(tick, "amount");
+        object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
+        object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
+        object close = this.safeNumber(tick, "close");
+        object rose = this.safeNumber(tick, "rose");
+        object percentage = ((bool) isTrue((isEqual(rose, null)))) ? null : multiply(rose, 100);
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "info", tick },
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "high", this.safeNumber(tick, "high") },
+            { "low", this.safeNumber(tick, "low") },
+            { "bid", null },
+            { "bidVolume", null },
+            { "ask", null },
+            { "askVolume", null },
+            { "vwap", null },
+            { "open", this.safeNumber(tick, "open") },
+            { "close", close },
+            { "last", close },
+            { "previousClose", null },
+            { "change", null },
+            { "percentage", percentage },
+            { "average", null },
+            { "baseVolume", baseVolume },
+            { "quoteVolume", quoteVolume },
+        }, market);
     }
 
     public virtual object parseWsOrderType(object typeId)
@@ -433,7 +878,20 @@ public partial class bitrue : ccxt.bitrue
     {
         if (isTrue(inOp(message, "channel")))
         {
-            this.handleOrderBook(client as WebSocketClient, message);
+            object channel = this.safeString(message, "channel");
+            if (isTrue(isGreaterThan(getIndexOf(channel, "_depth_step"), -1)))
+            {
+                this.handleOrderBook(client as WebSocketClient, message);
+            } else if (isTrue(isGreaterThan(getIndexOf(channel, "_trade_ticker"), -1)))
+            {
+                this.handleTrades(client as WebSocketClient, message);
+            } else if (isTrue(isGreaterThan(getIndexOf(channel, "_kline_"), -1)))
+            {
+                this.handleOHLCV(client as WebSocketClient, message);
+            } else if (isTrue(isGreaterThan(getIndexOf(channel, "_ticker"), -1)))
+            {
+                this.handleTicker(client as WebSocketClient, message);
+            }
         } else if (isTrue(inOp(message, "ping")))
         {
             this.handlePing(client as WebSocketClient, message);

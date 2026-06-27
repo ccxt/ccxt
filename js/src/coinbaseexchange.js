@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinbaseexchange.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
 /**
  * @class coinbaseexchange
@@ -60,7 +60,7 @@ export default class coinbaseexchange extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -144,7 +144,7 @@ export default class coinbaseexchange extends Exchange {
                     'public': 'https://api-public.sandbox.exchange.coinbase.com',
                     'private': 'https://api-public.sandbox.exchange.coinbase.com',
                 },
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/34a65553-88aa-4a38-a714-064bd228b97e',
+                'logo': 'https://github.com/user-attachments/assets/a99ef849-a4b2-4dd4-87fe-458ef17db7fd',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
@@ -173,7 +173,7 @@ export default class coinbaseexchange extends Exchange {
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
-                        'products/spark-lines',
+                        'products/spark-lines', // experimental,
                         'products/volume-summary',
                     ],
                 },
@@ -236,6 +236,7 @@ export default class coinbaseexchange extends Exchange {
                         'funding/repay',
                         'orders',
                         'position/close',
+                        'profiles',
                         'profiles/margin-transfer',
                         'profiles/transfer',
                         'reports',
@@ -252,6 +253,10 @@ export default class coinbaseexchange extends Exchange {
                         'orders/client:{client_oid}',
                         'orders/{id}',
                     ],
+                    'put': [
+                        'profiles/{id}/deactivate',
+                        'profiles/{id}',
+                    ],
                 },
             },
             'commonCurrencies': {
@@ -260,9 +265,9 @@ export default class coinbaseexchange extends Exchange {
             'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
-                    'tierBased': true,
+                    'tierBased': true, // complicated tier system per coin
                     'percentage': true,
-                    'maker': this.parseNumber('0.004'),
+                    'maker': this.parseNumber('0.004'), // highest fee of all tiers
                     'taker': this.parseNumber('0.006'), // highest fee of all tiers
                 },
                 'funding': {
@@ -294,8 +299,8 @@ export default class coinbaseexchange extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -514,63 +519,61 @@ export default class coinbaseexchange extends Exchange {
         //     "display_name": "USDT"
         //   }
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'id');
-            const name = this.safeString(currency, 'name');
-            const code = this.safeCurrencyCode(id);
-            const details = this.safeDict(currency, 'details', {});
-            const networks = {};
-            const supportedNetworks = this.safeList(currency, 'supported_networks', []);
-            for (let j = 0; j < supportedNetworks.length; j++) {
-                const network = supportedNetworks[j];
-                const networkId = this.safeString(network, 'id');
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'name': this.safeString(network, 'name'),
-                    'network': networkCode,
-                    'active': this.safeString(network, 'status') === 'online',
-                    'withdraw': undefined,
-                    'deposit': undefined,
-                    'fee': undefined,
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(network, 'min_withdrawal_amount'),
-                            'max': this.safeNumber(network, 'max_withdrawal_amount'),
-                        },
-                    },
-                    'contract': this.safeString(network, 'contract_address'),
-                    'info': network,
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': this.safeString(details, 'type'),
-                'name': name,
-                'active': this.safeString(currency, 'status') === 'online',
-                'deposit': undefined,
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'id');
+        const name = this.safeString(rawCurrency, 'name');
+        const code = this.safeCurrencyCode(id);
+        const details = this.safeDict(rawCurrency, 'details', {});
+        const networks = {};
+        const supportedNetworks = this.safeList(rawCurrency, 'supported_networks', []);
+        for (let j = 0; j < supportedNetworks.length; j++) {
+            const network = supportedNetworks[j];
+            const networkId = this.safeString(network, 'id');
+            const networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'name': this.safeString(network, 'name'),
+                'network': networkCode,
+                'active': this.safeString(network, 'status') === 'online',
                 'withdraw': undefined,
+                'deposit': undefined,
                 'fee': undefined,
-                'precision': this.safeNumber(currency, 'max_precision'),
+                'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': this.safeNumber(details, 'min_size'),
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': this.safeNumber(details, 'min_withdrawal_amount'),
-                        'max': this.safeNumber(details, 'max_withdrawal_amount'),
+                        'min': this.safeNumber(network, 'min_withdrawal_amount'),
+                        'max': this.safeNumber(network, 'max_withdrawal_amount'),
                     },
                 },
-                'networks': networks,
-            });
+                'contract': this.safeString(network, 'contract_address'),
+                'info': network,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'type': this.safeString(details, 'type'),
+            'name': name,
+            'active': this.safeString(rawCurrency, 'status') === 'online',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.safeNumber(rawCurrency, 'max_precision'),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(details, 'min_size'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(details, 'min_withdrawal_amount'),
+                    'max': this.safeNumber(details, 'max_withdrawal_amount'),
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -780,7 +783,7 @@ export default class coinbaseexchange extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1037,13 +1040,14 @@ export default class coinbaseexchange extends Exchange {
         }
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'size');
+        const symbol = market['symbol'];
         return this.safeTrade({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -1673,10 +1677,10 @@ export default class coinbaseexchange extends Exchange {
     }
     parseLedgerEntryType(type) {
         const types = {
-            'transfer': 'transfer',
-            'match': 'trade',
-            'fee': 'fee',
-            'rebate': 'rebate',
+            'transfer': 'transfer', // Funds moved between portfolios
+            'match': 'trade', // Funds moved as a result of a trade
+            'fee': 'fee', // Fee as a result of a trade
+            'rebate': 'rebate', // Fee rebate
             'conversion': 'trade', // Funds converted between fiat currency and a stablecoin
         };
         return this.safeString(types, type, type);
@@ -1842,7 +1846,7 @@ export default class coinbaseexchange extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (id === undefined) {
             response = await this.privateGetTransfers(this.extend(request, params));
             //
@@ -2024,7 +2028,7 @@ export default class coinbaseexchange extends Exchange {
             'txid': this.safeString(details, 'crypto_transaction_hash'),
             'type': type,
             'currency': code,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'amount': amount,
             'status': this.parseTransactionStatus(transaction),
             'timestamp': timestamp,

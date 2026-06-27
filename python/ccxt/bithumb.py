@@ -353,7 +353,7 @@ class bithumb(Exchange, ImplicitAPI):
             quote = quotes[i]
             quoteId = quote
             response = results[i]
-            data = self.safe_dict(response, 'data')
+            data = self.safe_dict(response, 'data', {})
             extension = self.safe_dict(quoteCurrencies, quote, {})
             currencyIds = list(data.keys())
             for j in range(0, len(currencyIds)):
@@ -417,7 +417,7 @@ class bithumb(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         balances = self.safe_dict(response, 'data')
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -441,7 +441,7 @@ class bithumb(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'currency': 'ALL',
         }
         response = self.privatePostInfoBalance(self.extend(request, params))
@@ -456,11 +456,11 @@ class bithumb(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         }
@@ -550,12 +550,12 @@ class bithumb(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
-        result: dict = {}
+        result = {}
         quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
         quotes = list(quoteCurrencies.keys())
         promises = []
         for i in range(0, len(quotes)):
-            request: dict = {
+            request = {
                 'quoteId': quotes[i],
             }
             promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
@@ -610,7 +610,7 @@ class bithumb(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         }
@@ -672,7 +672,7 @@ class bithumb(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -790,7 +790,7 @@ class bithumb(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         }
@@ -832,7 +832,7 @@ class bithumb(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_currency': market['id'],
             'payment_currency': market['quote'],
             'units': amount,
@@ -870,7 +870,7 @@ class bithumb(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
             'count': 1,
             'order_currency': market['base'],
@@ -908,7 +908,7 @@ class bithumb(Exchange, ImplicitAPI):
         return self.parse_order(self.extend(data, {'order_id': id}), market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'Pending': 'open',
             'Completed': 'closed',
             'Cancel': 'canceled',
@@ -1025,7 +1025,7 @@ class bithumb(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 100
-        request: dict = {
+        request = {
             'count': limit,
             'order_currency': market['base'],
             'payment_currency': market['quote'],
@@ -1073,7 +1073,7 @@ class bithumb(Exchange, ImplicitAPI):
         side = 'bid' if (params['side'] == 'buy') else 'ask'
         params = self.omit(params, ['side', 'currency'])
         # https://github.com/ccxt/ccxt/issues/6771
-        request: dict = {
+        request = {
             'order_id': id,
             'type': side,
             'order_currency': market['base'],
@@ -1090,10 +1090,10 @@ class bithumb(Exchange, ImplicitAPI):
         })
 
     def cancel_unified_order(self, order: Order, params={}):
-        request: dict = {
+        request = {
             'side': order['side'],
         }
-        return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
+        return self.cancel_order((order['id']), order['symbol'], self.extend(request, params))
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
@@ -1112,7 +1112,7 @@ class bithumb(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'units': amount,
             'address': address,
             'currency': currency['id'],
@@ -1171,7 +1171,7 @@ class bithumb(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))

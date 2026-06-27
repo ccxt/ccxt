@@ -302,6 +302,7 @@ public partial class bitfinex : Exchange
             { "precisionMode", SIGNIFICANT_DIGITS },
             { "options", new Dictionary<string, object>() {
                 { "precision", "R0" },
+                { "defaultCurrencyPrecision", 8 },
                 { "exchangeTypes", new Dictionary<string, object>() {
                     { "MARKET", "market" },
                     { "EXCHANGE MARKET", "market" },
@@ -566,66 +567,52 @@ public partial class bitfinex : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object spotMarketsInfoPromise = this.publicGetConfPubInfoPair(parameters);
-        object futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(parameters);
-        object marginIdsPromise = this.publicGetConfPubListPairMargin(parameters);
-        var spotMarketsInfofuturesMarketsInfomarginIdsVariable = await promiseAll(new List<object>() {spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise});
-        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[0];
-        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[1];
-        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[2];
-        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, new List<object>() {});
-        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, new List<object>() {});
+        object labels = new List<object>() {"pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"};
+        object config = String.Join(",", ((IList<object>)labels).ToArray());
+        object request = new Dictionary<string, object>() {
+            { "config", config },
+        };
+        var spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable = await this.publicGetConfConfig(this.extend(request, parameters));
+        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[0];
+        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[1];
+        var securitiesMarketsIds = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[2];
+        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[3];
         object markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        marginIds = this.safeValue(marginIds, 0, new List<object>() {});
-        //
-        //    [
-        //        "1INCH:USD",
-        //        [
-        //           null,
-        //           null,
-        //           null,
-        //           "2.0",
-        //           "100000.0",
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null
-        //        ]
-        //    ]
-        //
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
-            object pair = getValue(markets, i);
-            object id = this.safeStringUpper(pair, 0);
-            object market = this.safeValue(pair, 1, new Dictionary<string, object>() {});
+            object pairObj = getValue(markets, i);
+            object id = this.safeStringUpper(pairObj, 0);
+            object market = this.safeValue(pairObj, 1, new Dictionary<string, object>() {});
             object spot = true;
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "F0"), 0)))
+            object type = null;
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(((string)id), "F0"), 0)))
             {
                 spot = false;
+                type = "swap";
+            } else
+            {
+                type = "spot";
             }
-            object swap = !isTrue(spot);
+            object swap = isEqual(type, "swap");
             object baseId = null;
             object quoteId = null;
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, ":"), 0)))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(((string)id), ":"), 0)))
             {
-                object parts = ((string)id).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+                object parts = ((string)((string)id)).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                 baseId = getValue(parts, 0);
                 quoteId = getValue(parts, 1);
             } else
             {
-                baseId = slice(id, 0, 3);
-                quoteId = slice(id, 3, 6);
+                baseId = slice(((string)id), 0, 3);
+                quoteId = slice(((string)id), 3, 6);
             }
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object splitBase = ((string)bs).Split(new [] {((string)"F0")}, StringSplitOptions.None).ToList<object>();
-            object splitQuote = ((string)quote).Split(new [] {((string)"F0")}, StringSplitOptions.None).ToList<object>();
-            bs = this.safeString(splitBase, 0);
-            quote = this.safeString(splitQuote, 0);
+            object splitBase = ((string)((string)bs)).Split(new [] {((string)"F0")}, StringSplitOptions.None).ToList<object>();
+            object splitQuote = ((string)((string)quote)).Split(new [] {((string)"F0")}, StringSplitOptions.None).ToList<object>();
+            bs = ((string)this.safeString(splitBase, 0));
+            quote = ((string)this.safeString(splitQuote, 0));
             object symbol = add(add(bs, "/"), quote);
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
@@ -639,11 +626,6 @@ public partial class bitfinex : Exchange
             }
             object minOrderSizeString = this.safeString(market, 3);
             object maxOrderSizeString = this.safeString(market, 4);
-            object margin = false;
-            if (isTrue(isTrue(spot) && isTrue(this.inArray(id, marginIds))))
-            {
-                margin = true;
-            }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", add("t", id) },
                 { "symbol", symbol },
@@ -653,14 +635,15 @@ public partial class bitfinex : Exchange
                 { "baseId", baseId },
                 { "quoteId", quoteId },
                 { "settleId", settleId },
-                { "type", ((bool) isTrue(spot)) ? "spot" : "swap" },
+                { "type", type },
                 { "spot", spot },
-                { "margin", margin },
+                { "tradfi", this.inArray(id, securitiesMarketsIds) },
+                { "margin", (isTrue(spot) && isTrue(this.inArray(id, marginIds))) },
                 { "swap", swap },
                 { "future", false },
                 { "option", false },
                 { "active", true },
-                { "contract", swap },
+                { "contract", !isTrue(spot) },
                 { "linear", ((bool) isTrue(swap)) ? true : null },
                 { "inverse", ((bool) isTrue(swap)) ? false : null },
                 { "contractSize", ((bool) isTrue(swap)) ? this.parseNumber("1") : null },
@@ -708,7 +691,7 @@ public partial class bitfinex : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object labels = new List<object>() {"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status"};
+        object labels = new List<object>() {"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"};
         object config = String.Join(",", ((IList<object>)labels).ToArray());
         object request = new Dictionary<string, object>() {
             { "config", config },
@@ -807,6 +790,7 @@ public partial class bitfinex : Exchange
             { "fees", this.indexBy(this.safeList(response, 7, new List<object>() {}), 0) },
             { "networks", this.safeList(response, 8, new List<object>() {}) },
             { "statuses", this.indexBy(this.safeList(response, 9, new List<object>() {}), 0) },
+            { "marginables", this.safeList(response, 10, new List<object>() {}) },
         };
         object indexedNetworks = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(getValue(indexed, "networks"))); postFixIncrement(ref i))
@@ -818,10 +802,15 @@ public partial class bitfinex : Exchange
             // for GOlang transpiler, do with "safe" method
             object networksList = this.safeList(indexedNetworks, networkName, new List<object>() {});
             ((IList<object>)networksList).Add(networkId);
-            ((IDictionary<string,object>)indexedNetworks)[(string)networkName] = networksList;
+            ((IDictionary<string,object>)indexedNetworks)[(string)((string)networkName)] = networksList;
         }
         object ids = this.safeList(response, 0, new List<object>() {});
-        object result = new Dictionary<string, object>() {};
+        return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
+    }
+
+    public virtual object parseCurrenciesCustom(object ids, object indexed, object indexedNetworks)
+    {
+        object allowedIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
@@ -829,73 +818,81 @@ public partial class bitfinex : Exchange
             {
                 continue;
             }
-            object code = this.safeCurrencyCode(id);
-            object label = this.safeList(getValue(indexed, "label"), id, new List<object>() {});
-            object name = this.safeString(label, 1);
-            object pool = this.safeList(getValue(indexed, "pool"), id, new List<object>() {});
-            object rawType = this.safeString(pool, 1);
-            object isCryptoCoin = isTrue((!isEqual(rawType, null))) || isTrue((inOp(getValue(indexed, "explorer"), id))); // "hacky" solution
-            object type = null;
-            if (isTrue(isCryptoCoin))
-            {
-                type = "crypto";
-            }
-            object feeValues = this.safeList(getValue(indexed, "fees"), id, new List<object>() {});
-            object fees = this.safeList(feeValues, 1, new List<object>() {});
-            object fee = this.safeNumber(fees, 1);
-            object undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
-            object precision = "8"; // default precision, todo: fix "magic constants"
-            object dwStatuses = this.safeList(getValue(indexed, "statuses"), id, new List<object>() {});
-            object depositEnabled = isEqual(this.safeInteger(dwStatuses, 1), 1);
-            object withdrawEnabled = isEqual(this.safeInteger(dwStatuses, 2), 1);
-            object networks = new Dictionary<string, object>() {};
-            object netwokIds = this.safeList(indexedNetworks, id, new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(netwokIds)); postFixIncrement(ref j))
-            {
-                object networkId = getValue(netwokIds, j);
-                object network = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                    { "info", networkId },
-                    { "id", ((string)networkId).ToLower() },
-                    { "network", networkId },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", null },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", new List<object>() {id, label, pool, feeValues, undl} },
-                { "type", type },
-                { "name", name },
-                { "active", true },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
-                { "fee", fee },
-                { "precision", parseInt(precision) },
+            ((IList<object>)allowedIds).Add(id);
+        }
+        object result = new Dictionary<string, object>() {};
+        object arr = this.toArray(allowedIds);
+        for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
+        {
+            object parsed = this.parseCurrencyCustom(getValue(arr, i), indexed, indexedNetworks);
+            object code = getValue(parsed, "code");
+            ((IDictionary<string,object>)result)[(string)code] = parsed;
+        }
+        return result;
+    }
+
+    public virtual object parseCurrencyCustom(object id, object indexed, object indexedNetworks)
+    {
+        object code = this.safeCurrencyCode(id);
+        object label = this.safeList(getValue(indexed, "label"), id, new List<object>() {});
+        object name = this.safeString(label, 1);
+        object pool = this.safeList(getValue(indexed, "pool"), id, new List<object>() {});
+        object rawType = this.safeString(pool, 1);
+        object isCryptoCoin = isTrue((!isEqual(rawType, null))) || isTrue((inOp(getValue(indexed, "explorer"), id))); // "hacky" solution
+        object type = ((bool) isTrue(isCryptoCoin)) ? "crypto" : null;
+        object feeValues = this.safeList(getValue(indexed, "fees"), id, new List<object>() {});
+        object fees = this.safeList(feeValues, 1, new List<object>() {});
+        object fee = this.safeNumber(fees, 1);
+        object undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
+        object precision = this.safeString(this.options, "defaultCurrencyPrecision", "8");
+        object networks = new Dictionary<string, object>() {};
+        object networkIds = this.safeList(indexedNetworks, id, new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
+        {
+            object networkId = getValue(networkIds, j);
+            object network = this.networkIdToCode(networkId, code);
+            object dwStatuses = this.safeList(getValue(indexed, "statuses"), networkId, new List<object>() {});
+            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                { "info", networkId },
+                { "id", ((string)networkId).ToLower() },
+                { "network", networkId },
+                { "active", null },
+                { "deposit", isEqual(this.safeInteger(dwStatuses, 1), 1) },
+                { "withdraw", isEqual(this.safeInteger(dwStatuses, 2), 1) },
+                { "fee", null },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(this.parsePrecision(precision)) },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", fee },
+                        { "min", null },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", new List<object>() {id, label, pool, feeValues, undl} },
+            { "type", type },
+            { "name", name },
+            { "active", true },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", fee },
+            { "precision", this.parseNumber(precision) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", fee },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+            { "margin", this.inArray(id, getValue(indexed, "marginables")) },
+        });
     }
 
     /**
@@ -937,8 +934,8 @@ public partial class bitfinex : Exchange
             }
             object type = this.safeString(balance, 0);
             object currencyId = this.safeStringLower(balance, 1, "");
-            object start = subtract(((string)currencyId).Length, 2);
-            object isDerivativeCode = isEqual(slice(currencyId, start, null), "f0");
+            object start = subtract(((string)((string)currencyId)).Length, 2);
+            object isDerivativeCode = isEqual(slice(((string)currencyId), start, null), "f0");
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             object derivativeCondition = (!isTrue(isDerivative) || isTrue(isDerivativeCode));
             if (isTrue(isTrue((isEqual(accountType, type))) && isTrue(derivativeCondition)))
@@ -1099,8 +1096,8 @@ public partial class bitfinex : Exchange
         if (isTrue(isEqual(type, "derivatives")))
         {
             currencyId = this.safeString(underlying, 0, transferId);
-            object start = subtract(getArrayLength(currencyId), 2);
-            object isDerivativeCode = isEqual(slice(currencyId, start, null), "F0");
+            object start = subtract(((string)((string)currencyId)).Length, 2);
+            object isDerivativeCode = isEqual(slice(((string)currencyId), start, null), "F0");
             if (!isTrue(isDerivativeCode))
             {
                 currencyId = add(currencyId, "F0");
@@ -1123,7 +1120,7 @@ public partial class bitfinex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1209,20 +1206,19 @@ public partial class bitfinex : Exchange
         //     ]
         //
         object length = getArrayLength(ticker);
-        object isFetchTicker = isTrue((isEqual(length, 10))) || isTrue((isEqual(length, 16)));
+        object firstValue = this.safeNumber(ticker, 0);
+        object isFetchTicker = !isEqual(firstValue, null); // if it's Nan, then it's string (symbol)
         object symbol = null;
         object minusIndex = 0;
-        object isFundingCurrency = false;
         if (isTrue(isFetchTicker))
         {
             minusIndex = 1;
-            isFundingCurrency = (isEqual(length, 16));
         } else
         {
             object marketId = this.safeString(ticker, 0);
             market = this.safeMarket(marketId, market);
-            isFundingCurrency = (isEqual(length, 17));
         }
+        object isFundingCurrency = isGreaterThanOrEqual(length, 17);
         symbol = this.safeSymbol(null, market);
         object last = null;
         object bid = null;
@@ -1405,10 +1401,10 @@ public partial class bitfinex : Exchange
         object amountString = this.safeString(tradeList, amountIndex);
         object priceIndex = ((bool) isTrue(isPrivate)) ? 5 : 3;
         object priceString = this.safeString(tradeList, priceIndex);
-        if (isTrue(isEqual(getValue(amountString, 0), "-")))
+        if (isTrue(isEqual(getValue(((string)amountString), 0), "-")))
         {
             side = "sell";
-            amountString = Precise.stringAbs(amountString);
+            amountString = Precise.stringAbs(((string)amountString));
         } else
         {
             side = "buy";
@@ -1741,7 +1737,7 @@ public partial class bitfinex : Exchange
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
         object amountString = this.amountToPrecision(symbol, amount);
-        amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
+        amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : ((string)Precise.stringNeg(amountString));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "amount", amountString },
@@ -1938,7 +1934,7 @@ public partial class bitfinex : Exchange
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            object orderRequest = this.createOrderRequest(((string)symbol), type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(new List<object>() {"on", orderRequest});
         }
         object request = new Dictionary<string, object>() {
@@ -2652,14 +2648,14 @@ public partial class bitfinex : Exchange
             tag = this.safeString(data, 3);
             type = "withdrawal";
             object networkId = this.safeString(data, 2);
-            network = this.networkIdToCode(((string)networkId).ToUpper()); // withdraw returns in lowercase
+            network = this.networkIdToCode(((string)((string)networkId)).ToUpper(), code); // withdraw returns in lowercase
         } else if (isTrue(isEqual(transactionLength, 22)))
         {
             id = this.safeString(transaction, 0);
             object currencyId = this.safeString(transaction, 1);
             code = this.safeCurrencyCode(currencyId, currency);
             object networkId = this.safeString(transaction, 2);
-            network = this.networkIdToCode(networkId);
+            network = this.networkIdToCode(networkId, code);
             timestamp = this.safeInteger(transaction, 5);
             updated = this.safeInteger(transaction, 6);
             status = this.parseTransactionStatus(this.safeString(transaction, 9));
@@ -2803,9 +2799,9 @@ public partial class bitfinex : Exchange
         object takerFee = this.safeNumber(takerData, 0);
         object takerFeeFiat = this.safeNumber(takerData, 2);
         object takerFeeDeriv = this.safeNumber(takerData, 5);
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(((object)this.symbols), i);
             object market = this.market(symbol);
             object fee = new Dictionary<string, object>() {
                 { "info", response },
@@ -4027,7 +4023,7 @@ public partial class bitfinex : Exchange
         object marginStatus = ((bool) isTrue((isEqual(marginStatusRaw, 1)))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "marginMode", "isolated" },
             { "amount", null },
@@ -4145,7 +4141,7 @@ public partial class bitfinex : Exchange
         if (isTrue(!isEqual(amount, null)))
         {
             object amountString = this.amountToPrecision(symbol, amount);
-            amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
+            amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : ((string)Precise.stringNeg(amountString));
             ((IDictionary<string,object>)request)["amount"] = amountString;
         }
         object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");

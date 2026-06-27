@@ -13,19 +13,19 @@ func NewGrvtCore() *GrvtCore {
 	return p
 }
 
-func (this *GrvtCore) Describe() interface{} {
-	var rlOthers interface{} = 40
-	var rlOrders interface{} = 20
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *GrvtCore) Describe() any {
+	var rlOthers any = 40
+	var rlOrders any = 20
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "grvt",
 		"name":      "GRVT",
-		"countries": []interface{}{"SG"},
+		"countries": []any{"SG"},
 		"rateLimit": 10,
 		"certified": false,
 		"version":   "v1",
 		"dex":       true,
 		"pro":       true,
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                    nil,
 			"spot":                    false,
 			"margin":                  false,
@@ -59,7 +59,7 @@ func (this *GrvtCore) Describe() interface{} {
 			"transfer":                true,
 			"withdraw":                true,
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "CI_1_M",
 			"3m":  "CI_3_M",
 			"5m":  "CI_5_M",
@@ -79,32 +79,32 @@ func (this *GrvtCore) Describe() interface{} {
 			"3w":  "CI_3_W",
 			"4w":  "CI_4_W",
 		},
-		"urls": map[string]interface{}{
-			"logo": "https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6",
-			"api": map[string]interface{}{
+		"urls": map[string]any{
+			"logo": "https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18",
+			"api": map[string]any{
 				"privateEdge":    "https://edge.grvt.io/",
 				"privateTrading": "https://trades.grvt.io/",
 				"publicMarket":   "https://market-data.grvt.io/",
 			},
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"privateEdge":    "https://edge.testnet.grvt.io/",
 				"privateTrading": "https://trades.testnet.grvt.io/",
 				"publicMarket":   "https://market-data.testnet.grvt.io/",
 			},
 			"www":      "https://grvt.io",
 			"referral": "https://grvt.io/?ref=WBLS9D1",
-			"doc":      []interface{}{"https://api-docs.grvt.io/"},
+			"doc":      []any{"https://api-docs.grvt.io/"},
 			"fees":     "https://help.grvt.io/en/articles/9614699-how-does-grvt-s-fee-model-work",
 		},
-		"api": map[string]interface{}{
-			"privateEdge": map[string]interface{}{
-				"post": map[string]interface{}{
+		"api": map[string]any{
+			"privateEdge": map[string]any{
+				"post": map[string]any{
 					"auth/api_key/login": 100,
 					"auth/wallet/login":  100,
 				},
 			},
-			"publicMarket": map[string]interface{}{
-				"post": map[string]interface{}{
+			"publicMarket": map[string]any{
+				"post": map[string]any{
 					"full/v1/instrument":      4,
 					"full/v1/all_instruments": 4,
 					"full/v1/instruments":     4,
@@ -119,8 +119,8 @@ func (this *GrvtCore) Describe() interface{} {
 					"full/v1/funding":         12,
 				},
 			},
-			"privateTrading": map[string]interface{}{
-				"post": map[string]interface{}{
+			"privateTrading": map[string]any{
+				"post": map[string]any{
 					"full/v1/create_order":                   5,
 					"full/v1/cancel_order":                   5,
 					"full/v1/cancel_on_disconnect":           100,
@@ -160,9 +160,9 @@ func (this *GrvtCore) Describe() interface{} {
 				},
 			},
 		},
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"accountId": nil,
-			"networks": map[string]interface{}{
+			"networks": map[string]any{
 				"ARBONE":    "42161",
 				"AVAXC":     "43114",
 				"BASE":      "8453",
@@ -175,7 +175,7 @@ func (this *GrvtCore) Describe() interface{} {
 				"ZKSYNCERA": "324",
 				"KAIA":      "8217",
 			},
-			"networksById": map[string]interface{}{
+			"networksById": map[string]any{
 				"1": "ERC20",
 			},
 			"builderFee":  true,
@@ -183,13 +183,13 @@ func (this *GrvtCore) Describe() interface{} {
 			"builderRate": 0.01,
 		},
 		"precisionMode": TICK_SIZE,
-		"features": map[string]interface{}{
-			"default": map[string]interface{}{
+		"features": map[string]any{
+			"default": map[string]any{
 				"sandbox": true,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":   false,
 					"triggerPrice": true,
-					"triggerPriceType": map[string]interface{}{
+					"triggerPriceType": map[string]any{
 						"last":   true,
 						"mark":   true,
 						"index":  true,
@@ -199,7 +199,7 @@ func (this *GrvtCore) Describe() interface{} {
 					"stopLossPrice":              true,
 					"takeProfitPrice":            true,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -214,27 +214,27 @@ func (this *GrvtCore) Describe() interface{} {
 					"iceberg":                false,
 				},
 				"createOrders": nil,
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          1000,
 					"daysBack":       1000,
 					"untilDays":      1000,
 					"symbolRequired": false,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          nil,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOrders": map[string]interface{}{
+				"fetchOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          1000,
 					"daysBack":       nil,
@@ -244,30 +244,30 @@ func (this *GrvtCore) Describe() interface{} {
 					"symbolRequired": false,
 				},
 				"fetchClosedOrders": nil,
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": 1000,
 				},
 			},
 			"spot": nil,
-			"swap": map[string]interface{}{
-				"linear": map[string]interface{}{
+			"swap": map[string]any{
+				"linear": map[string]any{
 					"extends": "default",
 				},
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
 		},
-		"requiredCredentials": map[string]interface{}{
+		"requiredCredentials": map[string]any{
 			"privateKey": true,
 			"apiKey":     false,
 			"secret":     false,
 		},
 		"quoteJsonNumbers": false,
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"1000": AuthenticationError,
 				"1001": PermissionDenied,
 				"1002": OperationFailed,
@@ -376,184 +376,184 @@ func (this *GrvtCore) Describe() interface{} {
 				"7503": OperationRejected,
 				"7504": OperationRejected,
 			},
-			"broad": map[string]interface{}{},
+			"broad": map[string]any{},
 		},
 	})
 }
-func (this *GrvtCore) EipDefinitions() interface{} {
-	return map[string]interface{}{
-		"EIP712_ORDER_TYPE": map[string]interface{}{
-			"Order": []interface{}{map[string]interface{}{
+func (this *GrvtCore) EipDefinitions() any {
+	return map[string]any{
+		"EIP712_ORDER_TYPE": map[string]any{
+			"Order": []any{map[string]any{
 				"name": "subAccountID",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "isMarket",
 				"type": "bool",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "timeInForce",
 				"type": "uint8",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "postOnly",
 				"type": "bool",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "reduceOnly",
 				"type": "bool",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "legs",
 				"type": "OrderLeg[]",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "nonce",
 				"type": "uint32",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "expiration",
 				"type": "int64",
 			}},
-			"OrderLeg": []interface{}{map[string]interface{}{
+			"OrderLeg": []any{map[string]any{
 				"name": "assetID",
 				"type": "uint256",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "contractSize",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "limitPrice",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "isBuyingContract",
 				"type": "bool",
 			}},
 		},
-		"EIP712_ORDER_WITH_BUILDER_TYPE": map[string]interface{}{
-			"OrderWithBuilderFee": []interface{}{map[string]interface{}{
+		"EIP712_ORDER_WITH_BUILDER_TYPE": map[string]any{
+			"OrderWithBuilderFee": []any{map[string]any{
 				"name": "subAccountID",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "isMarket",
 				"type": "bool",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "timeInForce",
 				"type": "uint8",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "postOnly",
 				"type": "bool",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "reduceOnly",
 				"type": "bool",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "legs",
 				"type": "OrderLeg[]",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "builder",
 				"type": "address",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "builderFee",
 				"type": "uint32",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "nonce",
 				"type": "uint32",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "expiration",
 				"type": "int64",
 			}},
-			"OrderLeg": []interface{}{map[string]interface{}{
+			"OrderLeg": []any{map[string]any{
 				"name": "assetID",
 				"type": "uint256",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "contractSize",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "limitPrice",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "isBuyingContract",
 				"type": "bool",
 			}},
 		},
-		"EIP712_TRANSFER_TYPE": map[string]interface{}{
-			"Transfer": []interface{}{map[string]interface{}{
+		"EIP712_TRANSFER_TYPE": map[string]any{
+			"Transfer": []any{map[string]any{
 				"name": "fromAccount",
 				"type": "address",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "fromSubAccount",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "toAccount",
 				"type": "address",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "toSubAccount",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "tokenCurrency",
 				"type": "uint8",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "numTokens",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "nonce",
 				"type": "uint32",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "expiration",
 				"type": "int64",
 			}},
 		},
-		"EIP712_WITHDRAWAL_TYPE": map[string]interface{}{
-			"Withdrawal": []interface{}{map[string]interface{}{
+		"EIP712_WITHDRAWAL_TYPE": map[string]any{
+			"Withdrawal": []any{map[string]any{
 				"name": "fromAccount",
 				"type": "address",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "toEthAddress",
 				"type": "address",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "tokenCurrency",
 				"type": "uint8",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "numTokens",
 				"type": "uint64",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "nonce",
 				"type": "uint32",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "expiration",
 				"type": "int64",
 			}},
 		},
-		"EIP712_BUILDER_APPROVAL_TYPE": map[string]interface{}{
-			"AuthorizeBuilder": []interface{}{map[string]interface{}{
+		"EIP712_BUILDER_APPROVAL_TYPE": map[string]any{
+			"AuthorizeBuilder": []any{map[string]any{
 				"name": "mainAccountID",
 				"type": "address",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "builderAccountID",
 				"type": "address",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "maxFutureFeeRate",
 				"type": "uint32",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "maxSpotFeeRate",
 				"type": "uint32",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "nonce",
 				"type": "uint32",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "expiration",
 				"type": "int64",
 			}},
 		},
-		"EIP712_WALLETLOGIN_TYPE": map[string]interface{}{
-			"WalletLogin": []interface{}{map[string]interface{}{
+		"EIP712_WALLETLOGIN_TYPE": map[string]any{
+			"WalletLogin": []any{map[string]any{
 				"name": "signer",
 				"type": "address",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "nonce",
 				"type": "uint32",
-			}, map[string]interface{}{
+			}, map[string]any{
 				"name": "expiration",
 				"type": "int64",
 			}},
 		},
 	}
 }
-func (this *GrvtCore) UsesPrivateKey() interface{} {
-	var privateKeyDefined interface{} = IsTrue(!IsEqual(this.PrivateKey, nil)) && IsTrue(!IsEqual(this.PrivateKey, ""))
-	var apiKeyDefined interface{} = IsTrue(!IsEqual(this.ApiKey, nil)) && IsTrue(!IsEqual(this.ApiKey, ""))
+func (this *GrvtCore) UsesPrivateKey() any {
+	var privateKeyDefined any = IsTrue(!IsEqual(this.PrivateKey, nil)) && IsTrue(!IsEqual(this.PrivateKey, ""))
+	var apiKeyDefined any = IsTrue(!IsEqual(this.ApiKey, nil)) && IsTrue(!IsEqual(this.ApiKey, ""))
 	if IsTrue(IsTrue(privateKeyDefined) && IsTrue(apiKeyDefined)) {
 		panic(ExchangeError("You should provide either \"privateKey\" or \"apikey & secret\""))
 	}
@@ -568,28 +568,31 @@ func (this *GrvtCore) UsesPrivateKey() interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns response from exchange
  */
-func (this *GrvtCore) SignIn(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) SignIn(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		// if (this.usesPrivateKey ()) {
+		//     await this.signInWithPrivateKey (params);
+		//     await this.initializeClient (params);
+		// } else {
+		//     await this.signInWithApiKey (params);
+		// }
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		if IsTrue(this.UsesPrivateKey()) {
-
-			retRes49312 := (<-this.SignInWithPrivateKey(params))
-			PanicOnError(retRes49312)
-
-			retRes49412 := (<-this.InitializeClient(params))
-			PanicOnError(retRes49412)
-		} else {
-
-			retRes49612 := (<-this.SignInWithApiKey(params))
-			PanicOnError(retRes49612)
+		if IsTrue(IsTrue(IsEqual(this.PrivateKey, nil)) || IsTrue(IsEqual(this.PrivateKey, ""))) {
+			panic(PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt"))
 		}
 
-		retRes4988 := (<-this.LoadAccountInfos())
-		PanicOnError(retRes4988)
+		retRes5018 := (<-this.SignInWithPrivateKey(params))
+		PanicOnError(retRes5018)
+
+		retRes5028 := (<-this.InitializeClient(params))
+		PanicOnError(retRes5028)
+
+		retRes5038 := (<-this.LoadAccountInfos())
+		PanicOnError(retRes5038)
 
 		ch <- true
 		return nil
@@ -597,23 +600,23 @@ func (this *GrvtCore) SignIn(optionalArgs ...interface{}) <-chan interface{} {
 	}()
 	return ch
 }
-func (this *GrvtCore) SignInWithApiKey(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) SignInWithApiKey(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var now interface{} = this.Milliseconds()
+		var now any = this.Milliseconds()
 		// expires in 24 hours as CS suggested
-		var expires interface{} = this.SafeInteger(this.Options, "signInExpiration", 0)
+		var expires any = this.SafeInteger(this.Options, "signInExpiration", 0)
 		// if previous sign-in not expired (give 10 seconds margin)
 		if IsTrue(IsTrue(!IsEqual(expires, nil)) && IsTrue(IsGreaterThan(expires, Add(now, 10000)))) {
 
-			ch <- map[string]interface{}{}
+			ch <- map[string]any{}
 			return nil
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"api_key": this.ApiKey,
 		}
 
@@ -633,25 +636,25 @@ func (this *GrvtCore) SignInWithApiKey(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *GrvtCore) SignInWithPrivateKey(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) SignInWithPrivateKey(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		this.CheckRequiredCredentials()
-		var now interface{} = this.Milliseconds()
+		var now any = this.Milliseconds()
 		// expires in 24 hours as CS suggested
-		var expires interface{} = this.SafeInteger(this.Options, "signInExpiration", 0)
+		var expires any = this.SafeInteger(this.Options, "signInExpiration", 0)
 		// if previous sign-in not expired (give 10 seconds margin)
 		if IsTrue(IsTrue(!IsEqual(expires, nil)) && IsTrue(IsGreaterThan(expires, Add(now, 10000)))) {
 
-			ch <- map[string]interface{}{}
+			ch <- map[string]any{}
 			return nil
 		}
-		var walletAddress interface{} = this.EthGetAddressFromPrivateKey(this.PrivateKey)
-		var request interface{} = map[string]interface{}{
+		var walletAddress any = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+		var request any = map[string]any{
 			"address":   walletAddress,
 			"signature": this.DefaultSignature(),
 		}
@@ -673,27 +676,27 @@ func (this *GrvtCore) SignInWithPrivateKey(optionalArgs ...interface{}) <-chan i
 	}()
 	return ch
 }
-func (this *GrvtCore) InitializeClient(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) InitializeClient(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var builderFee interface{} = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true)) // we shouldn't omit here
+		var builderFee any = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true)) // we shouldn't omit here
 		if !IsTrue(builderFee) {
 
 			ch <- false // skip if builder fee is not enabled
 			return nil
 		}
-		var approvedBuilderFee interface{} = this.SafeBool(this.Options, "approvedBuilderFee", false)
+		var approvedBuilderFee any = this.SafeBool(this.Options, "approvedBuilderFee", false)
 		if IsTrue(approvedBuilderFee) {
 
 			ch <- true // skip if builder fee is already approved
 			return nil
 		}
 
-		results := (<-promiseAll([]interface{}{this.PrivateTradingPostFullV1GetAuthorizedBuilders(), this.LoadAccountInfos()}))
+		results := (<-promiseAll([]any{this.PrivateTradingPostFullV1GetAuthorizedBuilders(), this.LoadAccountInfos()}))
 		PanicOnError(results)
 		//
 		// {
@@ -704,13 +707,13 @@ func (this *GrvtCore) InitializeClient(optionalArgs ...interface{}) <-chan inter
 		//     }]
 		// }
 		//
-		var currentBuilders interface{} = GetValue(results, 0)
-		var approvedBuilder interface{} = this.SafeList(currentBuilders, "results", []interface{}{})
-		var length interface{} = GetArrayLength(approvedBuilder)
-		var found interface{} = false
+		var currentBuilders any = GetValue(results, 0)
+		var approvedBuilder any = this.SafeList(currentBuilders, "results", []any{})
+		var length any = GetArrayLength(approvedBuilder)
+		var found any = false
 		for i := 0; IsLessThan(i, length); i++ {
-			var builderInfo interface{} = this.SafeDict(approvedBuilder, i, map[string]interface{}{})
-			var builderAccountId interface{} = this.SafeString(builderInfo, "builder_account_id")
+			var builderInfo any = this.SafeDict(approvedBuilder, i, map[string]any{})
+			var builderAccountId any = this.SafeString(builderInfo, "builder_account_id")
 			if IsTrue(IsEqual(builderAccountId, this.SafeString(this.Options, "builder"))) {
 				found = true
 				break
@@ -721,13 +724,13 @@ func (this *GrvtCore) InitializeClient(optionalArgs ...interface{}) <-chan inter
 		} else {
 
 			{
-				func(this *GrvtCore) (ret_ interface{}) {
+				func(this *GrvtCore) (ret_ any) {
 					defer func() {
 						if e := recover(); e != nil {
 							if e == "break" {
 								return
 							}
-							ret_ = func(this *GrvtCore) interface{} {
+							ret_ = func(this *GrvtCore) any {
 								// catch block:
 								AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
 								return nil
@@ -735,8 +738,8 @@ func (this *GrvtCore) InitializeClient(optionalArgs ...interface{}) <-chan inter
 						}
 					}()
 					// try block:
-					var defaultFromAccountId interface{} = this.SafeString(this.Options, "userMainAccountId") // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
-					var request interface{} = map[string]interface{}{
+					var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId") // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
+					var request any = map[string]any{
 						"main_account_id":      defaultFromAccountId,
 						"builder_account_id":   this.SafeString(this.Options, "builder"),
 						"max_futures_fee_rate": this.SafeString(this.Options, "builderRate"),
@@ -755,8 +758,8 @@ func (this *GrvtCore) InitializeClient(optionalArgs ...interface{}) <-chan inter
 					//     }
 					// }
 					//
-					var authResult interface{} = this.SafeDict(authResponse, "result")
-					var ack interface{} = this.SafeBool(authResult, "ack")
+					var authResult any = this.SafeDict(authResponse, "result")
+					var ack any = this.SafeBool(authResult, "ack")
 					if !IsTrue(ack) {
 						panic(ExchangeError(Add("Builder authorization failed, ", this.Json(authResponse))))
 					}
@@ -782,14 +785,14 @@ func (this *GrvtCore) InitializeClient(optionalArgs ...interface{}) <-chan inter
  * @param {object} [params] extra parameters specific to the exchange api endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *GrvtCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var marketsPromise interface{} = this.PublicMarketPostFullV1AllInstruments(params)
+		var marketsPromise any = this.PublicMarketPostFullV1AllInstruments(params)
 		//
 		//    {
 		//        "result": [
@@ -816,15 +819,15 @@ func (this *GrvtCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface
 		//            },
 		//            ...
 		//
-		var promises interface{} = []interface{}{marketsPromise}
+		var promises any = []any{marketsPromise}
 		if IsTrue(!IsTrue(this.IsEmptyString(this.ApiKey)) || !IsTrue(this.IsEmptyString(this.PrivateKey))) {
 			AppendToArray(&promises, this.SignIn())
 		}
 
 		results := (<-promiseAll(promises))
 		PanicOnError(results)
-		var response interface{} = GetValue(results, 0)
-		var result interface{} = this.SafeList(response, "result", []interface{}{})
+		var response any = GetValue(results, 0)
+		var result any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseMarkets(result)
 		return nil
@@ -832,7 +835,7 @@ func (this *GrvtCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseMarket(market interface{}) interface{} {
+func (this *GrvtCore) ParseMarket(market any) any {
 	//
 	//    {
 	//        "instrument": "BTC_USDT_Perp",
@@ -857,24 +860,24 @@ func (this *GrvtCore) ParseMarket(market interface{}) interface{} {
 	//        "min_notional": "100.0"
 	//    }
 	//
-	var marketId interface{} = this.SafeString(market, "instrument")
-	var baseId interface{} = this.SafeString(market, "base")
-	var quoteId interface{} = this.SafeString(market, "quote")
-	var settleId interface{} = quoteId
-	var base interface{} = this.SafeCurrencyCode(baseId)
-	var quote interface{} = this.SafeCurrencyCode(quoteId)
-	var settle interface{} = this.SafeCurrencyCode(settleId)
-	var symbol interface{} = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-	var typeVar interface{} = nil
-	var typeRaw interface{} = this.SafeString(market, "kind")
+	var marketId any = this.SafeString(market, "instrument")
+	var baseId any = this.SafeString(market, "base")
+	var quoteId any = this.SafeString(market, "quote")
+	var settleId any = quoteId
+	var base any = this.SafeCurrencyCode(baseId)
+	var quote any = this.SafeCurrencyCode(quoteId)
+	var settle any = this.SafeCurrencyCode(settleId)
+	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+	var typeVar any = nil
+	var typeRaw any = this.SafeString(market, "kind")
 	if IsTrue(IsEqual(typeRaw, "PERPETUAL")) {
 		typeVar = "swap"
 	}
-	var isSpot interface{} = (IsEqual(typeVar, "spot"))
-	var isSwap interface{} = (IsEqual(typeVar, "swap"))
-	var isFuture interface{} = (IsEqual(typeVar, "future"))
-	var isContract interface{} = IsTrue(isSwap) || IsTrue(isFuture)
-	return map[string]interface{}{
+	var isSpot any = (IsEqual(typeVar, "spot"))
+	var isSwap any = (IsEqual(typeVar, "swap"))
+	var isFuture any = (IsEqual(typeVar, "future"))
+	var isContract any = IsTrue(isSwap) || IsTrue(isFuture)
+	return map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -898,26 +901,26 @@ func (this *GrvtCore) ParseMarket(market interface{}) interface{} {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"amount": this.SafeNumber(market, "min_size"),
 			"price":  this.SafeNumber(market, "tick_size"),
 			"base":   this.ParseNumber(this.ParsePrecision(this.SafeString(market, "base_decimals"))),
 			"quote":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quote_decimals"))),
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": this.SafeNumber(market, "min_size"),
 				"max": this.SafeNumber(market, "max_position_size"),
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"cost": map[string]interface{}{
+			"cost": map[string]any{
 				"min": this.SafeNumber(market, "min_notional"),
 				"max": nil,
 			},
@@ -935,14 +938,14 @@ func (this *GrvtCore) ParseMarket(market interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *GrvtCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"": "",
 		} // workaround for php [] empty arr
 
@@ -959,7 +962,7 @@ func (this *GrvtCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interf
 		//            },
 		//            ..
 		//
-		var responseResult interface{} = this.SafeList(response, "result", []interface{}{})
+		var responseResult any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseCurrencies(responseResult)
 		return nil
@@ -967,7 +970,7 @@ func (this *GrvtCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interf
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseCurrency(rawCurrency interface{}) interface{} {
+func (this *GrvtCore) ParseCurrency(rawCurrency any) any {
 	//
 	//            {
 	//                "id": "4",
@@ -976,9 +979,9 @@ func (this *GrvtCore) ParseCurrency(rawCurrency interface{}) interface{} {
 	//                "quantity_multiplier": "1000000000"
 	//            },
 	//
-	var id interface{} = this.SafeString(rawCurrency, "symbol")
-	var code interface{} = this.SafeCurrencyCode(id)
-	return this.SafeCurrencyStructure(map[string]interface{}{
+	var id any = this.SafeString(rawCurrency, "symbol")
+	var code any = this.SafeCurrencyCode(id)
+	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
 		"id":        id,
 		"code":      code,
@@ -988,16 +991,16 @@ func (this *GrvtCore) ParseCurrency(rawCurrency interface{}) interface{} {
 		"withdraw":  nil,
 		"fee":       nil,
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "balance_decimals"))),
-		"limits": map[string]interface{}{
-			"amount": map[string]interface{}{
+		"limits": map[string]any{
+			"amount": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"withdraw": map[string]interface{}{
+			"withdraw": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"deposit": map[string]interface{}{
+			"deposit": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
@@ -1015,20 +1018,20 @@ func (this *GrvtCore) ParseCurrency(rawCurrency interface{}) interface{} {
  * @see https://api-docs.grvt.io/market_data_api/#ticker_1
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *GrvtCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8348 := (<-this.LoadMarkets())
-		PanicOnError(retRes8348)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes8398 := (<-this.LoadMarkets())
+		PanicOnError(retRes8398)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"instrument": this.MarketId(symbol),
 		}
 
@@ -1066,7 +1069,7 @@ func (this *GrvtCore) FetchTicker(symbol interface{}, optionalArgs ...interface{
 		//        }
 		//    }
 		//
-		var result interface{} = this.SafeDict(response, "result", map[string]interface{}{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseTicker(result, market)
 		return nil
@@ -1074,7 +1077,7 @@ func (this *GrvtCore) FetchTicker(symbol interface{}, optionalArgs ...interface{
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	//  {
 	//            "event_time": "1764774730025055205",
@@ -1107,8 +1110,8 @@ func (this *GrvtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(ticker, "instrument")
-	return this.SafeTicker(map[string]interface{}{
+	var marketId any = this.SafeString(ticker, "instrument")
+	return this.SafeTicker(map[string]any{
 		"info":          ticker,
 		"symbol":        this.SafeSymbol(marketId, market),
 		"open":          this.SafeString(ticker, "open_price"),
@@ -1142,26 +1145,26 @@ func (this *GrvtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{
  * @param {string} [params.loc] crypto location, default: us
  * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
  */
-func (this *GrvtCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes9438 := (<-this.LoadMarkets())
-		PanicOnError(retRes9438)
-		var request interface{} = map[string]interface{}{
+		retRes9488 := (<-this.LoadMarkets())
+		PanicOnError(retRes9488)
+		var request any = map[string]any{
 			"instrument": this.MarketId(symbol),
 		}
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 100
 		}
 		if IsTrue(IsLessThanOrEqual(limit, 500)) {
-			AddElementToObject(request, "depth", this.FindNearestCeiling([]interface{}{10, 50, 100, 500}, limit))
+			AddElementToObject(request, "depth", this.FindNearestCeiling([]any{10, 50, 100, 500}, limit))
 		}
 
 		response := (<-this.PublicMarketPostFullV1Book(this.Extend(request, params)))
@@ -1182,9 +1185,9 @@ func (this *GrvtCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
 		//        }
 		//    }
 		//
-		var result interface{} = this.SafeDict(response, "result", map[string]interface{}{})
-		var timestamp interface{} = this.Parse8601(this.SafeString(result, "event_time"))
-		var marketId interface{} = this.SafeString(result, "instrument")
+		var result any = this.SafeDict(response, "result", map[string]any{})
+		var timestamp any = this.Parse8601(this.SafeString(result, "event_time"))
+		var marketId any = this.SafeString(result, "instrument")
 
 		ch <- this.ParseOrderBook(result, this.SafeSymbol(marketId), timestamp, "bids", "asks", "price", "size")
 		return nil
@@ -1203,24 +1206,24 @@ func (this *GrvtCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
  * @param {int} [limit] the maximum amount of items to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *GrvtCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes9898 := (<-this.LoadMarkets())
-		PanicOnError(retRes9898)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes9948 := (<-this.LoadMarkets())
+		PanicOnError(retRes9948)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"instrument": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1255,7 +1258,7 @@ func (this *GrvtCore) FetchTrades(symbol interface{}, optionalArgs ...interface{
 		//            },
 		//            ...
 		//
-		var result interface{} = this.SafeList(response, "result", []interface{}{})
+		var result any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseTrades(result, market, since, limit)
 		return nil
@@ -1263,7 +1266,7 @@ func (this *GrvtCore) FetchTrades(symbol interface{}, optionalArgs ...interface{
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// fetchTrades
 	//
@@ -1310,12 +1313,12 @@ func (this *GrvtCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(trade, "instrument")
+	var marketId any = this.SafeString(trade, "instrument")
 	market = this.SafeMarket(marketId, market)
-	var timestamp interface{} = this.SafeIntegerProduct(trade, "event_time", 0.000001)
-	var takerOrMaker interface{} = nil
-	var isTakerBuyer interface{} = this.SafeBool(trade, "is_taker_buyer")
-	var side interface{} = nil
+	var timestamp any = this.SafeIntegerProduct(trade, "event_time", 0.000001)
+	var takerOrMaker any = nil
+	var isTakerBuyer any = this.SafeBool(trade, "is_taker_buyer")
+	var side any = nil
 	if IsTrue(!IsEqual(isTakerBuyer, nil)) {
 		side = Ternary(IsTrue(isTakerBuyer), "buy", "sell")
 		takerOrMaker = "taker"
@@ -1323,16 +1326,16 @@ func (this *GrvtCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
 		takerOrMaker = Ternary(IsTrue(this.SafeBool(trade, "is_taker")), "taker", "maker")
 		side = Ternary(IsTrue(this.SafeBool(trade, "is_buyer")), "buy", "sell")
 	}
-	var fee interface{} = nil
-	var feeString interface{} = this.SafeString(trade, "fee")
+	var fee any = nil
+	var feeString any = this.SafeString(trade, "fee")
 	if IsTrue(!IsEqual(feeString, nil)) {
-		fee = map[string]interface{}{
+		fee = map[string]any{
 			"cost":     this.ParseNumber(feeString),
 			"currency": GetValue(market, "quote"),
 			"rate":     this.SafeNumber(trade, "fee_rate"),
 		}
 	}
-	return this.SafeTrade(map[string]interface{}{
+	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "trade_id"),
 		"timestamp":    timestamp,
@@ -1362,9 +1365,9 @@ func (this *GrvtCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *GrvtCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -1373,34 +1376,34 @@ func (this *GrvtCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var maxLimit interface{} = 1000
+		var maxLimit any = 1000
 
-		retRes11258 := (<-this.LoadMarkets())
-		PanicOnError(retRes11258)
-		var paginate interface{} = false
+		retRes11308 := (<-this.LoadMarkets())
+		PanicOnError(retRes11308)
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes112919 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-			PanicOnError(retRes112919)
-			ch <- retRes112919
+			retRes113419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+			PanicOnError(retRes113419)
+			ch <- retRes113419
 			return nil
 		}
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"instrument": GetValue(market, "id"),
 			"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
-		var priceTypeMap interface{} = map[string]interface{}{
+		var priceTypeMap any = map[string]any{
 			"last":  "TRADE",
 			"mark":  "MARK",
 			"index": "INDEX",
 		}
-		var selectedPriceType interface{} = this.SafeString(params, "priceType", "last")
+		var selectedPriceType any = this.SafeString(params, "priceType", "last")
 		AddElementToObject(request, "type", this.SafeString(priceTypeMap, selectedPriceType))
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -1433,7 +1436,7 @@ func (this *GrvtCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
 		//        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
 		//    }
 		//
-		var candles interface{} = this.SafeList(response, "result", []interface{}{})
+		var candles any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
 		return nil
@@ -1441,7 +1444,7 @@ func (this *GrvtCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	//            {
 	//                "open_time": "1767288240000000000",
@@ -1458,7 +1461,7 @@ func (this *GrvtCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{})
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	return []interface{}{this.SafeIntegerProduct(ohlcv, "open_time", 0.000001), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume_b")}
+	return []any{this.SafeIntegerProduct(ohlcv, "open_time", 0.000001), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume_b")}
 }
 
 /**
@@ -1468,15 +1471,15 @@ func (this *GrvtCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{})
  * @see https://api-docs.grvt.io/market_data_api/#funding-rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *GrvtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1485,27 +1488,27 @@ func (this *GrvtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-cha
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes12178 := (<-this.LoadMarkets())
-		PanicOnError(retRes12178)
-		var paginate interface{} = false
+		retRes12228 := (<-this.LoadMarkets())
+		PanicOnError(retRes12228)
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes122119 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes122119)
-			ch <- retRes122119
+			retRes122619 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes122619)
+			ch <- retRes122619
 			return nil
 		}
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"instrument": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1536,7 +1539,7 @@ func (this *GrvtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-cha
 		//        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
 		//    }
 		//
-		var result interface{} = this.SafeList(response, "result", []interface{}{})
+		var result any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseFundingRateHistories(result, market)
 		return nil
@@ -1544,7 +1547,7 @@ func (this *GrvtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-cha
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseFundingRateHistory(rawItem interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParseFundingRateHistory(rawItem any, optionalArgs ...any) any {
 	//
 	//            {
 	//                "instrument": "BTC_USDT_Perp",
@@ -1557,9 +1560,9 @@ func (this *GrvtCore) ParseFundingRateHistory(rawItem interface{}, optionalArgs 
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(rawItem, "instrument")
-	var ts interface{} = this.SafeIntegerProduct(rawItem, "funding_time", 0.000001)
-	return map[string]interface{}{
+	var marketId any = this.SafeString(rawItem, "instrument")
+	var ts any = this.SafeIntegerProduct(rawItem, "funding_time", 0.000001)
+	return map[string]any{
 		"info":        rawItem,
 		"symbol":      this.SafeSymbol(marketId, market),
 		"fundingRate": this.SafeNumber(rawItem, "funding_rate"),
@@ -1567,8 +1570,8 @@ func (this *GrvtCore) ParseFundingRateHistory(rawItem interface{}, optionalArgs 
 		"datetime":    this.Iso8601(ts),
 	}
 }
-func (this *GrvtCore) GetSubAccountId(params interface{}) interface{} {
-	var subAccountId interface{} = nil
+func (this *GrvtCore) GetSubAccountId(params any) any {
+	var subAccountId any = nil
 	subAccountIdparamsVariable := this.HandleOptionAndParams(params, "getSubAccountId", "accountId")
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
 	params = GetValue(subAccountIdparamsVariable, 1)
@@ -1584,19 +1587,19 @@ func (this *GrvtCore) GetSubAccountId(params interface{}) interface{} {
  * @description query for account info
  * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *GrvtCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes12958 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes12958)
-		var request interface{} = map[string]interface{}{
+		retRes13008 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes13008)
+		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
 
@@ -1630,7 +1633,7 @@ func (this *GrvtCore) FetchBalance(optionalArgs ...interface{}) <-chan interface
 		//        }
 		//    }
 		//
-		var result interface{} = this.SafeDict(response, "result", map[string]interface{}{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseBalance(result)
 		return nil
@@ -1638,7 +1641,7 @@ func (this *GrvtCore) FetchBalance(optionalArgs ...interface{}) <-chan interface
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseBalance(response interface{}) interface{} {
+func (this *GrvtCore) ParseBalance(response any) any {
 	//
 	//        {
 	//            "event_time": "1764863116142428457",
@@ -1665,19 +1668,19 @@ func (this *GrvtCore) ParseBalance(response interface{}) interface{} {
 	//            "cross_unrealized_pnl": "0.0"
 	//        }
 	//
-	var timestamp interface{} = this.SafeIntegerProduct(response, "event_time", 0.000001)
-	var result interface{} = map[string]interface{}{
+	var timestamp any = this.SafeIntegerProduct(response, "event_time", 0.000001)
+	var result any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var spotBalances interface{} = this.SafeList(response, "spot_balances", []interface{}{})
-	var availableBalance interface{} = this.SafeString(response, "available_balance")
+	var spotBalances any = this.SafeList(response, "spot_balances", []any{})
+	var availableBalance any = this.SafeString(response, "available_balance")
 	for i := 0; IsLessThan(i, GetArrayLength(spotBalances)); i++ {
-		var balance interface{} = GetValue(spotBalances, i)
-		var currencyId interface{} = this.SafeString(balance, "currency")
-		var code interface{} = this.SafeCurrencyCode(currencyId)
-		var account interface{} = this.Account()
+		var balance any = GetValue(spotBalances, i)
+		var currencyId any = this.SafeString(balance, "currency")
+		var code any = this.SafeCurrencyCode(currencyId)
+		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		AddElementToObject(account, "free", availableBalance) // todo: revise after API team clarification
 		AddElementToObject(result, code, account)
@@ -1695,11 +1698,11 @@ func (this *GrvtCore) ParseBalance(response interface{}) interface{} {
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *GrvtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1708,16 +1711,16 @@ func (this *GrvtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes13928 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes13928)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+		retRes13978 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes13978)
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
-			AddElementToObject(request, "currency", []interface{}{GetValue(currency, "code")})
+			AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -1728,13 +1731,13 @@ func (this *GrvtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfac
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 		}
-		var useTransfersEndpoint interface{} = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
+		var useTransfersEndpoint any = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
 		if IsTrue(useTransfersEndpoint) {
 
 			transfers := (<-this.InternalFetchTransfers(this.Extend(request, params), currency, since, limit))
 			PanicOnError(transfers)
-			var filteredResults interface{} = this.FilterTransfersByType(transfers, "deposit", true)
-			var transactions interface{} = this.GetListFromObjectValues(GetValue(filteredResults, 0), "info")
+			var filteredResults any = this.FilterTransfersByType(transfers, "deposit", true)
+			var transactions any = this.GetListFromObjectValues(GetValue(filteredResults, 0), "info")
 
 			ch <- this.ParseTransactions(transactions, currency, since, limit)
 			return nil
@@ -1757,7 +1760,7 @@ func (this *GrvtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfac
 			//     "next": "Qw0918="
 			// }
 			//
-			var result interface{} = this.SafeList(response, "result", []interface{}{})
+			var result any = this.SafeList(response, "result", []any{})
 
 			ch <- this.ParseTransactions(result, currency, since, limit)
 			return nil
@@ -1769,7 +1772,7 @@ func (this *GrvtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfac
 
 /**
  * @method
- * @name grvrt#fetchWithdrawals
+ * @name grvt#fetchWithdrawals
  * @description fetch all withdrawals made from an account
  * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
  * @param {string} [code] unified currency code of the currency transferred
@@ -1777,11 +1780,11 @@ func (this *GrvtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfac
  * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *GrvtCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1790,18 +1793,18 @@ func (this *GrvtCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inter
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes14478 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes14478)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+		retRes14528 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes14528)
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(IsEqual(code, nil)) {
 			AddElementToObject(request, "currency", nil)
 		} else {
 			currency = this.Currency(code)
-			AddElementToObject(request, "currency", []interface{}{GetValue(currency, "code")})
+			AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -1812,13 +1815,13 @@ func (this *GrvtCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inter
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_time", this.NumberToString(Multiply(since, 1000000)))
 		}
-		var useTransfersEndpoint interface{} = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
+		var useTransfersEndpoint any = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
 		if IsTrue(useTransfersEndpoint) {
 
 			transfers := (<-this.InternalFetchTransfers(this.Extend(request, params), currency, since, limit))
 			PanicOnError(transfers)
-			var filteredResults interface{} = this.FilterTransfersByType(transfers, "withdrawal", true)
-			var transactions interface{} = this.GetListFromObjectValues(GetValue(filteredResults, 0), "info")
+			var filteredResults any = this.FilterTransfersByType(transfers, "withdrawal", true)
+			var transactions any = this.GetListFromObjectValues(GetValue(filteredResults, 0), "info")
 
 			ch <- this.ParseTransactions(transactions, currency, since, limit)
 			return nil
@@ -1850,7 +1853,7 @@ func (this *GrvtCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inter
 			//     "next": "Qw0918="
 			// }
 			//
-			var result interface{} = this.SafeList(response, "result", []interface{}{})
+			var result any = this.SafeList(response, "result", []any{})
 
 			ch <- this.ParseTransactions(result, currency, since, limit)
 			return nil
@@ -1859,9 +1862,9 @@ func (this *GrvtCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *GrvtCore) InternalFetchTransfers(req interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) InternalFetchTransfers(req any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		currency := GetArg(optionalArgs, 0, nil)
@@ -1902,8 +1905,8 @@ func (this *GrvtCore) InternalFetchTransfers(req interface{}, optionalArgs ...in
 		//        "next": ""
 		//    }
 		//
-		var rows interface{} = this.SafeList(response, "result", []interface{}{})
-		var transfers interface{} = this.ParseTransfers(rows, currency, since, limit)
+		var rows any = this.SafeList(response, "result", []any{})
+		var transfers any = this.ParseTransfers(rows, currency, since, limit)
 
 		ch <- transfers
 		return nil
@@ -1911,7 +1914,7 @@ func (this *GrvtCore) InternalFetchTransfers(req interface{}, optionalArgs ...in
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	// fetchDeposits
 	//
@@ -1982,18 +1985,20 @@ func (this *GrvtCore) ParseTransaction(transaction interface{}, optionalArgs ...
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var direction interface{} = nil
-	var txId interface{} = nil
-	var networkCode interface{} = nil
-	var addressFrom interface{} = this.SafeString(transaction, "from_account_id")
-	var addressTo interface{} = this.SafeString(transaction, "to_account_id")
+	var direction any = nil
+	var txId any = nil
+	var networkCode any = nil
+	var addressFrom any = this.SafeString(transaction, "from_account_id")
+	var addressTo any = this.SafeString(transaction, "to_account_id")
+	var currencyId any = this.SafeString(transaction, "currency")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
 	if IsTrue(InOp(transaction, "transfer_metadata")) {
-		var metaData interface{} = this.OmitZero(this.SafeString(transaction, "transfer_metadata"))
+		var metaData any = this.OmitZero(this.SafeString(transaction, "transfer_metadata"))
 		if IsTrue(!IsEqual(metaData, nil)) {
-			var parsedMeta interface{} = this.ParseJson(metaData)
+			var parsedMeta any = this.ParseJson(metaData)
 			direction = this.SafeStringLower(parsedMeta, "direction")
 			txId = this.SafeString(parsedMeta, "provider_tx_id")
-			networkCode = this.NetworkIdToCode(this.SafeString(parsedMeta, "chainid"))
+			networkCode = this.NetworkIdToCode(this.SafeString(parsedMeta, "chainid"), code)
 			if IsTrue(IsEqual(direction, "withdrawal")) {
 				addressTo = this.SafeString(parsedMeta, "endpoint")
 			} else if IsTrue(IsEqual(direction, "deposit")) {
@@ -2001,10 +2006,8 @@ func (this *GrvtCore) ParseTransaction(transaction interface{}, optionalArgs ...
 			}
 		}
 	}
-	var timestamp interface{} = this.SafeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001)
-	var currencyId interface{} = this.SafeString(transaction, "currency")
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
-	return map[string]interface{}{
+	var timestamp any = this.SafeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001)
+	return map[string]any{
 		"info":        transaction,
 		"id":          nil,
 		"txid":        txId,
@@ -2037,11 +2040,11 @@ func (this *GrvtCore) ParseTransaction(transaction interface{}, optionalArgs ...
  * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] whether to paginate the results (default false)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *GrvtCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchTransfers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2050,26 +2053,26 @@ func (this *GrvtCore) FetchTransfers(optionalArgs ...interface{}) <-chan interfa
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
 		}
 
-		retRes16668 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes16668)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = this.Currency(code)
-		var maxLimit interface{} = 1000
-		var paginate interface{} = false
+		retRes16718 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes16718)
+		var request any = map[string]any{}
+		var currency any = this.Currency(code)
+		var maxLimit any = 1000
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes167319 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", nil, since, limit, params, maxLimit))
-			PanicOnError(retRes167319)
-			ch <- retRes167319
+			retRes167819 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", nil, since, limit, params, maxLimit))
+			PanicOnError(retRes167819)
+			ch <- retRes167819
 			return nil
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2113,9 +2116,9 @@ func (this *GrvtCore) FetchTransfers(optionalArgs ...interface{}) <-chan interfa
 		//        "next": ""
 		//    }
 		//
-		var rows interface{} = this.SafeList(response, "result", []interface{}{})
-		var transfers interface{} = this.ParseTransfers(rows, currency, since, limit)
-		var filteredResults interface{} = this.FilterTransfersByType(transfers, "internal", false)
+		var rows any = this.SafeList(response, "result", []any{})
+		var transfers any = this.ParseTransfers(rows, currency, since, limit)
+		var filteredResults any = this.FilterTransfersByType(transfers, "internal", false)
 
 		ch <- GetValue(filteredResults, 1)
 		return nil
@@ -2123,17 +2126,17 @@ func (this *GrvtCore) FetchTransfers(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *GrvtCore) FilterTransfersByType(transfers interface{}, transferType interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) FilterTransfersByType(transfers any, transferType any, optionalArgs ...any) any {
 	onlyMainAccount := GetArg(optionalArgs, 0, true)
 	_ = onlyMainAccount
-	var matchedResults interface{} = []interface{}{}
-	var nonMatchedResults interface{} = []interface{}{}
+	var matchedResults any = []any{}
+	var nonMatchedResults any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(transfers)); i++ {
-		var transfer interface{} = GetValue(transfers, i)
+		var transfer any = GetValue(transfers, i)
 		if IsTrue(IsTrue((IsTrue(IsTrue(onlyMainAccount) && IsTrue(IsEqual(GetValue(transfer, "fromAccount"), "0"))) && IsTrue(IsEqual(GetValue(transfer, "toAccount"), "0")))) || IsTrue((!IsTrue(onlyMainAccount) && IsTrue((IsTrue(!IsEqual(GetValue(transfer, "fromAccount"), "0")) || IsTrue(!IsEqual(GetValue(transfer, "toAccount"), "0"))))))) {
-			var metadata interface{} = this.SafeString(GetValue(transfer, "info"), "transfer_metadata")
-			var parsedMetadata interface{} = this.ParseJson(metadata)
-			var direction interface{} = this.SafeString(parsedMetadata, "direction")
+			var metadata any = this.SafeString(GetValue(transfer, "info"), "transfer_metadata")
+			var parsedMetadata any = this.ParseJson(metadata)
+			var direction any = this.SafeString(parsedMetadata, "direction")
 			if IsTrue(IsEqual(direction, transferType)) {
 				AppendToArray(&matchedResults, transfer)
 			} else {
@@ -2141,7 +2144,7 @@ func (this *GrvtCore) FilterTransfersByType(transfers interface{}, transferType 
 			}
 		}
 	}
-	return []interface{}{matchedResults, nonMatchedResults}
+	return []any{matchedResults, nonMatchedResults}
 }
 
 /**
@@ -2154,26 +2157,26 @@ func (this *GrvtCore) FilterTransfersByType(transfers interface{}, transferType 
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *GrvtCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes17508 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes17508)
-		var currency interface{} = this.Currency(code)
-		var defaultFromAccountId interface{} = this.SafeString(this.Options, "userMainAccountId")
-		if IsTrue(IsTrue(this.InArray(fromAccount, []interface{}{"trading", "funding"})) && IsTrue(this.InArray(toAccount, []interface{}{"trading", "funding"}))) {
-			var tradingAccountId interface{} = nil
+		retRes17558 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes17558)
+		var currency any = this.Currency(code)
+		var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId")
+		if IsTrue(IsTrue(this.InArray(fromAccount, []any{"trading", "funding"})) && IsTrue(this.InArray(toAccount, []any{"trading", "funding"}))) {
+			var tradingAccountId any = nil
 			tradingAccountIdparamsVariable := this.HandleOptionAndParams(params, "transfer", "tradingAccountId")
 			tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
 			params = GetValue(tradingAccountIdparamsVariable, 1)
-			var fundingAccountId interface{} = nil
+			var fundingAccountId any = nil
 			fundingAccountIdparamsVariable := this.HandleOptionAndParams(params, "transfer", "fundingAccountId")
 			fundingAccountId = GetValue(fundingAccountIdparamsVariable, 0)
 			params = GetValue(fundingAccountIdparamsVariable, 1)
@@ -2183,7 +2186,7 @@ func (this *GrvtCore) Transfer(code interface{}, amount interface{}, fromAccount
 			fromAccount = Ternary(IsTrue((IsEqual(fromAccount, "trading"))), tradingAccountId, fundingAccountId)
 			toAccount = Ternary(IsTrue((IsEqual(toAccount, "trading"))), tradingAccountId, fundingAccountId)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"from_account_id":     this.SafeString(params, "from_account_id", defaultFromAccountId),
 			"from_sub_account_id": this.SafeString(params, "from_sub_account_id", fromAccount),
 			"to_account_id":       this.SafeString(params, "to_account_id", defaultFromAccountId),
@@ -2195,19 +2198,19 @@ func (this *GrvtCore) Transfer(code interface{}, amount interface{}, fromAccount
 			"transfer_metadata":   nil,
 		}
 		request = this.CreateSignedRequest(request, "EIP712_TRANSFER_TYPE", currency)
-		var response interface{} = nil
+		var response any = nil
 
 		{
-			func(this *GrvtCore) (ret_ interface{}) {
+			func(this *GrvtCore) (ret_ any) {
 				defer func() {
 					if error := recover(); error != nil {
 						if error == "break" {
 							return
 						}
-						ret_ = func(this *GrvtCore) interface{} {
+						ret_ = func(this *GrvtCore) any {
 							// catch block:
-							var msg interface{} = this.ExceptionMessage(error)
-							var isFromFundingAccount interface{} = IsEqual(fromAccount, "funding")
+							var msg any = this.ExceptionMessage(error)
+							var isFromFundingAccount any = IsEqual(fromAccount, "funding")
 							if IsTrue(IsTrue(isFromFundingAccount) && IsTrue(GetIndexOf(msg, "You are not authorized"))) {
 								panic(PermissionDenied(Add(Add(this.Id, " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)))
 							}
@@ -2232,7 +2235,7 @@ func (this *GrvtCore) Transfer(code interface{}, amount interface{}, fromAccount
 		//     }
 		// }
 		//
-		var result interface{} = this.SafeDict(response, "result", map[string]interface{}{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseTransfer(result, currency)
 		return nil
@@ -2240,7 +2243,7 @@ func (this *GrvtCore) Transfer(code interface{}, amount interface{}, fromAccount
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	// transfer
 	//
@@ -2275,10 +2278,10 @@ func (this *GrvtCore) ParseTransfer(transfer interface{}, optionalArgs ...interf
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId interface{} = this.SafeString(transfer, "currency")
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
-	var timestamp interface{} = this.SafeIntegerProduct(transfer, "event_time", 0.000001)
-	return map[string]interface{}{
+	var currencyId any = this.SafeString(transfer, "currency")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var timestamp any = this.SafeIntegerProduct(transfer, "event_time", 0.000001)
+	return map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "tx_id"),
 		"timestamp":   timestamp,
@@ -2290,16 +2293,17 @@ func (this *GrvtCore) ParseTransfer(transfer interface{}, optionalArgs ...interf
 		"status":      nil,
 	}
 }
-func (this *GrvtCore) LoadAccountInfos() <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) LoadAccountInfos() <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		if IsTrue(!IsEqual(this.SafeString(this.Options, "userMainAccountId"), nil)) {
 
+			ch <- false
 			return nil
 		}
-		var promises interface{} = []interface{}{}
+		var promises any = []any{}
 		AppendToArray(&promises, this.PrivateTradingPostFullV1AggregatedAccountSummary())
 		//
 		//     {
@@ -2325,7 +2329,7 @@ func (this *GrvtCore) LoadAccountInfos() <-chan interface{} {
 		//         }
 		//     }
 		//
-		var accountIsUndefined interface{} = IsEqual(this.SafeString(this.Options, "accountId"), nil)
+		var accountIsUndefined any = IsEqual(this.SafeString(this.Options, "accountId"), nil)
 		if IsTrue(accountIsUndefined) {
 			AppendToArray(&promises, this.PrivateTradingPostFullV1GetSubAccounts())
 		}
@@ -2337,22 +2341,25 @@ func (this *GrvtCore) LoadAccountInfos() <-chan interface{} {
 
 		responses := (<-promiseAll(promises))
 		PanicOnError(responses)
-		var result1 interface{} = this.SafeDict(GetValue(responses, 0), "result", map[string]interface{}{})
-		var mainAccountId interface{} = this.SafeString(result1, "main_account_id")
+		var result1 any = this.SafeDict(GetValue(responses, 0), "result", map[string]any{})
+		var mainAccountId any = this.SafeString(result1, "main_account_id")
 		AddElementToObject(this.Options, "userMainAccountId", mainAccountId)
 		if IsTrue(accountIsUndefined) {
-			var subAccountIds interface{} = this.SafeList(GetValue(responses, 1), "sub_account_ids", []interface{}{})
-			var length interface{} = GetArrayLength(subAccountIds)
+			var subAccountIds any = this.SafeList(GetValue(responses, 1), "sub_account_ids", []any{})
+			var length any = GetArrayLength(subAccountIds)
 			if IsTrue(IsLessThan(length, 1)) {
 				panic(ArgumentsRequired(Add(this.Id, " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")))
 			}
 			if IsTrue(IsGreaterThan(length, 1)) {
 				panic(ArgumentsRequired(Add(Add(this.Id, " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: "), this.Json(subAccountIds))))
 			}
-			var subAccountId interface{} = this.SafeString(subAccountIds, 0)
+			var subAccountId any = this.SafeString(subAccountIds, 0)
 			AddElementToObject(this.Options, "accountId", subAccountId)
 		}
+
+		ch <- true
 		return nil
+
 	}()
 	return ch
 }
@@ -2368,24 +2375,24 @@ func (this *GrvtCore) LoadAccountInfos() <-chan interface{} {
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.network the network to withdraw on (mandatory)
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *GrvtCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		this.CheckAddress(address)
 
-		retRes19208 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes19208)
-		var defaultFromAccountId interface{} = this.SafeString(this.Options, "userMainAccountId")
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+		retRes19268 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes19268)
+		var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId")
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"to_eth_address":  address,
 			"from_account_id": defaultFromAccountId,
 			"currency":        GetValue(currency, "id"),
@@ -2395,7 +2402,7 @@ func (this *GrvtCore) Withdraw(code interface{}, amount interface{}, address int
 		networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode := GetValue(networkCodequeryVariable, 0)
 		query := GetValue(networkCodequeryVariable, 1)
-		var networkId interface{} = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, code)
 		if IsTrue(IsEqual(networkId, nil)) {
 			panic(BadRequest(Add(this.Id, " withdraw() requires a network parameter")))
 		}
@@ -2411,7 +2418,7 @@ func (this *GrvtCore) Withdraw(code interface{}, amount interface{}, address int
 		//     }
 		// }
 		//
-		var result interface{} = this.SafeDict(response, "result", map[string]interface{}{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseTransaction(result, currency)
 		return nil
@@ -2438,22 +2445,22 @@ func (this *GrvtCore) Withdraw(code interface{}, amount interface{}, address int
  * @param {bool} [params.postOnly] true or false
  * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *GrvtCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes19708 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes19708)
-		var market interface{} = this.Market(symbol)
-		var orderLeg interface{} = map[string]interface{}{
+		retRes19768 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes19768)
+		var market any = this.Market(symbol)
+		var orderLeg any = map[string]any{
 			"instrument": GetValue(market, "id"),
 			"size":       this.AmountToPrecision(symbol, amount),
 		}
@@ -2469,36 +2476,42 @@ func (this *GrvtCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		} else {
 			panic(InvalidOrder(Add(this.Id, " createOrder(): order side must be either \"buy\" or \"sell\"")))
 		}
-		var isMarketOrder interface{} = (IsEqual(typeVar, "market"))
-		var orderRequest interface{} = map[string]interface{}{
-			"sub_account_id": this.GetSubAccountId(params),
+		var clientOrderId any = this.SafeString(params, "clientOrderId")
+		if IsTrue(IsEqual(clientOrderId, nil)) {
+			clientOrderId = Add(Add(ToString(this.Nonce()), "000"), ToString(this.RequestId()))
+		}
+		params = this.Omit(params, []any{"clientOrderId"})
+		var isMarketOrder any = (IsEqual(typeVar, "market"))
+		var subAccountId any = this.GetSubAccountId(params)
+		var isReduceOnly any = this.SafeBool(params, "reduceOnly", false)
+		var orderRequest any = map[string]any{
+			"sub_account_id": subAccountId,
 			"time_in_force":  nil,
-			"legs":           []interface{}{orderLeg},
+			"legs":           []any{orderLeg},
 			"signature":      this.DefaultSignature(),
-			"metadata": map[string]interface{}{
-				"client_order_id": Add(Add(ToString(this.Nonce()), "000"), ToString(this.RequestId())),
+			"metadata": map[string]any{
+				"client_order_id": clientOrderId,
 			},
 			"is_market":   isMarketOrder,
 			"post_only":   false,
-			"reduce_only": this.SafeBool(params, "reduceOnly", false),
+			"reduce_only": isReduceOnly,
 		}
-		var timeInForce interface{} = this.SafeStringUpper(params, "timeInForce")
-		var postOnly interface{} = this.IsPostOnly(isMarketOrder, nil, params)
+		var timeInForce any = this.SafeStringUpper(params, "timeInForce", "GOOD_TILL_TIME")
+		var postOnly any = this.IsPostOnly(isMarketOrder, nil, params)
 		if IsTrue(postOnly) {
 			AddElementToObject(orderRequest, "post_only", true)
-		} else {
-			if IsTrue(IsEqual(timeInForce, nil)) {
-				timeInForce = "GOOD_TILL_TIME"
-			} else {
-				var tifMap interface{} = map[string]interface{}{
-					"GTC": "GOOD_TILL_TIME",
-					"FOK": "FILL_OR_KILL",
-					"IOC": "IMMEDIATE_OR_CANCEL",
-				}
-				timeInForce = this.SafeString(tifMap, timeInForce, timeInForce)
-			}
-			AddElementToObject(orderRequest, "time_in_force", timeInForce)
 		}
+		if IsTrue(IsEqual(timeInForce, nil)) {
+			timeInForce = "GOOD_TILL_TIME"
+		} else {
+			var tifMap any = map[string]any{
+				"GTC": "GOOD_TILL_TIME",
+				"FOK": "FILL_OR_KILL",
+				"IOC": "IMMEDIATE_OR_CANCEL",
+			}
+			timeInForce = this.SafeString(tifMap, timeInForce, timeInForce)
+		}
+		AddElementToObject(orderRequest, "time_in_force", timeInForce)
 		if !IsTrue(isMarketOrder) {
 			if IsTrue(postOnly) {
 				timeInForce = "POST_ONLY"
@@ -2506,11 +2519,11 @@ func (this *GrvtCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 				timeInForce = "IMMEDIATE_OR_CANCEL"
 			}
 		}
-		params = this.Omit(params, []interface{}{"reduceOnly", "postOnly", "timeInForce"})
+		params = this.Omit(params, []any{"reduceOnly", "postOnly", "timeInForce"})
 		// Trigger & SL & TP
-		var triggerPrice interface{} = nil
-		var stopLossPrice interface{} = nil
-		var takeProfitPrice interface{} = nil
+		var triggerPrice any = nil
+		var stopLossPrice any = nil
+		var takeProfitPrice any = nil
 		triggerPricestopLossPricetakeProfitPriceparamsVariable := this.HandleTriggerPricesAndParams(symbol, params)
 		triggerPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 0)
 		stopLossPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 1)
@@ -2518,7 +2531,7 @@ func (this *GrvtCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		params = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 3)
 		if IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLossPrice, nil))) || IsTrue(!IsEqual(takeProfitPrice, nil))) {
 			// trigger price
-			var selectedPrice interface{} = nil
+			var selectedPrice any = nil
 			if IsTrue(!IsEqual(triggerPrice, nil)) {
 				selectedPrice = triggerPrice
 			} else if IsTrue(!IsEqual(stopLossPrice, nil)) {
@@ -2527,14 +2540,14 @@ func (this *GrvtCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 				selectedPrice = takeProfitPrice
 			}
 			// trigger type
-			var selectedType interface{} = nil
-			var isBuy interface{} = (IsEqual(side, "buy"))
+			var selectedType any = nil
+			var isBuy any = (IsEqual(side, "buy"))
 			if IsTrue(!IsEqual(stopLossPrice, nil)) {
 				selectedType = Ternary(IsTrue(isBuy), "STOP_LOSS", "TAKE_PROFIT")
 			} else if IsTrue(!IsEqual(takeProfitPrice, nil)) {
 				selectedType = Ternary(IsTrue(isBuy), "TAKE_PROFIT", "STOP_LOSS")
 			} else {
-				var triggerDirection interface{} = this.SafeString(params, "triggerDirection")
+				var triggerDirection any = this.SafeString(params, "triggerDirection")
 				if IsTrue(IsEqual(triggerDirection, nil)) {
 					panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be \"ascending\" or \"descending\"")))
 				}
@@ -2547,27 +2560,27 @@ func (this *GrvtCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 				}
 			}
 			// trigger by
-			var triggerPriceType interface{} = this.SafeStringUpper(params, "triggerPriceType", "LAST")
-			AddElementToObject(GetValue(orderRequest, "metadata"), "trigger", map[string]interface{}{
+			var triggerPriceType any = this.SafeStringUpper(params, "triggerPriceType", "LAST")
+			AddElementToObject(GetValue(orderRequest, "metadata"), "trigger", map[string]any{
 				"trigger_type": selectedType,
-				"tpsl": map[string]interface{}{
+				"tpsl": map[string]any{
 					"trigger_by":     triggerPriceType,
 					"trigger_price":  selectedPrice,
 					"close_position": this.SafeBool(params, "closePosition", false),
 				},
 			})
-			params = this.Omit(params, []interface{}{"triggerDirection", "triggerPriceType", "closePosition"})
+			params = this.Omit(params, []any{"triggerDirection", "triggerPriceType", "closePosition"})
 		}
-		var eipType interface{} = "EIP712_ORDER_TYPE"
-		var builderFee interface{} = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true))
+		var eipType any = "EIP712_ORDER_TYPE"
+		var builderFee any = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true))
 		if IsTrue(builderFee) {
 			eipType = "EIP712_ORDER_WITH_BUILDER_TYPE"
 			AddElementToObject(orderRequest, "builder", this.SafeString(this.Options, "builder"))
 			AddElementToObject(orderRequest, "builder_fee", this.SafeString(this.Options, "builderRate"))
 		}
-		params = this.Omit(params, []interface{}{"builderFee"})
-		var signedOrderRequest interface{} = this.CreateSignedRequest(orderRequest, eipType)
-		var request interface{} = map[string]interface{}{
+		params = this.Omit(params, []any{"builderFee"})
+		var signedOrderRequest any = this.CreateSignedRequest(orderRequest, eipType)
+		var request any = map[string]any{
 			"order": signedOrderRequest,
 		}
 
@@ -2633,7 +2646,7 @@ func (this *GrvtCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		//        }
 		//    }
 		//
-		var data interface{} = this.SafeDict(response, "result", map[string]interface{}{})
+		var data any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseOrder(data, market)
 		return nil
@@ -2641,47 +2654,47 @@ func (this *GrvtCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 	}()
 	return ch
 }
-func (this *GrvtCore) ConvertToBigIntCustom(x interface{}) interface{} {
+func (this *GrvtCore) ConvertToBigIntCustom(x any) any {
 	return ParseInt(x)
 }
-func (this *GrvtCore) EipMessageForOrder(order interface{}, structureType interface{}) interface{} {
-	var priceMultiplier interface{} = "1000000000"
-	var orderLegs interface{} = this.SafeList(order, "legs", []interface{}{})
-	var legs interface{} = []interface{}{}
+func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
+	var priceMultiplier any = "1000000000"
+	var orderLegs any = this.SafeList(order, "legs", []any{})
+	var legs any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(orderLegs)); i++ {
-		var leg interface{} = GetValue(orderLegs, i)
-		var market interface{} = this.Market(GetValue(leg, "instrument"))
-		var bigInt10 interface{} = this.ConvertToBigIntCustom("10")
-		var precisionValue interface{} = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "base"))
-		var precisionValueStr interface{} = ToString(precisionValue)
-		var sizeMultiplier interface{} = MathPow(bigInt10, this.ConvertToBigIntCustom(precisionValueStr))
-		var size interface{} = GetValue(leg, "size")
-		var sizeParts interface{} = Split(size, ".")
-		var sizeDec interface{} = this.SafeString(sizeParts, 1, "")
-		var sizeDecLength interface{} = Add(GetLength(sizeDec), 0) // php tr
-		var sizeDecLengthStr interface{} = ToString(sizeDecLength)
-		var sizeInteger interface{} = Divide(Multiply(this.ConvertToBigIntCustom(Replace(size, ".", "")), sizeMultiplier), (MathPow(bigInt10, this.ConvertToBigIntCustom(sizeDecLengthStr))))
-		var legOrder interface{} = map[string]interface{}{
+		var leg any = GetValue(orderLegs, i)
+		var market any = this.Market(GetValue(leg, "instrument"))
+		var bigInt10 any = this.ConvertToBigIntCustom("10")
+		var precisionValue any = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "base"))
+		var precisionValueStr any = ToString(precisionValue)
+		var sizeMultiplier any = MathPow(bigInt10, this.ConvertToBigIntCustom(precisionValueStr))
+		var size any = GetValue(leg, "size")
+		var sizeParts any = Split(size, ".")
+		var sizeDec any = this.SafeString(sizeParts, 1, "")
+		var sizeDecLength any = Add(GetLength(sizeDec), 0) // php tr
+		var sizeDecLengthStr any = ToString(sizeDecLength)
+		var sizeInteger any = Divide(Multiply(this.ConvertToBigIntCustom(Replace(size, ".", "")), sizeMultiplier), (MathPow(bigInt10, this.ConvertToBigIntCustom(sizeDecLengthStr))))
+		var legOrder any = map[string]any{
 			"assetID":          GetValue(GetValue(market, "info"), "instrument_hash"),
 			"contractSize":     this.ParseToInt(sizeInteger),
 			"isBuyingContract": GetValue(leg, "is_buying_asset"),
 		}
-		var limitPrice interface{} = this.SafeString(leg, "limit_price")
+		var limitPrice any = this.SafeString(leg, "limit_price")
 		if IsTrue(!IsEqual(this.OmitZero(limitPrice), nil)) {
-			var price interface{} = GetValue(leg, "limit_price")
-			var limitParts interface{} = Split(price, ".")
-			var limitDec interface{} = this.SafeString(limitParts, 1, "")
-			var limitDecLength interface{} = Add(GetLength(limitDec), 0) // php tr
-			var limitDecLengthStr interface{} = ToString(limitDecLength)
-			var powerNum interface{} = Ternary(IsTrue(IsEqual(limitDecLengthStr, "0")), 0, this.ConvertToBigIntCustom(limitDecLengthStr))
-			var priceInteger interface{} = (Divide(Multiply(this.ConvertToBigIntCustom(Replace(price, ".", "")), this.ConvertToBigIntCustom(priceMultiplier)), (MathPow(bigInt10, powerNum))))
+			var price any = GetValue(leg, "limit_price")
+			var limitParts any = Split(price, ".")
+			var limitDec any = this.SafeString(limitParts, 1, "")
+			var limitDecLength any = Add(GetLength(limitDec), 0) // php tr
+			var limitDecLengthStr any = ToString(limitDecLength)
+			var powerNum any = Ternary(IsTrue(IsEqual(limitDecLengthStr, "0")), 0, this.ConvertToBigIntCustom(limitDecLengthStr))
+			var priceInteger any = (Divide(Multiply(this.ConvertToBigIntCustom(Replace(price, ".", "")), this.ConvertToBigIntCustom(priceMultiplier)), (MathPow(bigInt10, powerNum))))
 			AddElementToObject(legOrder, "limitPrice", this.ParseToInt(priceInteger))
 		} else {
 			AddElementToObject(legOrder, "limitPrice", 0) // should be zero to validate type-check
 		}
 		AppendToArray(&legs, legOrder)
 	}
-	var returnValue interface{} = map[string]interface{}{
+	var returnValue any = map[string]any{
 		"subAccountID": GetValue(order, "sub_account_id"),
 		"isMarket":     GetValue(order, "is_market"),
 		"timeInForce":  this.TimeInForceToInt(GetValue(order, "time_in_force")),
@@ -2709,11 +2722,11 @@ func (this *GrvtCore) EipMessageForOrder(order interface{}, structureType interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *GrvtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2722,34 +2735,34 @@ func (this *GrvtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes22248 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes22248)
-		var paginate interface{} = false
+		retRes22368 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes22368)
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes222819 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes222819)
-			ch <- retRes222819
+			retRes224019 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes224019)
+			ch <- retRes224019
 			return nil
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
-			AddElementToObject(request, "base", []interface{}{})
-			retRes223712 := GetValue(request, "base")
-			AppendToArray(&retRes223712, GetValue(market, "baseId"))
-			AddElementToObject(request, "quote", []interface{}{})
-			retRes223912 := GetValue(request, "quote")
-			AppendToArray(&retRes223912, GetValue(market, "quoteId"))
+			AddElementToObject(request, "base", []any{})
+			retRes224912 := GetValue(request, "base")
+			AppendToArray(&retRes224912, GetValue(market, "baseId"))
+			AddElementToObject(request, "quote", []any{})
+			retRes225112 := GetValue(request, "quote")
+			AppendToArray(&retRes225112, GetValue(market, "quoteId"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -2794,7 +2807,7 @@ func (this *GrvtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
 		//        "next": ""
 		//    }
 		//
-		var result interface{} = this.SafeList(response, "result", []interface{}{})
+		var result any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseTrades(result, nil, since, limit)
 		return nil
@@ -2810,37 +2823,37 @@ func (this *GrvtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
  * @see https://api-docs.grvt.io/trading_api/#positions-request
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *GrvtCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchPositions(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes22948 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes22948)
-		var request interface{} = map[string]interface{}{
+		retRes23068 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes23068)
+		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
-			AddElementToObject(request, "base", []interface{}{})
-			AddElementToObject(request, "quote", []interface{}{})
+			AddElementToObject(request, "base", []any{})
+			AddElementToObject(request, "quote", []any{})
 			for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-				var symbol interface{} = GetValue(symbols, i)
-				var market interface{} = this.Market(symbol)
+				var symbol any = GetValue(symbols, i)
+				var market any = this.Market(symbol)
 				if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
 					panic(BadRequest(Add(this.Id, " fetchPositions() supports contract markets only")))
 				}
-				retRes230816 := GetValue(request, "base")
-				AppendToArray(&retRes230816, GetValue(market, "baseId"))
-				retRes230916 := GetValue(request, "quote")
-				AppendToArray(&retRes230916, GetValue(market, "quoteId"))
+				retRes232016 := GetValue(request, "base")
+				AppendToArray(&retRes232016, GetValue(market, "baseId"))
+				retRes232116 := GetValue(request, "quote")
+				AppendToArray(&retRes232116, GetValue(market, "quoteId"))
 			}
 		}
 
@@ -2871,7 +2884,7 @@ func (this *GrvtCore) FetchPositions(optionalArgs ...interface{}) <-chan interfa
 		//        ]
 		//    }
 		//
-		var result interface{} = this.SafeList(response, "result", []interface{}{})
+		var result any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParsePositions(result, symbols)
 		return nil
@@ -2879,7 +2892,7 @@ func (this *GrvtCore) FetchPositions(optionalArgs ...interface{}) <-chan interfa
 	}()
 	return ch
 }
-func (this *GrvtCore) ParsePosition(position interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	//            {
 	//                "event_time": "1765258069092857642",
@@ -2903,12 +2916,12 @@ func (this *GrvtCore) ParsePosition(position interface{}, optionalArgs ...interf
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(position, "instrument")
-	var timestamp interface{} = this.SafeIntegerProduct(position, "event_time", 0.000001)
-	var sizeRaw interface{} = this.SafeString(position, "size")
-	var isLong interface{} = (Precise.StringGe(sizeRaw, "0"))
-	var side interface{} = Ternary(IsTrue(isLong), "long", "short")
-	return this.SafePosition(map[string]interface{}{
+	var marketId any = this.SafeString(position, "instrument")
+	var timestamp any = this.SafeIntegerProduct(position, "event_time", 0.000001)
+	var sizeRaw any = this.SafeString(position, "size")
+	var isLong any = (Precise.StringGe(sizeRaw, "0"))
+	var side any = Ternary(IsTrue(isLong), "long", "short")
+	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      this.SafeSymbol(marketId, market),
@@ -2948,19 +2961,19 @@ func (this *GrvtCore) ParsePosition(position interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *GrvtCore) FetchLeverages(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchLeverages(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes24108 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24108)
-		var request interface{} = map[string]interface{}{
+		retRes24228 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes24228)
+		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
 
@@ -2977,7 +2990,7 @@ func (this *GrvtCore) FetchLeverages(optionalArgs ...interface{}) <-chan interfa
 		//                "margin_type": "CROSS"
 		//            },
 		//
-		var results interface{} = this.SafeList(response, "results", []interface{}{})
+		var results any = this.SafeList(response, "results", []any{})
 
 		ch <- this.ParseLeverages(results, symbols)
 		return nil
@@ -2996,23 +3009,23 @@ func (this *GrvtCore) FetchLeverages(optionalArgs ...interface{}) <-chan interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *GrvtCore) SetLeverage(leverage interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes24448 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24448)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes24568 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes24568)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 			"instrument":     GetValue(market, "id"),
 			"leverage":       this.NumberToString(leverage),
@@ -3032,7 +3045,7 @@ func (this *GrvtCore) SetLeverage(leverage interface{}, optionalArgs ...interfac
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	//
 	// setLeverage
 	//
@@ -3052,10 +3065,10 @@ func (this *GrvtCore) ParseLeverage(leverage interface{}, optionalArgs ...interf
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(leverage, "instrument")
-	var leverageValue interface{} = this.SafeNumber(leverage, "leverage")
-	var marginType interface{} = this.SafeStringLower(leverage, "margin_type")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(leverage, "instrument")
+	var leverageValue any = this.SafeNumber(leverage, "leverage")
+	var marginType any = this.SafeStringLower(leverage, "margin_type")
+	return map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),
 		"marginMode":    marginType,
@@ -3073,19 +3086,19 @@ func (this *GrvtCore) ParseLeverage(leverage interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *GrvtCore) FetchMarginModes(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchMarginModes(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes25008 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes25008)
-		var request interface{} = map[string]interface{}{
+		retRes25128 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes25128)
+		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
 
@@ -3102,7 +3115,7 @@ func (this *GrvtCore) FetchMarginModes(optionalArgs ...interface{}) <-chan inter
 		//                "margin_type": "CROSS"
 		//            },
 		//
-		var results interface{} = this.SafeList(response, "results", []interface{}{})
+		var results any = this.SafeList(response, "results", []any{})
 
 		ch <- this.ParseLeverages(results, symbols)
 		return nil
@@ -3110,7 +3123,7 @@ func (this *GrvtCore) FetchMarginModes(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseMarginMode(marginMode interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	//
 	// fetchMarginModes
 	//
@@ -3124,8 +3137,8 @@ func (this *GrvtCore) ParseMarginMode(marginMode interface{}, optionalArgs ...in
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(marginMode, "symbol")
-	return map[string]interface{}{
+	var marketId any = this.SafeString(marginMode, "symbol")
+	return map[string]any{
 		"info":       marginMode,
 		"symbol":     this.SafeSymbol(marketId, market),
 		"marginMode": this.SafeStringLower(marginMode, "margin_type"),
@@ -3143,11 +3156,11 @@ func (this *GrvtCore) ParseMarginMode(marginMode interface{}, optionalArgs ...in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *GrvtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -3156,34 +3169,34 @@ func (this *GrvtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan in
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25548 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes25548)
-		var paginate interface{} = false
+		retRes25668 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes25668)
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes255819 := (<-this.FetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, params, 1000))
-			PanicOnError(retRes255819)
-			ch <- retRes255819
+			retRes257019 := (<-this.FetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, params, 1000))
+			PanicOnError(retRes257019)
+			ch <- retRes257019
 			return nil
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
-			AddElementToObject(request, "base", []interface{}{})
-			retRes256712 := GetValue(request, "base")
-			AppendToArray(&retRes256712, GetValue(market, "baseId"))
-			AddElementToObject(request, "quote", []interface{}{})
-			retRes256912 := GetValue(request, "quote")
-			AppendToArray(&retRes256912, GetValue(market, "quoteId"))
+			AddElementToObject(request, "base", []any{})
+			retRes257912 := GetValue(request, "base")
+			AppendToArray(&retRes257912, GetValue(market, "baseId"))
+			AddElementToObject(request, "quote", []any{})
+			retRes258112 := GetValue(request, "quote")
+			AppendToArray(&retRes258112, GetValue(market, "quoteId"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -3213,7 +3226,7 @@ func (this *GrvtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan in
 		//        "next": ""
 		//    }
 		//
-		var result interface{} = this.SafeList(response, "result", []interface{}{})
+		var result any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseIncomes(result, market, since, limit)
 		return nil
@@ -3221,7 +3234,7 @@ func (this *GrvtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan in
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseIncome(income interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParseIncome(income any, optionalArgs ...any) any {
 	//
 	//            {
 	//                "event_time": "1765267200004987902",
@@ -3234,10 +3247,10 @@ func (this *GrvtCore) ParseIncome(income interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(income, "instrument")
-	var currencyId interface{} = this.SafeString(income, "currency")
-	var timestamp interface{} = this.SafeIntegerProduct(income, "event_time", 0.000001)
-	return map[string]interface{}{
+	var marketId any = this.SafeString(income, "instrument")
+	var currencyId any = this.SafeString(income, "currency")
+	var timestamp any = this.SafeIntegerProduct(income, "event_time", 0.000001)
+	return map[string]any{
 		"info":      income,
 		"symbol":    this.SafeSymbol(marketId, market),
 		"code":      this.SafeCurrencyCode(currencyId),
@@ -3258,11 +3271,11 @@ func (this *GrvtCore) ParseIncome(income interface{}, optionalArgs ...interface{
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *GrvtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -3271,23 +3284,24 @@ func (this *GrvtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes26378 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes26378)
-		var request interface{} = map[string]interface{}{
-			"sub_account_id": this.GetSubAccountId(params),
+		retRes26498 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes26498)
+		var subAccountId any = this.GetSubAccountId(params)
+		var request any = map[string]any{
+			"sub_account_id": subAccountId,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
-			AddElementToObject(request, "base", []interface{}{})
-			retRes264512 := GetValue(request, "base")
-			AppendToArray(&retRes264512, GetValue(market, "baseId"))
-			AddElementToObject(request, "quote", []interface{}{})
-			retRes264712 := GetValue(request, "quote")
-			AppendToArray(&retRes264712, GetValue(market, "quoteId"))
+			AddElementToObject(request, "base", []any{})
+			retRes265812 := GetValue(request, "base")
+			AppendToArray(&retRes265812, GetValue(market, "baseId"))
+			AddElementToObject(request, "quote", []any{})
+			retRes266012 := GetValue(request, "quote")
+			AppendToArray(&retRes266012, GetValue(market, "quoteId"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -3363,7 +3377,7 @@ func (this *GrvtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{
 		//        "next": ""
 		//    }
 		//
-		var result interface{} = this.SafeList(response, "result", []interface{}{})
+		var result any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseOrders(result, market, since, limit)
 		return nil
@@ -3381,11 +3395,11 @@ func (this *GrvtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *GrvtCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -3394,12 +3408,12 @@ func (this *GrvtCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes27358 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes27358)
-		var request interface{} = map[string]interface{}{
+		retRes27488 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes27488)
+		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
 
@@ -3465,7 +3479,7 @@ func (this *GrvtCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
 		//        ]
 		//    }
 		//
-		var result interface{} = this.SafeList(response, "result", []interface{}{})
+		var result any = this.SafeList(response, "result", []any{})
 
 		ch <- this.ParseOrders(result, nil, since, limit)
 		return nil
@@ -3483,24 +3497,25 @@ func (this *GrvtCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *GrvtCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes28168 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes28168)
-		var request interface{} = map[string]interface{}{
-			"sub_account_id": this.GetSubAccountId(params),
+		retRes28298 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes28298)
+		var subAccountId any = this.GetSubAccountId(params)
+		var request any = map[string]any{
+			"sub_account_id": subAccountId,
 		}
-		var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "client_order_id")
+		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			params = this.Omit(params, "clientOrderId", "client_order_id")
 			AddElementToObject(request, "client_order_id", clientOrderId)
@@ -3568,7 +3583,7 @@ func (this *GrvtCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
 		//        }
 		//    }
 		//
-		var result interface{} = this.SafeDict(response, "result", map[string]interface{}{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseOrder(result)
 		return nil
@@ -3576,7 +3591,7 @@ func (this *GrvtCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
 	}()
 	return ch
 }
-func (this *GrvtCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// fetchOrders, fetchOpenOrders, fetchOrder, createOrder
 	//
@@ -3646,31 +3661,31 @@ func (this *GrvtCore) ParseOrder(order interface{}, optionalArgs ...interface{})
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	if IsTrue(InOp(order, "ack")) {
-		return this.SafeOrder(map[string]interface{}{
+		return this.SafeOrder(map[string]any{
 			"info": order,
 			"id":   nil,
 		})
 	}
-	var isMarket interface{} = this.SafeBool(order, "is_market")
-	var orderType interface{} = Ternary(IsTrue(isMarket), "market", "limit")
-	var isPostOnly interface{} = this.SafeBool(order, "post_only")
-	var isReduceOnly interface{} = this.SafeBool(order, "reduce_only")
-	var timeInForceRaw interface{} = this.SafeString(order, "time_in_force")
-	var timeInForce interface{} = Ternary(IsTrue(isPostOnly), "PO", this.ParseTimeInForce(timeInForceRaw))
-	var size interface{} = nil
-	var side interface{} = nil
-	var price interface{} = nil
-	var filled interface{} = nil
-	var avgPrice interface{} = nil
-	var legs interface{} = this.SafeList(order, "legs")
-	var metadata interface{} = this.SafeDict(order, "metadata", map[string]interface{}{})
-	var stateObj interface{} = this.SafeDict(order, "state", map[string]interface{}{})
-	var filledAmounts interface{} = this.SafeList(stateObj, "traded_size", []interface{}{})
-	var avgPrices interface{} = this.SafeList(stateObj, "avg_fill_price", []interface{}{})
-	var primaryOrderIndex interface{} = 0
-	var firstLeg interface{} = this.SafeDict(legs, primaryOrderIndex)
+	var isMarket any = this.SafeBool(order, "is_market")
+	var orderType any = Ternary(IsTrue(isMarket), "market", "limit")
+	var isPostOnly any = this.SafeBool(order, "post_only")
+	var isReduceOnly any = this.SafeBool(order, "reduce_only")
+	var timeInForceRaw any = this.SafeString(order, "time_in_force")
+	var timeInForce any = Ternary(IsTrue(isPostOnly), "PO", this.ParseTimeInForce(timeInForceRaw))
+	var size any = nil
+	var side any = nil
+	var price any = nil
+	var filled any = nil
+	var avgPrice any = nil
+	var legs any = this.SafeList(order, "legs", []any{})
+	var metadata any = this.SafeDict(order, "metadata", map[string]any{})
+	var stateObj any = this.SafeDict(order, "state", map[string]any{})
+	var filledAmounts any = this.SafeList(stateObj, "traded_size", []any{})
+	var avgPrices any = this.SafeList(stateObj, "avg_fill_price", []any{})
+	var primaryOrderIndex any = 0
+	var firstLeg any = this.SafeDict(legs, primaryOrderIndex)
 	if IsTrue(!IsEqual(firstLeg, nil)) {
-		var marketId interface{} = this.SafeString(firstLeg, "instrument")
+		var marketId any = this.SafeString(firstLeg, "instrument")
 		market = this.SafeMarket(marketId, market)
 		size = this.SafeString(firstLeg, "size")
 		side = Ternary(IsTrue(this.SafeBool(firstLeg, "is_buying_asset")), "buy", "sell")
@@ -3678,10 +3693,10 @@ func (this *GrvtCore) ParseOrder(order interface{}, optionalArgs ...interface{})
 		filled = this.SafeString(filledAmounts, primaryOrderIndex)
 		avgPrice = this.SafeString(avgPrices, primaryOrderIndex)
 	}
-	var timestamp interface{} = this.SafeIntegerProduct(metadata, "create_time", 0.000001)
+	var timestamp any = this.SafeIntegerProduct(metadata, "create_time", 0.000001)
 	// const triggerDetails = this.safeDict (metadata, 'trigger', {});
-	var legsLength interface{} = GetArrayLength(legs)
-	return this.SafeOrder(map[string]interface{}{
+	var legsLength any = GetArrayLength(legs)
+	return this.SafeOrder(map[string]any{
 		"isMultiLeg":          (IsGreaterThan(legsLength, 1)),
 		"id":                  this.SafeString(order, "order_id"),
 		"clientOrderId":       this.SafeString(metadata, "client_order_id"),
@@ -3690,7 +3705,7 @@ func (this *GrvtCore) ParseOrder(order interface{}, optionalArgs ...interface{})
 		"lastTradeTimeStamp":  nil,
 		"lastUpdateTimestamp": this.SafeIntegerProduct(stateObj, "update_time", 0.000001),
 		"status":              this.ParseOrderStatus(this.SafeString(stateObj, "status")),
-		"symbol":              GetValue(market, "symbol"),
+		"symbol":              this.SafeString(market, "symbol"),
 		"type":                orderType,
 		"timeInForce":         timeInForce,
 		"postOnly":            isPostOnly,
@@ -3708,8 +3723,8 @@ func (this *GrvtCore) ParseOrder(order interface{}, optionalArgs ...interface{})
 		"info":                order,
 	}, market)
 }
-func (this *GrvtCore) ParseTimeInForce(typeVar interface{}) interface{} {
-	var types interface{} = map[string]interface{}{
+func (this *GrvtCore) ParseTimeInForce(typeVar any) any {
+	var types any = map[string]any{
 		"GOOD_TILL_TIME":           "GTC",
 		"IMMEDIATE_OR_CANCEL":      "IOC",
 		"FILL_OR_KILL":             "FOK",
@@ -3718,8 +3733,8 @@ func (this *GrvtCore) ParseTimeInForce(typeVar interface{}) interface{} {
 	}
 	return this.SafeStringUpper(types, typeVar, typeVar)
 }
-func (this *GrvtCore) TimeInForceToInt(timeInForce interface{}) interface{} {
-	var timeInForces interface{} = map[string]interface{}{
+func (this *GrvtCore) TimeInForceToInt(timeInForce any) any {
+	var timeInForces any = map[string]any{
 		"GOOD_TILL_TIME":           1,
 		"ALL_OR_NONE":              2,
 		"IMMEDIATE_OR_CANCEL":      3,
@@ -3728,8 +3743,8 @@ func (this *GrvtCore) TimeInForceToInt(timeInForce interface{}) interface{} {
 	}
 	return this.SafeInteger(timeInForces, timeInForce, 0)
 }
-func (this *GrvtCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *GrvtCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"PENDING":   "pending",
 		"OPEN":      "open",
 		"FILLED":    "closed",
@@ -3746,31 +3761,31 @@ func (this *GrvtCore) ParseOrderStatus(status interface{}) interface{} {
  * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
  * @param {string} symbol cancel alls open orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *GrvtCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30658 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes30658)
-		var request interface{} = map[string]interface{}{
+		retRes30798 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes30798)
+		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			var market interface{} = this.Market(symbol)
-			AddElementToObject(request, "base", []interface{}{})
-			retRes307212 := GetValue(request, "base")
-			AppendToArray(&retRes307212, GetValue(market, "baseId"))
-			AddElementToObject(request, "quote", []interface{}{})
-			retRes307412 := GetValue(request, "quote")
-			AppendToArray(&retRes307412, GetValue(market, "quoteId"))
+			var market any = this.Market(symbol)
+			AddElementToObject(request, "base", []any{})
+			retRes308612 := GetValue(request, "base")
+			AppendToArray(&retRes308612, GetValue(market, "baseId"))
+			AddElementToObject(request, "quote", []any{})
+			retRes308812 := GetValue(request, "quote")
+			AppendToArray(&retRes308812, GetValue(market, "quoteId"))
 		}
 
 		response := (<-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params)))
@@ -3782,9 +3797,9 @@ func (this *GrvtCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
 		//        }
 		//    }
 		//
-		var result interface{} = this.SafeDict(response, "result", map[string]interface{}{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
-		ch <- this.ParseOrders([]interface{}{result}, nil)
+		ch <- this.ParseOrders([]any{result})
 		return nil
 
 	}()
@@ -3800,24 +3815,25 @@ func (this *GrvtCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *GrvtCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *GrvtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes31008 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes31008)
-		var request interface{} = map[string]interface{}{
-			"sub_account_id": this.GetSubAccountId(params),
+		retRes31148 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes31148)
+		var subAccoubntId any = this.GetSubAccountId(params)
+		var request any = map[string]any{
+			"sub_account_id": subAccoubntId,
 		}
-		var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "client_order_id")
+		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			params = this.Omit(params, "clientOrderId")
 			AddElementToObject(request, "client_order_id", clientOrderId)
@@ -3834,7 +3850,7 @@ func (this *GrvtCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <
 		//        }
 		//    }
 		//
-		var result interface{} = this.SafeDict(response, "result", map[string]interface{}{})
+		var result any = this.SafeDict(response, "result", map[string]any{})
 
 		ch <- this.ParseOrder(result)
 		return nil
@@ -3842,30 +3858,30 @@ func (this *GrvtCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <
 	}()
 	return ch
 }
-func (this *GrvtCore) EipDomainData() interface{} {
+func (this *GrvtCore) EipDomainData() any {
 	//     GrvtEnv.DEV.value: 327,
 	//     GrvtEnv.STAGING.value: 327,
 	//     GrvtEnv.TESTNET.value: 326,
 	//     GrvtEnv.PROD.value: 325,
-	return map[string]interface{}{
+	return map[string]any{
 		"name":    "GRVT Exchange",
 		"version": "0",
 		"chainId": Ternary(IsTrue(this.IsSandboxModeEnabled), 326, 325),
 	}
 }
-func (this *GrvtCore) FeeAmountMultiplier() interface{} {
+func (this *GrvtCore) FeeAmountMultiplier() any {
 	return this.ConvertToBigIntCustom("10000") // multiply needed https://t.me/c/3396937126/88
 }
-func (this *GrvtCore) CreateSignedRequest(request interface{}, structureType interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) CreateSignedRequest(request any, structureType any, optionalArgs ...any) any {
 	currencyObj := GetArg(optionalArgs, 0, nil)
 	_ = currencyObj
 	signerAddress := GetArg(optionalArgs, 1, nil)
 	_ = signerAddress
-	var messageData interface{} = nil
+	var messageData any = nil
 	if IsTrue(IsEqual(structureType, "EIP712_TRANSFER_TYPE")) {
-		var amountMultiplier interface{} = this.ConvertToBigIntCustom("1000000")
-		var amountInt interface{} = Multiply(GetValue(request, "num_tokens"), amountMultiplier)
-		messageData = map[string]interface{}{
+		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
+		var amountInt any = Multiply(GetValue(request, "num_tokens"), amountMultiplier)
+		messageData = map[string]any{
 			"fromAccount":    GetValue(request, "from_account_id"),
 			"fromSubAccount": GetValue(request, "from_sub_account_id"),
 			"toAccount":      GetValue(request, "to_account_id"),
@@ -3876,8 +3892,8 @@ func (this *GrvtCore) CreateSignedRequest(request interface{}, structureType int
 			"expiration":     GetValue(GetValue(request, "signature"), "expiration"),
 		}
 	} else if IsTrue(IsEqual(structureType, "EIP712_WITHDRAWAL_TYPE")) {
-		var amountMultiplier interface{} = this.ConvertToBigIntCustom("1000000")
-		messageData = map[string]interface{}{
+		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
+		messageData = map[string]any{
 			"fromAccount":   GetValue(request, "from_account_id"),
 			"toEthAddress":  GetValue(request, "to_eth_address"),
 			"tokenCurrency": GetValue(currencyObj, "numericId"),
@@ -3888,8 +3904,8 @@ func (this *GrvtCore) CreateSignedRequest(request interface{}, structureType int
 	} else if IsTrue(IsTrue(IsEqual(structureType, "EIP712_ORDER_TYPE")) || IsTrue(IsEqual(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE"))) {
 		messageData = this.EipMessageForOrder(request, structureType)
 	} else if IsTrue(IsEqual(structureType, "EIP712_BUILDER_APPROVAL_TYPE")) {
-		var amountMultiplier interface{} = this.ConvertToBigIntCustom(this.FeeAmountMultiplier())
-		messageData = map[string]interface{}{
+		var amountMultiplier any = this.ConvertToBigIntCustom(this.FeeAmountMultiplier())
+		messageData = map[string]any{
 			"mainAccountID":    GetValue(request, "main_account_id"),
 			"builderAccountID": GetValue(request, "builder_account_id"),
 			"maxFutureFeeRate": this.ParseToInt(Multiply(ParseFloat(GetValue(request, "max_futures_fee_rate")), amountMultiplier)),
@@ -3898,37 +3914,37 @@ func (this *GrvtCore) CreateSignedRequest(request interface{}, structureType int
 			"expiration":       GetValue(GetValue(request, "signature"), "expiration"),
 		}
 	} else if IsTrue(IsEqual(structureType, "EIP712_WALLETLOGIN_TYPE")) {
-		messageData = map[string]interface{}{
+		messageData = map[string]any{
 			"signer":     GetValue(request, "address"),
 			"nonce":      GetValue(GetValue(request, "signature"), "nonce"),
 			"expiration": GetValue(GetValue(request, "signature"), "expiration"),
 		}
 	}
-	var domainData interface{} = this.EipDomainData()
-	var definitions interface{} = this.EipDefinitions()
-	var ethEncodedMessage interface{} = this.EthEncodeStructuredData(domainData, GetValue(definitions, structureType), messageData)
-	var ethEncodedMessageHashed interface{} = Add("0x", this.Hash(ethEncodedMessage, keccak, "hex"))
-	var usesPrivKey interface{} = this.UsesPrivateKey() // py transpiler needs this line separated
-	var secretOrPrivkey interface{} = Ternary(IsTrue(usesPrivKey), this.PrivateKey, this.Secret)
-	var privateKeyWithoutZero interface{} = this.Remove0xPrefix(secretOrPrivkey)
-	var signature interface{} = Ecdsa(this.Remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, nil)
+	var domainData any = this.EipDomainData()
+	var definitions any = this.EipDefinitions()
+	var ethEncodedMessage any = this.EthEncodeStructuredData(domainData, GetValue(definitions, structureType), messageData)
+	var ethEncodedMessageHashed any = Add("0x", this.Hash(ethEncodedMessage, keccak, "hex"))
+	var usesPrivKey any = this.UsesPrivateKey() // py transpiler needs this line separated
+	var secretOrPrivkey any = Ternary(IsTrue(usesPrivKey), this.PrivateKey, this.Secret)
+	var privateKeyWithoutZero any = this.Remove0xPrefix(secretOrPrivkey)
+	var signature any = Ecdsa(this.Remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, nil)
 	AddElementToObject(GetValue(request, "signature"), "r", this.FormatSignatureRS(GetValue(signature, "r")))
 	AddElementToObject(GetValue(request, "signature"), "s", this.FormatSignatureRS(GetValue(signature, "s")))
 	AddElementToObject(GetValue(request, "signature"), "v", this.Sum(27, GetValue(signature, "v")))
 	AddElementToObject(GetValue(request, "signature"), "signer", Ternary(IsTrue((IsEqual(signerAddress, nil))), this.EthGetAddressFromPrivateKey(Add("0x", privateKeyWithoutZero)), signerAddress))
 	return request
 }
-func (this *GrvtCore) FormatSignatureRS(value interface{}) interface{} {
-	var padded interface{} = PadStart(value, 64, "0")
+func (this *GrvtCore) FormatSignatureRS(value any) any {
+	var padded any = PadStart(value, 64, "0")
 	if IsTrue(StartsWith(padded, "0x")) {
 		return padded
 	} else {
 		return Add("0x", padded)
 	}
 }
-func (this *GrvtCore) DefaultSignature() interface{} {
-	var expiration interface{} = Add(Multiply(this.Milliseconds(), 1000000), Multiply(Multiply(1000000, this.SafeInteger(this.Options, "expirationSeconds", 30)), 1000))
-	return map[string]interface{}{
+func (this *GrvtCore) DefaultSignature() any {
+	var expiration any = Add(Multiply(this.Milliseconds(), 1000000), Multiply(Multiply(1000000, this.SafeInteger(this.Options, "expirationSeconds", 30)), 1000))
+	return map[string]any{
 		"signer":     "",
 		"r":          "",
 		"s":          "",
@@ -3938,35 +3954,35 @@ func (this *GrvtCore) DefaultSignature() interface{} {
 		"chain_id":   Ternary(IsTrue(this.IsSandboxModeEnabled), "326", "325"),
 	}
 }
-func (this *GrvtCore) HandleUntilOptionString(key interface{}, request interface{}, params interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) HandleUntilOptionString(key any, request any, params any, optionalArgs ...any) any {
 	multiplier := GetArg(optionalArgs, 0, 1)
 	_ = multiplier
-	var until interface{} = this.SafeInteger2(params, "until", "till")
+	var until any = this.SafeInteger2(params, "until", "till")
 	if IsTrue(!IsEqual(until, nil)) {
 		AddElementToObject(request, key, this.NumberToString(this.ParseToInt(Multiply(until, multiplier))))
-		params = this.Omit(params, []interface{}{"until", "till"})
+		params = this.Omit(params, []any{"until", "till"})
 	}
-	return []interface{}{request, params}
+	return []any{request, params}
 }
-func (this *GrvtCore) RequestId() interface{} {
-	var requestId interface{} = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+func (this *GrvtCore) RequestId() any {
+	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
 	AddElementToObject(this.Options, "requestId", requestId)
 	return requestId
 }
-func (this *GrvtCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *GrvtCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var query interface{} = this.Omit(params, this.ExtractParams(path))
-	var url interface{} = Add(GetValue(GetValue(this.Urls, "api"), api), path)
-	var queryString interface{} = ""
+	var query any = this.Omit(params, this.ExtractParams(path))
+	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), path)
+	var queryString any = ""
 	if IsTrue(IsEqual(method, "GET")) {
 		if IsTrue(GetArrayLength(ObjectKeys(query))) {
 			queryString = this.Urlencode(query)
@@ -3975,20 +3991,20 @@ func (this *GrvtCore) Sign(path interface{}, optionalArgs ...interface{}) interf
 	} else if IsTrue(IsEqual(method, "POST")) {
 		body = this.Json(params)
 	}
-	var isPrivate interface{} = StartsWith(api, "private")
+	var isPrivate any = StartsWith(api, "private")
 	if IsTrue(isPrivate) {
 		this.CheckRequiredCredentials()
 		if IsTrue(!IsEqual(queryString, "")) {
 			path = Add(Add(path, "?"), queryString)
 		}
-		headers = map[string]interface{}{
+		headers = map[string]any{
 			"Content-Type": "application/json",
 		}
 		if IsTrue(IsTrue(EndsWith(path, "auth/api_key/login")) || IsTrue(EndsWith(path, "auth/wallet/login"))) {
 			AddElementToObject(headers, "Cookie", "rm=true;")
 		} else {
-			var accountId interface{} = this.SafeString(this.Options, "AuthAccountId")
-			var cookieValue interface{} = this.SafeString(this.Options, "AuthCookieValue")
+			var accountId any = this.SafeString(this.Options, "AuthAccountId")
+			var cookieValue any = this.SafeString(this.Options, "AuthCookieValue")
 			if IsTrue(IsTrue(IsEqual(cookieValue, nil)) || IsTrue(IsEqual(accountId, nil))) {
 				panic(AuthenticationError(Add(this.Id, " : at first, you need to authenticate with exchange using signIn() method.")))
 			}
@@ -3996,41 +4012,41 @@ func (this *GrvtCore) Sign(path interface{}, optionalArgs ...interface{}) interf
 			AddElementToObject(headers, "X-Grvt-Account-Id", accountId)
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *GrvtCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *GrvtCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsTrue(IsTrue(EndsWith(url, "auth/api_key/login")) || IsTrue(EndsWith(url, "auth/wallet/login"))) {
-		var accountId interface{} = this.SafeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id")
+		var accountId any = this.SafeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id")
 		AddElementToObject(this.Options, "AuthAccountId", accountId)
-		var cookie interface{} = this.SafeString2(headers, "Set-Cookie", "set-cookie")
+		var cookie any = this.SafeString2(headers, "Set-Cookie", "set-cookie")
 		if IsTrue(!IsEqual(cookie, nil)) {
-			var cookieValue interface{} = GetValue(Split(cookie, ";"), 0)
+			var cookieValue any = GetValue(Split(cookie, ";"), 0)
 			AddElementToObject(this.Options, "AuthCookieValue", cookieValue)
 		}
 		if IsTrue(IsTrue(IsEqual(GetValue(this.Options, "AuthCookieValue"), nil)) || IsTrue(IsEqual(GetValue(this.Options, "AuthAccountId"), nil))) {
 			panic(AuthenticationError(Add(this.Id, " signIn() failed to receive auth-cookie or account-id")))
 		}
 	} else {
-		var errorCode interface{} = this.SafeString(response, "code")
+		var errorCode any = this.SafeString(response, "code")
 		if IsTrue(!IsEqual(errorCode, nil)) {
-			var feedback interface{} = Add(Add(this.Id, " "), body)
+			var feedback any = Add(Add(this.Id, " "), body)
 			this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 			panic(ExchangeError(feedback))
 		} else {
-			var message interface{} = this.SafeString(response, "message")
+			var message any = this.SafeString(response, "message")
 			if IsTrue(!IsEqual(message, nil)) {
-				var feedback interface{} = Add(Add(this.Id, " "), body)
+				var feedback any = Add(Add(this.Id, " "), body)
 				this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 				panic(ExchangeError(feedback))
 			} else {
-				var status interface{} = this.SafeString(response, "status")
+				var status any = this.SafeString(response, "status")
 				if IsTrue(IsTrue(!IsEqual(status, nil)) && IsTrue(!IsEqual(status, "success"))) {
-					var feedback interface{} = Add(Add(this.Id, " "), body)
+					var feedback any = Add(Add(this.Id, " "), body)
 					panic(ExchangeError(feedback))
 				}
 			}
@@ -4039,8 +4055,8 @@ func (this *GrvtCore) HandleErrors(code interface{}, reason interface{}, url int
 	return nil
 }
 
-func (this *GrvtCore) Init(userConfig map[string]interface{}) {
+func (this *GrvtCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

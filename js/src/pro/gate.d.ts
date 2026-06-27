@@ -3,6 +3,7 @@ import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV
 import Client from '../base/ws/Client.js';
 export default class gate extends gateRest {
     describe(): any;
+    describeData(): any;
     /**
      * @method
      * @name gate#createOrderWs
@@ -152,7 +153,7 @@ export default class gate extends gateRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -161,10 +162,11 @@ export default class gate extends gateRest {
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
+    handleNewSpotOrderBook(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any): void;
     getCacheIndex(orderBook: any, cache: any): any;
     handleBidAsks(bookSide: any, bidAsks: any): void;
@@ -293,11 +295,11 @@ export default class gate extends gateRest {
     /**
      * @method
      * @name gate#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel
      * @see https://www.gate.com/docs/developers/futures/ws/en/#balances-api
      * @see https://www.gate.com/docs/developers/delivery/ws/en/#balances-api
      * @see https://www.gate.com/docs/developers/options/ws/en/#balances-channel
-     * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -323,11 +325,11 @@ export default class gate extends gateRest {
     /**
      * @method
      * @name gate#watchOrders
+     * @description watches information on multiple orders made by the user
      * @see https://www.gate.com/docs/developers/apiv4/ws/en/#orders-channel
      * @see https://www.gate.com/docs/developers/futures/ws/en/#orders-api
      * @see https://www.gate.com/docs/developers/delivery/ws/en/#orders-api
      * @see https://www.gate.com/docs/developers/options/ws/en/#orders-channel
-     * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -367,7 +369,7 @@ export default class gate extends gateRest {
      */
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
-    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
+    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
     handleErrorMessage(client: Client, message: any): Bool;
     handleBalanceSubscription(client: Client, message: any, subscription?: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;

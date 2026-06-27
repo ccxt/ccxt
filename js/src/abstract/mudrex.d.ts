@@ -3,8 +3,8 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     marketGetPriceKline(params?: {}): Promise<implicitReturnType>;
     marketGetPriceMarkKline(params?: {}): Promise<implicitReturnType>;
-    publicGetFutures(params?: {}): Promise<implicitReturnType>;
-    publicGetFuturesAssetId(params?: {}): Promise<implicitReturnType>;
+    privateGetFutures(params?: {}): Promise<implicitReturnType>;
+    privateGetFuturesAssetId(params?: {}): Promise<implicitReturnType>;
     privateGetWalletFunds(params?: {}): Promise<implicitReturnType>;
     privateGetFuturesFunds(params?: {}): Promise<implicitReturnType>;
     privateGetFuturesOrders(params?: {}): Promise<implicitReturnType>;

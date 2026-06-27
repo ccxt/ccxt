@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bithumb$1 = require('../bithumb.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var rsa = require('../base/functions/rsa.js');
 
 // ----------------------------------------------------------------------------
@@ -26,8 +26,8 @@ class bithumb extends bithumb$1["default"] {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://pubwss.bithumb.com/pub/ws',
-                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1',
+                        'public': 'wss://pubwss.bithumb.com/pub/ws', // v1.2.0
+                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1', // v2.1.5
                         'privateV2': 'wss://ws-api.bithumb.com/websocket/v1/private', // v2.1.5
                     },
                 },
@@ -252,7 +252,7 @@ class bithumb extends bithumb$1["default"] {
         //
         const sideId = this.safeString(delta, 'orderType');
         const side = (sideId === 'bid') ? 'bids' : 'asks';
-        const bidAsk = this.parseBidAsk(delta, 'price', 'quantity');
+        const bidAsk = this.parseOrderBookBidAsk(delta, 'price', 'quantity');
         const orderbookSide = orderbook[side];
         orderbookSide.storeArray(bidAsk);
     }
@@ -340,7 +340,7 @@ class bithumb extends bithumb$1["default"] {
         const marketId = this.safeString(trade, 'symbol');
         const datetime = this.safeString(trade, 'contDtm');
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        const timestamp = this.parse8601(datetime) - 32400000;
+        const timestamp = this.parseToInt(this.parse8601(datetime)) - 32400000;
         const sideId = this.safeString(trade, 'buySellGb');
         return this.safeTrade({
             'id': undefined,
@@ -448,7 +448,7 @@ class bithumb extends bithumb$1["default"] {
                 'nonce': this.uuid(),
                 'timestamp': this.milliseconds(),
             };
-            const jwtToken = rsa.jwt(payload, this.encode(this.secret), sha256.sha256);
+            const jwtToken = rsa.jwt(payload, this.encode(this.secret), sha2_js.sha256);
             wsOptions['token'] = jwtToken;
             wsOptions['options'] = {
                 'headers': {

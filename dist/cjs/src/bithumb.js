@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bithumb$1 = require('./abstract/bithumb.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class bithumb extends bithumb$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bithumb',
             'name': 'Bithumb',
-            'countries': ['KR'],
+            'countries': ['KR'], // South Korea
             'rateLimit': 500,
             'pro': true,
             'has': {
@@ -226,9 +226,9 @@ class bithumb extends bithumb$1["default"] {
             'exceptions': {
                 'Bad Request(SSL)': errors.BadRequest,
                 'Bad Request(Bad Method)': errors.BadRequest,
-                'Bad Request.(Auth Data)': errors.AuthenticationError,
+                'Bad Request.(Auth Data)': errors.AuthenticationError, // { "status": "5100", "message": "Bad Request.(Auth Data)" }
                 'Not Member': errors.AuthenticationError,
-                'Invalid Apikey': errors.AuthenticationError,
+                'Invalid Apikey': errors.AuthenticationError, // {"status":"5300","message":"Invalid Apikey"}
                 'Method Not Allowed.(Access IP)': errors.PermissionDenied,
                 'Method Not Allowed.(BTC Adress)': errors.InvalidAddress,
                 'Method Not Allowed.(Access)': errors.PermissionDenied,
@@ -345,7 +345,7 @@ class bithumb extends bithumb$1["default"] {
             const quote = quotes[i];
             const quoteId = quote;
             const response = results[i];
-            const data = this.safeDict(response, 'data');
+            const data = this.safeDict(response, 'data', {});
             const extension = this.safeDict(quoteCurrencies, quote, {});
             const currencyIds = Object.keys(data);
             for (let j = 0; j < currencyIds.length; j++) {
@@ -453,7 +453,7 @@ class bithumb extends bithumb$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1216,7 +1216,7 @@ class bithumb extends bithumb$1["default"] {
             }, query));
             const nonce = this.nonce().toString();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha512);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512);
             const signature64 = this.stringToBase64(signature);
             headers = {
                 'Accept': 'application/json',

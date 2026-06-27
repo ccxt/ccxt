@@ -436,7 +436,7 @@ public partial class coinspot : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -757,7 +757,7 @@ public partial class coinspot : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object method = add("privatePostMy", this.capitalize(side));
+        object sideUpper = ((string)side).ToUpper();
         if (isTrue(isEqual(type, "market")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
@@ -768,8 +768,23 @@ public partial class coinspot : Exchange
             { "amount", amount },
             { "rate", price },
         };
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
-        return this.parseOrder(response);
+        object response = null;
+        if (isTrue(isEqual(sideUpper, "BUY")))
+        {
+            response = await this.privatePostMyBuy(this.extend(request, parameters));
+        } else if (isTrue(isEqual(sideUpper, "SELL")))
+        {
+            response = await this.privatePostMySell(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder only support buy/sell side")) ;
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -809,6 +824,21 @@ public partial class coinspot : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
         });
+    }
+
+    public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        if (!isTrue(response))
+        {
+            return null;  // fallback to default error handler
+        }
+        object status = this.safeString(response, "status");
+        if (isTrue(isEqual(status, "error")))
+        {
+            object feedback = add(add(this.id, " "), this.json(response));
+            throw new ExchangeError ((string)feedback) ;
+        }
+        return null;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

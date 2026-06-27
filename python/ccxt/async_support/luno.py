@@ -18,7 +18,7 @@ class luno(Exchange, ImplicitAPI):
     def describe(self) -> Any:
         return self.deep_extend(super(luno, self).describe(), {
             'id': 'luno',
-            'name': 'luno',
+            'name': 'Luno',
             'countries': ['GB', 'SG', 'ZA'],
             # 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit': 200,
@@ -329,38 +329,19 @@ class luno(Exchange, ImplicitAPI):
         #     }
         #
         currenciesData = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(currenciesData)):
-            networkEntry = currenciesData[i]
-            id = self.safe_string(networkEntry, 'native_currency')
-            code = self.safe_currency_code(id)
-            if not (code in result):
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'precision': None,
-                    'type': None,
-                    'name': None,
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                    'networks': {},
-                    'info': {},
-                }
+        grouped = self.group_by(currenciesData, 'native_currency')
+        values = list(grouped.values())
+        return self.parse_currencies(values)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency[0], 'native_currency')  # first item is guaranteed
+        code = self.safe_currency_code(id)
+        networks = {}
+        for i in range(0, len(rawCurrency)):
+            networkEntry = rawCurrency[i]
             networkId = self.safe_string(networkEntry, 'name')
-            networkCode = self.network_id_to_code(networkId)
-            result[code]['networks'][networkCode] = {
+            networkCode = self.network_id_to_code(networkId, code)
+            networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
                 'limits': {
@@ -380,16 +361,29 @@ class luno(Exchange, ImplicitAPI):
                 'precision': None,
                 'info': networkEntry,
             }
-            # add entry in info
-            info = self.safe_list(result[code], 'info', [])
-            info.append(networkEntry)
-            result[code]['info'] = info
-        # only after all entries are formed in currencies, restructure each entry
-        allKeys = list(result.keys())
-        for i in range(0, len(allKeys)):
-            code = allKeys[i]
-            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
-        return result
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'precision': None,
+            'type': None,
+            'name': None,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'limits': {
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'info': rawCurrency,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -508,7 +502,7 @@ class luno(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         wallets = self.safe_value(response, 'balance', [])
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -565,11 +559,11 @@ class luno(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = None
@@ -581,7 +575,7 @@ class luno(Exchange, ImplicitAPI):
         return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             # todo add other statuses
             'PENDING': 'open',
         }
@@ -670,7 +664,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'id': id,
         }
         response = await self.privateGetOrdersId(self.extend(request, params))
@@ -678,7 +672,7 @@ class luno(Exchange, ImplicitAPI):
 
     async def fetch_orders_by_state(self, state: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if state is not None:
             request['state'] = state
@@ -783,7 +777,7 @@ class luno(Exchange, ImplicitAPI):
         response = await self.publicGetTickers(params)
         tickers = self.index_by(response['tickers'], 'pair')
         ids = list(tickers.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
@@ -804,7 +798,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
@@ -876,11 +870,11 @@ class luno(Exchange, ImplicitAPI):
         feeCost = None
         if feeBaseString is not None:
             if not Precise.string_equals(feeBaseString, '0.0'):
-                feeCurrency = market['base']
+                feeCurrency = self.safe_string(market, 'base')
                 feeCost = feeBaseString
         elif feeCounterString is not None:
             if not Precise.string_equals(feeCounterString, '0.0'):
-                feeCurrency = market['quote']
+                feeCurrency = self.safe_string(market, 'quote')
                 feeCost = feeCounterString
         timestamp = self.safe_integer(trade, 'timestamp')
         return self.safe_trade({
@@ -888,7 +882,7 @@ class luno(Exchange, ImplicitAPI):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'order': orderId,
             'type': None,
             'side': side,
@@ -917,7 +911,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if since is not None:
@@ -954,7 +948,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'duration': self.safe_value(self.timeframes, timeframe, timeframe),
             'pair': market['id'],
         }
@@ -1017,7 +1011,7 @@ class luno(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if since is not None:
@@ -1061,7 +1055,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.privateGetFeeInfo(self.extend(request, params))
@@ -1098,7 +1092,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = None
@@ -1132,7 +1126,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = await self.privatePostStoporder(self.extend(request, params))
@@ -1152,7 +1146,7 @@ class luno(Exchange, ImplicitAPI):
         if limit is None:
             limit = 1
         since = None
-        request: dict = {
+        request = {
             'min_row': entry,
             'max_row': self.sum(entry, limit),
         }
@@ -1197,7 +1191,7 @@ class luno(Exchange, ImplicitAPI):
                 max_row = min_row + limit
         if max_row - min_row > 1000:
             raise ExchangeError(self.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")
-        request: dict = {
+        request = {
             'id': id,
             'min_row': min_row,
             'max_row': max_row,
@@ -1208,7 +1202,7 @@ class luno(Exchange, ImplicitAPI):
 
     def parse_ledger_comment(self, comment):
         words = comment.split(' ')
-        types: dict = {
+        types = {
             'Withdrawal': 'fee',
             'Trading': 'fee',
             'Payment': 'transaction',
@@ -1225,7 +1219,7 @@ class luno(Exchange, ImplicitAPI):
         firstWord = self.safe_string(words, 0)
         thirdWord = self.safe_string(words, 2)
         fourthWord = self.safe_string(words, 3)
-        type = self.safe_string(types, firstWord, None)
+        type = self.safe_string(types, firstWord)
         if (type is None) and (thirdWord == 'fee'):
             type = 'fee'
         if (type == 'reserved') and (fourthWord == 'order'):
@@ -1300,7 +1294,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset': currency['id'],
         }
         response = await self.privatePostFundingAddress(self.extend(request, params))
@@ -1339,7 +1333,7 @@ class luno(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset': currency['id'],
         }
         response = await self.privateGetFundingAddress(self.extend(request, params))
@@ -1396,7 +1390,7 @@ class luno(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'name'),
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:

@@ -74,7 +74,8 @@ public partial class aftermath : Exchange
                 { "1M", "1M" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807" },
+                { "www", "https://aftermath.finance" },
+                { "logo", "https://github.com/user-attachments/assets/f3104ea3-e9ab-4d4e-ad22-0ce772a407b7" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://aftermath.finance/api/ccxt" },
                 } },
@@ -315,7 +316,7 @@ public partial class aftermath : Exchange
         //     }
         //
         object precision = this.safeDict(market, "precision");
-        object limits = this.safeDict(market, "limits");
+        object limits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", this.safeString(market, "id") },
             { "symbol", this.safeString(market, "symbol") },
@@ -380,7 +381,7 @@ public partial class aftermath : Exchange
      * @description fetch the trading fees for a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -410,7 +411,7 @@ public partial class aftermath : Exchange
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -485,7 +486,7 @@ public partial class aftermath : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -526,7 +527,7 @@ public partial class aftermath : Exchange
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -627,7 +628,7 @@ public partial class aftermath : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] account object ID, required
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -701,7 +702,7 @@ public partial class aftermath : Exchange
         //
         // [
         //     {
-        //         "id": "0x21c5e3d2f5bcfd4351a62cd70874878b7923b56d79d04225ed96370a7ac844c4",
+        //         "id": "0x22c5e3d2f5bcfd4351a62cd70874878b7923b56d79d04225ed96370a7ac844c4",
         //         "type": "primary",
         //         "code": "USDC",
         //         "accountNumber": 14822
@@ -731,13 +732,13 @@ public partial class aftermath : Exchange
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.accountNumber] account number to query orders for, required
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object accountNumber = null;
         var accountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "accountNumber");
         accountNumber = ((IList<object>)accountNumberparametersVariable)[0];
@@ -782,7 +783,7 @@ public partial class aftermath : Exchange
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.accountNumber] account number to query positions for, required
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
@@ -799,7 +800,7 @@ public partial class aftermath : Exchange
      * @param {string[]} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.accountNumber] account number to query positions for, required
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -884,7 +885,7 @@ public partial class aftermath : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {Account} [params.account] account id to use, required
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -895,9 +896,10 @@ public partial class aftermath : Exchange
         account = ((IList<object>)accountparametersVariable)[0];
         parameters = ((IList<object>)accountparametersVariable)[1];
         object order = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
-        object orders = await this.createOrders(new List<object>() {((object)order)}, new Dictionary<string, object>() {
+        object accountObj = new Dictionary<string, object>() {
             { "account", account },
-        });
+        };
+        object orders = await this.createOrders(new List<object>() {((object)order)}, accountObj);
         return getValue(orders, 0);
     }
 
@@ -910,7 +912,7 @@ public partial class aftermath : Exchange
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {Account} [params.account] account id to use, required
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
@@ -921,7 +923,7 @@ public partial class aftermath : Exchange
         {
             object order = this.clone(getValue(orders, i));
             object symbol = this.safeString(order, "symbol");
-            object market = this.market(symbol);
+            object market = this.market(((string)symbol));
             object price = this.safeString(order, "price");
             object amount = this.safeString(order, "amount");
             object orderParams = this.safeDict(order, "params", new Dictionary<string, object>() {});
@@ -935,9 +937,9 @@ public partial class aftermath : Exchange
             ((IDictionary<string,object>)order)["chId"] = getValue(market, "id");
             if (isTrue(!isEqual(price, null)))
             {
-                ((IDictionary<string,object>)order)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+                ((IDictionary<string,object>)order)["price"] = this.parseToNumeric(this.priceToPrecision(((string)symbol), price));
             }
-            ((IDictionary<string,object>)order)["amount"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            ((IDictionary<string,object>)order)["amount"] = this.parseToNumeric(this.amountToPrecision(((string)symbol), amount));
             ((IList<object>)ordersRequest).Add(order);
         }
         object account = null;
@@ -988,7 +990,7 @@ public partial class aftermath : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1007,13 +1009,13 @@ public partial class aftermath : Exchange
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {Account} [params.account] account to cancel orders for, required
-     * @returns {Order[]} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object account = null;
         var accountparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "account");
         account = ((IList<object>)accountparametersVariable)[0];
@@ -1096,7 +1098,7 @@ public partial class aftermath : Exchange
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {Account} [params.account] account id to use, required
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -1148,7 +1150,7 @@ public partial class aftermath : Exchange
      * @param {float} amount amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {Account} [params.account] account id to use, required
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -1201,7 +1203,7 @@ public partial class aftermath : Exchange
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -1262,7 +1264,7 @@ public partial class aftermath : Exchange
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {Account} [params.account] account id to use, required
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -1296,10 +1298,10 @@ public partial class aftermath : Exchange
         //     "collateral": 39.0
         // }
         //
-        return this.extend(this.parseTransaction(response, currency), new Dictionary<string, object>() {
-            { "addressFrom", account },
-            { "amount", amount },
-        });
+        object parsedTx = this.parseTransaction(response, currency);
+        ((IDictionary<string,object>)parsedTx)["addressFrom "] = account;
+        ((IDictionary<string,object>)parsedTx)["amount"] = amount;
+        return parsedTx;
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -1402,7 +1404,7 @@ public partial class aftermath : Exchange
             throw new NotSupported ((string)add(this.id, " only support hex encoding private key, please transform bech32 encoding private key")) ;
         }
         object signingDigest = this.safeString(tx, "signingDigest");
-        object digest = this.base64ToBinary(signingDigest);
+        object digest = this.base64ToBinary(((string)signingDigest));
         object privateKey = this.base16ToBinary(this.privateKey);
         object signature = eddsa(digest, privateKey, ed25519);
         object hexPublicKey = this.safeString(this.options, "publicKey");

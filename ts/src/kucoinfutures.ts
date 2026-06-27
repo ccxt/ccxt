@@ -7,6 +7,10 @@ import type { Dict, Strings, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class kucoinfutures
+ * @augments kucoin
+ */
 export default class kucoinfutures extends kucoin {
     describe (): any {
         return this.deepExtend (super.describe (), {
@@ -33,7 +37,6 @@ export default class kucoinfutures extends kucoin {
                 },
                 'defaultType': 'swap',
                 'defaultAccountType': 'contract',
-                'uta': false,
             },
         });
     }
@@ -115,7 +118,7 @@ export default class kucoinfutures extends kucoin {
         } else {
             throw new BadRequest (this.id + ' transfer() only supports transfers between future/swap, spot and funding accounts');
         }
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
         return this.extend (this.parseTransfer (data, currency), {
             'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,

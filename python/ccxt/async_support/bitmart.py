@@ -133,7 +133,7 @@ class bitmart(Exchange, ImplicitAPI):
             },
             'hostname': 'bitmart.com',  # bitmart.info, bitmart.news for Hong Kong users
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14',
+                'logo': 'https://github.com/user-attachments/assets/3741e8c0-83a8-4504-ae68-32b00e3c27ee',
                 'api': {
                     'spot': 'https://api-cloud.{hostname}',
                     'swap': 'https://api-cloud-v2.{hostname}',  # bitmart.info for Hong Kong users
@@ -262,6 +262,13 @@ class bitmart(Exchange, ImplicitAPI):
                         'spot/v4/cancel_orders': 3,
                         'spot/v4/cancel_all': 90,
                         'spot/v4/batch_orders': 3,
+                        'spot/v4/algo/submit_order': 6,  # 10 times per 2 seconds
+                        'spot/v4/algo/cancel_order': 6,
+                        'spot/v4/algo/cancel_all': 12,  # 5 times per 2 seconds
+                        'spot/v4/query/algo/order': 1.5,
+                        'spot/v4/query/algo/client-order': 1.5,  # 40 times per 2 seconds
+                        'spot/v4/query/algo/open-orders': 3,
+                        'spot/v4/query/algo/history-orders': 3,  # 20 times per 2 seconds
                         # newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
@@ -948,7 +955,7 @@ class bitmart(Exchange, ImplicitAPI):
         servicesByType = self.index_by(services, 'service_type')
         if type == 'swap':
             type = 'contract'
-        service = self.safe_string(servicesByType, type)
+        service = self.safe_dict(servicesByType, type)
         status = None
         eta = None
         if service is not None:
@@ -1261,7 +1268,7 @@ class bitmart(Exchange, ImplicitAPI):
                     'networks': {},
                     'type': 'other' if isNtf else 'crypto',
                 }
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, currencyCode)
             withdraw = self.safe_bool(currency, 'withdraw_enabled')
             deposit = self.safe_bool(currency, 'deposit_enabled')
             entry['networks'][networkCode] = {
@@ -1296,9 +1303,9 @@ class bitmart(Exchange, ImplicitAPI):
             networkCode = self.default_network_code(currencyCode)  # use default network code if not provided
         currency = self.currency(currencyCode)
         id = currency['id']
-        idFromNetwork: Str = None
+        idFromNetwork = None
         networks = self.safe_dict(currency, 'networks', {})
-        networkInfo: dict = {}
+        networkInfo = {}
         if networkCode is None:
             # network code is not provided and there is no default network code
             network = self.safe_dict(networks, currencyCode)  # trying to find network that has the same code
@@ -1330,9 +1337,9 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        network: Str = None
+        network = None
         network, params = self.handle_network_code_and_params(params)
-        request: dict = {
+        request = {
             'currency': self.get_currency_id_from_code_and_network(currency['code'], network),
         }
         response = await self.privateGetAccountV1WithdrawCharge(self.extend(request, params))
@@ -1350,7 +1357,7 @@ class bitmart(Exchange, ImplicitAPI):
         #     }
         #
         data = response['data']
-        withdrawFees: dict = {}
+        withdrawFees = {}
         withdrawFees[code] = self.safe_number(data, 'withdraw_fee')
         return {
             'info': response,
@@ -1392,9 +1399,9 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         await self.load_markets()
-        network: Str = None
+        network = None
         network, params = self.handle_network_code_and_params(params)
-        request: dict = {
+        request = {
             'currency': self.get_currency_id_from_code_and_network(code, network),
         }
         response = await self.privateGetAccountV1WithdrawCharge(self.extend(request, params))
@@ -1582,7 +1589,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {}
+        request = {}
         response = None
         if market['swap']:
             request['symbol'] = market['id']
@@ -1655,7 +1662,7 @@ class bitmart(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTicker() does not support ' + market['type'] + ' markets, only spot and swap markets are accepted')
         # fails in naming for contract tickers 'contract_symbol'
         tickers = []
-        ticker: dict = {}
+        ticker = {}
         if market['spot']:
             ticker = self.safe_dict(response, 'data', {})
         else:
@@ -1759,9 +1766,9 @@ class bitmart(Exchange, ImplicitAPI):
         else:
             data = self.safe_dict(response, 'data', {})
             tickers = self.safe_list(data, 'symbols', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(tickers)):
-            ticker: dict = {}
+            ticker = {}
             if type == 'spot':
                 ticker = self.parse_ticker({'result': tickers[i]})
             else:
@@ -1780,11 +1787,11 @@ class bitmart(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = None
@@ -1963,7 +1970,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' fetchTrades() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -2074,7 +2081,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         duration = self.parse_timeframe(timeframe)
         parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if parsedTimeframe is not None:
@@ -2167,7 +2174,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2271,7 +2278,7 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'orderId': id,
         }
         response = await self.privatePostSpotV4QueryOrderTrades(self.extend(request, params))
@@ -2297,7 +2304,7 @@ class bitmart(Exchange, ImplicitAPI):
                 quote = self.safe_dict(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
-                subResult: dict = {}
+                subResult = {}
                 subResult[baseCode] = self.parse_balance_helper(base)
                 subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
@@ -2484,7 +2491,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' fetchTradingFee() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.privateGetSpotV1TradeFee(self.extend(request, params))
@@ -2628,7 +2635,7 @@ class bitmart(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_side(self, side):
-        sides: dict = {
+        sides = {
             '1': 'buy',
             '2': 'buy',
             '3': 'sell',
@@ -2637,7 +2644,7 @@ class bitmart(Exchange, ImplicitAPI):
         return self.safe_string(sides, side, side)
 
     def parse_order_status_by_type(self, type, status):
-        statusesByType: dict = {
+        statusesByType = {
             'spot': {
                 '1': 'rejected',  # Order failure
                 '2': 'open',  # Placing order
@@ -2689,6 +2696,7 @@ class bitmart(Exchange, ImplicitAPI):
         https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
+        https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'trailing' for swap markets only
@@ -2726,7 +2734,9 @@ class bitmart(Exchange, ImplicitAPI):
         response = None
         if market['spot']:
             spotRequest = self.create_spot_order_request(symbol, type, side, amount, price, params)
-            if marginMode == 'isolated':
+            if isStopLoss or isTakeProfit or isTriggerOrder:
+                response = await self.privatePostSpotV4AlgoSubmitOrder(spotRequest)
+            elif marginMode == 'isolated':
                 response = await self.privatePostSpotV1MarginSubmitOrder(spotRequest)
             else:
                 response = await self.privatePostSpotV2SubmitOrder(spotRequest)
@@ -2799,8 +2809,8 @@ class bitmart(Exchange, ImplicitAPI):
             orderRequest = self.create_spot_order_request(marketId, type, side, amount, price, orderParams)
             orderRequest = self.omit(orderRequest, ['symbol'])  # not needed because it goes in the outter object
             ordersRequests.append(orderRequest)
-        request: dict = {
-            'symbol': market['id'],
+        request = {
+            'symbol': self.safe_string(market, 'id'),
             'orderParams': ordersRequests,
         }
         response = await self.privatePostSpotV4BatchOrders(request)
@@ -2868,10 +2878,11 @@ class bitmart(Exchange, ImplicitAPI):
             type = 'stop_loss'
         elif isTakeProfit:
             type = 'take_profit'
-        request: dict = {
+        request = {
             'symbol': market['id'],
-            'size': int(self.amount_to_precision(symbol, amount)),
         }
+        if amount is not None:
+            request['size'] = int(self.amount_to_precision(symbol, amount))
         timeInForce = self.safe_string(params, 'timeInForce')
         mode = self.safe_integer(params, 'mode')  # only for swap
         isMarketOrder = type == 'market'
@@ -2921,7 +2932,10 @@ class bitmart(Exchange, ImplicitAPI):
         if isStopLoss or isTakeProfit:
             reduceOnly = True
             request['price_type'] = self.safe_integer(params, 'price_type', 1)
-            request['executive_price'] = self.price_to_precision(symbol, price)
+            if price is not None:
+                request['executive_price'] = self.price_to_precision(symbol, price)
+            marketOrLimitStr = 'limit' if isLimitOrder else 'market'
+            request['category'] = self.safe_string(params, 'category', marketOrLimitStr)
             if isStopLoss:
                 request['trigger_price'] = self.price_to_precision(symbol, stopLossPrice)
             else:
@@ -2958,6 +2972,7 @@ class bitmart(Exchange, ImplicitAPI):
         create a spot order request
         https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
         https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+        https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2965,13 +2980,23 @@ class bitmart(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
+        :param str [params.clientOrderId]: client order id of the order
+        :param str [params.triggerPrice]: the price to trigger a stop order
+        :param str [params.stopLossPrice]: the price to trigger a stop-loss order
+        :param str [params.takeProfitPrice]: the price to trigger a take-profit order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         market = self.market(symbol)
-        request: dict = {
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        isTriggerOrder = triggerPrice is not None
+        isAlgoOrder = isStopLoss or isTakeProfit or isTriggerOrder
+        request = {
             'symbol': market['id'],
             'side': side,
-            'type': type,
         }
         timeInForce = self.safe_string(params, 'timeInForce')
         if timeInForce == 'FOK':
@@ -2984,7 +3009,23 @@ class bitmart(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'postOnly'])
         ioc = ((timeInForce == 'IOC') or (type == 'ioc'))
         isLimitOrder = (type == 'limit') or postOnly or ioc
-        # method = 'privatePostSpotV2SubmitOrder'
+        if isAlgoOrder:
+            if isTriggerOrder:
+                request['type'] = 'trigger'
+            else:
+                request['type'] = 'tp/sl'
+            if isLimitOrder:
+                request['trigger_type'] = 'limit'
+            else:
+                request['trigger_type'] = 'market'
+            if isStopLoss:
+                request['trigger_price'] = self.price_to_precision(symbol, stopLossPrice)
+            elif isTakeProfit:
+                request['trigger_price'] = self.price_to_precision(symbol, takeProfitPrice)
+            elif isTriggerOrder:
+                request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+        else:
+            request['type'] = type
         if isLimitOrder:
             request['size'] = self.amount_to_precision(symbol, amount)
             request['price'] = self.price_to_precision(symbol, price)
@@ -3026,20 +3067,22 @@ class bitmart(Exchange, ImplicitAPI):
         https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
+        https://developer-pro.bitmart.com/en/spot/#cancel-algo-order-v4-signed
 
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: *spot only* the client order id of the order to cancel
-        :param boolean [params.trigger]: *swap only* whether the order is a trigger order
         :param boolean [params.trailing]: *swap only* whether the order is a stop order
+        :param boolean [params.trigger]: whether the order is a trigger order
+        :param boolean [params.stopLossTakeProfit]: whether the order is a stopLossPrice or takeProfitPrice order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
@@ -3047,14 +3090,21 @@ class bitmart(Exchange, ImplicitAPI):
             request['client_order_id'] = clientOrderId
         else:
             request['order_id'] = str(id)
-        params = self.omit(params, ['clientOrderId'])
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+        trailing = self.safe_bool(params, 'trailing')
+        params = self.omit(params, ['clientOrderId', 'stop', 'trigger', 'trailing', 'stopLossTakeProfit'])
         response = None
         if market['spot']:
-            response = await self.privatePostSpotV3CancelOrder(self.extend(request, params))
+            if trigger or stopLossTakeProfit:
+                if stopLossTakeProfit:
+                    request['type'] = 'tp/sl'
+                elif trigger:
+                    request['type'] = 'trigger'
+                response = await self.privatePostSpotV4AlgoCancelOrder(self.extend(request, params))
+            else:
+                response = await self.privatePostSpotV3CancelOrder(self.extend(request, params))
         else:
-            trigger = self.safe_bool_2(params, 'stop', 'trigger')
-            trailing = self.safe_bool(params, 'trailing')
-            params = self.omit(params, ['stop', 'trigger'])
             if trigger:
                 response = await self.privatePostContractPrivateCancelPlanOrder(self.extend(request, params))
             elif trailing:
@@ -3091,9 +3141,9 @@ class bitmart(Exchange, ImplicitAPI):
             return self.safe_order({'id': id}, market)
         succeeded = self.safe_value(data, 'succeed')
         if succeeded is not None:
-            id = self.safe_string(succeeded, 0)
-            if id is None:
-                raise InvalidOrder(self.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id)
+            id2 = self.safe_string(succeeded, 0)
+            if id2 is None:
+                raise InvalidOrder(self.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id2)
         else:
             result = self.safe_value(data, 'result')
             if not result:
@@ -3121,7 +3171,7 @@ class bitmart(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
         params = self.omit(params, ['clientOrderIds'])
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if clientOrderIds is not None:
@@ -3163,14 +3213,17 @@ class bitmart(Exchange, ImplicitAPI):
 
         https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
         https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+        https://developer-pro.bitmart.com/en/spot/#cancel-all-algo-order-v4-signed
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.side]: *spot only* 'buy' or 'sell'
+        :param boolean [params.trigger]: whether the orders are trigger orders
+        :param boolean [params.stopLossTakeProfit]: whether the orders are stopLossPrice or takeProfitPrice orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3179,7 +3232,17 @@ class bitmart(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if type == 'spot':
-            response = await self.privatePostSpotV4CancelAll(self.extend(request, params))
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
+            stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+            params = self.omit(params, ['stop', 'trigger', 'stopLossTakeProfit'])
+            if trigger or stopLossTakeProfit:
+                if stopLossTakeProfit:
+                    request['type'] = 'tp/sl'
+                elif trigger:
+                    request['type'] = 'trigger'
+                response = await self.privatePostSpotV4AlgoCancelAll(self.extend(request, params))
+            else:
+                response = await self.privatePostSpotV4CancelAll(self.extend(request, params))
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -3211,7 +3274,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' fetchOrdersByStatus() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'offset': 1,  # max offset * limit < 500
             'N': 100,  # max limit is 100
@@ -3259,12 +3322,13 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetch all unfilled currently open orders
 
         https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
         https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
         https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
+        https://developer-pro.bitmart.com/en/spot/#current-algo-open-orders-v4-signed
 
-        fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -3275,19 +3339,23 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.order_state]: *swap* the order state, 'all' or 'partially_filled', default is 'all'
         :param str [params.orderType]: *swap only* 'limit', 'market', or 'trailing'
         :param boolean [params.trailing]: *swap only* set to True if you want to fetch trailing orders
-        :param boolean [params.trigger]: *swap only* set to True if you want to fetch trigger orders
+        :param boolean [params.trigger]: set to True if you want to fetch trigger orders
+        :param boolean [params.stopLossTakeProfit]: set to True if you want to fetch stopLossPrice or takeProfitPrice orders
         :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         type = None
         response = None
         type, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        isTrigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+        params = self.omit(params, ['stop', 'trigger', 'stopLossTakeProfit'])
         if type == 'spot':
             if limit is not None:
                 request['limit'] = min(limit, 200)
@@ -3301,12 +3369,17 @@ class bitmart(Exchange, ImplicitAPI):
             if until is not None:
                 params = self.omit(params, ['endTime'])
                 request['endTime'] = until
-            response = await self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
+            if isTrigger or stopLossTakeProfit:
+                if isTrigger:
+                    request['orderMode'] = 'trigger'
+                elif stopLossTakeProfit:
+                    request['orderMode'] = 'tp/sl'
+                response = await self.privatePostSpotV4QueryAlgoOpenOrders(self.extend(request, params))
+            else:
+                response = await self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
         elif type == 'swap':
             if limit is not None:
                 request['limit'] = min(limit, 100)
-            isTrigger = self.safe_bool_2(params, 'stop', 'trigger')
-            params = self.omit(params, ['stop', 'trigger'])
             if isTrigger:
                 response = await self.privateGetContractPrivateCurrentPlanOrder(self.extend(request, params))
             else:
@@ -3379,11 +3452,12 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetches information on multiple closed orders made by the user
 
         https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
         https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+        https://developer-pro.bitmart.com/en/spot/#account-algo-orders-v4-signed
 
-        fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -3391,11 +3465,13 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest entry
         :param str [params.marginMode]: *spot only* 'cross' or 'isolated', for margin trading
         :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :param boolean [params.trigger]: set to True if you want to fetch trigger orders
+        :param boolean [params.stopLossTakeProfit]: set to True if you want to fetch stopLossPrice or takeProfitPrice orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -3412,13 +3488,23 @@ class bitmart(Exchange, ImplicitAPI):
         if until is not None:
             params = self.omit(params, ['until'])
             request[endTimeKey] = until
+        isTrigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+        params = self.omit(params, ['stop', 'trigger', 'stopLossTakeProfit'])
         response = None
         if type == 'spot':
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchClosedOrders', params)
             if marginMode == 'isolated':
                 request['orderMode'] = 'iso_margin'
-            response = await self.privatePostSpotV4QueryHistoryOrders(self.extend(request, params))
+            if isTrigger or stopLossTakeProfit:
+                if isTrigger:
+                    request['orderMode'] = 'trigger'
+                elif stopLossTakeProfit:
+                    request['orderMode'] = 'tp/sl'
+                response = await self.privatePostSpotV4QueryAlgoHistoryOrders(self.extend(request, params))
+            else:
+                response = await self.privatePostSpotV4QueryHistoryOrders(self.extend(request, params))
         else:
             response = await self.privateGetContractPrivateOrderHistory(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
@@ -3442,6 +3528,8 @@ class bitmart(Exchange, ImplicitAPI):
         https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
         https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
         https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+        https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-id-v4-signed
+        https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-clientorderid-v4-signed
 
         :param str id: the id of the order
         :param str symbol: unified symbol of the market the order was made in
@@ -3450,10 +3538,11 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.orderType]: *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
         :param boolean [params.trailing]: *swap only* set to True if you want to fetch a trailing order
         :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :param boolean [params.trigger]: whether the orders is a trigger, stopLossPrice or takeProfitPrice order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         type = None
         market = None
         response = None
@@ -3462,12 +3551,20 @@ class bitmart(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchOrder', market, params)
         if type == 'spot':
             clientOrderId = self.safe_string(params, 'clientOrderId')
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
+            params = self.omit(params, ['stop', 'trigger'])
             if not clientOrderId:
                 request['orderId'] = id
-            if clientOrderId is not None:
-                response = await self.privatePostSpotV4QueryClientOrder(self.extend(request, params))
+            if trigger:
+                if clientOrderId is not None:
+                    response = await self.privatePostSpotV4QueryAlgoClientOrder(self.extend(request, params))
+                else:
+                    response = await self.privatePostSpotV4QueryAlgoOrder(self.extend(request, params))
             else:
-                response = await self.privatePostSpotV4QueryOrder(self.extend(request, params))
+                if clientOrderId is not None:
+                    response = await self.privatePostSpotV4QueryClientOrder(self.extend(request, params))
+                else:
+                    response = await self.privatePostSpotV4QueryOrder(self.extend(request, params))
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -3478,7 +3575,7 @@ class bitmart(Exchange, ImplicitAPI):
                 orderType = 'trailing'
             if orderType is not None:
                 request['type'] = orderType
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
             request['order_id'] = id
             response = await self.privateGetContractPrivateOrder(self.extend(request, params))
         #
@@ -3546,9 +3643,9 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        network: Str = None
+        network = None
         network, params = self.handle_network_code_and_params(params)
-        request: dict = {
+        request = {
             'currency': self.get_currency_id_from_code_and_network(code, network),
         }
         response = await self.privateGetAccountV1DepositAddress(self.extend(request, params))
@@ -3599,11 +3696,12 @@ class bitmart(Exchange, ImplicitAPI):
                 network = secondPart
         address = self.safe_string(depositAddress, 'address')
         currency = self.safe_currency(currencyId, currency)
+        code = self.safe_string(currency, 'code')
         self.check_address(address)
         return {
             'info': depositAddress,
-            'currency': self.safe_string(currency, 'code'),
-            'network': self.network_id_to_code(network),
+            'currency': code,
+            'network': self.network_id_to_code(network, code),
             'address': address,
             'tag': self.safe_string_2(depositAddress, 'address_memo', 'memo'),
         }
@@ -3626,9 +3724,9 @@ class bitmart(Exchange, ImplicitAPI):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        network: Str = None
+        network = None
         network, params = self.handle_network_code_and_params(params)
-        request: dict = {
+        request = {
             'currency': self.get_currency_id_from_code_and_network(code, network),
             'amount': amount,
             'destination': 'To Digital Address',  # To Digital Address, To Binance, To OKEX
@@ -3659,7 +3757,7 @@ class bitmart(Exchange, ImplicitAPI):
         await self.load_markets()
         if limit is None:
             limit = 1000  # max 1000
-        request: dict = {
+        request = {
             'operation_type': type,  # deposit or withdraw
             'N': limit,
         }
@@ -3714,7 +3812,7 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'id': id,
         }
         response = await self.privateGetAccountV1DepositWithdrawDetail(self.extend(request, params))
@@ -3770,7 +3868,7 @@ class bitmart(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'id': id,
         }
         response = await self.privateGetAccountV1DepositWithdrawDetail(self.extend(request, params))
@@ -3815,7 +3913,7 @@ class bitmart(Exchange, ImplicitAPI):
         return await self.fetch_transactions_by_type('withdraw', code, since, limit, params)
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             '0': 'pending',  # Create
             '1': 'pending',  # Submitted, waiting for withdrawal
             '2': 'pending',  # Processing
@@ -3862,7 +3960,7 @@ class bitmart(Exchange, ImplicitAPI):
         amount = self.safe_number(transaction, 'arrival_amount')
         timestamp = self.safe_integer(transaction, 'apply_time')
         currencyId = self.safe_string(transaction, 'currency')
-        networkId: Str = None
+        networkId = None
         if currencyId is not None:
             if currencyId.find('NFT') < 0:
                 parts = currencyId.split('-')
@@ -3885,7 +3983,7 @@ class bitmart(Exchange, ImplicitAPI):
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'addressFrom': None,
             'addressTo': None,
@@ -3918,7 +4016,7 @@ class bitmart(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
@@ -3956,7 +4054,7 @@ class bitmart(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
@@ -4015,7 +4113,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.privateGetSpotV1MarginIsolatedPairs(self.extend(request, params))
@@ -4162,7 +4260,7 @@ class bitmart(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        request: dict = {
+        request = {
             'amount': amountToPrecision,
             'currency': currency['id'],
         }
@@ -4217,7 +4315,7 @@ class bitmart(Exchange, ImplicitAPI):
         })
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             '1000': 'ok',
             'OK': 'ok',
             'FINISHED': 'ok',
@@ -4225,14 +4323,14 @@ class bitmart(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transfer_to_account(self, type):
-        types: dict = {
+        types = {
             'contract_to_spot': 'spot',
             'spot_to_contract': 'swap',
         }
         return self.safe_string(types, type, type)
 
     def parse_transfer_from_account(self, type):
-        types: dict = {
+        types = {
             'contract_to_spot': 'swap',
             'spot_to_contract': 'spot',
         }
@@ -4294,8 +4392,9 @@ class bitmart(Exchange, ImplicitAPI):
         await self.load_markets()
         if limit is None:
             limit = 10
-        request: dict = {
-            'page': self.safe_integer(params, 'page', 1),  # default is 1, max is 1000
+        pageNumber = self.safe_integer(params, 'page', 1)
+        request = {
+            'page': pageNumber,  # default is 1, max is 1000
             'limit': limit,  # default is 10, max is 100
         }
         currency = None
@@ -4352,7 +4451,7 @@ class bitmart(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -4428,7 +4527,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetContractPublicOpenInterest(self.extend(request, params))
@@ -4489,7 +4588,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'leverage': str(leverage),
             'open_type': marginMode,
@@ -4510,7 +4609,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetContractPublicFundingRate(self.extend(request, params))
@@ -4549,7 +4648,7 @@ class bitmart(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -4651,7 +4750,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.privateGetContractPrivatePosition(self.extend(request, params))
@@ -4706,10 +4805,10 @@ class bitmart(Exchange, ImplicitAPI):
             symbolsLength = len(symbols)
             first = self.safe_string(symbols, 0)
             market = self.market(first)
-        request: dict = {}
+        request = {}
         if symbolsLength == 1:
             # only supports symbols or sending one symbol
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         response = await self.privateGetContractPrivatePositionV2(self.extend(request, params))
         #
         #     {
@@ -4830,7 +4929,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise NotSupported(self.id + ' fetchMyLiquidations() supports swap markets only')
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -4952,7 +5051,7 @@ class bitmart(Exchange, ImplicitAPI):
         isPresetStopLoss = presetStopLoss is not None
         isPresetTakeProfit = presetTakeProfit is not None
         isLimitOrder = (type == 'limit')
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         clientOrderId = self.safe_string(params, 'clientOrderId')
@@ -5045,7 +5144,7 @@ class bitmart(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {}
+        request = {}
         request, params = self.handle_until_option('end_time', request, params)
         transactionsRequest = self.fetch_transactions_request(0, None, since, limit, params)
         response = await self.privateGetContractPrivateTransactionHistory(transactionsRequest)
@@ -5112,7 +5211,7 @@ class bitmart(Exchange, ImplicitAPI):
         }, currency)
 
     def parse_ledger_entry_type(self, type):
-        ledgerType: dict = {
+        ledgerType = {
             'Commission Fee': 'fee',
             'Funding Fee': 'fee',
             'Realized PNL': 'trade',
@@ -5122,7 +5221,7 @@ class bitmart(Exchange, ImplicitAPI):
         return self.safe_string(ledgerType, type, type)
 
     def fetch_transactions_request(self, flowType: Int = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        request: dict = {}
+        request = {}
         if flowType is not None:
             request['flow_type'] = flowType
         market = None
@@ -5153,7 +5252,7 @@ class bitmart(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {}
+        request = {}
         request, params = self.handle_until_option('end_time', request, params)
         transactionsRequest = self.fetch_transactions_request(3, symbol, since, limit, params)
         response = await self.privateGetContractPrivateTransactionHistory(transactionsRequest)
@@ -5268,7 +5367,7 @@ class bitmart(Exchange, ImplicitAPI):
             positionMode = 'hedge_mode'
         else:
             positionMode = 'one_way_mode'
-        request: dict = {
+        request = {
             'position_mode': positionMode,
         }
         #
@@ -5314,7 +5413,7 @@ class bitmart(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         parts = path.split('/')
         # to do: refactor api endpoints with spot/swap sections
         category = self.safe_string(parts, 0, 'spot')

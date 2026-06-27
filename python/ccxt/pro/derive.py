@@ -82,14 +82,14 @@ class derive(ccxt.async_support.derive):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         if limit is None:
             limit = 10
         market = self.market(symbol)
         topic = 'orderbook.' + market['id'] + '.10.' + self.number_to_string(limit)
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': [
@@ -97,7 +97,7 @@ class derive(ccxt.async_support.derive):
                 ],
             },
         }
-        subscription: dict = {
+        subscription = {
             'name': topic,
             'symbol': symbol,
             'limit': limit,
@@ -152,7 +152,7 @@ class derive(ccxt.async_support.derive):
         await self.load_markets()
         market = self.market(symbol)
         topic = 'ticker.' + market['id'] + '.100'
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': [
@@ -160,7 +160,7 @@ class derive(ccxt.async_support.derive):
                 ],
             },
         }
-        subscription: dict = {
+        subscription = {
             'name': topic,
             'symbol': symbol,
             'params': params,
@@ -247,7 +247,7 @@ class derive(ccxt.async_support.derive):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         limit = self.safe_integer(params, 'limit')
@@ -256,7 +256,7 @@ class derive(ccxt.async_support.derive):
         market = self.market(symbol)
         topic = 'orderbook.' + market['id'] + '.10.' + self.number_to_string(limit)
         messageHash = 'unwatch' + topic
-        request: dict = {
+        request = {
             'method': 'unsubscribe',
             'params': {
                 'channels': [
@@ -264,7 +264,7 @@ class derive(ccxt.async_support.derive):
                 ],
             },
         }
-        subscription: dict = {
+        subscription = {
             'name': topic,
         }
         return await self.un_watch_public(messageHash, request, subscription)
@@ -280,7 +280,7 @@ class derive(ccxt.async_support.derive):
         market = self.market(symbol)
         topic = 'trades.' + market['id']
         messageHah = 'unwatch' + topic
-        request: dict = {
+        request = {
             'method': 'unsubscribe',
             'params': {
                 'channels': [
@@ -288,7 +288,7 @@ class derive(ccxt.async_support.derive):
                 ],
             },
         }
-        subscription: dict = {
+        subscription = {
             'name': topic,
         }
         return await self.un_watch_public(messageHah, request, subscription)
@@ -368,7 +368,7 @@ class derive(ccxt.async_support.derive):
         await self.load_markets()
         market = self.market(symbol)
         topic = 'trades.' + market['id']
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': [
@@ -376,7 +376,7 @@ class derive(ccxt.async_support.derive):
                 ],
             },
         }
-        subscription: dict = {
+        subscription = {
             'name': topic,
             'symbol': symbol,
             'params': params,
@@ -418,7 +418,7 @@ class derive(ccxt.async_support.derive):
             now = str(self.milliseconds())
             signature = self.signMessage(now, self.privateKey)
             deriveWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
-            request: dict = {
+            request = {
                 'id': requestId,
                 'method': 'public/login',
                 'params': {
@@ -427,7 +427,7 @@ class derive(ccxt.async_support.derive):
                     'signature': signature,
                 },
             }
-            # subscription: Dict = {
+            # subscription = {
             #     'name': topic,
             #     'symbol': symbol,
             #     'params': params,
@@ -471,7 +471,7 @@ class derive(ccxt.async_support.derive):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': [
@@ -479,7 +479,7 @@ class derive(ccxt.async_support.derive):
                 ],
             },
         }
-        subscription: dict = {
+        subscription = {
             'name': topic,
             'params': params,
         }
@@ -583,7 +583,7 @@ class derive(ccxt.async_support.derive):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': [
@@ -591,7 +591,7 @@ class derive(ccxt.async_support.derive):
                 ],
             },
         }
-        subscription: dict = {
+        subscription = {
             'name': topic,
             'params': params,
         }
@@ -615,7 +615,7 @@ class derive(ccxt.async_support.derive):
             trade = self.parse_trade(message)
             myTrades.append(trade)
             client.resolve(myTrades, topic)
-            messageHash = topic + trade['symbol']
+            messageHash = topic + self.safe_string(trade, 'symbol', '')
             client.resolve(myTrades, messageHash)
 
     def handle_error_message(self, client: Client, message) -> Bool:
@@ -648,7 +648,7 @@ class derive(ccxt.async_support.derive):
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
-        methods: dict = {
+        methods = {
             'orderbook': self.handle_order_book,
             'ticker': self.handle_ticker,
             'trades': self.handle_trade,

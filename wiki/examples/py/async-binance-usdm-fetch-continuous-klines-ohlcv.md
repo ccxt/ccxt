@@ -1,8 +1,5 @@
-- [Async Binance Usdm Fetch Continuous Klines Ohlcv](./examples/py/)
+```python
 
-
- ```python
- 
 # -*- coding: utf-8 -*-
 
 import os
@@ -46,5 +43,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitmex$1 = require('../bitmex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ class bitmex extends bitmex$1["default"] {
             //     'ws': '0.2.0',
             // },
             'options': {
-                'watchOrderBookLevel': 'orderBookL2',
+                'watchOrderBookLevel': 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
             },
@@ -690,7 +690,7 @@ class bitmex extends bitmex$1["default"] {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const payload = 'GET' + '/realtime' + timestamp.toString();
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256);
             const request = {
                 'op': 'authKeyExpires',
                 'args': [
@@ -910,6 +910,26 @@ class bitmex extends bitmex$1["default"] {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition(rawPosition);
+            let side = this.safeString(position, 'side');
+            if (side === undefined) {
+                // BitMEX 'update' rows are deltas and may omit homeNotional, so
+                // parsePosition returns side = undefined. Carry the side forward from
+                // the cached position for this symbol, otherwise appending would break
+                // the ArrayCacheBySymbolBySide index (see issue #29001).
+                const symbol = this.safeString(position, 'symbol');
+                const cachedBySide = this.safeDict(cache.hashmap, symbol, {});
+                const cachedSides = Object.keys(cachedBySide);
+                const sidesLength = cachedSides.length;
+                if (sidesLength === 1) {
+                    side = cachedSides[0];
+                    position['side'] = side;
+                }
+            }
+            if (side === undefined) {
+                // still unresolved (e.g. the very first message is a partial without
+                // homeNotional); skip this row rather than corrupt the cache
+                continue;
+            }
             newPositions.push(position);
             cache.append(position);
         }
@@ -1268,7 +1288,7 @@ class bitmex extends bitmex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.watchOrderBookForSymbols([symbol], limit, params);
@@ -1281,7 +1301,7 @@ class bitmex extends bitmex$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         let table = undefined;
@@ -1465,8 +1485,8 @@ class bitmex extends bitmex$1["default"] {
             const symbol = market['symbol'];
             const messageHash = table + ':' + market['id'];
             const result = [
-                this.parse8601(this.safeString(candle, 'timestamp')) - duration * 1000,
-                undefined,
+                this.parseToInt(this.parse8601(this.safeString(candle, 'timestamp'))) - duration * 1000,
+                undefined, // set open price to undefined, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 this.safeFloat(candle, 'high'),
                 this.safeFloat(candle, 'low'),
                 this.safeFloat(candle, 'close'),
@@ -1595,7 +1615,7 @@ class bitmex extends bitmex$1["default"] {
                 if (!(marketId in numUpdatesByMarketId)) {
                     numUpdatesByMarketId[marketId] = 0;
                 }
-                numUpdatesByMarketId[marketId] = this.sum(numUpdatesByMarketId, 1);
+                numUpdatesByMarketId[marketId] = this.sum(numUpdatesByMarketId[marketId], 1);
                 const market = this.safeMarket(marketId);
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];

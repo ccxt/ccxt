@@ -47,7 +47,7 @@ async def multi_orderbooks(exchanges):
 if __name__ == '__main__':
 
     # Consider review request rate limit in the methods you call
-    exchanges = ["kucoin", "bittrex", "bitfinex", "poloniex", "huobipro"]
+    exchanges = ["kucoin", "bitfinex", "poloniex", "htx"]
 
     tic = time.time()
     a = asyncio.run(multi_orderbooks(exchanges))

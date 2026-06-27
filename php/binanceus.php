@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\binanceus as binance;
 
 class binanceus extends binance {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceus',
@@ -49,6 +48,7 @@ class binanceus extends binance {
                 'defaultType' => 'spot',
                 'fetchMargins' => false,
                 'quoteOrderQty' => false,
+                'fetchCurrencies' => false,
             ),
             'has' => array(
                 'CORS' => null,
