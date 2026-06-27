@@ -2405,6 +2405,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             let content = go.content;
             content = this.regexAll (content, [
                 [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]any{}, $1)' ],
+                [/(\w+) := NewCcxt\.Coinbase\(([\S\s]+?)\)/gm, '$1 := ccxt.NewCoinbase().(*ccxt.Coinbase); $1.DerivedExchange = $1; $1.InitParent($2, map[string]any{}, $1)' ],
                 [/exchange any, /g,'exchange *ccxt.Exchange, '], // in arguments
                 [/ any(?= \= map\[string\]any )/g, ' map[string]any'], // fix incorrect variable type
                 [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
@@ -2556,6 +2557,7 @@ func (this *${className}) Init(userConfig map[string]any) {
 
             let regexes = [
                 [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
+                [/exchange := (?:&)?ccxt\.Coinbase\{\}/g, 'exchange := ccxt.NewCoinbase()'],
                 [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
