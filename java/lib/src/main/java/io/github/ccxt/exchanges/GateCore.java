@@ -28,7 +28,7 @@ public class GateCore extends GateApi
             put( "certified", true );
             put( "pro", true );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85" );
+                put( "logo", "https://github.com/user-attachments/assets/b4fd9d41-eaed-46fe-8a7b-b2677edface0" );
                 put( "doc", "https://www.gate.com/docs/developers/apiv4/en" );
                 put( "www", "https://gate.com" );
                 put( "api", new java.util.HashMap<String, Object>() {{
