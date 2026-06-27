@@ -9,7 +9,7 @@ public partial class derive : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "derive" },
-            { "name", "derive" },
+            { "name", "Derive" },
             { "countries", new List<object>() {} },
             { "version", "v1" },
             { "rateLimit", 50 },
