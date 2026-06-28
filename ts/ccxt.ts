@@ -130,6 +130,7 @@ import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
 import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
+import nonkyc from  './src/nonkyc.js'
 import novadax from  './src/novadax.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
@@ -319,6 +320,7 @@ const exchanges = {
     'modetrade':              modetrade,
     'myokx':                  myokx,
     'ndax':                   ndax,
+    'nonkyc':                 nonkyc,
     'novadax':                novadax,
     'okx':                    okx,
     'okxus':                  okxus,
@@ -652,6 +654,7 @@ export {
     modetrade,
     myokx,
     ndax,
+    nonkyc,
     novadax,
     okx,
     okxus,
