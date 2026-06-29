@@ -57,7 +57,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         int high = arr.Count - 1;
         while (low <= high)
         {
-            int mid = (low + high) / 2;
+            int mid = (low + high) >> 1;
             if (arr[mid] < x) low = mid + 1;
             else high = mid - 1;
         }
@@ -65,7 +65,23 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     }
 
 
-    private SlimConcurrentList<decimal> __index = new SlimConcurrentList<decimal>();
+    private readonly int MAX_SIZE = 1024; // default max depth
+
+    private void initSlimList()
+    {
+        _index = new SlimConcurrentList<decimal>();
+        // Fill the index with elements
+        for (int i = 0; i < MAX_SIZE; i++)
+        {
+            _index.Add(decimal.MaxValue);
+        }
+        // fill current instance too
+        //for (int i = 0; i < MAX_SIZE; i++)
+        //{
+        //    this.Add(decimal.MaxValue);
+        //}
+    }
+    private SlimConcurrentList<decimal> __index;
 
     public SlimConcurrentList<decimal> _index
     {
@@ -111,7 +127,8 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     {
         lock (_syncRoot)
         {
-
+            this.initSlimList();
+            
             this.side = side;
             this._depth = (depth == null) ? Int32.MaxValue : Convert.ToInt32(depth);
             // var deltas = (List<object>)deltas2;
@@ -392,7 +409,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
             var delta = (IList<object>)delta2;
             var price = Convert.ToDecimal(delta[0]);
             var size = Convert.ToDecimal(delta[1]);
-            var order_id = delta[2];
+            var order_id = delta[2] as string;
             decimal? index_price = -1;
             if (price != 0)
             {
@@ -405,7 +422,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
             }
             if (size != 0)
             {
-                var stringId = order_id.ToString();
+                var stringId = order_id;
                 if (this.hasmap.ContainsKey(stringId))
                 {
                     var old_price = Convert.ToDecimal(this.hasmap[stringId]);
@@ -422,7 +439,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                     if (index_price == old_price)
                     {
                         var index2 = bisectLeft(this._index, Convert.ToDecimal(index_price));
-                        while (((IList<object>)this[index2])[2] != order_id)
+                        while (((IList<object>)this[index2])[2] as string != order_id)
                         {
                             index2++;
                         }
@@ -433,7 +450,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                     else
                     {
                         var old_index = bisectLeft(this._index, old_price);
-                        while (((IList<object>)this[old_index])[2] != order_id)
+                        while (((IList<object>)this[old_index])[2] as string != order_id)
                         {
                             old_index++;
                         }
@@ -458,17 +475,17 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                 this._index.Insert(index, indexPriceValue);
                 this.Insert(index, delta);
             }
-            else if (this.hasmap.ContainsKey(order_id.ToString()))
+            else if (this.hasmap.ContainsKey(order_id))
             {
-                var old_price2 = Convert.ToDecimal(this.hasmap[order_id.ToString()]);
+                var old_price2 = Convert.ToDecimal(this.hasmap[order_id]);
                 var index3 = bisectLeft(this._index, old_price2);
-                while (((IList<object>)this[index3])[2] != order_id)
+                while (((IList<object>)this[index3])[2] as string != order_id)
                 {
                     index3++;
                 }
                 this._index.RemoveAt(index3);
                 this.RemoveAt(index3);
-                this.hasmap.Remove(order_id.ToString());
+                this.hasmap.Remove(order_id);
             }
         }
     }
