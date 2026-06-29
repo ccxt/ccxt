@@ -299,6 +299,7 @@ export default class bithumb extends Exchange {
                 '1d': '24h',
             },
             'options': {
+                'generation': 2, // either API generation 1 or 2
                 'quoteCurrencies': {
                     'BTC': {
                         'limits': {
@@ -343,10 +344,17 @@ export default class bithumb extends Exchange {
      * @name bithumb#fetchMarkets
      * @description retrieves data on all markets for bithumb
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+     * @see https://apidocs.bithumb.com/reference/%EA%B1%B0%EB%9E%98-%EB%8C%80%EC%83%81-%EB%AA%A9%EB%A1%9D-%EC%A1%B0%ED%9A%8C
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'generation', 2);
+        if (generation === 2) {
+            return this.fetchMarketsGenTwo (params);
+        }
         const result: any[] = [];
         const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
@@ -462,6 +470,86 @@ export default class bithumb extends Exchange {
                 }, extension);
                 result.push (entry);
             }
+        }
+        return result;
+    }
+
+    async fetchMarketsGenTwo (params = {}): Promise<Market[]> {
+        const request = {
+            'isDetails': true,
+        };
+        const response = await this.publicGetV1MarketAll (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "market": "KRW-BTC",
+        //             "korean_name": "비트코인",
+        //             "english_name": "Bitcoin",
+        //             "market_warning": "NONE"
+        //         },
+        //     ]
+        //
+        const result: any[] = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketId = this.safeString (entry, 'market');
+            let baseId = undefined;
+            let quoteId = undefined;
+            let base = undefined;
+            let quote = undefined;
+            if (marketId !== undefined) {
+                const parts = marketId.split ('-');
+                baseId = parts[0];
+                quoteId = parts[1];
+                base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
+            }
+            result.push ({
+                'id': marketId,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDateTime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': parseInt ('4'),
+                    'price': parseInt ('4'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {},
+                },
+                'created': undefined,
+                'info': undefined,
+            });
         }
         return result;
     }
