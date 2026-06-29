@@ -6631,7 +6631,6 @@ public class BingxCore extends BingxApi
             }};
             Object response = null;
             Object commission = new java.util.HashMap<String, Object>() {{}};
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
                 response = (this.spotV1PrivateGetUserCommissionRate(this.extend(request, parameters))).join();
@@ -6646,7 +6645,7 @@ public class BingxCore extends BingxApi
                 //         }
                 //     }
                 //
-                commission = data;
+                commission = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             } else
             {
                 if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
@@ -6663,7 +6662,7 @@ public class BingxCore extends BingxApi
                     //         }
                     //     }
                     //
-                    commission = data;
+                    commission = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 } else
                 {
                     response = (this.swapV2PrivateGetUserCommissionRate(parameters)).join();
@@ -6679,6 +6678,7 @@ public class BingxCore extends BingxApi
                     //         }
                     //     }
                     //
+                    Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                     commission = this.safeDict(data, "commission", new java.util.HashMap<String, Object>() {{}});
                 }
             }
