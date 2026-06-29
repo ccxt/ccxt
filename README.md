@@ -1,12 +1,12 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NuGet version](https://img.shields.io/nuget/v/ccxt)](https://www.nuget.org/packages/ccxt) [![GoDoc](https://pkg.go.dev/badge/github.com/ccxt/ccxt/go/v4?utm_source=godoc)](https://godoc.org/github.com/ccxt/ccxt/go/v4) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-110-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Follow CCXT at x.com](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://x.com/ccxt_official)
+[![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NuGet version](https://img.shields.io/nuget/v/ccxt)](https://www.nuget.org/packages/ccxt) [![GoDoc](https://pkg.go.dev/badge/github.com/ccxt/ccxt/go/v4?utm_source=godoc)](https://godoc.org/github.com/ccxt/ccxt/go/v4) [![Mvn](https://badges.mvnrepository.com/badge/io.github.ccxt/ccxt/badge.svg?label=Mvn)](https://mvnrepository.com/artifact/io.github.ccxt/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-106-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Follow CCXT at x.com](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://x.com/ccxt_official)
 
-A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go.
+A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go / Java.
 
 ### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Disclaimer](#disclaimer) · [Social](#social)
 
-The **CCXT** library is used to connect and trade with cryptocurrency exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, and related software engineering.
+The **CCXT** library is used to connect and trade with cryptocurrency exchanges worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, and related software engineering.
 
 It is intended to be used by **coders, developers, technically-skilled traders, data-scientists and financial analysts** for building trading algorithms.
 
@@ -52,7 +52,7 @@ Current feature list:
 | [![woofipro](https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1)](https://dex.woo.org/en/trade?ref=CCXT)                                       | woofipro      | [WOOFI PRO](https://dex.woo.org/en/trade?ref=CCXT)                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-omnichain/building-on-evm)    | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) | [![Sign up with WOOFI PRO using CCXT's referral link for a 5% discount!](https://img.shields.io/static/v1?label=Fee&message=%2d5%25&color=orange)](https://dex.woo.org/en/trade?ref=CCXT)                    |
 
 ## Supported Cryptocurrency Exchanges
-<!--- init list -->The CCXT library currently supports the following 107 cryptocurrency exchange markets and trading APIs:
+<!--- init list -->The CCXT library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
 
 |logo                                                                                                                                                                                                 |id                     |name                                                                                         |ver                                                                                                                                               |type                                                                                                    |certified                                                                                                                    |pro                                                                                                |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|---------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
@@ -140,7 +140,6 @@ Current feature list:
 | [![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                                | mercado               | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mercadobitcoin.com.br/api-doc)                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                             | mexc                  | [MEXC Global](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                       | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://mexcdevelop.github.io/apidocs/)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![modetrade](https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24)](https://trade.mode.network?ref=MODETRADE)                                                           | modetrade             | [Mode Trade](https://trade.mode.network?ref=MODETRADE)                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](undefined)                                                                          | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![mudrex](https://github.com/user-attachments/assets/b4eb2663-e31b-4fbf-ab2b-8716a506720f)](https://mudrex.com)                                                                                    | mudrex                | [Mudrex](https://mudrex.com)                                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.trade.mudrex.com/docs)                                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![myokx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.my.okx.com/join/CCXT2023)                                              | myokx                 | [MyOKX (EEA)](https://www.my.okx.com/join/CCXT2023)                                         | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://my.okx.com/docs-v5/en/#overview)                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![ndax](https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg)](https://one.ndax.io/bfQiSL)                                                         | ndax                  | [NDAX](https://one.ndax.io/bfQiSL)                                                          | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![novadax](https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg)](https://www.novadax.com.br/?s=ccxt)                                               | novadax               | [NovaDAX](https://www.novadax.com.br/?s=ccxt)                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://doc.novadax.com/pt-BR/)                                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
@@ -199,6 +198,7 @@ The easiest way to install the CCXT library is to use a package manager:
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 8.1+)
 - [ccxt in **Nuget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
 - [ccxt in **GO**](https://pkg.go.dev/github.com/ccxt/ccxt/go/v4)
+- [ccxt in **Java**](https://central.sonatype.com/artifact/io.github.ccxt/ccxt) (Java 21+, Gradle)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -207,6 +207,7 @@ This library is shipped as an all-in-one module implementation with minimalistic
 - [php/](https://github.com/ccxt/ccxt/blob/master/php/) in PHP (generated from TS)
 - [cs/](https://github.com/ccxt/ccxt/blob/master/cs/)  in C# (generated from TS)
 - [go/](https://github.com/ccxt/ccxt/blob/master/go/)  in Go (generated from TS)
+- [java/](https://github.com/ccxt/ccxt/blob/master/java/) in Java (generated from TS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
 
@@ -220,7 +221,7 @@ git clone https://github.com/ccxt/ccxt.git --depth 1  # avoid downloading 1GB of
 
 ### JavaScript (NPM)
 
-JavaScript version of CCXT works in both Node and web browsers. Requires ES6 and `async/await` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is [not excluded](https://github.com/ccxt/ccxt/issues/225#issuecomment-331905178) in your `babel-loader` config.
+JavaScript version of CCXT works in both Node and web browsers. Requires ES6 and `async/await` syntax support (Node 7.6.0+). When compiling with Rspack (or Webpack) and Babel, make sure it is [not excluded](https://github.com/ccxt/ccxt/issues/225#issuecomment-331905178) in your `babel-loader` config.
 
 [ccxt in **NPM**](https://www.npmjs.com/package/ccxt)
 
@@ -337,6 +338,65 @@ go install github.com/ccxt/ccxt/go/v4@latest
 import "ccxt"
 fmt.Println(ccxt.Exchanges)
 ```
+
+### Java
+
+Java version of CCXT requires Java 21+ and uses Gradle as its build system.
+
+Add the CCXT library as a local dependency in your `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("io.github.ccxt:ccxt:4.5.52")
+}
+```
+
+Or clone and build from source:
+
+```shell
+git clone https://github.com/ccxt/ccxt.git --depth 1
+cd ccxt/java
+./gradlew :lib:build
+```
+
+```Java
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
+System.out.println(ticker.symbol + " " + ticker.last);
+```
+
+Each exchange has its own typed subclass with strongly-typed return values. Every typed method ships both a blocking sync and a non-blocking `CompletableFuture`-returning async overload — pick the idiom that fits your call site:
+
+```Java
+// Sync — blocks until the response arrives
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
+
+// Async — returns immediately, completes when the response arrives
+CompletableFuture<Ticker> future = exchange.fetchTickerAsync("BTC/USDT", null);
+future.thenAccept(t -> System.out.println(t.last));
+```
+
+WebSocket support is available via the pro exchange classes, with the same sync/async symmetry — `watchTicker` blocks for one update; `watchTickerAsync` returns a `CompletableFuture<Ticker>` you can compose:
+
+```Java
+import io.github.ccxt.exchanges.pro.Binance;
+
+var exchange = new Binance();
+exchange.loadMarkets(false);
+
+// Sync — blocks for one update
+Ticker tick = exchange.watchTicker("BTC/USDT");
+
+// Async — returns a typed CompletableFuture (composable with allOf, anyOf, etc.)
+CompletableFuture<Ticker> future = exchange.watchTickerAsync("BTC/USDT", null);
+```
+
+See [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples) for more usage examples.
 
 ### Docker
 
@@ -645,6 +705,149 @@ trades, error := exchange.FetchMyTrades(ccxt.withFetchMyTradesSymbol("BTC/USDT")
 Lastly, just because the signature dictates that some argument like `symbol` is optional, it will depend from exchange to exchange and you might need to provide it to avoid getting a `SymbolRequired` error.
 
 You can check different examples in the `examples/go` folder.
+
+### Java
+
+```Java
+import io.github.ccxt.exchanges.Kraken;
+import io.github.ccxt.exchanges.Bitfinex;
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class Example {
+    public static void main(String[] args) {
+        // Create exchange instances
+        Kraken kraken = new Kraken();
+        Bitfinex bitfinex = new Bitfinex();
+
+        Map<String, Object> config = new HashMap<>();
+        config.put("apiKey", "YOUR_API_KEY");
+        config.put("secret", "YOUR_SECRET");
+        Binance binance = new Binance(config);
+
+        // Load markets
+        kraken.loadMarkets(false);
+        binance.loadMarkets(false);
+
+        // Public API
+        OrderBook orderBook = kraken.fetchOrderBook("BTC/USDT");
+        Ticker ticker = bitfinex.fetchTicker("BTC/USD");
+        System.out.println(ticker.symbol + " last=" + ticker.last);
+
+        // Fetch OHLCV
+        var candles = binance.fetchOHLCV("BTC/USDT", "1h", null, 10L, null);
+        System.out.println("Got " + candles.size() + " candles");
+
+        // Private API (requires API keys)
+        Balances balance = binance.fetchBalance();
+        System.out.println("BTC free: " + balance.free.get("BTC"));
+
+        // Place a limit buy order
+        Order order = binance.createLimitBuyOrder("BTC/USDT", 0.001, 50000.0);
+        System.out.println("Order id: " + order.id + " status: " + order.status);
+
+        // Cancel it
+        binance.cancelOrder(order.id, "BTC/USDT", null);
+    }
+}
+```
+
+#### Async
+
+All methods are also available as async variants returning `CompletableFuture`:
+
+```Java
+import java.util.concurrent.CompletableFuture;
+
+// Fire multiple requests concurrently
+CompletableFuture<Ticker> btc = binance.fetchTickerAsync("BTC/USDT", null);
+CompletableFuture<Ticker> eth = binance.fetchTickerAsync("ETH/USDT", null);
+CompletableFuture.allOf(btc, eth).join();
+System.out.println("BTC: " + btc.get().last + " ETH: " + eth.get().last);
+```
+
+#### Error handling
+
+Typed sync methods throw the underlying ccxt error directly — no `CompletionException`
+unwrap needed. Catch exceptions in standard JDK order (most-specific first), like you
+would with any other Java library:
+
+```Java
+import io.github.ccxt.errors.*;
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Order;
+
+Binance binance = new Binance(Map.of("apiKey", "...", "secret", "..."));
+try {
+    Order order = binance.createOrder("BTC/USDT", "limit", "buy", 0.001, 50000.0);
+} catch (InsufficientFunds e) {
+    // user error — show balance, don't retry
+} catch (InvalidOrder e) {                        // covers OrderNotFound, DuplicateOrderId, …
+    // user error — fix params
+} catch (AuthenticationError e) {                 // covers PermissionDenied, AccountSuspended
+    // refresh credentials
+} catch (RateLimitExceeded | DDoSProtection e) {  // multi-catch (Java 7+)
+    Thread.sleep(30_000);
+} catch (NetworkError e) {                        // RequestTimeout, ExchangeNotAvailable, …
+    Thread.sleep(2_000);                          // transient — retry
+} catch (ExchangeError e) {                       // any other exchange-side error
+    // exchange refused
+} catch (BaseError e) {                           // ccxt catch-all
+    // unknown ccxt error
+}
+```
+
+For async methods, `CompletableFuture` wraps thrown errors in `CompletionException`
+(JDK behaviour). Use `Helpers.unwrap()` inside `.exceptionally(...)` to peel the wrap
+and pattern-match the real cause:
+
+```Java
+import io.github.ccxt.Helpers;
+
+binance.createOrderAsync("BTC/USDT", "limit", "buy", 0.001, 50000.0)
+    .thenAccept(order -> log.info("placed " + order.id))
+    .exceptionally(throwable -> {
+        Throwable cause = Helpers.unwrap(throwable);
+        return switch (cause) {
+            case InsufficientFunds    e -> { notifyUser(e); yield null; }
+            case AuthenticationError  e -> { refreshCreds(); yield null; }
+            case RateLimitExceeded    e -> { scheduleRetry(); yield null; }
+            case NetworkError         e -> { scheduleRetry(); yield null; }
+            case BaseError            e -> { log.error("ccxt", e); yield null; }
+            default -> throw new java.util.concurrent.CompletionException(cause);
+        };
+    });
+```
+
+The full hierarchy lives under `io.github.ccxt.errors` — see the [Error Handling
+section of the Manual](https://github.com/ccxt/ccxt/wiki/Manual#error-handling)
+for the complete tree (NetworkError vs ExchangeError, retry-safe vs user-error
+categories, etc.).
+
+#### WebSocket
+
+WebSocket support is available via the pro exchange classes:
+
+```Java
+import io.github.ccxt.Exchange;
+import io.github.ccxt.exchanges.pro.Binance;
+
+import java.util.concurrent.TimeUnit;
+
+Exchange exchange = new Binance();
+exchange.loadMarkets().join();
+
+// stream live ticker updates
+for (int i = 0; i < 10; i++) {
+    Object ticker = exchange.watchTicker("BTC/USDT").get(30, TimeUnit.SECONDS);
+    System.out.println(ticker);
+}
+```
+
+You can check different examples in the `java/examples` folder.
 
 ## Rate limiting
 

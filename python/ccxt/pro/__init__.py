@@ -118,7 +118,6 @@ from ccxt.pro.lighter import lighter                                      # noqa
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.modetrade import modetrade                                  # noqa: F401
-from ccxt.pro.mudrex import mudrex                                        # noqa: F401
 from ccxt.pro.myokx import myokx                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
@@ -199,7 +198,6 @@ exchanges = [
     'luno',
     'mexc',
     'modetrade',
-    'mudrex',
     'myokx',
     'ndax',
     'okx',

@@ -415,7 +415,6 @@ class Exchange {
         'mercado',
         'mexc',
         'modetrade',
-        'mudrex',
         'myokx',
         'ndax',
         'novadax',
