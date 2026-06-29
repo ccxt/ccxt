@@ -175,8 +175,8 @@ public class ExtendedCore extends ExtendedApi
                     put( "rest", "https://api.starknet.sepolia.{hostname}" );
                 }} );
                 put( "www", "https://app.extended.exchange" );
-                put( "doc", "https://api.docs.{hostname}" );
-                put( "fees", "https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates" );
+                put( "doc", "https://api.docs.extended.exchange" );
+                put( "fees", "https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates" );
                 put( "referral", "" );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
