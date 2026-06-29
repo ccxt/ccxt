@@ -859,7 +859,7 @@ class bitmex extends Exchange {
             }
             $expiryDatetime = $this->safe_string_2($market, 'expiry', 'closingTimestamp');
             $expiry = $this->parse8601($expiryDatetime);
-            if ($expiry !== null) {
+            if ($expiry !== null && $future) {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
         } else {
