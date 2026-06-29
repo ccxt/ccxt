@@ -842,7 +842,7 @@ class bitmex(Exchange, ImplicitAPI):
                 contractSize = Precise.string_abs(self.safe_string(market, 'multiplier'))
             expiryDatetime = self.safe_string_2(market, 'expiry', 'closingTimestamp')
             expiry = self.parse8601(expiryDatetime)
-            if expiry is not None:
+            if expiry is not None and future:
                 symbol = symbol + '-' + self.yymmdd(expiry)
         else:
             # for index/exotic markets, default to id

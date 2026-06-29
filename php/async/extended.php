@@ -173,8 +173,8 @@ class extended extends Exchange {
                     'rest' => 'https://api.starknet.sepolia.{hostname}',
                 ),
                 'www' => 'https://app.extended.exchange',
-                'doc' => 'https://api.docs.{hostname}',
-                'fees' => 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
+                'doc' => 'https://api.docs.extended.exchange',
+                'fees' => 'https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates',
                 'referral' => '',
             ),
             'api' => array(

@@ -856,7 +856,7 @@ func (this *BitmexCore) ParseMarket(market any) any {
 		}
 		expiryDatetime = this.SafeString2(market, "expiry", "closingTimestamp")
 		expiry = this.Parse8601(expiryDatetime)
-		if IsTrue(!IsEqual(expiry, nil)) {
+		if IsTrue(IsTrue(!IsEqual(expiry, nil)) && IsTrue(future)) {
 			symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 		}
 	} else {

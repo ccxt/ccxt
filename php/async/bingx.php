@@ -6735,7 +6735,6 @@ class bingx extends Exchange {
             );
             $response = null;
             $commission = array();
-            $data = $this->safe_dict($response, 'data', array());
             if ($market['spot']) {
                 $response = Async\await($this->spotV1PrivateGetUserCommissionRate($this->extend($request, $params)));
                 //
@@ -6749,7 +6748,7 @@ class bingx extends Exchange {
                 //         }
                 //     }
                 //
-                $commission = $data;
+                $commission = $this->safe_dict($response, 'data', array());
             } else {
                 if ($market['inverse']) {
                     $response = Async\await($this->cswapV1PrivateGetUserCommissionRate($params));
@@ -6764,7 +6763,7 @@ class bingx extends Exchange {
                     //         }
                     //     }
                     //
-                    $commission = $data;
+                    $commission = $this->safe_dict($response, 'data', array());
                 } else {
                     $response = Async\await($this->swapV2PrivateGetUserCommissionRate($params));
                     //
@@ -6779,6 +6778,7 @@ class bingx extends Exchange {
                     //         }
                     //     }
                     //
+                    $data = $this->safe_dict($response, 'data', array());
                     $commission = $this->safe_dict($data, 'commission', array());
                 }
             }
