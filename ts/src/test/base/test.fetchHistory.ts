@@ -6,7 +6,6 @@ import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 async function testFetchHistoryBase () {
-    // @SKIP_START_GO
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
@@ -32,13 +31,11 @@ async function testFetchHistoryBase () {
         assert (trueAssertion); // just skip
     }
     assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
-    // @SKIP_END_GO
     assert (1 + 1 < 3, 'sample assertion');
 }
 
 
 async function testFetchHistoryDerived () {
-    // @SKIP_START_GO
     const exchange = new ccxt.coinbase ({
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
@@ -57,7 +54,6 @@ async function testFetchHistoryDerived () {
     const finalCache = exchange.getFetchCache ();
     assert (finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' + finalCache[0]['request']['url']);
     assert (finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' + finalCache[1]['request']['url']);
-    // @SKIP_END_GO
     assert (1 + 1 < 3, 'sample assertion');
 }
 

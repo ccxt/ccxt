@@ -2405,7 +2405,9 @@ func (this *${className}) Init(userConfig map[string]any) {
             let content = go.content;
             content = this.regexAll (content, [
                 [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]any{}, $1)' ],
-                [/(\w+) := NewCcxt\.Coinbase\(([\S\s]+?)\)/gm, '$1 := ccxt.NewCoinbase().(*ccxt.Coinbase); $1.DerivedExchange = $1; $1.InitParent($2, map[string]any{}, $1)' ],
+                // instantiate the core type (channel-based methods, implements ICoreExchange) and let
+                // Init wire up DerivedExchange/InitParent (Exchange above is the only special case)
+                [/(\w+) := NewCcxt\.(\w+)\(([\S\s]+?)\)/gm, '$1 := ccxt.New$2Core(); $1.Init($3)' ],
                 [/exchange any, /g,'exchange *ccxt.Exchange, '], // in arguments
                 [/ any(?= \= map\[string\]any )/g, ' map[string]any'], // fix incorrect variable type
                 [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
