@@ -883,7 +883,7 @@ public class BitmexCore extends BitmexApi
             }
             expiryDatetime = this.safeString2(market, "expiry", "closingTimestamp");
             expiry = this.parse8601(expiryDatetime);
-            if (Helpers.isTrue(!Helpers.isEqual(expiry, null)))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(expiry, null)) && Helpers.isTrue(future)))
             {
                 symbol = Helpers.add(Helpers.add(symbol, "-"), this.yymmdd(expiry));
             }
