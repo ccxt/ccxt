@@ -115,7 +115,7 @@ export default class bithumb extends Exchange {
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/c9e0eefb-4777-46b9-8f09-9d7f7c4af82d',
                 'api': {
-                    'public': 'https://api.{hostname}/public',
+                    'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bithumb.com',
@@ -125,23 +125,57 @@ export default class bithumb extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'ticker/ALL_{quoteId}',
-                        'ticker/{baseId}_{quoteId}',
-                        'orderbook/ALL_{quoteId}',
-                        'orderbook/{baseId}_{quoteId}',
-                        'transaction_history/{baseId}_{quoteId}',
-                        'network-info',
-                        'assetsstatus/multichain/ALL',
-                        'assetsstatus/multichain/{currency}',
-                        'withdraw/minimum/ALL',
-                        'withdraw/minimum/{currency}',
-                        'assetsstatus/ALL',
-                        'assetsstatus/{baseId}',
-                        'candlestick/{baseId}_{quoteId}/{interval}',
+                        // API 1.0
+                        'public/ticker/ALL_{quoteId}',
+                        'public/ticker/{baseId}_{quoteId}',
+                        'public/orderbook/ALL_{quoteId}',
+                        'public/orderbook/{baseId}_{quoteId}',
+                        'public/transaction_history/{baseId}_{quoteId}',
+                        'public/network-info',
+                        'public/assetsstatus/multichain/ALL',
+                        'public/assetsstatus/multichain/{currency}',
+                        'public/withdraw/minimum/ALL',
+                        'public/withdraw/minimum/{currency}',
+                        'public/assetsstatus/ALL',
+                        'public/assetsstatus/{baseId}',
+                        'public/candlestick/{baseId}_{quoteId}/{interval}',
+                        // API 2.0
+                        'v1/market/all',
+                        'v1/candles/minutes/{unit}',
+                        'v1/candles/days',
+                        'v1/candles/weeks',
+                        'v1/candles/months',
+                        'v1/trades/ticks',
+                        'v1/ticker',
+                        'v1/orderbook',
+                        'v1/market/virtual_asset_warning',
+                        'v1/notices',
+                        'v2/fee/inout/{currency}',
                     ],
                 },
                 'private': {
+                    'get': [
+                        // API 2.0
+                        'v1/accounts',
+                        'v1/orders/chance',
+                        'v1/order',
+                        'v1/orders',
+                        'v1/twap',
+                        'v1/withdraws',
+                        'v1/withdraws/krw',
+                        'v1/withdraw',
+                        'v1/withdraws/chance',
+                        'v1/withdraws/coin_addresses',
+                        'v1/deposits',
+                        'v1/deposits/krw',
+                        'v1/deposit',
+                        'v1/deposits/coin_addresses',
+                        'v1/deposits/coin_address',
+                        'v1/status/wallet',
+                        'v1/api_keys',
+                    ],
                     'post': [
+                        // API 1.0
                         'info/account',
                         'info/balance',
                         'info/wallet_address',
@@ -157,6 +191,21 @@ export default class bithumb extends Exchange {
                         'trade/market_buy',
                         'trade/market_sell',
                         'trade/stop_limit',
+                        // API 2.0
+                        'v2/orders',
+                        'v2/orders/batch',
+                        'v2/orders/cancel',
+                        'v1/twap',
+                        'v1/withdraws/coin',
+                        'v1/withdraws/krw',
+                        'v1/deposits/generate_coin_address',
+                        'v1/deposits/krw',
+                    ],
+                    'delete': [
+                        // API 2.0
+                        'v2/order',
+                        'v1/twap',
+                        'v1/withdraws/coin',
                     ],
                 },
             },
@@ -306,7 +355,7 @@ export default class bithumb extends Exchange {
             const request = {
                 'quoteId': quotes[i],
             };
-            promises.push (this.publicGetTickerALLQuoteId (this.extend (request, params)));
+            promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));
             //
             //    {
             //        "status": "0000",
@@ -471,7 +520,7 @@ export default class bithumb extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 30, max 30
         }
-        const response = await this.publicGetOrderbookBaseIdQuoteId (this.extend (request, params));
+        const response = await this.publicGetPublicOrderbookBaseIdQuoteId (this.extend (request, params));
         //
         //     {
         //         "status":"0000",
@@ -565,7 +614,7 @@ export default class bithumb extends Exchange {
             const request: Dict = {
                 'quoteId': quotes[i],
             };
-            promises.push (this.publicGetTickerALLQuoteId (this.extend (request, params)));
+            promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));
         }
         const responses = await Promise.all (promises);
         for (let i = 0; i < quotes.length; i++) {
@@ -625,7 +674,7 @@ export default class bithumb extends Exchange {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         };
-        const response = await this.publicGetTickerBaseIdQuoteId (this.extend (request, params));
+        const response = await this.publicGetPublicTickerBaseIdQuoteId (this.extend (request, params));
         //
         //     {
         //         "status":"0000",
@@ -690,7 +739,7 @@ export default class bithumb extends Exchange {
             'quoteId': market['quoteId'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const response = await this.publicGetCandlestickBaseIdQuoteIdInterval (this.extend (request, params));
+        const response = await this.publicGetPublicCandlestickBaseIdQuoteIdInterval (this.extend (request, params));
         //
         //     {
         //         "status": "0000",
@@ -817,7 +866,7 @@ export default class bithumb extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 20, max 100
         }
-        const response = await this.publicGetTransactionHistoryBaseIdQuoteId (this.extend (request, params));
+        const response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId (this.extend (request, params));
         //
         //     {
         //         "status":"0000",
