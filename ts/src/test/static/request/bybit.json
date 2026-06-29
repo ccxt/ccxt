@@ -31,6 +31,15 @@
                 "output": null
             }
         ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://api.bybit.com/v5/system/status?",
+                "input": [],
+                "output": null
+            }
+        ],
         "editOrder": [
             {
                 "description": "edit order using clientOrderId",

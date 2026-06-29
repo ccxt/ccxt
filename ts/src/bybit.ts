@@ -123,6 +123,7 @@ export default class bybit extends Exchange {
                 'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -1676,6 +1677,68 @@ export default class bybit extends Exchange {
             return this.costToPrecision (symbol, cost);
         }
         return cost;
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://bybit-exchange.github.io/docs/v5/system-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+     */
+    async fetchStatus (params = {}): Promise<Dict> {
+        const response = await this.publicGetV5SystemStatus (params);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "id": "f9d6842d-5331-11f0-8fd3-c241b123dd9e",
+        //                     "title": "t01",
+        //                     "state": "completed",
+        //                     "begin": "1751012688000",
+        //                     "end": "1751012760000",
+        //                     "href": "",
+        //                     "serviceTypes": [ 1, 2, 3, 4, 5 ],
+        //                     "product": [ 1, 2, 3, 4 ],
+        //                     "uidSuffix": [],
+        //                     "maintainType": 3,
+        //                     "env": 2
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1751858399649
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const list = this.safeList (result, 'list', []);
+        let status = 'ok';
+        let eta = undefined;
+        let url = undefined;
+        for (let i = 0; i < list.length; i++) {
+            const event = list[i];
+            const state = this.safeString (event, 'state');
+            if (state === 'ongoing') {
+                status = 'maintenance';
+                eta = this.safeInteger (event, 'end');
+                url = this.safeString (event, 'href');
+                break;
+            } else if (state === 'scheduled') {
+                eta = this.safeInteger (event, 'begin');
+                url = this.safeString (event, 'href');
+            }
+        }
+        return {
+            'status': status,
+            'updated': undefined,
+            'eta': eta,
+            'url': url,
+            'info': response,
+        };
     }
 
     /**
