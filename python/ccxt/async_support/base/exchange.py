@@ -140,13 +140,6 @@ class Exchange(BaseExchange):
         # ##### language-specific cleanup of WS & REST resources #####
         # [WS]
         await self.close_ws_clients()
-        if clean_instance_data:
-            self.clean_ws_data()
-        # [REST]
-        if clean_instance_data:
-            await self.clean_rest_data()
-
-    async def clean_rest_data(self):
         if self.session is not None:
             if self.own_session:
                 await self.session.close()
@@ -154,6 +147,13 @@ class Exchange(BaseExchange):
         await self.close_connector()
         await self.close_proxy_sessions()
         await self.sleep(self.timeout_on_exit)
+        if clean_instance_data:
+            self.clean_ws_data()
+        # [REST]
+        if clean_instance_data:
+            await self.clean_rest_data()
+
+    async def clean_rest_data(self):
         super().clean_rest_data()
 
     async def close_connector(self):
