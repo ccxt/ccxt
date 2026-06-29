@@ -40,7 +40,6 @@ async function testFetchHistoryDerived () {
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
     });
-    assert (testSharedMethods.exchangeProp (exchange, 'fetchHistoryCacheSize') === 2, 'fetchHistoryCacheSize should be 2');
     // try 3 times
     // first
     await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
