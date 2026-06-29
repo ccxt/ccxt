@@ -151,10 +151,7 @@ class Exchange(BaseExchange):
             self.clean_ws_data()
         # [REST]
         if clean_instance_data:
-            await self.clean_rest_data()
-
-    async def clean_rest_data(self):
-        super().clean_rest_data()
+            self.clean_rest_data()
 
     async def close_connector(self):
         if self.tcp_connector is not None:
