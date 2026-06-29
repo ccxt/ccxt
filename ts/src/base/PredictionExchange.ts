@@ -2,7 +2,7 @@
 
 import { Exchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, Dict, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -360,40 +360,106 @@ export default class PredictionExchange extends Exchange {
         }
     }
 
-    async fetchTicker (outcome: string, params = {}): Promise<Ticker> {
-        return await super.fetchTicker (outcome, params);
+    async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+        return await super.fetchTicker (outcome, params) as PredictionTicker;
     }
 
-    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await super.fetchOrderBook (outcome, limit, params);
+    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+        return await super.fetchOrderBook (outcome, limit, params) as PredictionOrderBook;
     }
 
     async fetchOHLCV (outcome: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         return await super.fetchOHLCV (outcome, timeframe, since, limit, params);
     }
 
-    async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await super.fetchTrades (outcome, since, limit, params);
+    async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        return await super.fetchTrades (outcome, since, limit, params) as PredictionTrade[];
     }
 
-    async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        return await super.createOrder (outcome, type, side, amount, price, params);
+    async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        return await super.createOrder (outcome, type, side, amount, price, params) as PredictionOrder;
     }
 
-    async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<Order> {
-        return await super.cancelOrder (id, outcome, params);
+    async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        return await super.cancelOrder (id, outcome, params) as PredictionOrder;
     }
 
-    async watchTicker (outcome: string, params = {}): Promise<Ticker> {
-        return await super.watchTicker (outcome, params);
+    async watchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+        return await super.watchTicker (outcome, params) as PredictionTicker;
     }
 
-    async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await super.watchOrderBook (outcome, limit, params);
+    async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+        return await super.watchOrderBook (outcome, limit, params) as PredictionOrderBook;
     }
 
-    async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await super.watchTrades (outcome, since, limit, params);
+    async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        return await super.watchTrades (outcome, since, limit, params) as PredictionTrade[];
+    }
+
+    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
+    }
+
+    async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
+    }
+
+    async fetchOrderTrades (id: string, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        throw new NotSupported (this.id + ' fetchOrderTrades() is not supported yet');
+    }
+
+    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
+    }
+
+    async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+        throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
+    }
+
+    async fetchTradingFee (outcome: string, params = {}): Promise<PredictionTradingFee> {
+        throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet');
+    }
+
+    async fetchOpenInterest (outcome: string, params = {}): Promise<PredictionOpenInterest> {
+        throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+    }
+
+    async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
+        throw new NotSupported (this.id + ' createOrders() is not supported yet');
+    }
+
+    async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+        throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
+    }
+
+    async createMarketBuyOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
+        if (this.options['createMarketBuyOrderRequiresPrice'] || this.has['createMarketBuyOrderWithCost']) {
+            return await this.createOrder (outcome, 'market', 'buy', cost, 1, params);
+        }
+        throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is not supported yet');
+    }
+
+    async createMarketSellOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
+        if (this.options['createMarketSellOrderRequiresPrice'] || this.has['createMarketSellOrderWithCost']) {
+            return await this.createOrder (outcome, 'market', 'sell', cost, 1, params);
+        }
+        throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
+    }
+
+    async watchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+        throw new NotSupported (this.id + ' watchTickers() is not supported yet');
+    }
+
+    async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        throw new NotSupported (this.id + ' watchOrders() is not supported yet');
+    }
+
+    async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        throw new NotSupported (this.id + ' watchMyTrades() is not supported yet');
+    }
+
+    async watchPositions (outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionPosition[]> {
+        throw new NotSupported (this.id + ' watchPositions() is not supported yet');
     }
 
     safePredictionOrder (order: Dict, market = undefined): PredictionOrder {

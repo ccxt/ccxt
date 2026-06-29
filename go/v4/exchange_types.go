@@ -1005,6 +1005,39 @@ func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []any {
 	return result
 }
 
+// PredictionOrderRequest carries an `outcome` handle instead of a `symbol`
+type PredictionOrderRequest struct {
+	Outcome    *string
+	Type       *string
+	Side       *string
+	Amount     *float64
+	Price      *float64
+	Parameters map[string]any
+}
+
+func ConvertPredictionOrderRequestListToArray(orderRequests []PredictionOrderRequest) []any {
+	var result []any
+	for _, orderRequest := range orderRequests {
+		outcome := *orderRequest.Outcome
+		orderType := *orderRequest.Type
+		side := *orderRequest.Side
+		amount := *orderRequest.Amount
+		price := *orderRequest.Price
+		parameters := orderRequest.Parameters
+		individualOrderRequest := map[string]any{
+			"outcome": outcome,
+			"type":    orderType,
+			"side":    side,
+			"amount":  amount,
+			"price":   price,
+			"params":  parameters,
+		}
+		result = append(result, individualOrderRequest)
+	}
+
+	return result
+}
+
 type LastPrice struct {
 	Symbol    *string
 	Timestamp *int64

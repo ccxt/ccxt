@@ -353,7 +353,7 @@ class NewTranspiler {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
         if (name.startsWith('watchOrderBook')) {
-            return `Task<ccxt.pro.IOrderBook>`;
+            return this.isPrediction ? `Task<ccxt.PredictionOrderBook>` : `Task<ccxt.pro.IOrderBook>`;
         }
 
         if (name === 'watchOHLCVForSymbols') {
@@ -576,7 +576,8 @@ class NewTranspiler {
     createReturnStatement(methodName: string,  unwrappedType:string ) {
         // handle watchOrderBook exception here
         if (methodName.startsWith('watchOrderBook')) {
-            return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
+            // copy first to snapshot the live book, then reshape to the prediction structure for prediction venues
+            return this.isPrediction ? `return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());` : `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
         }
 
         if (methodName === 'watchOHLCVForSymbols') {
@@ -865,7 +866,15 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class PredictionExchange : Exchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + fields + baseMethods + "\n";
+            // typed wrappers (Task<PredictionTrade> etc.) emitted as a second partial so a prediction
+            // venue that does NOT override a unified method still exposes the prediction-typed signature
+            // instead of inheriting the crypto-typed wrapper from Exchange.Wrappers.cs
+            const prevIsPrediction = this.isPrediction;
+            this.isPrediction = true;
+            const typedWrappers = (baseFile.methodsTypes || []).map((w: any) => this.createWrapper('PredictionExchange', w)).filter((w: string) => w !== '').join('\n');
+            this.isPrediction = prevIsPrediction;
+            const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
+            const file = fileHeader + fields + baseMethods + "\n" + wrapperPartial;
             fs.writeFileSync (predictionBase, file);
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
         }

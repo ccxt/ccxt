@@ -1487,6 +1487,29 @@ public struct OrderRequest
     }
 }
 
+// prediction-market order request — carries an `outcome` handle instead of a `symbol`
+public struct PredictionOrderRequest
+{
+
+    public string? outcome;
+    public string? type;
+    public string? side;
+    public double? amount;
+    public double? price;
+    public Dictionary<string, object>? parameters;
+
+
+    public PredictionOrderRequest(object request)
+    {
+        amount = Exchange.SafeFloat(request, "amount");
+        price = Exchange.SafeFloat(request, "price");
+        type = Exchange.SafeString(request, "type");
+        side = Exchange.SafeString(request, "side");
+        outcome = Exchange.SafeString(request, "outcome");
+        parameters = Exchange.SafeValue(request, "parameters") != null ? (Dictionary<string, object>)Exchange.SafeValue(request, "parameters") : null;
+    }
+}
+
 public struct CancellationRequest
 {
 

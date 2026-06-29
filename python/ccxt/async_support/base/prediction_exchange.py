@@ -9,7 +9,7 @@
 import asyncio
 from typing import Any, List
 from ccxt.async_support.base.exchange import Exchange
-from ccxt.base.types import Str, Strings, Int, Num, OrderType, OrderSide, fetchEventsParams
+from ccxt.base.types import Str, Strings, Int, Num, OrderType, OrderSide, PredictionOrderRequest, fetchEventsParams
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
@@ -51,6 +51,18 @@ class PredictionExchange(Exchange):
             return [singleQuery]
         return self.safe_list(params, 'queries', [])
 
+    def require_event_query(self, params={}):
+        # fetchEvents must be scoped by at least one selector — an unfiltered call would page the
+        # entire exchange. require one of query / queries / tags / eventId / slug
+        query = self.safe_string(params, 'query')
+        queries = self.safe_list(params, 'queries', [])
+        tags = self.safe_list(params, 'tags', [])
+        eventId = self.safe_string(params, 'eventId')
+        slug = self.safe_string(params, 'slug')
+        if (query is None) and (len(queries) == 0) and (len(tags) == 0) and (eventId is None) and (slug is None):
+            raise ArgumentsRequired(self.id + ' fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search')
+        return None
+
     def apply_event_fetch_params(self, events: List[Any], params={}, queries: List[str] = None):
         # applies the unified fetchEvents options client-side(eventId/slug/status/searchIn/sort/limit)
         # so exchanges whose API can't filter natively still support them consistently
@@ -67,7 +79,12 @@ class PredictionExchange(Exchange):
                     filtered.append(event)
             result = filtered
         result = self.filter_events_by_status(result, self.safe_string(params, 'status'))
-        if (queries is not None) and (len(queries) > 0):
+        # own-line length read so the regex transpiler treats `queries` array(count())
+        # and not a string(strlen()); guard None since the default is None
+        queriesLength = 0
+        if queries is not None:
+            queriesLength = len(queries)
+        if queriesLength > 0:
             result = self.filter_events_by_search_in(result, queries, self.safe_string(params, 'searchIn'))
         sort = self.safe_string(params, 'sort')
         if sort is not None:
@@ -101,7 +118,11 @@ class PredictionExchange(Exchange):
 
     def filter_events_by_search_in(self, events: List[Any], queries: List[str], searchIn: Str = None):
         # keep events whose title and/or description contains one of the queries(searchIn defaults to 'both')
-        if (searchIn is None) or (queries is None) or (len(queries) == 0):
+        # own-line length read so the regex transpiler uses count()(array) not strlen()(string)
+        queriesLength = 0
+        if queries is not None:
+            queriesLength = len(queries)
+        if (searchIn is None) or (queries is None) or (queriesLength == 0):
             return events
         checkTitle = (searchIn == 'title') or (searchIn == 'both')
         checkDescription = (searchIn == 'description') or (searchIn == 'both')
@@ -301,6 +322,55 @@ class PredictionExchange(Exchange):
 
     async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}):
         return await super(PredictionExchange, self).watch_trades(outcome, since, limit, params)
+
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchOrders() is not supported yet')
+
+    async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
+
+    async def fetch_order_trades(self, id: str, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
+
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
+
+    async def fetch_position(self, outcome: str, params={}):
+        raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def fetch_trading_fee(self, outcome: str, params={}):
+        raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
+
+    async def fetch_open_interest(self, outcome: str, params={}):
+        raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
+
+    async def create_orders(self, orders: List[PredictionOrderRequest], params={}):
+        raise NotSupported(self.id + ' createOrders() is not supported yet')
+
+    async def cancel_orders(self, ids: List[str], outcome: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelOrders() is not supported yet')
+
+    async def create_market_buy_order_with_cost(self, outcome: str, cost: float, params={}):
+        if self.options['createMarketBuyOrderRequiresPrice'] or self.has['createMarketBuyOrderWithCost']:
+            return await self.create_order(outcome, 'market', 'buy', cost, 1, params)
+        raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
+
+    async def create_market_sell_order_with_cost(self, outcome: str, cost: float, params={}):
+        if self.options['createMarketSellOrderRequiresPrice'] or self.has['createMarketSellOrderWithCost']:
+            return await self.create_order(outcome, 'market', 'sell', cost, 1, params)
+        raise NotSupported(self.id + ' createMarketSellOrderWithCost() is not supported yet')
+
+    async def watch_tickers(self, outcomes: Strings = None, params={}):
+        raise NotSupported(self.id + ' watchTickers() is not supported yet')
+
+    async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' watchOrders() is not supported yet')
+
+    async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
+
+    async def watch_positions(self, outcomes: Strings = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' watchPositions() is not supported yet')
 
     def safe_prediction_order(self, order: dict, market=None):
         # the prediction identity is the `outcome` handle carried on the raw dict(read by

@@ -9,7 +9,7 @@ import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type {
     Int, Str, Num, Dict,
     Market, PredictionTickers, PredictionOrderBook, OHLCV,
-    OrderRequest, Balances,
+    PredictionOrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
     fetchEventsParams,
@@ -1688,7 +1688,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async createOrders (orders: OrderRequest[], params = {}): Promise<PredictionOrder[]> {
+    async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
         const bodies = [];
         const outcomes = [];
@@ -1700,7 +1700,7 @@ export default class polymarket extends Exchange {
                 // a distinct salt per order so two identical orders in one batch don't collide
                 orderParams = this.extend (orderParams, { 'salt': this.numberToString (this.sum (batchSalt, i)) });
             }
-            const built = this.buildClobOrderBody (this.safeString (o, 'symbol'), this.safeString (o, 'type'), this.safeString (o, 'side'), this.safeNumber (o, 'amount'), this.safeNumber (o, 'price'), orderParams);
+            const built = this.buildClobOrderBody (this.safeString (o, 'outcome'), this.safeString (o, 'type'), this.safeString (o, 'side'), this.safeNumber (o, 'amount'), this.safeNumber (o, 'price'), orderParams);
             bodies.push (this.safeDict (built, 'body'));
             outcomes.push (this.safeDict (built, 'outcome'));
         }
@@ -2598,12 +2598,15 @@ export default class polymarket extends Exchange {
             const a = rawAsks[j];
             asks.push ([ this.safeNumber (a, 'price'), this.safeNumber (a, 'size') ]);
         }
+        const outcomeObj = this.safeOutcome (outcome);
         orderbook.reset ({
             'bids': bids,
             'asks': asks,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'outcome': outcome,
+            'outcomeId': tokenId,
+            'market': this.safeString (outcomeObj, 'market'),
         });
         client.resolve (orderbook, 'orderbook::' + outcome);
         client.resolve (orderbook, 'ticker::' + outcome);

@@ -45,6 +45,11 @@ class OrderBook(dict):
         self['timestamp'] = snapshot.get('timestamp')
         self['datetime'] = Exchange.iso8601(self['timestamp'])
         self['symbol'] = snapshot.get('symbol')
+        # prediction-market identity — only attach when present, so crypto books are unchanged
+        if 'outcome' in snapshot:
+            self['outcome'] = snapshot.get('outcome')
+            self['outcomeId'] = snapshot.get('outcomeId')
+            self['market'] = snapshot.get('market')
 
     def update(self, snapshot):
         nonce = snapshot.get('nonce')

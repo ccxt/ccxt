@@ -164,6 +164,21 @@ func NewPredictionOrderBook(data any) PredictionOrderBook {
 	}
 }
 
+// NewPredictionOrderBookFromWs mirrors NewOrderBookFromWs but yields a PredictionOrderBook.
+// watchOrderBook resolves the live *WsOrderBook cache, which NewPredictionOrderBook's direct
+// map assertion would panic on — normalize it to a map first.
+func NewPredictionOrderBookFromWs(v any) PredictionOrderBook {
+	switch t := v.(type) {
+	case *WsOrderBook:
+		return NewPredictionOrderBook(t.ToMap())
+	case map[string]any:
+		return NewPredictionOrderBook(t)
+	default:
+		ob := NewWsOrderBook(map[string]any{}, nil)
+		return NewPredictionOrderBook(ob.ToMap())
+	}
+}
+
 type PredictionTradingFee struct {
 	TradingFeeInterface
 	Outcome   *string

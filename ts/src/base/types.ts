@@ -634,6 +634,18 @@ export interface OrderRequest {
     params?: any;
 }
 
+// prediction-market order request — carries an `outcome` handle instead of a `symbol`
+// (outcome is optional in the type only so the base createOrders override stays compatible with
+// Exchange.createOrders; venues require it at runtime)
+export interface PredictionOrderRequest {
+    outcome?: string;
+    type: OrderType;
+    side: OrderSide;
+    amount?: number;
+    price?: number | undefined;
+    params?: any;
+}
+
 export interface CancellationRequest {
     id: string;
     clientOrderId?: string;

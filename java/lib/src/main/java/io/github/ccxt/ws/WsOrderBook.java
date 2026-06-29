@@ -23,6 +23,10 @@ public class WsOrderBook {
     public Object timestamp;
     public Object datetime;
     public Object nonce;
+    // prediction-market identity (null for crypto exchanges)
+    public Object outcome;
+    public Object outcomeId;
+    public Object market;
     public final List<Object> cache = new ArrayList<>();
 
     public WsOrderBook(Object snapshot, Object depth) {
@@ -74,6 +78,9 @@ public class WsOrderBook {
             this.nonce = snap.get("nonce");
             this.timestamp = snap.get("timestamp");
             this.datetime = snap.get("datetime");
+            this.outcome = snap.get("outcome");
+            this.outcomeId = snap.get("outcomeId");
+            this.market = snap.get("market");
         }
         // clear + repopulate must be one critical section per side, otherwise
         // a concurrent toMap() snapshot can observe an empty list while the
@@ -134,6 +141,12 @@ public class WsOrderBook {
         result.put("timestamp", this.timestamp);
         result.put("datetime", this.datetime);
         result.put("nonce", this.nonce);
+        // prediction-market identity — only present on prediction books
+        if (this.outcome != null) {
+            result.put("outcome", this.outcome);
+            result.put("outcomeId", this.outcomeId);
+            result.put("market", this.market);
+        }
         return result;
     }
 

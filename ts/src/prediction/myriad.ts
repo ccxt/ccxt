@@ -21,7 +21,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type {
     Int, Str, Num, Dict, int,
-    Strings, OrderRequest,
+    Strings, PredictionOrderRequest,
     Market, PredictionOrderBook, OHLCV, PredictionTradingFee,
     PredictionEvent, Balances, fetchEventsParams,
     PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
@@ -838,13 +838,13 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    async createOrders (orders: OrderRequest[], params = {}): Promise<PredictionOrder[]> {
+    async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
         this.ensureOutcomesLoaded ();
         const ordersLength = orders.length;
         const result = [];
         for (let i = 0; i < ordersLength; i++) {
             const o = orders[i];
-            const outcome = this.safeString (o, 'symbol');
+            const outcome = this.safeString (o, 'outcome');
             const type = this.safeString (o, 'type');
             const side = this.safeString (o, 'side');
             const amount = this.safeNumber (o, 'amount');

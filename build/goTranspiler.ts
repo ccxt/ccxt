@@ -483,6 +483,10 @@ class NewTranspiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in their own go packages (ccxtprediction / ccxtpredictionpro)
     isPrediction = false;
+    // parsed PredictionExchange method signatures; lets a prediction venue that doesn't
+    // override a unified method still emit the prediction-typed wrapper (resolving to the
+    // inherited base method) instead of the crypto-typed exchangeTyped fallback
+    predictionBaseMethodsTypes: any[] = [];
     private _extendedExchanges: { [key: string]: string } | null = null;
     private _typeAndFuncNamesCache: { [key: string]: Set<string> } = {};
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
@@ -869,7 +873,7 @@ class NewTranspiler {
             // if (isReturn) {
             //     return `NewOrderBookFromWs`
             // }
-             return `OrderBook`;
+             return this.isPrediction ? `PredictionOrderBook` : `OrderBook`;
 
         }
 
@@ -1141,7 +1145,7 @@ class NewTranspiler {
             return `(res).(float64)`;
         }
         if (methodName.startsWith('watchOrderBook')) {
-            return `NewOrderBookFromWs(res)`;
+            return this.isPrediction ? `NewPredictionOrderBookFromWs(res)` : `NewOrderBookFromWs(res)`;
         }
 
         if (methodName === 'fetchDepositWithdrawFees' || methodName === 'fetchDepositWithdrawFee') {
@@ -1386,7 +1390,8 @@ class NewTranspiler {
             let parsedParam = this.safeGoName(param.name);
 
             if (methodName === 'createOrders' && param.name === 'orders') {
-                parsedParam = 'ConvertOrderRequestListToArray(orders)'; // quick fix, check this later
+                // prediction venues batch PredictionOrderRequest (outcome) not OrderRequest (symbol)
+                parsedParam = this.isPrediction ? 'ConvertPredictionOrderRequestListToArray(orders)' : 'ConvertOrderRequestListToArray(orders)'; // quick fix, check this later
             }
 
             return parsedParam;
@@ -1489,7 +1494,18 @@ class NewTranspiler {
                 throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
             }
             missingMethodsWrappers = `func (this *${capitalize(exchange)}) LoadMarkets(params ...any) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }\n`;
-            missingMethodsWrappers += missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
+            missingMethodsWrappers += missingMethods.map (m => {
+                // for prediction venues, a unified method the venue doesn't override but
+                // PredictionExchange declares must emit the prediction-typed wrapper (resolving to
+                // the inherited base method via this.Core), not the crypto-typed exchangeTyped fallback
+                if (this.isPrediction) {
+                    const predMethod = this.predictionBaseMethodsTypes.find ((w: any) => w.name === m);
+                    if (predMethod) {
+                        return this.createWrapper (exchange, predMethod, ws);
+                    }
+                }
+                return this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m]);
+            }).filter(wrapper => wrapper !== '').join('\n');
         }
 
         const shouldCreateClassWrappers = exchange === 'Exchange';
@@ -1625,11 +1641,14 @@ class NewTranspiler {
             // corrupt the cache for every later exchange/call
             const baseNames = new Set (this.extractTypeAndFuncNames(EXCHANGES_FOLDER));
             if (this.isPrediction) {
-                // only for methods THIS exchange actually defines: keep its renamed-param option
-                // overrides unqualified so the wrapper binds to the local struct (with `Outcomes`).
-                // For methods it delegates to base (missing-method wrappers), leave them ccxt.-qualified.
-                for (const wrapper of wrappers) {
-                    const localNames = predictionLocalOptionStructs.get(capitalize(wrapper.name));
+                // keep renamed-param option structs unqualified so the wrapper binds to the local
+                // struct (with `Outcome`) rather than the ccxt base struct. covers both methods THIS
+                // exchange defines AND unified methods it inherits from PredictionExchange (emitted as
+                // typed wrappers above) — both need the prediction-local option struct.
+                const localMethodNames = wrappers.map ((w: any) => w.name)
+                    .concat (missingMethods.filter ((m: string) => this.predictionBaseMethodsTypes.some ((w: any) => w.name === m)));
+                for (const methodName of localMethodNames) {
+                    const localNames = predictionLocalOptionStructs.get(capitalize(methodName));
                     if (localNames !== undefined) {
                         for (const name of localNames) {
                             baseNames.delete(name);
@@ -1818,7 +1837,7 @@ ${constStatements.join('\n')}
         }
     }
 
-    transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts') {
+    transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts', registerOnly = false) {
         // PredictionExchange is the base for prediction-market exchanges; it lives in
         // package ccxt and embeds Exchange. Its methods are transpiled the same way as
         // the base methods (with virtual dispatch through DerivedExchange).
@@ -1830,6 +1849,13 @@ ${constStatements.join('\n')}
         this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
         const baseFile: any = this.transpiler.transpileGoByPath(predictionBaseFile);
         this.transpiler.goTranspiler.wrapCallMethods = [];
+        // capture the signatures so createGoWrappers can emit prediction-typed wrappers for
+        // unified methods that a venue inherits rather than overrides (runs in every process
+        // that touches prediction, including --prediction where the file write is skipped)
+        this.predictionBaseMethodsTypes = baseFile.methodsTypes || [];
+        if (registerOnly) {
+            return;
+        }
         let baseClass = baseFile.content as any;
         const syncMethods = allVirtual.filter (elem => !VIRTUAL_BASE_METHODS[elem]);
         const asyncMethods = allVirtual.filter (elem => VIRTUAL_BASE_METHODS[elem]);
@@ -2134,6 +2160,10 @@ ${caseStatements.join('\n')}
             this.transpilePredictionBaseMethods ();
             this.createDynamicInstanceFile();
             this.createTypedInterfaceFile();
+        } else if (prediction) {
+            // capture-only: populate predictionBaseMethodsTypes (no ccxt-package file write)
+            // so inherited unified methods emit prediction-typed wrappers in this process
+            this.transpilePredictionBaseMethods (undefined, true);
         }
 
         if (!baseOnly && !examplesOnly) {
