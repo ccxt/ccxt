@@ -6651,7 +6651,6 @@ export default class bingx extends Exchange {
         };
         let response = undefined;
         let commission = {};
-        const data = this.safeDict(response, 'data', {});
         if (market['spot']) {
             response = await this.spotV1PrivateGetUserCommissionRate(this.extend(request, params));
             //
@@ -6665,7 +6664,7 @@ export default class bingx extends Exchange {
             //         }
             //     }
             //
-            commission = data;
+            commission = this.safeDict(response, 'data', {});
         }
         else {
             if (market['inverse']) {
@@ -6681,7 +6680,7 @@ export default class bingx extends Exchange {
                 //         }
                 //     }
                 //
-                commission = data;
+                commission = this.safeDict(response, 'data', {});
             }
             else {
                 response = await this.swapV2PrivateGetUserCommissionRate(params);
@@ -6697,6 +6696,7 @@ export default class bingx extends Exchange {
                 //         }
                 //     }
                 //
+                const data = this.safeDict(response, 'data', {});
                 commission = this.safeDict(data, 'commission', {});
             }
         }

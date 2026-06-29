@@ -122,6 +122,7 @@ export default class htx extends htxRest {
      * @name htx#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35275ff
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -130,11 +131,13 @@ export default class htx extends htxRest {
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     getOrderChannelAndMessageHash(type: any, subType: any, market?: any, params?: {}): string[];
+    getV5LinearChannelAndMessageHash(topic: any, market?: any, params?: {}): any[];
     /**
      * @method
      * @name htx#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a208afe7
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -148,11 +151,10 @@ export default class htx extends htxRest {
     /**
      * @method
      * @name htx#watchPositions
-     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
-     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
-     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35d6034
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
      * @param {int} [limit] the maximum number of positions to fetch
@@ -166,9 +168,8 @@ export default class htx extends htxRest {
      * @name htx#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7dcca-77b5-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a6c94551
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -185,7 +186,7 @@ export default class htx extends htxRest {
     handleMessage(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any, extendParams?: {}): void;
     parseWsTrade(trade: any, market?: any): Trade;
-    getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean, isFeed?: boolean): string;
+    getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean, isFeed?: boolean, isV5?: boolean): string;
     subscribePublic(url: any, symbol: any, messageHash: any, method?: any, params?: {}): Promise<any>;
     unsubscribePublic(market: Market, subMessageHash: string, topic: string, params?: {}): Promise<any>;
     subscribePrivate(channel: any, messageHash: any, type: any, subtype: any, params?: {}, subscriptionParams?: {}): Promise<any>;
