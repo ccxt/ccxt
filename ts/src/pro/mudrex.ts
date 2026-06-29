@@ -178,20 +178,11 @@ export default class mudrex extends mudrexRest {
         const tf = this.findTimeframe (interval);
         const data = this.safeDict (message, 'data', {});
         const s = this.safeString (data, 's');
-        const u = s ? s.toUpperCase () : undefined;
-        let symbol = undefined;
-        if (u !== undefined) {
-            let base = u;
-            if (u.endsWith ('USDT')) {
-                base = u.slice (0, -4);
-            }
-            const unified = base + '/USDT:USDT';
-            const market = this.safeMarket (unified);
-            symbol = market['symbol'];
-        }
-        if (symbol === undefined) {
+        if (s === undefined) {
             return;
         }
+        const market = this.safeMarket (s.toUpperCase ());
+        const symbol = market['symbol'];
         const parsed = [
             this.safeTimestamp (data, 't'),
             this.safeNumber (data, 'o'),
@@ -220,13 +211,7 @@ export default class mudrex extends mudrexRest {
             if (s === undefined) {
                 continue;
             }
-            const u = s.toUpperCase ();
-            let base = u;
-            if (u.endsWith ('USDT')) {
-                base = u.slice (0, -4);
-            }
-            const unified = base + '/USDT:USDT';
-            const market = this.safeMarket (unified);
+            const market = this.safeMarket (s.toUpperCase ());
             const symbol = market['symbol'];
             const timestamp = this.milliseconds ();
             const last = this.safeNumber (t, 'p');
