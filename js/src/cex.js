@@ -521,6 +521,7 @@ export default class cex extends Exchange {
      * @method
      * @name cex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
