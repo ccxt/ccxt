@@ -166,36 +166,6 @@ export default class mudrex extends Exchange {
         });
     }
 
-    mudrexSymbol (unified: string): string {
-        if (!unified) {
-            throw new BadSymbol (this.id + ' empty symbol');
-        }
-        if (!unified.includes ('/') && !unified.includes (':')) {
-            return unified.toUpperCase ();
-        }
-        const baseQuote = unified.split (':')[0];
-        const parts = baseQuote.split ('/');
-        if (parts.length !== 2) {
-            throw new BadSymbol (this.id + ' invalid unified symbol: ' + unified);
-        }
-        return (parts[0] + parts[1]).toUpperCase ();
-    }
-
-    unifiedSymbol (raw: string): string {
-        if (!raw) {
-            throw new BadSymbol (this.id + ' empty raw symbol');
-        }
-        const r = raw.toUpperCase ();
-        if (r.includes ('/')) {
-            return r.includes (':') ? r : r + ':USDT';
-        }
-        if (r.endsWith ('USDT') && r.length > 4) {
-            const base = r.slice (0, -4);
-            return base + '/USDT:USDT';
-        }
-        return r + '/USDT:USDT';
-    }
-
     sign (path, api: string = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const base = this.safeString (apiUrls, api);
@@ -235,10 +205,7 @@ export default class mudrex extends Exchange {
         const success = this.safeBool (response, 'success', true);
         if (!success) {
             const errors = this.safeList (response, 'errors', []);
-            let first: Dict = {};
-            if (errors.length > 0 && typeof errors[0] === 'object' && errors[0] !== null) {
-                first = errors[0] as Dict;
-            }
+            const first = this.safeDict (errors, 0, {});
             const text = this.safeString (first, 'text', this.json (response));
             const errCode = this.safeString (first, 'code');
             this.throwExactlyMatchedException (this.exceptions['exact'], text, this.id + ' ' + text);
@@ -326,23 +293,20 @@ export default class mudrex extends Exchange {
             if (sym === undefined) {
                 continue;
             }
-            const unified = this.unifiedSymbol (sym);
-            if (symbols !== undefined && !this.inArray (unified, symbols)) {
+            const m = this.safeMarket (sym);
+            const symbol = m['symbol'];
+            if (symbols !== undefined && !this.inArray (symbol, symbols)) {
                 continue;
             }
-            const m = this.safeValue (this.markets, unified);
-            resultTickers[unified] = this.parseTicker (t, m);
+            resultTickers[symbol] = this.parseTicker (t, m);
         }
         return this.filterByArrayTickers (resultTickers, 'symbol', symbols);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        market = this.safeMarket (undefined, market);
-        let symbol = this.safeString (market, 'symbol');
-        if (!symbol) {
-            const ms = this.safeString (ticker, 'symbol');
-            symbol = ms ? this.unifiedSymbol (ms) : undefined;
-        }
+        const ms = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (ms, market);
+        const symbol = market['symbol'];
         const ts = this.milliseconds ();
         const pct = this.safeNumber (ticker, 'change_perc');
         return this.safeTicker ({
@@ -412,20 +376,25 @@ export default class mudrex extends Exchange {
 
     parseMarket (asset: Dict): Market {
         const ms = this.safeString (asset, 'symbol');
-        const unified = ms ? this.unifiedSymbol (ms) : undefined;
         let base = ms;
         if (ms !== undefined && ms.endsWith ('USDT')) {
             base = ms.slice (0, -4);
         }
+        const quote = 'USDT';
+        const settle = 'USDT';
+        let symbol = undefined;
+        if (base !== undefined) {
+            symbol = base + '/' + quote + ':' + settle;
+        }
         const priceStep = this.safeString (asset, 'price_step', '0.01');
         const qtyStep = this.safeString (asset, 'quantity_step', '0.001');
         return {
-            'id': this.safeString (asset, 'id', ms),
+            'id': ms,
             'lowercaseId': undefined,
-            'symbol': unified,
+            'symbol': symbol,
             'base': base,
-            'quote': 'USDT',
-            'settle': 'USDT',
+            'quote': quote,
+            'settle': settle,
             'baseId': base,
             'quoteId': 'USDT',
             'settleId': 'USDT',
@@ -644,7 +613,8 @@ export default class mudrex extends Exchange {
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
-        market = this.safeMarket (undefined, market);
+        const oms = this.safeString (order, 'symbol');
+        market = this.safeMarket (oms, market);
         const oid = this.safeString2 (order, 'order_id', 'id');
         const rawSide = this.safeStringUpper (order, 'order_type');
         let side: string = undefined;
@@ -666,13 +636,7 @@ export default class mudrex extends Exchange {
         }
         const statusL = this.safeStringLower (order, 'status');
         const status = (statusL === 'open' || statusL === 'created' || statusL === 'new') ? 'open' : statusL;
-        let sym = this.safeString (market, 'symbol');
-        if (!sym) {
-            const oms = this.safeString (order, 'symbol');
-            if (oms !== undefined) {
-                sym = this.unifiedSymbol (oms);
-            }
-        }
+        const sym = market['symbol'];
         return this.safeOrder ({
             'info': order,
             'id': oid,
@@ -793,11 +757,7 @@ export default class mudrex extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const p = rows[i];
             const symRaw = this.safeString (p, 'symbol');
-            let m: Market = undefined;
-            if (symRaw !== undefined) {
-                const u = this.unifiedSymbol (symRaw);
-                m = this.safeMarket (u);
-            }
+            const m = this.safeMarket (symRaw);
             const pos = this.parsePosition (p, m);
             out.push (pos);
         }
@@ -807,7 +767,7 @@ export default class mudrex extends Exchange {
     parsePosition (position: Dict, market: Market = undefined): Position {
         market = this.safeMarket (undefined, market);
         const ms = this.safeString (position, 'symbol');
-        const symbol = this.safeString (market, 'symbol') ?? (ms ? this.unifiedSymbol (ms) : undefined);
+        const symbol = this.safeSymbol (ms, market);
         const rawSide = this.safeStringUpper (position, 'order_type');
         let side: string = undefined;
         if (rawSide === 'LONG') {
@@ -852,13 +812,14 @@ export default class mudrex extends Exchange {
         let positionId = this.safeString (params, 'position_id');
         const amount = this.safeValue (params, 'amount');
         if (positionId === undefined) {
-            const positions = await this.fetchPositions (symbol ? [ symbol ] : undefined, params);
+            const market = this.market (symbol);
+            const positions = await this.fetchPositions ([ symbol ], params);
             for (let i = 0; i < positions.length; i++) {
                 const p = positions[i];
                 if (side !== undefined && p['side'] !== side) {
                     continue;
                 }
-                if (p['symbol'] === symbol || this.mudrexSymbol (symbol) === this.mudrexSymbol (p['symbol'])) {
+                if (p['symbol'] === market['symbol']) {
                     positionId = this.safeString (p, 'id');
                     break;
                 }
@@ -888,7 +849,7 @@ export default class mudrex extends Exchange {
         const closePath = 'futures/positions/' + positionId + '/close';
         return await this.request (closePath, 'private', 'POST', this.extend (request, this.omit (params, [ 'trade_currency', 'tradeCurrency' ])));
     }
-    
+
     async addMargin (symbol: string, amount: number, params = {}) {
         await this.loadMarkets ();
         let positionId = this.safeString (params, 'position_id');
@@ -940,9 +901,9 @@ export default class mudrex extends Exchange {
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
-        market = this.safeMarket (undefined, market);
         const ms = this.safeString (trade, 'symbol');
-        const symbol = this.safeString (market, 'symbol') ?? (ms ? this.unifiedSymbol (ms) : undefined);
+        market = this.safeMarket (ms, market);
+        const symbol = market['symbol'];
         let ts = this.parse8601 (this.safeString (trade, 'created_at'));
         if (ts === undefined) {
             ts = this.safeInteger (trade, 'time');
