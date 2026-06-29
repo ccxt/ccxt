@@ -45,19 +45,32 @@ export default class mudrex extends mudrexRest {
         return reqid;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description injects the broker Partner-Id into the websocket connection headers
+     */
+    setBrokerHeaders () {
+        const brokerId = this.safeString (this.options, 'broker');
+        if (brokerId === undefined) {
+            return;
+        }
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const innerOptions = this.safeDict (wsOptions, 'options', {});
+        const headers = this.safeDict (innerOptions, 'headers', {});
+        headers['Partner-Id'] = brokerId;
+        innerOptions['headers'] = headers;
+        wsOptions['options'] = innerOptions;
+        this.options['ws'] = wsOptions;
+    }
+
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
         const url = this.urls['api']['ws'];
-        const brokerId = this.safeString (this.options, 'broker');
-        this.options['ws'] = this.options['ws'] || {};
-        this.options['ws']['options'] = this.options['ws']['options'] || {};
-        this.options['ws']['options']['headers'] = this.options['ws']['options']['headers'] || {};
-        if (brokerId !== undefined) {
-            this.options['ws']['options']['headers']['Partner-Id'] = brokerId;
-        }
+        this.setBrokerHeaders ();
         const subscribe: Dict = {
             'id': this.requestId (),
             'method': 'SUBSCRIBE',
@@ -81,13 +94,7 @@ export default class mudrex extends mudrexRest {
             }
         }
         const url = this.urls['api']['ws'];
-        const brokerId = this.safeString (this.options, 'broker');
-        this.options['ws'] = this.options['ws'] || {};
-        this.options['ws']['options'] = this.options['ws']['options'] || {};
-        this.options['ws']['options']['headers'] = this.options['ws']['options']['headers'] || {};
-        if (brokerId !== undefined) {
-            this.options['ws']['options']['headers']['Partner-Id'] = brokerId;
-        }
+        this.setBrokerHeaders ();
         const subscribe: Dict = {
             'id': this.requestId (),
             'method': 'SUBSCRIBE',
@@ -121,13 +128,7 @@ export default class mudrex extends mudrexRest {
         const stream = prefix + '@' + interval + '@' + market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ();
         const messageHash = stream;
         const url = this.urls['api']['ws'];
-        const brokerId = this.safeString (this.options, 'broker');
-        this.options['ws'] = this.options['ws'] || {};
-        this.options['ws']['options'] = this.options['ws']['options'] || {};
-        this.options['ws']['options']['headers'] = this.options['ws']['options']['headers'] || {};
-        if (brokerId !== undefined) {
-            this.options['ws']['options']['headers']['Partner-Id'] = brokerId;
-        }
+        this.setBrokerHeaders ();
         const subscribe: Dict = {
             'id': this.requestId (),
             'method': 'SUBSCRIBE',
