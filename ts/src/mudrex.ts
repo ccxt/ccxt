@@ -284,6 +284,7 @@ export default class mudrex extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'asset_id': market['id'],
+            'is_symbol': 1,
         };
         const response = await this.privateGetFuturesAssetId (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
@@ -424,8 +425,8 @@ export default class mudrex extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.precisionFromString (qtyStep),
-                'price': this.precisionFromString (priceStep),
+                'amount': this.parseNumber (qtyStep),
+                'price': this.parseNumber (priceStep),
             },
             'limits': {
                 'amount': {
@@ -491,6 +492,7 @@ export default class mudrex extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'asset_id': market['id'],
+            'is_symbol': 1,
         };
         const response = await this.privateGetFuturesAssetIdLeverage (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
@@ -591,6 +593,9 @@ export default class mudrex extends Exchange {
         const response = await this.privatePostFuturesAssetIdOrder (this.extend (body, params));
         this.options['leverages'] = this.extend (leverages, { [market['symbol']]: lev });
         const data = this.safeDict (response, 'data', response);
+        // the create response omits the order/trigger type, so restore them from the request
+        data['order_type'] = body['order_type'];
+        data['trigger_type'] = body['trigger_type'];
         return this.parseOrder (data, market);
     }
 
@@ -615,6 +620,23 @@ export default class mudrex extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            'open': 'open',
+            'created': 'open',
+            'new': 'open',
+            'pending': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
+            'completed': 'closed',
+            'cancelled': 'canceled',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'expired': 'expired',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         const oms = this.safeString (order, 'symbol');
         market = this.safeMarket (oms, market);
@@ -637,8 +659,7 @@ export default class mudrex extends Exchange {
         if (ts === undefined) {
             ts = this.milliseconds ();
         }
-        const statusL = this.safeStringLower (order, 'status');
-        const status = (statusL === 'open' || statusL === 'created' || statusL === 'new') ? 'open' : statusL;
+        const status = this.parseOrderStatus (this.safeStringLower (order, 'status'));
         const sym = market['symbol'];
         return this.safeOrder ({
             'info': order,
@@ -752,7 +773,7 @@ export default class mudrex extends Exchange {
             const pos = this.parsePosition (p, m);
             out.push (pos);
         }
-        return this.filterByArrayPositions (out, 'symbol', symbols);
+        return this.filterByArrayPositions (out, 'symbol', symbols, false);
     }
 
     parsePosition (position: Dict, market: Market = undefined): Position {
@@ -770,6 +791,14 @@ export default class mudrex extends Exchange {
         if (ts === undefined) {
             ts = this.parse8601 (this.safeString (position, 'created_at'));
         }
+        const quantityString = this.safeString (position, 'quantity');
+        const entryPriceString = this.safeString (position, 'entry_price');
+        const contractSizeString = this.safeString (market, 'contractSize', '1');
+        let notional = undefined;
+        if ((quantityString !== undefined) && (entryPriceString !== undefined)) {
+            notional = this.parseNumber (Precise.stringMul (Precise.stringMul (quantityString, entryPriceString), contractSizeString));
+        }
+        const initialMargin = this.safeString (position, 'initial_margin');
         return {
             'info': position,
             'id': this.safeString (position, 'id'),
@@ -777,18 +806,18 @@ export default class mudrex extends Exchange {
             'timestamp': ts,
             'datetime': this.iso8601 (ts),
             'isolated': true,
-            'hedged': undefined,
+            'hedged': false,
             'side': side,
             'contracts': this.safeNumber (position, 'quantity'),
-            'contractSize': 1,
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'markPrice': undefined,
-            'notional': undefined,
+            'notional': notional,
             'leverage': this.safeInteger (position, 'leverage'),
-            'collateral': undefined,
-            'initialMargin': undefined,
+            'collateral': this.parseNumber (initialMargin),
+            'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': undefined,
-            'maintenanceMargin': undefined,
+            'maintenanceMargin': this.safeNumber (position, 'maintenance_margin'),
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
@@ -889,12 +918,19 @@ export default class mudrex extends Exchange {
         if (ts === undefined) {
             ts = this.safeInteger (trade, 'time');
         }
-        const side = this.safeStringLower (trade, 'side');
+        const side = this.safeStringLower2 (trade, 'side', 'order_type');
         let tradeSide: string = undefined;
         if (side === 'buy' || side === 'long') {
             tradeSide = 'buy';
         } else if (side === 'sell' || side === 'short') {
             tradeSide = 'sell';
+        }
+        const feeType = this.safeStringUpper (trade, 'fee_type');
+        let takerOrMaker = undefined;
+        if (feeType === 'TRANSACTION') {
+            takerOrMaker = 'taker';
+        } else if (feeType === 'REBATE') {
+            takerOrMaker = 'maker';
         }
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee_amount');
@@ -913,10 +949,10 @@ export default class mudrex extends Exchange {
             'order': this.safeString (trade, 'order_id'),
             'type': this.safeStringLower (trade, 'trigger_type'),
             'side': tradeSide,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeNumber (trade, 'price'),
             'amount': this.safeNumber2 (trade, 'size', 'quantity'),
-            'cost': undefined,
+            'cost': this.safeNumber (trade, 'transaction_amount'),
             'fee': fee,
         }, market);
     }
