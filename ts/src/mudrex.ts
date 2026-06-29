@@ -36,6 +36,7 @@ export default class mudrex extends Exchange {
                 'closePosition': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -538,11 +539,9 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.leverage] leverage for the order, required if setLeverage() was not called beforehand
      * @param {bool} [params.reduceOnly] true if the order is reduce only
-     * @param {float} [params.takeProfitPrice] the price to trigger an attached take-profit order
-     * @param {float} [params.stopLossPrice] the price to trigger an attached stop-loss order
-     * @param {object} [params.takeProfit] *takeProfit object in params* containing the trigger price of the attached take-profit order
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the trigger price of the take-profit order attached to this order
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-     * @param {object} [params.stopLoss] *stopLoss object in params* containing the trigger price of the attached stop-loss order
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the trigger price of the stop-loss order attached to this order
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {string} [params.trade_currency] the settlement currency for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
@@ -550,18 +549,11 @@ export default class mudrex extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let lev = this.safeInteger (params, 'leverage');
-        const leverages = this.safeDict (this.options, 'leverages', {});
-        if (lev === undefined) {
-            lev = this.safeInteger (leverages, market['symbol']);
-        }
-        if (lev === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a leverage parameter or a prior setLeverage() call');
-        }
+        const lev = this.safeInteger (params, 'leverage', 1);
         if ((type === 'market') && (price === undefined)) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for market orders');
         }
-        const body: Dict = {
+        const request: Dict = {
             'asset_id': market['id'],
             'is_symbol': 1,
             'leverage': this.numberToString (lev),
@@ -571,36 +563,27 @@ export default class mudrex extends Exchange {
             'trigger_type': (type === 'market') ? 'MARKET' : 'LIMIT',
             'reduce_only': this.safeBool (params, 'reduceOnly', false),
         };
+        // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
         const takeProfit = this.safeDict (params, 'takeProfit');
         const stopLoss = this.safeDict (params, 'stopLoss');
-        let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        let stopLossPrice = this.safeString (params, 'stopLossPrice');
         if (takeProfit !== undefined) {
-            takeProfitPrice = this.safeStringN (takeProfit, [ 'triggerPrice', 'stopPrice', 'price' ], takeProfitPrice);
+            request['is_takeprofit'] = true;
+            request['takeprofit_price'] = this.priceToPrecision (symbol, this.safeStringN (takeProfit, [ 'triggerPrice', 'stopPrice', 'price' ]));
         }
         if (stopLoss !== undefined) {
-            stopLossPrice = this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice', 'price' ], stopLossPrice);
+            request['is_stoploss'] = true;
+            request['stoploss_price'] = this.priceToPrecision (symbol, this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice', 'price' ]));
         }
-        if (takeProfitPrice !== undefined) {
-            body['is_takeprofit'] = true;
-            body['takeprofit_price'] = this.priceToPrecision (symbol, takeProfitPrice);
-        }
-        if (stopLossPrice !== undefined) {
-            body['is_stoploss'] = true;
-            body['stoploss_price'] = this.priceToPrecision (symbol, stopLossPrice);
-        }
-        params = this.omit (params, [ 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss', 'takeProfitPrice', 'stopLossPrice' ]);
-        const response = await this.privatePostFuturesAssetIdOrder (this.extend (body, params));
-        this.options['leverages'] = this.extend (leverages, { [market['symbol']]: lev });
+        params = this.omit (params, [ 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ]);
+        const response = await this.privatePostFuturesAssetIdOrder (this.extend (request, params));
         const data = this.safeDict (response, 'data', response);
         // the create response omits the order/trigger type, so restore them from the request
-        data['order_type'] = body['order_type'];
-        data['trigger_type'] = body['trigger_type'];
+        data['order_type'] = request['order_type'];
+        data['trigger_type'] = request['trigger_type'];
         return this.parseOrder (data, market);
     }
 
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -827,7 +810,6 @@ export default class mudrex extends Exchange {
     }
 
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let positionId = this.safeString (params, 'position_id');
         const amount = this.safeValue (params, 'amount');
