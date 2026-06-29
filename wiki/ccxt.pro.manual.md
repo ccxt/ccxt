@@ -7,6 +7,7 @@ The CCXT Pro stack is built upon [CCXT](https://ccxt.com) and extends the core C
 - JavaScript prototype-level mixins
 - Python multiple inheritance
 - PHP Traits
+- Java class inheritance (pro exchange classes extend base exchange classes)
 
 The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support).
 
@@ -54,7 +55,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 ```
 
 ## Exchanges
-<!--- init list -->The CCXT Pro library currently supports the following 75 cryptocurrency exchange markets and WebSocket trading APIs:
+<!--- init list -->The CCXT Pro library currently supports the following 74 cryptocurrency exchange markets and WebSocket trading APIs:
 
 |logo                                                                                                                                                                                    |id                     |name                                                                                     |ver                                                                                                                                               |type                                                                                                    |certified                                                                                                                    |pro                                                                                                |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|-----------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
@@ -115,7 +116,6 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 | [![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                     | luno                  | [Luno](https://www.luno.com/invite/44893A)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.luno.com/en/api)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                | mexc                  | [MEXC Global](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                   | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://mexcdevelop.github.io/apidocs/)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![modetrade](https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24)](https://trade.mode.network?ref=MODETRADE)                                              | modetrade             | [Mode Trade](https://trade.mode.network?ref=MODETRADE)                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](undefined)                                                                          | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![mudrex](https://github.com/user-attachments/assets/b4eb2663-e31b-4fbf-ab2b-8716a506720f)](https://mudrex.com)                                                                       | mudrex                | [Mudrex](https://mudrex.com)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.trade.mudrex.com/docs)                                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![myokx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.my.okx.com/join/CCXT2023)                                 | myokx                 | [MyOKX (EEA)](https://www.my.okx.com/join/CCXT2023)                                     | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://my.okx.com/docs-v5/en/#overview)                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![ndax](https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg)](https://one.ndax.io/bfQiSL)                                            | ndax                  | [NDAX](https://one.ndax.io/bfQiSL)                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/join/CCXTCOM)                                       | okx                   | [OKX](https://www.okx.com/join/CCXTCOM)                                                 | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
@@ -445,6 +445,27 @@ use \ccxt\pro; // optional, since you can use fully qualified names
 echo 'CCXT version ', \ccxt\pro\Exchange::VERSION, "\n";
 echo 'Supported exchanges: ', json_encode(\ccxt\pro\Exchange::$exchanges), "\n";
 ```
+#### **C#/.NET**
+```c#
+using ccxt;
+using ccxt.pro;
+
+Console.WriteLine("CCXT version " + ccxt.Exchange.ccxtVersion);
+```
+#### **Go**
+```go
+import (
+    "fmt"
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+fmt.Println("CCXT version", ccxtpro.Version)
+```
+#### **Java**
+```java
+import io.github.ccxt.exchanges.pro.Binance;
+// Pro exchange classes are in the io.github.ccxt.exchanges.pro package
+```
 <!-- tabs:end -->
 
 The imported CCXT Pro module wraps the CCXT inside itself – every exchange instantiated via CCXT Pro has all the CCXT methods as well as the additional functionality.
@@ -506,6 +527,49 @@ using ccxt.pro;
             Console.WriteLine("Trades: " + JsonConvert.SerializeObject(trades, Formatting.Indented));
         }
     }
+```
+
+#### **Go**
+
+```go
+import (
+    "fmt"
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+exchange := ccxtpro.NewBinance(map[string]interface{}{
+    "newUpdates": false,
+})
+defer exchange.Close()
+for {
+    orderbook, err := exchange.WatchOrderBook("BTC/USDT")
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(orderbook.Asks[0], orderbook.Bids[0])
+}
+```
+
+#### **Java**
+```java
+import io.github.ccxt.exchanges.pro.Binance;
+import io.github.ccxt.types.Ticker;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+
+// Sync: blocks until next update
+while (true) {
+    Ticker ticker = exchange.watchTicker("BTC/USDT");
+    System.out.println(ticker.last);
+}
+
+// Or async: returns CompletableFuture<Ticker> — composable, supports timeouts
+CompletableFuture<Ticker> next = exchange.watchTickerAsync("BTC/USDT", null);
+Ticker tick = next.get(30, TimeUnit.SECONDS);
 ```
 
 <!-- tabs:end -->
@@ -677,6 +741,50 @@ if ($exchange->has['watchOrderBook']) {
     });
 }
 ```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchOrderBook"])
+{
+    while (true)
+    {
+        try
+        {
+            var orderbook = await exchange.WatchOrderBook(symbol);
+            Console.WriteLine(orderbook["symbol"] + " " + orderbook.asks + " " + orderbook.bids);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    orderbook, err := exchange.WatchOrderBook(symbol)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(orderbook.Asks[0], orderbook.Bids[0])
+}
+```
+#### **Java**
+```java
+import io.github.ccxt.types.OrderBook;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+while (true) {
+    try {
+        OrderBook orderbook = exchange.watchOrderBook(symbol);
+        System.out.println(orderbook.bids.get(0));
+    } catch (Exception e) {
+        System.out.println(e.getMessage());
+    }
+}
+```
 <!-- tabs:end -->
 
 #### watchOrderBookForSymbols
@@ -758,6 +866,42 @@ if ($exchange->has['watchTicker']) {
     });
 }
 ```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchTicker"])
+{
+    while (true)
+    {
+        try
+        {
+            var ticker = await exchange.WatchTicker(symbol, parameters);
+            Console.WriteLine(ticker.last);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    ticker, err := exchange.WatchTicker(symbol)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(ticker.Last)
+}
+```
+#### **Java**
+```java
+while (true) {
+    Object ticker = exchange.watchTicker(symbol).get(30, TimeUnit.SECONDS);
+    System.out.println(ticker);
+}
+```
 <!-- tabs:end -->
 
 ### watchTickers
@@ -803,6 +947,42 @@ if ($exchange->has['watchTickers']) {
             }
         }
     });
+}
+```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchTickers"])
+{
+    while (true)
+    {
+        try
+        {
+            var tickers = await exchange.WatchTickers(symbols, parameters);
+            Console.WriteLine(tickers.tickers.Count + " tickers");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    tickers, err := exchange.WatchTickers(ccxt.WithWatchTickersSymbols(symbols))
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(len(tickers.Tickers))
+}
+```
+#### **Java**
+```java
+while (true) {
+    Object tickers = exchange.watchTickers(symbols).get(30, TimeUnit.SECONDS);
+    System.out.println(tickers);
 }
 ```
 <!-- tabs:end -->
@@ -891,6 +1071,42 @@ if ($exchange->has['watchOHLCV']) {
     });
 }
 ```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchOHLCV"])
+{
+    while (true)
+    {
+        try
+        {
+            var candles = await exchange.WatchOHLCV(symbol, timeframe);
+            Console.WriteLine(candles.Count + " candles");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    candles, err := exchange.WatchOHLCV(symbol)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(len(candles))
+}
+```
+#### **Java**
+```java
+while (true) {
+    Object ohlcv = exchange.watchOHLCV(symbol, "1m").get(30, TimeUnit.SECONDS);
+    System.out.println(ohlcv);
+}
+```
 <!-- tabs:end -->
 
 
@@ -934,6 +1150,72 @@ if exchange.has['watchOHLCVForSymbols']:
             print(e)
             # stop the loop on exception or leave it commented to retry
             # raise e
+```
+#### **PHP**
+```php
+if ($exchange->has['watchOHLCVForSymbols']) {
+    $exchange::execute_and_run(function() use ($exchange, $since, $limit, $params) {
+        while (true) {
+            try {
+                $subscriptions = array(
+                    array('BTC/USDT', '1d'),
+                    array('LTC/USDT', '5m'),
+                    array('ETH/USDT', '1h'),
+                );
+                $candles = yield $exchange->watch_ohlcv_for_symbols($subscriptions, $since, $limit, $params);
+                echo date('c'), ' ', json_encode($candles), "\n";
+            } catch (Exception $e) {
+                echo get_class($e), ' ', $e->getMessage(), "\n";
+            }
+        }
+    });
+}
+```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchOHLCVForSymbols"])
+{
+    var subscriptions = new List<List<string>>() {
+        new List<string>() { "BTC/USDT", "1d" },
+        new List<string>() { "LTC/USDT", "5m" },
+        new List<string>() { "ETH/USDT", "1h" },
+    };
+    while (true)
+    {
+        try
+        {
+            var candles = await exchange.WatchOHLCVForSymbols(subscriptions);
+            Console.WriteLine(candles.Count + " symbols");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+subscriptions := [][]string{
+    {"BTC/USDT", "1d"},
+    {"LTC/USDT", "5m"},
+    {"ETH/USDT", "1h"},
+}
+for {
+    candles, err := exchange.WatchOHLCVForSymbols(subscriptions)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(len(candles))
+}
+```
+#### **Java**
+```java
+while (true) {
+    Object ohlcv = exchange.watchOHLCVForSymbols(symbols, "1m").get(30, TimeUnit.SECONDS);
+    System.out.println(ohlcv);
+}
 ```
 <!-- tabs:end -->
 
@@ -983,6 +1265,42 @@ if ($exchange->has['watchTrades']) {
     });
 }
 ```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchTrades"])
+{
+    while (true)
+    {
+        try
+        {
+            var trades = await exchange.WatchTrades(symbol);
+            Console.WriteLine(trades.Count + " trades");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    trades, err := exchange.WatchTrades(symbol)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(len(trades))
+}
+```
+#### **Java**
+```java
+while (true) {
+    Object trades = exchange.watchTrades(symbol).get(30, TimeUnit.SECONDS);
+    System.out.println(trades);
+}
+```
 <!-- tabs:end -->
 ### watchTradesForSymbols
 
@@ -1015,6 +1333,59 @@ if exchange.has['watchTradesForSymbols']:
             print(e)
             # stop the loop on exception or leave it commented to retry
             # raise e
+```
+#### **PHP**
+```php
+if ($exchange->has['watchTradesForSymbols']) {
+    $exchange::execute_and_run(function() use ($exchange, $since, $limit, $params) {
+        while (true) {
+            try {
+                $trades = yield $exchange->watch_trades_for_symbols(array('LTC/USDT', 'BTC/USDT'), $since, $limit, $params);
+                echo date('c'), ' ', json_encode($trades), "\n";
+            } catch (Exception $e) {
+                echo get_class($e), ' ', $e->getMessage(), "\n";
+            }
+        }
+    });
+}
+```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchTradesForSymbols"])
+{
+    var symbols = new List<string>() { "LTC/USDT", "BTC/USDT" };
+    while (true)
+    {
+        try
+        {
+            var trades = await exchange.WatchTradesForSymbols(symbols);
+            Console.WriteLine(trades.Count + " trades");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+symbols := []string{"LTC/USDT", "BTC/USDT"}
+for {
+    trades, err := exchange.WatchTradesForSymbols(symbols)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(len(trades))
+}
+```
+#### **Java**
+```java
+while (true) {
+    Object trades = exchange.watchTradesForSymbols(symbols).get(30, TimeUnit.SECONDS);
+    System.out.println(trades);
+}
 ```
 <!-- tabs:end -->
 
@@ -1066,6 +1437,42 @@ if ($exchange->has['watchBalance']) {
     });
 }
 ```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchBalance"])
+{
+    while (true)
+    {
+        try
+        {
+            var balance = await exchange.WatchBalance();
+            Console.WriteLine(balance);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    balance, err := exchange.WatchBalance()
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(balance)
+}
+```
+#### **Java**
+```java
+while (true) {
+    Object balance = exchange.watchBalance().get(30, TimeUnit.SECONDS);
+    System.out.println(balance);
+}
+```
 <!-- tabs:end -->
 
 ### watchOrders
@@ -1089,6 +1496,17 @@ watch_orders($symbol = null, $since = null, $lmit = null, $params = array());
 ```c#
 public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
 ```
+#### **Go**
+```go
+func (this *Binance) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error)
+```
+#### **Java**
+```java
+while (true) {
+    Object orders = exchange.watchOrders(symbol).get(30, TimeUnit.SECONDS);
+    System.out.println(orders);
+}
+```
 <!-- tabs:end -->
 
 ### watchMyTrades
@@ -1111,6 +1529,17 @@ watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ```c#
 public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
 
+```
+#### **Go**
+```go
+func (this *Binance) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error)
+```
+#### **Java**
+```java
+while (true) {
+    Object trades = exchange.watchMyTrades(symbol).get(30, TimeUnit.SECONDS);
+    System.out.println(trades);
+}
 ```
 <!-- tabs:end -->
 
@@ -1136,6 +1565,17 @@ watch_positions($symbols = null, $since = null, $lmit = null, $params = array())
 ```c#
 public async Task<List<Position>> WatchPositions(List<string> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
 ```
+#### **Go**
+```go
+func (this *Binance) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error)
+```
+#### **Java**
+```java
+while (true) {
+    Object positions = exchange.watchPositions(symbols).get(30, TimeUnit.SECONDS);
+    System.out.println(positions);
+}
+```
 <!-- tabs:end -->
 
 ### createOrderWs
@@ -1158,6 +1598,15 @@ create_order_ws(string $symbol, string $type, string $side, float $amount, ?floa
 ```c#
     public async Task<Order> CreateOrderWs(string symbol, string type, string side, float amount, float? price2 = 0, Dictionary<string, object> parameters = null)
 ```
+#### **Go**
+```go
+func (this *Binance) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderWsOptions) (ccxt.Order, error)
+```
+#### **Java**
+```java
+Object order = exchange.createOrderWs("BTC/USDT", "limit", "buy", 0.001, 50000.0).get(30, TimeUnit.SECONDS);
+System.out.println(order);
+```
 <!-- tabs:end -->
 ### editOrderWs
 <!-- tabs:start -->
@@ -1173,6 +1622,19 @@ edit_order_ws(self, id, symbol: str, type: OrderType, side: OrderSide, amount: f
 #### **PHP**
 ```php
 edit_order_ws(string id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
+```
+#### **C#/.NET**
+```c#
+public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+```
+#### **Go**
+```go
+func (this *Binance) EditOrderWs(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWsOptions) (ccxt.Order, error)
+```
+#### **Java**
+```java
+Object order = exchange.editOrderWs(orderId, "BTC/USDT", "limit", "buy", 0.002, 51000.0).get(30, TimeUnit.SECONDS);
+System.out.println(order);
 ```
 <!-- tabs:end -->
 
@@ -1191,6 +1653,19 @@ cancel_order_ws(self, id, symbol: str, params={})
 ```php
 cancel_order_ws(string $id, string $symbol, $params = array ())
 ```
+#### **C#/.NET**
+```c#
+public async Task<Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
+```
+#### **Go**
+```go
+func (this *Binance) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions) (ccxt.Order, error)
+```
+#### **Java**
+```java
+Object result = exchange.cancelOrderWs(orderId, "BTC/USDT").get(30, TimeUnit.SECONDS);
+System.out.println(result);
+```
 <!-- tabs:end -->
 
 ### cancelOrdersWs
@@ -1208,6 +1683,19 @@ cancel_orders_ws(self, ids, symbol: str, params={})
 ```php
 cancel_orders_ws(string[] $ids, string $symbol, $params = array ())
 ```
+#### **C#/.NET**
+```c#
+public async Task<List<Order>> CancelOrdersWs(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+```
+#### **Go**
+```go
+func (this *Binance) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersWsOptions) ([]ccxt.Order, error)
+```
+#### **Java**
+```java
+Object result = exchange.cancelOrdersWs(orderIds, "BTC/USDT").get(30, TimeUnit.SECONDS);
+System.out.println(result);
+```
 <!-- tabs:end -->
 
 ### cancelAllOrdersWs
@@ -1223,6 +1711,19 @@ cancel_all_orders_ws(self, symbol: str, params={})
 #### **PHP**
 ```php
 cancel_all_orders_ws(string $symbol, $params = array ())
+```
+#### **C#/.NET**
+```c#
+public async Task<List<Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
+```
+#### **Go**
+```go
+func (this *Binance) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([]ccxt.Order, error)
+```
+#### **Java**
+```java
+Object result = exchange.cancelAllOrdersWs("BTC/USDT").get(30, TimeUnit.SECONDS);
+System.out.println(result);
 ```
 <!-- tabs:end -->
 
@@ -1286,6 +1787,23 @@ $ex = new myBinance();
 $ex->watch_ticker('BTC/USDT');
 
 ```
+#### **C#/.NET**
+```c#
+using ccxt.pro;
+
+class MyExchange : ccxt.pro.coinbase
+{
+    public override void handleMessage(WebSocketClient client, object message)
+    {
+        Console.WriteLine("Raw incoming message: " + message); // this is the raw update
+        base.handleMessage(client, message);
+        // your extra logic here
+    }
+}
+
+var ex = new MyExchange();
+await ex.WatchTicker("BTC/USDT");
+```
 <!-- tabs:end -->
 
 B) by overriding the method:
@@ -1324,6 +1842,18 @@ asyncio.run(example())
 <!-- tabs:end -->
 
 
+### Resource clean-up
+
+When your script finishes its work with any exchange, you are advised to clean-up the resources:
+```python
+poloniex = ccxtpro.poloniex()
+while(condition):
+    print(await poloniex.watch_ticker('ETH/USDT'))
+    # ... your codes
+await poloniex.close(True)  # close the instance connection when you don't need it anymore, and an extra "True" argument also cleans-up the cached instance data
+```
+
+
 ### Error Handling
 
-In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/#/README?id=error-handling) for more details.
+In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/README?id=error-handling) for more details.
