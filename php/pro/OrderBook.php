@@ -62,6 +62,8 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
             $this['outcome'] = $snapshot['outcome'];
             $this['outcomeId'] = $snapshot['outcomeId'];
             $this['market'] = $snapshot['market'];
+            // prediction books are keyed by `outcome`; drop the unused `symbol` to match the REST shape
+            unset($this['symbol']);
         }
     }
 

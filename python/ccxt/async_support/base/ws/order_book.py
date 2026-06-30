@@ -50,6 +50,8 @@ class OrderBook(dict):
             self['outcome'] = snapshot.get('outcome')
             self['outcomeId'] = snapshot.get('outcomeId')
             self['market'] = snapshot.get('market')
+            # prediction books are keyed by `outcome`; drop the unused `symbol` to match the REST shape
+            self.pop('symbol', None)
 
     def update(self, snapshot):
         nonce = snapshot.get('nonce')

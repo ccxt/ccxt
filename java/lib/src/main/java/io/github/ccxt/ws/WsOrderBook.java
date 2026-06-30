@@ -135,17 +135,18 @@ public class WsOrderBook {
      *  `addElementToObject(orderbook, "timestamp", ts)` and then `... "datetime", iso`. */
     public synchronized Map<String, Object> toMap() {
         Map<String, Object> result = new HashMap<>();
-        result.put("symbol", this.symbol);
         result.put("asks", this.asks.snapshot());
         result.put("bids", this.bids.snapshot());
         result.put("timestamp", this.timestamp);
         result.put("datetime", this.datetime);
         result.put("nonce", this.nonce);
-        // prediction-market identity — only present on prediction books
+        // prediction books are keyed by `outcome` (no `symbol`); crypto books by `symbol`
         if (this.outcome != null) {
             result.put("outcome", this.outcome);
             result.put("outcomeId", this.outcomeId);
             result.put("market", this.market);
+        } else {
+            result.put("symbol", this.symbol);
         }
         return result;
     }
