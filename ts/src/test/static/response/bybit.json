@@ -111,6 +111,37 @@
                 }
             }
         ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "list": []
+                    },
+                    "retExtInfo": {},
+                    "time": "1751858399649"
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "retCode": "0",
+                        "retMsg": "OK",
+                        "result": {
+                            "list": []
+                        },
+                        "retExtInfo": {},
+                        "time": "1751858399649"
+                    }
+                }
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "fetch positions history",
