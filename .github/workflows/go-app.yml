@@ -37,10 +37,8 @@ jobs:
         run: tsc --version
       - name: Install tsx
         run: npm install -g tsx
-      - name: export exchanges
-        run: npm run export-exchanges
-      - name: Generate implicit API
-        run: npm run emitAPI # if we emit go only, the implicit API will be problematic for new exchanges
+      - name: Pre Transpile GO
+        run: npm run pre-transpile-go
       - name: Transpile To Go
         if: env.important_modified == 'true'
         run: tsx build/goTranspiler.ts && tsx build/goTranspiler.ts --ws
