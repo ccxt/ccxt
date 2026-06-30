@@ -76,7 +76,7 @@ export default class kucoin extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true, // uta only
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': true,
@@ -87,7 +87,7 @@ export default class kucoin extends Exchange {
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true, // uta only
                 'fetchMarkPrice': true,
                 'fetchMarkPrices': true,
                 'fetchMyTrades': true,
@@ -108,7 +108,7 @@ export default class kucoin extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': true,
-                'fetchPremiumIndexOHLCV': false,
+                'fetchPremiumIndexOHLCV': true, // uta only
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -552,6 +552,8 @@ export default class kucoin extends Exchange {
                         'market/open-interest': 20,
                         'server/status': 6,
                         'market/borrowable-currency': 30,
+                        'user/my-ip': 20,
+                        'market/fiat-price': 6,
                     },
                 },
                 'utaPrivate': {
@@ -3245,6 +3247,10 @@ export default class kucoin extends Exchange {
         const market = this.market (symbol);
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', uta);
+        const priceType = this.safeString (params, 'price');
+        if ((priceType !== undefined) && (!uta)) {
+            uta = true; // mark, index, premiumIndex price types are only available for UTA
+        }
         if (uta) {
             return await this.fetchUTAOHLCV (symbol, timeframe, since, limit, params);
         } else if (market['contract']) {
@@ -3302,6 +3308,20 @@ export default class kucoin extends Exchange {
             request['tradeType'] = 'SPOT';
         } else {
             request['tradeType'] = 'FUTURES';
+        }
+        let priceType: Str = undefined;
+        [ priceType, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price', priceType);
+        if (priceType !== undefined) {
+            const priceTypes: Dict = {
+                'mark': 'mark-price',
+                'index': 'index-price',
+                'premiumIndex': 'premium-index',
+            };
+            const suffix = this.safeString (priceTypes, priceType);
+            if (suffix === undefined) {
+                throw new NotSupported (this.id + ' fetchOHLCV() price parameter must be one of "mark", "index", or "premiumIndex"');
+            }
+            request['symbol'] = market['id'] + '-' + suffix;
         }
         const response = await this.utaGetMarketKline (this.extend (request, params));
         //
