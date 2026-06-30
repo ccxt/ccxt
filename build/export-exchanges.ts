@@ -46,10 +46,12 @@ function logExportExchanges (filename, regex, replacement) {
 
 function getIncludedExchangeIds (pathToDirectory) {
 
-    if (process.argv.length > 2) {
+    // positional args are specific exchange ids; flags (e.g. --js, --py) are not exchanges
+    const positionalArgs = process.argv.slice (2).filter (arg => !arg.startsWith ('-'));
+    if (positionalArgs.length > 0) {
         // allow a specific exchange to be specified via command line
         isPartiaBuild = true;
-        return process.argv.slice (2);
+        return positionalArgs;
     }
 
     const includedIds = fs.readFileSync ('exchanges.cfg')
@@ -67,6 +69,40 @@ function getIncludedExchangeIds (pathToDirectory) {
         .filter (isIncluded);
 
     return ids
+}
+
+// ----------------------------------------------------------------------------
+
+// maps a cli flag to the language whose files should be updated
+const languageFlags: { [flag: string]: string } = {
+    '--js': 'ts',
+    '--ts': 'ts',
+    '--py': 'python',
+    '--python': 'python',
+    '--cs': 'csharp',
+    '--csharp': 'csharp',
+    '--go': 'go',
+    '--php': 'php',
+    '--java': 'java',
+}
+
+// returns the list of languages selected via cli flags; an empty list means "all languages"
+function getSelectedLanguages () {
+    const selected = process.argv.slice (2)
+        .map (arg => languageFlags[arg.toLowerCase ()])
+        .filter (lang => lang !== undefined)
+    // de-duplicate while preserving order
+    return selected.filter ((lang, index) => selected.indexOf (lang) === index)
+}
+
+// derives the target language of a replacement from the file it writes to
+function languageForFile (file: string) {
+    if (file.endsWith ('.py')) return 'python'
+    if (file.endsWith ('.php')) return 'php'
+    if (file.endsWith ('.cs')) return 'csharp'
+    if (file.endsWith ('.go')) return 'go'
+    if (file.endsWith ('.java')) return 'java'
+    return 'ts' // ts/js: ./ts/ccxt.ts and any other .ts source
 }
 
 // ----------------------------------------------------------------------------
@@ -707,7 +743,15 @@ async function exportEverything () {
 
     const wsIds = getIncludedExchangeIds ('./ts/src/pro')
 
-    generateErrorsTs();
+    // when one or more language flags are passed we only update that language's files;
+    // an empty selection means update every language (the default behaviour)
+    const selectedLanguages = getSelectedLanguages ()
+    const languageSelected = selectedLanguages.length > 0
+    const shouldUpdateLanguage = (lang: string) => (!languageSelected || selectedLanguages.includes (lang))
+
+    if (shouldUpdateLanguage ('ts')) {
+        generateErrorsTs();
+    }
     const errorHierarchy = getErrorHierarchy()
     const flat = flatten (errorHierarchy);
     const errorsExports = [...flat];
@@ -833,7 +877,19 @@ async function exportEverything () {
         }
     ]
 
-    exportExchanges (replacements, unlimitedLog)
+    // keep only the replacements that target the selected language(s)
+    const selectedReplacements = languageSelected
+        ? replacements.filter (({ file }) => selectedLanguages.includes (languageForFile (file)))
+        : replacements
+
+    exportExchanges (selectedReplacements)
+
+    if (languageSelected) {
+        // language-scoped run: only the exchange-registration files were updated,
+        // skip the language-agnostic docs/wiki/json generation
+        unlimitedLog.bright.green ('Exported registrations for: ' + selectedLanguages.join (', '))
+        return
+    }
 
     // strategically placed exactly here (we can require it AFTER the export)
     const exchanges = await createExchanges (ids)
