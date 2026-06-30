@@ -3173,7 +3173,7 @@ export default class kucoin extends kucoinRest {
             'messageHashes': [ unSubMessageHash ],
         };
         return await this.subscribePublicUta (unSubMessageHash, channel, symbol, params, subscription);
-    };
+    }
 
     handleUtaFundingRate (client: Client, message) {
         //
