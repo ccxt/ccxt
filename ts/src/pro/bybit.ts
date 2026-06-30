@@ -1020,6 +1020,35 @@ export default class bybit extends bybitRest {
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
+        // BBO channel (orderbook.1) — resolve ONLY the bidask future and return.
+        // Do NOT touch this.orderbooks[symbol]: that book is shared with the
+        // depth-N orderbook stream (orderbook.50/...), and merging the 1-level
+        // BBO snapshot/delta into it corrupts the orderbook book (resolves the
+        // orderbook future with a thin book). Maintain a separate BBO book so
+        // the two streams don't clobber each other.
+        if (limit === '1') {
+            const bboKey = symbol + '::bbo';
+            if (!(bboKey in this.orderbooks)) {
+                this.orderbooks[bboKey] = this.orderBook ();
+            }
+            const bboBook = this.orderbooks[bboKey];
+            bboBook['symbol'] = symbol;
+            if (isSnapshot) {
+                const bboSnapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
+                bboBook.reset (bboSnapshot);
+            } else {
+                this.handleDeltas (bboBook['asks'], this.safeList (data, 'a', []));
+                this.handleDeltas (bboBook['bids'], this.safeList (data, 'b', []));
+                bboBook['timestamp'] = timestamp;
+                bboBook['datetime'] = this.iso8601 (timestamp);
+            }
+            const bidask = this.parseWsBidAsk (this.orderbooks[bboKey], market);
+            const newBidsAsks: Dict = {};
+            newBidsAsks[symbol] = bidask;
+            this.bidsasks[symbol] = bidask;
+            client.resolve (newBidsAsks, 'bidask:' + symbol);
+            return;
+        }
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
@@ -1039,13 +1068,6 @@ export default class bybit extends bybitRest {
         const messageHash = 'orderbook' + ':' + symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
-        if (limit === '1') {
-            const bidask = this.parseWsBidAsk (this.orderbooks[symbol], market);
-            const newBidsAsks: Dict = {};
-            newBidsAsks[symbol] = bidask;
-            this.bidsasks[symbol] = bidask;
-            client.resolve (newBidsAsks, 'bidask:' + symbol);
-        }
     }
 
     handleDelta (bookside, delta) {
