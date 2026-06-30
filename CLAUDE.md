@@ -553,6 +553,8 @@ Caps inline comments at 12 with severity tags (🚨 Blocker / ⚠️ Concern / �
 ```
 ts/src/                 source TS — REST exchanges, base, REST tests
 ts/src/pro/             source TS — WS exchanges, WS tests
+ts/src/prediction/      source TS — prediction-market exchanges (extend PredictionExchange)
+ts/src/base/PredictionExchange.ts  prediction base (outcome loading/caching — see .claude/rules/prediction-outcomes.md)
 ts/src/abstract/        AUTO-GENERATED API method signatures
 ts/src/base/Exchange.ts master base (partly transpiled into all langs)
 ts/src/base/ws/         WS base (Client, Cache, OrderBook, Future)
@@ -570,4 +572,6 @@ wiki/                   docs (Manual.md = authoritative API spec)
 examples/               per-language end-user examples
 .claude/skills/         per-language usage skills (/ccxt-python, /ccxt-typescript, …)
                         — public API reference for callers, NOT for editing CCXT
+.claude/rules/          topic-scoped contributor rules (auto-load via `paths:` frontmatter);
+                        prediction-outcomes.md = the outcome loading/caching pattern
 ```

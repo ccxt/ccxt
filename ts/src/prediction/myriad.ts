@@ -455,7 +455,7 @@ export default class myriad extends Exchange {
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
     async fetchTradeQuote (outcome: string, side: string, amount: number, params = {}): Promise<Dict> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
@@ -691,7 +691,7 @@ export default class myriad extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const defaultModel = this.safeString (info, 'tradingModel', 'amm');
@@ -839,7 +839,7 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const ordersLength = orders.length;
         const result = [];
         for (let i = 0; i < ordersLength; i++) {
@@ -872,7 +872,7 @@ export default class myriad extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async editOrder (id: string, outcome: string, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}): Promise<PredictionOrder> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         await this.cancelOrder (id, outcome);
         return await this.createOrderbookOrder (outcome, type, side, amount, price, params);
     }
@@ -888,7 +888,7 @@ export default class myriad extends Exchange {
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey to sign the on-chain transaction');
         }
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
@@ -1128,7 +1128,7 @@ export default class myriad extends Exchange {
         const wrapper = this.extend (fetched, { 'status': status, 'networkId': networkId });
         let market = undefined;
         if (outcome !== undefined) {
-            this.ensureOutcomesLoaded ();
+            await this.loadOutcomes ();
             market = this.outcome (outcome);
         }
         return this.parseOrder (wrapper, market as any);
@@ -1151,7 +1151,7 @@ export default class myriad extends Exchange {
         let marketId = this.safeString (params, 'market_id', '0');
         let networkId = this.safeString (params, 'network_id', this.safeString (this.options, 'defaultNetworkId', '56'));
         if (outcome !== undefined) {
-            this.ensureOutcomesLoaded ();
+            await this.loadOutcomes ();
             const outcomeObj = this.outcome (outcome);
             const info = this.safeDict (outcomeObj, 'info', {});
             marketId = this.safeString (info, 'marketId', marketId);
@@ -1225,7 +1225,7 @@ export default class myriad extends Exchange {
         const response = await this.myriadPublicGetOrdersHash (this.extend ({ 'hash': id }, params));
         let market = undefined;
         if (outcome !== undefined) {
-            this.ensureOutcomesLoaded ();
+            await this.loadOutcomes ();
             market = this.outcome (outcome);
         }
         return this.parseOrder (response, market as any);
@@ -1256,7 +1256,7 @@ export default class myriad extends Exchange {
         }
         let outcomeSymbol = undefined;
         if (outcome !== undefined) {
-            this.ensureOutcomesLoaded ();
+            await this.loadOutcomes ();
             const outcomeObj = this.outcome (outcome);
             outcomeSymbol = this.safeString (outcomeObj, 'outcome', outcome);
         }
@@ -1635,7 +1635,7 @@ export default class myriad extends Exchange {
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const outcomeObj = this.outcome (outcome);
         const networkId = this.safeString (outcomeObj['info'], 'networkId');
         const marketId = this.safeString (outcomeObj['info'], 'marketId');
@@ -1730,7 +1730,7 @@ export default class myriad extends Exchange {
      * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
     async fetchTradingFee (outcome: string, params = {}): Promise<PredictionTradingFee> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const request: Dict = {
@@ -1894,7 +1894,7 @@ export default class myriad extends Exchange {
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const outcomeObj = this.outcome (outcome);
         const networkId = this.safeString (outcomeObj['info'], 'networkId');
         const marketId = this.safeString (outcomeObj['info'], 'marketId');
@@ -2085,7 +2085,7 @@ export default class myriad extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (outcome: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const outcomeObj = this.outcome (outcome);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (outcomeObj['info'], 'networkId');
@@ -2230,7 +2230,7 @@ export default class myriad extends Exchange {
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const result: PredictionTickers = {};
         if (outcomes === undefined) {
             const rawMarkets = await this.fetchRawMarketsList (params);
@@ -2306,7 +2306,7 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
@@ -2441,52 +2441,6 @@ export default class myriad extends Exchange {
         }
         this.populateOutcomes ();
         return this.applyEventFetchParams (result, params, queries);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name myriad#ensureOutcomesLoaded
-     * @description rebuilds the outcome caches from the loaded markets when they are empty
-     * @returns {undefined}
-     */
-    ensureOutcomesLoaded () {
-        if ((this.outcomes === undefined) || this.isEmpty (this.outcomes)) {
-            this.populateOutcomes ();
-        }
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name myriad#populateOutcomes
-     * @description rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market
-     * @returns {undefined}
-     */
-    populateOutcomes () {
-        this.outcomes = {};
-        this.outcomes_by_id = {};
-        const marketKeys = Object.keys (this.markets);
-        for (let i = 0; i < marketKeys.length; i++) {
-            const market = this.markets[marketKeys[i]] as Dict;
-            const outcomesList = this.safeList (market, 'outcomes', []) as any[];
-            for (let j = 0; j < outcomesList.length; j++) {
-                const oc = outcomesList[j];
-                // accept the legacy outcome/id keys too: in Go/C#/Java the prediction
-                // setMarkets override is not dispatched, so oc is not pre-normalized
-                const ocSymbol = this.safeString2 (oc, 'outcome', 'symbol');
-                const ocId = this.safeString2 (oc, 'outcomeId', 'id');
-                oc['outcome'] = ocSymbol;
-                oc['outcomeId'] = ocId;
-                oc['market'] = this.safeString2 (oc, 'market', 'marketSymbol');
-                if (ocSymbol !== undefined) {
-                    this.outcomes[ocSymbol] = oc;
-                }
-                if (ocId !== undefined) {
-                    this.outcomes_by_id[ocId] = oc;
-                }
-            }
-        }
     }
 
     /**
@@ -2664,7 +2618,7 @@ export default class myriad extends Exchange {
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
@@ -2748,7 +2702,7 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
@@ -2776,7 +2730,7 @@ export default class myriad extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a outcome (the trades channel is per-market)');
         }
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
@@ -2913,7 +2867,7 @@ export default class myriad extends Exchange {
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async watchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
@@ -2934,7 +2888,7 @@ export default class myriad extends Exchange {
      * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
     async watchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' watchTickers() requires a list of outcomes (the prices channel is per-market)');
         }
@@ -3049,7 +3003,7 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const trader = this.walletAddressFromKeys ();
         let networkId = this.safeString (this.options, 'defaultNetworkId', '56');
         if (outcome !== undefined) {
@@ -3124,7 +3078,7 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     async watchPositions (outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionPosition[]> {
-        this.ensureOutcomesLoaded ();
+        await this.loadOutcomes ();
         const trader = this.walletAddressFromKeys ();
         const networkId = this.safeString (this.options, 'defaultNetworkId', '56');
         const channel = 'positions:' + networkId + ':' + trader;

@@ -716,7 +716,7 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object coin = this.safeString(info, "coinName");
@@ -760,7 +760,7 @@ public partial class hyperliquid : PredictionExchange
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                this.checkEvents(requested);
+                await this.loadOutcome(requested);
                 object requestedOutcomeObj = this.outcome(requested);
                 object requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
@@ -888,7 +888,7 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object request = new Dictionary<string, object>() {
@@ -946,7 +946,7 @@ public partial class hyperliquid : PredictionExchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
         object market = this.market(this.safeString(outcomeObj, "market"));
@@ -1089,7 +1089,7 @@ public partial class hyperliquid : PredictionExchange
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                this.checkEvents(requested);
+                await this.loadOutcome(requested);
                 object requestedOutcomeObj = this.outcome(requested);
                 object requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
@@ -1356,7 +1356,7 @@ public partial class hyperliquid : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.initializeClient();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
@@ -1518,7 +1518,7 @@ public partial class hyperliquid : PredictionExchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires an outcome argument")) ;
         }
         await this.initializeClient();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object assetId = this.safeInteger(outcomeInfo, "assetId");
@@ -1657,7 +1657,7 @@ public partial class hyperliquid : PredictionExchange
         object outcomeHandle = null;
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
             object outcomeObj = this.outcome(outcome);
             outcomeHandle = this.safeString(outcomeObj, "outcome");
         }
@@ -1720,7 +1720,7 @@ public partial class hyperliquid : PredictionExchange
         object outcomeHandle = null;
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
             object outcomeObj = this.outcome(outcome);
             outcomeHandle = this.safeString(outcomeObj, "outcome");
         }
@@ -1765,7 +1765,7 @@ public partial class hyperliquid : PredictionExchange
         object parsed = this.parseOrder(orderWrapper, null);
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
             object outcomeObj = this.outcome(outcome);
             object expected = this.safeString(outcomeObj, "outcome");
             if (isTrue(!isEqual(this.safeString(parsed, "outcome"), expected)))
@@ -1915,7 +1915,7 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object request = new Dictionary<string, object>() {
@@ -2308,9 +2308,9 @@ public partial class hyperliquid : PredictionExchange
 
     public async virtual Task<object> initializeClient()
     {
-        // createOrder/createOrders call this before trading; load markets so checkEvents/outcome can
-        // resolve the outcome handle. loading them also keeps this method genuinely async for the PHP
-        // and typed transpilers, which mishandle an async body that never suspends
+        // createOrder/createOrders call this before trading; load markets so the order builder can
+        // resolve the outcome's market and precision. loading them also keeps this method genuinely
+        // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets();
         object buildFee = this.safeBool(this.options, "builderFee", false);
         if (!isTrue(buildFee))

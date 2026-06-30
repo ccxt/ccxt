@@ -809,7 +809,7 @@ public partial class limitless : PredictionExchange
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
         object request = new Dictionary<string, object>() {
@@ -1115,7 +1115,7 @@ public partial class limitless : PredictionExchange
         object slugs = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
         {
-            this.checkEvents(getValue(outcomes, i));
+            await this.loadOutcome(getValue(outcomes, i));
             object outcomeObj = this.outcome(getValue(outcomes, i));
             object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
             if (!isTrue((inOp(outcomesBySlug, slug))))
@@ -1178,7 +1178,7 @@ public partial class limitless : PredictionExchange
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
         object tokenId = this.safeString(outcomeObj, "outcomeId");
@@ -1242,7 +1242,7 @@ public partial class limitless : PredictionExchange
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
         object request = new Dictionary<string, object>() {
@@ -1337,7 +1337,7 @@ public partial class limitless : PredictionExchange
     {
         timeframe ??= "1d";
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object slug = this.safeString(getValue(outcomeObj, "info"), "slug");
         object outcomeLabel = this.safeStringUpper(getValue(outcomeObj, "info"), "outcomeLabel");
@@ -1471,7 +1471,7 @@ public partial class limitless : PredictionExchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrders requires an outcome argument")) ;
         }
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object info = this.safeDict(outcomeObj, "info");
         object request = new Dictionary<string, object>() {
@@ -1526,7 +1526,7 @@ public partial class limitless : PredictionExchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders requires an outcome argument")) ;
         }
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "statuses", new List<object>() {"LIVE"} },
         });
@@ -1551,7 +1551,7 @@ public partial class limitless : PredictionExchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchClosedOrders requires an outcome argument")) ;
         }
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "statuses", new List<object>() {"MATCHED"} },
         });
@@ -1571,7 +1571,7 @@ public partial class limitless : PredictionExchange
     public async virtual Task<object> fetchOrdersByIds(object ids, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object length = getArrayLength(ids);
         if (isTrue(isGreaterThan(length, 50)))
         {
@@ -1713,7 +1713,7 @@ public partial class limitless : PredictionExchange
     public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object orders = await this.fetchOrdersByIds(new List<object>() {id}, outcome, parameters);
         object order = this.safeDict(orders, 0);
         if (isTrue(isEqual(order, null)))
@@ -2038,7 +2038,7 @@ public partial class limitless : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object accounts = await this.loadAccounts();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object account = this.safeDict(accounts, 0);
         object accountInfo = this.safeDict(account, "info");
@@ -2518,7 +2518,7 @@ public partial class limitless : PredictionExchange
     public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -2549,7 +2549,7 @@ public partial class limitless : PredictionExchange
     public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object request = new Dictionary<string, object>() {
             { "orderIds", ids },
         };
@@ -2579,7 +2579,7 @@ public partial class limitless : PredictionExchange
     public async override Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         if (isTrue(!isEqual(outcome, null)))
         {
             object warn = true;
@@ -2626,7 +2626,7 @@ public partial class limitless : PredictionExchange
     public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object paginate = false;
         object maxLimit = 100;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", paginate);
@@ -2892,11 +2892,11 @@ public partial class limitless : PredictionExchange
         {
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
-                this.checkEvents(getValue(outcomes, i));
+                await this.loadOutcome(getValue(outcomes, i));
             }
         } else
         {
-            this.checkEvents();
+            await this.loadOutcomes();
         }
         object response = await this.limitlessPrivateGetPortfolioPositions(parameters);
         //

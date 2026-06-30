@@ -174,6 +174,10 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'defaultFetchEventsLimit': 200,   # events page size for the fetchEvents cursor scan
                 'maxFetchMarketsLimit': 1000,      # markets page size / max markets collected per unscoped listing
                 'defaultEventStatus': 'open',  # 'open' | 'closed' | 'settled'
+                # kalshi has tens of thousands of markets. False(default) = resolve each outcome on
+                # demand(~1s per market, cached) so hot paths are cheap; set True to bulk-load every
+                # outcome once up front(a multi-second listing scan) and make every later lookup a hit
+                'loadAllOutcomes': False,
             },
         })
 
@@ -258,6 +262,28 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
     def parse_binary_market_to_outcomes(self, raw: dict) -> List[Market]:
         return [self.parse_market(raw)]
+
+    async def fetch_outcome(self, outcomeSymbol: str) -> Any:
+        """
+ @ignore
+        resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+ thousands of markets, so a cache miss fetches just the requested market by ticker and merges
+ it into the cache(the same outcome lookups loadOutcomes builds), so repeat lookups are free
+        :param str outcomeSymbol: an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix
+        :returns dict: the resolved outcome object
+        """
+        symbolLength = len(outcomeSymbol)
+        suffix = outcomeSymbol[symbolLength - 3:]
+        isNo = (suffix == '-NO')
+        baseTicker = outcomeSymbol[0:symbolLength - 3] if isNo else outcomeSymbol
+        response = await self.kalshiPublicGetMarketsTicker({'ticker': baseTicker})
+        rawMarket = self.safe_dict(response, 'market', response)
+        parsed = self.parse_market(rawMarket)
+        if self.markets is None:
+            self.markets = self.create_safe_dictionary()
+        self.markets[parsed['symbol']] = parsed
+        self.populate_outcomes()
+        return self.outcome(outcomeSymbol)
 
     def parse_market(self, raw: dict) -> Market:
         # {
@@ -433,7 +459,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
         request = {
@@ -530,7 +556,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
         request = {'ticker': ticker}
@@ -696,10 +722,10 @@ class kalshi(PredictionExchange, ImplicitAPI):
         targets = []
         if outcomes is not None:
             for i in range(0, len(outcomes)):
-                self.check_events(outcomes[i])
+                await self.load_outcome(outcomes[i])
                 targets.append(outcomes[i])
         else:
-            self.check_events()
+            await self.load_outcomes()
             allKeys = list(self.outcomes.keys())
             for i in range(0, len(allKeys)):
                 targets.append(allKeys[i])
@@ -760,7 +786,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
         isNo = outcomeObj['label'] == 'NO'
@@ -843,7 +869,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: a list of candles ordered, open, high, low, close, volume
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
         seriesTicker = self.safe_string(outcomeObj['info'], 'seriesTicker', ticker)
@@ -975,7 +1001,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
         request = {'ticker': ticker}
@@ -1054,7 +1080,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
         """
-        self.check_events()
+        await self.load_outcomes()
         response = await self.kalshiPrivateGetPortfolioBalance(params)
         return self.parse_balance(response)
 
@@ -1089,9 +1115,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
             outcomesLength = len(outcomes)
         if outcomesLength > 0:
             for i in range(0, len(outcomes)):
-                self.check_events(outcomes[i])
+                await self.load_outcome(outcomes[i])
         else:
-            self.check_events()
+            await self.load_outcomes()
         response = await self.kalshiPrivateGetPortfolioPositions(params)
         positions = self.safe_list(response, 'market_positions', [])
         return self.parse_positions(positions, outcomes)
@@ -1156,9 +1182,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
         if outcome is not None:
-            self.check_events(outcome)
+            await self.load_outcome(outcome)
         else:
-            self.check_events()
+            await self.load_outcomes()
         request = {'status': 'resting'}
         outcomeObj = None
         if outcome is not None:
@@ -1180,9 +1206,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
         if outcome is not None:
-            self.check_events(outcome)
+            await self.load_outcome(outcome)
         else:
-            self.check_events()
+            await self.load_outcomes()
         response = await self.kalshiPrivateGetPortfolioOrdersOrderId(self.extend({'order_id': id}, params))
         return self.parse_order(self.safe_value(response, 'order', response))
 
@@ -1274,7 +1300,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
         isNo = (outcomeObj['label'] == 'NO')
@@ -1330,9 +1356,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
         if outcome is not None:
-            self.check_events(outcome)
+            await self.load_outcome(outcome)
         else:
-            self.check_events()
+            await self.load_outcomes()
         # v2 cancel: DELETE /portfolio/events/orders/{order_id}(the /portfolio/orders/{id}
         # and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         response = await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': id}, params))
@@ -1349,9 +1375,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
         if outcome is not None:
-            self.check_events(outcome)
+            await self.load_outcome(outcome)
         else:
-            self.check_events()
+            await self.load_outcomes()
         # kalshi has no "cancel all" / batch-cancel endpoint(the v1 DELETE /portfolio/orders
         # and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
         # cancel them one by one via the v2 DELETE /portfolio/events/orders/{order_id}

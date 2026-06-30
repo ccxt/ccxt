@@ -787,7 +787,7 @@ export default class limitless extends Exchange {
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
         const request: Dict = {
@@ -1071,7 +1071,7 @@ export default class limitless extends Exchange {
         const outcomesBySlug: Dict = {};
         const slugs: any[] = [];
         for (let i = 0; i < outcomes.length; i++) {
-            this.checkEvents (outcomes[i]);
+            await this.loadOutcome (outcomes[i]);
             const outcomeObj = this.outcome (outcomes[i]);
             const slug = this.safeString (outcomeObj['info'], 'slug');
             if (!(slug in outcomesBySlug)) {
@@ -1120,7 +1120,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
@@ -1179,7 +1179,7 @@ export default class limitless extends Exchange {
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
         const request: Dict = {
@@ -1265,7 +1265,7 @@ export default class limitless extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (outcome: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const slug = this.safeString (outcomeObj['info'], 'slug');
         const outcomeLabel = this.safeStringUpper (outcomeObj['info'], 'outcomeLabel');
@@ -1391,7 +1391,7 @@ export default class limitless extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires an outcome argument');
         }
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info');
         const request: Dict = {
@@ -1442,7 +1442,7 @@ export default class limitless extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires an outcome argument');
         }
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         params = this.extend (params, {
             'statuses': [ 'LIVE' ],
         });
@@ -1464,7 +1464,7 @@ export default class limitless extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires an outcome argument');
         }
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         params = this.extend (params, {
             'statuses': [ 'MATCHED' ],
         });
@@ -1482,7 +1482,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrdersByIds (ids, outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const length = ids.length;
         if (length > 50) {
             throw new BadRequest (this.id + ' fetchOrdersByIds can only fetch up to 50 orders at a time');
@@ -1618,7 +1618,7 @@ export default class limitless extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const orders = await this.fetchOrdersByIds ([ id ], outcome, params);
         const order = this.safeDict (orders, 0);
         if (order === undefined) {
@@ -1925,7 +1925,7 @@ export default class limitless extends Exchange {
      */
     async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         const accounts = await this.loadAccounts ();
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const account = this.safeDict (accounts, 0);
         const accountInfo = this.safeDict (account, 'info');
@@ -2316,7 +2316,7 @@ export default class limitless extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const request: Dict = {
             'order_id': id,
         };
@@ -2343,7 +2343,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         const request: Dict = {
             'orderIds': ids,
         };
@@ -2370,7 +2370,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         if (outcome !== undefined) {
             let warn = true;
             [ warn, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
@@ -2407,7 +2407,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        this.checkEvents (outcome);
+        await this.loadOutcome (outcome);
         let paginate = false;
         const maxLimit = 100;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', paginate);
@@ -2651,10 +2651,10 @@ export default class limitless extends Exchange {
         }
         if (symbolsLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
-                this.checkEvents (outcomes[i]);
+                await this.loadOutcome (outcomes[i]);
             }
         } else {
-            this.checkEvents ();
+            await this.loadOutcomes ();
         }
         const response = await this.limitlessPrivateGetPortfolioPositions (params);
         //

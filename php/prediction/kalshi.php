@@ -175,6 +175,10 @@ class kalshi extends Exchange {
                 'defaultFetchEventsLimit' => 200,   // events page size for the fetchEvents cursor scan
                 'maxFetchMarketsLimit' => 1000,      // markets page size / max markets collected per unscoped listing
                 'defaultEventStatus' => 'open',  // 'open' | 'closed' | 'settled'
+                // kalshi has tens of thousands of markets. false (default) = resolve each outcome on
+                // demand (~1s per market, cached) so hot paths are cheap; set true to bulk-load every
+                // outcome once up front (a multi-second listing scan) and make every later lookup a hit
+                'loadAllOutcomes' => false,
             ),
         ));
     }
@@ -274,6 +278,32 @@ class kalshi extends Exchange {
 
     public function parse_binary_market_to_outcomes(array $raw): array {
         return array( $this->parse_market($raw) );
+    }
+
+    public function fetch_outcome(string $outcomeSymbol): PromiseInterface {
+        return Async\async(function () use ($outcomeSymbol) {
+            /**
+             * @ignore
+             * resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+             * thousands of markets, so a cache miss fetches just the requested market by ticker and merges
+             * it into the cache (the same outcome lookups loadOutcomes builds), so repeat lookups are free
+             * @param {string} $outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' $suffix
+             * @return {array} the resolved outcome object
+             */
+            $symbolLength = count($outcomeSymbol);
+            $suffix = mb_substr($outcomeSymbol, $symbolLength - 3);
+            $isNo = ($suffix === '-NO');
+            $baseTicker = $isNo ? mb_substr($outcomeSymbol, 0, $symbolLength - 3 - 0) : $outcomeSymbol;
+            $response = Async\await($this->kalshiPublicGetMarketsTicker (array( 'ticker' => $baseTicker )));
+            $rawMarket = $this->safe_dict($response, 'market', $response);
+            $parsed = $this->parse_market($rawMarket);
+            if ($this->markets === null) {
+                $this->markets = $this->create_safe_dictionary();
+            }
+            $this->markets[$parsed['symbol']] = $parsed;
+            $this->populate_outcomes();
+            return $this->outcome($outcomeSymbol);
+        }) ();
     }
 
     public function parse_market(array $raw): array {
@@ -456,7 +486,7 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [$ticker structure](https://docs.ccxt.com/#/?id=$ticker-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $request = array(
@@ -559,7 +589,7 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $request = array( 'ticker' => $ticker );
@@ -731,11 +761,11 @@ class kalshi extends Exchange {
             $targets = array();
             if ($outcomes !== null) {
                 for ($i = 0; $i < count($outcomes); $i++) {
-                    $this->check_events($outcomes[$i]);
+                    Async\await($this->load_outcome($outcomes[$i]));
                     $targets[] = $outcomes[$i];
                 }
             } else {
-                $this->check_events();
+                Async\await($this->load_outcomes());
                 $allKeys = is_array($this->outcomes) ? array_keys($this->outcomes) : array();
                 for ($i = 0; $i < count($allKeys); $i++) {
                     $targets[] = $allKeys[$i];
@@ -811,7 +841,7 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order $book structure](https://docs.ccxt.com/#/?id=order-$book-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $isNo = $outcomeObj['label'] === 'NO';
@@ -903,7 +933,7 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $seriesTicker = $this->safe_string($outcomeObj['info'], 'seriesTicker', $ticker);
@@ -1043,7 +1073,7 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [$trade structures](https://docs.ccxt.com/#/?id=public-$trades)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $request = array( 'ticker' => $ticker );
@@ -1132,7 +1162,7 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
              */
-            $this->check_events();
+            Async\await($this->load_outcomes());
             $response = Async\await($this->kalshiPrivateGetPortfolioBalance ($params));
             return $this->parse_balance($response);
         }) ();
@@ -1173,10 +1203,10 @@ class kalshi extends Exchange {
             }
             if ($outcomesLength > 0) {
                 for ($i = 0; $i < count($outcomes); $i++) {
-                    $this->check_events($outcomes[$i]);
+                    Async\await($this->load_outcome($outcomes[$i]));
                 }
             } else {
-                $this->check_events();
+                Async\await($this->load_outcomes());
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioPositions ($params));
             $positions = $this->safe_list($response, 'market_positions', array());
@@ -1246,9 +1276,9 @@ class kalshi extends Exchange {
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
             if ($outcome !== null) {
-                $this->check_events($outcome);
+                Async\await($this->load_outcome($outcome));
             } else {
-                $this->check_events();
+                Async\await($this->load_outcomes());
             }
             $request = array( 'status' => 'resting' );
             $outcomeObj = null;
@@ -1275,9 +1305,9 @@ class kalshi extends Exchange {
              * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
             if ($outcome !== null) {
-                $this->check_events($outcome);
+                Async\await($this->load_outcome($outcome));
             } else {
-                $this->check_events();
+                Async\await($this->load_outcomes());
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioOrdersOrderId ($this->extend(array( 'order_id' => $id ), $params)));
             return $this->parse_order($this->safe_value($response, 'order', $response));
@@ -1378,7 +1408,7 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             $isNo = ($outcomeObj['label'] === 'NO');
@@ -1442,9 +1472,9 @@ class kalshi extends Exchange {
              * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
             if ($outcome !== null) {
-                $this->check_events($outcome);
+                Async\await($this->load_outcome($outcome));
             } else {
-                $this->check_events();
+                Async\await($this->load_outcomes());
             }
             // v2 cancel => DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{$id}
             // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
@@ -1465,9 +1495,9 @@ class kalshi extends Exchange {
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
             if ($outcome !== null) {
-                $this->check_events($outcome);
+                Async\await($this->load_outcome($outcome));
             } else {
-                $this->check_events();
+                Async\await($this->load_outcomes());
             }
             // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
             // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and

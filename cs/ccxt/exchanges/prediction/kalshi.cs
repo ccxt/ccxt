@@ -169,6 +169,7 @@ public partial class kalshi : PredictionExchange
                 { "defaultFetchEventsLimit", 200 },
                 { "maxFetchMarketsLimit", 1000 },
                 { "defaultEventStatus", "open" },
+                { "loadAllOutcomes", false },
             } },
         });
     }
@@ -283,6 +284,36 @@ public partial class kalshi : PredictionExchange
     public virtual object parseBinaryMarketToOutcomes(object raw)
     {
         return new List<object> {this.parseMarket(raw)};
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchOutcome
+     * @description resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+     * thousands of markets, so a cache miss fetches just the requested market by ticker and merges
+     * it into the cache (the same outcome lookups loadOutcomes builds), so repeat lookups are free
+     * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix
+     * @returns {object} the resolved outcome object
+     */
+    public async override Task<object> fetchOutcome(object outcomeSymbol)
+    {
+        object symbolLength = ((string)outcomeSymbol).Length;
+        object suffix = slice(outcomeSymbol, subtract(symbolLength, 3), null);
+        object isNo = (isEqual(suffix, "-NO"));
+        object baseTicker = ((bool) isTrue(isNo)) ? slice(outcomeSymbol, 0, subtract(symbolLength, 3)) : outcomeSymbol;
+        object response = await this.kalshiPublicGetMarketsTicker(new Dictionary<string, object>() {
+            { "ticker", baseTicker },
+        });
+        object rawMarket = this.safeDict(response, "market", response);
+        object parsed = this.parseMarket(rawMarket);
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            this.markets = this.createSafeDictionary();
+        }
+        ((IDictionary<string,object>)this.markets)[(string)getValue(parsed, "symbol")] = parsed;
+        this.populateOutcomes();
+        return this.outcome(outcomeSymbol);
     }
 
     public override object parseMarket(object raw)
@@ -483,7 +514,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
         object request = new Dictionary<string, object>() {
@@ -586,7 +617,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<object> fetchOpenInterest(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
         object request = new Dictionary<string, object>() {
@@ -774,12 +805,12 @@ public partial class kalshi : PredictionExchange
         {
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
-                this.checkEvents(getValue(outcomes, i));
+                await this.loadOutcome(getValue(outcomes, i));
                 ((IList<object>)targets).Add(getValue(outcomes, i));
             }
         } else
         {
-            this.checkEvents();
+            await this.loadOutcomes();
             object allKeys = new List<object>(((IDictionary<string,object>)this.outcomes).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
             {
@@ -866,7 +897,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
         object isNo = isEqual(getValue(outcomeObj, "label"), "NO");
@@ -968,7 +999,7 @@ public partial class kalshi : PredictionExchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
         object seriesTicker = this.safeString(getValue(outcomeObj, "info"), "seriesTicker", ticker);
@@ -1107,7 +1138,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
         object request = new Dictionary<string, object>() {
@@ -1211,7 +1242,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents();
+        await this.loadOutcomes();
         object response = await this.kalshiPrivateGetPortfolioBalance(parameters);
         return this.parseBalance(response);
     }
@@ -1265,11 +1296,11 @@ public partial class kalshi : PredictionExchange
         {
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
-                this.checkEvents(getValue(outcomes, i));
+                await this.loadOutcome(getValue(outcomes, i));
             }
         } else
         {
-            this.checkEvents();
+            await this.loadOutcomes();
         }
         object response = await this.kalshiPrivateGetPortfolioPositions(parameters);
         object positions = (IList<object>)(this.safeList(response, "market_positions", new List<object>() {}));
@@ -1345,10 +1376,10 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
         } else
         {
-            this.checkEvents();
+            await this.loadOutcomes();
         }
         object request = new Dictionary<string, object>() {
             { "status", "resting" },
@@ -1379,10 +1410,10 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
         } else
         {
-            this.checkEvents();
+            await this.loadOutcomes();
         }
         object response = await this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new Dictionary<string, object>() {
             { "order_id", id },
@@ -1494,7 +1525,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
         object isNo = (isEqual(getValue(outcomeObj, "label"), "NO"));
@@ -1568,10 +1599,10 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
         } else
         {
-            this.checkEvents();
+            await this.loadOutcomes();
         }
         // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
         // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
@@ -1595,10 +1626,10 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
         } else
         {
-            this.checkEvents();
+            await this.loadOutcomes();
         }
         // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
         // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and

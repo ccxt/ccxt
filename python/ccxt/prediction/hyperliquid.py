@@ -578,7 +578,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         coin = self.safe_string(info, 'coinName')
@@ -615,7 +615,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if outcomes is not None:
             for i in range(0, len(outcomes)):
                 requested = outcomes[i]
-                self.check_events(requested)
+                await self.load_outcome(requested)
                 requestedOutcomeObj = self.outcome(requested)
                 requestedOutcome = self.safe_string(requestedOutcomeObj, 'outcome', requested)
                 requestedOutcomeSymbols[requestedOutcome] = True
@@ -720,7 +720,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         request = {
@@ -767,7 +767,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int [params.until]: end timestamp in ms
         :returns int[][]: a list of candles ordered, open, high, low, close, volume
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         # markets are keyed by the parent market outcome, not the outcome handle("MARKET:LABEL")
         market = self.market(self.safe_string(outcomeObj, 'market'))
@@ -897,7 +897,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if outcomes is not None:
             for i in range(0, len(outcomes)):
                 requested = outcomes[i]
-                self.check_events(requested)
+                await self.load_outcome(requested)
                 requestedOutcomeObj = self.outcome(requested)
                 requestedOutcome = self.safe_string(requestedOutcomeObj, 'outcome', requested)
                 requestedOutcomeSymbols[requestedOutcome] = True
@@ -1086,7 +1086,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
         await self.initialize_client()
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         # markets are keyed by the parent market outcome; the outcome handle("MARKET:LABEL")
         # is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
@@ -1221,7 +1221,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if outcome is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires an outcome argument')
         await self.initialize_client()
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         assetId = self.safe_integer(outcomeInfo, 'assetId')
@@ -1314,7 +1314,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         parsed = self.parse_orders(ordersWithStatus, None, since, None)
         outcomeHandle = None
         if outcome is not None:
-            self.check_events(outcome)
+            await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
             outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_outcome_since_limit(parsed, outcomeHandle, since, limit)
@@ -1356,7 +1356,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         parsed = self.parse_orders(dedupedValues, None, since, None)
         outcomeHandle = None
         if outcome is not None:
-            self.check_events(outcome)
+            await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
             outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_outcome_since_limit(parsed, outcomeHandle, since, limit)
@@ -1388,7 +1388,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         orderWrapper = self.safe_dict(response, 'order', response)
         parsed = self.parse_order(orderWrapper, None)
         if outcome is not None:
-            self.check_events(outcome)
+            await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
             expected = self.safe_string(outcomeObj, 'outcome')
             if self.safe_string(parsed, 'outcome') != expected:
@@ -1514,7 +1514,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         request = {
@@ -1814,9 +1814,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         return self.sign_message(msg, self.privateKey)
 
     async def initialize_client(self) -> Any:
-        # createOrder/createOrders call self before trading; load markets so checkEvents/outcome can
-        # resolve the outcome handle. loading them also keeps self method genuinely async for the PHP
-        # and typed transpilers, which mishandle an async body that never suspends
+        # createOrder/createOrders call self before trading; load markets so the order builder can
+        # resolve the outcome's market and precision. loading them also keeps self method genuinely
+        # async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await self.load_markets()
         buildFee = self.safe_bool(self.options, 'builderFee', False)
         if not buildFee:

@@ -774,7 +774,7 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $slug = $this->safe_string($outcomeObj['info'], 'slug');
             $request = array(
@@ -1058,7 +1058,7 @@ class limitless extends Exchange {
             $outcomesBySlug = array();
             $slugs = array();
             for ($i = 0; $i < count($outcomes); $i++) {
-                $this->check_events($outcomes[$i]);
+                Async\await($this->load_outcome($outcomes[$i]));
                 $outcomeObj = $this->outcome($outcomes[$i]);
                 $slug = $this->safe_string($outcomeObj['info'], 'slug');
                 if (!(is_array($outcomesBySlug) && array_key_exists($slug, $outcomesBySlug))) {
@@ -1109,7 +1109,7 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $slug = $this->safe_string($outcomeObj['info'], 'slug');
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
@@ -1170,7 +1170,7 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $slug = $this->safe_string($outcomeObj['info'], 'slug');
             $request = array(
@@ -1258,7 +1258,7 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} a list of candles ordered, open, high, low, close, volume
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $slug = $this->safe_string($outcomeObj['info'], 'slug');
             $outcomeLabel = $this->safe_string_upper($outcomeObj['info'], 'outcomeLabel');
@@ -1384,7 +1384,7 @@ class limitless extends Exchange {
             if ($outcome === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders requires an $outcome argument');
             }
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $info = $this->safe_dict($outcomeObj, 'info');
             $request = array(
@@ -1437,7 +1437,7 @@ class limitless extends Exchange {
             if ($outcome === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires an $outcome argument');
             }
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $params = $this->extend($params, array(
                 'statuses' => array( 'LIVE' ),
             ));
@@ -1461,7 +1461,7 @@ class limitless extends Exchange {
             if ($outcome === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires an $outcome argument');
             }
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $params = $this->extend($params, array(
                 'statuses' => array( 'MATCHED' ),
             ));
@@ -1481,7 +1481,7 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?$id=order-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $length = count($ids);
             if ($length > 50) {
                 throw new BadRequest($this->id . ' fetchOrdersByIds can only fetch up to 50 orders at a time');
@@ -1619,7 +1619,7 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $orders = Async\await($this->fetch_orders_by_ids(array( $id ), $outcome, $params));
             $order = $this->safe_dict($orders, 0);
             if ($order === null) {
@@ -1922,7 +1922,7 @@ class limitless extends Exchange {
              * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
              */
             $accounts = Async\await($this->load_accounts());
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $account = $this->safe_dict($accounts, 0);
             $accountInfo = $this->safe_dict($account, 'info');
@@ -2321,7 +2321,7 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $request = array(
                 'order_id' => $id,
             );
@@ -2350,7 +2350,7 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $request = array(
                 'orderIds' => $ids,
             );
@@ -2379,7 +2379,7 @@ class limitless extends Exchange {
              * @param {string} [$params->slug] the market $slug to cancel all orders for
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             if ($outcome !== null) {
                 $warn = true;
                 list($warn, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', $warn);
@@ -2418,7 +2418,7 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $paginate = false;
             $maxLimit = 100;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', $paginate);
@@ -2662,10 +2662,10 @@ class limitless extends Exchange {
             }
             if ($symbolsLength > 0) {
                 for ($i = 0; $i < count($outcomes); $i++) {
-                    $this->check_events($outcomes[$i]);
+                    Async\await($this->load_outcome($outcomes[$i]));
                 }
             } else {
-                $this->check_events();
+                Async\await($this->load_outcomes());
             }
             $response = Async\await($this->limitlessPrivateGetPortfolioPositions ($params));
             //

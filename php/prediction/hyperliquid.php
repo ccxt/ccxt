@@ -633,7 +633,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $info = $this->safe_dict($outcomeObj, 'info', array());
             $coin = $this->safe_string($info, 'coinName');
@@ -673,7 +673,7 @@ class hyperliquid extends Exchange {
             if ($outcomes !== null) {
                 for ($i = 0; $i < count($outcomes); $i++) {
                     $requested = $outcomes[$i];
-                    $this->check_events($requested);
+                    Async\await($this->load_outcome($requested));
                     $requestedOutcomeObj = $this->outcome($requested);
                     $requestedOutcome = $this->safe_string($requestedOutcomeObj, 'outcome', $requested);
                     $requestedOutcomeSymbols[$requestedOutcome] = true;
@@ -788,7 +788,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $info = $this->safe_dict($outcomeObj, 'info', array());
             $request = array(
@@ -840,7 +840,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$params->until] end timestamp in ms
              * @return {int[][]} a list of candles ordered, open, high, low, close, volume
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             // markets are keyed by the parent $market $outcome, not the $outcome handle ("MARKET:LABEL")
             $market = $this->market($this->safe_string($outcomeObj, 'market'));
@@ -979,7 +979,7 @@ class hyperliquid extends Exchange {
             if ($outcomes !== null) {
                 for ($i = 0; $i < count($outcomes); $i++) {
                     $requested = $outcomes[$i];
-                    $this->check_events($requested);
+                    Async\await($this->load_outcome($requested));
                     $requestedOutcomeObj = $this->outcome($requested);
                     $requestedOutcome = $this->safe_string($requestedOutcomeObj, 'outcome', $requested);
                     $requestedOutcomeSymbols[$requestedOutcome] = true;
@@ -1206,7 +1206,7 @@ class hyperliquid extends Exchange {
              * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->initialize_client());
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             // markets are keyed by the parent $market $outcome; the $outcome handle ("MARKET:LABEL")
             // is not a $market id, so resolve the $market and price/amount precision via $outcomeObj['market']
@@ -1354,7 +1354,7 @@ class hyperliquid extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires an $outcome argument');
             }
             Async\await($this->initialize_client());
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
             $assetId = $this->safe_integer($outcomeInfo, 'assetId');
@@ -1458,7 +1458,7 @@ class hyperliquid extends Exchange {
             $parsed = $this->parse_orders($ordersWithStatus, null, $since, null);
             $outcomeHandle = null;
             if ($outcome !== null) {
-                $this->check_events($outcome);
+                Async\await($this->load_outcome($outcome));
                 $outcomeObj = $this->outcome($outcome);
                 $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
             }
@@ -1508,7 +1508,7 @@ class hyperliquid extends Exchange {
             $parsed = $this->parse_orders($dedupedValues, null, $since, null);
             $outcomeHandle = null;
             if ($outcome !== null) {
-                $this->check_events($outcome);
+                Async\await($this->load_outcome($outcome));
                 $outcomeObj = $this->outcome($outcome);
                 $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
             }
@@ -1544,7 +1544,7 @@ class hyperliquid extends Exchange {
             $orderWrapper = $this->safe_dict($response, 'order', $response);
             $parsed = $this->parse_order($orderWrapper, null);
             if ($outcome !== null) {
-                $this->check_events($outcome);
+                Async\await($this->load_outcome($outcome));
                 $outcomeObj = $this->outcome($outcome);
                 $expected = $this->safe_string($outcomeObj, 'outcome');
                 if ($this->safe_string($parsed, 'outcome') !== $expected) {
@@ -1683,7 +1683,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
              */
-            $this->check_events($outcome);
+            Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $info = $this->safe_dict($outcomeObj, 'info', array());
             $request = array(
@@ -2026,9 +2026,9 @@ class hyperliquid extends Exchange {
 
     public function initialize_client(): PromiseInterface {
         return Async\async(function ()  {
-            // createOrder/createOrders call this before trading; load markets so checkEvents/outcome can
-            // resolve the outcome handle. loading them also keeps this method genuinely async for the PHP
-            // and typed transpilers, which mishandle an async body that never suspends
+            // createOrder/createOrders call this before trading; load markets so the order builder can
+            // resolve the outcome's market and precision. loading them also keeps this method genuinely
+            // async for the PHP and typed transpilers, which mishandle an async body that never suspends
             Async\await($this->load_markets());
             $buildFee = $this->safe_bool($this->options, 'builderFee', false);
             if (!$buildFee) {

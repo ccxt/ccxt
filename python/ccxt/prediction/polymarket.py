@@ -684,8 +684,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
-        self.check_events(outcome)
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         tokenId = outcomeObj['outcomeId']
         promises = [
             self.clobPublicGetMidpoint({'token_id': tokenId}),
@@ -738,14 +737,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
         """
-        outcomesLength = 0
-        if outcomes is not None:
-            outcomesLength = len(outcomes)
-        if outcomesLength > 0:
-            for i in range(0, len(outcomes)):
-                self.check_events(outcomes[i])
-        else:
-            self.check_events()
+        await self.load_outcomes()
         outcomesMap = self.outcomes if (self.outcomes is not None) else {}
         targets = []
         if outcomes is not None:
@@ -887,8 +879,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
         """
-        self.check_events(outcome)
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         tokenId = outcomeObj['outcomeId']
         request = {
             'token_id': tokenId,
@@ -931,8 +922,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: a list of candles ordered, open, high, low, close, volume
         """
-        self.check_events(outcome)
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         tokenId = outcomeObj['outcomeId']
         fidelityMin = self.safe_integer(self.timeframes, timeframe, 1)  # fidelity in minutes
         nowS = self.seconds()
@@ -1056,8 +1046,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
         """
-        self.check_events(outcome)
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         conditionId = self.safe_string(outcomeInfo, 'conditionId')
         if conditionId is None:
@@ -1101,8 +1090,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
         """
-        self.check_events(outcome)
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
         request = {'token_id': tokenId}
         response = await self.clobPublicGetFeeRate(self.extend(request, params))
@@ -1134,8 +1122,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
         """
-        self.check_events(outcome)
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         tokenId = outcomeObj['outcomeId']
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         conditionId = self.safe_string(outcomeInfo, 'conditionId')
@@ -1175,8 +1162,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         request = {}
         outcomeObj = None
         if outcome is not None:
-            self.check_events(outcome)
-            outcomeObj = self.outcome(outcome)
+            outcomeObj = await self.load_outcome(outcome)
             request['asset_id'] = outcomeObj['outcomeId']
         response = await self.clobPrivateGetDataTrades(self.extend(request, params))
         rawTrades = response if isinstance(response, list) else self.safe_list(response, 'data', [])
@@ -1314,11 +1300,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         outcomesLength = 0
         if outcomes is not None:
             outcomesLength = len(outcomes)
-        if outcomesLength > 0:
-            for i in range(0, len(outcomes)):
-                self.check_events(outcomes[i])
-        else:
-            self.check_events()
+        await self.load_outcomes()
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' walletAddress is required to fetchPositions')
         request = {
@@ -1418,14 +1400,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
         await self.load_api_credentials()
-        if outcome is not None:
-            self.check_events(outcome)
-        else:
-            self.check_events()
         request = {}
         outcomeObj = None
         if outcome is not None:
-            outcomeObj = self.outcome(outcome)
+            outcomeObj = await self.load_outcome(outcome)
             request['asset_id'] = outcomeObj['outcomeId']
         response = await self.clobPrivateGetDataOrders(self.extend(request, params))
         orders = self.safe_list(response, 'data', [])
@@ -1442,11 +1420,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
+        # the request only needs the order id; the outcome is a labelling hint, so resolve it from
+        # cache(no network) — fetchOrder stays a single request even on a cold cache.
         await self.load_api_credentials()
-        if outcome is not None:
-            self.check_events(outcome)
-        else:
-            self.check_events()
         request = {'id': id}
         response = await self.clobPrivateGetDataOrderId(self.extend(request, params))
         return self.parse_order(response)
@@ -1552,6 +1528,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
         await self.load_api_credentials()
+        await self.load_outcome(outcome)
         built = self.build_clob_order_body(outcome, type, side, amount, price, params)
         response = await self.clobPrivatePostOrder(self.safe_dict(built, 'body'))
         return self.parse_order(response, self.safe_dict(built, 'outcome'))
@@ -1567,6 +1544,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
         await self.load_api_credentials()
+        await self.load_outcomes()
         bodies = []
         outcomes = []
         batchSalt = self.milliseconds()
@@ -1881,8 +1859,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         response = None
         if outcome is not None:
             # scope to a single outcome token via DELETE /cancel-market-orders {asset_id}
-            self.check_events(outcome)
-            outcomeObj = self.outcome(outcome)
+            outcomeObj = await self.load_outcome(outcome)
             request = {'asset_id': outcomeObj['outcomeId']}
             response = await self.clobPrivateDeleteCancelMarketOrders(self.extend(request, params))
         else:

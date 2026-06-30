@@ -29,21 +29,6 @@ class PredictionExchange(Exchange):
     def is_prediction(self) -> bool:
         return self.safe_bool(self.has, 'prediction', False)
 
-    def check_events(self, outcome: Str = None):
-        # pure synchronous guard(no I/O) — callers invoke it without await, so leaving it
-        # async would make the coroutine never run in Python/PHP and silently skip validation.
-        # outcomes are the real dependency for resolving a symbol; they are populated by
-        # fetchEvents and also rebuilt from cached markets(loadMarkets), so accept either.
-        # rebuild lazily from cached markets here because the setMarkets override that
-        # normally does it is not dispatched by the base loadMarkets under the AST languages.
-        if (not self.outcomes or self.is_empty(self.outcomes)) and not self.is_empty(self.markets):
-            self.set_outcomes_from_markets()
-        if not self.outcomes or self.is_empty(self.outcomes):
-            raise ArgumentsRequired('Outcomes are required to be loaded, please fetch them first using fetchEvents(or loadMarkets)')
-        if outcome is not None:
-            if not (outcome in self.outcomes) and not (outcome in self.outcomes_by_id):
-                raise BadSymbol(self.id + ' the specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents')
-
     def parse_search_queries(self, params={}):
         # accepts either `query`(a single search string) or `queries`(a list of strings)
         singleQuery = self.safe_string(params, 'query')
@@ -266,10 +251,10 @@ class PredictionExchange(Exchange):
 
     def set_markets(self, markets, currencies=None):
         result = super(PredictionExchange, self).set_markets(markets, currencies)
-        self.set_outcomes_from_markets()
+        self.populate_outcomes()
         return result
 
-    def set_outcomes_from_markets(self):
+    def populate_outcomes(self):
         # prediction markets carry their outcome tokens under the outcomes key,
         # rebuild the outcome lookup caches so cached market data works offline.
         # normalize each outcome object to the canonical identity keys(outcome /
@@ -295,6 +280,48 @@ class PredictionExchange(Exchange):
                     self.outcomes[ocSymbol] = oc
                 if ocId is not None:
                     self.outcomes_by_id[ocId] = oc
+
+    async def load_outcomes(self, reload=False, params={}):
+        # outcome-addressed methods(fetchTicker/createOrder/...) call self first, mirroring how
+        # every regular ccxt method calls loadMarkets(). reload/params mirror loadMarkets: reload
+        # True refetches and rebuilds. idempotent otherwise: once outcomes are populated(here, or
+        # already by an explicit fetchEvents/loadMarkets), later calls no-op and return the cache.
+        # loadMarkets() does the actual fetch; populateOutcomes() then rebuilds the lookup caches
+        # from the loaded markets(the setMarkets override that normally does self is not dispatched
+        # by the base loadMarkets under the Go/C#/Java transpilers).
+        if not reload and (self.outcomes is not None) and not self.is_empty(self.outcomes):
+            return self.outcomes
+        await self.load_markets(reload, params)
+        self.populate_outcomes()
+        return self.outcomes
+
+    async def load_outcome(self, outcomeSymbol: str):
+        # resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
+        # returns at once. on a miss, options.loadAllOutcomes(default True) bulk-loads the whole set
+        # once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
+        #(kalshi) set it False and override fetchOutcome to fetch just the requested one on demand.
+        if self.outcomes is not None:
+            if outcomeSymbol in self.outcomes:
+                return self.outcomes[outcomeSymbol]
+            if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
+                return self.outcomes_by_id[outcomeSymbol]
+        loadAll = self.safe_bool(self.options, 'loadAllOutcomes', True)
+        if loadAll:
+            await self.load_outcomes()
+            if self.outcomes is not None:
+                if outcomeSymbol in self.outcomes:
+                    return self.outcomes[outcomeSymbol]
+                if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
+                    return self.outcomes_by_id[outcomeSymbol]
+        return await self.fetch_outcome(outcomeSymbol)
+
+    async def fetch_outcome(self, outcomeSymbol: str):
+        # fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
+        # resolves from the already-loaded set(loadOutcomes() is a cached no-op once warmed, and
+        # self throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch(kalshi)
+        # override self to fetch and cache only the requested outcome — the "always fetch one" path.
+        await self.load_outcomes()
+        return self.outcome(outcomeSymbol)
 
     async def fetch_ticker(self, outcome: str, params={}):
         """

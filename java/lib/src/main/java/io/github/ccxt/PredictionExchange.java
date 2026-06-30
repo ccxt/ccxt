@@ -35,32 +35,6 @@ public Object isPrediction()
         return this.safeBool(this.has, "prediction", false);
     }
 
-    public void checkEvents(Object... optionalArgs)
-    {
-        // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
-        // async would make the coroutine never run in Python/PHP and silently skip validation.
-        // outcomes are the real dependency for resolving a symbol; they are populated by
-        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either.
-        // rebuild lazily from cached markets here because the setMarkets override that
-        // normally does it is not dispatched by the base loadMarkets under the AST languages.
-        Object outcome = Helpers.getArg(optionalArgs, 0, null);
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isTrue(this.outcomes) || Helpers.isTrue(this.isEmpty(this.outcomes)))) && !Helpers.isTrue(this.isEmpty(this.markets))))
-        {
-            this.setOutcomesFromMarkets();
-        }
-        if (Helpers.isTrue(!Helpers.isTrue(this.outcomes) || Helpers.isTrue(this.isEmpty(this.outcomes))))
-        {
-            throw new ArgumentsRequired((String)"Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)") ;
-        }
-        if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
-        {
-            if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(this.outcomes, outcome))) && !Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcome)))))
-            {
-                throw new BadSymbol((String)Helpers.add(this.id, " the specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents")) ;
-            }
-        }
-    }
-
     public Object parseSearchQueries(Object... optionalArgs)
     {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
@@ -433,11 +407,11 @@ public Object isPrediction()
     {
         Object currencies = Helpers.getArg(optionalArgs, 0, null);
         Object result = super.setMarkets(markets, currencies);
-        this.setOutcomesFromMarkets();
+        this.populateOutcomes();
         return result;
     }
 
-    public void setOutcomesFromMarkets()
+    public void populateOutcomes()
     {
         // prediction markets carry their outcome tokens under the outcomes key,
         // rebuild the outcome lookup caches so cached market data works offline.
@@ -472,6 +446,87 @@ public Object isPrediction()
                 }
             }
         }
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> loadOutcomes(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // outcome-addressed methods (fetchTicker/createOrder/...) call this first, mirroring how
+            // every regular ccxt method calls loadMarkets(). reload/params mirror loadMarkets: reload
+            // true refetches and rebuilds. idempotent otherwise: once outcomes are populated (here, or
+            // already by an explicit fetchEvents/loadMarkets), later calls no-op and return the cache.
+            // loadMarkets() does the actual fetch; populateOutcomes() then rebuilds the lookup caches
+            // from the loaded markets (the setMarkets override that normally does this is not dispatched
+            // by the base loadMarkets under the Go/C#/Java transpilers).
+            Object reload = Helpers.getArg(optionalArgs, 0, false);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(reload) && Helpers.isTrue((!Helpers.isEqual(this.outcomes, null)))) && !Helpers.isTrue(this.isEmpty(this.outcomes))))
+            {
+                return this.outcomes;
+            }
+            (this.loadMarkets(reload, parameters)).join();
+            this.populateOutcomes();
+            return this.outcomes;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> loadOutcome(Object outcomeSymbol2)
+    {
+        final Object outcomeSymbol3 = outcomeSymbol2;
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object outcomeSymbol = outcomeSymbol3;
+            // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
+            // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
+            // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
+            // (kalshi) set it false and override fetchOutcome to fetch just the requested one on demand.
+            if (Helpers.isTrue(!Helpers.isEqual(this.outcomes, null)))
+            {
+                if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
+                {
+                    return Helpers.GetValue(this.outcomes, outcomeSymbol);
+                }
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))))
+                {
+                    return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
+                }
+            }
+            Object loadAll = this.safeBool(this.options, "loadAllOutcomes", true);
+            if (Helpers.isTrue(loadAll))
+            {
+                (this.loadOutcomes()).join();
+                if (Helpers.isTrue(!Helpers.isEqual(this.outcomes, null)))
+                {
+                    if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
+                    {
+                        return Helpers.GetValue(this.outcomes, outcomeSymbol);
+                    }
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))))
+                    {
+                        return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
+                    }
+                }
+            }
+            return (this.fetchOutcome(outcomeSymbol)).join();
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
+            // resolves from the already-loaded set (loadOutcomes() is a cached no-op once warmed, and
+            // this throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch (kalshi)
+            // override this to fetch and cache only the requested outcome — the "always fetch one" path.
+            (this.loadOutcomes()).join();
+            return this.outcome(outcomeSymbol);
+        });
+
     }
 
     /**

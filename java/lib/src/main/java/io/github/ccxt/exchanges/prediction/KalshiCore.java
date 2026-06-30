@@ -182,6 +182,7 @@ public class KalshiCore extends KalshiApi
                 put( "defaultFetchEventsLimit", 200 );
                 put( "maxFetchMarketsLimit", 1000 );
                 put( "defaultEventStatus", "open" );
+                put( "loadAllOutcomes", false );
             }} );
         }});
     }
@@ -302,6 +303,41 @@ public class KalshiCore extends KalshiApi
     public Object parseBinaryMarketToOutcomes(Object raw)
     {
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseMarket(raw)));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchOutcome
+     * @description resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+     * thousands of markets, so a cache miss fetches just the requested market by ticker and merges
+     * it into the cache (the same outcome lookups loadOutcomes builds), so repeat lookups are free
+     * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix
+     * @returns {object} the resolved outcome object
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbolLength = ((String)outcomeSymbol).length();
+            Object suffix = Helpers.slice(outcomeSymbol, Helpers.subtract(symbolLength, 3), null);
+            Object isNo = (Helpers.isEqual(suffix, "-NO"));
+            Object baseTicker = ((Helpers.isTrue(isNo))) ? Helpers.slice(outcomeSymbol, 0, Helpers.subtract(symbolLength, 3)) : outcomeSymbol;
+            Object response = (this.kalshiPublicGetMarketsTicker(new java.util.HashMap<String, Object>() {{
+                put( "ticker", baseTicker );
+            }})).join();
+            Object rawMarket = this.safeDict(response, "market", response);
+            Object parsed = this.parseMarket(rawMarket);
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                this.markets = this.createSafeDictionary();
+            }
+            Helpers.addElementToObject(this.markets, Helpers.GetValue(parsed, "symbol"), parsed);
+            this.populateOutcomes();
+            return this.outcome(outcomeSymbol);
+        });
+
     }
 
     public Object parseMarket(Object raw)
@@ -515,7 +551,7 @@ final Object finalOi = oi;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
+            (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -628,7 +664,7 @@ final Object finalOi = oi;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
+            (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -830,12 +866,12 @@ final Object finalOi = oi;
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
                 {
-                    this.checkEvents(Helpers.GetValue(outcomes, i));
+                    (this.loadOutcome(Helpers.GetValue(outcomes, i))).join();
                     ((java.util.List<Object>)targets).add(Helpers.GetValue(outcomes, i));
                 }
             } else
             {
-                this.checkEvents();
+                (this.loadOutcomes()).join();
                 Object allKeys = Helpers.objectKeys(this.outcomes);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allKeys)); i++)
                 {
@@ -928,7 +964,7 @@ final Object finalOi = oi;
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
+            (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object isNo = Helpers.isEqual(Helpers.GetValue(outcomeObj, "label"), "NO");
@@ -1039,7 +1075,7 @@ final Object finalOi = oi;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
+            (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object seriesTicker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "seriesTicker", ticker);
@@ -1186,7 +1222,7 @@ final Object finalOi = oi;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
+            (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1300,7 +1336,7 @@ final Object finalOi = oi;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents();
+            (this.loadOutcomes()).join();
             Object response = (this.kalshiPrivateGetPortfolioBalance(parameters)).join();
             return this.parseBalance(response);
         });
@@ -1361,11 +1397,11 @@ final Object finalOi = oi;
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
                 {
-                    this.checkEvents(Helpers.GetValue(outcomes, i));
+                    (this.loadOutcome(Helpers.GetValue(outcomes, i))).join();
                 }
             } else
             {
-                this.checkEvents();
+                (this.loadOutcomes()).join();
             }
             Object response = (this.kalshiPrivateGetPortfolioPositions(parameters)).join();
             Object positions = (java.util.List<Object>)(this.safeList(response, "market_positions", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
@@ -1452,10 +1488,10 @@ final Object finalOi = oi;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                this.checkEvents(outcome);
+                (this.loadOutcome(outcome)).join();
             } else
             {
-                this.checkEvents();
+                (this.loadOutcomes()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "status", "resting" );
@@ -1492,10 +1528,10 @@ final Object finalOi = oi;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                this.checkEvents(outcome);
+                (this.loadOutcome(outcome)).join();
             } else
             {
-                this.checkEvents();
+                (this.loadOutcomes()).join();
             }
             Object response = (this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -1620,7 +1656,7 @@ final Object finalOi = oi;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
+            (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object isNo = (Helpers.isEqual(Helpers.GetValue(outcomeObj, "label"), "NO"));
@@ -1703,10 +1739,10 @@ final Object finalOi = oi;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                this.checkEvents(outcome);
+                (this.loadOutcome(outcome)).join();
             } else
             {
-                this.checkEvents();
+                (this.loadOutcomes()).join();
             }
             // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
             // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
@@ -1736,10 +1772,10 @@ final Object finalOi = oi;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                this.checkEvents(outcome);
+                (this.loadOutcome(outcome)).join();
             } else
             {
-                this.checkEvents();
+                (this.loadOutcomes()).join();
             }
             // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
             // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and

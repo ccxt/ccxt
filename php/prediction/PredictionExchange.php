@@ -30,26 +30,6 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return $this->safe_bool($this->has, 'prediction', false);
     }
 
-    public function check_events(?string $outcome = null) {
-        // pure synchronous guard (no I/O) — callers invoke it without await, so leaving it
-        // async would make the coroutine never run in Python/PHP and silently skip validation.
-        // outcomes are the real dependency for resolving a symbol; they are populated by
-        // fetchEvents and also rebuilt from cached markets (loadMarkets), so accept either.
-        // rebuild lazily from cached markets here because the setMarkets override that
-        // normally does it is not dispatched by the base loadMarkets under the AST languages.
-        if ((!$this->outcomes || $this->is_empty($this->outcomes)) && !$this->is_empty($this->markets)) {
-            $this->set_outcomes_from_markets();
-        }
-        if (!$this->outcomes || $this->is_empty($this->outcomes)) {
-            throw new ArgumentsRequired('Outcomes are required to be loaded, please fetch them first using fetchEvents (or loadMarkets)');
-        }
-        if ($outcome !== null) {
-            if (!(is_array($this->outcomes) && array_key_exists($outcome, $this->outcomes)) && !(is_array($this->outcomes_by_id) && array_key_exists($outcome, $this->outcomes_by_id))) {
-                throw new BadSymbol($this->id . ' the specified $outcome is not valid/available, please fetch events and outcomes first using fetchEvents');
-            }
-        }
-    }
-
     public function parse_search_queries($params = array ()) {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
         $singleQuery = $this->safe_string($params, 'query');
@@ -330,11 +310,11 @@ class PredictionExchange extends \ccxt\async\Exchange {
 
     public function set_markets($markets, $currencies = null) {
         $result = parent::set_markets($markets, $currencies);
-        $this->set_outcomes_from_markets();
+        $this->populate_outcomes();
         return $result;
     }
 
-    public function set_outcomes_from_markets() {
+    public function populate_outcomes() {
         // prediction markets carry their outcome tokens under the outcomes key,
         // rebuild the outcome lookup caches so cached $market data works offline.
         // normalize each outcome object to the canonical identity keys (outcome /
@@ -364,6 +344,65 @@ class PredictionExchange extends \ccxt\async\Exchange {
                 }
             }
         }
+    }
+
+    public function load_outcomes($reload = false, $params = array ()) {
+        return Async\async(function () use ($reload, $params) {
+            // outcome-addressed methods (fetchTicker/createOrder/...) call this first, mirroring how
+            // every regular ccxt method calls loadMarkets(). reload/params mirror loadMarkets => $reload
+            // true refetches and rebuilds. idempotent otherwise => once outcomes are populated (here, or
+            // already by an explicit fetchEvents/loadMarkets), later calls no-op and return the cache.
+            // loadMarkets() does the actual fetch; populateOutcomes() then rebuilds the lookup caches
+            // from the loaded markets (the setMarkets override that normally does this is not dispatched
+            // by the base loadMarkets under the Go/C#/Java transpilers).
+            if (!$reload && ($this->outcomes !== null) && !$this->is_empty($this->outcomes)) {
+                return $this->outcomes;
+            }
+            Async\await($this->load_markets($reload, $params));
+            $this->populate_outcomes();
+            return $this->outcomes;
+        }) ();
+    }
+
+    public function load_outcome(string $outcomeSymbol) {
+        return Async\async(function () use ($outcomeSymbol) {
+            // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
+            // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
+            // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
+            // (kalshi) set it false and override fetchOutcome to fetch just the requested one on demand.
+            if ($this->outcomes !== null) {
+                if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
+                    return $this->outcomes[$outcomeSymbol];
+                }
+                if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
+                    return $this->outcomes_by_id[$outcomeSymbol];
+                }
+            }
+            $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', true);
+            if ($loadAll) {
+                Async\await($this->load_outcomes());
+                if ($this->outcomes !== null) {
+                    if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
+                        return $this->outcomes[$outcomeSymbol];
+                    }
+                    if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
+                        return $this->outcomes_by_id[$outcomeSymbol];
+                    }
+                }
+            }
+            return Async\await($this->fetch_outcome($outcomeSymbol));
+        }) ();
+    }
+
+    public function fetch_outcome(string $outcomeSymbol) {
+        return Async\async(function () use ($outcomeSymbol) {
+            // fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
+            // resolves from the already-loaded set (loadOutcomes() is a cached no-op once warmed, and
+            // this throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch (kalshi)
+            // override this to fetch and cache only the requested outcome — the "always fetch one" path.
+            Async\await($this->load_outcomes());
+            return $this->outcome($outcomeSymbol);
+        }) ();
     }
 
     public function fetch_ticker(string $outcome, $params = array ()) {

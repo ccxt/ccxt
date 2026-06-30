@@ -813,8 +813,7 @@ final Object finalMarketSymbol = marketSymbol;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
-            Object outcomeObj = this.outcome(outcome);
+            Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
             Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.clobPublicGetMidpoint(new java.util.HashMap<String, Object>() {{
         put( "token_id", tokenId );
@@ -879,21 +878,7 @@ final Object finalMarketSymbol = marketSymbol;
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object outcomesLength = 0;
-            if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
-            {
-                outcomesLength = Helpers.getArrayLength(outcomes);
-            }
-            if (Helpers.isTrue(Helpers.isGreaterThan(outcomesLength, 0)))
-            {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
-                {
-                    this.checkEvents(Helpers.GetValue(outcomes, i));
-                }
-            } else
-            {
-                this.checkEvents();
-            }
+            (this.loadOutcomes()).join();
             Object outcomesMap = ((Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))))) ? this.outcomes : new java.util.HashMap<String, Object>() {{}};
             Object targets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
@@ -1079,8 +1064,7 @@ final Object finalMarketSymbol = marketSymbol;
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
-            Object outcomeObj = this.outcome(outcome);
+            Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = ((String)Helpers.GetValue(outcomeObj, "outcomeId"));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "token_id", tokenId );
@@ -1134,8 +1118,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
-            Object outcomeObj = this.outcome(outcome);
+            Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = ((String)Helpers.GetValue(outcomeObj, "outcomeId"));
             Object fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
             Object nowS = this.seconds();
@@ -1310,8 +1293,7 @@ final Object finalMarketSymbol = marketSymbol;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
-            Object outcomeObj = this.outcome(outcome);
+            Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object outcomeInfo = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             Object conditionId = this.safeString(outcomeInfo, "conditionId");
             if (Helpers.isTrue(Helpers.isEqual(conditionId, null)))
@@ -1371,8 +1353,7 @@ final Object finalMarketSymbol = marketSymbol;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
-            Object outcomeObj = this.outcome(outcome);
+            Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = this.safeString(outcomeObj, "outcomeId");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "token_id", tokenId );
@@ -1416,8 +1397,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            this.checkEvents(outcome);
-            Object outcomeObj = this.outcome(outcome);
+            Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = ((String)Helpers.GetValue(outcomeObj, "outcomeId"));
             Object outcomeInfo = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             Object conditionId = this.safeString(outcomeInfo, "conditionId");
@@ -1480,8 +1460,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomeObj = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                this.checkEvents(outcome);
-                outcomeObj = this.outcome(outcome);
+                outcomeObj = (this.loadOutcome(outcome)).join();
                 Helpers.addElementToObject(request, "asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
             }
             Object response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
@@ -1679,16 +1658,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 outcomesLength = Helpers.getArrayLength(outcomes);
             }
-            if (Helpers.isTrue(Helpers.isGreaterThan(outcomesLength, 0)))
-            {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
-                {
-                    this.checkEvents(Helpers.GetValue(outcomes, i));
-                }
-            } else
-            {
-                this.checkEvents();
-            }
+            (this.loadOutcomes()).join();
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " walletAddress is required to fetchPositions")) ;
@@ -1827,18 +1797,11 @@ final Object finalMarketSymbol = marketSymbol;
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
-            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
-            {
-                this.checkEvents(outcome);
-            } else
-            {
-                this.checkEvents();
-            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object outcomeObj = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                outcomeObj = this.outcome(outcome);
+                outcomeObj = (this.loadOutcome(outcome)).join();
                 Helpers.addElementToObject(request, "asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
             }
             Object response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
@@ -1863,16 +1826,11 @@ final Object finalMarketSymbol = marketSymbol;
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // the request only needs the order id; the outcome is a labelling hint, so resolve it from
+            // cache (no network) — fetchOrder stays a single request even on a cold cache.
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
-            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
-            {
-                this.checkEvents(outcome);
-            } else
-            {
-                this.checkEvents();
-            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
@@ -1999,6 +1957,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
+            (this.loadOutcome(outcome)).join();
             Object built = this.buildClobOrderBody(outcome, type, side, amount, price, parameters);
             Object response = (this.clobPrivatePostOrder(this.safeDict(built, "body"))).join();
             return this.parseOrder(response, ((Object)this.safeDict(built, "outcome")));
@@ -2022,6 +1981,7 @@ final Object finalMarketSymbol = marketSymbol;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
+            (this.loadOutcomes()).join();
             Object bodies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object batchSalt = this.milliseconds();
@@ -2479,8 +2439,7 @@ final Object finalMarketSymbol = marketSymbol;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
-                this.checkEvents(outcome);
-                Object outcomeObj = this.outcome(outcome);
+                Object outcomeObj = (this.loadOutcome(outcome)).join();
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "asset_id", Helpers.GetValue(outcomeObj, "outcomeId") );
                 }};

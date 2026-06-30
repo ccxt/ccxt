@@ -635,7 +635,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker(outcome, params = {}) {
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
         const coin = this.safeString(info, 'coinName');
@@ -672,7 +672,7 @@ export default class hyperliquid extends Exchange {
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
-                this.checkEvents(requested);
+                await this.loadOutcome(requested);
                 const requestedOutcomeObj = this.outcome(requested);
                 const requestedOutcome = this.safeString(requestedOutcomeObj, 'outcome', requested);
                 requestedOutcomeSymbols[requestedOutcome] = true;
@@ -785,7 +785,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook(outcome, limit = undefined, params = {}) {
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
         const request = {
@@ -834,7 +834,7 @@ export default class hyperliquid extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(outcome, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
         // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
         const market = this.market(this.safeString(outcomeObj, 'market'));
@@ -969,7 +969,7 @@ export default class hyperliquid extends Exchange {
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
-                this.checkEvents(requested);
+                await this.loadOutcome(requested);
                 const requestedOutcomeObj = this.outcome(requested);
                 const requestedOutcome = this.safeString(requestedOutcomeObj, 'outcome', requested);
                 requestedOutcomeSymbols[requestedOutcome] = true;
@@ -1192,7 +1192,7 @@ export default class hyperliquid extends Exchange {
      */
     async createOrder(outcome, type, side, amount, price = undefined, params = {}) {
         await this.initializeClient();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
@@ -1336,7 +1336,7 @@ export default class hyperliquid extends Exchange {
             throw new ArgumentsRequired(this.id + ' cancelOrders() requires an outcome argument');
         }
         await this.initializeClient();
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const assetId = this.safeInteger(outcomeInfo, 'assetId');
@@ -1441,7 +1441,7 @@ export default class hyperliquid extends Exchange {
         const parsed = this.parseOrders(ordersWithStatus, undefined, since, undefined);
         let outcomeHandle = undefined;
         if (outcome !== undefined) {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
             const outcomeObj = this.outcome(outcome);
             outcomeHandle = this.safeString(outcomeObj, 'outcome');
         }
@@ -1490,7 +1490,7 @@ export default class hyperliquid extends Exchange {
         const parsed = this.parseOrders(dedupedValues, undefined, since, undefined);
         let outcomeHandle = undefined;
         if (outcome !== undefined) {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
             const outcomeObj = this.outcome(outcome);
             outcomeHandle = this.safeString(outcomeObj, 'outcome');
         }
@@ -1525,7 +1525,7 @@ export default class hyperliquid extends Exchange {
         const orderWrapper = this.safeDict(response, 'order', response);
         const parsed = this.parseOrder(orderWrapper, undefined);
         if (outcome !== undefined) {
-            this.checkEvents(outcome);
+            await this.loadOutcome(outcome);
             const outcomeObj = this.outcome(outcome);
             const expected = this.safeString(outcomeObj, 'outcome');
             if (this.safeString(parsed, 'outcome') !== expected) {
@@ -1659,7 +1659,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
-        this.checkEvents(outcome);
+        await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
         const request = {
@@ -1990,9 +1990,9 @@ export default class hyperliquid extends Exchange {
         return this.signMessage(msg, this.privateKey);
     }
     async initializeClient() {
-        // createOrder/createOrders call this before trading; load markets so checkEvents/outcome can
-        // resolve the outcome handle. loading them also keeps this method genuinely async for the PHP
-        // and typed transpilers, which mishandle an async body that never suspends
+        // createOrder/createOrders call this before trading; load markets so the order builder can
+        // resolve the outcome's market and precision. loading them also keeps this method genuinely
+        // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets();
         const buildFee = this.safeBool(this.options, 'builderFee', false);
         if (!buildFee) {

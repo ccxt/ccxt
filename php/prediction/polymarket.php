@@ -730,8 +730,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
              */
-            $this->check_events($outcome);
-            $outcomeObj = $this->outcome($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
             $promises = array(
                 $this->clobPublicGetMidpoint (array( 'token_id' => $tokenId )),
@@ -787,17 +786,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome
              */
-            $outcomesLength = 0;
-            if ($outcomes !== null) {
-                $outcomesLength = count($outcomes);
-            }
-            if ($outcomesLength > 0) {
-                for ($i = 0; $i < count($outcomes); $i++) {
-                    $this->check_events($outcomes[$i]);
-                }
-            } else {
-                $this->check_events();
-            }
+            Async\await($this->load_outcomes());
             $outcomesMap = ($this->outcomes !== null) ? $this->outcomes : array();
             $targets = array();
             if ($outcomes !== null) {
@@ -954,8 +943,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
              */
-            $this->check_events($outcome);
-            $outcomeObj = $this->outcome($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
             $request = array(
                 'token_id' => $tokenId,
@@ -1001,8 +989,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
              */
-            $this->check_events($outcome);
-            $outcomeObj = $this->outcome($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
             $fidelityMin = $this->safe_integer($this->timeframes, $timeframe, 1); // fidelity in minutes
             $nowS = $this->seconds();
@@ -1144,8 +1131,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
              */
-            $this->check_events($outcome);
-            $outcomeObj = $this->outcome($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
             $conditionId = $this->safe_string($outcomeInfo, 'conditionId');
             if ($conditionId === null) {
@@ -1194,8 +1180,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
              */
-            $this->check_events($outcome);
-            $outcomeObj = $this->outcome($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
             $request = array( 'token_id' => $tokenId );
             $response = Async\await($this->clobPublicGetFeeRate ($this->extend($request, $params)));
@@ -1230,8 +1215,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [$trade structures](https://docs.ccxt.com/#/?id=public-trades)
              */
-            $this->check_events($outcome);
-            $outcomeObj = $this->outcome($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
             $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
             $conditionId = $this->safe_string($outcomeInfo, 'conditionId');
@@ -1278,8 +1262,7 @@ class polymarket extends Exchange {
             $request = array();
             $outcomeObj = null;
             if ($outcome !== null) {
-                $this->check_events($outcome);
-                $outcomeObj = $this->outcome($outcome);
+                $outcomeObj = Async\await($this->load_outcome($outcome));
                 $request['asset_id'] = $outcomeObj['outcomeId'];
             }
             $response = Async\await($this->clobPrivateGetDataTrades ($this->extend($request, $params)));
@@ -1437,13 +1420,7 @@ class polymarket extends Exchange {
             if ($outcomes !== null) {
                 $outcomesLength = count($outcomes);
             }
-            if ($outcomesLength > 0) {
-                for ($i = 0; $i < count($outcomes); $i++) {
-                    $this->check_events($outcomes[$i]);
-                }
-            } else {
-                $this->check_events();
-            }
+            Async\await($this->load_outcomes());
             if ($this->walletAddress === null) {
                 throw new ArgumentsRequired($this->id . ' walletAddress is required to fetchPositions');
             }
@@ -1556,15 +1533,10 @@ class polymarket extends Exchange {
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_api_credentials());
-            if ($outcome !== null) {
-                $this->check_events($outcome);
-            } else {
-                $this->check_events();
-            }
             $request = array();
             $outcomeObj = null;
             if ($outcome !== null) {
-                $outcomeObj = $this->outcome($outcome);
+                $outcomeObj = Async\await($this->load_outcome($outcome));
                 $request['asset_id'] = $outcomeObj['outcomeId'];
             }
             $response = Async\await($this->clobPrivateGetDataOrders ($this->extend($request, $params)));
@@ -1585,12 +1557,9 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
+            // the $request only needs the order $id; the $outcome is a labelling hint, so resolve it from
+            // cache (no network) — fetchOrder stays a single $request even on a cold cache.
             Async\await($this->load_api_credentials());
-            if ($outcome !== null) {
-                $this->check_events($outcome);
-            } else {
-                $this->check_events();
-            }
             $request = array( 'id' => $id );
             $response = Async\await($this->clobPrivateGetDataOrderId ($this->extend($request, $params)));
             return $this->parse_order($response);
@@ -1701,6 +1670,7 @@ class polymarket extends Exchange {
              * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_api_credentials());
+            Async\await($this->load_outcome($outcome));
             $built = $this->build_clob_order_body($outcome, $type, $side, $amount, $price, $params);
             $response = Async\await($this->clobPrivatePostOrder ($this->safe_dict($built, 'body')));
             return $this->parse_order($response, $this->safe_dict($built, 'outcome'));
@@ -1719,6 +1689,7 @@ class polymarket extends Exchange {
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_api_credentials());
+            Async\await($this->load_outcomes());
             $bodies = array();
             $outcomes = array();
             $batchSalt = $this->milliseconds();
@@ -2059,8 +2030,7 @@ class polymarket extends Exchange {
             $response = null;
             if ($outcome !== null) {
                 // scope to a single $outcome token via DELETE /cancel-market-$orders array( asset_id )
-                $this->check_events($outcome);
-                $outcomeObj = $this->outcome($outcome);
+                $outcomeObj = Async\await($this->load_outcome($outcome));
                 $request = array( 'asset_id' => $outcomeObj['outcomeId'] );
                 $response = Async\await($this->clobPrivateDeleteCancelMarketOrders ($this->extend($request, $params)));
             } else {

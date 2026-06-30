@@ -19,6 +19,17 @@ export default class kalshi extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseBinaryMarketToOutcomes(raw: Dict): Market[];
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchOutcome
+     * @description resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+     * thousands of markets, so a cache miss fetches just the requested market by ticker and merges
+     * it into the cache (the same outcome lookups loadOutcomes builds), so repeat lookups are free
+     * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix
+     * @returns {object} the resolved outcome object
+     */
+    fetchOutcome(outcomeSymbol: string): Promise<any>;
     parseMarket(raw: Dict): Market;
     /**
      * @method

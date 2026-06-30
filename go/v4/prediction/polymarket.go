@@ -785,8 +785,9 @@ func  (this *PolymarketCore) FetchTicker(outcome any, optionalArgs ...any) <- ch
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            this.CheckEvents(outcome)
-            var outcomeObj any = this.Outcome(outcome)
+        
+            outcomeObj:= (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(outcomeObj)
             var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
             var promises any = []any{this.ClobPublicGetMidpoint(map[string]any {
             "token_id": tokenId,
@@ -855,17 +856,9 @@ func  (this *PolymarketCore) FetchTickers(optionalArgs ...any) <- chan any {
             _ = outcomes
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
-            var outcomesLength any = 0
-            if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
-                outcomesLength = ccxt.GetArrayLength(outcomes)
-            }
-            if ccxt.IsTrue(ccxt.IsGreaterThan(outcomesLength, 0)) {
-                for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
-                    this.CheckEvents(ccxt.GetValue(outcomes, i))
-                }
-            } else {
-                this.CheckEvents()
-            }
+        
+            retRes7808 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes7808)
             var outcomesMap any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(this.Outcomes, nil))), this.Outcomes, map[string]any {})
             var targets any = []any{}
             if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
@@ -1041,8 +1034,9 @@ func  (this *PolymarketCore) FetchOrderBook(outcome any, optionalArgs ...any) <-
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
-            this.CheckEvents(outcome)
-            var outcomeObj any = this.Outcome(outcome)
+        
+            outcomeObj:= (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(outcomeObj)
             var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
             var request any = map[string]any {
                 "token_id": tokenId,
@@ -1104,8 +1098,9 @@ func  (this *PolymarketCore) FetchOHLCV(outcome any, optionalArgs ...any) <- cha
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
-            this.CheckEvents(outcome)
-            var outcomeObj any = this.Outcome(outcome)
+        
+            outcomeObj:= (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(outcomeObj)
             var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
             var fidelityMin any = this.SafeInteger(this.Timeframes, timeframe, 1) // fidelity in minutes
             var nowS any = this.Seconds()
@@ -1281,8 +1276,9 @@ func  (this *PolymarketCore) FetchOpenInterest(outcome any, optionalArgs ...any)
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            this.CheckEvents(outcome)
-            var outcomeObj any = this.Outcome(outcome)
+        
+            outcomeObj:= (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(outcomeObj)
             var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var conditionId any = this.SafeString(outcomeInfo, "conditionId")
             if ccxt.IsTrue(ccxt.IsEqual(conditionId, nil)) {
@@ -1344,8 +1340,9 @@ func  (this *PolymarketCore) FetchTradingFee(outcome any, optionalArgs ...any) <
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            this.CheckEvents(outcome)
-            var outcomeObj any = this.Outcome(outcome)
+        
+            outcomeObj:= (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(outcomeObj)
             var tokenId any = this.SafeString(outcomeObj, "outcomeId")
             var request any = map[string]any {
                 "token_id": tokenId,
@@ -1396,8 +1393,9 @@ func  (this *PolymarketCore) FetchTrades(outcome any, optionalArgs ...any) <- ch
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
-            this.CheckEvents(outcome)
-            var outcomeObj any = this.Outcome(outcome)
+        
+            outcomeObj:= (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(outcomeObj)
             var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
             var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any {})
             var conditionId any = this.SafeString(outcomeInfo, "conditionId")
@@ -1459,13 +1457,14 @@ func  (this *PolymarketCore) FetchMyTrades(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes12558 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes12558)
+            retRes12398 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes12398)
             var request any = map[string]any {}
             var outcomeObj any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
-                this.CheckEvents(outcome)
-                outcomeObj = this.Outcome(outcome)
+                
+            outcomeObj = (<-this.LoadOutcome(outcome))
+                    ccxt.PanicOnError(outcomeObj)
                 ccxt.AddElementToObject(request, "asset_id", ccxt.GetValue(outcomeObj, "outcomeId"))
             }
         
@@ -1603,8 +1602,8 @@ func  (this *PolymarketCore) FetchBalance(optionalArgs ...any) <- chan any {
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes13668 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes13668)
+            retRes13498 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes13498)
             // the collateral balance is tied to the signature type / funder that holds the USDC
             var signatureType any = this.SafeInteger2(params, "signatureType", "signature_type", this.SafeInteger(this.Options, "signatureType", 3))
             var rest any = this.Omit(params, []any{"signatureType", "signature_type"})
@@ -1669,13 +1668,9 @@ func  (this *PolymarketCore) FetchPositions(optionalArgs ...any) <- chan any {
             if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
                 outcomesLength = ccxt.GetArrayLength(outcomes)
             }
-            if ccxt.IsTrue(ccxt.IsGreaterThan(outcomesLength, 0)) {
-                for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
-                    this.CheckEvents(ccxt.GetValue(outcomes, i))
-                }
-            } else {
-                this.CheckEvents()
-            }
+        
+            retRes13998 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes13998)
             if ccxt.IsTrue(ccxt.IsEqual(this.WalletAddress, nil)) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " walletAddress is required to fetchPositions")))
             }
@@ -1819,17 +1814,14 @@ func  (this *PolymarketCore) FetchOpenOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes15328 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes15328)
-            if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
-                this.CheckEvents(outcome)
-            } else {
-                this.CheckEvents()
-            }
+            retRes15098 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes15098)
             var request any = map[string]any {}
             var outcomeObj any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
-                outcomeObj = this.Outcome(outcome)
+                
+            outcomeObj = (<-this.LoadOutcome(outcome))
+                    ccxt.PanicOnError(outcomeObj)
                 ccxt.AddElementToObject(request, "asset_id", ccxt.GetValue(outcomeObj, "outcomeId"))
             }
         
@@ -1858,18 +1850,15 @@ func  (this *PolymarketCore) FetchOrder(id any, optionalArgs ...any) <- chan any
             go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    outcome := ccxt.GetArg(optionalArgs, 0, nil)
+                    // the request only needs the order id; the outcome is a labelling hint, so resolve it from
+            // cache (no network) — fetchOrder stays a single request even on a cold cache.
+            outcome := ccxt.GetArg(optionalArgs, 0, nil)
             _ = outcome
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes15608 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes15608)
-            if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
-                this.CheckEvents(outcome)
-            } else {
-                this.CheckEvents()
-            }
+            retRes15348 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes15348)
             var request any = map[string]any {
                 "id": id,
             }
@@ -1999,8 +1988,11 @@ func  (this *PolymarketCore) CreateOrder(outcome any, typeVar any, side any, amo
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes16778 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes16778)
+            retRes16468 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes16468)
+        
+            retRes16478 := (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(retRes16478)
             var built any = this.BuildClobOrderBody(outcome, typeVar, side, amount, price, params)
         
             response:= (<-this.ClobPrivatePostOrder(this.SafeDict(built, "body")))
@@ -2029,8 +2021,11 @@ func  (this *PolymarketCore) CreateOrders(orders any, optionalArgs ...any) <- ch
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes16938 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes16938)
+            retRes16638 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes16638)
+        
+            retRes16648 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes16648)
             var bodies any = []any{}
             var outcomes any = []any{}
             var batchSalt any = this.Milliseconds()
@@ -2196,9 +2191,9 @@ func  (this *PolymarketCore) CreateMarketBuyOrderWithCost(outcome any, cost any,
                 "cost": cost,
             })
         
-                retRes183915 :=  (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
-                ccxt.PanicOnError(retRes183915)
-                ch <- retRes183915
+                retRes181015 :=  (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
+                ccxt.PanicOnError(retRes181015)
+                ch <- retRes181015
                 return nil
         
             }()
@@ -2402,8 +2397,8 @@ func  (this *PolymarketCore) CancelOrder(id any, optionalArgs ...any) <- chan an
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes19798 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes19798)
+            retRes19508 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes19508)
             // cancelling by id needs no market data, so events do not have to be loaded first
             var request any = map[string]any {
                 "orderID": id,
@@ -2447,8 +2442,8 @@ func  (this *PolymarketCore) CancelOrders(ids any, optionalArgs ...any) <- chan 
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes20028 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes20028)
+            retRes19738 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes19738)
             // the request body is the bare array of order ids (DELETE /orders), so params are not merged
         
             response:= (<-this.ClobPrivateDeleteOrders(ids))
@@ -2489,13 +2484,14 @@ func  (this *PolymarketCore) CancelAllOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes20248 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes20248)
+            retRes19958 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes19958)
             var response any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
-                this.CheckEvents(outcome)
-                var outcomeObj any = this.Outcome(outcome)
+        
+                outcomeObj:= (<-this.LoadOutcome(outcome))
+                ccxt.PanicOnError(outcomeObj)
                 var request any = map[string]any {
                     "asset_id": ccxt.GetValue(outcomeObj, "outcomeId"),
                 }
@@ -3123,8 +3119,8 @@ func  (this *PolymarketCore) LoadApiCredentials() <- chan any {
             var alreadyDerived any = this.SafeString(this.Options, "l2ApiKey")
             if ccxt.IsTrue(ccxt.IsEqual(alreadyDerived, nil)) {
         
-                retRes252916 := (<-this.CreateOrDeriveApiKey())
-                ccxt.PanicOnError(retRes252916)
+                retRes249916 := (<-this.CreateOrDeriveApiKey())
+                ccxt.PanicOnError(retRes249916)
             }
         
             return nil
@@ -3482,8 +3478,8 @@ func  (this *PolymarketCore) WatchOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes28258 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes28258)
+            retRes27958 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes27958)
             var messageHash any = "orders"
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
                 var outcomeObj any = this.Outcome(outcome)
@@ -3528,8 +3524,8 @@ func  (this *PolymarketCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes28518 := (<-this.LoadApiCredentials())
-            ccxt.PanicOnError(retRes28518)
+            retRes28218 := (<-this.LoadApiCredentials())
+            ccxt.PanicOnError(retRes28218)
             var messageHash any = "myTrades"
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
                 var outcomeObj any = this.Outcome(outcome)
@@ -3574,9 +3570,9 @@ func  (this *PolymarketCore) SubscribeUserChannel(messageHash any, optionalArgs 
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "wsUser")
             var subscribeHash any = "user"
         
-                retRes287515 :=  (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
-                ccxt.PanicOnError(retRes287515)
-                ch <- retRes287515
+                retRes284515 :=  (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
+                ccxt.PanicOnError(retRes284515)
+                ch <- retRes284515
                 return nil
         
             }()

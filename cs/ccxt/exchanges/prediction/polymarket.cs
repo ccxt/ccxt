@@ -776,8 +776,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
-        object outcomeObj = this.outcome(outcome);
+        object outcomeObj = await this.loadOutcome(outcome);
         object tokenId = getValue(outcomeObj, "outcomeId");
         object promises = new List<object> {this.clobPublicGetMidpoint(new Dictionary<string, object>() {
     { "token_id", tokenId },
@@ -836,21 +835,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcomesLength = 0;
-        if (isTrue(!isEqual(outcomes, null)))
-        {
-            outcomesLength = getArrayLength(outcomes);
-        }
-        if (isTrue(isGreaterThan(outcomesLength, 0)))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
-            {
-                this.checkEvents(getValue(outcomes, i));
-            }
-        } else
-        {
-            this.checkEvents();
-        }
+        await this.loadOutcomes();
         object outcomesMap = ((bool) isTrue((!isEqual(this.outcomes, null)))) ? this.outcomes : new Dictionary<string, object>() {};
         object targets = new List<object>() {};
         if (isTrue(!isEqual(outcomes, null)))
@@ -1026,8 +1011,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
-        object outcomeObj = this.outcome(outcome);
+        object outcomeObj = await this.loadOutcome(outcome);
         object tokenId = ((string)getValue(outcomeObj, "outcomeId"));
         object request = new Dictionary<string, object>() {
             { "token_id", tokenId },
@@ -1074,8 +1058,7 @@ public partial class polymarket : PredictionExchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
-        object outcomeObj = this.outcome(outcome);
+        object outcomeObj = await this.loadOutcome(outcome);
         object tokenId = ((string)getValue(outcomeObj, "outcomeId"));
         object fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
         object nowS = this.seconds();
@@ -1230,8 +1213,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<object> fetchOpenInterest(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
-        object outcomeObj = this.outcome(outcome);
+        object outcomeObj = await this.loadOutcome(outcome);
         object outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object conditionId = this.safeString(outcomeInfo, "conditionId");
         if (isTrue(isEqual(conditionId, null)))
@@ -1284,8 +1266,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<object> fetchTradingFee(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
-        object outcomeObj = this.outcome(outcome);
+        object outcomeObj = await this.loadOutcome(outcome);
         object tokenId = this.safeString(outcomeObj, "outcomeId");
         object request = new Dictionary<string, object>() {
             { "token_id", tokenId },
@@ -1322,8 +1303,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        this.checkEvents(outcome);
-        object outcomeObj = this.outcome(outcome);
+        object outcomeObj = await this.loadOutcome(outcome);
         object tokenId = ((string)getValue(outcomeObj, "outcomeId"));
         object outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         object conditionId = this.safeString(outcomeInfo, "conditionId");
@@ -1377,8 +1357,7 @@ public partial class polymarket : PredictionExchange
         object outcomeObj = null;
         if (isTrue(!isEqual(outcome, null)))
         {
-            this.checkEvents(outcome);
-            outcomeObj = this.outcome(outcome);
+            outcomeObj = await this.loadOutcome(outcome);
             ((IDictionary<string,object>)request)["asset_id"] = getValue(outcomeObj, "outcomeId");
         }
         object response = await this.clobPrivateGetDataTrades(this.extend(request, parameters));
@@ -1552,16 +1531,7 @@ public partial class polymarket : PredictionExchange
         {
             outcomesLength = getArrayLength(outcomes);
         }
-        if (isTrue(isGreaterThan(outcomesLength, 0)))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
-            {
-                this.checkEvents(getValue(outcomes, i));
-            }
-        } else
-        {
-            this.checkEvents();
-        }
+        await this.loadOutcomes();
         if (isTrue(isEqual(this.walletAddress, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " walletAddress is required to fetchPositions")) ;
@@ -1683,18 +1653,11 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
-        if (isTrue(!isEqual(outcome, null)))
-        {
-            this.checkEvents(outcome);
-        } else
-        {
-            this.checkEvents();
-        }
         object request = new Dictionary<string, object>() {};
         object outcomeObj = null;
         if (isTrue(!isEqual(outcome, null)))
         {
-            outcomeObj = this.outcome(outcome);
+            outcomeObj = await this.loadOutcome(outcome);
             ((IDictionary<string,object>)request)["asset_id"] = getValue(outcomeObj, "outcomeId");
         }
         object response = await this.clobPrivateGetDataOrders(this.extend(request, parameters));
@@ -1714,15 +1677,10 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
+        // the request only needs the order id; the outcome is a labelling hint, so resolve it from
+        // cache (no network) — fetchOrder stays a single request even on a cold cache.
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
-        if (isTrue(!isEqual(outcome, null)))
-        {
-            this.checkEvents(outcome);
-        } else
-        {
-            this.checkEvents();
-        }
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
@@ -1842,6 +1800,7 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
+        await this.loadOutcome(outcome);
         object built = this.buildClobOrderBody(outcome, type, side, amount, price, parameters);
         object response = await this.clobPrivatePostOrder(this.safeDict(built, "body"));
         return this.parseOrder(response, ((object)this.safeDict(built, "outcome")));
@@ -1860,6 +1819,7 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
+        await this.loadOutcomes();
         object bodies = new List<object>() {};
         object outcomes = new List<object>() {};
         object batchSalt = this.milliseconds();
@@ -2287,8 +2247,7 @@ public partial class polymarket : PredictionExchange
         if (isTrue(!isEqual(outcome, null)))
         {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
-            this.checkEvents(outcome);
-            object outcomeObj = this.outcome(outcome);
+            object outcomeObj = await this.loadOutcome(outcome);
             object request = new Dictionary<string, object>() {
                 { "asset_id", getValue(outcomeObj, "outcomeId") },
             };

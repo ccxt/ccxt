@@ -481,22 +481,6 @@ export default class myriad extends Exchange {
     /**
      * @ignore
      * @method
-     * @name myriad#ensureOutcomesLoaded
-     * @description rebuilds the outcome caches from the loaded markets when they are empty
-     * @returns {undefined}
-     */
-    ensureOutcomesLoaded(): void;
-    /**
-     * @ignore
-     * @method
-     * @name myriad#populateOutcomes
-     * @description rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market
-     * @returns {undefined}
-     */
-    populateOutcomes(): void;
-    /**
-     * @ignore
-     * @method
      * @name myriad#parseEvent
      * @description parses a raw myriad question object into the unified event shape with a nested markets list
      * @param {object} rawEvent the raw myriad question object

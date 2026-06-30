@@ -714,8 +714,7 @@ export default class polymarket extends Exchange {
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker(outcome, params = {}) {
-        this.checkEvents(outcome);
-        const outcomeObj = this.outcome(outcome);
+        const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = outcomeObj['outcomeId'];
         const promises = [
             this.clobPublicGetMidpoint({ 'token_id': tokenId }),
@@ -765,18 +764,7 @@ export default class polymarket extends Exchange {
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
     async fetchTickers(outcomes = undefined, params = {}) {
-        let outcomesLength = 0;
-        if (outcomes !== undefined) {
-            outcomesLength = outcomes.length;
-        }
-        if (outcomesLength > 0) {
-            for (let i = 0; i < outcomes.length; i++) {
-                this.checkEvents(outcomes[i]);
-            }
-        }
-        else {
-            this.checkEvents();
-        }
+        await this.loadOutcomes();
         const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
         const targets = [];
         if (outcomes !== undefined) {
@@ -932,8 +920,7 @@ export default class polymarket extends Exchange {
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook(outcome, limit = undefined, params = {}) {
-        this.checkEvents(outcome);
-        const outcomeObj = this.outcome(outcome);
+        const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = outcomeObj['outcomeId'];
         const request = {
             'token_id': tokenId,
@@ -976,8 +963,7 @@ export default class polymarket extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(outcome, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        this.checkEvents(outcome);
-        const outcomeObj = this.outcome(outcome);
+        const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = outcomeObj['outcomeId'];
         const fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds();
@@ -1112,8 +1098,7 @@ export default class polymarket extends Exchange {
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
     async fetchOpenInterest(outcome, params = {}) {
-        this.checkEvents(outcome);
-        const outcomeObj = this.outcome(outcome);
+        const outcomeObj = await this.loadOutcome(outcome);
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const conditionId = this.safeString(outcomeInfo, 'conditionId');
         if (conditionId === undefined) {
@@ -1158,8 +1143,7 @@ export default class polymarket extends Exchange {
      * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
     async fetchTradingFee(outcome, params = {}) {
-        this.checkEvents(outcome);
-        const outcomeObj = this.outcome(outcome);
+        const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const request = { 'token_id': tokenId };
         const response = await this.clobPublicGetFeeRate(this.extend(request, params));
@@ -1191,8 +1175,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
-        this.checkEvents(outcome);
-        const outcomeObj = this.outcome(outcome);
+        const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = outcomeObj['outcomeId'];
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const conditionId = this.safeString(outcomeInfo, 'conditionId');
@@ -1236,8 +1219,7 @@ export default class polymarket extends Exchange {
         const request = {};
         let outcomeObj = undefined;
         if (outcome !== undefined) {
-            this.checkEvents(outcome);
-            outcomeObj = this.outcome(outcome);
+            outcomeObj = await this.loadOutcome(outcome);
             request['asset_id'] = outcomeObj['outcomeId'];
         }
         const response = await this.clobPrivateGetDataTrades(this.extend(request, params));
@@ -1388,14 +1370,7 @@ export default class polymarket extends Exchange {
         if (outcomes !== undefined) {
             outcomesLength = outcomes.length;
         }
-        if (outcomesLength > 0) {
-            for (let i = 0; i < outcomes.length; i++) {
-                this.checkEvents(outcomes[i]);
-            }
-        }
-        else {
-            this.checkEvents();
-        }
+        await this.loadOutcomes();
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired(this.id + ' walletAddress is required to fetchPositions');
         }
@@ -1503,16 +1478,10 @@ export default class polymarket extends Exchange {
      */
     async fetchOpenOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadApiCredentials();
-        if (outcome !== undefined) {
-            this.checkEvents(outcome);
-        }
-        else {
-            this.checkEvents();
-        }
         const request = {};
         let outcomeObj = undefined;
         if (outcome !== undefined) {
-            outcomeObj = this.outcome(outcome);
+            outcomeObj = await this.loadOutcome(outcome);
             request['asset_id'] = outcomeObj['outcomeId'];
         }
         const response = await this.clobPrivateGetDataOrders(this.extend(request, params));
@@ -1530,13 +1499,9 @@ export default class polymarket extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder(id, outcome = undefined, params = {}) {
+        // the request only needs the order id; the outcome is a labelling hint, so resolve it from
+        // cache (no network) — fetchOrder stays a single request even on a cold cache.
         await this.loadApiCredentials();
-        if (outcome !== undefined) {
-            this.checkEvents(outcome);
-        }
-        else {
-            this.checkEvents();
-        }
         const request = { 'id': id };
         const response = await this.clobPrivateGetDataOrderId(this.extend(request, params));
         return this.parseOrder(response);
@@ -1646,6 +1611,7 @@ export default class polymarket extends Exchange {
      */
     async createOrder(outcome, type, side, amount, price = undefined, params = {}) {
         await this.loadApiCredentials();
+        await this.loadOutcome(outcome);
         const built = this.buildClobOrderBody(outcome, type, side, amount, price, params);
         const response = await this.clobPrivatePostOrder(this.safeDict(built, 'body'));
         return this.parseOrder(response, this.safeDict(built, 'outcome'));
@@ -1661,6 +1627,7 @@ export default class polymarket extends Exchange {
      */
     async createOrders(orders, params = {}) {
         await this.loadApiCredentials();
+        await this.loadOutcomes();
         const bodies = [];
         const outcomes = [];
         const batchSalt = this.milliseconds();
@@ -1985,8 +1952,7 @@ export default class polymarket extends Exchange {
         let response = undefined;
         if (outcome !== undefined) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
-            this.checkEvents(outcome);
-            const outcomeObj = this.outcome(outcome);
+            const outcomeObj = await this.loadOutcome(outcome);
             const request = { 'asset_id': outcomeObj['outcomeId'] };
             response = await this.clobPrivateDeleteCancelMarketOrders(this.extend(request, params));
         }

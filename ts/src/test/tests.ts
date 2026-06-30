@@ -1620,8 +1620,8 @@ class testMainClass {
         }
         const exchange = initExchange (exchangeName, options);
         exchange.currencies = currencies;
-        // prediction exchanges resolve outcomes lazily from the injected markets (checkEvents ->
-        // setOutcomesFromMarkets) the first time a method is called, so no explicit setMarkets here
+        // prediction exchanges resolve outcomes lazily from the injected markets (loadOutcome ->
+        // populateOutcomes) the first time a method is called, so no explicit setMarkets here
         // not working in python if assigned  in the config dict
         return exchange;
     }

@@ -39,6 +39,19 @@ public partial class kalshi
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
+    /// resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the resolved outcome object.</returns>
+    public async Task<Dictionary<string, object>> FetchOutcome(string outcomeSymbol)
+    {
+        var res = await this.fetchOutcome(outcomeSymbol);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetches the current market price and bid/ask for a single kalshi outcome
     /// </summary>
     /// <remarks>

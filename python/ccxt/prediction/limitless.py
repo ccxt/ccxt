@@ -746,7 +746,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         slug = self.safe_string(outcomeObj['info'], 'slug')
         request = {
@@ -1011,7 +1011,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         outcomesBySlug = {}
         slugs = []
         for i in range(0, len(outcomes)):
-            self.check_events(outcomes[i])
+            await self.load_outcome(outcomes[i])
             outcomeObj = self.outcome(outcomes[i])
             slug = self.safe_string(outcomeObj['info'], 'slug')
             if not (slug in outcomesBySlug):
@@ -1053,7 +1053,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         slug = self.safe_string(outcomeObj['info'], 'slug')
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
@@ -1108,7 +1108,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         slug = self.safe_string(outcomeObj['info'], 'slug')
         request = {
@@ -1187,7 +1187,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: a list of candles ordered, open, high, low, close, volume
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         slug = self.safe_string(outcomeObj['info'], 'slug')
         outcomeLabel = self.safe_string_upper(outcomeObj['info'], 'outcomeLabel')
@@ -1301,7 +1301,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         if outcome is None:
             raise ArgumentsRequired(self.id + ' fetchOrders requires an outcome argument')
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info')
         request = {
@@ -1349,7 +1349,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         if outcome is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders requires an outcome argument')
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         params = self.extend(params, {
             'statuses': ['LIVE'],
         })
@@ -1369,7 +1369,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         if outcome is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders requires an outcome argument')
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         params = self.extend(params, {
             'statuses': ['MATCHED'],
         })
@@ -1386,7 +1386,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         length = len(ids)
         if length > 50:
             raise BadRequest(self.id + ' fetchOrdersByIds can only fetch up to 50 orders at a time')
@@ -1517,7 +1517,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         orders = await self.fetch_orders_by_ids([id], outcome, params)
         order = self.safe_dict(orders, 0)
         if order is None:
@@ -1802,7 +1802,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
         accounts = await self.load_accounts()
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         account = self.safe_dict(accounts, 0)
         accountInfo = self.safe_dict(account, 'info')
@@ -2146,7 +2146,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         request = {
             'order_id': id,
         }
@@ -2170,7 +2170,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         request = {
             'orderIds': ids,
         }
@@ -2195,7 +2195,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param str [params.slug]: the market slug to cancel all orders for
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         if outcome is not None:
             warn = True
             warn, params = self.handle_option_and_params(params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn)
@@ -2228,7 +2228,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
         """
-        self.check_events(outcome)
+        await self.load_outcome(outcome)
         paginate = False
         maxLimit = 100
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate', paginate)
@@ -2455,9 +2455,9 @@ class limitless(PredictionExchange, ImplicitAPI):
             symbolsLength = len(outcomes)
         if symbolsLength > 0:
             for i in range(0, len(outcomes)):
-                self.check_events(outcomes[i])
+                await self.load_outcome(outcomes[i])
         else:
-            self.check_events()
+            await self.load_outcomes()
         response = await self.limitlessPrivateGetPortfolioPositions(params)
         #
         #     {

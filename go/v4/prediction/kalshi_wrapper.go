@@ -46,6 +46,23 @@ func (this *Kalshi) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error) 
     return ccxt.NewMarketInterfaceArray(res), nil
 }
 /**
+ * @ignore
+ * @method
+ * @name kalshi#fetchOutcome
+ * @description resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+ * thousands of markets, so a cache miss fetches just the requested market by ticker and merges
+ * it into the cache (the same outcome lookups loadOutcomes builds), so repeat lookups are free
+ * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix
+ * @returns {object} the resolved outcome object
+ */
+func (this *Kalshi) FetchOutcome(outcomeSymbol string) (map[string]any, error) {
+    res := <- this.Core.FetchOutcome(outcomeSymbol)
+    if ccxt.IsError(res) {
+        return map[string]any{}, ccxt.CreateReturnError(res)
+    }
+    return res.(map[string]any), nil
+}
+/**
  * @method
  * @name kalshi#fetchTicker
  * @description fetches the current market price and bid/ask for a single kalshi outcome
