@@ -1,4 +1,4 @@
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../../ts/ccxt.js';
 
 // AUTO-TRANSPILE //
 
@@ -8,10 +8,10 @@ async function example () {
     const limitless = new ccxt.prediction.limitless ();
     const myriad = new ccxt.prediction.myriad ();
     const [ polyEvents, kalshiEvents, limitlessEvents, myriadEvents ] = await Promise.all ([
-        exchange.fetchEvents ([ 'Trump' ]),
-        kalshi.fetchEvents ([ 'Trump' ]),
-        limitless.fetchEvents ([ 'Trump' ]),
-        myriad.fetchEvents ([ 'Trump' ]),
+        exchange.fetchEvents ({ 'queries': [ 'Trump' ] }),
+        kalshi.fetchEvents ({ 'queries': [ 'Trump' ] }),
+        limitless.fetchEvents ({ 'queries': [ 'Trump' ] }),
+        myriad.fetchEvents ({ 'queries': [ 'Trump' ] }),
     ]);
 
 
@@ -27,10 +27,10 @@ async function example () {
     //     console.log (fourth);
 
 
-    const firstOutcome = first.markets[0].outcomes[0].id;
-    const secondOutcome = second.markets[0].outcomes[0].id;
-    const thirdOutcome = third.markets[0].outcomes[0].id;
-    const fourthOutcome = fourth.markets[0].outcomes[0].symbol;
+    const firstOutcome = first.markets[0].outcomes[0].outcomeId;
+    const secondOutcome = second.markets[0].outcomes[0].outcomeId;
+    const thirdOutcome = third.markets[0].outcomes[0].outcomeId;
+    const fourthOutcome = fourth.markets[0].outcomes[0].outcomeId;
 
     console.log (firstOutcome, secondOutcome, thirdOutcome, fourthOutcome);
 

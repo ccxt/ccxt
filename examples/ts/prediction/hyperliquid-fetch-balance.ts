@@ -1,4 +1,4 @@
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../../ts/ccxt.js';
 
 async function example () {
     const exchange = new ccxt.prediction.hyperliquid ({

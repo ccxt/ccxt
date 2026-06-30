@@ -1,11 +1,11 @@
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../../ts/ccxt.js';
 
 // AUTO-TRANSPILE //
 
 async function example () {
     const exchange = new ccxt.prediction.polymarket ();
 
-    const events = await exchange.fetchEvents ([ 'Trump' ]);
+    const events = await exchange.fetchEvents ({ 'queries': [ 'Trump' ] });
 
     if (events.length === 0) {
         console.log ('No matching events found');
@@ -24,7 +24,7 @@ async function example () {
         return;
     }
 
-    const outcomeId = outcomes[0]['id'];
+    const outcomeId = outcomes[0]['outcomeId'];
     console.log ('Outcome ID:', outcomeId);
 
     const trades = await exchange.fetchTrades (outcomeId, undefined, 20);
