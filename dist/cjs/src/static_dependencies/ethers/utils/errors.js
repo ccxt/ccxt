@@ -4,15 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var properties = require('./properties.js');
 
-/**
- *  All errors in ethers include properties to ensure they are both
- *  human-readable (i.e. ``.message``) and machine-readable (i.e. ``.code``).
- *
- *  The [[isError]] function can be used to check the error ``code`` and
- *  provide a type guard for the properties present on that error interface.
- *
- *  @_section: api/utils/errors:Errors  [about-errors]
- */
+// ----------------------------------------------------------------------------
 function stringify(value) {
     if (value == null) {
         return "null";

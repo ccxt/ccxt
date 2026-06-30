@@ -7,7 +7,7 @@ var coinbase$1 = require('../coinbase.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class coinbase extends coinbase$1["default"] {
     describe() {
