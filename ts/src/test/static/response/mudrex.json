@@ -1,0 +1,196 @@
+{
+    "exchange": "mudrex",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "margin_type": "ISOLATED",
+                        "leverage": "1",
+                        "collateral_currency_id": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "data": {
+                            "margin_type": "ISOLATED",
+                            "leverage": "1",
+                            "collateral_currency_id": "0"
+                        }
+                    },
+                    "symbol": "DOGE/USDT:USDT",
+                    "marginMode": "isolated",
+                    "longLeverage": 1,
+                    "shortLeverage": 1
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": []
+                },
+                "parsedResponse": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "balance": "18.4916",
+                        "locked_amount": "0",
+                        "first_time_user": false
+                    }
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "success": true,
+                            "data": {
+                                "total": "0",
+                                "rewards": "0",
+                                "invested": "0",
+                                "withdrawable": "0",
+                                "coin_investable": "0",
+                                "coinset_investable": "0",
+                                "vault_investable": "0"
+                            }
+                        },
+                        {
+                            "success": true,
+                            "data": {
+                                "balance": "18.4916",
+                                "locked_amount": "0",
+                                "first_time_user": false
+                            }
+                        }
+                    ],
+                    "timestamp": 1782755041970,
+                    "datetime": "2026-06-29T17:44:01.970Z",
+                    "USDT": {
+                        "free": 18.4916,
+                        "used": 0,
+                        "total": 18.4916
+                    },
+                    "free": {
+                        "USDT": 18.4916
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 18.4916
+                    }
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "id": "01903a7b-bf65-707d-a7dc-d7b84c3c756c",
+                        "name": "Bitcoin",
+                        "symbol": "BTCUSDT",
+                        "min_contract": "0.001",
+                        "max_contract": "1500",
+                        "quantity_step": "0.001",
+                        "min_price": "0.1",
+                        "max_price": "1999999.8",
+                        "price_step": "0.1",
+                        "max_market_contract": "150",
+                        "min_notional_value": "5",
+                        "funding_fee_perc": "0.00009448",
+                        "max_funding_rate": "0.005",
+                        "min_funding_rate": "-0.005",
+                        "leverage_step": "0.01",
+                        "min_leverage": "1",
+                        "max_leverage": "100",
+                        "funding_interval": "1782777600",
+                        "price": "60535.5",
+                        "last_day_price": "59509.1",
+                        "change_perc": "1.7247782271955",
+                        "volume": "115356.021",
+                        "popularity": "1",
+                        "1d_high": "60775",
+                        "1d_low": "58850.6",
+                        "1d_volume": "115356.02099999995"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1782754988625,
+                    "datetime": "2026-06-29T17:43:08.625Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 59509.1,
+                    "close": 60535.5,
+                    "last": 60535.5,
+                    "previousClose": null,
+                    "change": 1026.4,
+                    "percentage": 1.7247782271955,
+                    "average": 60022.3,
+                    "baseVolume": null,
+                    "quoteVolume": 115356.021,
+                    "info": {
+                        "id": "01903a7b-bf65-707d-a7dc-d7b84c3c756c",
+                        "name": "Bitcoin",
+                        "symbol": "BTCUSDT",
+                        "min_contract": "0.001",
+                        "max_contract": "1500",
+                        "quantity_step": "0.001",
+                        "min_price": "0.1",
+                        "max_price": "1999999.8",
+                        "price_step": "0.1",
+                        "max_market_contract": "150",
+                        "min_notional_value": "5",
+                        "funding_fee_perc": "0.00009448",
+                        "max_funding_rate": "0.005",
+                        "min_funding_rate": "-0.005",
+                        "leverage_step": "0.01",
+                        "min_leverage": "1",
+                        "max_leverage": "100",
+                        "funding_interval": "1782777600",
+                        "price": "60535.5",
+                        "last_day_price": "59509.1",
+                        "change_perc": "1.7247782271955",
+                        "volume": "115356.021",
+                        "popularity": "1",
+                        "1d_high": "60775",
+                        "1d_low": "58850.6",
+                        "1d_volume": "115356.02099999995"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ]
+  }
+}

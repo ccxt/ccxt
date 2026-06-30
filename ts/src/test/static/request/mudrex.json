@@ -1,0 +1,48 @@
+{
+    "exchange": "mudrex",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/DOGEUSDT/leverage?is_symbol=1",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/orders",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/funds",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/BTCUSDT?is_symbol=1",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}

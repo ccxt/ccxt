@@ -252,19 +252,37 @@ export default class mudrex extends Exchange {
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const ms = market['baseId'] + '/' + market['quoteId'];
         const priceType = this.safeString (params, 'price');
         params = this.omit (params, 'price');
         const request: Dict = {
-            'symbol': ms,
+            'assets': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        // the endpoint requires an explicit time window
+        const duration = this.parseTimeframe (timeframe);
+        let requestLimit = limit;
+        if (requestLimit === undefined) {
+            requestLimit = 500;
+        }
+        const now = this.seconds ();
+        let startTime = undefined;
+        if (since !== undefined) {
+            startTime = this.parseToInt (since / 1000);
+        } else {
+            startTime = now - duration * requestLimit;
+        }
+        let endTime = startTime + duration * requestLimit;
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            endTime = this.parseToInt (until / 1000);
+        } else if (endTime > now) {
+            endTime = now;
+        }
+        request['start_time'] = startTime;
+        request['end_time'] = endTime;
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            request['start_time'] = Math.floor (since / 1000);
-            request['end_time'] = Math.floor (this.milliseconds () / 1000);
         }
         let response = undefined;
         if (priceType === 'mark') {
