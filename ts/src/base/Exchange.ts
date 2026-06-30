@@ -180,7 +180,7 @@ let SignMode = undefined;
  */
 export default class Exchange {
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.62';
+    static ccxtVersion = '4.5.63';
 
     options: Dict;
 

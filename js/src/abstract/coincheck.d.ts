@@ -2,7 +2,6 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     publicGetExchangeOrdersRate(params?: {}): Promise<implicitReturnType>;
-    publicGetExchangeStatus(params?: {}): Promise<implicitReturnType>;
     publicGetOrderBooks(params?: {}): Promise<implicitReturnType>;
     publicGetRatePair(params?: {}): Promise<implicitReturnType>;
     publicGetTicker(params?: {}): Promise<implicitReturnType>;
@@ -12,9 +11,7 @@ interface Exchange {
     privateGetAccountsLeverageBalance(params?: {}): Promise<implicitReturnType>;
     privateGetBankAccounts(params?: {}): Promise<implicitReturnType>;
     privateGetDepositMoney(params?: {}): Promise<implicitReturnType>;
-    privateGetExchangeOrdersId(params?: {}): Promise<implicitReturnType>;
     privateGetExchangeOrdersOpens(params?: {}): Promise<implicitReturnType>;
-    privateGetExchangeOrdersCancelStatus(params?: {}): Promise<implicitReturnType>;
     privateGetExchangeOrdersTransactions(params?: {}): Promise<implicitReturnType>;
     privateGetExchangeOrdersTransactionsPagination(params?: {}): Promise<implicitReturnType>;
     privateGetExchangeLeveragePositions(params?: {}): Promise<implicitReturnType>;

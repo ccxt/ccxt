@@ -293,7 +293,7 @@ public class CoincheckCore extends CoincheckApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "publicGetExchangeStatus", new Object[] { parameters })).join();
+            Object response = (this.publicGetExchangeStatus(parameters)).join();
             //
             //     {
             //         "exchange_status": [

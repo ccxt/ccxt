@@ -28,7 +28,6 @@ function _interopNamespace(e) {
 var net__namespace = /*#__PURE__*/_interopNamespace(net);
 var tls__namespace = /*#__PURE__*/_interopNamespace(tls);
 
-// ----------------------------------------------------------------------------
 function isHTTPS(protocol) {
     return typeof protocol === 'string' ? /^https:?$/i.test(protocol) : false;
 }

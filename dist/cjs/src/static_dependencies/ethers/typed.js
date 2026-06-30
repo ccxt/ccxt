@@ -15,7 +15,20 @@ require('../../base/functions/io.js');
 require('@noble/hashes/sha3.js');
 require('@noble/hashes/sha2.js');
 
-// ----------------------------------------------------------------------------
+/**
+ *  A Typed object allows a value to have its type explicitly
+ *  specified.
+ *
+ *  For example, in Solidity, the value ``45`` could represent a
+ *  ``uint8`` or a ``uint256``. The value ``0x1234`` could represent
+ *  a ``bytes2`` or ``bytes``.
+ *
+ *  Since JavaScript has no meaningful way to explicitly inform any
+ *  APIs which what the type is, this allows transparent interoperation
+ *  with Soldity.
+ *
+ *  @_subsection: api/abi:Typed Values
+ */
 const _gaurd = {};
 function n(value, width) {
     let signed = false;

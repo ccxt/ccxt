@@ -6775,7 +6775,7 @@ public partial class binance : Exchange
                 if (isTrue(isConditional))
                 {
                     ((IDictionary<string,object>)request)["algoType"] = "CONDITIONAL";
-                    response = await ((Task<object>)callDynamically(this, "dapiPrivatePostAlgoOrder", new object[] { request }));
+                    response = await this.dapiPrivatePostAlgoOrder(request);
                 } else
                 {
                     response = await this.dapiPrivatePostOrder(request);
@@ -7827,7 +7827,7 @@ public partial class binance : Exchange
             {
                 if (isTrue(isConditional))
                 {
-                    response = await ((Task<object>)callDynamically(this, "dapiPrivateGetOpenAlgoOrders", new object[] { this.extend(request, parameters) }));
+                    response = await this.dapiPrivateGetOpenAlgoOrders(this.extend(request, parameters));
                 } else
                 {
                     response = await this.dapiPrivateGetOpenOrders(this.extend(request, parameters));
@@ -8310,7 +8310,7 @@ public partial class binance : Exchange
             {
                 if (isTrue(isConditional))
                 {
-                    response = await ((Task<object>)callDynamically(this, "dapiPrivateDeleteAlgoOrder", new object[] { this.extend(request, parameters) }));
+                    response = await this.dapiPrivateDeleteAlgoOrder(this.extend(request, parameters));
                 } else
                 {
                     response = await this.dapiPrivateDeleteOrder(this.extend(request, parameters));

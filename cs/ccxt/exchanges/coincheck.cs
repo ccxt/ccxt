@@ -278,7 +278,7 @@ public partial class coincheck : Exchange
     public async override Task<object> fetchStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "publicGetExchangeStatus", new object[] { parameters }));
+        object response = await this.publicGetExchangeStatus(parameters);
         //
         //     {
         //         "exchange_status": [

@@ -1649,7 +1649,7 @@ public partial class bybit : Exchange
     public async override Task<object> fetchStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "publicGetV5SystemStatus", new object[] { parameters }));
+        object response = await this.publicGetV5SystemStatus(parameters);
         //
         //     {
         //         "retCode": 0,

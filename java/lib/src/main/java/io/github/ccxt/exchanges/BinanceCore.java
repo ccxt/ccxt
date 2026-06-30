@@ -6954,7 +6954,7 @@ public class BinanceCore extends BinanceApi
                     if (Helpers.isTrue(isConditional))
                     {
                         Helpers.addElementToObject(request, "algoType", "CONDITIONAL");
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "dapiPrivatePostAlgoOrder", new Object[] { request })).join();
+                        response = (this.dapiPrivatePostAlgoOrder(request)).join();
                     } else
                     {
                         response = (this.dapiPrivatePostOrder(request)).join();
@@ -8044,7 +8044,7 @@ public class BinanceCore extends BinanceApi
                 {
                     if (Helpers.isTrue(isConditional))
                     {
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "dapiPrivateGetOpenAlgoOrders", new Object[] { this.extend(request, parameters) })).join();
+                        response = (this.dapiPrivateGetOpenAlgoOrders(this.extend(request, parameters))).join();
                     } else
                     {
                         response = (this.dapiPrivateGetOpenOrders(this.extend(request, parameters))).join();
@@ -8563,7 +8563,7 @@ public class BinanceCore extends BinanceApi
                 {
                     if (Helpers.isTrue(isConditional))
                     {
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "dapiPrivateDeleteAlgoOrder", new Object[] { this.extend(request, parameters) })).join();
+                        response = (this.dapiPrivateDeleteAlgoOrder(this.extend(request, parameters))).join();
                     } else
                     {
                         response = (this.dapiPrivateDeleteOrder(this.extend(request, parameters))).join();
