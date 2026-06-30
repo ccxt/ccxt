@@ -360,78 +360,255 @@ export default class PredictionExchange extends Exchange {
         }
     }
 
+    /**
+     * @method
+     * @name fetchTicker
+     * @description fetches a price ticker for a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
     async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
         return await super.fetchTicker (outcome, params) as PredictionTicker;
     }
 
+    /**
+     * @method
+     * @name fetchOrderBook
+     * @description fetches the order book for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
     async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         return await super.fetchOrderBook (outcome, limit, params) as PredictionOrderBook;
     }
 
+    /**
+     * @method
+     * @name fetchOHLCV
+     * @description fetches historical candlestick data for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV (outcome: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         return await super.fetchOHLCV (outcome, timeframe, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name fetchTrades
+     * @description get the list of most recent trades for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
     async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         return await super.fetchTrades (outcome, since, limit, params) as PredictionTrade[];
     }
 
+    /**
+     * @method
+     * @name createOrder
+     * @description create a trade order on a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how many shares of the outcome to trade
+     * @param {float} [price] the price at which the order is to be filled, in cost per share
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         return await super.createOrder (outcome, type, side, amount, price, params) as PredictionOrder;
     }
 
+    /**
+     * @method
+     * @name cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         return await super.cancelOrder (id, outcome, params) as PredictionOrder;
     }
 
+    /**
+     * @method
+     * @name watchTicker
+     * @description watches a price ticker for a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
     async watchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
         return await super.watchTicker (outcome, params) as PredictionTicker;
     }
 
+    /**
+     * @method
+     * @name watchOrderBook
+     * @description watches the order book for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
     async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         return await super.watchOrderBook (outcome, limit, params) as PredictionOrderBook;
     }
 
+    /**
+     * @method
+     * @name watchTrades
+     * @description watches the most recent trades for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
     async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         return await super.watchTrades (outcome, since, limit, params) as PredictionTrade[];
     }
 
+    /**
+     * @method
+     * @name fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
     async fetchOrderTrades (id: string, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         throw new NotSupported (this.id + ' fetchOrderTrades() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name fetchMyTrades
+     * @description fetch all trades made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
     async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name fetchPosition
+     * @description fetch the open position held on a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     */
     async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name fetchTradingFee
+     * @description fetch the trading fee for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+     */
     async fetchTradingFee (outcome: string, params = {}): Promise<PredictionTradingFee> {
         throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name fetchOpenInterest
+     * @description fetch the open interest of a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
     async fetchOpenInterest (outcome: string, params = {}): Promise<PredictionOpenInterest> {
         throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name createOrders
+     * @description create a list of trade orders
+     * @param {object[]} orders a list of PredictionOrderRequest objects, each carrying an `outcome` handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
         throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name cancelOrders
+     * @description cancel multiple orders
+     * @param {string[]} ids order ids
+     * @param {string} [outcome] unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name createMarketBuyOrderWithCost
+     * @description create a market buy order on a prediction outcome by providing the cost
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost how much you want to spend, in cost terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async createMarketBuyOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
         if (this.options['createMarketBuyOrderRequiresPrice'] || this.has['createMarketBuyOrderWithCost']) {
             return await this.createOrder (outcome, 'market', 'buy', cost, 1, params);
@@ -439,6 +616,15 @@ export default class PredictionExchange extends Exchange {
         throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name createMarketSellOrderWithCost
+     * @description create a market sell order on a prediction outcome by providing the cost
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost how much you want to receive, in cost terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async createMarketSellOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
         if (this.options['createMarketSellOrderRequiresPrice'] || this.has['createMarketSellOrderWithCost']) {
             return await this.createOrder (outcome, 'market', 'sell', cost, 1, params);
@@ -446,18 +632,56 @@ export default class PredictionExchange extends Exchange {
         throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name watchTickers
+     * @description watches price tickers for multiple prediction outcomes
+     * @param {string[]} [outcomes] unified outcome handles to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
     async watchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name watchOrders
+     * @description watches information on multiple orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to watch
+     * @param {int} [limit] the maximum number of orders to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         throw new NotSupported (this.id + ' watchOrders() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name watchMyTrades
+     * @description watches all trades made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to watch
+     * @param {int} [limit] the maximum number of trades to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
     async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         throw new NotSupported (this.id + ' watchMyTrades() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name watchPositions
+     * @description watches the open positions held by the user
+     * @param {string[]} [outcomes] unified outcome handles to watch
+     * @param {int} [since] timestamp in ms of the earliest position to watch
+     * @param {int} [limit] the maximum number of positions to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
     async watchPositions (outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionPosition[]> {
         throw new NotSupported (this.id + ' watchPositions() is not supported yet');
     }
