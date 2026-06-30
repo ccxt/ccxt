@@ -1199,6 +1199,28 @@ class Exchange(object):
         return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params, True))
 
     @staticmethod
+    def urlencode_nested(params):
+        result = {}
+
+        def encode_params(params, parent_key=None):
+            nested_params = {}
+            if isinstance(params, dict):
+                for key in params:
+                    nested_params['{}[{}]'.format(parent_key, key)] = params[key]
+            elif isinstance(params, (list, tuple)):
+                for offset, value in enumerate(params):
+                    nested_params['{}[{}]'.format(parent_key, offset)] = value
+            else:
+                result[parent_key] = params
+            for key in nested_params:
+                encode_params(nested_params[key], key)
+
+        if isinstance(params, dict):
+            for key in params:
+                encode_params(params[key], key)
+        return _urlencode.urlencode(result, safe='[]', quote_via=_urlencode.quote)
+
+    @staticmethod
     def rawencode(params={}):
         return _urlencode.unquote(Exchange.urlencode(params))
 
@@ -1567,6 +1589,19 @@ class Exchange(object):
     @staticmethod
     def to_array(value):
         return list(value.values()) if type(value) is dict else value
+
+    def add_key_in_array_items(self, obj, keyName):
+        result = []
+        keys = list(obj.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            item = obj[key]
+            if item is None:
+                continue
+            item_with_key = self.extend({}, item)
+            item_with_key[keyName] = key
+            result.append(item_with_key)
+        return result
 
     def nonce(self):
         return Exchange.seconds()
@@ -2646,6 +2681,20 @@ class Exchange(object):
             result.append(account)
         return result
 
+    def parse_currency(self, rawCurrency: dict):
+        raise NotSupported(self.id + ' parseCurrency() is not supported yet')
+
+    def parse_currencies(self, rawCurrencies):
+        result = {}
+        currencies = self.to_array(rawCurrencies)
+        for i in range(0, len(currencies)):
+            parsed = self.parse_currency(currencies[i])
+            if parsed is None:
+                continue
+            code = parsed['code']
+            result[code] = parsed
+        return result
+
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
         array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
@@ -2688,6 +2737,45 @@ class Exchange(object):
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if currency else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
+
+    def safe_ledger_entry(self, entry: object, currency: Currency = None):
+        currency = self.safe_currency(None, currency)
+        direction = self.safe_string(entry, 'direction')
+        before = self.safe_string(entry, 'before')
+        after = self.safe_string(entry, 'after')
+        amount = self.safe_string(entry, 'amount')
+        if amount is not None:
+            if before is None and after is not None:
+                before = Precise.string_sub(after, amount)
+            elif before is not None and after is None:
+                after = Precise.string_add(before, amount)
+        if before is not None and after is not None and direction is None:
+            if Precise.string_gt(before, after):
+                direction = 'out'
+            if Precise.string_gt(after, before):
+                direction = 'in'
+        fee = self.safe_value(entry, 'fee')
+        if fee is not None:
+            fee['cost'] = self.safe_number(fee, 'cost')
+        timestamp = self.safe_integer(entry, 'timestamp')
+        info = self.safe_dict(entry, 'info', {})
+        return {
+            'id': self.safe_string(entry, 'id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'direction': direction,
+            'account': self.safe_string(entry, 'account'),
+            'referenceId': self.safe_string(entry, 'referenceId'),
+            'referenceAccount': self.safe_string(entry, 'referenceAccount'),
+            'type': self.safe_string(entry, 'type'),
+            'currency': currency['code'],
+            'amount': self.parse_number(amount),
+            'before': self.parse_number(before),
+            'after': self.parse_number(after),
+            'status': self.safe_string(entry, 'status'),
+            'fee': fee,
+            'info': info,
+        }
 
     def parse_trades(self, trades, market: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         trades = self.to_array(trades)
