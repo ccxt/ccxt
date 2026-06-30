@@ -94,7 +94,7 @@
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
     "cli.go": "go run -C go ./cli/main.go",
     "cli.java": "./utils/java-cli.sh",
-    "export-exchanges": "node build/export-exchanges",
+    "export-exchanges": "tsx build/export-exchanges.ts",
     "capabilities": "node ./examples/js/exchange-capabilities.js",
     "git-ignore-generated-files": "node build/git-ignore-generated-files.cjs",
     "git-unignore-generated-files": "node build/git-ignore-generated-files.cjs --unignore",
