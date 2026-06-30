@@ -2103,6 +2103,7 @@ export default class kraken extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeTimestamp (order, 'closetm'),
             'status': status,
             'symbol': symbol,
             'type': typeParsed,
