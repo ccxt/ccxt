@@ -159,6 +159,7 @@ public class KalshiCore extends KalshiApi
                         put( "delete", new java.util.HashMap<String, Object>() {{
                             put( "portfolio/orders/{order_id}", 1 );
                             put( "portfolio/orders/batched", 1 );
+                            put( "portfolio/events/orders/{order_id}", 1 );
                             put( "portfolio/order_groups/{order_group_id}", 1 );
                         }} );
                     }} );
@@ -757,15 +758,29 @@ final Object finalOi = oi;
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        Object bidVolume = ((Helpers.isTrue((isNo)))) ? this.safeNumber(raw, "yes_ask_size_fp") : this.safeNumber(raw, "yes_bid_size_fp");
-        Object askVolume = ((Helpers.isTrue((isNo)))) ? this.safeNumber(raw, "yes_bid_size_fp") : this.safeNumber(raw, "yes_ask_size_fp");
+        Object bidSizeString = ((Helpers.isTrue((isNo)))) ? this.safeString(raw, "yes_ask_size_fp") : this.safeString(raw, "yes_bid_size_fp");
+        Object askSizeString = ((Helpers.isTrue((isNo)))) ? this.safeString(raw, "yes_bid_size_fp") : this.safeString(raw, "yes_ask_size_fp");
+        // kalshi occasionally reports a negative size for settling/closed markets; a size
+        // can't be negative, so drop it rather than emit an invalid volume
+        Object bidVolume = null;
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(bidSizeString, null))) && Helpers.isTrue(Precise.stringGe(bidSizeString, "0"))))
+        {
+            bidVolume = this.parseNumber(bidSizeString);
+        }
+        Object askVolume = null;
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(askSizeString, null))) && Helpers.isTrue(Precise.stringGe(askSizeString, "0"))))
+        {
+            askVolume = this.parseNumber(askSizeString);
+        }
         Object average = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(bid, null))) && Helpers.isTrue((!Helpers.isEqual(ask, null)))))
         {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), "2"));
         }
         final Object finalBid = bid;
+        final Object finalBidVolume = bidVolume;
         final Object finalAsk = ask;
+        final Object finalAskVolume = askVolume;
         final Object finalClose = close;
         final Object finalAverage = average;
         return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
@@ -778,9 +793,9 @@ final Object finalOi = oi;
             put( "high", null );
             put( "low", null );
             put( "bid", finalBid );
-            put( "bidVolume", bidVolume );
+            put( "bidVolume", finalBidVolume );
             put( "ask", finalAsk );
-            put( "askVolume", askVolume );
+            put( "askVolume", finalAskVolume );
             put( "vwap", null );
             put( "open", null );
             put( "close", finalClose );
@@ -1694,10 +1709,12 @@ final Object finalOi = oi;
             {
                 this.checkEvents();
             }
-            Object response = (this.kalshiPrivateDeletePortfolioOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
+            // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
+            // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
+            Object response = (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }}, parameters))).join();
-            return this.parseOrder(this.safeValue(response, "order", response));
+            return this.parseOrder(this.safeDict(response, "order", response));
         });
 
     }
@@ -1725,8 +1742,9 @@ final Object finalOi = oi;
             {
                 this.checkEvents();
             }
-            // kalshi has no "cancel all" endpoint — fetch the resting orders and
-            // batch-cancel them by id (DELETE /portfolio/orders/batched, max 20 ids/call)
+            // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
+            // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
+            // cancel them one by one via the v2 DELETE /portfolio/events/orders/{order_id}
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "status", "resting" );
             }};
@@ -1738,38 +1756,18 @@ final Object finalOi = oi;
             Object restingResponse = (this.kalshiPrivateGetPortfolioOrders(request)).join();
             Object restingOrders = this.safeList(restingResponse, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object restingOrdersLength = Helpers.getArrayLength(restingOrders);
-            Object ids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object canceledOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, restingOrdersLength); i++)
             {
                 Object orderId = this.safeString(Helpers.GetValue(restingOrders, i), "order_id");
                 if (Helpers.isTrue(!Helpers.isEqual(orderId, null)))
                 {
-                    ((java.util.List<Object>)ids).add(orderId);
+                    final Object finalOrderId = orderId;
+                    Object response = (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
+                        put( "order_id", finalOrderId );
+                    }}, parameters))).join();
+                    ((java.util.List<Object>)canceledOrders).add(this.safeDict(response, "order", response));
                 }
-            }
-            Object idsLength = Helpers.getArrayLength(ids);
-            if (Helpers.isTrue(Helpers.isEqual(idsLength, 0)))
-            {
-                return new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            }
-            Object canceledOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object batchLimit = 20; // kalshi caps the batched-cancel endpoint at 20 ids per call
-            Object remaining = ids;
-            Object remainingLength = Helpers.getArrayLength(remaining);
-            while (Helpers.isGreaterThan(remainingLength, 0))
-            {
-                Object batchIds = this.arraySlice(remaining, 0, batchLimit);
-                remaining = this.arraySlice(remaining, batchLimit);
-                Object response = (this.kalshiPrivateDeletePortfolioOrdersBatched(this.extend(new java.util.HashMap<String, Object>() {{
-                    put( "ids", batchIds );
-                }}, parameters))).join();
-                Object batchResult = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object batchResultLength = Helpers.getArrayLength(batchResult);
-                for (var j = 0; Helpers.isLessThan(j, batchResultLength); j++)
-                {
-                    ((java.util.List<Object>)canceledOrders).add(Helpers.GetValue(batchResult, j));
-                }
-                remainingLength = Helpers.getArrayLength(remaining);
             }
             return this.parseOrders(canceledOrders);
         });
@@ -1795,6 +1793,7 @@ final Object finalOi = oi;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            this.requireEventQuery(parameters);
             Object queries = this.parseSearchQueries(parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries")));
             // map the unified status onto the kalshi event status (open / closed) so it is pushed server-side

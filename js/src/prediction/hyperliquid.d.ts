@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/hyperliquid.js';
-import type { Int, int, Str, Num, Dict, Market, OrderBook, OHLCV, Balances, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
+import type { Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -57,11 +57,11 @@ export default class hyperliquid extends Exchange {
      * @ignore
      * @method
      * @name hyperliquid#buildOutcomeSymbol
-     * @description builds a human-readable outcome symbol from a parsed description and side, e.g. BTC-ABOVE-78213-20260503:YES for side 0 and BTC-ABOVE-78213-20260503:NO for side 1
+     * @description builds a human-readable outcome from a parsed description and side, e.g. BTC-ABOVE-78213-20260503:YES for side 0 and BTC-ABOVE-78213-20260503:NO for side 1
      * @param {object} desc parsed outcome description
      * @param {int} side outcome side, 0 = YES, 1 = NO
      * @param {int} outcomeId integer outcome id
-     * @returns {string} the outcome symbol
+     * @returns {string} the outcome
      */
     buildOutcomeSymbol(desc: Dict, side: number, outcomeId: number): string;
     /**
@@ -77,12 +77,12 @@ export default class hyperliquid extends Exchange {
      * @ignore
      * @method
      * @name hyperliquid#buildOutcomeParentSymbol
-     * @description builds a market id (parent symbol without YES/NO) from a parsed description, e.g. BTC-ABOVE-78213-20260503 for priceBinary outcomes or OUTCOME-9345 for non-priceBinary outcomes using the name field
+     * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC-ABOVE-78213-20260503 for priceBinary outcomes or OUTCOME-9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
      * @param {int} outcomeId integer outcome id
      * @param {string} [name] outcome name
      * @param {object} [question] linked question object from outcomeMeta
-     * @returns {string} the parent market symbol
+     * @returns {string} the parent market outcome
      */
     buildOutcomeParentSymbol(desc: Dict, outcomeId: number, name?: string, question?: Dict): string;
     /**
@@ -121,21 +121,21 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#fetchTicker
      * @description fetches a ticker for a single outcome market using the L2 order book snapshot
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
-     * @param {string} symbol unified outcome symbol (e.g. 'BTC-ABOVE-78213-20260503:YES')
+     * @param {string} outcome unified outcome (e.g. 'BTC-ABOVE-78213-20260503:YES')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTicker(symbol: string, params?: {}): Promise<PredictionTicker>;
+    fetchTicker(outcome: string, params?: {}): Promise<PredictionTicker>;
     /**
      * @method
      * @name hyperliquid#fetchTickers
      * @description fetches all outcome market tickers using allMids then optionally enriches with l2Book
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-mids-for-all-actively-traded-coins
-     * @param {string[]} [symbols] filter by outcome ids or symbols
+     * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<PredictionTickers>;
+    fetchTickers(outcomes?: Strings, params?: {}): Promise<PredictionTickers>;
     /**
      * @ignore
      * @method
@@ -151,18 +151,18 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#fetchOrderBook
      * @description fetches the L2 order book for an outcome market
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {int} [limit] max depth levels (not used by hyperliquid but accepted)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(outcome: string, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name hyperliquid#fetchOHLCV
      * @description fetches candlestick OHLCV data for an outcome market
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {string} timeframe '1m', '5m', '15m', '1h', '4h', '1d', etc.
      * @param {int} [since] timestamp in ms of earliest candle
      * @param {int} [limit] max number of candles
@@ -170,7 +170,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] end timestamp in ms
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(outcome: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     /**
      * @ignore
      * @method
@@ -194,13 +194,14 @@ export default class hyperliquid extends Exchange {
     /**
      * @method
      * @name hyperliquid#fetchPositions
-     * @description fetches outcome token positions from spot clearinghouse state, outcome tokens appear as spot token balances starting with '+'
-     * @param {string[]} [symbols] filter by outcome ids or symbols
+     * @description fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
+     * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<PredictionPosition[]>;
+    fetchPositions(outcomes?: Strings, params?: {}): Promise<PredictionPosition[]>;
     /**
      * @ignore
      * @method
@@ -219,7 +220,7 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#createOrder
      * @description creates a limit or market order for an outcome market
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount quantity of outcome tokens
@@ -233,37 +234,37 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrder(symbol: string, type: string, side: string, amount: number, price?: Num, params?: {}): Promise<PredictionOrder>;
+    createOrder(outcome: string, type: string, side: string, amount: number, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name hyperliquid#cancelOrder
      * @description cancels a single open order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
      * @param {string} id order id
-     * @param {string} [symbol] unified outcome symbol
+     * @param {string} [outcome] unified outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] cancel by client order id
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<PredictionOrder>;
+    cancelOrder(id: string, outcome?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name hyperliquid#cancelOrders
      * @description cancels multiple open orders
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
      * @param {string[]} ids order ids
-     * @param {string} [symbol] unified outcome symbol (required)
+     * @param {string} [outcome] unified outcome (required)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<PredictionOrder[]>;
+    cancelOrders(ids: string[], outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name hyperliquid#fetchOpenOrders
      * @description fetches currently open orders for the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
-     * @param {string} [symbol] filter by outcome symbol
+     * @param {string} [outcome] filter by outcome
      * @param {int} [since] only return orders updated since this timestamp in ms
      * @param {int} [limit] max number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -271,33 +272,33 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name hyperliquid#fetchOrders
      * @description fetches all historical orders for the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-historical-orders
-     * @param {string} [symbol] filter by outcome symbol
+     * @param {string} [outcome] filter by outcome
      * @param {int} [since] only return orders updated since this timestamp in ms
      * @param {int} [limit] max number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name hyperliquid#fetchOrder
      * @description fetches a single order by id
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
      * @param {string} id order id
-     * @param {string} [symbol] outcome symbol
+     * @param {string} [outcome] outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {string} [params.clientOrderId] fetch by client order id instead
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<PredictionOrder>;
+    fetchOrder(id: string, outcome?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -313,10 +314,22 @@ export default class hyperliquid extends Exchange {
     parseTimeInForce(timeInForce: Str): Str;
     /**
      * @method
+     * @name hyperliquid#fetchTrades
+     * @description fetches the most recent public trades for an outcome
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-coins-recent-trades
+     * @param {string} outcome unified outcome
+     * @param {int} [since] only return trades at or after this timestamp in ms
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    fetchTrades(outcome: string, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    /**
+     * @method
      * @name hyperliquid#fetchMyTrades
      * @description fetches the authenticated user's fill history
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
-     * @param {string} [symbol] filter by outcome symbol
+     * @param {string} [outcome] filter by outcome
      * @param {int} [since] start timestamp in ms
      * @param {int} [limit] max number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -324,7 +337,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] end timestamp in ms
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     /**
      * @ignore
      * @method
@@ -340,11 +353,11 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#fetchEvents
      * @description Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
      * @param {object} [params] extra parameters
-     * @param {string} [params.query] a single query string to filter by (matches description/symbol)
+     * @param {string} [params.query] a single query string to filter by (matches description/outcome)
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @returns {PredictionEvent[]} array of event structures
      */
-    fetchEvents(params?: {}): Promise<PredictionEvent[]>;
+    fetchEvents(params?: fetchEventsParams): Promise<PredictionEvent[]>;
     /**
      * @ignore
      * @method
@@ -362,7 +375,7 @@ export default class hyperliquid extends Exchange {
     constructPhantomAgent(hash: any, isTestnet?: boolean): Dict;
     actionHash(action: Dict, vaultAddress: Str, nonce: number): any;
     signL1Action(action: Dict, nonce: number, vaultAddress?: Str): Dict;
-    initializeClient(): Promise<void>;
+    initializeClient(): Promise<any>;
     handlePublicAddress(methodName: string, params: Dict): any;
     formatVaultAddress(address?: Str): Str;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {

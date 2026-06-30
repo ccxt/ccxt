@@ -7,130 +7,130 @@
 
 package ccxtprediction
 
-func (this *MyriadCore) MyriadPublicGetQuestions (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetQuestions", args...)
+func (this *MyriadCore) MyriadPublicGetQuestions(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetQuestions", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetQuestionsId (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetQuestionsId", args...)
+func (this *MyriadCore) MyriadPublicGetQuestionsId(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetQuestionsId", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetMarkets (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetMarkets", args...)
+func (this *MyriadCore) MyriadPublicGetMarkets(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetMarkets", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetMarketsId (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetMarketsId", args...)
+func (this *MyriadCore) MyriadPublicGetMarketsId(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetMarketsId", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetMarketsNetworkIdId (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetMarketsNetworkIdId", args...)
+func (this *MyriadCore) MyriadPublicGetMarketsNetworkIdId(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetMarketsNetworkIdId", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetMarketsIdEvents (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetMarketsIdEvents", args...)
+func (this *MyriadCore) MyriadPublicGetMarketsIdEvents(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetMarketsIdEvents", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetMarketsIdOrderbook (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetMarketsIdOrderbook", args...)
+func (this *MyriadCore) MyriadPublicGetMarketsIdOrderbook(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetMarketsIdOrderbook", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetMarketsIdTrades (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetMarketsIdTrades", args...)
+func (this *MyriadCore) MyriadPublicGetMarketsIdTrades(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetMarketsIdTrades", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetMarketsIdHolders (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetMarketsIdHolders", args...)
+func (this *MyriadCore) MyriadPublicGetMarketsIdHolders(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetMarketsIdHolders", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetMarketsIdReferrals (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetMarketsIdReferrals", args...)
+func (this *MyriadCore) MyriadPublicGetMarketsIdReferrals(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetMarketsIdReferrals", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetEvents (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetEvents", args...)
+func (this *MyriadCore) MyriadPublicGetEvents(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetEvents", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetOrders (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetOrders", args...)
+func (this *MyriadCore) MyriadPublicGetOrders(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetOrders", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetOrdersHash (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetOrdersHash", args...)
+func (this *MyriadCore) MyriadPublicGetOrdersHash(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetOrdersHash", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetUsersAddressEvents (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetUsersAddressEvents", args...)
+func (this *MyriadCore) MyriadPublicGetUsersAddressEvents(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetUsersAddressEvents", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetUsersAddressReferrals (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetUsersAddressReferrals", args...)
+func (this *MyriadCore) MyriadPublicGetUsersAddressReferrals(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetUsersAddressReferrals", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetUsersAddressPortfolio (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetUsersAddressPortfolio", args...)
+func (this *MyriadCore) MyriadPublicGetUsersAddressPortfolio(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetUsersAddressPortfolio", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetUsersAddressMarkets (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetUsersAddressMarkets", args...)
+func (this *MyriadCore) MyriadPublicGetUsersAddressMarkets(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetUsersAddressMarkets", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetTags (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetTags", args...)
+func (this *MyriadCore) MyriadPublicGetTags(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetTags", args...)
 }
 
-func (this *MyriadCore) MyriadPublicGetTopics (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicGetTopics", args...)
+func (this *MyriadCore) MyriadPublicGetTopics(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicGetTopics", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostMarketsQuote (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostMarketsQuote", args...)
+func (this *MyriadCore) MyriadPublicPostMarketsQuote(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostMarketsQuote", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostMarketsClaim (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostMarketsClaim", args...)
+func (this *MyriadCore) MyriadPublicPostMarketsClaim(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostMarketsClaim", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostOrders (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostOrders", args...)
+func (this *MyriadCore) MyriadPublicPostOrders(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostOrders", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostOrdersCancelBatch (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostOrdersCancelBatch", args...)
+func (this *MyriadCore) MyriadPublicPostOrdersCancelBatch(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostOrdersCancelBatch", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostOrdersCancelAll (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostOrdersCancelAll", args...)
+func (this *MyriadCore) MyriadPublicPostOrdersCancelAll(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostOrdersCancelAll", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostPositionsSplit (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostPositionsSplit", args...)
+func (this *MyriadCore) MyriadPublicPostPositionsSplit(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostPositionsSplit", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostPositionsMerge (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostPositionsMerge", args...)
+func (this *MyriadCore) MyriadPublicPostPositionsMerge(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostPositionsMerge", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostPositionsRedeem (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostPositionsRedeem", args...)
+func (this *MyriadCore) MyriadPublicPostPositionsRedeem(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostPositionsRedeem", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostPositionsRedeemVoided (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostPositionsRedeemVoided", args...)
+func (this *MyriadCore) MyriadPublicPostPositionsRedeemVoided(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostPositionsRedeemVoided", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostPositionsNegRiskSplit (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostPositionsNegRiskSplit", args...)
+func (this *MyriadCore) MyriadPublicPostPositionsNegRiskSplit(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostPositionsNegRiskSplit", args...)
 }
 
-func (this *MyriadCore) MyriadPublicPostPositionsNegRiskMerge (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicPostPositionsNegRiskMerge", args...)
+func (this *MyriadCore) MyriadPublicPostPositionsNegRiskMerge(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicPostPositionsNegRiskMerge", args...)
 }
 
-func (this *MyriadCore) MyriadPublicDeleteOrdersHash (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPublicDeleteOrdersHash", args...)
+func (this *MyriadCore) MyriadPublicDeleteOrdersHash(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPublicDeleteOrdersHash", args...)
 }
 
-func (this *MyriadCore) MyriadPrivatePostMarketsQuoteWithFee (args ...any) <-chan any {
-   return this.CallEndpointAsync("myriadPrivatePostMarketsQuoteWithFee", args...)
+func (this *MyriadCore) MyriadPrivatePostMarketsQuoteWithFee(args ...any) <-chan any {
+	return this.CallEndpointAsync("myriadPrivatePostMarketsQuoteWithFee", args...)
 }

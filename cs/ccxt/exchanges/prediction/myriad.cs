@@ -916,7 +916,7 @@ public partial class myriad : PredictionExchange
         for (object i = 0; isLessThan(i, ordersLength); postFixIncrement(ref i))
         {
             object o = getValue(orders, i);
-            object outcome = this.safeString(o, "symbol");
+            object outcome = this.safeString(o, "outcome");
             object type = this.safeString(o, "type");
             object side = this.safeString(o, "side");
             object amount = this.safeNumber(o, "amount");
@@ -2657,6 +2657,7 @@ public partial class myriad : PredictionExchange
     public async override Task<object> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        this.requireEventQuery(parameters);
         object queries = this.parseSearchQueries(parameters);
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "sort", "searchIn", "eventId", "slug", "status"});
         object queriesLength = getArrayLength(queries);

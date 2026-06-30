@@ -845,7 +845,7 @@ class myriad extends Exchange {
             $result = array();
             for ($i = 0; $i < $ordersLength; $i++) {
                 $o = $orders[$i];
-                $outcome = $this->safe_string($o, 'symbol');
+                $outcome = $this->safe_string($o, 'outcome');
                 $type = $this->safe_string($o, 'type');
                 $side = $this->safe_string($o, 'side');
                 $amount = $this->safe_number($o, 'amount');
@@ -2425,6 +2425,7 @@ class myriad extends Exchange {
              * @param {string} [$params->state] 'open', 'closed' or 'resolved', defaults to 'open'
              * @return {array[]} an array of event structures
              */
+            $this->require_event_query($params);
             $queries = $this->parse_search_queries($params);
             $rest = $this->omit($params, array( 'query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status' ));
             $queriesLength = count($queries);

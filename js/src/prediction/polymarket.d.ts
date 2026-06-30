@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/polymarket.js';
-import type { Int, Str, Num, Dict, Market, PredictionTickers, OrderBook, OHLCV, OrderRequest, Balances, Strings, OpenInterest, TradingFeeInterface, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
+import type { Int, Str, Num, Dict, Market, PredictionTickers, PredictionOrderBook, OHLCV, PredictionOrderRequest, Balances, Strings, PredictionOpenInterest, PredictionTradingFee, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams } from '../base/types.js';
 /**
  * @class polymarket
  * @augments Exchange
@@ -51,22 +51,22 @@ export default class polymarket extends Exchange {
      * @description fetches the current mid-price and best bid/ask for a single outcome token
      * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
-     * @param {string} symbol unified outcome symbol like TRUMP_DANCE_TODAY_997:YES or an outcome token id
+     * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTicker(symbol: string, params?: {}): Promise<PredictionTicker>;
+    fetchTicker(outcome: string, params?: {}): Promise<PredictionTicker>;
     /**
      * @method
      * @name polymarket#fetchTickers
      * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
      * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
-     * @param {string[]} [symbols] unified outcome symbols or outcome token ids, fetches all loaded outcomes when omitted
+     * @param {string[]} [outcomes] unified outcomes or outcome token ids, fetches all loaded outcomes when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<PredictionTickers>;
+    fetchTickers(outcomes?: Strings, params?: {}): Promise<PredictionTickers>;
     /**
      * @ignore
      * @method
@@ -82,25 +82,25 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchOrderBook
      * @description fetches the CLOB order book for a single outcome token
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {int} [limit] not used by polymarket fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(outcome: string, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name polymarket#fetchOHLCV
      * @description fetches price history ticks for a single outcome token and buckets them client-side into OHLCV candles, snapping tick timestamps to the candle boundary
      * @see https://docs.polymarket.com/api-reference/markets/get-prices-history
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum number of candles to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(outcome: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -125,59 +125,59 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchOpenInterest
      * @description fetches the open interest of a prediction market outcome
      * @see https://docs.polymarket.com/api-reference/misc/get-open-interest
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    fetchOpenInterest(outcome: string, params?: {}): Promise<PredictionOpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): PredictionOpenInterest;
     /**
      * @method
      * @name polymarket#fetchTradingFee
      * @description fetches the base fee rate for a prediction market outcome token
      * @see https://docs.polymarket.com/api-reference/market-data/get-fee-rate
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFee(outcome: string, params?: {}): Promise<PredictionTradingFee>;
     /**
      * @method
      * @name polymarket#fetchTrades
      * @description fetches public trade history for a single outcome token from the data API
      * @see https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {int} [since] not used by polymarket fetchTrades
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchTrades(outcome: string, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name polymarket#fetchMyTrades
      * @description fetches the authenticated user's trade history from the CLOB, optionally filtered by outcome token
      * @see https://docs.polymarket.com/api-reference/trade/get-trades
-     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {string} [outcome] unified outcome or outcome token id
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name polymarket#fetchOrderTrades
      * @description fetches all the trades made from a single order
      * @see https://docs.polymarket.com/api-reference/trade/get-trades
      * @param {string} id the order id
-     * @param {string} [symbol] unified outcome symbol or outcome token id to narrow the lookup
+     * @param {string} [outcome] unified outcome or outcome token id to narrow the lookup
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchOrderTrades(id: string, outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     /**
      * @ignore
      * @method
@@ -212,21 +212,21 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchPositions
      * @description fetches open outcome token positions for the wallet from the data API
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
-     * @param {string[]} [symbols] unified outcome symbols to filter by
+     * @param {string[]} [outcomes] unified outcomes to filter by
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<PredictionPosition[]>;
+    fetchPositions(outcomes?: Strings, params?: {}): Promise<PredictionPosition[]>;
     /**
      * @method
      * @name polymarket#fetchPosition
      * @description fetches the open position for a single outcome token
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPosition(symbol: string, params?: {}): Promise<PredictionPosition>;
+    fetchPosition(outcome: string, params?: {}): Promise<PredictionPosition>;
     /**
      * @ignore
      * @method
@@ -242,24 +242,24 @@ export default class polymarket extends Exchange {
      * @name polymarket#fetchOpenOrders
      * @description fetches open resting orders for the authenticated user, optionally filtered by outcome token
      * @see https://docs.polymarket.com/api-reference/trade/get-user-orders
-     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {string} [outcome] unified outcome or outcome token id
      * @param {int} [since] not used by polymarket fetchOpenOrders
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name polymarket#fetchOrder
      * @description fetches a single order by id from the CLOB private data endpoint
      * @see https://docs.polymarket.com/api-reference/trade/get-single-order-by-id
      * @param {string} id the order id
-     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {string} [outcome] unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrder(id: Str, symbol?: Str, params?: {}): Promise<PredictionOrder>;
+    fetchOrder(id: Str, outcome?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -284,7 +284,7 @@ export default class polymarket extends Exchange {
      * @name polymarket#createOrder
      * @description places a limit or market order on the CLOB for the given outcome token
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price as the marketable reference
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how many outcome tokens to trade
@@ -300,17 +300,17 @@ export default class polymarket extends Exchange {
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrder(symbol: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
+    createOrder(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name polymarket#createOrders
      * @description places multiple orders on the CLOB in a single batched request
      * @see https://docs.polymarket.com/api-reference/trade/post-orders
-     * @param {object[]} orders a list of order requests, each an object with symbol, type, side, amount, price and optional params (same params as createOrder)
+     * @param {object[]} orders a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrders(orders: OrderRequest[], params?: {}): Promise<PredictionOrder[]>;
+    createOrders(orders: PredictionOrderRequest[], params?: {}): Promise<PredictionOrder[]>;
     /**
      * @ignore
      * @method
@@ -318,53 +318,53 @@ export default class polymarket extends Exchange {
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    buildClobOrderBody(symbol: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<Dict>;
+    buildClobOrderBody(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
     /**
      * @method
      * @name polymarket#createMarketBuyOrderWithCost
      * @description places a market buy order sized by USDC cost (how much to spend) rather than shares
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
-     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} outcome unified outcome or outcome token id
      * @param {float} cost the amount of USDC to spend
      * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<PredictionOrder>;
+    createMarketBuyOrderWithCost(outcome: string, cost: number, params?: {}): Promise<PredictionOrder>;
     polymarketOrderRawAmounts(side: string, size: number, price: number, tickSize: string, cost?: Num): Dict;
-    signClobOrder(message: Dict, exchangeAddress: string, domainVersion: string, signatureType: number): string;
+    signClobOrder(message: Dict, exchangeAddress: string, domainVersion: string, sigType: number): string;
     /**
      * @method
      * @name polymarket#cancelOrder
      * @description cancels a single open order by id on the CLOB
      * @see https://docs.polymarket.com/api-reference/trade/cancel-single-order
      * @param {string} id the order id
-     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {string} [outcome] unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrder(id: Str, symbol?: Str, params?: {}): Promise<PredictionOrder>;
+    cancelOrder(id: Str, outcome?: Str, params?: {}): Promise<PredictionOrder>;
     /**
      * @method
      * @name polymarket#cancelOrders
      * @description cancels multiple open orders by id on the CLOB in a single request
      * @see https://docs.polymarket.com/api-reference/trade/cancel-orders
      * @param {string[]} ids the order ids to cancel
-     * @param {string} [symbol] not used by polymarket cancelOrders
+     * @param {string} [outcome] not used by polymarket cancelOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<PredictionOrder[]>;
+    cancelOrders(ids: string[], outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name polymarket#cancelAllOrders
      * @description cancels all open orders on the CLOB, optionally scoped to one outcome token
      * @see https://docs.polymarket.com/api-reference/trade/cancel-all-orders
      * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
-     * @param {string} [symbol] unified outcome symbol or outcome token id; when given only that outcome's orders are cancelled
+     * @param {string} [outcome] unified outcome or outcome token id; when given only that outcome's orders are cancelled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<PredictionOrder[]>;
+    cancelAllOrders(outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name polymarket#fetchEvents
@@ -372,12 +372,17 @@ export default class polymarket extends Exchange {
      * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
      * @see https://docs.polymarket.com/api-reference/events/list-events
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted (and no queries) the most active events are returned (capped)
+     * @param {string} [params.query] a single keyword search term
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
-     * @param {int} [params.limit] when searching, page size per query (default 50); when omitted, max events to fetch (default options.fetchMarketsLimit, 1000), ordered by 24h volume
+     * @param {int} [params.limit] max number of events to return
+     * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
+     * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
+     * @param {string} [params.searchIn] when searching, restrict the match to 'title' (default), 'description' or 'both'
+     * @param {string} [params.eventId] direct lookup by event id (short-circuits the listing/search)
+     * @param {string} [params.slug] direct lookup by event slug
      * @returns {object[]} an array of event structures
      */
-    fetchEvents(params?: {}): Promise<PredictionEvent[]>;
+    fetchEvents(params?: fetchEventsParams): Promise<PredictionEvent[]>;
     /**
      * @method
      * @name polymarket#fetchEvent
@@ -460,6 +465,7 @@ export default class polymarket extends Exchange {
      * @description ensures L2 api credentials are available for private requests — uses the provided apiKey/secret/password when present, otherwise derives them from the privateKey
      */
     loadApiCredentials(): Promise<void>;
+    ping(client: any): string;
     handleMessage(client: any, message: any): void;
     handleOrderBookSnapshot(client: any, event: any): void;
     handleOrderBookDelta(client: any, event: any): void;
@@ -468,56 +474,56 @@ export default class polymarket extends Exchange {
      * @method
      * @name polymarket#watchOrderBook
      * @description streams live order-book updates for a single Polymarket outcome token
-     * @param {string} symbol unified outcome symbol (e.g. "ELECTION/YES:USDC")
+     * @param {string} outcome unified outcome (e.g. "ELECTION/YES:USDC")
      * @param {int} [limit] optional depth limit applied after resolving
      * @param {object} [params] extra params (currently unused)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
-    watchOrderBook(symbol: Str, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name polymarket#watchTrades
      * @description streams live fills for a single Polymarket outcome token
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {int} [since] optional unix timestamp (ms) lower bound
      * @param {int} [limit] optional max number of trades to return
      * @param {object} [params] extra params (unused)
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    watchTrades(symbol: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    watchTrades(outcome: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name polymarket#watchTicker
      * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
-     * @param {string} symbol unified outcome symbol
+     * @param {string} outcome unified outcome
      * @param {object} [params] extra params (unused)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    watchTicker(symbol: Str, params?: {}): Promise<PredictionTicker>;
+    watchTicker(outcome: Str, params?: {}): Promise<PredictionTicker>;
     /**
      * @method
      * @name polymarket#watchOrders
      * @description watches the authenticated user's order updates over the CLOB user websocket channel
      * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
-     * @param {string} [symbol] unified outcome symbol to filter the stream to one market
+     * @param {string} [outcome] unified outcome to filter the stream to one market
      * @param {int} [since] the earliest time in ms to return orders for
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name polymarket#watchMyTrades
      * @description watches the authenticated user's trade fills over the CLOB user websocket channel
      * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
-     * @param {string} [symbol] unified outcome symbol to filter the stream to one market
+     * @param {string} [outcome] unified outcome to filter the stream to one market
      * @param {int} [since] the earliest time in ms to return trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
     subscribeUserChannel(messageHash: string, params?: {}): Promise<any>;
     handleOrder(client: any, event: any): void;
     handleMyTrade(client: any, event: any): void;

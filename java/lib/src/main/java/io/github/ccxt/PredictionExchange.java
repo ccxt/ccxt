@@ -56,7 +56,7 @@ public Object isPrediction()
         {
             if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(this.outcomes, outcome))) && !Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcome)))))
             {
-                throw new ArgumentsRequired((String)"The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents") ;
+                throw new BadSymbol((String)Helpers.add(this.id, " the specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents")) ;
             }
         }
     }
@@ -71,6 +71,23 @@ public Object isPrediction()
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(singleQuery));
         }
         return this.safeList(parameters, "queries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+    }
+
+    public Object requireEventQuery(Object... optionalArgs)
+    {
+        // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
+        // entire exchange. require one of query / queries / tags / eventId / slug
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        Object query = this.safeString(parameters, "query");
+        Object queries = this.safeList(parameters, "queries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object tags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object eventId = this.safeString(parameters, "eventId");
+        Object slug = this.safeString(parameters, "slug");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(query, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(queries), 0)))) && Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(tags), 0)))) && Helpers.isTrue((Helpers.isEqual(eventId, null)))) && Helpers.isTrue((Helpers.isEqual(slug, null)))))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search")) ;
+        }
+        return null;
     }
 
     public Object applyEventFetchParams(Object events, Object... optionalArgs)
@@ -98,7 +115,14 @@ public Object isPrediction()
             result = filtered;
         }
         result = this.filterEventsByStatus(result, this.safeString(parameters, "status"));
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(queries, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getArrayLength(queries), 0)))))
+        // own-line length read so the regex transpiler treats `queries` as an array (count())
+        // and not a string (strlen()); guard undefined since the default is undefined
+        Object queriesLength = 0;
+        if (Helpers.isTrue(!Helpers.isEqual(queries, null)))
+        {
+            queriesLength = Helpers.getArrayLength(queries);
+        }
+        if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
         {
             result = this.filterEventsBySearchIn(result, queries, this.safeString(parameters, "searchIn"));
         }
@@ -155,8 +179,14 @@ public Object isPrediction()
     public Object filterEventsBySearchIn(Object events, Object queries, Object... optionalArgs)
     {
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
+        // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
         Object searchIn = Helpers.getArg(optionalArgs, 0, null);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(searchIn, null))) || Helpers.isTrue((Helpers.isEqual(queries, null)))) || Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(queries), 0)))))
+        Object queriesLength = 0;
+        if (Helpers.isTrue(!Helpers.isEqual(queries, null)))
+        {
+            queriesLength = Helpers.getArrayLength(queries);
+        }
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(searchIn, null))) || Helpers.isTrue((Helpers.isEqual(queries, null)))) || Helpers.isTrue((Helpers.isEqual(queriesLength, 0)))))
         {
             return events;
         }
@@ -444,6 +474,14 @@ public Object isPrediction()
         }
     }
 
+    /**
+     * @method
+     * @name fetchTicker
+     * @description fetches a price ticker for a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
     public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object outcome, Object... optionalArgs)
     {
 
@@ -455,6 +493,15 @@ public Object isPrediction()
 
     }
 
+    /**
+     * @method
+     * @name fetchOrderBook
+     * @description fetches the order book for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
@@ -467,6 +514,17 @@ public Object isPrediction()
 
     }
 
+    /**
+     * @method
+     * @name fetchOHLCV
+     * @description fetches historical candlestick data for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public java.util.concurrent.CompletableFuture<Object> fetchOHLCV(Object outcome, Object... optionalArgs)
     {
 
@@ -481,6 +539,16 @@ public Object isPrediction()
 
     }
 
+    /**
+     * @method
+     * @name fetchTrades
+     * @description get the list of most recent trades for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
     public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object outcome, Object... optionalArgs)
     {
 
@@ -494,6 +562,18 @@ public Object isPrediction()
 
     }
 
+    /**
+     * @method
+     * @name createOrder
+     * @description create a trade order on a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how many shares of the outcome to trade
+     * @param {float} [price] the price at which the order is to be filled, in cost per share
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
@@ -506,6 +586,15 @@ public Object isPrediction()
 
     }
 
+    /**
+     * @method
+     * @name cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
     {
 
@@ -518,6 +607,14 @@ public Object isPrediction()
 
     }
 
+    /**
+     * @method
+     * @name watchTicker
+     * @description watches a price ticker for a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
     public java.util.concurrent.CompletableFuture<Object> watchTicker(Object outcome, Object... optionalArgs)
     {
 
@@ -529,6 +626,15 @@ public Object isPrediction()
 
     }
 
+    /**
+     * @method
+     * @name watchOrderBook
+     * @description watches the order book for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object outcome, Object... optionalArgs)
     {
 
@@ -541,6 +647,16 @@ public Object isPrediction()
 
     }
 
+    /**
+     * @method
+     * @name watchTrades
+     * @description watches the most recent trades for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
     public java.util.concurrent.CompletableFuture<Object> watchTrades(Object outcome, Object... optionalArgs)
     {
 
@@ -550,6 +666,340 @@ public Object isPrediction()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             return (super.watchTrades(outcome, since, limit, parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name fetchMyTrades
+     * @description fetch all trades made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name fetchPosition
+     * @description fetch the open position held on a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object outcome, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name fetchTradingFee
+     * @description fetch the trading fee for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object outcome, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name fetchOpenInterest
+     * @description fetch the open interest of a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object outcome, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name createOrders
+     * @description create a list of trade orders
+     * @param {object[]} orders a list of PredictionOrderRequest objects, each carrying an `outcome` handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " createOrders() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name cancelOrders
+     * @description cancel multiple orders
+     * @param {string[]} ids order ids
+     * @param {string} [outcome] unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name createMarketBuyOrderWithCost
+     * @description create a market buy order on a prediction outcome by providing the cost
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost how much you want to spend, in cost terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.options, "createMarketBuyOrderRequiresPrice")) || Helpers.isTrue(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"))))
+            {
+                return (this.createOrder(outcome, "market", "buy", cost, 1, parameters)).join();
+            }
+            throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name createMarketSellOrderWithCost
+     * @description create a market sell order on a prediction outcome by providing the cost
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost how much you want to receive, in cost terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.options, "createMarketSellOrderRequiresPrice")) || Helpers.isTrue(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"))))
+            {
+                return (this.createOrder(outcome, "market", "sell", cost, 1, parameters)).join();
+            }
+            throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name watchTickers
+     * @description watches price tickers for multiple prediction outcomes
+     * @param {string[]} [outcomes] unified outcome handles to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchTickers(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcomes = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " watchTickers() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name watchOrders
+     * @description watches information on multiple orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to watch
+     * @param {int} [limit] the maximum number of orders to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " watchOrders() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name watchMyTrades
+     * @description watches all trades made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to watch
+     * @param {int} [limit] the maximum number of trades to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchMyTrades(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name watchPositions
+     * @description watches the open positions held by the user
+     * @param {string[]} [outcomes] unified outcome handles to watch
+     * @param {int} [since] timestamp in ms of the earliest position to watch
+     * @param {int} [limit] the maximum number of positions to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchPositions(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcomes = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " watchPositions() is not supported yet")) ;
         });
 
     }

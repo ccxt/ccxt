@@ -39,7 +39,7 @@ public partial class PredictionExchange : Exchange
         {
             if (isTrue(!isTrue((inOp(this.outcomes, outcome))) && !isTrue((inOp(this.outcomes_by_id, outcome)))))
             {
-                throw new ArgumentsRequired ((string)"The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents") ;
+                throw new BadSymbol ((string)add(this.id, " the specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents")) ;
             }
         }
     }
@@ -54,6 +54,23 @@ public partial class PredictionExchange : Exchange
             return new List<object>() {singleQuery};
         }
         return this.safeList(parameters, "queries", new List<object>() {});
+    }
+
+    public virtual object requireEventQuery(object parameters = null)
+    {
+        // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
+        // entire exchange. require one of query / queries / tags / eventId / slug
+        parameters ??= new Dictionary<string, object>();
+        object query = this.safeString(parameters, "query");
+        object queries = this.safeList(parameters, "queries", new List<object>() {});
+        object tags = this.safeList(parameters, "tags", new List<object>() {});
+        object eventId = this.safeString(parameters, "eventId");
+        object slug = this.safeString(parameters, "slug");
+        if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(query, null))) && isTrue((isEqual(getArrayLength(queries), 0)))) && isTrue((isEqual(getArrayLength(tags), 0)))) && isTrue((isEqual(eventId, null)))) && isTrue((isEqual(slug, null)))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search")) ;
+        }
+        return null;
     }
 
     public virtual object applyEventFetchParams(object events, object parameters = null, object queries = null)
@@ -80,7 +97,14 @@ public partial class PredictionExchange : Exchange
             result = filtered;
         }
         result = this.filterEventsByStatus(result, this.safeString(parameters, "status"));
-        if (isTrue(isTrue((!isEqual(queries, null))) && isTrue((isGreaterThan(getArrayLength(queries), 0)))))
+        // own-line length read so the regex transpiler treats `queries` as an array (count())
+        // and not a string (strlen()); guard undefined since the default is undefined
+        object queriesLength = 0;
+        if (isTrue(!isEqual(queries, null)))
+        {
+            queriesLength = getArrayLength(queries);
+        }
+        if (isTrue(isGreaterThan(queriesLength, 0)))
         {
             result = this.filterEventsBySearchIn(result, queries, this.safeString(parameters, "searchIn"));
         }
@@ -136,7 +160,13 @@ public partial class PredictionExchange : Exchange
     public virtual object filterEventsBySearchIn(object events, object queries, object searchIn = null)
     {
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
-        if (isTrue(isTrue(isTrue((isEqual(searchIn, null))) || isTrue((isEqual(queries, null)))) || isTrue((isEqual(getArrayLength(queries), 0)))))
+        // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
+        object queriesLength = 0;
+        if (isTrue(!isEqual(queries, null)))
+        {
+            queriesLength = getArrayLength(queries);
+        }
+        if (isTrue(isTrue(isTrue((isEqual(searchIn, null))) || isTrue((isEqual(queries, null)))) || isTrue((isEqual(queriesLength, 0)))))
         {
             return events;
         }
@@ -400,18 +430,46 @@ public partial class PredictionExchange : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name fetchTicker
+     * @description fetches a price ticker for a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await base.fetchTicker(outcome, parameters);
     }
 
+    /**
+     * @method
+     * @name fetchOrderBook
+     * @description fetches the order book for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await base.fetchOrderBook(outcome, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name fetchOHLCV
+     * @description fetches historical candlestick data for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
@@ -419,40 +477,334 @@ public partial class PredictionExchange : Exchange
         return await base.fetchOHLCV(outcome, timeframe, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name fetchTrades
+     * @description get the list of most recent trades for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await base.fetchTrades(outcome, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name createOrder
+     * @description create a trade order on a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how many shares of the outcome to trade
+     * @param {float} [price] the price at which the order is to be filled, in cost per share
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await base.createOrder(outcome, type, side, amount, price, parameters);
     }
 
+    /**
+     * @method
+     * @name cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await base.cancelOrder(id, outcome, parameters);
     }
 
+    /**
+     * @method
+     * @name watchTicker
+     * @description watches a price ticker for a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
     public async override Task<object> watchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await base.watchTicker(outcome, parameters);
     }
 
+    /**
+     * @method
+     * @name watchOrderBook
+     * @description watches the order book for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [limit] the maximum number of order book entries to return
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
     public async override Task<object> watchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await base.watchOrderBook(outcome, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name watchTrades
+     * @description watches the most recent trades for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
     public async override Task<object> watchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await base.watchTrades(outcome, since, limit, parameters);
+    }
+
+    /**
+     * @method
+     * @name fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrders() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> fetchClosedOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchClosedOrders() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public async override Task<object> fetchOrderTrades(object id, object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrderTrades() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name fetchMyTrades
+     * @description fetch all trades made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMyTrades() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name fetchPosition
+     * @description fetch the open position held on a single prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    public async override Task<object> fetchPosition(object outcome, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPosition() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name fetchTradingFee
+     * @description fetch the trading fee for a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+     */
+    public async override Task<object> fetchTradingFee(object outcome, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTradingFee() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name fetchOpenInterest
+     * @description fetch the open interest of a prediction outcome
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
+    public async override Task<object> fetchOpenInterest(object outcome, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOpenInterest() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name createOrders
+     * @description create a list of trade orders
+     * @param {object[]} orders a list of PredictionOrderRequest objects, each carrying an `outcome` handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> createOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createOrders() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name cancelOrders
+     * @description cancel multiple orders
+     * @param {string[]} ids order ids
+     * @param {string} [outcome] unified outcome handle
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelOrders() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name createMarketBuyOrderWithCost
+     * @description create a market buy order on a prediction outcome by providing the cost
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost how much you want to spend, in cost terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> createMarketBuyOrderWithCost(object outcome, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isTrue(getValue(this.options, "createMarketBuyOrderRequiresPrice")) || isTrue(getValue(this.has, "createMarketBuyOrderWithCost"))))
+        {
+            return await this.createOrder(outcome, "market", "buy", cost, 1, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name createMarketSellOrderWithCost
+     * @description create a market sell order on a prediction outcome by providing the cost
+     * @param {string} outcome unified outcome handle
+     * @param {float} cost how much you want to receive, in cost terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> createMarketSellOrderWithCost(object outcome, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isTrue(getValue(this.options, "createMarketSellOrderRequiresPrice")) || isTrue(getValue(this.has, "createMarketSellOrderWithCost"))))
+        {
+            return await this.createOrder(outcome, "market", "sell", cost, 1, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name watchTickers
+     * @description watches price tickers for multiple prediction outcomes
+     * @param {string[]} [outcomes] unified outcome handles to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    public async override Task<object> watchTickers(object outcomes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchTickers() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name watchOrders
+     * @description watches information on multiple orders made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to watch
+     * @param {int} [limit] the maximum number of orders to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<object> watchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchOrders() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name watchMyTrades
+     * @description watches all trades made by the user
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest trade to watch
+     * @param {int} [limit] the maximum number of trades to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public async override Task<object> watchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchMyTrades() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name watchPositions
+     * @description watches the open positions held by the user
+     * @param {string[]} [outcomes] unified outcome handles to watch
+     * @param {int} [since] timestamp in ms of the earliest position to watch
+     * @param {int} [limit] the maximum number of positions to watch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    public async override Task<object> watchPositions(object outcomes = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchPositions() is not supported yet")) ;
     }
 
     public virtual object safePredictionOrder(object order, object market = null)
@@ -548,3 +900,166 @@ public partial class PredictionExchange : Exchange
     }
 }
 
+
+
+public partial class PredictionExchange
+{
+    public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters)
+    {
+        var res = await this.fetchEvents(parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    public async Task<Dictionary<string, object>> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchEvent(id, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    public Dictionary<string, object> SetMarkets(object markets, object currencies = null)
+    {
+        var res = this.setMarkets(markets, currencies);
+        return ((Dictionary<string, object>)res);
+    }
+    public async Task<PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTicker(outcome, parameters);
+        return new PredictionTicker(res);
+    }
+    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOrderBook(outcome, limit, parameters);
+        return new PredictionOrderBook(res);
+    }
+    public async Task<List<OHLCV>> FetchOHLCV(string outcome, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOHLCV(outcome, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    public async Task<List<PredictionTrade>> FetchTrades(string outcome, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchTrades(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
+    public async Task<PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createOrder(outcome, type, side, amount, price, parameters);
+        return new PredictionOrder(res);
+    }
+    public async Task<PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrder(id, outcome, parameters);
+        return new PredictionOrder(res);
+    }
+    public async Task<PredictionTicker> WatchTicker(string outcome, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTicker(outcome, parameters);
+        return new PredictionTicker(res);
+    }
+    public async Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchOrderBook(outcome, limit, parameters);
+        return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());
+    }
+    public async Task<List<PredictionTrade>> WatchTrades(string outcome, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchTrades(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
+    public async Task<List<PredictionOrder>> FetchOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    public async Task<List<PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchClosedOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    public async Task<List<PredictionTrade>> FetchOrderTrades(string id, string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOrderTrades(id, outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
+    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMyTrades(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
+    public async Task<PredictionPosition> FetchPosition(string outcome, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPosition(outcome, parameters);
+        return new PredictionPosition(res);
+    }
+    public async Task<PredictionTradingFee> FetchTradingFee(string outcome, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFee(outcome, parameters);
+        return new PredictionTradingFee(res);
+    }
+    public async Task<PredictionOpenInterest> FetchOpenInterest(string outcome, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(outcome, parameters);
+        return new PredictionOpenInterest(res);
+    }
+    public async Task<List<PredictionOrder>> CreateOrders(List<PredictionOrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    public async Task<List<PredictionOrder>> CancelOrders(List<string> ids, string outcome = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, outcome, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    public async Task<PredictionOrder> CreateMarketBuyOrderWithCost(string outcome, double cost, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketBuyOrderWithCost(outcome, cost, parameters);
+        return new PredictionOrder(res);
+    }
+    public async Task<PredictionOrder> CreateMarketSellOrderWithCost(string outcome, double cost, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketSellOrderWithCost(outcome, cost, parameters);
+        return new PredictionOrder(res);
+    }
+    public async Task<PredictionTickers> WatchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTickers(outcomes, parameters);
+        return new PredictionTickers(res);
+    }
+    public async Task<List<PredictionOrder>> WatchOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    public async Task<List<PredictionTrade>> WatchMyTrades(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyTrades(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
+    public async Task<List<PredictionPosition>> WatchPositions(List<String> outcomes = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchPositions(outcomes, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
+    }
+}

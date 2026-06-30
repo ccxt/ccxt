@@ -15,6 +15,10 @@ public partial class polymarket : PredictionExchange
             { "rateLimit", 100 },
             { "certified", false },
             { "pro", true },
+            { "streaming", new Dictionary<string, object>() {
+                { "ping", this.ping },
+                { "keepAlive", 10000 },
+            } },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", false },
@@ -1263,6 +1267,7 @@ public partial class polymarket : PredictionExchange
         }, market);
         ((IDictionary<string,object>)openInterest)["outcome"] = this.safeOutcomeSymbol(null, market);
         ((IDictionary<string,object>)openInterest)["outcomeId"] = this.safeString(market, "outcomeId");
+        ((IDictionary<string,object>)openInterest)["market"] = this.safeString(market, "market");
         ((IDictionary<string,object>)openInterest).Remove((string)"symbol");
         return openInterest;
     }
@@ -1295,6 +1300,7 @@ public partial class polymarket : PredictionExchange
             { "info", response },
             { "outcome", this.safeOutcomeSymbol(null, ((object)outcomeObj)) },
             { "outcomeId", this.safeString(outcomeObj, "outcomeId") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "maker", rate },
             { "taker", rate },
             { "percentage", true },
@@ -1868,7 +1874,7 @@ public partial class polymarket : PredictionExchange
                     { "salt", this.numberToString(this.sum(batchSalt, i)) },
                 });
             }
-            object built = this.buildClobOrderBody(this.safeString(o, "symbol"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
+            object built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
             ((IList<object>)bodies).Add(this.safeDict(built, "body"));
             ((IList<object>)outcomes).Add(this.safeDict(built, "outcome"));
         }
@@ -2325,6 +2331,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<object> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        this.requireEventQuery(parameters);
         object requestedEventId = this.safeString(parameters, "eventId");
         object requestedSlug = this.safeString(parameters, "slug");
         object queries = this.parseSearchQueries(parameters);
@@ -2888,11 +2895,21 @@ public partial class polymarket : PredictionExchange
         throw new AuthenticationError ((string)add(this.id, " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them")) ;
     }
 
+    public override object ping(WebSocketClient client)
+    {
+        // Polymarket keeps the ws alive with a plain-text "PING" (the server replies "PONG"); the
+        // keepAlive interval set in describe.streaming sends it on both the market and user channels
+        return "PING";
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
-        // Polymarket sends "PONG" text frames as keepalive responses; skip them.
+        // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
+        // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
+        // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
         if (isTrue((message is string)))
         {
+            client.lastPong = this.milliseconds();
             return;
         }
         object events = ((bool) isTrue(((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? message : new List<object>() {message};
@@ -2931,9 +2948,10 @@ public partial class polymarket : PredictionExchange
         {
             return;
         }
-        if (isTrue(isEqual(getValue(this.orderbooks, outcome), null)))
+        if (!isTrue((inOp(this.orderbooks, outcome))))
         {
-            ((IDictionary<string,object>)this.orderbooks)[(string)outcome] = this.orderBook(new List<object>() {});
+            object seededBook = this.orderBook(new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.orderbooks)[(string)outcome] = seededBook;
         }
         object orderbook = getValue(this.orderbooks, outcome);
         object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
@@ -2951,12 +2969,15 @@ public partial class polymarket : PredictionExchange
             object a = getValue(rawAsks, j);
             ((IList<object>)asks).Add(new List<object> {this.safeNumber(a, "price"), this.safeNumber(a, "size")});
         }
+        object outcomeObj = this.safeOutcome(outcome);
         (orderbook as IOrderBook).reset(new Dictionary<string, object>() {
             { "bids", bids },
             { "asks", asks },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "outcome", outcome },
+            { "outcomeId", tokenId },
+            { "market", this.safeString(outcomeObj, "market") },
         });
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add("orderbook::", outcome)});
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add("ticker::", outcome)});
@@ -2972,7 +2993,7 @@ public partial class polymarket : PredictionExchange
             object change = getValue(changes, i);
             object tokenId = this.safeString(change, "asset_id");
             object outcome = this.tokenIdToSymbol(tokenId);
-            if (isTrue(isTrue(isEqual(outcome, null)) || isTrue(isEqual(getValue(this.orderbooks, outcome), null))))
+            if (isTrue(isTrue((isEqual(outcome, null))) || !isTrue((inOp(this.orderbooks, outcome)))))
             {
                 continue;
             }
@@ -3032,7 +3053,7 @@ public partial class polymarket : PredictionExchange
         {
             this.trades = new Dictionary<string, object>() {};
         }
-        object stored = getValue(this.trades, outcome);
+        object stored = this.safeValue(this.trades, outcome);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -3116,9 +3137,10 @@ public partial class polymarket : PredictionExchange
             { "assets_ids", new List<object>() {tokenId} },
             { "type", "market" },
         };
-        if (isTrue(isEqual(getValue(this.orderbooks, outcome), null)))
+        if (!isTrue((inOp(this.orderbooks, outcome))))
         {
-            ((IDictionary<string,object>)this.orderbooks)[(string)outcome] = this.orderBook(new List<object>() {});
+            object seededBook = this.orderBook(new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.orderbooks)[(string)outcome] = seededBook;
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
@@ -3320,9 +3342,10 @@ public partial class polymarket : PredictionExchange
         {
             return this.safeString(outcomeObj, "outcome");
         }
-        object marketsById = ((object)this.markets_by_id);
-        object market = ((bool) isTrue((!isEqual(marketsById, null)))) ? getValue(marketsById, tokenId) : null;
-        return ((bool) isTrue(market)) ? ((string)getValue(market, "symbol")) : null;
+        // safe dict/string access: a bare marketsById[tokenId] / market['symbol'] is undefined in JS
+        // but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
+        object market = this.safeDict(this.markets_by_id, tokenId);
+        return this.safeString(market, "symbol");
     }
 
     public virtual object parsePolyTimestamp(object raw)

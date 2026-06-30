@@ -28,6 +28,10 @@ public class PolymarketCore extends PolymarketApi
             put( "rateLimit", 100 );
             put( "certified", false );
             put( "pro", true );
+            put( "streaming", new java.util.HashMap<String, Object>() {{
+                put( "ping", "ping");
+                put( "keepAlive", 10000 );
+            }} );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );
@@ -1347,6 +1351,7 @@ final Object finalMarketSymbol = marketSymbol;
         }}, market);
         Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol(null, market));
         Helpers.addElementToObject(openInterest, "outcomeId", this.safeString(market, "outcomeId"));
+        Helpers.addElementToObject(openInterest, "market", this.safeString(market, "market"));
         ((java.util.Map<String,Object>)openInterest).remove((String)"symbol");
         return openInterest;
     }
@@ -1382,6 +1387,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "info", response );
                 put( "outcome", PolymarketCore.this.safeOutcomeSymbol(null, ((Object)outcomeObj)) );
                 put( "outcomeId", PolymarketCore.this.safeString(outcomeObj, "outcomeId") );
+                put( "market", PolymarketCore.this.safeString(outcomeObj, "market") );
                 put( "maker", rate );
                 put( "taker", rate );
                 put( "percentage", true );
@@ -2031,7 +2037,7 @@ final Object finalMarketSymbol = marketSymbol;
                         put( "salt", PolymarketCore.this.numberToString(PolymarketCore.this.sum(batchSalt, finalI)) );
                     }});
                 }
-                Object built = this.buildClobOrderBody(this.safeString(o, "symbol"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
+                Object built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
                 ((java.util.List<Object>)bodies).add(this.safeDict(built, "body"));
                 ((java.util.List<Object>)outcomes).add(this.safeDict(built, "outcome"));
             }
@@ -2524,6 +2530,7 @@ final Object finalMarketSymbol = marketSymbol;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            this.requireEventQuery(parameters);
             Object requestedEventId = this.safeString(parameters, "eventId");
             Object requestedSlug = this.safeString(parameters, "slug");
             Object queries = this.parseSearchQueries(parameters);
@@ -3124,11 +3131,21 @@ final Object finalMarketSymbol = marketSymbol;
 
     }
 
+    public Object ping(Client client)
+    {
+        // Polymarket keeps the ws alive with a plain-text "PING" (the server replies "PONG"); the
+        // keepAlive interval set in describe.streaming sends it on both the market and user channels
+        return "PING";
+    }
+
     public void handleMessage(Client client, Object message)
     {
-        // Polymarket sends "PONG" text frames as keepalive responses; skip them.
+        // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
+        // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
+        // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
         if (Helpers.isTrue((message instanceof String)))
         {
+            client.lastPong = ((Number)this.milliseconds()).longValue();
             return;
         }
         Object events = ((Helpers.isTrue(Helpers.isArray(message)))) ? message : new java.util.ArrayList<Object>(java.util.Arrays.asList(message));
@@ -3167,9 +3184,10 @@ final Object finalMarketSymbol = marketSymbol;
         {
             return;
         }
-        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.orderbooks, outcome), null)))
+        if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, outcome))))
         {
-            Helpers.addElementToObject(this.orderbooks, outcome, this.orderBook(new java.util.ArrayList<Object>(java.util.Arrays.asList())));
+            Object seededBook = this.orderBook(new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(this.orderbooks, outcome, seededBook);
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, outcome);
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
@@ -3187,6 +3205,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object a = Helpers.GetValue(rawAsks, j);
             ((java.util.List<Object>)asks).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeNumber(a, "price"), this.safeNumber(a, "size"))));
         }
+        Object outcomeObj = this.safeOutcome(outcome);
 final Object finalOutcome = outcome;
                 Helpers.callDynamically(orderbook, "reset", new Object[]{new java.util.HashMap<String, Object>() {{
             put( "bids", bids );
@@ -3194,6 +3213,8 @@ final Object finalOutcome = outcome;
             put( "timestamp", timestamp );
             put( "datetime", PolymarketCore.this.iso8601(timestamp) );
             put( "outcome", finalOutcome );
+            put( "outcomeId", tokenId );
+            put( "market", PolymarketCore.this.safeString(outcomeObj, "market") );
         }}});
         client.resolve(orderbook, Helpers.add("orderbook::", outcome));
         client.resolve(orderbook, Helpers.add("ticker::", outcome));
@@ -3209,7 +3230,7 @@ final Object finalOutcome = outcome;
             Object change = Helpers.GetValue(changes, i);
             Object tokenId = this.safeString(change, "asset_id");
             Object outcome = this.tokenIdToSymbol(tokenId);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(outcome, null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.orderbooks, outcome), null))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(outcome, null))) || !Helpers.isTrue((Helpers.inOp(this.orderbooks, outcome)))))
             {
                 continue;
             }
@@ -3270,7 +3291,7 @@ final Object finalOutcome = outcome;
         {
             this.trades = new java.util.HashMap<String, Object>() {{}};
         }
-        Object stored = Helpers.GetValue(this.trades, outcome);
+        Object stored = this.safeValue(this.trades, outcome);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -3370,9 +3391,10 @@ final Object finalOutcome = outcome;
                 put( "assets_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.orderbooks, outcome), null)))
+            if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, outcome))))
             {
-                Helpers.addElementToObject(this.orderbooks, outcome, this.orderBook(new java.util.ArrayList<Object>(java.util.Arrays.asList())));
+                Object seededBook = this.orderBook(new java.util.HashMap<String, Object>() {{}});
+                Helpers.addElementToObject(this.orderbooks, outcome, seededBook);
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
@@ -3603,9 +3625,10 @@ final Object finalOutcome = outcome;
         {
             return this.safeString(outcomeObj, "outcome");
         }
-        Object marketsById = ((Object)this.markets_by_id);
-        Object market = ((Helpers.isTrue((!Helpers.isEqual(marketsById, null))))) ? Helpers.GetValue(marketsById, tokenId) : null;
-        return ((Helpers.isTrue(market))) ? ((String)Helpers.GetValue(market, "symbol")) : null;
+        // safe dict/string access: a bare marketsById[tokenId] / market['symbol'] is undefined in JS
+        // but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
+        Object market = this.safeDict(this.markets_by_id, tokenId);
+        return this.safeString(market, "symbol");
     }
 
     public Object parsePolyTimestamp(Object raw)

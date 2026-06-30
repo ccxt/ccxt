@@ -1162,6 +1162,7 @@ export default class polymarket extends Exchange {
         }, market);
         openInterest['outcome'] = this.safeOutcomeSymbol (undefined, market);
         openInterest['outcomeId'] = this.safeString (market, 'outcomeId');
+        openInterest['market'] = this.safeString (market, 'market');
         delete openInterest['symbol'];
         return openInterest as PredictionOpenInterest;
     }
@@ -1190,6 +1191,7 @@ export default class polymarket extends Exchange {
             'info': response,
             'outcome': this.safeOutcomeSymbol (undefined, outcomeObj as any),
             'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+            'market': this.safeString (outcomeObj, 'market'),
             'maker': rate,
             'taker': rate,
             'percentage': true,
@@ -2582,7 +2584,8 @@ export default class polymarket extends Exchange {
             return;
         }
         if (!(outcome in this.orderbooks)) {
-            this.orderbooks[outcome] = this.orderBook ({});
+            const seededBook = this.orderBook ({});
+            this.orderbooks[outcome] = seededBook;
         }
         const orderbook = this.orderbooks[outcome];
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
@@ -2744,7 +2747,8 @@ export default class polymarket extends Exchange {
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         if (!(outcome in this.orderbooks)) {
-            this.orderbooks[outcome] = this.orderBook ({});
+            const seededBook = this.orderBook ({});
+            this.orderbooks[outcome] = seededBook;
         }
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);

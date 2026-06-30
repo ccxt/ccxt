@@ -7,6 +7,7 @@ namespace ccxt\prediction;
 
 use Exception; // a common import
 use ccxt\abstract\prediction\limitless as Exchange;
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidAddress;
@@ -161,8 +162,12 @@ class limitless extends Exchange {
                 'defaultFetchMarketsPages' => 5,
                 'marketsPageSize' => 25,
                 'usdcDecimals' => 6,  // Limitless sizes are 6-decimal USDC
-                'warnOnCancelAllOrdersWithOutcome' => true, // cancelAllOrders with an outcome symbol will cancel all orders for the entire slug (both YES and NO outcomes), so we warn by default to prevent mistakes. Set this option to false to suppress the warning.
+                'warnOnCancelAllOrdersWithOutcome' => true, // cancelAllOrders with an outcome will cancel all orders for the entire slug (both YES and NO outcomes), so we warn by default to prevent mistakes. Set this option to false to suppress the warning.
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
+                'chainId' => 8453,  // Base
+                'rpcUrl' => 'https://mainnet.base.org',  // Base RPC used by approve() for the on-chain allowance tx
+                'collateralAddress' => '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',  // USDC on Base (default approve token)
+                'exchangeAddress' => '0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5',  // Limitless CTF exchange (default approve spender)
                 'createMarketBuyOrderRequiresPrice' => true,
             ),
             'exceptions' => array(
@@ -191,7 +196,7 @@ class limitless extends Exchange {
              * @param {int} [$params->limit] max number of $markets to collect (defaults to options.fetchMarketsLimit, 1000); caps the pages fetched
              * @return {array[]} an array of objects representing market $data
              */
-            $queries = $this->parseSearchQueries ($params);
+            $queries = $this->parse_search_queries($params);
             $rest = $this->omit($params, array( 'query', 'queries', 'limit' ));
             // scope the listing => without a search query loadMarkets would otherwise $page through
             // every active limitless market. Cap the total number of $markets collected.
@@ -245,7 +250,8 @@ class limitless extends Exchange {
                 $lastPageResponse = $this->safe_dict($responses, $length - 1);
                 $lastPageData = $this->safe_list($lastPageResponse, 'data', array());
                 $lastPageLength = count($lastPageData);
-                if ($lastPageLength >= $pageSize && strlen($allRaw) < $maxMarkets) {
+                $allRawLength = count($allRaw);
+                if ($lastPageLength >= $pageSize && $allRawLength < $maxMarkets) {
                     while (true) {
                         $page = $this->sum($page, 1);
                         $request['page'] = $page;
@@ -260,7 +266,8 @@ class limitless extends Exchange {
                             $raw = $page_markets[$i];
                             $allRaw[] = $raw;
                         }
-                        if ($pageMarketsLength < $pageSize || strlen($allRaw) >= $maxMarkets) {
+                        $allRawCount = count($allRaw);
+                        if ($pageMarketsLength < $pageSize || $allRawCount >= $maxMarkets) {
                             break;
                         }
                     }
@@ -271,7 +278,7 @@ class limitless extends Exchange {
             for ($i = 0; $i < count($allRaw); $i++) {
                 $raw = $allRaw[$i];
                 $groupId = $this->safe_string($raw, 'groupId', $this->safe_string($raw, 'slug'));
-                $eventKey = $groupId ? $this->shortenSlug ($groupId) : null;
+                $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
                 $m = $this->parse_market($raw);
                 $markets[] = $m;
                 if ($eventKey) {
@@ -382,7 +389,7 @@ class limitless extends Exchange {
         $active = $this->safe_bool($raw, 'active', true);
         $endDate = $this->safe_string($raw, 'deadline', $this->safe_string($raw, 'expiresAt'));
         $volume24h = $this->safe_number($raw, 'volume24h');
-        $marketSymbol = $this->slugToMarketSymbol ($groupId, $slug);
+        $marketSymbol = $this->slug_to_market_symbol($groupId, $slug);
         // amount $precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
         $collateralToken = $this->safe_dict($raw, 'collateralToken', array());
@@ -398,7 +405,7 @@ class limitless extends Exchange {
             $tokenData = $tokens[$outcomeLabel];
             $tokenId = $tokenData;
             $outcomes[] = array(
-                'outcome' => $this->slugToOutcomeSymbol ($groupId, $slug, $outcomeLabel),
+                'outcome' => $this->slug_to_outcome_symbol($groupId, $slug, $outcomeLabel),
                 'outcomeId' => $tokenId,
                 'market' => $marketSymbol,
                 'label' => $outcomeLabel,
@@ -716,6 +723,8 @@ class limitless extends Exchange {
         $title = $this->safe_string($event, 'title', $groupId);
         $markets = array();
         $rawMarkets = $this->safe_list($event, 'markets', array());
+        // aggregate 24h volume across the $markets so sort by volume works
+        $totalVolume = 0;
         for ($i = 0; $i < count($rawMarkets); $i++) {
             $rawMarket = $rawMarkets[$i];
             $marketSymbol = $this->safe_string($rawMarket, 'symbol');
@@ -725,14 +734,18 @@ class limitless extends Exchange {
             } else {
                 $markets[] = $this->parse_market($rawMarket);
             }
+            $marketInfo = $this->safe_dict($rawMarket, 'info', $rawMarket);
+            $totalVolume = $this->sum($totalVolume, $this->safe_number_2($marketInfo, 'volume24h', 'volume', 0));
         }
         return $this->extend(array(
             'id' => $groupId,
             'slug' => $groupId,
-            'symbol' => $groupId ? $this->shortenSlug ($groupId) : null,
+            'event' => $groupId ? $this->shorten_slug($groupId) : null,
             'title' => $title,
             'description' => $this->safe_string($event, 'description'),
             'markets' => $markets,
+            'volume' => $totalVolume,
+            'liquidity' => $this->safe_number($event, 'liquidity'),
             'url' => $this->safe_string($event, 'url'),
             'image' => $this->safe_string($event, 'imageUrl', $this->safe_string($event, 'image')),
             'active' => $this->safe_bool($event, 'active', true),
@@ -749,22 +762,20 @@ class limitless extends Exchange {
         ));
     }
 
-    public function fetch_ticker(?string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function fetch_ticker(?string $outcome, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
              * fetches the current price and best bid/ask for a single $outcome token, combining the market detail and order book endpoints
              *
              * @see https://docs.limitless.exchange/api-reference/markets/get-market
              * @see https://docs.limitless.exchange/api-reference/trading/orderbook
              *
-             * @param {string} $symbol unified $outcome $symbol like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
+             * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            $this->check_events($outcome);
+            $outcomeObj = $this->outcome($outcome);
             $slug = $this->safe_string($outcomeObj['info'], 'slug');
             $request = array(
                 'addressOrSlug' => $slug,
@@ -985,9 +996,9 @@ class limitless extends Exchange {
             $askSizeStr = Precise::string_div($askSizeStr, '1000000');
         }
         $now = $this->milliseconds();
-        $outcomeSymbol = $this->safeOutcomeSymbol (null, $market);
-        return $this->safePredictionTicker (array(
-            'symbol' => $outcomeSymbol,
+        $outcomeSymbol = $this->safe_outcome_symbol(null, $market);
+        return $this->safe_prediction_ticker(array(
+            'outcome' => $outcomeSymbol,
             'outcomeId' => $this->safe_string($market, 'outcomeId'),
             'label' => $this->safe_string($market, 'label'),
             'market' => $this->safe_string($market, 'market'),
@@ -1013,21 +1024,20 @@ class limitless extends Exchange {
         ));
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_tickers(?array $outcomes = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcomes, $params) {
             /**
-             * fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market, fetches all active markets when $symbols is omitted
+             * fetches tickers for multiple outcome tokens, grouping requested $outcomes by their parent market, fetches all active markets when $outcomes is omitted
              *
              * @see https://docs.limitless.exchange/api-reference/markets/get-market
              * @see https://docs.limitless.exchange/api-reference/trading/orderbook
              *
-             * @param {string[]} [$symbols] unified outcome $symbols or outcome token ids
+             * @param {string[]} [$outcomes] unified $outcomes or outcome token ids
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome symbol
+             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome
              */
-            Async\await($this->load_markets());
             $result = array();
-            if ($symbols === null) {
+            if ($outcomes === null) {
                 // parse tickers for every loaded outcome from the cached listing data, without the per-market order books
                 $allMarkets = Async\await($this->fetch_markets($params));
                 for ($i = 0; $i < count($allMarkets); $i++) {
@@ -1044,12 +1054,12 @@ class limitless extends Exchange {
                 }
                 return $result;
             }
-            // group target outcomes by their parent market to fetch each market and $book only once
+            // group target $outcomes by their parent market to fetch each market and $book only once
             $outcomesBySlug = array();
             $slugs = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $this->checkEventsAndMarkets ($symbols[$i]);
-                $outcomeObj = $this->outcome ($symbols[$i]);
+            for ($i = 0; $i < count($outcomes); $i++) {
+                $this->check_events($outcomes[$i]);
+                $outcomeObj = $this->outcome($outcomes[$i]);
                 $slug = $this->safe_string($outcomeObj['info'], 'slug');
                 if (!(is_array($outcomesBySlug) && array_key_exists($slug, $outcomesBySlug))) {
                     $outcomesBySlug[$slug] = array();
@@ -1086,22 +1096,21 @@ class limitless extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
-             * fetches recent public trades for a single outcome token from the market events feed
+             * fetches recent public trades for a single $outcome token from the market events feed
              *
              * @see https://docs.limitless.exchange/api-reference/trading/market-events
              *
-             * @param {string} $symbol unified outcome $symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+             * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum number of trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
              */
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($symbol);
-            $outcomeObj = $this->outcome ($symbol);
+            $this->check_events($outcome);
+            $outcomeObj = $this->outcome($outcome);
             $slug = $this->safe_string($outcomeObj['info'], 'slug');
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
             $request = array(
@@ -1143,28 +1152,26 @@ class limitless extends Exchange {
                 }
                 $filtered[] = $row;
             }
-            // parse without a market (parsed trades carry `outcome`, not `$symbol`) then filter by outcome
+            // parse without a market (parsed trades carry `$outcome`, not `symbol`) then filter by $outcome
             $parsedTrades = $this->parse_trades($filtered, null);
-            return $this->filterByOutcomeSinceLimit ($parsedTrades, $symbol, $since, $limit);
+            return $this->filter_by_outcome_since_limit($parsedTrades, $outcome, $since, $limit);
         }) ();
     }
 
-    public function fetch_order_book(?string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
+    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcome, $limit, $params) {
             /**
              * fetches the order book for a single $outcome token, converting 6-decimal USDC sizes to whole units, no outcomes are quoted at 1 - price with the sides swapped
              *
              * @see https://docs.limitless.exchange/api-reference/trading/orderbook
              *
-             * @param {string} $symbol unified $outcome $symbol like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
+             * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
              * @param {int} [$limit] not used by limitless fetchOrderBook
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            $this->check_events($outcome);
+            $outcomeObj = $this->outcome($outcome);
             $slug = $this->safe_string($outcomeObj['info'], 'slug');
             $request = array(
                 'slug' => $slug,
@@ -1225,34 +1232,34 @@ class limitless extends Exchange {
                 }
                 $asks[] = array( $this->parse_number($priceStr), $this->parse_number($sizeStr) );
             }
-            return array(
-                'symbol' => $this->safeOutcomeSymbol ($outcome, $outcomeObj),
+            $orderbook = array(
+                'outcome' => $this->safe_outcome_symbol($outcome, $outcomeObj),
                 'bids' => $this->sort_by($bids, 0, true),
                 'asks' => $this->sort_by($asks, 0),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
                 'nonce' => null,
             );
+            return $this->safe_prediction_order_book($orderbook, $outcomeObj);
         }) ();
     }
 
-    public function fetch_ohlcv(?string $symbol, $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+    public function fetch_ohlcv(?string $outcome, $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcome, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical prices for a single limitless market outcome and maps them to OHLCV format, uses the `$interval` query parameter and selects the YES/NO $series that matches the requested outcome
+             * fetches historical prices for a single limitless market $outcome and maps them to OHLCV format, uses the `$interval` query parameter and selects the YES/NO $series that matches the requested $outcome
              *
              * @see https://docs.limitless.exchange/api-reference/trading/historical-price
              *
-             * @param {string} $symbol outcome $symbol, e.g. "TRUMP_OUT:YES"
+             * @param {string} $outcome outcome, e.g. "TRUMP_OUT:YES"
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum number of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} a list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($symbol);
-            $outcomeObj = $this->outcome ($symbol);
+            $this->check_events($outcome);
+            $outcomeObj = $this->outcome($outcome);
             $slug = $this->safe_string($outcomeObj['info'], 'slug');
             $outcomeLabel = $this->safe_string_upper($outcomeObj['info'], 'outcomeLabel');
             $interval = $this->safe_string($this->timeframes, $timeframe, '1d');
@@ -1361,26 +1368,24 @@ class limitless extends Exchange {
         );
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * fetches orders for the authenticated user for a single $outcome
              *
              * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
              *
-             * @param {string} [$symbol] $outcome $symbol, e.g. "TRUMP_OUT:YES"
+             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            $outcome = $symbol;
             if ($outcome === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders requires an $outcome argument');
             }
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            $this->check_events($outcome);
+            $outcomeObj = $this->outcome($outcome);
             $info = $this->safe_dict($outcomeObj, 'info');
             $request = array(
                 'slug' => $this->safe_string($info, 'slug'),
@@ -1409,32 +1414,30 @@ class limitless extends Exchange {
             //         }
             //     )
             //
-            // pass null => parseOrder sets $symbol to the market $symbol while the $outcome
-            // lives under 'outcome', so the base $symbol filter would drop every order; the per-slug
+            // pass null => parseOrder sets $outcome to the market $outcome while the $outcome
+            // lives under 'outcome', so the base $outcome filter would drop every order; the per-slug
             // endpoint already scopes results and parseOrder resolves the $outcome via outcomes_by_id
             return $this->parse_orders($response, null, $since, $limit);
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_open_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * fetches open orders for the authenticated user for a single $outcome
              *
              * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
              *
-             * @param {string} [$symbol] $outcome $symbol, e.g. "TRUMP_OUT:YES"
+             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            $outcome = $symbol;
             if ($outcome === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires an $outcome argument');
             }
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
+            $this->check_events($outcome);
             $params = $this->extend($params, array(
                 'statuses' => array( 'LIVE' ),
             ));
@@ -1442,25 +1445,23 @@ class limitless extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_closed_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * fetches closed orders for the authenticated user for a single $outcome
              *
              * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
              *
-             * @param {string} [$symbol] $outcome $symbol, e.g. "TRUMP_OUT:YES"
+             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            $outcome = $symbol;
             if ($outcome === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires an $outcome argument');
             }
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
+            $this->check_events($outcome);
             $params = $this->extend($params, array(
                 'statuses' => array( 'MATCHED' ),
             ));
@@ -1468,21 +1469,19 @@ class limitless extends Exchange {
         }) ();
     }
 
-    public function fetch_orders_by_ids($ids, ?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($ids, $symbol, $params) {
+    public function fetch_orders_by_ids($ids, ?string $outcome = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($ids, $outcome, $params) {
             /**
              * fetch orders by the list of order $id
              *
              * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
              *
              * @param {string[]} $ids list of order $id
-             * @param {string} [$symbol] market $outcome $symbol, e.g. "TRUMP_OUT:YES"
+             * @param {string} [$outcome] market $outcome, e.g. "TRUMP_OUT:YES"
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?$id=order-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
+            $this->check_events($outcome);
             $length = count($ids);
             if ($length > 50) {
                 throw new BadRequest($this->id . ' fetchOrdersByIds can only fetch up to 50 orders at a time');
@@ -1608,21 +1607,19 @@ class limitless extends Exchange {
         }) ();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
+    public function fetch_order(string $id, ?string $outcome = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $outcome, $params) {
             /**
              * fetches information on an $order made by the user
              *
              * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
              *
              * @param {string} $id the $order $id
-             * @param {string} [$symbol] market $outcome $symbol, e.g. "TRUMP_OUT:YES"
+             * @param {string} [$outcome] market $outcome, e.g. "TRUMP_OUT:YES"
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
+            $this->check_events($outcome);
             $orders = Async\await($this->fetch_orders_by_ids(array( $id ), $outcome, $params));
             $order = $this->safe_dict($orders, 0);
             if ($order === null) {
@@ -1758,7 +1755,7 @@ class limitless extends Exchange {
         }
         $id = $this->safe_string($rawOrder, 'id');
         $tokenId = $this->safe_string_2($rawOrder, 'token', 'tokenId');
-        $mkt = $this->safeOutcome ($tokenId, $market);
+        $mkt = $this->safe_outcome($tokenId, $market);
         $outcomeSymbol = $this->safe_string($mkt, 'outcome');
         $rawSide = $this->safe_string($rawOrder, 'side');
         $side = $this->parse_order_side($rawSide);
@@ -1796,7 +1793,7 @@ class limitless extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        return $this->safePredictionOrder (array(
+        return $this->safe_prediction_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -1804,7 +1801,6 @@ class limitless extends Exchange {
             'datetime' => $datetime,
             'lastTradeTimestamp' => null,
             'status' => $this->parse_order_status($rawStatus),
-            'symbol' => $outcomeSymbol,
             'outcome' => $outcomeSymbol,
             'outcomeId' => $this->safe_string($mkt, 'outcomeId'),
             'label' => $this->safe_string($mkt, 'label'),
@@ -1874,7 +1870,7 @@ class limitless extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function apply_scale(?string $amount, Bool $multiply = false): ?string {
+    public function apply_scale(?string $amount, ?bool $multiply = false): ?string {
         $decimals = $this->safe_integer($this->options, 'usdcDecimals', 6);
         $scale = $this->number_to_string(pow(10, $decimals));
         if ($multiply) {
@@ -1904,21 +1900,20 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [account structures]
              */
-            Async\await($this->load_markets());
             $response = Async\await($this->limitlessPrivateGetProfilesMe ($params));
             $responseList = array( $response );
             return $this->parse_accounts($responseList);
         }) ();
     }
 
-    public function create_order(string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+    public function create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcome, $type, $side, $amount, $price, $params) {
             /**
              * places a limit or market order on limitless for the given $outcome token
              *
              * @see https://docs.limitless.exchange/api-reference/orders/create-order
              *
-             * @param {string} $symbol $outcome $symbol, $e->g. "TRUMP_OUT:YES"
+             * @param {string} $outcome outcome, $e->g. "TRUMP_OUT:YES"
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount amount of $outcome tokens
@@ -1926,14 +1921,17 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
             $accounts = Async\await($this->load_accounts());
-            $this->checkEventsAndMarkets ($outcome);
-            $outcomeObj = $this->outcome ($outcome);
+            $this->check_events($outcome);
+            $outcomeObj = $this->outcome($outcome);
             $account = $this->safe_dict($accounts, 0);
             $accountInfo = $this->safe_dict($account, 'info');
-            $walletFromAccount = $this->safe_string($accountInfo, 'smartWallet');
+            // the trade wallet is chosen by `$tradeWalletOption` => 'smartWallet' profiles trade through
+            // the `smartWallet` address, plain 'eoa' profiles trade directly from `$account`. the
+            // smartWallet field can stay populated after switching to eoa, so key off the option here
+            $tradeWalletOption = $this->safe_string($accountInfo, 'tradeWalletOption');
+            $usesSmartWallet = ($tradeWalletOption === 'smartWallet');
+            $walletFromAccount = ($usesSmartWallet) ? $this->safe_string($accountInfo, 'smartWallet') : $this->safe_string($accountInfo, 'account');
             $maker = $this->walletAddress ? $this->walletAddress : $walletFromAccount;
             list($maker, $params) = $this->handle_option_and_params($params, 'createOrder', 'maker', $maker);
             try {
@@ -1945,8 +1943,7 @@ class limitless extends Exchange {
             // linked embedded (owner) wallet, not by the smart wallet itself
             $embeddedAddress = $this->safe_string($accountInfo, 'embeddedAccount');
             $hasEmbedded = ($embeddedAddress !== null);
-            $tradeWalletOption = $this->safe_string($accountInfo, 'tradeWalletOption');
-            $isSmartWallet = ($tradeWalletOption === 'smartWallet') && $hasEmbedded;
+            $isSmartWallet = $usesSmartWallet && $hasEmbedded;
             $signer = $maker;
             if ($isSmartWallet) {
                 $signer = $embeddedAddress;
@@ -2017,21 +2014,21 @@ class limitless extends Exchange {
                     } else {
                         $quoteAmount = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
                         $costRequest = ($cost !== null) ? $cost : $quoteAmount;
-                        $makerAmount = $this->costToPredictionPrecision ($outcome, $costRequest);
+                        $makerAmount = $this->cost_to_prediction_precision($outcome, $costRequest);
                     }
                 } else {
-                    $makerAmount = $this->costToPredictionPrecision ($outcome, $amount);
+                    $makerAmount = $this->cost_to_prediction_precision($outcome, $amount);
                 }
             } elseif ($isMarket) {
-                $makerAmount = $this->amountToPredictionPrecision ($outcome, $amount);
+                $makerAmount = $this->amount_to_prediction_precision($outcome, $amount);
             } else {
                 $calculatedCost = Precise::string_mul($amountString, $priceString);
                 if ($side === 'buy') {
-                    $makerAmount = $this->costToPredictionPrecision ($outcome, $calculatedCost);
-                    $takerAmount = $this->amountToPredictionPrecision ($outcome, $amount);
+                    $makerAmount = $this->cost_to_prediction_precision($outcome, $calculatedCost);
+                    $takerAmount = $this->amount_to_prediction_precision($outcome, $amount);
                 } else {
-                    $makerAmount = $this->amountToPredictionPrecision ($outcome, $amount);
-                    $takerAmount = $this->costToPredictionPrecision ($outcome, $calculatedCost);
+                    $makerAmount = $this->amount_to_prediction_precision($outcome, $amount);
+                    $takerAmount = $this->cost_to_prediction_precision($outcome, $calculatedCost);
                 }
             }
             // amounts must be integers (uint256) => parseNumber yields a float that the Python EIP-712 encoder rejects
@@ -2114,44 +2111,246 @@ class limitless extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function cancel_order(?string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
+    public function rlp_encode_bytes(string $hex): string {
+        // RLP-encodes a single byte string ($hex without 0x) per the Ethereum RLP spec
+        $byteLength = $this->parse_to_int(strlen($hex) / 2);
+        if ($byteLength === 0) {
+            return '80';
+        }
+        if (($byteLength === 1) && ($hex < '80')) {
+            return $hex;
+        }
+        if ($byteLength < 56) {
+            return $this->int_to_base16(128 . $byteLength) . $hex;
+        }
+        $lengthHex = $this->int_to_base16($byteLength);
+        $lengthHex = $this->pad_hex_to_even($lengthHex);
+        $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
+        return $this->int_to_base16(183 . $lengthOfLength) . $lengthHex . $hex;
+    }
+
+    public function rlp_encode_list(array $items): string {
+        $concatenated = '';
+        for ($i = 0; $i < count($items); $i++) {
+            $concatenated = $concatenated . $items[$i];
+        }
+        $byteLength = $this->parse_to_int(strlen($concatenated) / 2);
+        if ($byteLength < 56) {
+            return $this->int_to_base16(192 . $byteLength) . $concatenated;
+        }
+        $lengthHex = $this->int_to_base16($byteLength);
+        $lengthHex = $this->pad_hex_to_even($lengthHex);
+        $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
+        return $this->int_to_base16(247 . $lengthOfLength) . $lengthHex . $concatenated;
+    }
+
+    public function int_to_rlp_hex(float $value): string {
+        // an integer minimal big-endian byte $hex; 0 is the empty byte string
+        if ($value === 0) {
+            return '';
+        }
+        $hex = $this->int_to_base16($value);
+        $hex = $this->pad_hex_to_even($hex);
+        return $hex;
+    }
+
+    public function hex_to_rlp_bytes(string $hexValue): string {
+        // a hex value (e.g. an RPC result) big-endian byte hex; leading zero bytes
+        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        $h = $this->remove0x_prefix($hexValue);
+        $start = 0;
+        $total = count($h);
+        while (($start < $total) && (mb_substr($h, $start, $start + 1 - $start) === '0')) {
+            $start = $start + 1;
+        }
+        $h = mb_substr($h, $start);
+        if ($h === '') {
+            return '';
+        }
+        $h = $this->pad_hex_to_even($h);
+        return $h;
+    }
+
+    public function pad_hex_to_even(string $hex): string {
+        // prepend a nibble so the $hex has an even number of characters (whole bytes)
+        $hexLength = count($hex);
+        if ((fmod($hexLength, 2)) !== 0) {
+            return '0' . $hex;
+        }
+        return $hex;
+    }
+
+    public function pad_hex_address(string $address): string {
+        // left-pads a 20-byte $address to a 32-byte ABI word (24 leading zero bytes)
+        $stripped = $this->remove0x_prefix($address);
+        return '000000000000000000000000' . $stripped;
+    }
+
+    public function sign_evm_transaction(array $tx, string $privateKey): string {
+        // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw $tx hex
+        $accessList = $this->rlp_encode_list(array());
+        $fields = array(
+            $this->rlp_encode_bytes($this->int_to_rlp_hex($this->safe_integer($tx, 'chainId'))),
+            $this->rlp_encode_bytes($this->hex_to_rlp_bytes($this->safe_string($tx, 'nonce'))),
+            $this->rlp_encode_bytes($this->hex_to_rlp_bytes($this->safe_string($tx, 'maxPriorityFeePerGas'))),
+            $this->rlp_encode_bytes($this->hex_to_rlp_bytes($this->safe_string($tx, 'maxFeePerGas'))),
+            $this->rlp_encode_bytes($this->hex_to_rlp_bytes($this->safe_string($tx, 'gasLimit'))),
+            $this->rlp_encode_bytes($this->remove0x_prefix($this->safe_string($tx, 'to'))),
+            $this->rlp_encode_bytes($this->hex_to_rlp_bytes($this->safe_string($tx, 'value', '0x0'))),
+            $this->rlp_encode_bytes($this->remove0x_prefix($this->safe_string($tx, 'data', '0x'))),
+            $accessList,
+        );
+        $payload = '02' . $this->rlp_encode_list($fields);
+        $hashHex = $this->hash($this->base16_to_binary($payload), 'keccak', 'hex');
+        $signature = $this->ecdsa($hashHex, $this->remove0x_prefix($privateKey), 'secp256k1', null);
+        $rHex = $this->safe_string($signature, 'r');
+        $sHex = $this->safe_string($signature, 's');
+        $rHex = $this->pad_hex_to_even($rHex);
+        $sHex = $this->pad_hex_to_even($sHex);
+        $yParity = $this->safe_integer($signature, 'v');
+        $signedFields = array();
+        for ($i = 0; $i < count($fields); $i++) {
+            $signedFields[] = $fields[$i];
+        }
+        $signedFields[] = $this->rlp_encode_bytes($this->int_to_rlp_hex($yParity));
+        $signedFields[] = $this->rlp_encode_bytes($rHex);
+        $signedFields[] = $this->rlp_encode_bytes($sHex);
+        return '0x02' . $this->rlp_encode_list($signedFields);
+    }
+
+    public function eth_rpc(string $rpcUrl, string $method, array $rpcParams) {
+        return Async\async(function () use ($rpcUrl, $method, $rpcParams) {
+            $payload = array( 'jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $rpcParams );
+            $headers = array( 'Content-Type' => 'application/json' );
+            $response = Async\await($this->fetch($rpcUrl, 'POST', $headers, $this->json($payload)));
+            $rpcError = $this->safe_value($response, 'error');
+            if ($rpcError !== null) {
+                throw new ExchangeError($this->id . ' rpc ' . $method . ' error => ' . $this->json($rpcError));
+            }
+            // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt)
+            return $this->safe_value($response, 'result');
+        }) ();
+    }
+
+    public function send_evm_transaction(string $rpcUrl, float $chainId, string $fromAddress, string $to, string $value, string $data, string $gasLimit): PromiseInterface {
+        return Async\async(function () use ($rpcUrl, $chainId, $fromAddress, $to, $value, $data, $gasLimit) {
+            $nonce = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionCount', array( $fromAddress, 'pending' )));
+            $gasPrice = Async\await($this->eth_rpc($rpcUrl, 'eth_gasPrice', array()));
+            $tx = array(
+                'chainId' => $chainId,
+                'nonce' => $nonce,
+                'maxPriorityFeePerGas' => $gasPrice,
+                'maxFeePerGas' => $gasPrice,
+                'gasLimit' => $gasLimit,
+                'to' => $to,
+                'value' => $value,
+                'data' => $data,
+            );
+            $signed = $this->sign_evm_transaction($tx, $this->privateKey);
+            return Async\await($this->eth_rpc($rpcUrl, 'eth_sendRawTransaction', array( $signed )));
+        }) ();
+    }
+
+    public function wait_for_transaction_receipt(string $rpcUrl, string $txHash, $timeout = 60000): PromiseInterface {
+        return Async\async(function () use ($rpcUrl, $txHash, $timeout) {
+            $start = $this->milliseconds();
+            while (($this->milliseconds() - $start) < $timeout) {
+                $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));
+                if (($receipt !== null) && ($receipt !== null)) {
+                    return $receipt;
+                }
+                Async\await($this->sleep(2000));
+            }
+            throw new ExchangeError($this->id . ' transaction ' . $txHash . ' not mined within timeout');
+        }) ();
+    }
+
+    public function approve($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
-             * cancels a single open order by $id
-             *
-             * @see https://docs.limitless.exchange/api-reference/orders/cancel-order
-             *
-             * @param {string} $id order $id
-             * @param {string} [$symbol] $outcome $symbol, e.g. "TRUMP_OUT:YES"
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * sets the on-chain ERC20 collateral (USDC) allowance for the limitless exchange contract on Base, which is required before an EOA maker can place orders ("Insufficient collateral allowance" otherwise). Sends a real on-chain transaction signed with the privateKey and waits for the receipt
+             * @param {array} [$params] extra parameters
+             * @param {string} [$params->token] the collateral $token address (default USDC on Base)
+             * @param {string} [$params->spender] the exchange contract to approve (default the limitless CTF exchange); read from a market's venue when omitted
+             * @param {string} [$params->owner] the $token holder address (default $this->walletAddress or the address derived from the privateKey)
+             * @param {float} [$params->amount] the allowance in USDC (default => unlimited / maxUint256)
+             * @param {string} [$params->rpcUrl] the Base RPC url to broadcast through
+             * @param {string} [$params->gasLimit] gas limit hex for the approve tx (default '0x186a0')
+             * @return {array} the transaction receipt
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
+            $this->check_required_credentials();
+            if ($this->privateKey === null) {
+                throw new ArgumentsRequired($this->id . ' approve() requires a privateKey to sign the on-chain transaction');
+            }
+            $rpcUrl = $this->safe_string($params, 'rpcUrl', $this->safe_string($this->options, 'rpcUrl'));
+            $chainId = $this->safe_integer($this->options, 'chainId', 8453);
+            $token = $this->safe_string($params, 'token', $this->safe_string($this->options, 'collateralAddress'));
+            $spender = $this->safe_string($params, 'spender', $this->safe_string($this->options, 'exchangeAddress'));
+            $owner = $this->safe_string($params, 'owner', $this->walletAddress);
+            if ($owner === null) {
+                $owner = $this->eth_get_address_from_private_key($this->privateKey);
+            }
+            $gasLimit = $this->safe_string($params, 'gasLimit', '0x186a0');
+            $maxUint = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+            $amountHex = $maxUint;
+            $amount = $this->safe_string($params, 'amount');
+            if ($amount !== null) {
+                $decimals = $this->safe_integer($this->options, 'usdcDecimals', 6);
+                // scale the human USDC $amount to base units ($amount / 10^-$decimals = $amount * 10^$decimals)
+                $scaled = Precise::string_div($amount, $this->parse_precision($this->number_to_string($decimals)));
+                $amountInt = $this->parse_to_int($scaled);
+                $amountBase16 = $this->int_to_base16($amountInt);
+                $amountHex = str_pad($amountBase16, 64, '0', STR_PAD_LEFT);
+            }
+            // approve($spender, $amount) -> selector 0x095ea7b3
+            $approveData = '0x095ea7b3' . $this->pad_hex_address($spender) . $amountHex;
+            $txHash = Async\await($this->send_evm_transaction($rpcUrl, $chainId, $owner, $token, '0x0', $approveData, $gasLimit));
+            return Async\await($this->wait_for_transaction_receipt($rpcUrl, $txHash));
+        }) ();
+    }
+
+    public function cancel_order(?string $id, ?string $outcome = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $outcome, $params) {
+            /**
+             * cancels a single open $order by $id
+             *
+             * @see https://docs.limitless.exchange/api-reference/orders/cancel-$order
+             *
+             * @param {string} $id $order $id
+             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
+             */
+            $this->check_events($outcome);
             $request = array(
                 'order_id' => $id,
             );
             $response = Async\await($this->limitlessPrivateDeleteOrdersOrderId ($this->extend($request, $params)));
-            return $this->parse_order($response);
+            // the delete $response carries no $order body, so backfill the $id and the resulting status
+            $order = $this->parse_order($response);
+            if ($order['id'] === null) {
+                $order['id'] = $id;
+            }
+            if ($order['status'] === null) {
+                $order['status'] = 'canceled';
+            }
+            return $order;
         }) ();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($ids, $symbol, $params) {
+    public function cancel_orders(array $ids, ?string $outcome = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($ids, $outcome, $params) {
             /**
              * cancel multiple orders at the same time
              *
              * @see https://docs.limitless.exchange/api-reference/trading/cancel-batch
              *
              * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified market $symbol, default is null
+             * @param {string} [$outcome] unified market $outcome, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
+            $this->check_events($outcome);
             $request = array(
                 'orderIds' => $ids,
             );
@@ -2168,21 +2367,19 @@ class limitless extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
+    public function cancel_all_orders(?string $outcome = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcome, $params) {
             /**
              * cancels all open orders for one market $slug
              *
              * @see https://docs.limitless.exchange/api-reference/orders/cancel-all-orders
              *
-             * @param {string} [$symbol] $outcome $symbol, e.g. "TRUMP_OUT:YES"
+             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->slug] the market $slug to cancel all orders for
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
+            $this->check_events($outcome);
             if ($outcome !== null) {
                 $warn = true;
                 list($warn, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', $warn);
@@ -2193,7 +2390,7 @@ class limitless extends Exchange {
             $request = array();
             $slug = $this->safe_string($params, 'slug');
             if ($outcome !== null) {
-                $outcomeObj = $this->outcome ($outcome);
+                $outcomeObj = $this->outcome($outcome);
                 $request['slug'] = $this->safe_string($outcomeObj['info'], 'slug');
             } elseif ($slug === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders requires either an $outcome argument or a $slug parameter');
@@ -2204,26 +2401,24 @@ class limitless extends Exchange {
             //         "message" => "Orders canceled successfully"
             //     }
             //
-            return array( $this->safePredictionOrder (array( 'info' => $response )) );
+            return array( $this->safe_prediction_order(array( 'info' => $response )) );
         }) ();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
              *
              * @see https://docs.limitless.exchange/api-reference/trades/get-$trades
              *
-             * @param {string} [$symbol] $outcome $symbol, e.g. "TRUMP_OUT:YES"
+             * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
              */
-            $outcome = $symbol;
-            Async\await($this->load_markets());
-            $this->checkEventsAndMarkets ($outcome);
+            $this->check_events($outcome);
             $paginate = false;
             $maxLimit = 100;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', $paginate);
@@ -2314,7 +2509,7 @@ class limitless extends Exchange {
                 }
             }
             $parsedTrades = $this->parse_trades($trades, null);
-            return $this->filterByOutcomeSinceLimit ($parsedTrades, $outcome, $since, $limit);
+            return $this->filter_by_outcome_since_limit($parsedTrades, $outcome, $since, $limit);
         }) ();
     }
 
@@ -2343,13 +2538,12 @@ class limitless extends Exchange {
             if ($priceStr !== null) {
                 $costStr = Precise::string_mul($priceStr, $amountStr);
             }
-            $feedOutcome = $this->safeOutcomeSymbol (null, $market);
-            return $this->safePredictionTrade (array(
+            $feedOutcome = $this->safe_outcome_symbol(null, $market);
+            return $this->safe_prediction_trade(array(
                 'id' => $this->safe_string($trade, 'txHash'),
                 'info' => $trade,
                 'timestamp' => $ts,
                 'datetime' => $this->iso8601($ts),
-                'symbol' => $feedOutcome,
                 'outcome' => $feedOutcome,
                 'outcomeId' => $this->safe_string($market, 'outcomeId'),
                 'label' => $this->safe_string($market, 'label'),
@@ -2418,12 +2612,11 @@ class limitless extends Exchange {
         $label = ($outcomeIndex === 0) ? 'yes' : 'no';
         $outcome = $this->get_outcome_by_slug_and_label($slug, $label, $market);
         $tradeOutcome = $this->safe_string($outcome, 'outcome');
-        return $this->safePredictionTrade (array(
+        return $this->safe_prediction_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $tradeOutcome,
             'outcome' => $tradeOutcome,
             'outcomeId' => $this->safe_string($trade, 'asset'),
             'label' => $this->safe_string($outcome, 'label'),
@@ -2452,27 +2645,27 @@ class limitless extends Exchange {
         return null;
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_positions(?array $outcomes = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($outcomes, $params) {
             /**
              * fetches open positions for the authenticated limitless user from the portfolio endpoint
              *
              * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
              *
-             * @param {string[]} [$symbols] filter by outcome ids or $symbols
+             * @param {string[]} [$outcomes] filter by outcome ids or $outcomes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [$position structures](https://docs.ccxt.com/#/?id=$position-structure)
              */
             $symbolsLength = 0;
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
+            if ($outcomes !== null) {
+                $symbolsLength = count($outcomes);
             }
             if ($symbolsLength > 0) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $this->checkEventsAndMarkets ($symbols[$i]);
+                for ($i = 0; $i < count($outcomes); $i++) {
+                    $this->check_events($outcomes[$i]);
                 }
             } else {
-                $this->checkEventsAndMarkets ();
+                $this->check_events();
             }
             $response = Async\await($this->limitlessPrivateGetPortfolioPositions ($params));
             //
@@ -2595,7 +2788,7 @@ class limitless extends Exchange {
         }
         $parsed['markPrice'] = $this->safe_number($latestTrade, $key);
         $parsed['info'] = $entry;
-        return $this->safePredictionPosition ($parsed);
+        return $this->safe_prediction_position($parsed);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -2623,7 +2816,6 @@ class limitless extends Exchange {
         $entryPrice = $this->apply_scale($this->safe_string($position, 'fillPrice'));
         return array(
             'id' => null,
-            'symbol' => $outcomeSymbol,
             'outcome' => $outcomeSymbol,
             'outcomeId' => $this->safe_string($market, 'outcomeId'),
             'label' => $this->safe_string($market, 'label'),
@@ -2654,7 +2846,7 @@ class limitless extends Exchange {
         );
     }
 
-    public function fetch_events($params = array ()): PromiseInterface {
+    public function fetch_events(array $params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches prediction-market events matching the given search terms (or the most active markets, capped, when omitted) and caches their markets and outcomes on the instance
@@ -2667,15 +2859,15 @@ class limitless extends Exchange {
              * @param {int} [$params->limit] maximum number of markets per query, defaults to 50
              * @return {array[]} an array of event structures
              */
-            $queries = $this->parseSearchQueries ($params);
+            $this->require_event_query($params);
+            $queries = $this->parse_search_queries($params);
             $result = array();
             $queriesLength = count($queries);
             if (!$queries || $queriesLength === 0) {
-                Async\await($this->load_markets());
                 $result = is_array($this->events) ? array_values($this->events) : array();
             } else {
                 $limit = $this->safe_integer($params, 'limit', 50);
-                $rest = $this->omit($params, array( 'query', 'queries', 'limit' ));
+                $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ));
                 $seen = array();
                 $rawMarkets = array();
                 for ($i = 0; $i < count($queries); $i++) {
@@ -2704,7 +2896,7 @@ class limitless extends Exchange {
                 for ($i = 0; $i < count($rawMarkets); $i++) {
                     $raw = $rawMarkets[$i];
                     $groupId = $this->safe_string($raw, 'groupId', $this->safe_string($raw, 'slug'));
-                    $eventKey = $groupId ? $this->shortenSlug ($groupId) : null;
+                    $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
                     $m = $this->parse_market($raw);
                     $this->markets[$m['symbol']] = $m;
                     if ($eventKey) {
@@ -2726,7 +2918,7 @@ class limitless extends Exchange {
                 }
             }
             $this->rebuild_outcomes();
-            return $result;
+            return $this->apply_event_fetch_params($result, $params, $queries);
         }) ();
     }
 
@@ -2745,11 +2937,11 @@ class limitless extends Exchange {
             $outcomesList = $this->safe_list($market, 'outcomes', array());
             for ($j = 0; $j < count($outcomesList); $j++) {
                 $oc = $outcomesList[$j];
-                $ocSymbol = $this->safe_string($oc, 'symbol');
+                $ocSymbol = $this->safe_string($oc, 'outcome');
                 if ($ocSymbol !== null) {
                     $this->outcomes[$ocSymbol] = $oc;
                 }
-                $ocId = $this->safe_string($oc, 'id');
+                $ocId = $this->safe_string($oc, 'outcomeId');
                 if ($ocId !== null) {
                     $this->outcomes_by_id[$ocId] = $oc;
                 }

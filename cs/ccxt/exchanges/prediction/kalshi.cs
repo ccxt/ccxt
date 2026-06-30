@@ -146,6 +146,7 @@ public partial class kalshi : PredictionExchange
                         { "delete", new Dictionary<string, object>() {
                             { "portfolio/orders/{order_id}", 1 },
                             { "portfolio/orders/batched", 1 },
+                            { "portfolio/events/orders/{order_id}", 1 },
                             { "portfolio/order_groups/{order_group_id}", 1 },
                         } },
                     } },
@@ -711,8 +712,20 @@ public partial class kalshi : PredictionExchange
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        object bidVolume = ((bool) isTrue((isNo))) ? this.safeNumber(raw, "yes_ask_size_fp") : this.safeNumber(raw, "yes_bid_size_fp");
-        object askVolume = ((bool) isTrue((isNo))) ? this.safeNumber(raw, "yes_bid_size_fp") : this.safeNumber(raw, "yes_ask_size_fp");
+        object bidSizeString = ((bool) isTrue((isNo))) ? this.safeString(raw, "yes_ask_size_fp") : this.safeString(raw, "yes_bid_size_fp");
+        object askSizeString = ((bool) isTrue((isNo))) ? this.safeString(raw, "yes_bid_size_fp") : this.safeString(raw, "yes_ask_size_fp");
+        // kalshi occasionally reports a negative size for settling/closed markets; a size
+        // can't be negative, so drop it rather than emit an invalid volume
+        object bidVolume = null;
+        if (isTrue(isTrue((!isEqual(bidSizeString, null))) && isTrue(Precise.stringGe(bidSizeString, "0"))))
+        {
+            bidVolume = this.parseNumber(bidSizeString);
+        }
+        object askVolume = null;
+        if (isTrue(isTrue((!isEqual(askSizeString, null))) && isTrue(Precise.stringGe(askSizeString, "0"))))
+        {
+            askVolume = this.parseNumber(askSizeString);
+        }
         object average = null;
         if (isTrue(isTrue((!isEqual(bid, null))) && isTrue((!isEqual(ask, null)))))
         {
@@ -1561,10 +1574,12 @@ public partial class kalshi : PredictionExchange
         {
             this.checkEvents();
         }
-        object response = await this.kalshiPrivateDeletePortfolioOrdersOrderId(this.extend(new Dictionary<string, object>() {
+        // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
+        // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
+        object response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new Dictionary<string, object>() {
             { "order_id", id },
         }, parameters));
-        return this.parseOrder(this.safeValue(response, "order", response));
+        return this.parseOrder(this.safeDict(response, "order", response));
     }
 
     /**
@@ -1586,8 +1601,9 @@ public partial class kalshi : PredictionExchange
         {
             this.checkEvents();
         }
-        // kalshi has no "cancel all" endpoint — fetch the resting orders and
-        // batch-cancel them by id (DELETE /portfolio/orders/batched, max 20 ids/call)
+        // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
+        // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
+        // cancel them one by one via the v2 DELETE /portfolio/events/orders/{order_id}
         object request = new Dictionary<string, object>() {
             { "status", "resting" },
         };
@@ -1599,38 +1615,17 @@ public partial class kalshi : PredictionExchange
         object restingResponse = await this.kalshiPrivateGetPortfolioOrders(request);
         object restingOrders = this.safeList(restingResponse, "orders", new List<object>() {});
         object restingOrdersLength = getArrayLength(restingOrders);
-        object ids = new List<object>() {};
+        object canceledOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, restingOrdersLength); postFixIncrement(ref i))
         {
             object orderId = this.safeString(getValue(restingOrders, i), "order_id");
             if (isTrue(!isEqual(orderId, null)))
             {
-                ((IList<object>)ids).Add(orderId);
+                object response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new Dictionary<string, object>() {
+                    { "order_id", orderId },
+                }, parameters));
+                ((IList<object>)canceledOrders).Add(this.safeDict(response, "order", response));
             }
-        }
-        object idsLength = getArrayLength(ids);
-        if (isTrue(isEqual(idsLength, 0)))
-        {
-            return new List<object>() {};
-        }
-        object canceledOrders = new List<object>() {};
-        object batchLimit = 20; // kalshi caps the batched-cancel endpoint at 20 ids per call
-        object remaining = ids;
-        object remainingLength = getArrayLength(remaining);
-        while (isGreaterThan(remainingLength, 0))
-        {
-            object batchIds = this.arraySlice(remaining, 0, batchLimit);
-            remaining = this.arraySlice(remaining, batchLimit);
-            object response = await this.kalshiPrivateDeletePortfolioOrdersBatched(this.extend(new Dictionary<string, object>() {
-                { "ids", batchIds },
-            }, parameters));
-            object batchResult = this.safeList(response, "orders", new List<object>() {});
-            object batchResultLength = getArrayLength(batchResult);
-            for (object j = 0; isLessThan(j, batchResultLength); postFixIncrement(ref j))
-            {
-                ((IList<object>)canceledOrders).Add(getValue(batchResult, j));
-            }
-            remainingLength = getArrayLength(remaining);
         }
         return this.parseOrders(canceledOrders);
     }
@@ -1651,6 +1646,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<object> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        this.requireEventQuery(parameters);
         object queries = this.parseSearchQueries(parameters);
         parameters = this.omit(parameters, new List<object>() {"query", "queries"});
         // map the unified status onto the kalshi event status (open / closed) so it is pushed server-side

@@ -43,7 +43,7 @@ export default class PredictionExchange extends Exchange {
         }
         if (outcome !== undefined) {
             if (!(outcome in this.outcomes) && !(outcome in this.outcomes_by_id)) {
-                throw new ArgumentsRequired ('The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents');
+                throw new BadSymbol (this.id + ' the specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents');
             }
         }
     }

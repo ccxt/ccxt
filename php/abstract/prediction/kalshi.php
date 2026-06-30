@@ -220,6 +220,9 @@ abstract class kalshi extends \ccxt\prediction\PredictionExchange {
     public function kalshi_private_delete_portfolio_orders_batched($params = array()) {
         return $this->request('portfolio/orders/batched', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    public function kalshi_private_delete_portfolio_events_orders_order_id($params = array()) {
+        return $this->request('portfolio/events/orders/{order_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
     public function kalshi_private_delete_portfolio_order_groups_order_group_id($params = array()) {
         return $this->request('portfolio/order_groups/{order_group_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -435,6 +438,9 @@ abstract class kalshi extends \ccxt\prediction\PredictionExchange {
     }
     public function kalshiPrivateDeletePortfolioOrdersBatched($params = array()) {
         return $this->request('portfolio/orders/batched', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function kalshiPrivateDeletePortfolioEventsOrdersOrderId($params = array()) {
+        return $this->request('portfolio/events/orders/{order_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId($params = array()) {
         return $this->request('portfolio/order_groups/{order_group_id}', array('kalshi', 'private'), 'DELETE', $params, null, null, array("cost" => 1));

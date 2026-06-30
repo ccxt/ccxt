@@ -7,10 +7,10 @@
 
 package ccxtprediction
 
-func (this *HyperliquidCore) PublicPostInfo (args ...any) <-chan any {
-   return this.CallEndpointAsync("publicPostInfo", args...)
+func (this *HyperliquidCore) PublicPostInfo(args ...any) <-chan any {
+	return this.CallEndpointAsync("publicPostInfo", args...)
 }
 
-func (this *HyperliquidCore) PrivatePostExchange (args ...any) <-chan any {
-   return this.CallEndpointAsync("privatePostExchange", args...)
+func (this *HyperliquidCore) PrivatePostExchange(args ...any) <-chan any {
+	return this.CallEndpointAsync("privatePostExchange", args...)
 }

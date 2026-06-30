@@ -248,7 +248,8 @@ public partial class limitless : PredictionExchange
             object lastPageResponse = this.safeDict(responses, subtract(length, 1));
             object lastPageData = this.safeList(lastPageResponse, "data", new List<object>() {});
             object lastPageLength = getArrayLength(lastPageData);
-            if (isTrue(isTrue(isGreaterThanOrEqual(lastPageLength, pageSize)) && isTrue(isLessThan(getArrayLength(allRaw), maxMarkets))))
+            object allRawLength = getArrayLength(allRaw);
+            if (isTrue(isTrue(isGreaterThanOrEqual(lastPageLength, pageSize)) && isTrue(isLessThan(allRawLength, maxMarkets))))
             {
                 while (true)
                 {
@@ -267,7 +268,8 @@ public partial class limitless : PredictionExchange
                         object raw = getValue(page_markets, i);
                         ((IList<object>)allRaw).Add(raw);
                     }
-                    if (isTrue(isTrue(isLessThan(pageMarketsLength, pageSize)) || isTrue(isGreaterThanOrEqual(getArrayLength(allRaw), maxMarkets))))
+                    object allRawCount = getArrayLength(allRaw);
+                    if (isTrue(isTrue(isLessThan(pageMarketsLength, pageSize)) || isTrue(isGreaterThanOrEqual(allRawCount, maxMarkets))))
                     {
                         break;
                     }
@@ -2302,10 +2304,7 @@ public partial class limitless : PredictionExchange
             return add(this.intToBase16(add(128, byteLength)), hex);
         }
         object lengthHex = this.intToBase16(byteLength);
-        if (isTrue(!isEqual((mod(((string)lengthHex).Length, 2)), 0)))
-        {
-            lengthHex = add("0", lengthHex);
-        }
+        lengthHex = this.padHexToEven(lengthHex);
         object lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
         return add(add(this.intToBase16(add(183, lengthOfLength)), lengthHex), hex);
     }
@@ -2323,10 +2322,7 @@ public partial class limitless : PredictionExchange
             return add(this.intToBase16(add(192, byteLength)), concatenated);
         }
         object lengthHex = this.intToBase16(byteLength);
-        if (isTrue(!isEqual((mod(((string)lengthHex).Length, 2)), 0)))
-        {
-            lengthHex = add("0", lengthHex);
-        }
+        lengthHex = this.padHexToEven(lengthHex);
         object lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
         return add(add(this.intToBase16(add(247, lengthOfLength)), lengthHex), concatenated);
     }
@@ -2339,10 +2335,7 @@ public partial class limitless : PredictionExchange
             return "";
         }
         object hex = this.intToBase16(value);
-        if (isTrue(!isEqual((mod(((string)hex).Length, 2)), 0)))
-        {
-            hex = add("0", hex);
-        }
+        hex = this.padHexToEven(hex);
         return hex;
     }
 
@@ -2362,11 +2355,19 @@ public partial class limitless : PredictionExchange
         {
             return "";
         }
-        if (isTrue(!isEqual((mod(getArrayLength(h), 2)), 0)))
-        {
-            h = add("0", h);
-        }
+        h = this.padHexToEven(h);
         return h;
+    }
+
+    public virtual object padHexToEven(object hex)
+    {
+        // prepend a nibble so the hex has an even number of characters (whole bytes)
+        object hexLength = ((string)hex).Length;
+        if (isTrue(!isEqual((mod(hexLength, 2)), 0)))
+        {
+            return add("0", hex);
+        }
+        return hex;
     }
 
     public virtual object padHexAddress(object address)
@@ -2386,14 +2387,8 @@ public partial class limitless : PredictionExchange
         object signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
         object rHex = this.safeString(signature, "r");
         object sHex = this.safeString(signature, "s");
-        if (isTrue(!isEqual((mod(((string)rHex).Length, 2)), 0)))
-        {
-            rHex = add("0", rHex);
-        }
-        if (isTrue(!isEqual((mod(((string)sHex).Length, 2)), 0)))
-        {
-            sHex = add("0", sHex);
-        }
+        rHex = this.padHexToEven(rHex);
+        sHex = this.padHexToEven(sHex);
         object yParity = this.safeInteger(signature, "v");
         object signedFields = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(fields)); postFixIncrement(ref i))
@@ -3105,6 +3100,7 @@ public partial class limitless : PredictionExchange
     public async override Task<object> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        this.requireEventQuery(parameters);
         object queries = this.parseSearchQueries(parameters);
         object result = new List<object>() {};
         object queriesLength = getArrayLength(queries);

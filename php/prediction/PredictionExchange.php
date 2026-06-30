@@ -45,7 +45,7 @@ class PredictionExchange extends \ccxt\async\Exchange {
         }
         if ($outcome !== null) {
             if (!(is_array($this->outcomes) && array_key_exists($outcome, $this->outcomes)) && !(is_array($this->outcomes_by_id) && array_key_exists($outcome, $this->outcomes_by_id))) {
-                throw new ArgumentsRequired('The specified $outcome is not valid/available, please fetch events and outcomes first using fetchEvents');
+                throw new BadSymbol($this->id . ' the specified $outcome is not valid/available, please fetch events and outcomes first using fetchEvents');
             }
         }
     }
@@ -57,6 +57,20 @@ class PredictionExchange extends \ccxt\async\Exchange {
             return array( $singleQuery );
         }
         return $this->safe_list($params, 'queries', array());
+    }
+
+    public function require_event_query($params = array ()) {
+        // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
+        // entire exchange. require one of $query / $queries / $tags / $eventId / $slug
+        $query = $this->safe_string($params, 'query');
+        $queries = $this->safe_list($params, 'queries', array());
+        $tags = $this->safe_list($params, 'tags', array());
+        $eventId = $this->safe_string($params, 'eventId');
+        $slug = $this->safe_string($params, 'slug');
+        if (($query === null) && (strlen($queries) === 0) && (strlen($tags) === 0) && ($eventId === null) && ($slug === null)) {
+            throw new ArgumentsRequired($this->id . ' fetchEvents() requires at least one of $query, $queries, $tags, $eventId or $slug to scope the search');
+        }
+        return null;
     }
 
     public function apply_event_fetch_params(array $events, $params = array (), ?array $queries = null) {
@@ -78,7 +92,13 @@ class PredictionExchange extends \ccxt\async\Exchange {
             $result = $filtered;
         }
         $result = $this->filter_events_by_status($result, $this->safe_string($params, 'status'));
-        if (($queries !== null) && (strlen($queries) > 0)) {
+        // own-line length read so the regex transpiler treats `$queries` array (count())
+        // and not a string (strlen()); guard null since the default is null
+        $queriesLength = 0;
+        if ($queries !== null) {
+            $queriesLength = count($queries);
+        }
+        if ($queriesLength > 0) {
             $result = $this->filter_events_by_search_in($result, $queries, $this->safe_string($params, 'searchIn'));
         }
         $sort = $this->safe_string($params, 'sort');
@@ -122,7 +142,12 @@ class PredictionExchange extends \ccxt\async\Exchange {
 
     public function filter_events_by_search_in(array $events, array $queries, ?string $searchIn = null) {
         // keep $events whose $title and/or $description contains one of the $queries ($searchIn defaults to 'both')
-        if (($searchIn === null) || ($queries === null) || (strlen($queries) === 0)) {
+        // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
+        $queriesLength = 0;
+        if ($queries !== null) {
+            $queriesLength = count($queries);
+        }
+        if (($searchIn === null) || ($queries === null) || ($queriesLength === 0)) {
             return $events;
         }
         $checkTitle = ($searchIn === 'title') || ($searchIn === 'both');
@@ -343,56 +368,302 @@ class PredictionExchange extends \ccxt\async\Exchange {
 
     public function fetch_ticker(string $outcome, $params = array ()) {
         return Async\async(function () use ($outcome, $params) {
+            /**
+             * fetches a price ticker for a single prediction $outcome
+             * @param {string} $outcome unified $outcome handle
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+             */
             return Async\await(parent::fetch_ticker($outcome, $params));
         }) ();
     }
 
     public function fetch_order_book(string $outcome, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($outcome, $limit, $params) {
+            /**
+             * fetches the order book for a prediction $outcome
+             * @param {string} $outcome unified $outcome handle
+             * @param {int} [$limit] the maximum number of order book entries to return
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+             */
             return Async\await(parent::fetch_order_book($outcome, $limit, $params));
         }) ();
     }
 
     public function fetch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($outcome, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data for a prediction $outcome
+             * @param {string} $outcome unified $outcome handle
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum number of candles to fetch
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {int[][]} a list of candles ordered, open, high, low, close, volume
+             */
             return Async\await(parent::fetch_ohlcv($outcome, $timeframe, $since, $limit, $params));
         }) ();
     }
 
     public function fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($outcome, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a prediction $outcome
+             * @param {string} $outcome unified $outcome handle
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum number of trades to fetch
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+             */
             return Async\await(parent::fetch_trades($outcome, $since, $limit, $params));
         }) ();
     }
 
     public function create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($outcome, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order on a prediction $outcome
+             * @param {string} $outcome unified $outcome handle
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how many shares of the $outcome to trade
+             * @param {float} [$price] the $price at which the order is to be filled, in cost per share
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             */
             return Async\await(parent::create_order($outcome, $type, $side, $amount, $price, $params));
         }) ();
     }
 
     public function cancel_order(string $id, ?string $outcome = null, $params = array ()) {
         return Async\async(function () use ($id, $outcome, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} [$outcome] unified $outcome handle
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array} a prediction [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             */
             return Async\await(parent::cancel_order($id, $outcome, $params));
         }) ();
     }
 
     public function watch_ticker(string $outcome, $params = array ()) {
         return Async\async(function () use ($outcome, $params) {
+            /**
+             * watches a price ticker for a single prediction $outcome
+             * @param {string} $outcome unified $outcome handle
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+             */
             return Async\await(parent::watch_ticker($outcome, $params));
         }) ();
     }
 
     public function watch_order_book(string $outcome, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($outcome, $limit, $params) {
+            /**
+             * watches the order book for a prediction $outcome
+             * @param {string} $outcome unified $outcome handle
+             * @param {int} [$limit] the maximum number of order book entries to return
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+             */
             return Async\await(parent::watch_order_book($outcome, $limit, $params));
         }) ();
     }
 
     public function watch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($outcome, $since, $limit, $params) {
+            /**
+             * watches the most recent trades for a prediction $outcome
+             * @param {string} $outcome unified $outcome handle
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum number of trades to fetch
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+             */
             return Async\await(parent::watch_trades($outcome, $since, $limit, $params));
         }) ();
+    }
+
+    public function fetch_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {string} [$outcome] unified $outcome handle
+         * @param {int} [$since] timestamp in ms of the earliest order to fetch
+         * @param {int} [$limit] the maximum number of orders to fetch
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+         */
+        throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
+    }
+
+    public function fetch_closed_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {string} [$outcome] unified $outcome handle
+         * @param {int} [$since] timestamp in ms of the earliest order to fetch
+         * @param {int} [$limit] the maximum number of orders to fetch
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+         */
+        throw new NotSupported($this->id . ' fetchClosedOrders() is not supported yet');
+    }
+
+    public function fetch_order_trades(string $id, ?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {string} $id order $id
+         * @param {string} [$outcome] unified $outcome handle
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum number of trades to fetch
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?$id=trade-structure)
+         */
+        throw new NotSupported($this->id . ' fetchOrderTrades() is not supported yet');
+    }
+
+    public function fetch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {string} [$outcome] unified $outcome handle
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum number of trades to fetch
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+         */
+        throw new NotSupported($this->id . ' fetchMyTrades() is not supported yet');
+    }
+
+    public function fetch_position(string $outcome, $params = array ()) {
+        /**
+         * fetch the open position held on a single prediction $outcome
+         * @param {string} $outcome unified $outcome handle
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
+         */
+        throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
+    }
+
+    public function fetch_trading_fee(string $outcome, $params = array ()) {
+        /**
+         * fetch the trading fee for a prediction $outcome
+         * @param {string} $outcome unified $outcome handle
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+         */
+        throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet');
+    }
+
+    public function fetch_open_interest(string $outcome, $params = array ()) {
+        /**
+         * fetch the open interest of a prediction $outcome
+         * @param {string} $outcome unified $outcome handle
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+         */
+        throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        /**
+         * create a list of trade $orders
+         * @param {array[]} $orders a list of PredictionOrderRequest objects, each carrying an `outcome` handle
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+         */
+        throw new NotSupported($this->id . ' createOrders() is not supported yet');
+    }
+
+    public function cancel_orders(array $ids, ?string $outcome = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {string[]} $ids order $ids
+         * @param {string} [$outcome] unified $outcome handle
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+         */
+        throw new NotSupported($this->id . ' cancelOrders() is not supported yet');
+    }
+
+    public function create_market_buy_order_with_cost(string $outcome, float $cost, $params = array ()) {
+        return Async\async(function () use ($outcome, $cost, $params) {
+            /**
+             * create a market buy order on a prediction $outcome by providing the $cost
+             * @param {string} $outcome unified $outcome handle
+             * @param {float} $cost how much you want to spend, in $cost terms
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             */
+            if ($this->options['createMarketBuyOrderRequiresPrice'] || $this->has['createMarketBuyOrderWithCost']) {
+                return Async\await($this->create_order($outcome, 'market', 'buy', $cost, 1, $params));
+            }
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is not supported yet');
+        }) ();
+    }
+
+    public function create_market_sell_order_with_cost(string $outcome, float $cost, $params = array ()) {
+        return Async\async(function () use ($outcome, $cost, $params) {
+            /**
+             * create a market sell order on a prediction $outcome by providing the $cost
+             * @param {string} $outcome unified $outcome handle
+             * @param {float} $cost how much you want to receive, in $cost terms
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             */
+            if ($this->options['createMarketSellOrderRequiresPrice'] || $this->has['createMarketSellOrderWithCost']) {
+                return Async\await($this->create_order($outcome, 'market', 'sell', $cost, 1, $params));
+            }
+            throw new NotSupported($this->id . ' createMarketSellOrderWithCost() is not supported yet');
+        }) ();
+    }
+
+    public function watch_tickers(?array $outcomes = null, $params = array ()) {
+        /**
+         * watches price tickers for multiple prediction $outcomes
+         * @param {string[]} [$outcomes] unified outcome handles to watch
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+         */
+        throw new NotSupported($this->id . ' watchTickers() is not supported yet');
+    }
+
+    public function watch_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * watches information on multiple orders made by the user
+         * @param {string} [$outcome] unified $outcome handle
+         * @param {int} [$since] timestamp in ms of the earliest order to watch
+         * @param {int} [$limit] the maximum number of orders to watch
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+         */
+        throw new NotSupported($this->id . ' watchOrders() is not supported yet');
+    }
+
+    public function watch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * watches all trades made by the user
+         * @param {string} [$outcome] unified $outcome handle
+         * @param {int} [$since] timestamp in ms of the earliest trade to watch
+         * @param {int} [$limit] the maximum number of trades to watch
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+         */
+        throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
+    }
+
+    public function watch_positions(?array $outcomes = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * watches the open positions held by the user
+         * @param {string[]} [$outcomes] unified outcome handles to watch
+         * @param {int} [$since] timestamp in ms of the earliest position to watch
+         * @param {int} [$limit] the maximum number of positions to watch
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+         */
+        throw new NotSupported($this->id . ' watchPositions() is not supported yet');
     }
 
     public function safe_prediction_order(array $order, $market = null) {

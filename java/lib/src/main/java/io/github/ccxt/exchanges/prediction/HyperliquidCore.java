@@ -52,7 +52,7 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "fetchPositions", true );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
-                put( "fetchTrades", false );
+                put( "fetchTrades", true );
                 put( "prediction", true );
             }} );
             put( "timeframes", new java.util.HashMap<String, Object>() {{
@@ -123,7 +123,7 @@ public class HyperliquidCore extends HyperliquidApi
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "defaultType", "prediction" );
-                put( "sandboxMode", true );
+                put( "sandboxMode", false );
                 put( "outcomeQuoteCurrency", "USDH" );
                 put( "defaultSlippage", 0.05 );
                 put( "zeroAddress", "0x0000000000000000000000000000000000000000" );
@@ -1131,7 +1131,8 @@ public class HyperliquidCore extends HyperliquidApi
     /**
      * @method
      * @name hyperliquid#fetchPositions
-     * @description fetches outcome token positions from spot clearinghouse state, outcome tokens appear as spot token balances starting with '+'
+     * @description fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
@@ -1165,26 +1166,35 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "type", "spotClearinghouseState" );
                 put( "user", finalUserAddress );
             }};
-            Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
+            // outcome positions are spot token balances under the "+<encoding>" coin form; they carry
+            // the size (total) and entry notional (entryNtl). hyperliquid does not return the position
+            // value / entry price / pnl, so they are computed from the current mid prices
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.publicPostInfo(this.extend(request, parameters)), this.publicPostInfo(new java.util.HashMap<String, Object>() {{
+        put( "type", "allMids" );
+    }})));
+            Object results = (Helpers.promiseAll(promises)).join();
+            Object response = Helpers.GetValue(results, 0);
+            Object midsResponse = Helpers.GetValue(results, 1);
             Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object mids = this.safeDict(midsResponse, "mids", midsResponse);
             Object positions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {
-                Object balance = Helpers.GetValue(balances, i);
-                Object coin = this.safeString(balance, "coin");
-                // Outcome tokens start with '+'
-                if (Helpers.isTrue(!Helpers.isTrue(coin) || !Helpers.isTrue(((String)coin).startsWith(((String)"+")))))
+                Object balance = this.safeDict(balances, i, new java.util.HashMap<String, Object>() {{}});
+                Object coin = this.safeString(balance, "coin", "");
+                // outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.getIndexOf(coin, "+"), 0)))
                 {
                     continue;
                 }
                 Object totalStr = this.safeString(balance, "total");
-                Object total = this.parseNumber(totalStr);
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(total, null)) || Helpers.isTrue(Helpers.isEqual(total, 0))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(totalStr, null))) || Helpers.isTrue(Precise.stringEq(totalStr, "0"))))
                 {
                     continue;
                 }
-                Object outcomeId = Helpers.add("#", Helpers.slice(coin, 1, null)); // +10 -> #10
-                Object outcomeObj = this.safeOutcome(outcomeId);
+                // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
+                Object tradeCoin = Helpers.add("#", Helpers.slice(coin, 1, null));
+                Object outcomeObj = this.safeOutcome(tradeCoin);
                 if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
                 {
                     Object outcomeHandle = this.safeString(outcomeObj, "outcome");
@@ -1193,7 +1203,10 @@ public class HyperliquidCore extends HyperliquidApi
                         continue;
                     }
                 }
-                ((java.util.List<Object>)positions).add(this.parsePosition(balance, outcomeObj));
+                Object enriched = this.extend(balance, new java.util.HashMap<String, Object>() {{
+                    put( "markPx", HyperliquidCore.this.safeString(mids, tradeCoin) );
+                }});
+                ((java.util.List<Object>)positions).add(this.parsePosition(enriched, outcomeObj));
             }
             return positions;
         });
@@ -1211,50 +1224,61 @@ public class HyperliquidCore extends HyperliquidApi
      */
     public Object parsePosition(Object position, Object... optionalArgs)
     {
+        // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
+        // enriched with the current mid price (markPx); hyperliquid does not return the position
+        // value / entry price / pnl for outcome tokens, so they are computed here
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object outcomeObj = this.safeOutcome(null, market);
         Object totalStr = this.safeString(position, "total");
         Object total = this.parseNumber(totalStr);
-        Object holdStr = this.safeString(position, "hold");
-        Object hold = this.parseNumber(holdStr);
         Object entryNtlStr = this.safeString(position, "entryNtl");
-        Object entryNotional = this.parseNumber(entryNtlStr);
         Object entryPrice = null;
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(entryNotional, null)) && Helpers.isTrue(!Helpers.isEqual(total, null))) && Helpers.isTrue(Helpers.isGreaterThan(total, 0))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(entryNtlStr, null))) && Helpers.isTrue((!Helpers.isEqual(totalStr, null)))) && !Helpers.isTrue(Precise.stringEq(totalStr, "0"))))
         {
-            entryPrice = Helpers.divide(entryNotional, total);
+            entryPrice = this.parseNumber(Precise.stringDiv(entryNtlStr, totalStr));
         }
-        final Object finalTotal = total;
+        Object markPxStr = this.safeString(position, "markPx");
+        Object notional = null; // current position value = size * mark price
+        Object unrealizedPnl = null; // value - entry notional
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(markPxStr, null))) && Helpers.isTrue((!Helpers.isEqual(totalStr, null)))))
+        {
+            Object notionalStr = Precise.stringMul(totalStr, markPxStr);
+            notional = this.parseNumber(notionalStr);
+            if (Helpers.isTrue(!Helpers.isEqual(entryNtlStr, null)))
+            {
+                unrealizedPnl = this.parseNumber(Precise.stringSub(notionalStr, entryNtlStr));
+            }
+        }
         final Object finalEntryPrice = entryPrice;
-        final Object finalEntryNotional = entryNotional;
+        final Object finalMarkPxStr = markPxStr;
+        final Object finalNotional = notional;
+        final Object finalUnrealizedPnl = unrealizedPnl;
         return this.safePredictionPosition(new java.util.HashMap<String, Object>() {{
             put( "id", null );
             put( "outcome", HyperliquidCore.this.safeString(outcomeObj, "outcome") );
             put( "outcomeId", HyperliquidCore.this.safeString2(outcomeObj, "outcomeId", "id") );
-            put( "label", HyperliquidCore.this.safeString(outcomeObj, "label") );
             put( "market", HyperliquidCore.this.safeString(outcomeObj, "outcome") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "isolated", false );
             put( "hedged", null );
             put( "side", "long" );
-            put( "contracts", finalTotal );
+            put( "contracts", total );
             put( "contractSize", 1 );
             put( "entryPrice", finalEntryPrice );
-            put( "markPrice", null );
-            put( "notional", finalEntryNotional );
+            put( "markPrice", HyperliquidCore.this.parseNumber(finalMarkPxStr) );
+            put( "notional", finalNotional );
             put( "leverage", null );
-            put( "collateral", hold );
+            put( "collateral", HyperliquidCore.this.safeNumber(position, "hold") );
             put( "initialMargin", null );
             put( "maintenanceMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMarginPercentage", null );
-            put( "unrealizedPnl", null );
+            put( "unrealizedPnl", finalUnrealizedPnl );
             put( "realizedPnl", null );
             put( "liquidationPrice", null );
             put( "marginRatio", null );
             put( "marginMode", "cross" );
-            put( "marginType", "cross" );
             put( "percentage", null );
             put( "info", position );
         }});
@@ -2007,6 +2031,40 @@ public class HyperliquidCore extends HyperliquidApi
 
     /**
      * @method
+     * @name hyperliquid#fetchTrades
+     * @description fetches the most recent public trades for an outcome
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-coins-recent-trades
+     * @param {string} outcome unified outcome
+     * @param {int} [since] only return trades at or after this timestamp in ms
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object outcome, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            this.checkEvents(outcome);
+            Object outcomeObj = this.outcome(outcome);
+            Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "type", "recentTrades" );
+                put( "coin", HyperliquidCore.this.safeString(info, "coinName") );
+            }};
+            // recentTrades returns the coin's most recent public trades (newest first)
+            Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
+            Object trades = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(response, null)) && Helpers.isTrue(!Helpers.isEqual(response, null)))))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            return this.parseTrades(trades, ((Object)outcomeObj), since, limit);
+        });
+
+    }
+
+    /**
+     * @method
      * @name hyperliquid#fetchMyTrades
      * @description fetches the authenticated user's fill history
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
@@ -2027,38 +2085,11 @@ public class HyperliquidCore extends HyperliquidApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchMyTrades", parameters);
-            userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
-            parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "user", finalUserAddress );
-            }};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
             {
-                Helpers.addElementToObject(request, "type", "userFillsByTime");
-                Helpers.addElementToObject(request, "startTime", since);
-            } else
-            {
-                Helpers.addElementToObject(request, "type", "userFills");
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires an outcome argument")) ;
             }
-            Object until = this.safeInteger(parameters, "until");
-            parameters = this.omit(parameters, "until");
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
-            {
-                Helpers.addElementToObject(request, "endTime", until);
-            }
-            Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
-            Object parsed = this.parseTrades(response, null, since, null);
-            Object outcomeHandle = null;
-            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
-            {
-                this.checkEvents(outcome);
-                Object outcomeObj = this.outcome(outcome);
-                outcomeHandle = this.safeString(outcomeObj, "outcome");
-            }
-            return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
+            return (this.fetchTrades((Object)(outcome), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -2159,8 +2190,12 @@ public class HyperliquidCore extends HyperliquidApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            this.requireEventQuery(parameters);
             Object queries = this.parseSearchQueries(parameters);
-            Object marketValues = Helpers.objectValues(this.markets);
+            // hyperliquid has no dedicated events endpoint — events are grouped from the outcome
+            // markets, so fetch them directly rather than relying on this.markets (which may be
+            // unloaded or hold the non-prediction hyperliquid markets)
+            Object marketValues = (this.fetchMarketsAsync()).join();
             // Group markets by parentSymbol
             Object groupMap = new java.util.HashMap<String, Object>() {{}};
             Object lowerQueries = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2185,10 +2220,25 @@ public class HyperliquidCore extends HyperliquidApi
                     Object description = ((String)this.safeString(info, "description", "")).toLowerCase();
                     Object parentSymbolOrEmpty = ((Helpers.isTrue((!Helpers.isEqual(parentSymbol, null))))) ? parentSymbol : "";
                     Object symLower = ((String)parentSymbolOrEmpty).toLowerCase();
+                    // the parentSymbol uses hyphens (BTC-ABOVE-...), so match the haystack word-by-word
+                    // and require every word of a query to appear, letting "BTC above" match BTC-ABOVE
+                    Object haystack = Helpers.add(Helpers.add(description, " "), symLower);
                     Object matches = false;
                     for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(lowerQueries)); qi++)
                     {
-                        if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(description, Helpers.GetValue(lowerQueries, qi)), Helpers.opNeg(1))) || Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symLower, Helpers.GetValue(lowerQueries, qi)), Helpers.opNeg(1)))))
+                        Object words = Helpers.split(Helpers.GetValue(lowerQueries, qi), " ");
+                        Object wordsLength = Helpers.getArrayLength(words);
+                        Object allWords = true;
+                        for (var wi = 0; Helpers.isLessThan(wi, wordsLength); wi++)
+                        {
+                            Object word = Helpers.GetValue(words, wi);
+                            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(word, ""))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(haystack, word), Helpers.opNeg(1))))))
+                            {
+                                allWords = false;
+                                break;
+                            }
+                        }
+                        if (Helpers.isTrue(allWords))
                         {
                             matches = true;
                             break;
@@ -2342,8 +2392,12 @@ public class HyperliquidCore extends HyperliquidApi
     public Object signHash(Object hash, Object privateKey)
     {
         Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
-        Object r = Helpers.padStart((String)Helpers.GetValue(signature, "r"), ((Number)64).intValue(), ((String)"0").charAt(0));
-        Object s = Helpers.padStart((String)Helpers.GetValue(signature, "s"), ((Number)64).intValue(), ((String)"0").charAt(0));
+        // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
+        // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
+        Object rRaw = Helpers.GetValue(signature, "r");
+        Object sRaw = Helpers.GetValue(signature, "s");
+        Object r = Helpers.padStart((String)rRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
+        Object s = Helpers.padStart((String)sRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
         return new java.util.HashMap<String, Object>() {{
             put( "r", Helpers.add("0x", r) );
             put( "s", Helpers.add("0x", s) );
@@ -2415,11 +2469,16 @@ public class HyperliquidCore extends HyperliquidApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // createOrder/createOrders call this before trading; load markets so checkEvents/outcome can
+            // resolve the outcome handle. loading them also keeps this method genuinely async for the PHP
+            // and typed transpilers, which mishandle an async body that never suspends
+            (this.loadMarkets()).join();
             Object buildFee = this.safeBool(this.options, "builderFee", false);
             if (!Helpers.isTrue(buildFee))
             {
-                return null;  // eslint-disable-line no-useless-return
+                return null;
             }
+            // builder fee approval would go here if needed
             return null;
         });
 
@@ -2469,7 +2528,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object apiGroup = ((Helpers.isTrue(Helpers.isArray(api)))) ? Helpers.GetValue(api, 0) : api;
-        Object sandboxMode = this.safeBool(this.options, "sandboxMode", true);
+        Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Object baseUrl = null;
         if (Helpers.isTrue(sandboxMode))
         {

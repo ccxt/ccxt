@@ -1008,7 +1008,7 @@ public class MyriadCore extends MyriadApi
             for (var i = 0; Helpers.isLessThan(i, ordersLength); i++)
             {
                 Object o = Helpers.GetValue(orders, i);
-                Object outcome = this.safeString(o, "symbol");
+                Object outcome = this.safeString(o, "outcome");
                 Object type = this.safeString(o, "type");
                 Object side = this.safeString(o, "side");
                 Object amount = this.safeNumber(o, "amount");
@@ -2900,6 +2900,7 @@ final Object finalNetworkId = networkId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            this.requireEventQuery(parameters);
             Object queries = this.parseSearchQueries(parameters);
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries", "sort", "searchIn", "eventId", "slug", "status")));
             Object queriesLength = Helpers.getArrayLength(queries);

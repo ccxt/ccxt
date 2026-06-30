@@ -265,7 +265,8 @@ public class LimitlessCore extends LimitlessApi
                 Object lastPageResponse = this.safeDict(responses, Helpers.subtract(length, 1));
                 Object lastPageData = this.safeList(lastPageResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object lastPageLength = Helpers.getArrayLength(lastPageData);
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(lastPageLength, pageSize)) && Helpers.isTrue(Helpers.isLessThan(Helpers.getArrayLength(allRaw), maxMarkets))))
+                Object allRawLength = Helpers.getArrayLength(allRaw);
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(lastPageLength, pageSize)) && Helpers.isTrue(Helpers.isLessThan(allRawLength, maxMarkets))))
                 {
                     while (true)
                     {
@@ -284,7 +285,8 @@ public class LimitlessCore extends LimitlessApi
                             Object raw = Helpers.GetValue(page_markets, i);
                             ((java.util.List<Object>)allRaw).add(raw);
                         }
-                        if (Helpers.isTrue(Helpers.isTrue(Helpers.isLessThan(pageMarketsLength, pageSize)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getArrayLength(allRaw), maxMarkets))))
+                        Object allRawCount = Helpers.getArrayLength(allRaw);
+                        if (Helpers.isTrue(Helpers.isTrue(Helpers.isLessThan(pageMarketsLength, pageSize)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(allRawCount, maxMarkets))))
                         {
                             break;
                         }
@@ -2434,10 +2436,7 @@ public class LimitlessCore extends LimitlessApi
             return Helpers.add(this.intToBase16(Helpers.add(128, byteLength)), hex);
         }
         Object lengthHex = this.intToBase16(byteLength);
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(((String)lengthHex).length(), 2)), 0)))
-        {
-            lengthHex = Helpers.add("0", lengthHex);
-        }
+        lengthHex = this.padHexToEven(lengthHex);
         Object lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
         return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(183, lengthOfLength)), lengthHex), hex);
     }
@@ -2455,10 +2454,7 @@ public class LimitlessCore extends LimitlessApi
             return Helpers.add(this.intToBase16(Helpers.add(192, byteLength)), concatenated);
         }
         Object lengthHex = this.intToBase16(byteLength);
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(((String)lengthHex).length(), 2)), 0)))
-        {
-            lengthHex = Helpers.add("0", lengthHex);
-        }
+        lengthHex = this.padHexToEven(lengthHex);
         Object lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
         return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(247, lengthOfLength)), lengthHex), concatenated);
     }
@@ -2471,10 +2467,7 @@ public class LimitlessCore extends LimitlessApi
             return "";
         }
         Object hex = this.intToBase16(value);
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(((String)hex).length(), 2)), 0)))
-        {
-            hex = Helpers.add("0", hex);
-        }
+        hex = this.padHexToEven(hex);
         return hex;
     }
 
@@ -2494,11 +2487,19 @@ public class LimitlessCore extends LimitlessApi
         {
             return "";
         }
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(Helpers.getArrayLength(h), 2)), 0)))
-        {
-            h = Helpers.add("0", h);
-        }
+        h = this.padHexToEven(h);
         return h;
+    }
+
+    public Object padHexToEven(Object hex)
+    {
+        // prepend a nibble so the hex has an even number of characters (whole bytes)
+        Object hexLength = ((String)hex).length();
+        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(hexLength, 2)), 0)))
+        {
+            return Helpers.add("0", hex);
+        }
+        return hex;
     }
 
     public Object padHexAddress(Object address)
@@ -2518,14 +2519,8 @@ public class LimitlessCore extends LimitlessApi
         Object signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
         Object rHex = this.safeString(signature, "r");
         Object sHex = this.safeString(signature, "s");
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(((String)rHex).length(), 2)), 0)))
-        {
-            rHex = Helpers.add("0", rHex);
-        }
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(((String)sHex).length(), 2)), 0)))
-        {
-            sHex = Helpers.add("0", sHex);
-        }
+        rHex = this.padHexToEven(rHex);
+        sHex = this.padHexToEven(sHex);
         Object yParity = this.safeInteger(signature, "v");
         Object signedFields = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fields)); i++)
@@ -3301,6 +3296,7 @@ public class LimitlessCore extends LimitlessApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            this.requireEventQuery(parameters);
             Object queries = this.parseSearchQueries(parameters);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object queriesLength = Helpers.getArrayLength(queries);

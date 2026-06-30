@@ -42,7 +42,7 @@ class PredictionExchange(Exchange):
             raise ArgumentsRequired('Outcomes are required to be loaded, please fetch them first using fetchEvents(or loadMarkets)')
         if outcome is not None:
             if not (outcome in self.outcomes) and not (outcome in self.outcomes_by_id):
-                raise ArgumentsRequired('The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents')
+                raise BadSymbol(self.id + ' the specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents')
 
     def parse_search_queries(self, params={}):
         # accepts either `query`(a single search string) or `queries`(a list of strings)
@@ -297,79 +297,255 @@ class PredictionExchange(Exchange):
                     self.outcomes_by_id[ocId] = oc
 
     async def fetch_ticker(self, outcome: str, params={}):
+        """
+        fetches a price ticker for a single prediction outcome
+        :param str outcome: unified outcome handle
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        """
         return await super(PredictionExchange, self).fetch_ticker(outcome, params)
 
     async def fetch_order_book(self, outcome: str, limit: Int = None, params={}):
+        """
+        fetches the order book for a prediction outcome
+        :param str outcome: unified outcome handle
+        :param int [limit]: the maximum number of order book entries to return
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+        """
         return await super(PredictionExchange, self).fetch_order_book(outcome, limit, params)
 
     async def fetch_ohlcv(self, outcome: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
+        """
+        fetches historical candlestick data for a prediction outcome
+        :param str outcome: unified outcome handle
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum number of candles to fetch
+        :param dict [params]: extra exchange-specific parameters
+        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        """
         return await super(PredictionExchange, self).fetch_ohlcv(outcome, timeframe, since, limit, params)
 
     async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}):
+        """
+        get the list of most recent trades for a prediction outcome
+        :param str outcome: unified outcome handle
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum number of trades to fetch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+        """
         return await super(PredictionExchange, self).fetch_trades(outcome, since, limit, params)
 
     async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        create a trade order on a prediction outcome
+        :param str outcome: unified outcome handle
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how many shares of the outcome to trade
+        :param float [price]: the price at which the order is to be filled, in cost per share
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        """
         return await super(PredictionExchange, self).create_order(outcome, type, side, amount, price, params)
 
     async def cancel_order(self, id: str, outcome: Str = None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str [outcome]: unified outcome handle
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        """
         return await super(PredictionExchange, self).cancel_order(id, outcome, params)
 
     async def watch_ticker(self, outcome: str, params={}):
+        """
+        watches a price ticker for a single prediction outcome
+        :param str outcome: unified outcome handle
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        """
         return await super(PredictionExchange, self).watch_ticker(outcome, params)
 
     async def watch_order_book(self, outcome: str, limit: Int = None, params={}):
+        """
+        watches the order book for a prediction outcome
+        :param str outcome: unified outcome handle
+        :param int [limit]: the maximum number of order book entries to return
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+        """
         return await super(PredictionExchange, self).watch_order_book(outcome, limit, params)
 
     async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}):
+        """
+        watches the most recent trades for a prediction outcome
+        :param str outcome: unified outcome handle
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum number of trades to fetch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+        """
         return await super(PredictionExchange, self).watch_trades(outcome, since, limit, params)
 
     async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str [outcome]: unified outcome handle
+        :param int [since]: timestamp in ms of the earliest order to fetch
+        :param int [limit]: the maximum number of orders to fetch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        """
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
     async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str [outcome]: unified outcome handle
+        :param int [since]: timestamp in ms of the earliest order to fetch
+        :param int [limit]: the maximum number of orders to fetch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        """
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
     async def fetch_order_trades(self, id: str, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str [outcome]: unified outcome handle
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum number of trades to fetch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        """
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
     async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch all trades made by the user
+        :param str [outcome]: unified outcome handle
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum number of trades to fetch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        """
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
 
     async def fetch_position(self, outcome: str, params={}):
+        """
+        fetch the open position held on a single prediction outcome
+        :param str outcome: unified outcome handle
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
+        """
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
 
     async def fetch_trading_fee(self, outcome: str, params={}):
+        """
+        fetch the trading fee for a prediction outcome
+        :param str outcome: unified outcome handle
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+        """
         raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
 
     async def fetch_open_interest(self, outcome: str, params={}):
+        """
+        fetch the open interest of a prediction outcome
+        :param str outcome: unified outcome handle
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+        """
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
     async def create_orders(self, orders: List[PredictionOrderRequest], params={}):
+        """
+        create a list of trade orders
+        :param dict[] orders: a list of PredictionOrderRequest objects, each carrying an `outcome` handle
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        """
         raise NotSupported(self.id + ' createOrders() is not supported yet')
 
     async def cancel_orders(self, ids: List[str], outcome: Str = None, params={}):
+        """
+        cancel multiple orders
+        :param str[] ids: order ids
+        :param str [outcome]: unified outcome handle
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        """
         raise NotSupported(self.id + ' cancelOrders() is not supported yet')
 
     async def create_market_buy_order_with_cost(self, outcome: str, cost: float, params={}):
+        """
+        create a market buy order on a prediction outcome by providing the cost
+        :param str outcome: unified outcome handle
+        :param float cost: how much you want to spend, in cost terms
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        """
         if self.options['createMarketBuyOrderRequiresPrice'] or self.has['createMarketBuyOrderWithCost']:
             return await self.create_order(outcome, 'market', 'buy', cost, 1, params)
         raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
 
     async def create_market_sell_order_with_cost(self, outcome: str, cost: float, params={}):
+        """
+        create a market sell order on a prediction outcome by providing the cost
+        :param str outcome: unified outcome handle
+        :param float cost: how much you want to receive, in cost terms
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        """
         if self.options['createMarketSellOrderRequiresPrice'] or self.has['createMarketSellOrderWithCost']:
             return await self.create_order(outcome, 'market', 'sell', cost, 1, params)
         raise NotSupported(self.id + ' createMarketSellOrderWithCost() is not supported yet')
 
     async def watch_tickers(self, outcomes: Strings = None, params={}):
+        """
+        watches price tickers for multiple prediction outcomes
+        :param str[] [outcomes]: unified outcome handles to watch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+        """
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
     async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str [outcome]: unified outcome handle
+        :param int [since]: timestamp in ms of the earliest order to watch
+        :param int [limit]: the maximum number of orders to watch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        """
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
     async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        watches all trades made by the user
+        :param str [outcome]: unified outcome handle
+        :param int [since]: timestamp in ms of the earliest trade to watch
+        :param int [limit]: the maximum number of trades to watch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        """
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
     async def watch_positions(self, outcomes: Strings = None, since: Int = None, limit: Int = None, params={}):
+        """
+        watches the open positions held by the user
+        :param str[] [outcomes]: unified outcome handles to watch
+        :param int [since]: timestamp in ms of the earliest position to watch
+        :param int [limit]: the maximum number of positions to watch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+        """
         raise NotSupported(self.id + ' watchPositions() is not supported yet')
 
     def safe_prediction_order(self, order: dict, market=None):

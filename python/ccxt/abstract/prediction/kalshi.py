@@ -73,4 +73,5 @@ class ImplicitAPI:
     kalshi_private_put_multivariate_event_collections_collection_ticker_lookup = kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup = Entry('multivariate_event_collections/{collection_ticker}/lookup', ['kalshi', 'private'], 'PUT', {'cost': 1})
     kalshi_private_delete_portfolio_orders_order_id = kalshiPrivateDeletePortfolioOrdersOrderId = Entry('portfolio/orders/{order_id}', ['kalshi', 'private'], 'DELETE', {'cost': 1})
     kalshi_private_delete_portfolio_orders_batched = kalshiPrivateDeletePortfolioOrdersBatched = Entry('portfolio/orders/batched', ['kalshi', 'private'], 'DELETE', {'cost': 1})
+    kalshi_private_delete_portfolio_events_orders_order_id = kalshiPrivateDeletePortfolioEventsOrdersOrderId = Entry('portfolio/events/orders/{order_id}', ['kalshi', 'private'], 'DELETE', {'cost': 1})
     kalshi_private_delete_portfolio_order_groups_order_group_id = kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId = Entry('portfolio/order_groups/{order_group_id}', ['kalshi', 'private'], 'DELETE', {'cost': 1})

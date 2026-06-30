@@ -267,7 +267,8 @@ export default class limitless extends Exchange {
             const lastPageResponse = this.safeDict (responses, length - 1);
             const lastPageData = this.safeList (lastPageResponse, 'data', []);
             const lastPageLength = lastPageData.length;
-            if (lastPageLength >= pageSize && allRaw.length < maxMarkets) {
+            const allRawLength = allRaw.length;
+            if (lastPageLength >= pageSize && allRawLength < maxMarkets) {
                 while (true) {
                     page = this.sum (page, 1);
                     request['page'] = page;
@@ -282,7 +283,8 @@ export default class limitless extends Exchange {
                         const raw = page_markets[i];
                         allRaw.push (raw);
                     }
-                    if (pageMarketsLength < pageSize || allRaw.length >= maxMarkets) {
+                    const allRawCount = allRaw.length;
+                    if (pageMarketsLength < pageSize || allRawCount >= maxMarkets) {
                         break;
                     }
                 }
@@ -2124,9 +2126,7 @@ export default class limitless extends Exchange {
             return this.intToBase16 (128 + byteLength) + hex;
         }
         let lengthHex = this.intToBase16 (byteLength);
-        if ((lengthHex.length % 2) !== 0) {
-            lengthHex = '0' + lengthHex;
-        }
+        lengthHex = this.padHexToEven (lengthHex);
         const lengthOfLength = this.parseToInt (lengthHex.length / 2);
         return this.intToBase16 (183 + lengthOfLength) + lengthHex + hex;
     }
@@ -2141,9 +2141,7 @@ export default class limitless extends Exchange {
             return this.intToBase16 (192 + byteLength) + concatenated;
         }
         let lengthHex = this.intToBase16 (byteLength);
-        if ((lengthHex.length % 2) !== 0) {
-            lengthHex = '0' + lengthHex;
-        }
+        lengthHex = this.padHexToEven (lengthHex);
         const lengthOfLength = this.parseToInt (lengthHex.length / 2);
         return this.intToBase16 (247 + lengthOfLength) + lengthHex + concatenated;
     }
@@ -2154,9 +2152,7 @@ export default class limitless extends Exchange {
             return '';
         }
         let hex = this.intToBase16 (value);
-        if ((hex.length % 2) !== 0) {
-            hex = '0' + hex;
-        }
+        hex = this.padHexToEven (hex);
         return hex;
     }
 
@@ -2173,10 +2169,17 @@ export default class limitless extends Exchange {
         if (h === '') {
             return '';
         }
-        if ((h.length % 2) !== 0) {
-            h = '0' + h;
-        }
+        h = this.padHexToEven (h);
         return h;
+    }
+
+    padHexToEven (hex: string): string {
+        // prepend a nibble so the hex has an even number of characters (whole bytes)
+        const hexLength = hex.length;
+        if ((hexLength % 2) !== 0) {
+            return '0' + hex;
+        }
+        return hex;
     }
 
     padHexAddress (address: string): string {
@@ -2204,12 +2207,8 @@ export default class limitless extends Exchange {
         const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
         let rHex = this.safeString (signature, 'r');
         let sHex = this.safeString (signature, 's');
-        if ((rHex.length % 2) !== 0) {
-            rHex = '0' + rHex;
-        }
-        if ((sHex.length % 2) !== 0) {
-            sHex = '0' + sHex;
-        }
+        rHex = this.padHexToEven (rHex);
+        sHex = this.padHexToEven (sHex);
         const yParity = this.safeInteger (signature, 'v');
         const signedFields = [];
         for (let i = 0; i < fields.length; i++) {
