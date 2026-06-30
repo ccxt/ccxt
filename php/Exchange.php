@@ -407,6 +407,7 @@ class Exchange {
         'kraken',
         'krakenfutures',
         'kucoin',
+        'kucoineu',
         'kucoinfutures',
         'latoken',
         'lbank',

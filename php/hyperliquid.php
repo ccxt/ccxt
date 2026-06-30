@@ -1840,16 +1840,18 @@ class hyperliquid extends Exchange {
 
     public function handle_builder_fee_approval() {
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if (!$buildFee) {
-            return false; // skip if $builder fee is not enabled
-        }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
         if ($approvedBuilderFee) {
             return true; // skip if $builder fee is already approved
         }
         try {
             $builder = $this->safe_string($this->options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            // when the user disables the $builder fee (builderFee = false) we still approve and attach the $builder,
+            // but with a 0% fee rate, so orders remain attributed to the $builder for statistics purposes only and the user is not charged
             $maxFeeRate = $this->safe_string($this->options, 'feeRate', '0.01%');
+            if (!$buildFee) {
+                $maxFeeRate = '0%';
+            }
             $this->approve_builder_fee($builder, $maxFeeRate);
             $this->options['approvedBuilderFee'] = true;
         } catch (Exception $e) {
@@ -2343,7 +2345,12 @@ class hyperliquid extends Exchange {
         );
         if ($this->safe_bool($this->options, 'approvedBuilderFee', false)) {
             $wallet = $this->safe_string_lower($this->options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
-            $orderAction['builder'] = array( 'b' => $wallet, 'f' => $this->safe_integer($this->options, 'feeInt', 10) );
+            // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
+            $feeInt = $this->safe_integer($this->options, 'feeInt', 10);
+            if (!$this->safe_bool($this->options, 'builderFee', true)) {
+                $feeInt = 0;
+            }
+            $orderAction['builder'] = array( 'b' => $wallet, 'f' => $feeInt );
         }
         $signature = $this->sign_l1_action($orderAction, $nonce, $vaultAddress);
         $request = array(
