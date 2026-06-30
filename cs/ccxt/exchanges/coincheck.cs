@@ -83,6 +83,7 @@ public partial class coincheck : Exchange
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", false },
+                { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -110,10 +111,10 @@ public partial class coincheck : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"exchange/orders/rate", "order_books", "rate/{pair}", "ticker", "trades"} },
+                    { "get", new List<object>() {"exchange/orders/rate", "exchange_status", "order_books", "rate/{pair}", "ticker", "trades"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/opens", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws"} },
+                    { "get", new List<object>() {"accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/{id}", "exchange/orders/opens", "exchange/orders/cancel_status", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws"} },
                     { "post", new List<object>() {"bank_accounts", "deposit_money/{id}/fast", "exchange/orders", "exchange/transfers/to_leverage", "exchange/transfers/from_leverage", "lending/borrows", "lending/borrows/{id}/repay", "send_money", "withdraws"} },
                     { "delete", new List<object>() {"bank_accounts/{id}", "exchange/orders/{id}", "withdraws/{id}"} },
                 } },
@@ -264,6 +265,59 @@ public partial class coincheck : Exchange
             }
         }
         return this.safeBalance(result);
+    }
+
+    /**
+     * @method
+     * @name coincheck#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://coincheck.com/documents/exchange/api#status-retrieval
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    public async override Task<object> fetchStatus(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await ((Task<object>)callDynamically(this, "publicGetExchangeStatus", new object[] { parameters }));
+        //
+        //     {
+        //         "exchange_status": [
+        //             {
+        //                 "pair": "btc_jpy",
+        //                 "status": "available",
+        //                 "timestamp": 1782787596,
+        //                 "availability": {
+        //                     "order": true,
+        //                     "market_order": true,
+        //                     "cancel": true
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        object exchangeStatuses = this.safeList(response, "exchange_status", new List<object>() {});
+        object status = "ok";
+        object updated = null;
+        for (object i = 0; isLessThan(i, getArrayLength(exchangeStatuses)); postFixIncrement(ref i))
+        {
+            object exchangeStatus = getValue(exchangeStatuses, i);
+            object rawStatus = this.safeString(exchangeStatus, "status");
+            if (isTrue(isEqual(updated, null)))
+            {
+                updated = this.safeTimestamp(exchangeStatus, "timestamp");
+            }
+            if (isTrue(!isEqual(rawStatus, "available")))
+            {
+                status = "maintenance";
+            }
+        }
+        return new Dictionary<string, object>() {
+            { "status", status },
+            { "updated", updated },
+            { "eta", null },
+            { "url", null },
+            { "info", response },
+        };
     }
 
     /**
