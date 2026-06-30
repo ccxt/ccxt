@@ -699,7 +699,7 @@
                             "currency": "USDT"
                         }
                     ],
-                    "lastUpdateTimestamp": null,
+                    "lastUpdateTimestamp": 1705260547472,
                     "reduceOnly": null
                 }
             }
@@ -1264,7 +1264,7 @@
                     "currency": "USDT"
                   }
                 ],
-                "lastUpdateTimestamp": null
+                "lastUpdateTimestamp": 1733920121745
               }
             ]
           }
