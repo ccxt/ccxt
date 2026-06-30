@@ -512,8 +512,8 @@ export default class hyperliquid extends hyperliquidRest {
                 messageHash += ':' + dexMessage;
             }
             client.resolve (this.tickers, messageHash);
-            return true;
         }
+        return true;
     }
 
     parseWsTicker (rawTicker, market: Market = undefined): Ticker {
