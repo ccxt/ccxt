@@ -174,6 +174,12 @@ func  (this *KalshiCore) Describe() any  {
                 "taker": 0.07,
             },
         },
+        "exceptions": map[string]any {
+            "exact": map[string]any {
+                "not_found": ccxt.BadSymbol,
+            },
+            "broad": map[string]any {},
+        },
         "options": map[string]any {
             "defaultFetchEventsLimit": 200,
             "maxFetchMarketsLimit": 1000,
@@ -270,8 +276,8 @@ func  (this *KalshiCore) FetchMarkets(optionalArgs ...any) <- chan any {
         })
                             }
                             var eventEntry any = ccxt.GetValue(eventsDict, eventKey)
-                            retRes26224 := ccxt.GetValue(eventEntry, "markets")
-                            ccxt.AppendToArray(&retRes26224, m)
+                            retRes26924 := ccxt.GetValue(eventEntry, "markets")
+                            ccxt.AppendToArray(&retRes26924, m)
                         }
                     }
                 }
@@ -317,11 +323,37 @@ func  (this *KalshiCore) FetchOutcome(outcomeSymbol any) <- chan any {
             var suffix any = ccxt.Slice(outcomeSymbol, ccxt.Subtract(symbolLength, 3), nil)
             var isNo any =     (ccxt.IsEqual(suffix, "-NO"))
             var baseTicker any = ccxt.Ternary(ccxt.IsTrue(isNo), ccxt.Slice(outcomeSymbol, 0, ccxt.Subtract(symbolLength, 3)), outcomeSymbol)
-        
-            response:= (<-this.KalshiPublicGetMarketsTicker(map[string]any {
-            "ticker": baseTicker,
-        }))
-            ccxt.PanicOnError(response)
+            var response any = nil
+            
+                {
+                     func(this *KalshiCore) (ret_ any) {
+            		    defer func() {
+                            if e := recover(); e != nil {
+                                if e == "break" {
+                                    return
+                                }
+                                ret_ = func(this *KalshiCore) any {
+                                    // catch block:
+                                            // an unknown ticker — or a unified handle passed on a cold cache — returns 'not_found',
+                    // which handleErrors maps to ccxt.BadSymbol. surface a clear hint; let network failures propagate.
+                    if ccxt.IsTrue(ccxt.IsInstance(e, ccxt.BadSymbol)) {
+                        panic(ccxt.BadSymbol(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " could not resolve outcome "), outcomeSymbol), " — pass an outcomeId, or call fetchEvents ()/loadOutcomes () first")))
+                    }
+                    panic(e)
+                                    
+                                }(this)
+                            }
+                        }()
+            		    // try block:
+                                
+                response = (<-this.KalshiPublicGetMarketsTicker(map[string]any {
+                "ticker": baseTicker,
+            }))
+                        ccxt.PanicOnError(response)
+            		    return nil
+            	    }(this)
+                
+                    }
             var rawMarket any = this.SafeDict(response, "market", response)
             var parsed any = this.ParseMarket(rawMarket)
             if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
@@ -336,6 +368,23 @@ func  (this *KalshiCore) FetchOutcome(outcomeSymbol any) <- chan any {
             }()
             return ch
         }
+func  (this *KalshiCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any  {
+    // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
+    // errors (e.g. not_found -> ccxt.BadSymbol) so callers can distinguish them from a transport
+    // outage (the base otherwise maps a bare 404 to ccxt.ExchangeNotAvailable). unmapped codes fall
+    // through to the base http-status handling.
+    if !ccxt.IsTrue(response) {
+        return nil
+    }
+    var error any = this.SafeDict(response, "error")
+    if ccxt.IsTrue(!ccxt.IsEqual(error, nil)) {
+        var errorCode any = this.SafeString(error, "code")
+        var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), body)
+        this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), errorCode, feedback)
+        this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions, "broad"), errorCode, feedback)
+    }
+    return nil
+}
 func  (this *KalshiCore) ParseMarket(raw any) any  {
     // {
     //    "can_close_early":true,
@@ -533,8 +582,8 @@ func  (this *KalshiCore) FetchTicker(outcome any, optionalArgs ...any) <- chan a
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes4898 := (<-this.LoadOutcome(outcome))
-            ccxt.PanicOnError(retRes4898)
+            retRes5248 := (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(retRes5248)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
             var request any = map[string]any {
@@ -658,8 +707,8 @@ func  (this *KalshiCore) FetchOpenInterest(outcome any, optionalArgs ...any) <- 
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes5888 := (<-this.LoadOutcome(outcome))
-            ccxt.PanicOnError(retRes5888)
+            retRes6238 := (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(retRes6238)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
             var request any = map[string]any {
@@ -853,14 +902,14 @@ func  (this *KalshiCore) FetchTickers(optionalArgs ...any) <- chan any {
             if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
         
-                    retRes76316 := (<-this.LoadOutcome(ccxt.GetValue(outcomes, i)))
-                    ccxt.PanicOnError(retRes76316)
+                    retRes79816 := (<-this.LoadOutcome(ccxt.GetValue(outcomes, i)))
+                    ccxt.PanicOnError(retRes79816)
                     ccxt.AppendToArray(&targets, ccxt.GetValue(outcomes, i))
                 }
             } else {
         
-                retRes76712 := (<-this.LoadOutcomes())
-                ccxt.PanicOnError(retRes76712)
+                retRes80212 := (<-this.LoadOutcomes())
+                ccxt.PanicOnError(retRes80212)
                 var allKeys any = ccxt.ObjectKeys(this.Outcomes)
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(allKeys)); i++ {
                     ccxt.AppendToArray(&targets, ccxt.GetValue(allKeys, i))
@@ -949,8 +998,8 @@ func  (this *KalshiCore) FetchOrderBook(outcome any, optionalArgs ...any) <- cha
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes8418 := (<-this.LoadOutcome(outcome))
-            ccxt.PanicOnError(retRes8418)
+            retRes8768 := (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(retRes8768)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
             var isNo any = ccxt.IsEqual(ccxt.GetValue(outcomeObj, "label"), "NO")
@@ -1060,8 +1109,8 @@ func  (this *KalshiCore) FetchOHLCV(outcome any, optionalArgs ...any) <- chan an
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes9338 := (<-this.LoadOutcome(outcome))
-            ccxt.PanicOnError(retRes9338)
+            retRes9688 := (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(retRes9688)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
             var seriesTicker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "seriesTicker", ticker)
@@ -1210,8 +1259,8 @@ func  (this *KalshiCore) FetchTrades(outcome any, optionalArgs ...any) <- chan a
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes10738 := (<-this.LoadOutcome(outcome))
-            ccxt.PanicOnError(retRes10738)
+            retRes11088 := (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(retRes11088)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
             var request any = map[string]any {
@@ -1317,8 +1366,8 @@ func  (this *KalshiCore) FetchBalance(optionalArgs ...any) <- chan any {
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes11638 := (<-this.LoadOutcomes())
-            ccxt.PanicOnError(retRes11638)
+            retRes11988 := (<-this.LoadOutcomes())
+            ccxt.PanicOnError(retRes11988)
         
             response:= (<-this.KalshiPrivateGetPortfolioBalance(params))
             ccxt.PanicOnError(response)
@@ -1379,13 +1428,13 @@ func  (this *KalshiCore) FetchPositions(optionalArgs ...any) <- chan any {
             if ccxt.IsTrue(ccxt.IsGreaterThan(outcomesLength, 0)) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
         
-                    retRes120416 := (<-this.LoadOutcome(ccxt.GetValue(outcomes, i)))
-                    ccxt.PanicOnError(retRes120416)
+                    retRes123916 := (<-this.LoadOutcome(ccxt.GetValue(outcomes, i)))
+                    ccxt.PanicOnError(retRes123916)
                 }
             } else {
         
-                retRes120712 := (<-this.LoadOutcomes())
-                ccxt.PanicOnError(retRes120712)
+                retRes124212 := (<-this.LoadOutcomes())
+                ccxt.PanicOnError(retRes124212)
             }
         
             response:= (<-this.KalshiPrivateGetPortfolioPositions(params))
@@ -1476,12 +1525,12 @@ func  (this *KalshiCore) FetchOpenOrders(optionalArgs ...any) <- chan any {
             _ = params
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
         
-                retRes127812 := (<-this.LoadOutcome(outcome))
-                ccxt.PanicOnError(retRes127812)
+                retRes131312 := (<-this.LoadOutcome(outcome))
+                ccxt.PanicOnError(retRes131312)
             } else {
         
-                retRes128012 := (<-this.LoadOutcomes())
-                ccxt.PanicOnError(retRes128012)
+                retRes131512 := (<-this.LoadOutcomes())
+                ccxt.PanicOnError(retRes131512)
             }
             var request any = map[string]any {
                 "status": "resting",
@@ -1523,12 +1572,12 @@ func  (this *KalshiCore) FetchOrder(id any, optionalArgs ...any) <- chan any {
             _ = params
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
         
-                retRes130512 := (<-this.LoadOutcome(outcome))
-                ccxt.PanicOnError(retRes130512)
+                retRes134012 := (<-this.LoadOutcome(outcome))
+                ccxt.PanicOnError(retRes134012)
             } else {
         
-                retRes130712 := (<-this.LoadOutcomes())
-                ccxt.PanicOnError(retRes130712)
+                retRes134212 := (<-this.LoadOutcomes())
+                ccxt.PanicOnError(retRes134212)
             }
         
             response:= (<-this.KalshiPrivateGetPortfolioOrdersOrderId(this.Extend(map[string]any {
@@ -1648,8 +1697,8 @@ func  (this *KalshiCore) CreateOrder(outcome any, typeVar any, side any, amount 
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes14108 := (<-this.LoadOutcome(outcome))
-            ccxt.PanicOnError(retRes14108)
+            retRes14458 := (<-this.LoadOutcome(outcome))
+            ccxt.PanicOnError(retRes14458)
             var outcomeObj any = this.Outcome(outcome)
             var ticker any = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
             var isNo any =     (ccxt.IsEqual(ccxt.GetValue(outcomeObj, "label"), "NO"))
@@ -1730,12 +1779,12 @@ func  (this *KalshiCore) CancelOrder(id any, optionalArgs ...any) <- chan any {
             _ = params
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
         
-                retRes147212 := (<-this.LoadOutcome(outcome))
-                ccxt.PanicOnError(retRes147212)
+                retRes150712 := (<-this.LoadOutcome(outcome))
+                ccxt.PanicOnError(retRes150712)
             } else {
         
-                retRes147412 := (<-this.LoadOutcomes())
-                ccxt.PanicOnError(retRes147412)
+                retRes150912 := (<-this.LoadOutcomes())
+                ccxt.PanicOnError(retRes150912)
             }
             // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
             // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
@@ -1771,12 +1820,12 @@ func  (this *KalshiCore) CancelAllOrders(optionalArgs ...any) <- chan any {
             _ = params
             if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
         
-                retRes149312 := (<-this.LoadOutcome(outcome))
-                ccxt.PanicOnError(retRes149312)
+                retRes152812 := (<-this.LoadOutcome(outcome))
+                ccxt.PanicOnError(retRes152812)
             } else {
         
-                retRes149512 := (<-this.LoadOutcomes())
-                ccxt.PanicOnError(retRes149512)
+                retRes153012 := (<-this.LoadOutcomes())
+                ccxt.PanicOnError(retRes153012)
             }
             // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
             // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and

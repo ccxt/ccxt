@@ -7,6 +7,8 @@ namespace ccxt\prediction;
 
 use Exception; // a common import
 use ccxt\abstract\prediction\kalshi as Exchange;
+use ccxt\BadSymbol;
+use ccxt\ExchangeNotAvailable;
 use ccxt\Precise;
 use \React\Async;
 use \React\Promise\PromiseInterface;
@@ -171,6 +173,12 @@ class kalshi extends Exchange {
                     'taker' => 0.07,  // 7% fee on profit
                 ),
             ),
+            'exceptions' => array(
+                'exact' => array(
+                    'not_found' => '\\ccxt\\BadSymbol',   // 404 for an unknown market/ticker id — distinguish from an outage
+                ),
+                'broad' => array(),
+            ),
             'options' => array(
                 'defaultFetchEventsLimit' => 200,   // events page size for the fetchEvents cursor scan
                 'maxFetchMarketsLimit' => 1000,      // markets page size / max markets collected per unscoped listing
@@ -294,7 +302,17 @@ class kalshi extends Exchange {
             $suffix = mb_substr($outcomeSymbol, $symbolLength - 3);
             $isNo = ($suffix === '-NO');
             $baseTicker = $isNo ? mb_substr($outcomeSymbol, 0, $symbolLength - 3 - 0) : $outcomeSymbol;
-            $response = Async\await($this->kalshiPublicGetMarketsTicker (array( 'ticker' => $baseTicker )));
+            $response = null;
+            try {
+                $response = Async\await($this->kalshiPublicGetMarketsTicker (array( 'ticker' => $baseTicker )));
+            } catch (Exception $e) {
+                // an unknown ticker — or a unified handle passed on a cold cache — returns 'not_found',
+                // which handleErrors maps to BadSymbol. surface a clear hint; $network failures propagate.
+                if ($e instanceof BadSymbol) {
+                    throw new BadSymbol($this->id . ' could not resolve outcome ' . $outcomeSymbol . ' — pass an outcomeId, or call fetchEvents ()/loadOutcomes () first');
+                }
+                throw $e;
+            }
             $rawMarket = $this->safe_dict($response, 'market', $response);
             $parsed = $this->parse_market($rawMarket);
             if ($this->markets === null) {
@@ -304,6 +322,24 @@ class kalshi extends Exchange {
             $this->populate_outcomes();
             return $this->outcome($outcomeSymbol);
         }) ();
+    }
+
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        // kalshi returns array( "error" => array( "code" => "...", ... ) ) with a 4xx; map known codes to ccxt
+        // errors (e.g. not_found -> '\\ccxt\\BadSymbol') so callers can distinguish them from a transport
+        // outage (the base otherwise maps a bare 404 to ExchangeNotAvailable). unmapped codes fall
+        // through to the base http-status handling.
+        if (!$response) {
+            return null;
+        }
+        $error = $this->safe_dict($response, 'error');
+        if ($error !== null) {
+            $errorCode = $this->safe_string($error, 'code');
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
+        }
+        return null;
     }
 
     public function parse_market(array $raw): array {

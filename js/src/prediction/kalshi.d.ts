@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/kalshi.js';
-import type { Int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams } from '../base/types.js';
+import type { Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams } from '../base/types.js';
 /**
  * @class kalshi
  * @augments Exchange
@@ -30,6 +30,7 @@ export default class kalshi extends Exchange {
      * @returns {object} the resolved outcome object
      */
     fetchOutcome(outcomeSymbol: string): Promise<any>;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     parseMarket(raw: Dict): Market;
     /**
      * @method

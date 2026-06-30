@@ -165,6 +165,12 @@ public partial class kalshi : PredictionExchange
                     { "taker", 0.07 },
                 } },
             } },
+            { "exceptions", new Dictionary<string, object>() {
+                { "exact", new Dictionary<string, object>() {
+                    { "not_found", typeof(BadSymbol) },
+                } },
+                { "broad", new Dictionary<string, object>() {} },
+            } },
             { "options", new Dictionary<string, object>() {
                 { "defaultFetchEventsLimit", 200 },
                 { "maxFetchMarketsLimit", 1000 },
@@ -302,9 +308,22 @@ public partial class kalshi : PredictionExchange
         object suffix = slice(outcomeSymbol, subtract(symbolLength, 3), null);
         object isNo = (isEqual(suffix, "-NO"));
         object baseTicker = ((bool) isTrue(isNo)) ? slice(outcomeSymbol, 0, subtract(symbolLength, 3)) : outcomeSymbol;
-        object response = await this.kalshiPublicGetMarketsTicker(new Dictionary<string, object>() {
-            { "ticker", baseTicker },
-        });
+        object response = null;
+        try
+        {
+            response = await this.kalshiPublicGetMarketsTicker(new Dictionary<string, object>() {
+                { "ticker", baseTicker },
+            });
+        } catch(Exception e)
+        {
+            // an unknown ticker — or a unified handle passed on a cold cache — returns 'not_found',
+            // which handleErrors maps to BadSymbol. surface a clear hint; let network failures propagate.
+            if (isTrue(e is BadSymbol))
+            {
+                throw new BadSymbol ((string)add(add(add(this.id, " could not resolve outcome "), outcomeSymbol), " — pass an outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
+            }
+            throw e;
+        }
         object rawMarket = this.safeDict(response, "market", response);
         object parsed = this.parseMarket(rawMarket);
         if (isTrue(isEqual(this.markets, null)))
@@ -314,6 +333,27 @@ public partial class kalshi : PredictionExchange
         ((IDictionary<string,object>)this.markets)[(string)getValue(parsed, "symbol")] = parsed;
         this.populateOutcomes();
         return this.outcome(outcomeSymbol);
+    }
+
+    public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
+        // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
+        // outage (the base otherwise maps a bare 404 to ExchangeNotAvailable). unmapped codes fall
+        // through to the base http-status handling.
+        if (!isTrue(response))
+        {
+            return null;
+        }
+        object error = this.safeDict(response, "error");
+        if (isTrue(!isEqual(error, null)))
+        {
+            object errorCode = this.safeString(error, "code");
+            object feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorCode, feedback);
+        }
+        return null;
     }
 
     public override object parseMarket(object raw)

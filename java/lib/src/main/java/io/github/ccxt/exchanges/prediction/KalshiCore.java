@@ -178,6 +178,12 @@ public class KalshiCore extends KalshiApi
                     put( "taker", 0.07 );
                 }} );
             }} );
+            put( "exceptions", new java.util.HashMap<String, Object>() {{
+                put( "exact", new java.util.HashMap<String, Object>() {{
+                    put( "not_found", BadSymbol.class );
+                }} );
+                put( "broad", new java.util.HashMap<String, Object>() {{}} );
+            }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "defaultFetchEventsLimit", 200 );
                 put( "maxFetchMarketsLimit", 1000 );
@@ -324,9 +330,22 @@ public class KalshiCore extends KalshiApi
             Object suffix = Helpers.slice(outcomeSymbol, Helpers.subtract(symbolLength, 3), null);
             Object isNo = (Helpers.isEqual(suffix, "-NO"));
             Object baseTicker = ((Helpers.isTrue(isNo))) ? Helpers.slice(outcomeSymbol, 0, Helpers.subtract(symbolLength, 3)) : outcomeSymbol;
-            Object response = (this.kalshiPublicGetMarketsTicker(new java.util.HashMap<String, Object>() {{
-                put( "ticker", baseTicker );
-            }})).join();
+            Object response = null;
+            try
+            {
+                response = (this.kalshiPublicGetMarketsTicker(new java.util.HashMap<String, Object>() {{
+                    put( "ticker", baseTicker );
+                }})).join();
+            } catch(Exception e)
+            {
+                // an unknown ticker — or a unified handle passed on a cold cache — returns 'not_found',
+                // which handleErrors maps to BadSymbol. surface a clear hint; let network failures propagate.
+                if (Helpers.isTrue(Helpers.isInstance(e, BadSymbol.class)))
+                {
+                    throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " could not resolve outcome "), outcomeSymbol), " — pass an outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
+                }
+                throw e;
+            }
             Object rawMarket = this.safeDict(response, "market", response);
             Object parsed = this.parseMarket(rawMarket);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -338,6 +357,27 @@ public class KalshiCore extends KalshiApi
             return this.outcome(outcomeSymbol);
         });
 
+    }
+
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    {
+        // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
+        // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
+        // outage (the base otherwise maps a bare 404 to ExchangeNotAvailable). unmapped codes fall
+        // through to the base http-status handling.
+        if (!Helpers.isTrue(response))
+        {
+            return null;
+        }
+        Object error = this.safeDict(response, "error");
+        if (Helpers.isTrue(!Helpers.isEqual(error, null)))
+        {
+            Object errorCode = this.safeString(error, "code");
+            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errorCode, feedback);
+        }
+        return null;
     }
 
     public Object parseMarket(Object raw)

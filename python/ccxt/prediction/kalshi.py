@@ -7,6 +7,8 @@ from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.kalshi import ImplicitAPI
 from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest
 from typing import List
+from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.precise import Precise
 
 
@@ -170,6 +172,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
                     'taker': 0.07,  # 7% fee on profit
                 },
             },
+            'exceptions': {
+                'exact': {
+                    'not_found': BadSymbol,   # 404 for an unknown market/ticker id — distinguish from an outage
+                },
+                'broad': {},
+            },
             'options': {
                 'defaultFetchEventsLimit': 200,   # events page size for the fetchEvents cursor scan
                 'maxFetchMarketsLimit': 1000,      # markets page size / max markets collected per unscoped listing
@@ -276,7 +284,15 @@ class kalshi(PredictionExchange, ImplicitAPI):
         suffix = outcomeSymbol[symbolLength - 3:]
         isNo = (suffix == '-NO')
         baseTicker = outcomeSymbol[0:symbolLength - 3] if isNo else outcomeSymbol
-        response = await self.kalshiPublicGetMarketsTicker({'ticker': baseTicker})
+        response = None
+        try:
+            response = await self.kalshiPublicGetMarketsTicker({'ticker': baseTicker})
+        except Exception as e:
+            # an unknown ticker — or a unified handle passed on a cold cache — returns 'not_found',
+            # which handleErrors maps to BadSymbol. surface a clear hint; network failures propagate.
+            if isinstance(e, BadSymbol):
+                raise BadSymbol(self.id + ' could not resolve outcome ' + outcomeSymbol + ' — pass an outcomeId, or call fetchEvents()/loadOutcomes() first')
+            raise e
         rawMarket = self.safe_dict(response, 'market', response)
         parsed = self.parse_market(rawMarket)
         if self.markets is None:
@@ -284,6 +300,21 @@ class kalshi(PredictionExchange, ImplicitAPI):
         self.markets[parsed['symbol']] = parsed
         self.populate_outcomes()
         return self.outcome(outcomeSymbol)
+
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+        # kalshi returns {"error": {"code": "...", ...}} with a 4xx; map known codes to ccxt
+        # errors(e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
+        # outage(the base otherwise maps a bare 404 to ExchangeNotAvailable). unmapped codes fall
+        # through to the base http-status handling.
+        if not response:
+            return None
+        error = self.safe_dict(response, 'error')
+        if error is not None:
+            errorCode = self.safe_string(error, 'code')
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
+        return None
 
     def parse_market(self, raw: dict) -> Market:
         # {

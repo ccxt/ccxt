@@ -2,6 +2,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
+import { BadSymbol } from '../base/errors.js';
 // ---------------------------------------------------------------------------
 /**
  * @class kalshi
@@ -166,6 +167,12 @@ export default class kalshi extends Exchange {
                     'taker': 0.07, // 7% fee on profit
                 },
             },
+            'exceptions': {
+                'exact': {
+                    'not_found': BadSymbol, // 404 for an unknown market/ticker id — distinguish from an outage
+                },
+                'broad': {},
+            },
             'options': {
                 'defaultFetchEventsLimit': 200,
                 'maxFetchMarketsLimit': 1000,
@@ -285,7 +292,18 @@ export default class kalshi extends Exchange {
         const suffix = outcomeSymbol.slice(symbolLength - 3);
         const isNo = (suffix === '-NO');
         const baseTicker = isNo ? outcomeSymbol.slice(0, symbolLength - 3) : outcomeSymbol;
-        const response = await this.kalshiPublicGetMarketsTicker({ 'ticker': baseTicker });
+        let response = undefined;
+        try {
+            response = await this.kalshiPublicGetMarketsTicker({ 'ticker': baseTicker });
+        }
+        catch (e) {
+            // an unknown ticker — or a unified handle passed on a cold cache — returns 'not_found',
+            // which handleErrors maps to BadSymbol. surface a clear hint; let network failures propagate.
+            if (e instanceof BadSymbol) {
+                throw new BadSymbol(this.id + ' could not resolve outcome ' + outcomeSymbol + ' — pass an outcomeId, or call fetchEvents ()/loadOutcomes () first');
+            }
+            throw e;
+        }
         const rawMarket = this.safeDict(response, 'market', response);
         const parsed = this.parseMarket(rawMarket);
         if (this.markets === undefined) {
@@ -294,6 +312,23 @@ export default class kalshi extends Exchange {
         this.markets[parsed['symbol']] = parsed;
         this.populateOutcomes();
         return this.outcome(outcomeSymbol);
+    }
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
+        // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
+        // outage (the base otherwise maps a bare 404 to ExchangeNotAvailable). unmapped codes fall
+        // through to the base http-status handling.
+        if (!response) {
+            return undefined;
+        }
+        const error = this.safeDict(response, 'error');
+        if (error !== undefined) {
+            const errorCode = this.safeString(error, 'code');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], errorCode, feedback);
+        }
+        return undefined;
     }
     parseMarket(raw) {
         // {
