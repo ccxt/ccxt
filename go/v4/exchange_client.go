@@ -57,10 +57,9 @@ type Client struct {
 
 	PongSetMu sync.RWMutex // protects LastPong set
 
-	Subscriptions   map[string]any // map[string]chan any
-	SubscriptionsMu sync.RWMutex
-	ConnectMu       sync.RWMutex // protects Connect calls
-	ReadLoopClosed  chan struct{}
+	Subscriptions  *sync.Map    // map[string]chan any - concurrency-safe, no external mutex required
+	ConnectMu      sync.RWMutex // protects Connect calls
+	ReadLoopClosed chan struct{}
 
 	Error error // last error, nil if connection considered healthy
 
@@ -181,7 +180,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 		"Protocols":             nil,
 		"Options":               nil,
 		"Futures":               make(map[string]any),
-		"Subscriptions":         make(map[string]any), // map[string]chan any
+		"Subscriptions":         &sync.Map{}, // map[string]chan any
 		"Rejections":            make(map[string]any),
 		"Connected":             nil,
 		"Error":                 nil,
@@ -215,7 +214,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 	c := &Client{
 		Url:                 url,
 		Futures:             finalConfig["Futures"].(map[string]any),
-		Subscriptions:       finalConfig["Subscriptions"].(map[string]any), // map[string]chan any
+		Subscriptions:       finalConfig["Subscriptions"].(*sync.Map), // map[string]chan any
 		Rejections:          finalConfig["Rejections"].(map[string]any),
 		Verbose:             finalConfig["Verbose"].(bool),
 		KeepAlive:           ParseInt(finalConfig["keepAlive"]),
@@ -578,7 +577,17 @@ func (this *Client) GetUrl() string {
 }
 
 func (this *Client) GetSubscriptions() map[string]any {
-	return this.Subscriptions
+	result := map[string]any{}
+	if this.Subscriptions == nil {
+		return result
+	}
+	this.Subscriptions.Range(func(key, value any) bool {
+		if keyStr, ok := key.(string); ok {
+			result[keyStr] = value
+		}
+		return true
+	})
+	return result
 }
 
 func (this *Client) GetLastPong() any {
