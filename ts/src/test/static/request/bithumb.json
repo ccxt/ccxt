@@ -24,12 +24,23 @@
         ],
         "fetchOrderBook": [
             {
-                "description": "fetchOrderBook",
+                "description": "generation 1 fetchOrderBook",
                 "method": "fetchOrderBook",
-                "url": "https://api.bithumb.com/public/orderbook/BTC_KRW?count=5",
+                "url": "https://api.bithumb.com/public/orderbook/USDC_BTC?count=3",
                 "input": [
-                    "BTC/KRW",
-                    5
+                    "USDC/BTC",
+                    3,
+                    {
+                        "generation": 1
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.bithumb.com/v1/orderbook?markets=BTC-USDC",
+                "input": [
+                    "USDC/BTC"
                 ]
             }
         ],

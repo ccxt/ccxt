@@ -6,48 +6,152 @@
         ],
         "fetchOrderBook": [
             {
-                "description": "fetchOrderBook",
+                "description": "generation 1 fetch order book",
                 "method": "fetchOrderBook",
                 "input": [
-                    "BTC/KRW",
-                    1
+                    "USDC/BTC",
+                    3,
+                    {
+                        "generation": 1
+                    }
                 ],
                 "httpResponse": {
                     "status": "0000",
                     "data": {
-                        "timestamp": "1723102637709",
-                        "payment_currency": "KRW",
-                        "order_currency": "BTC",
+                        "timestamp": "1782811566795",
+                        "payment_currency": "BTC",
+                        "order_currency": "USDC",
                         "bids": [
                             {
-                                "price": "80838000",
-                                "quantity": "0.0586"
+                                "price": "0.00001683",
+                                "quantity": "304.0000"
+                            },
+                            {
+                                "price": "0.00001682",
+                                "quantity": "1100.0000"
+                            },
+                            {
+                                "price": "0.00001646",
+                                "quantity": "38754.3138"
                             }
                         ],
                         "asks": [
                             {
-                                "price": "80873000",
-                                "quantity": "0.1749"
+                                "price": "0.00001692",
+                                "quantity": "392.0000"
+                            },
+                            {
+                                "price": "0.00001725",
+                                "quantity": "49.7087"
+                            },
+                            {
+                                "price": "0.00001726",
+                                "quantity": "18.8916"
                             }
                         ]
                     }
                 },
                 "parsedResponse": {
-                    "symbol": "BTC/KRW",
+                    "symbol": "USDC/BTC",
                     "bids": [
                         [
-                            80838000,
-                            0.0586
+                            0.00001683,
+                            304
+                        ],
+                        [
+                            0.00001682,
+                            1100
+                        ],
+                        [
+                            0.00001646,
+                            38754.3138
                         ]
                     ],
                     "asks": [
                         [
-                            80873000,
-                            0.1749
+                            0.00001692,
+                            392
+                        ],
+                        [
+                            0.00001725,
+                            49.7087
+                        ],
+                        [
+                            0.00001726,
+                            18.8916
                         ]
                     ],
-                    "timestamp": 1723102637709,
-                    "datetime": "2024-08-08T07:37:17.709Z",
+                    "timestamp": 1782811566795,
+                    "datetime": "2026-06-30T09:26:06.795Z",
+                    "nonce": null
+                }
+            },
+            {
+                "description": "generation 2 fetch order book",
+                "method": "fetchOrderBook",
+                "input": [
+                    "USDC/BTC"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-USDC",
+                        "timestamp": "1782807920105",
+                        "total_ask_size": "40322.8585",
+                        "total_bid_size": "174206.4577",
+                        "orderbook_units": [
+                            {
+                                "ask_price": "0.00001687",
+                                "bid_price": "0.0000168",
+                                "ask_size": "155",
+                                "bid_size": "41.6666"
+                            },
+                            {
+                                "ask_price": "0.00001689",
+                                "bid_price": "0.00001679",
+                                "ask_size": "1980",
+                                "bid_size": "1196"
+                            },
+                            {
+                                "ask_price": "0.00001725",
+                                "bid_price": "0.00001646",
+                                "ask_size": "49.7087",
+                                "bid_size": "35275.4473"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDC",
+                    "bids": [
+                        [
+                            0.0000168,
+                            41.6666
+                        ],
+                        [
+                            0.00001679,
+                            1196
+                        ],
+                        [
+                            0.00001646,
+                            35275.4473
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.00001687,
+                            155
+                        ],
+                        [
+                            0.00001689,
+                            1980
+                        ],
+                        [
+                            0.00001725,
+                            49.7087
+                        ]
+                    ],
+                    "timestamp": 1782807920105,
+                    "datetime": "2026-06-30T08:25:20.105Z",
                     "nonce": null
                 }
             }
