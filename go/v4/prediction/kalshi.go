@@ -175,7 +175,7 @@ func  (this *KalshiCore) Describe() any  {
             },
         },
         "options": map[string]any {
-            "defaultFetchEventsLimit": 100,
+            "defaultFetchEventsLimit": 200,
             "maxFetchMarketsLimit": 1000,
             "defaultEventStatus": "open",
         },
@@ -184,12 +184,12 @@ func  (this *KalshiCore) Describe() any  {
 /**
  * @method
  * @name kalshi#fetchMarkets
- * @description fetches all kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets
+ * @description fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
  * @see https://trading-api.readme.io/reference/getmarkets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.query] a single query string to filter markets by (matches ticker/title)
- * @param {string[]} [params.queries] multiple query strings (alternative to query)
- * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the cursor pagination once reached
+ * @param {string} [params.query] a single search query; resolved against the events endpoint (event title/ticker), then the matched events' markets are returned
+ * @param {string[]} [params.queries] multiple search queries (alternative to query); markets from any matching event are returned
+ * @param {int} [params.limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
  * @returns {object[]} an array of objects representing market data
  */
 func  (this *KalshiCore) FetchMarkets(optionalArgs ...any) <- chan any {
@@ -200,15 +200,34 @@ func  (this *KalshiCore) FetchMarkets(optionalArgs ...any) <- chan any {
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
             var queries any = this.ParseSearchQueries(params)
-            var rest any = this.Omit(params, []any{"query", "queries", "limit"})
-            // scope the listing: without a search query loadMarkets would otherwise page through
-            // every kalshi market via the cursor. Cap the total number of markets collected.
-            var maxMarkets any = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "fetchMarketsLimit", 1000))
-            var lowerQueries any = []any{}
-            for qi := 0; ccxt.IsLessThan(qi, ccxt.GetArrayLength(queries)); qi++ {
-                ccxt.AppendToArray(&lowerQueries, ccxt.ToLower(ccxt.GetValue(queries, qi)))
+            var queriesLength any =     ccxt.GetArrayLength(queries)
+            // kalshi's public markets endpoint has no free-text search, so a query would otherwise
+            // force a client-side scan of every open market (thousands, paged 1000 at a time, which
+            // hangs). Resolve the query against the events endpoint instead — it is bounded by
+            // maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
+            // markets — then flatten those markets.
+            if ccxt.IsTrue(ccxt.IsGreaterThan(queriesLength, 0)) {
+                var eventParams any = this.Omit(params, []any{"limit"})
+        
+                events:= (<-this.FetchEvents(eventParams))
+                ccxt.PanicOnError(events)
+                var eventsLength any =         ccxt.GetArrayLength(events)
+                var queryMarkets any = []any{}
+                for ei := 0; ccxt.IsLessThan(ei, eventsLength); ei++ {
+                    var eventMarkets any = this.SafeList(ccxt.GetValue(events, ei), "markets", []any{})
+                    var eventMarketsLength any =             ccxt.GetArrayLength(eventMarkets)
+                    for mi := 0; ccxt.IsLessThan(mi, eventMarketsLength); mi++ {
+                        ccxt.AppendToArray(&queryMarkets, ccxt.GetValue(eventMarkets, mi))
+                    }
+                }
+        
+                ch <- queryMarkets
+                return nil
             }
-            var lowerQueriesLength any =     ccxt.GetArrayLength(lowerQueries)
+            var rest any = this.Omit(params, []any{"query", "queries", "limit"})
+            // no query: page the markets listing directly. Cap the total collected so an unscoped
+            // loadMarkets cannot run away through every kalshi market via the cursor.
+            var maxMarkets any = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 1000))
             var flatMarkets any = []any{}
             var eventsDict any = map[string]any {}
             var cursor any = nil
@@ -232,20 +251,6 @@ func  (this *KalshiCore) FetchMarkets(optionalArgs ...any) <- chan any {
                 var rawMarketsLength any =         ccxt.GetArrayLength(rawMarkets)
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawMarkets)); i++ {
                     var raw any = ccxt.GetValue(rawMarkets, i)
-                    if ccxt.IsTrue(ccxt.IsGreaterThan(lowerQueriesLength, 0)) {
-                        var ticker any = ccxt.ToLower(this.SafeString(raw, "ticker", ""))
-                        var title any = ccxt.ToLower(this.SafeString(raw, "title", ""))
-                        var matches any = false
-                        for mi := 0; ccxt.IsLessThan(mi, ccxt.GetArrayLength(lowerQueries)); mi++ {
-                            if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetIndexOf(ticker, ccxt.GetValue(lowerQueries, mi)), ccxt.OpNeg(1))) || ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetIndexOf(title, ccxt.GetValue(lowerQueries, mi)), ccxt.OpNeg(1)))) {
-                                matches = true
-                                break
-                            }
-                        }
-                        if !ccxt.IsTrue(matches) {
-                            continue
-                        }
-                    }
                     var parsed any = this.ParseBinaryMarketToOutcomes(raw)
                     var eventTicker any = this.SafeString(raw, "event_ticker")
                     var eventTitle any = this.SafeString(raw, "title", eventTicker)
@@ -264,8 +269,8 @@ func  (this *KalshiCore) FetchMarkets(optionalArgs ...any) <- chan any {
         })
                             }
                             var eventEntry any = ccxt.GetValue(eventsDict, eventKey)
-                            retRes25724 := ccxt.GetValue(eventEntry, "markets")
-                            ccxt.AppendToArray(&retRes25724, m)
+                            retRes25824 := ccxt.GetValue(eventEntry, "markets")
+                            ccxt.AppendToArray(&retRes25824, m)
                         }
                     }
                 }
@@ -1740,7 +1745,7 @@ func  (this *KalshiCore) CancelAllOrders(optionalArgs ...any) <- chan any {
  * @param {string[]} [params.queries] multiple query strings (alternative to query)
  * @param {string} [params.status] 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
  * @param {int} [params.limit] page size per request, defaults to 200
- * @param {int} [params.maxPages] maximum number of pages to scan, defaults to 5
+ * @param {int} [params.maxPages] maximum number of event pages to scan, defaults to 50
  * @returns {object[]} an array of event structures
  */
 func  (this *KalshiCore) FetchEvents(optionalArgs ...any) <- chan any {
@@ -1759,7 +1764,7 @@ func  (this *KalshiCore) FetchEvents(optionalArgs ...any) <- chan any {
             if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(requestedStatus, "closed"))) || ccxt.IsTrue((ccxt.IsEqual(requestedStatus, "inactive")))) {
                 status = "closed"
             }
-            var pageLimit any = this.SafeInteger(params, "limit", 200)
+            var pageLimit any = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "defaultFetchEventsLimit", 200))
             var maxPages any = this.SafeInteger(params, "maxPages", 50)
             var rest any = this.Omit(params, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug"})
             if !ccxt.IsTrue(this.Events) {
@@ -1773,7 +1778,10 @@ func  (this *KalshiCore) FetchEvents(optionalArgs ...any) <- chan any {
                 ccxt.AppendToArray(&lowerQueries, ccxt.ToLower(ccxt.GetValue(queries, qi)))
             }
             var lowerQueriesLength any =     ccxt.GetArrayLength(lowerQueries)
-            // sequential cursor scan with nested markets included, collecting the matching events directly
+            // sequential cursor scan over events ONLY (no nested markets): a nested page is ~2.6 MB
+            // (200 events + ~1200 markets), so scanning every open event that way transfers tens of MB
+            // and takes ~100s. Event-only pages are ~25x smaller; the few events that match the query
+            // then fetch their markets individually below (the per-event fallback). Net: seconds, not minutes.
             var matchedEvents any = []any{}
             var cursor any = nil
             var page any = 0
@@ -1781,7 +1789,7 @@ func  (this *KalshiCore) FetchEvents(optionalArgs ...any) <- chan any {
                 var request any = map[string]any {
                     "status": status,
                     "limit": pageLimit,
-                    "with_nested_markets": true,
+                    "with_nested_markets": false,
                 }
                 if ccxt.IsTrue(cursor) {
                     ccxt.AddElementToObject(request, "cursor", cursor)

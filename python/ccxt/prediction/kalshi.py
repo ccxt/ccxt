@@ -171,33 +171,46 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 },
             },
             'options': {
-                'defaultFetchEventsLimit': 100,
-                'maxFetchMarketsLimit': 1000,
+                'defaultFetchEventsLimit': 200,   # events page size for the fetchEvents cursor scan
+                'maxFetchMarketsLimit': 1000,      # markets page size / max markets collected per unscoped listing
                 'defaultEventStatus': 'open',  # 'open' | 'closed' | 'settled'
             },
         })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
-        fetches all kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets
+        fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
 
         https://trading-api.readme.io/reference/getmarkets
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.query]: a single query string to filter markets by(matches ticker/title)
-        :param str[] [params.queries]: multiple query strings(alternative to query)
-        :param int [params.limit]: max number of markets to collect(defaults to options.fetchMarketsLimit, 1000); stops the cursor pagination once reached
+        :param str [params.query]: a single search query; resolved against the events endpoint(event title/ticker), then the matched events' markets are returned
+        :param str[] [params.queries]: multiple search queries(alternative to query); markets from any matching event are returned
+        :param int [params.limit]: for an unscoped listing(no query), the max number of markets to collect(defaults to options.maxFetchMarketsLimit, 1000)
         :returns dict[]: an array of objects representing market data
         """
         queries = self.parse_search_queries(params)
+        queriesLength = len(queries)
+        # kalshi's public markets endpoint has no free-text search, so a query would otherwise
+        # force a client-side scan of every open market(thousands, paged 1000 at a time, which
+        # hangs). Resolve the query against the events endpoint instead — it is bounded by
+        # maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
+        # markets — then flatten those markets.
+        if queriesLength > 0:
+            eventParams = self.omit(params, ['limit'])
+            events = await self.fetch_events(eventParams)
+            eventsLength = len(events)
+            queryMarkets = []
+            for ei in range(0, eventsLength):
+                eventMarkets = self.safe_list(events[ei], 'markets', [])
+                eventMarketsLength = len(eventMarkets)
+                for mi in range(0, eventMarketsLength):
+                    queryMarkets.append(eventMarkets[mi])
+            return queryMarkets
         rest = self.omit(params, ['query', 'queries', 'limit'])
-        # scope the listing: without a search query loadMarkets would otherwise page through
-        # every kalshi market via the cursor. Cap the total number of markets collected.
-        maxMarkets = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'fetchMarketsLimit', 1000))
-        lowerQueries = []
-        for qi in range(0, len(queries)):
-            lowerQueries.append(queries[qi].lower())
-        lowerQueriesLength = len(lowerQueries)
+        # no query: page the markets listing directly. Cap the total collected so an unscoped
+        # loadMarkets cannot run away through every kalshi market via the cursor.
+        maxMarkets = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'maxFetchMarketsLimit', 1000))
         flatMarkets = []
         eventsDict = {}
         cursor = None
@@ -215,16 +228,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
             rawMarketsLength = len(rawMarkets)
             for i in range(0, len(rawMarkets)):
                 raw = rawMarkets[i]
-                if lowerQueriesLength > 0:
-                    ticker = self.safe_string(raw, 'ticker', '').lower()
-                    title = self.safe_string(raw, 'title', '').lower()
-                    matches = False
-                    for mi in range(0, len(lowerQueries)):
-                        if ticker.find(lowerQueries[mi]) > -1 or title.find(lowerQueries[mi]) > -1:
-                            matches = True
-                            break
-                    if not matches:
-                        continue
                 parsed = self.parse_binary_market_to_outcomes(raw)
                 eventTicker = self.safe_string(raw, 'event_ticker')
                 eventTitle = self.safe_string(raw, 'title', eventTicker)
@@ -1378,7 +1381,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param str[] [params.queries]: multiple query strings(alternative to query)
         :param str [params.status]: 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
         :param int [params.limit]: page size per request, defaults to 200
-        :param int [params.maxPages]: maximum number of pages to scan, defaults to 5
+        :param int [params.maxPages]: maximum number of event pages to scan, defaults to 50
         :returns dict[]: an array of event structures
         """
         self.require_event_query(params)
@@ -1389,7 +1392,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         status = 'open'
         if (requestedStatus == 'closed') or (requestedStatus == 'inactive'):
             status = 'closed'
-        pageLimit = self.safe_integer(params, 'limit', 200)
+        pageLimit = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'defaultFetchEventsLimit', 200))
         maxPages = self.safe_integer(params, 'maxPages', 50)
         rest = self.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug'])
         if not self.events:
@@ -1400,12 +1403,15 @@ class kalshi(PredictionExchange, ImplicitAPI):
         for qi in range(0, len(queries)):
             lowerQueries.append(queries[qi].lower())
         lowerQueriesLength = len(lowerQueries)
-        # sequential cursor scan with nested markets included, collecting the matching events directly
+        # sequential cursor scan over events ONLY(no nested markets): a nested page is ~2.6 MB
+        #(200 events + ~1200 markets), so scanning every open event that way transfers tens of MB
+        # and takes ~100s. Event-only pages are ~25x smaller; the few events that match the query
+        # then fetch their markets individually below(the per-event fallback). Net: seconds, not minutes.
         matchedEvents = []
         cursor = None
         page = 0
         while(page < maxPages):
-            request = {'status': status, 'limit': pageLimit, 'with_nested_markets': True}
+            request = {'status': status, 'limit': pageLimit, 'with_nested_markets': False}
             if cursor:
                 request['cursor'] = cursor
             response = await self.kalshiPublicGetEvents(self.extend(request, rest))

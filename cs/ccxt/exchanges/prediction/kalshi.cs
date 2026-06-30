@@ -166,7 +166,7 @@ public partial class kalshi : PredictionExchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "defaultFetchEventsLimit", 100 },
+                { "defaultFetchEventsLimit", 200 },
                 { "maxFetchMarketsLimit", 1000 },
                 { "defaultEventStatus", "open" },
             } },
@@ -176,28 +176,45 @@ public partial class kalshi : PredictionExchange
     /**
      * @method
      * @name kalshi#fetchMarkets
-     * @description fetches all kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets
+     * @description fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
      * @see https://trading-api.readme.io/reference/getmarkets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.query] a single query string to filter markets by (matches ticker/title)
-     * @param {string[]} [params.queries] multiple query strings (alternative to query)
-     * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the cursor pagination once reached
+     * @param {string} [params.query] a single search query; resolved against the events endpoint (event title/ticker), then the matched events' markets are returned
+     * @param {string[]} [params.queries] multiple search queries (alternative to query); markets from any matching event are returned
+     * @param {int} [params.limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object queries = (IList<object>)(this.parseSearchQueries(parameters));
-        object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
-        // scope the listing: without a search query loadMarkets would otherwise page through
-        // every kalshi market via the cursor. Cap the total number of markets collected.
-        object maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
-        object lowerQueries = new List<object>() {};
-        for (object qi = 0; isLessThan(qi, getArrayLength(queries)); postFixIncrement(ref qi))
+        object queriesLength = getArrayLength(queries);
+        // kalshi's public markets endpoint has no free-text search, so a query would otherwise
+        // force a client-side scan of every open market (thousands, paged 1000 at a time, which
+        // hangs). Resolve the query against the events endpoint instead — it is bounded by
+        // maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
+        // markets — then flatten those markets.
+        if (isTrue(isGreaterThan(queriesLength, 0)))
         {
-            ((IList<object>)lowerQueries).Add(((string)getValue(queries, qi)).ToLower());
+            object eventParams = this.omit(parameters, new List<object>() {"limit"});
+            object events = await this.fetchEvents(eventParams);
+            object eventsLength = getArrayLength(events);
+            object queryMarkets = new List<object>() {};
+            for (object ei = 0; isLessThan(ei, eventsLength); postFixIncrement(ref ei))
+            {
+                object eventMarkets = (IList<object>)(this.safeList(getValue(events, ei), "markets", new List<object>() {}));
+                object eventMarketsLength = getArrayLength(eventMarkets);
+                for (object mi = 0; isLessThan(mi, eventMarketsLength); postFixIncrement(ref mi))
+                {
+                    ((IList<object>)queryMarkets).Add(getValue(eventMarkets, mi));
+                }
+            }
+            return queryMarkets;
         }
-        object lowerQueriesLength = getArrayLength(lowerQueries);
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
+        // no query: page the markets listing directly. Cap the total collected so an unscoped
+        // loadMarkets cannot run away through every kalshi market via the cursor.
+        object maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 1000));
         object flatMarkets = new List<object>() {};
         object eventsDict = new Dictionary<string, object>() {};
         object cursor = null;
@@ -222,24 +239,6 @@ public partial class kalshi : PredictionExchange
             for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
             {
                 object raw = getValue(rawMarkets, i);
-                if (isTrue(isGreaterThan(lowerQueriesLength, 0)))
-                {
-                    object ticker = ((string)this.safeString(raw, "ticker", "")).ToLower();
-                    object title = ((string)this.safeString(raw, "title", "")).ToLower();
-                    object matches = false;
-                    for (object mi = 0; isLessThan(mi, getArrayLength(lowerQueries)); postFixIncrement(ref mi))
-                    {
-                        if (isTrue(isTrue(isGreaterThan(getIndexOf(ticker, getValue(lowerQueries, mi)), -1)) || isTrue(isGreaterThan(getIndexOf(title, getValue(lowerQueries, mi)), -1))))
-                        {
-                            matches = true;
-                            break;
-                        }
-                    }
-                    if (!isTrue(matches))
-                    {
-                        continue;
-                    }
-                }
                 object parsed = this.parseBinaryMarketToOutcomes(raw);
                 object eventTicker = this.safeString(raw, "event_ticker");
                 object eventTitle = this.safeString(raw, "title", eventTicker);
@@ -1640,7 +1639,7 @@ public partial class kalshi : PredictionExchange
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @param {string} [params.status] 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
      * @param {int} [params.limit] page size per request, defaults to 200
-     * @param {int} [params.maxPages] maximum number of pages to scan, defaults to 5
+     * @param {int} [params.maxPages] maximum number of event pages to scan, defaults to 50
      * @returns {object[]} an array of event structures
      */
     public async override Task<object> fetchEvents(object parameters = null)
@@ -1656,7 +1655,7 @@ public partial class kalshi : PredictionExchange
         {
             status = "closed";
         }
-        object pageLimit = this.safeInteger(parameters, "limit", 200);
+        object pageLimit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 200));
         object maxPages = this.safeInteger(parameters, "maxPages", 50);
         object rest = this.omit(parameters, new List<object>() {"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug"});
         if (!isTrue(this.events))
@@ -1673,7 +1672,10 @@ public partial class kalshi : PredictionExchange
             ((IList<object>)lowerQueries).Add(((string)getValue(queries, qi)).ToLower());
         }
         object lowerQueriesLength = getArrayLength(lowerQueries);
-        // sequential cursor scan with nested markets included, collecting the matching events directly
+        // sequential cursor scan over events ONLY (no nested markets): a nested page is ~2.6 MB
+        // (200 events + ~1200 markets), so scanning every open event that way transfers tens of MB
+        // and takes ~100s. Event-only pages are ~25x smaller; the few events that match the query
+        // then fetch their markets individually below (the per-event fallback). Net: seconds, not minutes.
         object matchedEvents = new List<object>() {};
         object cursor = null;
         object page = 0;
@@ -1682,7 +1684,7 @@ public partial class kalshi : PredictionExchange
             object request = new Dictionary<string, object>() {
                 { "status", status },
                 { "limit", pageLimit },
-                { "with_nested_markets", true },
+                { "with_nested_markets", false },
             };
             if (isTrue(cursor))
             {

@@ -176,8 +176,8 @@ export default class kalshi extends Exchange {
                 },
             },
             'options': {
-                'defaultFetchEventsLimit': 100,
-                'maxFetchMarketsLimit': 1000,
+                'defaultFetchEventsLimit': 200,   // events page size for the fetchEvents cursor scan
+                'maxFetchMarketsLimit': 1000,      // markets page size / max markets collected per unscoped listing
                 'defaultEventStatus': 'open',  // 'open' | 'closed' | 'settled'
             },
         });
@@ -186,25 +186,40 @@ export default class kalshi extends Exchange {
     /**
      * @method
      * @name kalshi#fetchMarkets
-     * @description fetches all kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets
+     * @description fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
      * @see https://trading-api.readme.io/reference/getmarkets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.query] a single query string to filter markets by (matches ticker/title)
-     * @param {string[]} [params.queries] multiple query strings (alternative to query)
-     * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the cursor pagination once reached
+     * @param {string} [params.query] a single search query; resolved against the events endpoint (event title/ticker), then the matched events' markets are returned
+     * @param {string[]} [params.queries] multiple search queries (alternative to query); markets from any matching event are returned
+     * @param {int} [params.limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const queries = this.parseSearchQueries (params) as any[];
-        const rest = this.omit (params, [ 'query', 'queries', 'limit' ]);
-        // scope the listing: without a search query loadMarkets would otherwise page through
-        // every kalshi market via the cursor. Cap the total number of markets collected.
-        const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
-        const lowerQueries: string[] = [];
-        for (let qi = 0; qi < queries.length; qi++) {
-            lowerQueries.push (queries[qi].toLowerCase ());
+        const queriesLength = queries.length;
+        // kalshi's public markets endpoint has no free-text search, so a query would otherwise
+        // force a client-side scan of every open market (thousands, paged 1000 at a time, which
+        // hangs). Resolve the query against the events endpoint instead — it is bounded by
+        // maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
+        // markets — then flatten those markets.
+        if (queriesLength > 0) {
+            const eventParams = this.omit (params, [ 'limit' ]);
+            const events = await this.fetchEvents (eventParams);
+            const eventsLength = events.length;
+            const queryMarkets: Market[] = [];
+            for (let ei = 0; ei < eventsLength; ei++) {
+                const eventMarkets = this.safeList (events[ei], 'markets', []) as any[];
+                const eventMarketsLength = eventMarkets.length;
+                for (let mi = 0; mi < eventMarketsLength; mi++) {
+                    queryMarkets.push (eventMarkets[mi]);
+                }
+            }
+            return queryMarkets;
         }
-        const lowerQueriesLength = lowerQueries.length;
+        const rest = this.omit (params, [ 'query', 'queries', 'limit' ]);
+        // no query: page the markets listing directly. Cap the total collected so an unscoped
+        // loadMarkets cannot run away through every kalshi market via the cursor.
+        const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'maxFetchMarketsLimit', 1000));
         const flatMarkets: Market[] = [];
         const eventsDict: Dict = {};
         let cursor: Str = undefined;
@@ -223,20 +238,6 @@ export default class kalshi extends Exchange {
             const rawMarketsLength = rawMarkets.length;
             for (let i = 0; i < rawMarkets.length; i++) {
                 const raw = rawMarkets[i];
-                if (lowerQueriesLength > 0) {
-                    const ticker = this.safeString (raw, 'ticker', '').toLowerCase ();
-                    const title = this.safeString (raw, 'title', '').toLowerCase ();
-                    let matches = false;
-                    for (let mi = 0; mi < lowerQueries.length; mi++) {
-                        if (ticker.indexOf (lowerQueries[mi]) > -1 || title.indexOf (lowerQueries[mi]) > -1) {
-                            matches = true;
-                            break;
-                        }
-                    }
-                    if (!matches) {
-                        continue;
-                    }
-                }
                 const parsed = this.parseBinaryMarketToOutcomes (raw);
                 const eventTicker = this.safeString (raw, 'event_ticker');
                 const eventTitle = this.safeString (raw, 'title', eventTicker);
@@ -1496,7 +1497,7 @@ export default class kalshi extends Exchange {
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @param {string} [params.status] 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
      * @param {int} [params.limit] page size per request, defaults to 200
-     * @param {int} [params.maxPages] maximum number of pages to scan, defaults to 5
+     * @param {int} [params.maxPages] maximum number of event pages to scan, defaults to 50
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
@@ -1509,7 +1510,7 @@ export default class kalshi extends Exchange {
         if ((requestedStatus === 'closed') || (requestedStatus === 'inactive')) {
             status = 'closed';
         }
-        const pageLimit = this.safeInteger (params, 'limit', 200);
+        const pageLimit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'defaultFetchEventsLimit', 200));
         const maxPages = this.safeInteger (params, 'maxPages', 50);
         const rest = this.omit (params, [ 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug' ]);
         if (!this.events) {
@@ -1523,12 +1524,15 @@ export default class kalshi extends Exchange {
             lowerQueries.push (queries[qi].toLowerCase ());
         }
         const lowerQueriesLength = lowerQueries.length;
-        // sequential cursor scan with nested markets included, collecting the matching events directly
+        // sequential cursor scan over events ONLY (no nested markets): a nested page is ~2.6 MB
+        // (200 events + ~1200 markets), so scanning every open event that way transfers tens of MB
+        // and takes ~100s. Event-only pages are ~25x smaller; the few events that match the query
+        // then fetch their markets individually below (the per-event fallback). Net: seconds, not minutes.
         const matchedEvents: any[] = [];
         let cursor: string | undefined = undefined;
         let page = 0;
         while (page < maxPages) {
-            const request: Dict = { 'status': status, 'limit': pageLimit, 'with_nested_markets': true };
+            const request: Dict = { 'status': status, 'limit': pageLimit, 'with_nested_markets': false };
             if (cursor) {
                 request['cursor'] = cursor;
             }

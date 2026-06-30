@@ -172,8 +172,8 @@ class kalshi extends Exchange {
                 ),
             ),
             'options' => array(
-                'defaultFetchEventsLimit' => 100,
-                'maxFetchMarketsLimit' => 1000,
+                'defaultFetchEventsLimit' => 200,   // events page size for the fetchEvents cursor scan
+                'maxFetchMarketsLimit' => 1000,      // markets page size / max markets collected per unscoped listing
                 'defaultEventStatus' => 'open',  // 'open' | 'closed' | 'settled'
             ),
         ));
@@ -182,26 +182,41 @@ class kalshi extends Exchange {
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches all kalshi markets via $cursor pagination and maps each binary market to YES and NO CCXT markets
+             * fetches kalshi markets; with a query it resolves the query via the $events endpoint and returns the matched events' markets, otherwise it pages the markets listing
              *
              * @see https://trading-api.readme.io/reference/getmarkets
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->query] a single query string to filter markets by ($matches ticker/title)
-             * @param {string[]} [$params->queries] multiple query strings (alternative to query)
-             * @param {int} [$params->limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the $cursor pagination once reached
+             * @param {string} [$params->query] a single search query; resolved against the $events endpoint (event title/ticker), then the matched events' markets are returned
+             * @param {string[]} [$params->queries] multiple search $queries (alternative to query); markets from any matching event are returned
+             * @param {int} [$params->limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
              * @return {array[]} an array of objects representing market data
              */
             $queries = $this->parse_search_queries($params);
-            $rest = $this->omit($params, array( 'query', 'queries', 'limit' ));
-            // scope the listing => without a search query loadMarkets would otherwise page through
-            // every kalshi market via the $cursor-> Cap the total number of markets collected.
-            $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
-            $lowerQueries = array();
-            for ($qi = 0; $qi < count($queries); $qi++) {
-                $lowerQueries[] = strtolower($queries[$qi]);
+            $queriesLength = count($queries);
+            // kalshi's public markets endpoint has no free-text search, so a query would otherwise
+            // force a client-side scan of every open market (thousands, paged 1000 at a time, which
+            // hangs). Resolve the query against the $events endpoint instead — it is bounded by
+            // maxPages, scoped server-side, supports multiple topics, and returns each event's $parsed
+            // markets — then flatten those markets.
+            if ($queriesLength > 0) {
+                $eventParams = $this->omit($params, array( 'limit' ));
+                $events = Async\await($this->fetch_events($eventParams));
+                $eventsLength = count($events);
+                $queryMarkets = array();
+                for ($ei = 0; $ei < $eventsLength; $ei++) {
+                    $eventMarkets = $this->safe_list($events[$ei], 'markets', array());
+                    $eventMarketsLength = count($eventMarkets);
+                    for ($mi = 0; $mi < $eventMarketsLength; $mi++) {
+                        $queryMarkets[] = $eventMarkets[$mi];
+                    }
+                }
+                return $queryMarkets;
             }
-            $lowerQueriesLength = count($lowerQueries);
+            $rest = $this->omit($params, array( 'query', 'queries', 'limit' ));
+            // no query => page the markets listing directly. Cap the total collected so an unscoped
+            // loadMarkets cannot run away through every kalshi market via the $cursor->
+            $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'maxFetchMarketsLimit', 1000));
             $flatMarkets = array();
             $eventsDict = array();
             $cursor = null;
@@ -220,20 +235,6 @@ class kalshi extends Exchange {
                 $rawMarketsLength = count($rawMarkets);
                 for ($i = 0; $i < count($rawMarkets); $i++) {
                     $raw = $rawMarkets[$i];
-                    if ($lowerQueriesLength > 0) {
-                        $ticker = strtolower($this->safe_string($raw, 'ticker', ''));
-                        $title = strtolower($this->safe_string($raw, 'title', ''));
-                        $matches = false;
-                        for ($mi = 0; $mi < count($lowerQueries); $mi++) {
-                            if (mb_strpos($ticker, $lowerQueries[$mi]) > -1 || mb_strpos($title, $lowerQueries[$mi]) > -1) {
-                                $matches = true;
-                                break;
-                            }
-                        }
-                        if (!$matches) {
-                            continue;
-                        }
-                    }
                     $parsed = $this->parse_binary_market_to_outcomes($raw);
                     $eventTicker = $this->safe_string($raw, 'event_ticker');
                     $eventTitle = $this->safe_string($raw, 'title', $eventTicker);
@@ -1503,7 +1504,7 @@ class kalshi extends Exchange {
              * @param {string[]} [$params->queries] multiple query strings (alternative to query)
              * @param {string} [$params->status] 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
              * @param {int} [$params->limit] $page size per $request, defaults to 200
-             * @param {int} [$params->maxPages] maximum number of pages to scan, defaults to 5
+             * @param {int} [$params->maxPages] maximum number of event pages to scan, defaults to 50
              * @return {array[]} an array of event structures
              */
             $this->require_event_query($params);
@@ -1515,7 +1516,7 @@ class kalshi extends Exchange {
             if (($requestedStatus === 'closed') || ($requestedStatus === 'inactive')) {
                 $status = 'closed';
             }
-            $pageLimit = $this->safe_integer($params, 'limit', 200);
+            $pageLimit = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'defaultFetchEventsLimit', 200));
             $maxPages = $this->safe_integer($params, 'maxPages', 50);
             $rest = $this->omit($params, array( 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug' ));
             if (!$this->events) {
@@ -1529,12 +1530,15 @@ class kalshi extends Exchange {
                 $lowerQueries[] = strtolower($queries[$qi]);
             }
             $lowerQueriesLength = count($lowerQueries);
-            // sequential $cursor scan with nested markets included, collecting the matching events directly
+            // sequential $cursor scan over events ONLY (no nested markets) => a nested $page is {2.6 MB
+            // (200 events . }1200 markets), so scanning every open event that way transfers tens of MB
+            // and takes {100s. Event-only pages are }25x smaller; the few events that match the query
+            // then fetch their markets individually below (the per-event fallback). Net => seconds, not minutes.
             $matchedEvents = array();
             $cursor = null;
             $page = 0;
             while ($page < $maxPages) {
-                $request = array( 'status' => $status, 'limit' => $pageLimit, 'with_nested_markets' => true );
+                $request = array( 'status' => $status, 'limit' => $pageLimit, 'with_nested_markets' => false );
                 if ($cursor) {
                     $request['cursor'] = $cursor;
                 }
