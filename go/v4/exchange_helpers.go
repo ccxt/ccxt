@@ -1640,10 +1640,13 @@ func ObjectKeys(v any) []string {
 	}
 
 	if mapObject, ok := v.(map[string]any); ok {
+		// serialize iteration with concurrent writes (Remove/AddElementToObject)
+		addElementMu.Lock()
 		keys := make([]string, 0, len(mapObject))
 		for key := range mapObject {
 			keys = append(keys, key)
 		}
+		addElementMu.Unlock()
 		return keys
 	} else if syncMap, ok := v.(*sync.Map); ok {
 		keys := []string{}
@@ -2596,10 +2599,14 @@ func Remove(dict any, key any) {
 		v.Delete(keyStr)
 		return
 	case map[string]any:
+		// serialize with concurrent reads/writes elsewhere (GetValue/InOp/SafeValue/AddElementToObject)
+		addElementMu.Lock()
 		if _, exists := v[keyStr]; !exists {
+			addElementMu.Unlock()
 			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
 		}
 		delete(v, keyStr)
+		addElementMu.Unlock()
 		return
 	default:
 		panic(fmt.Sprintf("exchange_helpers.Remove: provided value type is %T", v))
