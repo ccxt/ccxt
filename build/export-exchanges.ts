@@ -887,7 +887,9 @@ async function exportEverything () {
     // exchanges.json is always (re)generated, even on language-scoped runs
     exportExchangeIdsToExchangesJson (ids, wsIds)
 
-    if (languageSelected) {
+    // the js/ts build owns the docs/wiki/tables generation, so only skip it for
+    // language-scoped runs that do NOT include js/ts
+    if (languageSelected && !selectedLanguages.includes ('ts')) {
         // language-scoped run: only the exchange-registration files + exchanges.json were
         // updated, skip the language-agnostic docs/wiki generation
         unlimitedLog.bright.green ('Exported registrations for: ' + selectedLanguages.join (', '))
