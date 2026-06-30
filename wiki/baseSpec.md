@@ -5814,6 +5814,7 @@ the latest known information on the availability of the exchange API
 * [bitmart](/exchanges/bitmart.md#fetchstatus)
 * [bitrue](/exchanges/bitrue.md#fetchstatus)
 * [bybit](/exchanges/bybit.md#fetchstatus)
+* [coincheck](/exchanges/coincheck.md#fetchstatus)
 * [coinsph](/exchanges/coinsph.md#fetchstatus)
 * [delta](/exchanges/delta.md#fetchstatus)
 * [deribit](/exchanges/deribit.md#fetchstatus)
