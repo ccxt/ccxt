@@ -1457,6 +1457,7 @@ public class  Indodax: indodax { public Indodax(object args = null) : base(args)
 public class  Kraken: kraken { public Kraken(object args = null) : base(args) { } }
 public class  Krakenfutures: krakenfutures { public Krakenfutures(object args = null) : base(args) { } }
 public class  Kucoin: kucoin { public Kucoin(object args = null) : base(args) { } }
+public class  Kucoineu: kucoineu { public Kucoineu(object args = null) : base(args) { } }
 public class  Kucoinfutures: kucoinfutures { public Kucoinfutures(object args = null) : base(args) { } }
 public class  Latoken: latoken { public Latoken(object args = null) : base(args) { } }
 public class  Lbank: lbank { public Lbank(object args = null) : base(args) { } }

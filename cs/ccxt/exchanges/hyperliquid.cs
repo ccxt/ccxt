@@ -1992,10 +1992,6 @@ public partial class hyperliquid : Exchange
     public async virtual Task<object> handleBuilderFeeApproval()
     {
         object buildFee = this.safeBool(this.options, "builderFee", true);
-        if (!isTrue(buildFee))
-        {
-            return false;  // skip if builder fee is not enabled
-        }
         object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(approvedBuilderFee))
         {
@@ -2004,7 +2000,13 @@ public partial class hyperliquid : Exchange
         try
         {
             object builder = this.safeString(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+            // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
+            // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             object maxFeeRate = this.safeString(this.options, "feeRate", "0.01%");
+            if (!isTrue(buildFee))
+            {
+                maxFeeRate = "0%";
+            }
             await this.approveBuilderFee(builder, maxFeeRate);
             ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
         } catch(Exception e)
@@ -2580,9 +2582,15 @@ public partial class hyperliquid : Exchange
         if (isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
         {
             object wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+            // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
+            object feeInt = this.safeInteger(this.options, "feeInt", 10);
+            if (!isTrue(this.safeBool(this.options, "builderFee", true)))
+            {
+                feeInt = 0;
+            }
             ((IDictionary<string,object>)orderAction)["builder"] = new Dictionary<string, object>() {
                 { "b", wallet },
-                { "f", this.safeInteger(this.options, "feeInt", 10) },
+                { "f", feeInt },
             };
         }
         object signature = this.signL1Action(orderAction, nonce, vaultAddress);
