@@ -112,6 +112,7 @@ from ccxt.pro.independentreserve import independentreserve                # noqa
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
+from ccxt.pro.kucoineu import kucoineu                                    # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.lbank import lbank                                          # noqa: F401
 from ccxt.pro.lighter import lighter                                      # noqa: F401
@@ -192,6 +193,7 @@ exchanges = [
     'kraken',
     'krakenfutures',
     'kucoin',
+    'kucoineu',
     'kucoinfutures',
     'lbank',
     'lighter',
