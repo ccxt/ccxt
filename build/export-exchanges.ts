@@ -884,9 +884,12 @@ async function exportEverything () {
 
     exportExchanges (selectedReplacements)
 
+    // exchanges.json is always (re)generated, even on language-scoped runs
+    exportExchangeIdsToExchangesJson (ids, wsIds)
+
     if (languageSelected) {
-        // language-scoped run: only the exchange-registration files were updated,
-        // skip the language-agnostic docs/wiki/json generation
+        // language-scoped run: only the exchange-registration files + exchanges.json were
+        // updated, skip the language-agnostic docs/wiki generation
         unlimitedLog.bright.green ('Exported registrations for: ' + selectedLanguages.join (', '))
         return
     }
