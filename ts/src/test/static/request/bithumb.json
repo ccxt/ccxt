@@ -5,11 +5,21 @@
     "methods": {
         "fetchBalance": [
             {
-                "description": "fetchBalance",
+                "description": "generation 1 fetchBalance",
                 "method": "fetchBalance",
                 "url": "https://api.bithumb.com/info/balance",
-                "input": [],
+                "input": [
+                    {
+                        "generation": 1
+                    }
+                ],
                 "output": "endpoint=%2Finfo%2Fbalance&currency=ALL"
+            },
+            {
+                "description": "generation 2 fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://api.bithumb.com/v1/accounts",
+                "input": []
             }
         ],
         "fetchOrderBook": [

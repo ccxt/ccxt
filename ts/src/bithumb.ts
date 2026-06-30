@@ -1,8 +1,9 @@
 
 //  ---------------------------------------------------------------------------
 
-import { sha512 } from '@noble/hashes/sha2.js';
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bithumb.js';
+import { jwt } from './base/functions/rsa.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
@@ -350,85 +351,46 @@ export default class bithumb extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        const result: any[] = [];
+        let request: Dict = {};
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'generation', 2);
         if (generation === 2) {
-            return this.fetchMarketsGenTwo (params);
-        }
-        const result: any[] = [];
-        const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
-        const quotes = Object.keys (quoteCurrencies);
-        const promises: any[] = [];
-        for (let i = 0; i < quotes.length; i++) {
-            const request = {
-                'quoteId': quotes[i],
+            request = {
+                'isDetails': true,
             };
-            promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));
+            const response = await this.publicGetV1MarketAll (this.extend (request, params));
             //
-            //    {
-            //        "status": "0000",
-            //        "data": {
-            //            "ETH": {
-            //                "opening_price": "0.05153399",
-            //                "closing_price": "0.05145144",
-            //                "min_price": "0.05145144",
-            //                "max_price": "0.05160781",
-            //                "units_traded": "6.541124172077830855",
-            //                "acc_trade_value": "0.33705472498492329997697755",
-            //                "prev_closing_price": "0.0515943",
-            //                "units_traded_24H": "43.368879902677400513",
-            //                "acc_trade_value_24H": "2.24165339555398079994373342",
-            //                "fluctate_24H": "-0.00018203",
-            //                "fluctate_rate_24H": "-0.35"
-            //            },
-            //            "XRP": {
-            //                "opening_price": "0.00000918",
-            //                "closing_price": "0.0000092",
-            //                "min_price": "0.00000918",
-            //                "max_price": "0.0000092",
-            //                "units_traded": "6516.949363",
-            //                "acc_trade_value": "0.0598792533602796",
-            //                "prev_closing_price": "0.00000916",
-            //                "units_traded_24H": "229161.50354738",
-            //                "acc_trade_value_24H": "2.0446589371637117",
-            //                "fluctate_24H": "0.00000049",
-            //                "fluctate_rate_24H": "5.63"
-            //            },
-            //            ...
-            //            "date": "1721675913145"
-            //        }
-            //    }
+            //     [
+            //         {
+            //             "market": "KRW-BTC",
+            //             "korean_name": "비트코인",
+            //             "english_name": "Bitcoin",
+            //             "market_warning": "NONE"
+            //         },
+            //     ]
             //
-        }
-        const results = await Promise.all (promises);
-        for (let i = 0; i < quotes.length; i++) {
-            const quote = quotes[i];
-            const quoteId = quote;
-            const response = results[i];
-            const data = this.safeDict (response, 'data', {});
-            const extension = this.safeDict (quoteCurrencies, quote, {});
-            const currencyIds = Object.keys (data);
-            for (let j = 0; j < currencyIds.length; j++) {
-                const currencyId = currencyIds[j];
-                if (currencyId === 'date') {
-                    continue;
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const marketId = this.safeString (entry, 'market');
+                let baseId = undefined;
+                let quoteId = undefined;
+                let base = undefined;
+                let quote = undefined;
+                if (marketId !== undefined) {
+                    const parts = marketId.split ('-');
+                    baseId = parts[0];
+                    quoteId = parts[1];
+                    base = this.safeCurrencyCode (baseId);
+                    quote = this.safeCurrencyCode (quoteId);
                 }
-                const market = data[currencyId];
-                const base = this.safeCurrencyCode (currencyId);
-                let active = true;
-                if (Array.isArray (market)) {
-                    const numElements = market.length;
-                    if (numElements === 0) {
-                        active = false;
-                    }
-                }
-                const entry = this.deepExtend ({
-                    'id': currencyId,
+                result.push ({
+                    'id': marketId,
                     'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
                     'settle': undefined,
-                    'baseId': currencyId,
+                    'baseId': baseId,
                     'quoteId': quoteId,
                     'settleId': undefined,
                     'type': 'spot',
@@ -437,7 +399,7 @@ export default class bithumb extends Exchange {
                     'swap': false,
                     'future': false,
                     'option': false,
-                    'active': active,
+                    'active': true,
                     'contract': false,
                     'linear': undefined,
                     'inverse': undefined,
@@ -463,110 +425,182 @@ export default class bithumb extends Exchange {
                             'min': undefined,
                             'max': undefined,
                         },
-                        'cost': {}, // set via options
+                        'cost': {},
                     },
                     'created': undefined,
-                    'info': market,
-                }, extension);
-                result.push (entry);
+                    'info': undefined,
+                });
             }
-        }
-        return result;
-    }
-
-    async fetchMarketsGenTwo (params = {}): Promise<Market[]> {
-        const request = {
-            'isDetails': true,
-        };
-        const response = await this.publicGetV1MarketAll (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "market": "KRW-BTC",
-        //             "korean_name": "비트코인",
-        //             "english_name": "Bitcoin",
-        //             "market_warning": "NONE"
-        //         },
-        //     ]
-        //
-        const result: any[] = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const marketId = this.safeString (entry, 'market');
-            let baseId = undefined;
-            let quoteId = undefined;
-            let base = undefined;
-            let quote = undefined;
-            if (marketId !== undefined) {
-                const parts = marketId.split ('-');
-                baseId = parts[0];
-                quoteId = parts[1];
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
+        } else {
+            const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
+            const quotes = Object.keys (quoteCurrencies);
+            const promises: any[] = [];
+            for (let i = 0; i < quotes.length; i++) {
+                request = {
+                    'quoteId': quotes[i],
+                };
+                promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));
+                //
+                //    {
+                //        "status": "0000",
+                //        "data": {
+                //            "ETH": {
+                //                "opening_price": "0.05153399",
+                //                "closing_price": "0.05145144",
+                //                "min_price": "0.05145144",
+                //                "max_price": "0.05160781",
+                //                "units_traded": "6.541124172077830855",
+                //                "acc_trade_value": "0.33705472498492329997697755",
+                //                "prev_closing_price": "0.0515943",
+                //                "units_traded_24H": "43.368879902677400513",
+                //                "acc_trade_value_24H": "2.24165339555398079994373342",
+                //                "fluctate_24H": "-0.00018203",
+                //                "fluctate_rate_24H": "-0.35"
+                //            },
+                //            "XRP": {
+                //                "opening_price": "0.00000918",
+                //                "closing_price": "0.0000092",
+                //                "min_price": "0.00000918",
+                //                "max_price": "0.0000092",
+                //                "units_traded": "6516.949363",
+                //                "acc_trade_value": "0.0598792533602796",
+                //                "prev_closing_price": "0.00000916",
+                //                "units_traded_24H": "229161.50354738",
+                //                "acc_trade_value_24H": "2.0446589371637117",
+                //                "fluctate_24H": "0.00000049",
+                //                "fluctate_rate_24H": "5.63"
+                //            },
+                //            ...
+                //            "date": "1721675913145"
+                //        }
+                //    }
+                //
             }
-            result.push ({
-                'id': marketId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDateTime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': parseInt ('4'),
-                    'price': parseInt ('4'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {},
-                },
-                'created': undefined,
-                'info': undefined,
-            });
+            const results = await Promise.all (promises);
+            for (let i = 0; i < quotes.length; i++) {
+                const quote = quotes[i];
+                const quoteId = quote;
+                const response = results[i];
+                const data = this.safeDict (response, 'data', {});
+                const extension = this.safeDict (quoteCurrencies, quote, {});
+                const currencyIds = Object.keys (data);
+                for (let j = 0; j < currencyIds.length; j++) {
+                    const currencyId = currencyIds[j];
+                    if (currencyId === 'date') {
+                        continue;
+                    }
+                    const market = data[currencyId];
+                    const base = this.safeCurrencyCode (currencyId);
+                    let active = true;
+                    if (Array.isArray (market)) {
+                        const numElements = market.length;
+                        if (numElements === 0) {
+                            active = false;
+                        }
+                    }
+                    const entry = this.deepExtend ({
+                        'id': currencyId,
+                        'symbol': base + '/' + quote,
+                        'base': base,
+                        'quote': quote,
+                        'settle': undefined,
+                        'baseId': currencyId,
+                        'quoteId': quoteId,
+                        'settleId': undefined,
+                        'type': 'spot',
+                        'spot': true,
+                        'margin': false,
+                        'swap': false,
+                        'future': false,
+                        'option': false,
+                        'active': active,
+                        'contract': false,
+                        'linear': undefined,
+                        'inverse': undefined,
+                        'contractSize': undefined,
+                        'expiry': undefined,
+                        'expiryDateTime': undefined,
+                        'strike': undefined,
+                        'optionType': undefined,
+                        'precision': {
+                            'amount': parseInt ('4'),
+                            'price': parseInt ('4'),
+                        },
+                        'limits': {
+                            'leverage': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'amount': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'price': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'cost': {}, // set via options
+                        },
+                        'created': undefined,
+                        'info': market,
+                    }, extension);
+                    result.push (entry);
+                }
+            }
         }
         return result;
     }
 
     parseBalance (response): Balances {
+        //
+        // generation 1
+        //
+        //     {
+        //         "status": "0000",
+        //         "data": {
+        //             "total_krw": "51026.000000",
+        //             "in_use_krw": "0.00000000",
+        //             "available_krw": "51026.00000000",
+        //         }
+        //     }
+        //
+        // generation 2
+        //
+        //     [
+        //         {
+        //             "currency": "KRW",
+        //             "balance": "51026",
+        //             "locked": "0",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW"
+        //         },
+        //     ]
+        //
         const result: Dict = { 'info': response };
         const balances = this.safeDict (response, 'data');
-        const codes = Object.keys (this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const account = this.account ();
-            const currency = this.currency (code);
-            const lowerCurrencyId = this.safeStringLower (currency, 'id');
-            account['total'] = this.safeString (balances, 'total_' + lowerCurrencyId);
-            account['used'] = this.safeString (balances, 'in_use_' + lowerCurrencyId);
-            account['free'] = this.safeString (balances, 'available_' + lowerCurrencyId);
-            result[code] = account;
+        if (balances !== undefined) {
+            const codes = Object.keys (this.currencies);
+            for (let i = 0; i < codes.length; i++) {
+                const code = codes[i];
+                const account = this.account ();
+                const currency = this.currency (code);
+                const lowerCurrencyId = this.safeStringLower (currency, 'id');
+                account['total'] = this.safeString (balances, 'total_' + lowerCurrencyId);
+                account['used'] = this.safeString (balances, 'in_use_' + lowerCurrencyId);
+                account['free'] = this.safeString (balances, 'available_' + lowerCurrencyId);
+                result[code] = account;
+            }
+        } else {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const account = this.account ();
+                const currencyId = this.safeString (entry, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                account['total'] = this.safeString (entry, 'balance');
+                account['used'] = this.safeString (entry, 'locked');
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -576,15 +610,46 @@ export default class bithumb extends Exchange {
      * @name bithumb#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const request: Dict = {
-            'currency': 'ALL',
-        };
-        const response = await this.privatePostInfoBalance (this.extend (request, params));
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'generation', 2);
+        let response = undefined;
+        if (generation === 2) {
+            response = await this.privateGetV1Accounts (params);
+            //
+            //     [
+            //         {
+            //             "currency": "KRW",
+            //             "balance": "51026",
+            //             "locked": "0",
+            //             "avg_buy_price": "0",
+            //             "avg_buy_price_modified": false,
+            //             "unit_currency": "KRW"
+            //         },
+            //     ]
+            //
+        } else {
+            const request: Dict = {
+                'currency': 'ALL',
+            };
+            response = await this.privatePostInfoBalance (this.extend (request, params));
+            //
+            //     {
+            //         "status": "0000",
+            //         "data": {
+            //             "total_krw": "51026.000000",
+            //             "in_use_krw": "0.00000000",
+            //             "available_krw": "51026.00000000",
+            //         }
+            //     }
+            //
+        }
         return this.parseBalance (response);
     }
 
@@ -1368,20 +1433,44 @@ export default class bithumb extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            body = this.urlencode (this.extend ({
-                'endpoint': endpoint,
-            }, query));
-            const nonce = this.nonce ().toString ();
-            const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);
-            const signature64 = this.stringToBase64 (signature);
-            headers = {
-                'Accept': 'application/json',
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Api-Key': this.apiKey,
-                'Api-Sign': signature64,
-                'Api-Nonce': nonce,
-            };
+            const isVersionedApi = (endpoint.startsWith ('/v1/') || endpoint.startsWith ('/v2/'));
+            if (isVersionedApi) {
+                headers = {
+                    'Accept': 'application/json',
+                };
+                const request: Dict = {
+                    'access_key': this.apiKey,
+                    'nonce': this.uuid (),
+                    'timestamp': this.milliseconds (),
+                };
+                if ((method !== 'GET') && (method !== 'DELETE')) {
+                    body = this.json (query);
+                    headers['Content-Type'] = 'application/json';
+                }
+                const hasQuery = Object.keys (query).length;
+                if (hasQuery) {
+                    const auth = this.rawencode (query);
+                    request['query_hash'] = this.hash (this.encode (auth), sha512);
+                    request['query_hash_alg'] = 'SHA512';
+                }
+                const token = jwt (request, this.encode (this.secret), sha256);
+                headers['Authorization'] = 'Bearer ' + token;
+            } else {
+                body = this.urlencode (this.extend ({
+                    'endpoint': endpoint,
+                }, query));
+                const nonce = this.nonce ().toString ();
+                const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);
+                const signature64 = this.stringToBase64 (signature);
+                headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Api-Key': this.apiKey,
+                    'Api-Sign': signature64,
+                    'Api-Nonce': nonce,
+                };
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
