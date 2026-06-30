@@ -1999,9 +1999,11 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 		go func() {
 			result := <-connected.Await()
 			if err, ok := result.(error); ok {
+				client.SubscriptionsMu.Lock()
 				for _, subscribeHash := range missingSubscriptions {
 					delete(client.Subscriptions, subscribeHash)
 				}
+				client.SubscriptionsMu.Unlock()
 				future.Reject(err)
 				return
 			}
