@@ -7,7 +7,7 @@ import { jwt } from './base/functions/rsa.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, Dictionary, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -341,6 +341,20 @@ export default class bithumb extends Exchange {
     }
 
     /**
+     * @ignore
+     */
+    async loadMarketsGeneration (generation: Int): Promise<Dictionary<Market>> {
+        // Check if we've tracked this market load via our sentinel
+        // If sentinel is undefined, it means markets were loaded by CLI preload (outside our control)
+        const loadedMarketsGeneration = this.safeInteger (this.options, 'loadedMarketsGeneration');
+        // Force reload if: (1) markets not loaded, (2) sentinel undefined (untracked external load), or (3) wrong generation
+        const reloadMarkets = (this.markets === undefined) || (loadedMarketsGeneration === undefined) || (loadedMarketsGeneration !== generation);
+        const markets = await this.loadMarkets (reloadMarkets, { 'generation': generation });
+        this.options['loadedMarketsGeneration'] = generation;
+        return markets;
+    }
+
+    /**
      * @method
      * @name bithumb#fetchMarkets
      * @description retrieves data on all markets for bithumb
@@ -352,13 +366,11 @@ export default class bithumb extends Exchange {
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const result: any[] = [];
-        let request: Dict = {};
+        const request: Dict = {};
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'generation', 2);
         if (generation === 2) {
-            request = {
-                'isDetails': true,
-            };
+            request['isDetails'] = true;
             const response = await this.publicGetV1MarketAll (this.extend (request, params));
             //
             //     [
@@ -379,8 +391,9 @@ export default class bithumb extends Exchange {
                 let quote = undefined;
                 if (marketId !== undefined) {
                     const parts = marketId.split ('-');
-                    baseId = parts[0];
-                    quoteId = parts[1];
+                    // to match gen 1, the quoteId is the first currency derived from the market id
+                    baseId = parts[1];
+                    quoteId = parts[0];
                     base = this.safeCurrencyCode (baseId);
                     quote = this.safeCurrencyCode (quoteId);
                 }
@@ -436,9 +449,7 @@ export default class bithumb extends Exchange {
             const quotes = Object.keys (quoteCurrencies);
             const promises: any[] = [];
             for (let i = 0; i < quotes.length; i++) {
-                request = {
-                    'quoteId': quotes[i],
-                };
+                request['quoteId'] = quotes[i];
                 promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));
                 //
                 //    {
@@ -616,9 +627,9 @@ export default class bithumb extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'generation', 2);
+        await this.loadMarketsGeneration (generation);
         let response = undefined;
         if (generation === 2) {
             response = await this.privateGetV1Accounts (params);
@@ -658,44 +669,95 @@ export default class bithumb extends Exchange {
      * @name bithumb#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%ED%98%B8%EA%B0%80-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'generation', 2);
+        await this.loadMarketsGeneration (generation);
         const market = this.market (symbol);
-        const request: Dict = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
-        };
-        if (limit !== undefined) {
-            request['count'] = limit; // default 30, max 30
+        const request: Dict = {};
+        let response = undefined;
+        let data: Dict = {};
+        let timestamp = undefined;
+        if (generation === 2) {
+            request['markets'] = market['id'];
+            response = await this.publicGetV1Orderbook (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "timestamp": 1782807920105,
+            //             "total_ask_size": 40322.8585,
+            //             "total_bid_size": 174206.4577,
+            //             "orderbook_units": [
+            //                 {
+            //                     "ask_price": 0.00001687,
+            //                     "bid_price": 0.0000168,
+            //                     "ask_size": 155,
+            //                     "bid_size": 41.6666
+            //                 },
+            //             ]
+            //         }
+            //     ]
+            //
+            const result = this.safeDict (response, 0, {});
+            timestamp = this.safeInteger (result, 'timestamp');
+            const orderBookUnits = this.safeList (result, 'orderbook_units', []);
+            data = {
+                'bids': [],
+                'asks': [],
+            };
+            for (let i = 0; i < orderBookUnits.length; i++) {
+                const entry = orderBookUnits[i];
+                const bidPrice = this.safeString (entry, 'bid_price');
+                const bidSize = this.safeString (entry, 'bid_size');
+                const askPrice = this.safeString (entry, 'ask_price');
+                const askSize = this.safeString (entry, 'ask_size');
+                data.bids.push ({
+                    'price': bidPrice,
+                    'quantity': bidSize,
+                });
+                data.asks.push ({
+                    'price': askPrice,
+                    'quantity': askSize,
+                });
+            }
+        } else {
+            request['baseId'] = market['baseId'];
+            request['quoteId'] = market['quoteId'];
+            if (limit !== undefined) {
+                request['count'] = limit; // default 30, max 30
+            }
+            response = await this.publicGetPublicOrderbookBaseIdQuoteId (this.extend (request, params));
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "timestamp":"1587621553942",
+            //             "payment_currency":"KRW",
+            //             "order_currency":"BTC",
+            //             "bids":[
+            //                 {"price":"8652000","quantity":"0.0043"},
+            //                 {"price":"8651000","quantity":"0.0049"},
+            //                 {"price":"8650000","quantity":"8.4791"},
+            //             ],
+            //             "asks":[
+            //                 {"price":"8654000","quantity":"0.119"},
+            //                 {"price":"8655000","quantity":"0.254"},
+            //                 {"price":"8658000","quantity":"0.119"},
+            //             ]
+            //         }
+            //     }
+            //
+            data = this.safeDict (response, 'data', {});
+            timestamp = this.safeInteger (data, 'timestamp');
         }
-        const response = await this.publicGetPublicOrderbookBaseIdQuoteId (this.extend (request, params));
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "timestamp":"1587621553942",
-        //             "payment_currency":"KRW",
-        //             "order_currency":"BTC",
-        //             "bids":[
-        //                 {"price":"8652000","quantity":"0.0043"},
-        //                 {"price":"8651000","quantity":"0.0049"},
-        //                 {"price":"8650000","quantity":"8.4791"},
-        //             ],
-        //             "asks":[
-        //                 {"price":"8654000","quantity":"0.119"},
-        //                 {"price":"8655000","quantity":"0.254"},
-        //                 {"price":"8658000","quantity":"0.119"},
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'timestamp');
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
