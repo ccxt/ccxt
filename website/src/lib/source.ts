@@ -16,7 +16,26 @@ export const source = loader({
       return createElement(icons[name as keyof typeof icons]);
     }
   },
-  plugins: [],
+  // Shorten the sidebar labels of the two pages under each exchange folder
+  // (.../exchanges/<id> and .../exchanges/<id>/implicit-api). The folder already
+  // shows the exchange name, so the children only need "Unified API" / "Implicit
+  // API". This rewrites the tree node label only — page titles stay unique per
+  // exchange (e.g. "binance implicit API") for browser tabs and SEO.
+  plugins: [
+    {
+      name: 'shorten-exchange-page-labels',
+      transformPageTree: {
+        file(node) {
+          const url = typeof node.url === 'string' ? node.url : '';
+          const m = url.match(/\/docs\/exchanges\/[^/]+(\/implicit-api)?$/);
+          if (m) {
+            node.name = m[1] ? 'Implicit API' : 'Unified API';
+          }
+          return node;
+        },
+      },
+    },
+  ],
 });
 
 export function getPageImage(page: (typeof source)['$inferPage']) {
