@@ -18,7 +18,7 @@ export const source = loader({
   },
   // Shorten the sidebar labels of the two pages under each exchange folder
   // (.../exchanges/<id> and .../exchanges/<id>/implicit-api). The folder already
-  // shows the exchange name, so the children only need "Unified API" / "Implicit
+  // shows the exchange name, so the children only need "CCXT API" / "Implicit
   // API". This rewrites the tree node label only — page titles stay unique per
   // exchange (e.g. "binance implicit API") for browser tabs and SEO.
   plugins: [
@@ -29,7 +29,7 @@ export const source = loader({
           const url = typeof node.url === 'string' ? node.url : '';
           const m = url.match(/\/docs\/exchanges\/[^/]+(\/implicit-api)?$/);
           if (m) {
-            node.name = m[1] ? 'Implicit API' : 'Unified API';
+            node.name = m[1] ? 'Implicit API' : 'CCXT API';
           }
           return node;
         },
