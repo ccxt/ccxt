@@ -943,10 +943,11 @@ class lighter(Exchange, ImplicitAPI):
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
-            'integrator_account_index': self.options['integratorAccountIndex'],
-            'integrator_taker_fee': self.options['integratorTakerFee'],
-            'integrator_maker_fee': self.options['integratorMakerFee'],
         }
+        if self.safe_bool(self.options, 'builderFee', True):
+            signRaw['integrator_account_index'] = self.options['integratorAccountIndex']
+            signRaw['integrator_taker_fee'] = self.options['integratorTakerFee']
+            signRaw['integrator_maker_fee'] = self.options['integratorMakerFee']
         txType, txInfo = self.lighter_sign_modify_order(signer, self.extend(signRaw, params))
         request = {
             'tx_type': txType,
