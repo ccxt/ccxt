@@ -4722,7 +4722,12 @@ public Object describe()
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        return new java.util.HashMap<String, Object>() {{}};
+        return new java.util.HashMap<String, Object>() {{
+            put( "url", null );
+            put( "method", null );
+            put( "headers", null );
+            put( "body", null );
+        }};
     }
 
     public java.util.concurrent.CompletableFuture<Object> fetchAccounts(Object... optionalArgs)
@@ -8688,16 +8693,43 @@ public Object describe()
             var retryDelayparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", 0);
             retryDelay = ((java.util.List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((java.util.List<Object>) retryDelayparametersVariable).get(1);
+            Object fetchData = null;
+            Object fetchDataCacheEnabled = Helpers.isGreaterThan(this.fetchHistoryCacheSize, 0);
             for (var i = 0; Helpers.isLessThan(i, Helpers.add(retries, 1)); i++)
             {
+                if (Helpers.isTrue(fetchDataCacheEnabled))
+                {
+                    fetchData = new java.util.HashMap<String, Object>() {{
+                        put( "request", null );
+                        put( "response", new java.util.HashMap<String, Object>() {{
+                            put( "body", null );
+                        }} );
+                        put( "error", null );
+                    }};
+                }
                 try
                 {
                     this.setLastRestRequestTimestamp();
                     Object request = this.sign(path, api, method, parameters, headers, body);
+                    if (Helpers.isTrue(fetchDataCacheEnabled))
+                    {
+                        Helpers.addElementToObject(fetchData, "request", request);
+                    }
                     this.setLastRequest(request);
-                    return (this.fetch(Helpers.GetValue(request, "url"), Helpers.GetValue(request, "method"), Helpers.GetValue(request, "headers"), Helpers.GetValue(request, "body"))).join();
+                    Object response = (this.fetch(Helpers.GetValue(request, "url"), Helpers.GetValue(request, "method"), Helpers.GetValue(request, "headers"), Helpers.GetValue(request, "body"))).join();
+                    if (Helpers.isTrue(fetchDataCacheEnabled))
+                    {
+                        Helpers.addElementToObject(Helpers.GetValue(fetchData, "response"), "body", response);
+                        this.addFetchCache(fetchData);
+                    }
+                    return response;
                 } catch(Exception e)
                 {
+                    if (Helpers.isTrue(fetchDataCacheEnabled))
+                    {
+                        Helpers.addElementToObject(fetchData, "error", e);
+                        this.addFetchCache(fetchData);
+                    }
                     if (Helpers.isTrue(Helpers.isInstance(e, OperationFailed.class)))
                     {
                         if (Helpers.isTrue(Helpers.isLessThan(i, retries)))
