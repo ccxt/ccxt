@@ -611,10 +611,10 @@ export default class mudrex extends Exchange {
             'order_id': id,
         };
         if (amount !== undefined) {
-            request['quantity'] = amount.toString ();
+            request['quantity'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
-            request['order_price'] = price.toString ();
+            request['order_price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePatchFuturesOrdersOrderId (this.extend (request, params));
         const data = this.safeDict (response, 'data', response);
@@ -854,7 +854,7 @@ export default class mudrex extends Exchange {
         if (amount !== undefined) {
             const orderType = this.safeStringUpper (params, 'order_type', 'LIMIT');
             request['order_type'] = orderType;
-            request['quantity'] = amount.toString ();
+            request['quantity'] = this.amountToPrecision (symbol, amount);
             const lp = this.safeString (params, 'limit_price');
             if (orderType === 'LIMIT' && lp !== undefined) {
                 request['limit_price'] = lp;
@@ -884,7 +884,7 @@ export default class mudrex extends Exchange {
         }
         const request: Dict = {
             'position_id': positionId,
-            'margin': amount.toString (),
+            'margin': this.costToPrecision (symbol, amount),
         };
         params = this.omit (params, [ 'position_id' ]);
         return await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, params));
@@ -970,7 +970,7 @@ export default class mudrex extends Exchange {
         const body: Dict = {
             'from_wallet_type': fw,
             'to_wallet_type': tw,
-            'amount': amount.toString (),
+            'amount': this.numberToString (amount),
         };
         let useInr = false;
         if (code === 'INR') {
