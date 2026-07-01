@@ -98,7 +98,7 @@ class delta(Exchange, ImplicitAPI):
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMargin': False,
-                'setMarginMode': False,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': False,
                 'withdraw': False,
@@ -171,6 +171,7 @@ class delta(Exchange, ImplicitAPI):
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'rate_limits/quota',
                         'heartbeat',
                         'deposits/address',
                     ],
@@ -194,6 +195,7 @@ class delta(Exchange, ImplicitAPI):
                         'positions/auto_topup',
                         'users/update_mmp',
                         'users/reset_mmp',
+                        'users/margin_mode',
                     ],
                     'delete': [
                         'orders',
@@ -3478,6 +3480,26 @@ class delta(Exchange, ImplicitAPI):
             'symbol': symbol,
             'marginMode': self.safe_string(marginMode, 'margin_mode'),
         }
+
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+        """
+        set margin mode to 'isolated' or 'portfolio'
+
+        https://docs.delta.exchange/#change-margin-mode
+
+        :param str marginMode: 'isolated' or 'portfolio'
+        :param str [symbol]: not used by delta.setMarginMode
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['subaccount_user_id']: the user id of the subaccount
+        :returns dict: response from the exchange
+        """
+        self.check_required_argument('setMarginMode', marginMode, 'marginMode', ['isolated', 'portfolio'])
+        subaccountUserId = self.safe_string(params, 'subaccount_user_id')
+        self.check_required_argument('setMarginMode', subaccountUserId, 'params["subaccount_user_id"]')
+        request = {
+            'margin_mode': marginMode,
+        }
+        return self.privatePutUsersMarginMode(self.extend(request, params))
 
     def fetch_option(self, symbol: str, params={}) -> Option:
         """
