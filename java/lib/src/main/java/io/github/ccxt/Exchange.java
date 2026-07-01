@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
@@ -37,7 +38,6 @@ import io.github.ccxt.base.Strings;
 import io.github.ccxt.errors.*;
 import java.util.Random;
 import java.lang.reflect.Constructor;
-
 
 
 public class Exchange {
@@ -163,6 +163,9 @@ public class Exchange {
     public volatile Object last_http_response;
     public volatile Object last_request_body;
     public volatile Object last_request_url;
+    public final ConcurrentLinkedQueue<Map<String, Object>> fetchHistoryCache = new ConcurrentLinkedQueue<>();
+    public int fetchHistoryCacheSize = 0;
+
     public boolean returnResponseHeaders = false;
     public Map<String, Object> headers = new HashMap<>();
     public Object httpExceptions;
@@ -536,6 +539,25 @@ public class Exchange {
 
     public void setWss_proxy(Object v) {
         this.wss_proxy = v;
+    }
+
+    public void addFetchCache(Object data) {
+        if (fetchHistoryCacheSize <= 0) {
+            return;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> mapData = (Map<String, Object>) data;
+        
+        fetchHistoryCache.offer(mapData);
+        
+        while (fetchHistoryCache.size() > fetchHistoryCacheSize) {
+            fetchHistoryCache.poll(); // drops oldest
+        }
+    }
+
+    public List<Map<String, Object>> getFetchCache() {
+        return new ArrayList<>(fetchHistoryCache);
     }
 
     // === HELPERS === //
