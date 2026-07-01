@@ -143,6 +143,14 @@ export default class mudrex extends Exchange {
                 'apiKey': false,
                 'secret': true,
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.00059'),
+                    'maker': this.parseNumber ('0.00023'),
+                },
+            },
             'options': {
                 'broker': '42ce8902-8585-448c-a1e8-0371a6ca7ca8',
             },
@@ -438,6 +446,8 @@ export default class mudrex extends Exchange {
             'contract': true,
             'linear': true,
             'inverse': false,
+            'taker': this.safeNumber (this.fees['trading'], 'taker'),
+            'maker': this.safeNumber (this.fees['trading'], 'maker'),
             'contractSize': this.safeNumber (asset, 'contract_size', 1),
             'expiry': undefined,
             'expiryDatetime': undefined,
