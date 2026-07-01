@@ -466,6 +466,9 @@ class digifinex extends Exchange {
     public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
+         *
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -558,6 +561,12 @@ class digifinex extends Exchange {
     public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for digifinex
+         *
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -1376,6 +1385,9 @@ class digifinex extends Exchange {
     public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-timestamp
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -1392,6 +1404,9 @@ class digifinex extends Exchange {
     public function fetch_status($params = array()) {
         /**
          * the latest known information on the availability of the exchange API
+         *
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-ping
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
@@ -1998,6 +2013,9 @@ class digifinex extends Exchange {
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         /**
          * cancel multiple orders
+         *
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+         *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol not used by digifinex cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2754,6 +2772,9 @@ class digifinex extends Exchange {
     public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
+         *
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-$address-inquiry
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
@@ -2835,6 +2856,9 @@ class digifinex extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
+         *
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-history
+         *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -2847,6 +2871,9 @@ class digifinex extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
+         *
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#withdrawal-history
+         *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -3369,6 +3396,9 @@ class digifinex extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
+         *
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch

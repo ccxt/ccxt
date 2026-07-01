@@ -91,7 +91,7 @@ class delta extends Exchange {
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
-                'setMarginMode' => false,
+                'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
@@ -164,6 +164,7 @@ class delta extends Exchange {
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'rate_limits/quota',
                         'heartbeat',
                         'deposits/address',
                     ),
@@ -187,6 +188,7 @@ class delta extends Exchange {
                         'positions/auto_topup',
                         'users/update_mmp',
                         'users/reset_mmp',
+                        'users/margin_mode',
                     ),
                     'delete' => array(
                         'orders',
@@ -3663,6 +3665,29 @@ class delta extends Exchange {
             'symbol' => $symbol,
             'marginMode' => $this->safe_string($marginMode, 'margin_mode'),
         );
+    }
+
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+        return Async\async(function () use ($marginMode, $symbol, $params) {
+            /**
+             * set margin mode to 'isolated' or 'portfolio'
+             *
+             * @see https://docs.delta.exchange/#change-margin-mode
+             *
+             * @param {string} $marginMode 'isolated' or 'portfolio'
+             * @param {string} [$symbol] not used by delta.setMarginMode
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} $params->subaccount_user_id the user id of the subaccount
+             * @return {array} response from the exchange
+             */
+            $this->check_required_argument('setMarginMode', $marginMode, 'marginMode', array( 'isolated', 'portfolio' ));
+            $subaccountUserId = $this->safe_string($params, 'subaccount_user_id');
+            $this->check_required_argument('setMarginMode', $subaccountUserId, 'params["subaccount_user_id"]');
+            $request = array(
+                'margin_mode' => $marginMode,
+            );
+            return Async\await($this->privatePutUsersMarginMode($this->extend($request, $params)));
+        })();
     }
 
     public function fetch_option(string $symbol, $params = array()): PromiseInterface {
