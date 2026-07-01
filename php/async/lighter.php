@@ -1034,10 +1034,12 @@ class lighter extends Exchange {
                 'nonce' => $nonce,
                 'api_key_index' => $apiKeyIndex,
                 'account_index' => $accountIndex,
-                'integrator_account_index' => $this->options['integratorAccountIndex'],
-                'integrator_taker_fee' => $this->options['integratorTakerFee'],
-                'integrator_maker_fee' => $this->options['integratorMakerFee'],
             );
+            if ($this->safe_bool($this->options, 'builderFee', true)) {
+                $signRaw['integrator_account_index'] = $this->options['integratorAccountIndex'];
+                $signRaw['integrator_taker_fee'] = $this->options['integratorTakerFee'];
+                $signRaw['integrator_maker_fee'] = $this->options['integratorMakerFee'];
+            }
             list($txType, $txInfo) = $this->lighter_sign_modify_order($signer, $this->extend($signRaw, $params));
             $request = array(
                 'tx_type' => $txType,
