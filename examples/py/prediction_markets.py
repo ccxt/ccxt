@@ -22,7 +22,9 @@ async def main():
     except Exception as e:
         print('fetchMarkets skipped (offline/geo):', type(e).__name__)
     finally:
-        await exchange.close()
+        # close(True) also tears down the aiohttp REST session/connector; a bare close() only
+        # closes WS clients, so aiohttp warns about the still-open REST connector (base ccxt behaviour)
+        await exchange.close(True)
 
 
 asyncio.run(main())
