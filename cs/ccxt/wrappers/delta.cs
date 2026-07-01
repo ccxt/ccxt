@@ -753,6 +753,32 @@ public partial class delta
         return new MarginMode(res);
     }
     /// <summary>
+    /// set margin mode to 'isolated' or 'portfolio'
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.delta.exchange/#change-margin-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : not used by delta.setMarginMode
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMarginMode(marginMode, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetches option data that is commonly found in an option chain
     /// </summary>
     /// <remarks>

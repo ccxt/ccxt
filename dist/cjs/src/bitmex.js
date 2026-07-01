@@ -850,7 +850,7 @@ class bitmex extends bitmex$1["default"] {
             }
             expiryDatetime = this.safeString2(market, 'expiry', 'closingTimestamp');
             expiry = this.parse8601(expiryDatetime);
-            if (expiry !== undefined) {
+            if (expiry !== undefined && future) {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
         }

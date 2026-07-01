@@ -90,7 +90,7 @@ class delta extends delta$1["default"] {
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
@@ -163,6 +163,7 @@ class delta extends delta$1["default"] {
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'rate_limits/quota',
                         'heartbeat',
                         'deposits/address',
                     ],
@@ -186,6 +187,7 @@ class delta extends delta$1["default"] {
                         'positions/auto_topup',
                         'users/update_mmp',
                         'users/reset_mmp',
+                        'users/margin_mode',
                     ],
                     'delete': [
                         'orders',
@@ -3551,6 +3553,26 @@ class delta extends delta$1["default"] {
             'symbol': symbol,
             'marginMode': this.safeString(marginMode, 'margin_mode'),
         };
+    }
+    /**
+     * @method
+     * @name delta#setMarginMode
+     * @description set margin mode to 'isolated' or 'portfolio'
+     * @see https://docs.delta.exchange/#change-margin-mode
+     * @param {string} marginMode 'isolated' or 'portfolio'
+     * @param {string} [symbol] not used by delta.setMarginMode
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.subaccount_user_id the user id of the subaccount
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        this.checkRequiredArgument('setMarginMode', marginMode, 'marginMode', ['isolated', 'portfolio']);
+        const subaccountUserId = this.safeString(params, 'subaccount_user_id');
+        this.checkRequiredArgument('setMarginMode', subaccountUserId, 'params["subaccount_user_id"]');
+        const request = {
+            'margin_mode': marginMode,
+        };
+        return await this.privatePutUsersMarginMode(this.extend(request, params));
     }
     /**
      * @method

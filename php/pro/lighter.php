@@ -669,18 +669,27 @@ class lighter extends \ccxt\async\lighter {
         $amountString = $this->safe_string($trade, 'size');
         $costString = $this->safe_string($trade, 'usd_amount');
         $isMakerAsk = $this->safe_bool($trade, 'is_maker_ask');
-        $side = $isMakerAsk ? 'buy' : 'sell';
         $accountIndex = $this->safe_integer($trade, 'accountIndex');
+        $bidAccountId = $this->safe_integer($trade, 'bid_account_id');
+        $askAccountId = $this->safe_integer($trade, 'ask_account_id');
+        $side = null;
         $order = null;
         $takerOrMaker = null;
         if ($accountIndex !== null) {
-            if ($this->safe_integer($trade, 'bid_account_id') === $accountIndex) {
+            if ($bidAccountId === $accountIndex) {
+                // Own trades should use the account's $order $side
+                $side = 'buy';
                 $order = $this->safe_string($trade, 'bid_id');
                 $takerOrMaker = $isMakerAsk ? 'taker' : 'maker';
-            } elseif ($this->safe_integer($trade, 'ask_account_id') === $accountIndex) {
+            } elseif ($askAccountId === $accountIndex) {
+                $side = 'sell';
                 $order = $this->safe_string($trade, 'ask_id');
                 $takerOrMaker = $isMakerAsk ? 'maker' : 'taker';
             }
+        }
+        // public trades use Lighter's taker-$side convention
+        if ($side === null) {
+            $side = $isMakerAsk ? 'buy' : 'sell';
         }
         $fee = null;
         if ($takerOrMaker !== null) {

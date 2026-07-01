@@ -90,6 +90,7 @@ func (this *CoincheckCore) Describe() any {
 			"fetchPositionsRisk":                     false,
 			"fetchPremiumIndexOHLCV":                 false,
 			"fetchSettlementHistory":                 false,
+			"fetchStatus":                            true,
 			"fetchTicker":                            true,
 			"fetchTrades":                            true,
 			"fetchTradingFee":                        false,
@@ -117,10 +118,10 @@ func (this *CoincheckCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"exchange/orders/rate", "order_books", "rate/{pair}", "ticker", "trades"},
+				"get": []any{"exchange/orders/rate", "exchange_status", "order_books", "rate/{pair}", "ticker", "trades"},
 			},
 			"private": map[string]any{
-				"get":    []any{"accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/opens", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws"},
+				"get":    []any{"accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/{id}", "exchange/orders/opens", "exchange/orders/cancel_status", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws"},
 				"post":   []any{"bank_accounts", "deposit_money/{id}/fast", "exchange/orders", "exchange/transfers/to_leverage", "exchange/transfers/from_leverage", "lending/borrows", "lending/borrows/{id}/repay", "send_money", "withdraws"},
 				"delete": []any{"bank_accounts/{id}", "exchange/orders/{id}", "withdraws/{id}"},
 			},
@@ -271,6 +272,67 @@ func (this *CoincheckCore) ParseBalance(response any) any {
 
 /**
  * @method
+ * @name coincheck#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @see https://coincheck.com/documents/exchange/api#status-retrieval
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+ */
+func (this *CoincheckCore) FetchStatus(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		response := (<-this.PublicGetExchangeStatus(params))
+		PanicOnError(response)
+		//
+		//     {
+		//         "exchange_status": [
+		//             {
+		//                 "pair": "btc_jpy",
+		//                 "status": "available",
+		//                 "timestamp": 1782787596,
+		//                 "availability": {
+		//                     "order": true,
+		//                     "market_order": true,
+		//                     "cancel": true
+		//                 }
+		//             }
+		//         ]
+		//     }
+		//
+		var exchangeStatuses any = this.SafeList(response, "exchange_status", []any{})
+		var status any = "ok"
+		var updated any = nil
+		for i := 0; IsLessThan(i, GetArrayLength(exchangeStatuses)); i++ {
+			var exchangeStatus any = GetValue(exchangeStatuses, i)
+			var rawStatus any = this.SafeString(exchangeStatus, "status")
+			if IsTrue(IsEqual(updated, nil)) {
+				updated = this.SafeTimestamp(exchangeStatus, "timestamp")
+			}
+			if IsTrue(!IsEqual(rawStatus, "available")) {
+				status = "maintenance"
+			}
+		}
+
+		ch <- map[string]any{
+			"status":  status,
+			"updated": updated,
+			"eta":     nil,
+			"url":     nil,
+			"info":    response,
+		}
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
  * @name coincheck#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://coincheck.com/documents/exchange/api#order-transactions-pagination
@@ -285,8 +347,8 @@ func (this *CoincheckCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes2918 := (<-this.LoadMarkets())
-		PanicOnError(retRes2918)
+		retRes3438 := (<-this.LoadMarkets())
+		PanicOnError(retRes3438)
 
 		response := (<-this.PrivateGetAccountsBalance(params))
 		PanicOnError(response)
@@ -323,8 +385,8 @@ func (this *CoincheckCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes3088 := (<-this.LoadMarkets())
-		PanicOnError(retRes3088)
+		retRes3608 := (<-this.LoadMarkets())
+		PanicOnError(retRes3608)
 		// Only BTC/JPY is meaningful
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -419,8 +481,8 @@ func (this *CoincheckCore) FetchOrderBook(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes3848 := (<-this.LoadMarkets())
-		PanicOnError(retRes3848)
+		retRes4368 := (<-this.LoadMarkets())
+		PanicOnError(retRes4368)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -496,8 +558,8 @@ func (this *CoincheckCore) FetchTicker(symbol any, optionalArgs ...any) <-chan a
 			panic(BadSymbol(Add(this.Id, " fetchTicker() supports BTC/JPY only")))
 		}
 
-		retRes4458 := (<-this.LoadMarkets())
-		PanicOnError(retRes4458)
+		retRes4978 := (<-this.LoadMarkets())
+		PanicOnError(retRes4978)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -631,8 +693,8 @@ func (this *CoincheckCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes5588 := (<-this.LoadMarkets())
-		PanicOnError(retRes5588)
+		retRes6108 := (<-this.LoadMarkets())
+		PanicOnError(retRes6108)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -695,8 +757,8 @@ func (this *CoincheckCore) FetchTrades(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes6038 := (<-this.LoadMarkets())
-		PanicOnError(retRes6038)
+		retRes6558 := (<-this.LoadMarkets())
+		PanicOnError(retRes6558)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -742,8 +804,8 @@ func (this *CoincheckCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes6358 := (<-this.LoadMarkets())
-		PanicOnError(retRes6358)
+		retRes6878 := (<-this.LoadMarkets())
+		PanicOnError(retRes6878)
 
 		response := (<-this.PrivateGetAccounts(params))
 		PanicOnError(response)
@@ -818,8 +880,8 @@ func (this *CoincheckCore) CreateOrder(symbol any, typeVar any, side any, amount
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes6928 := (<-this.LoadMarkets())
-		PanicOnError(retRes6928)
+		retRes7448 := (<-this.LoadMarkets())
+		PanicOnError(retRes7448)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -920,8 +982,8 @@ func (this *CoincheckCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes7588 := (<-this.LoadMarkets())
-		PanicOnError(retRes7588)
+		retRes8108 := (<-this.LoadMarkets())
+		PanicOnError(retRes8108)
 		var currency any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -993,8 +1055,8 @@ func (this *CoincheckCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes8088 := (<-this.LoadMarkets())
-		PanicOnError(retRes8088)
+		retRes8608 := (<-this.LoadMarkets())
+		PanicOnError(retRes8608)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)

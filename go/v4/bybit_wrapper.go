@@ -28,6 +28,22 @@ func NewBybitFromCore(core *BybitCore) *Bybit {
 
 /**
  * @method
+ * @name bybit#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @see https://bybit-exchange.github.io/docs/v5/system-status
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+ */
+func (this *Bybit) FetchStatus(params ...any) (map[string]any, error) {
+	res := <-this.Core.FetchStatus(params...)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+
+/**
+ * @method
  * @name bybit#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
  * @see https://bybit-exchange.github.io/docs/v5/market/time
@@ -3108,9 +3124,6 @@ func (this *Bybit) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 }
 func (this *Bybit) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Bybit) FetchStatus(params ...any) (map[string]any, error) {
-	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bybit) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)

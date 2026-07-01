@@ -2351,6 +2351,7 @@ final Object finalId = id;
             put( "timestamp", timestamp );
             put( "datetime", KrakenCore.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
+            put( "lastUpdateTimestamp", KrakenCore.this.safeTimestamp(finalOrder, "closetm") );
             put( "status", status );
             put( "symbol", finalSymbol_2 );
             put( "type", finalTypeParsed );

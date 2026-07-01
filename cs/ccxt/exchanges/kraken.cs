@@ -2194,6 +2194,7 @@ public partial class kraken : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
+            { "lastUpdateTimestamp", this.safeTimestamp(order, "closetm") },
             { "status", status },
             { "symbol", symbol },
             { "type", typeParsed },

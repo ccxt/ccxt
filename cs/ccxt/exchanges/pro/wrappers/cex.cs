@@ -218,7 +218,7 @@ public partial class cex
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://cex.io/websocket-api#orderbook-subscribe"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#websocket-public-api-calls-order-book-subscribe"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>

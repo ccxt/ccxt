@@ -789,14 +789,15 @@ class binance extends Exchange {
                         'order' => 1,
                         'openOrder' => 1,
                         'openOrders' => array( 'cost' => 1, 'noSymbol' => 5 ),
-                        'allOrders' => array( 'cost' => 20, 'noSymbol' => 40 ),
+                        'openAlgoOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
+                        'allOrders' => 5,
                         'balance' => 1,
                         'account' => 5,
                         'positionMargin/history' => 1,
                         'positionRisk' => 1,
-                        'userTrades' => array( 'cost' => 20, 'noSymbol' => 40 ),
+                        'userTrades' => 5,
                         'income' => 20,
-                        'leverageBracket' => 1,
+                        'leverageBracket' => array( 'cost' => 2, 'noSymbol' => 2 ),
                         'forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
                         'adlQuantile' => 5,
                         'commissionRate' => 20,
@@ -812,6 +813,7 @@ class binance extends Exchange {
                     'post' => array(
                         'positionSide/dual' => 1,
                         'order' => 4,
+                        'algoOrder' => 1,
                         'batchOrders' => 5,
                         'countdownCancelAll' => 10,
                         'leverage' => 1,
@@ -826,6 +828,7 @@ class binance extends Exchange {
                     ),
                     'delete' => array(
                         'order' => 1,
+                        'algoOrder' => 1,
                         'allOpenOrders' => 1,
                         'batchOrders' => 5,
                         'listenKey' => 1,
@@ -1341,6 +1344,7 @@ class binance extends Exchange {
                 'defaultSubType' => null, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
+                'warnOnSTPForInverse' => true,
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
@@ -5533,6 +5537,10 @@ class binance extends Exchange {
     }
 
     public function edit_contract_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        if (($price === null) && !(is_array($params) && array_key_exists('priceMatch', $params))) {
+            // moved here from editContractOrder for warning in case of calling editOrderWs() without $price argument for swap orders
+            throw new ArgumentsRequired($this->id . ' editOrder() and editOrderWs() require a $price argument for swap orders');
+        }
         $market = $this->market($symbol);
         if (!$market['contract']) {
             throw new NotSupported($this->id . ' editContractOrder() does not support ' . $market['type'] . ' orders');
@@ -5578,11 +5586,6 @@ class binance extends Exchange {
             $market = $this->market($symbol);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'editContractOrder', 'papi', 'portfolioMargin', false);
-            if ($market['linear'] || $isPortfolioMargin) {
-                if (($price === null) && !(is_array($params) && array_key_exists('priceMatch', $params))) {
-                    throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument for portfolio margin and linear orders');
-                }
-            }
             $request = $this->edit_contract_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = null;
             if ($market['linear']) {
@@ -6570,7 +6573,12 @@ class binance extends Exchange {
                         $response = Async\await($this->papiPostCmOrder($request));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivatePostOrder($request));
+                    if ($isConditional) {
+                        $request['algoType'] = 'CONDITIONAL';
+                        $response = Async\await($this->dapiPrivatePostAlgoOrder($request));
+                    } else {
+                        $response = Async\await($this->dapiPrivatePostOrder($request));
+                    }
                 }
             } elseif ($marketType === 'margin' || $marginMode !== null || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
@@ -6871,7 +6879,7 @@ class binance extends Exchange {
                 }
             }
             if ($stopPrice !== null) {
-                if ($market['linear'] && $market['swap'] && !$isPortfolioMargin) {
+                if ($market['swap'] && !$isPortfolioMargin) {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
                 } else {
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
@@ -6900,9 +6908,10 @@ class binance extends Exchange {
         $selfTradePrevention = null;
         list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
-            if ($market['spot']) {
-                $request['selfTradePreventionMode'] = strtoupper($selfTradePrevention); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            if ($market['inverse'] && $this->options['warnOnSTPForInverse']) {
+                throw new NotSupported($this->id . ' createOrder() $selfTradePrevention is not supported for inverse markets. $selfTradePrevention for inverse markets is taken from linear $market-> To disable this warning set the "warnOnSTPForInverse" option to false.');
             }
+            $request['selfTradePreventionMode'] = strtoupper($selfTradePrevention); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         $icebergAmount = $this->safe_number($params, 'icebergAmount');
@@ -7432,7 +7441,11 @@ class binance extends Exchange {
                         $response = Async\await($this->papiGetCmOpenOrders($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivateGetOpenOrders($this->extend($request, $params)));
+                    if ($isConditional) {
+                        $response = Async\await($this->dapiPrivateGetOpenAlgoOrders($this->extend($request, $params)));
+                    } else {
+                        $response = Async\await($this->dapiPrivateGetOpenOrders($this->extend($request, $params)));
+                    }
                 }
             } elseif ($type === 'margin' || $marginMode !== null || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
@@ -7812,7 +7825,7 @@ class binance extends Exchange {
             if ($clientOrderId !== null) {
                 if ($market['option']) {
                     $request['clientOrderId'] = $clientOrderId;
-                } elseif ($market['linear'] && $market['swap'] && $isConditional && !$isPortfolioMargin) {
+                } elseif ($market['swap'] && $isConditional && !$isPortfolioMargin) {
                     $request['clientAlgoId'] = $clientOrderId;
                 } else {
                     if ($isPortfolioMargin && $isConditional) {
@@ -7824,7 +7837,7 @@ class binance extends Exchange {
             } else {
                 if ($isPortfolioMargin && $isConditional) {
                     $request['strategyId'] = $id;
-                } elseif ($market['linear'] && $market['swap'] && $isConditional && !$isPortfolioMargin) {
+                } elseif ($market['swap'] && $isConditional && !$isPortfolioMargin) {
                     $request['algoId'] = $id;
                 } else {
                     $request['orderId'] = $id;
@@ -7856,7 +7869,11 @@ class binance extends Exchange {
                         $response = Async\await($this->papiDeleteCmOrder($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivateDeleteOrder($this->extend($request, $params)));
+                    if ($isConditional) {
+                        $response = Async\await($this->dapiPrivateDeleteAlgoOrder($this->extend($request, $params)));
+                    } else {
+                        $response = Async\await($this->dapiPrivateDeleteOrder($this->extend($request, $params)));
+                    }
                 }
             } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
@@ -13838,12 +13855,12 @@ class binance extends Exchange {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionMode', $market, $params);
             $response = null;
-            if ($subType === 'linear') {
-                $response = Async\await($this->fapiPrivateGetPositionSideDual($params));
-            } elseif ($subType === 'inverse') {
+            // we still have two working endpoints but positionMode is common for linear and inverse markets
+            // thus we do not throw an error if the $subType is not specified and default to linear for now
+            if ($subType === 'inverse') {
                 $response = Async\await($this->dapiPrivateGetPositionSideDual($params));
             } else {
-                throw new BadRequest($this->id . ' fetchPositionMode requires either a $symbol argument or $params["subType"]');
+                $response = Async\await($this->fapiPrivateGetPositionSideDual($params));
             }
             //
             //    {

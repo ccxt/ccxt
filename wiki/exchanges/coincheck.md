@@ -5,6 +5,7 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [fetchStatus](#fetchstatus)
 * [fetchBalance](#fetchbalance)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchOrderBook](#fetchorderbook)
@@ -18,6 +19,26 @@
 * [fetchWithdrawals](#fetchwithdrawals)
 * [watchOrderBook](#watchorderbook)
 * [watchTrades](#watchtrades)
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>coincheck</code>](#coincheck)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+**See**: https://coincheck.com/documents/exchange/api#status-retrieval  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coincheck.fetchStatus (params?)
+```
+
 
 <a name="fetchBalance" id="fetchbalance"></a>
 

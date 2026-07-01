@@ -86,6 +86,7 @@ class coincheck extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -118,6 +119,7 @@ class coincheck extends Exchange {
                 'public' => array(
                     'get' => array(
                         'exchange/orders/rate',
+                        'exchange_status',
                         'order_books',
                         'rate/{pair}',
                         'ticker',
@@ -131,7 +133,9 @@ class coincheck extends Exchange {
                         'accounts/leverage_balance',
                         'bank_accounts',
                         'deposit_money',
+                        'exchange/orders/{id}',
                         'exchange/orders/opens',
+                        'exchange/orders/cancel_status',
                         'exchange/orders/transactions',
                         'exchange/orders/transactions_pagination',
                         'exchange/leverage/positions',
@@ -273,6 +277,54 @@ class coincheck extends Exchange {
             }
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_status($params = array()): array {
+        /**
+         * the latest known information on the availability of the exchange API
+         *
+         * @see https://coincheck.com/documents/exchange/api#$status-retrieval
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
+         */
+        $response = $this->publicGetExchangeStatus($params);
+        //
+        //     {
+        //         "exchange_status" => array(
+        //             {
+        //                 "pair" => "btc_jpy",
+        //                 "status" => "available",
+        //                 "timestamp" => 1782787596,
+        //                 "availability" => {
+        //                     "order" => true,
+        //                     "market_order" => true,
+        //                     "cancel" => true
+        //                 }
+        //             }
+        //         )
+        //     }
+        //
+        $exchangeStatuses = $this->safe_list($response, 'exchange_status', array());
+        $status = 'ok';
+        $updated = null;
+        for ($i = 0; $i < count($exchangeStatuses); $i++) {
+            $exchangeStatus = $exchangeStatuses[$i];
+            $rawStatus = $this->safe_string($exchangeStatus, 'status');
+            if ($updated === null) {
+                $updated = $this->safe_timestamp($exchangeStatus, 'timestamp');
+            }
+            if ($rawStatus !== 'available') {
+                $status = 'maintenance';
+            }
+        }
+        return array(
+            'status' => $status,
+            'updated' => $updated,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_balance($params = array()): array {

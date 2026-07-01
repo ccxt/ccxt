@@ -1151,10 +1151,13 @@ public partial class lighter : Exchange
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },
-            { "integrator_account_index", getValue(this.options, "integratorAccountIndex") },
-            { "integrator_taker_fee", getValue(this.options, "integratorTakerFee") },
-            { "integrator_maker_fee", getValue(this.options, "integratorMakerFee") },
         };
+        if (isTrue(this.safeBool(this.options, "builderFee", true)))
+        {
+            ((IDictionary<string,object>)signRaw)["integrator_account_index"] = getValue(this.options, "integratorAccountIndex");
+            ((IDictionary<string,object>)signRaw)["integrator_taker_fee"] = getValue(this.options, "integratorTakerFee");
+            ((IDictionary<string,object>)signRaw)["integrator_maker_fee"] = getValue(this.options, "integratorMakerFee");
+        }
         var txTypetxInfoVariable = this.lighterSignModifyOrder(signer, this.extend(signRaw, parameters));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfoVariable)[1];

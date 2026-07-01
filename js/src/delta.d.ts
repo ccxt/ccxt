@@ -402,6 +402,18 @@ export default class delta extends Exchange {
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
+     * @name delta#setMarginMode
+     * @description set margin mode to 'isolated' or 'portfolio'
+     * @see https://docs.delta.exchange/#change-margin-mode
+     * @param {string} marginMode 'isolated' or 'portfolio'
+     * @param {string} [symbol] not used by delta.setMarginMode
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.subaccount_user_id the user id of the subaccount
+     * @returns {object} response from the exchange
+     */
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    /**
+     * @method
      * @name delta#fetchOption
      * @description fetches option data that is commonly found in an option chain
      * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol

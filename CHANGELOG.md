@@ -1,3 +1,47 @@
+<a id="v4.5.63"></a>
+# [v4.5.63](https://github.com/ccxt/ccxt/releases/tag/v4.5.63) - 2026-06-30
+
+## What's Changed
+* docs(cex): update [@see](https://github.com/see) by [@sc0Vu](https://github.com/sc0Vu) in [#29028](https://github.com/ccxt/ccxt/pull/29028)
+* feat(binance): linear and inverse update by [@yzh-pelle](https://github.com/yzh-pelle) in [#28905](https://github.com/ccxt/ccxt/pull/28905)
+* feat(bybit): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#29027](https://github.com/ccxt/ccxt/pull/29027)
+* feat(lighter): enhance side determination for own trades in Lighter by [@slavivanov](https://github.com/slavivanov) in [#29035](https://github.com/ccxt/ccxt/pull/29035)
+* feat(coincheck): add apis, add fetchStatus by [@sc0Vu](https://github.com/sc0Vu) in [#29034](https://github.com/ccxt/ccxt/pull/29034)
+* feat(coinsph): update by [@sc0Vu](https://github.com/sc0Vu) in [#29033](https://github.com/ccxt/ccxt/pull/29033)
+* fix(status): disable rl by [@carlosmiei](https://github.com/carlosmiei) in [#29037](https://github.com/ccxt/ccxt/pull/29037)
+* chore: add Kucoin EU by [@carlosmiei](https://github.com/carlosmiei) in [#29039](https://github.com/ccxt/ccxt/pull/29039)
+* feat(hyperliquid): add 0% fee when flag is disabled by [@carlosmiei](https://github.com/carlosmiei) in [#29040](https://github.com/ccxt/ccxt/pull/29040)
+* fix(go): client.sub migration to sync.map by [@carlosmiei](https://github.com/carlosmiei) in [#29043](https://github.com/ccxt/ccxt/pull/29043)
+* chore: trigger build by [@carlosmiei](https://github.com/carlosmiei) in [#29044](https://github.com/ccxt/ccxt/pull/29044)
+* chore(deps-dev): bump js-yaml from 4.1.1 to 4.3.0 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#29041](https://github.com/ccxt/ccxt/pull/29041)
+* fix(export-exchanges): migrate to .ts and fix conflicts by [@carlosmiei](https://github.com/carlosmiei) in [#29045](https://github.com/ccxt/ccxt/pull/29045)
+* fix(export-exchanges): --js also produces wiki files by [@carlosmiei](https://github.com/carlosmiei) in [#29046](https://github.com/ccxt/ccxt/pull/29046)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.62...v4.5.63
+
+[Changes][v4.5.63]
+
+
+<a id="v4.5.62"></a>
+# [v4.5.62](https://github.com/ccxt/ccxt/releases/tag/v4.5.62) - 2026-06-29
+
+## What's Changed
+* test: fix undefined networks by [@ttodua](https://github.com/ttodua) in [#29022](https://github.com/ccxt/ccxt/pull/29022)
+* docs: cleanup before tsc by [@ttodua](https://github.com/ttodua) in [#29003](https://github.com/ccxt/ccxt/pull/29003)
+* docs: increase node version by [@ttodua](https://github.com/ttodua) in [#29024](https://github.com/ccxt/ccxt/pull/29024)
+* fix(bitmex, exchange): inverse swaps parsing and async close() by [@carlosmiei](https://github.com/carlosmiei) in [#29029](https://github.com/ccxt/ccxt/pull/29029)
+* feat(htx): V5 linear websocket support by [@Dan-krm](https://github.com/Dan-krm) in [#29017](https://github.com/ccxt/ccxt/pull/29017)
+* fix(bingx): read trading-fee response after the API call in fetchTradingFee by [@jota78](https://github.com/jota78) in [#29025](https://github.com/ccxt/ccxt/pull/29025)
+
+## New Contributors
+* [@jota78](https://github.com/jota78) made their first contribution in [#29025](https://github.com/ccxt/ccxt/pull/29025)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.61...v4.5.62
+
+[Changes][v4.5.62]
+
+
 <a id="v4.5.61"></a>
 # [v4.5.61](https://github.com/ccxt/ccxt/releases/tag/v4.5.61) - 2026-06-27
 
@@ -13498,6 +13542,8 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.63]: https://github.com/ccxt/ccxt/compare/v4.5.62...v4.5.63
+[v4.5.62]: https://github.com/ccxt/ccxt/compare/v4.5.61...v4.5.62
 [v4.5.61]: https://github.com/ccxt/ccxt/compare/v4.5.60...v4.5.61
 [v4.5.60]: https://github.com/ccxt/ccxt/compare/v4.5.59...v4.5.60
 [v4.5.59]: https://github.com/ccxt/ccxt/compare/v4.5.58...v4.5.59

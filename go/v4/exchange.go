@@ -1646,17 +1646,16 @@ func (this *Exchange) Watch(args ...any) <-chan any {
 	future := client.NewFuture(messageHash)
 	// read and write subscription, this is done before connecting the client
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
-	client.SubscriptionsMu.Lock()
-	clientSubscription := SafeValue(client.Subscriptions, subscribeHash, nil)
-	if clientSubscription == nil {
-		if subscription != nil {
-			client.Subscriptions[subscribeHash.(string)] = subscription
-		} else {
-			// client.Subscriptions[subscribeHash.(string)] = make(chan any)
-			client.Subscriptions[subscribeHash.(string)] = true
-		}
+	var subValue any = true
+	if subscription != nil {
+		subValue = subscription
 	}
-	client.SubscriptionsMu.Unlock()
+	// atomically register the subscription; alreadySubscribed is true if it existed before
+	existing, alreadySubscribed := client.Subscriptions.LoadOrStore(subscribeHash.(string), subValue)
+	var clientSubscription any
+	if alreadySubscribed {
+		clientSubscription = existing
+	}
 	// we intentionally do not use await here to avoid unhandled exceptions
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
@@ -1665,10 +1664,8 @@ func (this *Exchange) Watch(args ...any) <-chan any {
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
-		client.SubscriptionsMu.Lock()
-		delete(client.Subscriptions, subscribeHash.(string))
+		client.Subscriptions.Delete(subscribeHash.(string))
 		future.Reject(err)
-		client.SubscriptionsMu.Unlock()
 		return future.Await()
 	}
 	// the following is executed only if the catch-clause does not
@@ -1678,7 +1675,7 @@ func (this *Exchange) Watch(args ...any) <-chan any {
 		go func() {
 			result := <-connected.Await()
 			if err, ok := result.(error); ok {
-				delete(client.Subscriptions, subscribeHash.(string))
+				client.Subscriptions.Delete(subscribeHash.(string))
 				future.Reject(err)
 				return
 			}
@@ -1699,9 +1696,7 @@ func (this *Exchange) Watch(args ...any) <-chan any {
 				sendFutureChannel := <-client.Send(message)
 				if err, ok := sendFutureChannel.(error); ok {
 					client.OnError(err)
-					client.SubscriptionsMu.Lock()
-					delete(client.Subscriptions, subscribeHash.(string))
-					client.SubscriptionsMu.Unlock()
+					client.Subscriptions.Delete(subscribeHash.(string))
 				}
 			}
 		}()
@@ -1955,7 +1950,6 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 	// read and write subscription, this is done before connecting the client
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
 	missingSubscriptions := []string{}
-	client.SubscriptionsMu.Lock()
 	if subscribeHashes != nil {
 		// Handle both []string and []any for subscribeHashes
 		var subscribeHashesList []any
@@ -1970,18 +1964,17 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 
 		for _, subscribeHash := range subscribeHashesList {
 			if hashStr, ok := subscribeHash.(string); ok {
-				if _, exists := client.Subscriptions[hashStr]; !exists {
+				var subValue any = subscription
+				if subscription == nil {
+					subValue = make(chan any)
+				}
+				// atomically register the subscription; only track it as missing if it was newly added
+				if _, loaded := client.Subscriptions.LoadOrStore(hashStr, subValue); !loaded {
 					missingSubscriptions = append(missingSubscriptions, hashStr)
-					if subscription != nil {
-						client.Subscriptions[hashStr] = subscription
-					} else {
-						client.Subscriptions[hashStr] = make(chan any)
-					}
 				}
 			}
 		}
 	}
-	client.SubscriptionsMu.Unlock()
 	// we intentionally do not use await here to avoid unhandled exceptions
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
@@ -1992,9 +1985,7 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 	if err != nil {
 		future.Reject(err)
 		for _, h := range missingSubscriptions {
-			client.SubscriptionsMu.Lock()
-			delete(client.Subscriptions, h)
-			client.SubscriptionsMu.Unlock()
+			client.Subscriptions.Delete(h)
 		}
 		return future.Await()
 	}
@@ -2006,7 +1997,7 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 			result := <-connected.Await()
 			if err, ok := result.(error); ok {
 				for _, subscribeHash := range missingSubscriptions {
-					delete(client.Subscriptions, subscribeHash)
+					client.Subscriptions.Delete(subscribeHash)
 				}
 				future.Reject(err)
 				return
@@ -2026,11 +2017,9 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 				}
 				sendFutureChannel := <-client.Send(message)
 				if err, ok := sendFutureChannel.(error); ok {
-					client.SubscriptionsMu.Lock()
 					for _, subscribeHash := range missingSubscriptions {
-						delete(client.Subscriptions, subscribeHash)
+						client.Subscriptions.Delete(subscribeHash)
 					}
-					client.SubscriptionsMu.Unlock()
 					future.Reject(err)
 				}
 			}

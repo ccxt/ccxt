@@ -116,6 +116,7 @@ class bybit extends Exchange {
                 'fetchPositionsHistory' => true,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -216,6 +217,7 @@ class bybit extends Exchange {
                         'derivatives/v3/public/insurance' => 1,
                         // v5
                         'v5/announcements/index' => 5, // 10/s = 1000 / (20 * 5)
+                        'v5/system/status' => 5,
                         // market
                         'v5/market/time' => 5,
                         'v5/market/kline' => 5,
@@ -224,6 +226,8 @@ class bybit extends Exchange {
                         'v5/market/premium-index-price-kline' => 5,
                         'v5/market/instruments-info' => 5,
                         'v5/market/orderbook' => 5,
+                        'v5/market/rpi_orderbook' => 5,
+                        'v5/market/full_orderbook' => 5,
                         'v5/market/tickers' => 5,
                         'v5/market/funding/history' => 5,
                         'v5/market/recent-trade' => 5,
@@ -232,7 +236,12 @@ class bybit extends Exchange {
                         'v5/market/insurance' => 5,
                         'v5/market/risk-limit' => 5,
                         'v5/market/delivery-price' => 5,
+                        'v5/market/new-delivery-price' => 5,
                         'v5/market/account-ratio' => 5,
+                        'v5/market/index-price-components' => 5,
+                        'v5/market/price-limit' => 5,
+                        'v5/market/adlAlert' => 5,
+                        'v5/market/fee-group-info' => 5,
                         // spot leverage token
                         'v5/spot-lever-token/info' => 5,
                         'v5/spot-lever-token/reference' => 5,
@@ -328,7 +337,9 @@ class bybit extends Exchange {
                         'v5/position/list' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/execution/list' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/closed-pnl' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/get-closed-positions' => 5,
                         'v5/position/move-history' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/symbol-info' => 5,
                         // pre-upgrade
                         'v5/pre-upgrade/order/history' => 5,
                         'v5/pre-upgrade/execution/list' => 5,
@@ -341,22 +352,31 @@ class bybit extends Exchange {
                         'v5/account/borrow-history' => 1,
                         'v5/account/instruments-info' => 1,
                         'v5/account/collateral-info' => 1,
+                        'v5/account/option-asset-info' => 1,
                         'v5/asset/coin-greeks' => 1,
                         'v5/account/fee-rate' => 10, // 5/s = 1000 / (20 * 10)
                         'v5/account/info' => 5,
                         'v5/account/transaction-log' => 1.66, // 30/s = 50 / 30
-                        'v5/account/contract-transaction-log' => 1,
+                        'v5/account/contract-transaction-log' => 1, // deprecated
+                        'v5/account/query-dcp-info' => 5,
+                        'v5/account/user-setting-config' => 5,
+                        'v5/account/pay-info' => 5,
+                        'v5/account/trade-info-for-analysis' => 5,
                         'v5/account/smp-group' => 1,
                         'v5/account/mmp-state' => 5,
                         'v5/account/withdrawal' => 5,
                         // asset
+                        'v5/asset/asset-overview' => 5,
                         'v5/asset/exchange/query-coin-list' => 0.5, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/convert-result-query' => 0.5, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/query-convert-history' => 0.5, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/order-record' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/fundinghistory' => 5,
+                        'v5/asset/portfolio-margin' => 5,
+                        'v5/asset/total-members-assets' => 5,
                         'v5/asset/delivery-record' => 5,
                         'v5/asset/settlement-record' => 5,
-                        'v5/asset/transfer/query-asset-info' => 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-asset-info' => 50, // deprecated, 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-account-coins-balance' => 25, // 2/s => cost = 50 / 2 = 25
                         'v5/asset/transfer/query-account-coin-balance' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-transfer-coin-list' => 50, // 1/s => cost = 50 / 1 = 50
@@ -374,6 +394,8 @@ class bybit extends Exchange {
                         'v5/asset/withdraw/query-record' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount' => 5,
                         'v5/asset/withdraw/vasp/list' => 5,
+                        'v5/asset/covert/small-balance-list' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/covert/small-balance-history' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/asset/convert/small-balance-list' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/asset/convert/small-balance-history' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/fiat/query-coin-list' => 5,
@@ -389,8 +411,11 @@ class bybit extends Exchange {
                         'v5/user/aff-customer-info' => 5,
                         'v5/user/del-submember' => 5,
                         'v5/user/submembers' => 5,
+                        'v5/user/escrow_sub_members' => 5,
+                        'v5/user/invitation/referrals' => 5,
                         // affilate
                         'v5/affiliate/aff-user-list' => 5,
+                        'v5/affiliate/affiliate-sub-list' => 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record' => 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
@@ -399,6 +424,11 @@ class bybit extends Exchange {
                         'v5/spot-margin-trade/max-borrowable' => 5,
                         'v5/spot-margin-trade/position-tiers' => 5,
                         'v5/spot-margin-trade/coinstate' => 5,
+                        'v5/spot-margin-trade/currency-data' => 5,
+                        'v5/spot-margin-trade/fixedborrow-contract-info' => 5,
+                        'v5/spot-margin-trade/fixedborrow-order-info' => 5,
+                        'v5/spot-margin-trade/fixedborrow-order-quote' => 5,
+                        'v5/spot-margin-trade/liability' => 5,
                         'v5/spot-margin-trade/repayment-available-amount' => 5,
                         'v5/spot-margin-trade/get-auto-repay-mode' => 5,
                         'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
@@ -427,14 +457,17 @@ class bybit extends Exchange {
                         'v5/crypto-loan-fixed/repayment-history' => 10, // 5/s => cost = 50 / 5 = 10
                         // institutional lending
                         'v5/ins-loan/product-infos' => 5,
+                        'v5/ins-loan/ensure-tokens' => 5, // deprecated
                         'v5/ins-loan/ensure-tokens-convert' => 5,
                         'v5/ins-loan/loan-order' => 5,
                         'v5/ins-loan/repaid-history' => 5,
+                        'v5/ins-loan/ltv' => 5, // deprecated
                         'v5/ins-loan/ltv-convert' => 5,
+                        'v5/ins-loan/coin-delta-amount' => 5,
                         // c2c lending
-                        'v5/lending/info' => 5,
-                        'v5/lending/history-order' => 5,
-                        'v5/lending/account' => 5,
+                        'v5/lending/info' => 5, // deprecated
+                        'v5/lending/history-order' => 5, // deprecated
+                        'v5/lending/account' => 5, // deprecated
                         // broker
                         'v5/broker/earning-record' => 5, // deprecated
                         'v5/broker/earnings-info' => 5,
@@ -519,12 +552,13 @@ class bybit extends Exchange {
                         'v5/order/amend-batch' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/cancel-batch' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/disconnected-cancel-all' => 5,
+                        'v5/order/pre-check' => 5,
                         // position
                         'v5/position/set-leverage' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-isolated' => 5,
-                        'v5/position/set-tpsl-mode' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/switch-isolated' => 5, // deprecated
+                        'v5/position/set-tpsl-mode' => 5, // deprecated, 10/s => cost = 50 / 10 = 5
                         'v5/position/switch-mode' => 5,
-                        'v5/position/set-risk-limit' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/set-risk-limit' => 5, // deprecated, 10/s => cost = 50 / 10 = 5
                         'v5/position/trading-stop' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin' => 5,
                         'v5/position/add-margin' => 5,
@@ -541,13 +575,15 @@ class bybit extends Exchange {
                         'v5/account/repay' => 5,
                         'v5/account/no-convert-repay' => 5,
                         'v5/account/set-limit-px-action' => 5,
+                        'v5/account/set-delta-mode' => 5,
                         // asset
                         'v5/asset/exchange/quote-apply' => 1, // 50/s
                         'v5/asset/exchange/convert-execute' => 1, // 50/s
                         'v5/asset/transfer/inter-transfer' => 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/save-transfer-sub-member' => 150, // 1/3/s => cost = 50 / 1/3 = 150
+                        'v5/asset/transfer/save-transfer-sub-member' => 150, // deprecated, 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account' => 5,
+                        'v5/asset/travel-rule/deposit/submit' => 5,
                         'v5/asset/withdraw/create' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/withdraw/cancel' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/covert/get-quote' => 10, // 5/s => cost = 50 / 5 = 10
@@ -562,6 +598,8 @@ class bybit extends Exchange {
                         'v5/user/update-sub-api' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/user/delete-api' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/user/delete-sub-api' => 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/agreement' => 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-demo-member' => 10, // 5/s => cost = 50 / 5 = 10
                         // spot leverage token
                         'v5/spot-lever-token/purchase' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-lever-token/redeem' => 2.5, // 20/s => cost = 50 / 20 = 2.5
@@ -569,6 +607,8 @@ class bybit extends Exchange {
                         'v5/spot-margin-trade/switch-mode' => 5,
                         'v5/spot-margin-trade/set-leverage' => 5,
                         'v5/spot-margin-trade/set-auto-repay-mode' => 5,
+                        'v5/spot-margin-trade/fixedborrow' => 5,
+                        'v5/spot-margin-trade/fixedborrow-renew' => 5,
                         'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
@@ -593,9 +633,9 @@ class bybit extends Exchange {
                         'v5/ins-loan/association-uid' => 5,
                         'v5/ins-loan/repay-loan' => 5,
                         // c2c lending
-                        'v5/lending/purchase' => 5,
-                        'v5/lending/redeem' => 5,
-                        'v5/lending/redeem-cancel' => 5,
+                        'v5/lending/purchase' => 5, // deprecated
+                        'v5/lending/redeem' => 5, // deprecated
+                        'v5/lending/redeem-cancel' => 5, // deprecated
                         'v5/account/set-collateral-switch' => 5,
                         'v5/account/set-collateral-switch-batch' => 5,
                         // demo trading
@@ -1630,6 +1670,68 @@ class bybit extends Exchange {
             return $this->cost_to_precision($symbol, $cost);
         }
         return $cost;
+    }
+
+    public function fetch_status($params = array()): array {
+        /**
+         * the latest known information on the availability of the exchange API
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/system-$status
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a [$status structure](https://docs.ccxt.com/#/?id=exchange-$status-structure)
+         */
+        $response = $this->publicGetV5SystemStatus($params);
+        //
+        //     {
+        //         "retCode" => 0,
+        //         "retMsg" => "OK",
+        //         "result" => {
+        //             "list" => array(
+        //                 array(
+        //                     "id" => "f9d6842d-5331-11f0-8fd3-c241b123dd9e",
+        //                     "title" => "t01",
+        //                     "state" => "completed",
+        //                     "begin" => "1751012688000",
+        //                     "end" => "1751012760000",
+        //                     "href" => "",
+        //                     "serviceTypes" => array( 1, 2, 3, 4, 5 ),
+        //                     "product" => array( 1, 2, 3, 4 ),
+        //                     "uidSuffix" => array(),
+        //                     "maintainType" => 3,
+        //                     "env" => 2
+        //                 }
+        //             )
+        //         ),
+        //         "retExtInfo" => array(),
+        //         "time" => 1751858399649
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $list = $this->safe_list($result, 'list', array());
+        $status = 'ok';
+        $eta = null;
+        $url = null;
+        for ($i = 0; $i < count($list); $i++) {
+            $event = $list[$i];
+            $state = $this->safe_string($event, 'state');
+            if ($state === 'ongoing') {
+                $status = 'maintenance';
+                $eta = $this->safe_integer($event, 'end');
+                $url = $this->safe_string($event, 'href');
+                break;
+            } elseif ($state === 'scheduled') {
+                $eta = $this->safe_integer($event, 'begin');
+                $url = $this->safe_string($event, 'href');
+            }
+        }
+        return array(
+            'status' => $status,
+            'updated' => null,
+            'eta' => $eta,
+            'url' => $url,
+            'info' => $response,
+        );
     }
 
     public function fetch_time($params = array()): ?int {

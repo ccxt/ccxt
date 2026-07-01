@@ -530,6 +530,9 @@ class cex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer $timestamp in milliseconds from the exchange server
+             *
+             * @see https://trade.cex.io/docs/#rest-public-api-calls-server-time
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer $timestamp in milliseconds from the exchange server
              */
