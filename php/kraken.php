@@ -2096,6 +2096,7 @@ class kraken extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_timestamp($order, 'closetm'),
             'status' => $status,
             'symbol' => $symbol,
             'type' => $typeParsed,
