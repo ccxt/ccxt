@@ -4,7 +4,12 @@
 # PredictionExchange, which adds events/outcomes helpers on top of Exchange.
 
 import asyncio
-import ccxt.prediction
+import os
+import sys
+
+# use this repo's python/ (which has ccxt.prediction) rather than a pip-installed ccxt
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'python'))
+import ccxt.prediction  # noqa: E402
 
 
 async def main():
