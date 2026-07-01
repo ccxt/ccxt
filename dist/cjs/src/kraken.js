@@ -2091,6 +2091,7 @@ class kraken extends kraken$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeTimestamp(order, 'closetm'),
             'status': status,
             'symbol': symbol,
             'type': typeParsed,
