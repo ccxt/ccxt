@@ -6,6 +6,9 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, market any) {
+	if IsTrue(IsEqual(market, nil)) {
+		return
+	}
 	var format any = map[string]any{
 		"id":             "btcusd",
 		"symbol":         "BTC/USD",
@@ -258,7 +261,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	AssertTimestamp(exchange, skippedProperties, method, market, nil, "created")
 	// margin modes
 	if !IsTrue((InOp(skippedProperties, "marginModes"))) {
-		var marginModes any = exchange.SafeDict(market, "marginModes") // in future, remove safeDict
+		var marginModes any = exchange.SafeDict(market, "marginModes", map[string]any{}) // in future, remove safeDict
 		Assert(InOp(marginModes, "cross"), Add("marginModes should have \"cross\" key", logText))
 		Assert(InOp(marginModes, "isolated"), Add("marginModes should have \"isolated\" key", logText))
 		AssertInArray(exchange, skippedProperties, method, marginModes, "cross", []any{true, false, nil})

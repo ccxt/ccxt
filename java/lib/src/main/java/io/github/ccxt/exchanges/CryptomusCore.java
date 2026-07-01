@@ -160,7 +160,7 @@ public class CryptomusCore extends CryptomusApi
             }} );
             put( "timeframes", new java.util.HashMap<String, Object>() {{}} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7" );
+                put( "logo", "https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.cryptomus.com" );
                     put( "private", "https://api.cryptomus.com" );
@@ -562,7 +562,7 @@ public class CryptomusCore extends CryptomusApi
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1156,7 +1156,7 @@ public class CryptomusCore extends CryptomusApi
             put( "expired", "expired" );
             put( "failed", "failed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
@@ -1231,9 +1231,14 @@ public class CryptomusCore extends CryptomusApi
             Object feeTiers = this.safeList(data, "tariff_steps", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object tiers = this.parseFeeTiers(feeTiers);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                return result;
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            {
+                Object symbol = Helpers.GetValue(symbols, i);
                 final Object finalMakerFee = makerFee;
                 final Object finalTakerFee = takerFee;
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{

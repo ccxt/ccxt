@@ -6,11 +6,10 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class paradex extends \ccxt\async\paradex {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -50,15 +49,15 @@ class paradex extends \ccxt\async\paradex {
         return $requestId;
     }
 
-    public function authenticate($params = array ()) {
+    public function authenticate($params = array()) {
         return Async\async(function () use ($params) {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->reusableFuture ('authenticated');
+            $future = $client->reusableFuture('authenticated');
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
-                $token = Async\await($this->authenticateRest ());
+                $token = Async\await($this->authenticateRest());
                 $request = array(
                     'jsonrpc' => '2.0',
                     'id' => $this->request_id(),
@@ -70,7 +69,7 @@ class paradex extends \ccxt\async\paradex {
                 $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
             }
             return Async\await($future);
-        }) ();
+        })();
     }
 
     public function handle_authentication_message(Client $client, $message) {
@@ -83,15 +82,15 @@ class paradex extends \ccxt\async\paradex {
         //
         $result = $this->safe_dict($message, 'result');
         if ($result !== null) {
-            // $client->resolve (true, messageHash);
+            // $client->resolve(true, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             if ($future !== null) {
-                $future->resolve (true);
+                $future->resolve(true);
             }
         }
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -122,10 +121,10 @@ class paradex extends \ccxt\async\paradex {
             );
             $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
     public function handle_trade(Client $client, $message) {
@@ -154,15 +153,15 @@ class paradex extends \ccxt\async\paradex {
         $messageHash = $this->safe_string($params, 'channel');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
-            $stored = new ArrayCache ($this->safe_integer($this->options, 'tradesLimit', 1000));
+            $stored = new ArrayCache($this->safe_integer($this->options, 'tradesLimit', 1000));
             $this->trades[$symbol] = $stored;
         }
-        $stored->append ($parsedTrade);
-        $client->resolve ($stored, $messageHash);
+        $stored->append($parsedTrade);
+        $client->resolve($stored, $messageHash);
         return $message;
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -172,7 +171,7 @@ class paradex extends \ccxt\async\paradex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -186,8 +185,8 @@ class paradex extends \ccxt\async\paradex {
                 ),
             );
             $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -234,7 +233,7 @@ class paradex extends \ccxt\async\paradex {
             'asks' => array(),
         );
         $inserts = $this->safe_list($data, 'inserts');
-        for ($i = 0; $i < count($inserts); $i++) {
+        for ($i = 0; $i < count(($inserts)); $i++) {
             $insert = $this->safe_dict($inserts, $i);
             $side = $this->safe_string($insert, 'side');
             $price = $this->safe_string($insert, 'price');
@@ -248,12 +247,12 @@ class paradex extends \ccxt\async\paradex {
         $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($orderbookData, $symbol, $timestamp, 'bids', 'asks');
         $snapshot['nonce'] = $this->safe_integer($data, 'seq_no');
-        $orderbook->reset ($snapshot);
+        $orderbook->reset($snapshot);
         $messageHash = $this->safe_string($params, 'channel');
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -277,10 +276,10 @@ class paradex extends \ccxt\async\paradex {
             );
             $messageHash = $channel . '.' . $symbol;
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -318,10 +317,10 @@ class paradex extends \ccxt\async\paradex {
                 return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -356,10 +355,10 @@ class paradex extends \ccxt\async\paradex {
             );
             $orders = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_order(Client $client, $message) {
@@ -396,14 +395,14 @@ class paradex extends \ccxt\async\paradex {
         $symbol = $this->safe_string($parsed, 'symbol');
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
-        $this->orders.append ($parsed);
+        $this->orders->append($parsed);
         $messageHash = 'orders';
-        $client->resolve ($this->orders, $messageHash);
+        $client->resolve($this->orders, $messageHash);
         if ($symbol !== null) {
             $symbolMessageHash = $messageHash . ':' . $symbol;
-            $client->resolve ($this->orders, $symbolMessageHash);
+            $client->resolve($this->orders, $symbolMessageHash);
         }
     }
 
@@ -441,12 +440,12 @@ class paradex extends \ccxt\async\paradex {
         $messageHash = $channel . '.' . $symbol;
         $ticker = $this->parse_ticker($data, $market);
         $this->tickers[$symbol] = $ticker;
-        $client->resolve ($ticker, $channel);
-        $client->resolve ($ticker, $messageHash);
+        $client->resolve($ticker, $channel);
+        $client->resolve($ticker, $messageHash);
         return $message;
     }
 
-    public function watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watch the current funding rate for a $symbol
@@ -470,10 +469,10 @@ class paradex extends \ccxt\async\paradex {
             );
             $messageHash = $channel . '.' . $symbol;
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-        }) ();
+        })();
     }
 
-    public function watch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watch the funding rate for multiple markets
@@ -516,7 +515,7 @@ class paradex extends \ccxt\async\paradex {
                 return $result;
             }
             return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
     public function handle_funding_rate(Client $client, $message) {
@@ -545,7 +544,7 @@ class paradex extends \ccxt\async\paradex {
         $this->fundingRates[$symbol] = $fundingRate;
         $channel = $this->safe_string($params, 'channel');
         $messageHash = $channel . '.' . $symbol;
-        $client->resolve ($fundingRate, $messageHash);
+        $client->resolve($fundingRate, $messageHash);
     }
 
     public function parse_funding_rate_ws($contract, ?array $market = null): array {

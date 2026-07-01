@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -102,7 +102,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         if authenticated is None:
             timestamp = self.milliseconds()
             signature = self.hmac(self.encode(self.number_to_string(timestamp)), self.encode(self.secret), hashlib.sha256, 'hex')
-            request: dict = {
+            request = {
                 'method': 'login',
                 'params': {
                     'type': 'HS256',
@@ -149,7 +149,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 messageHashes.append(messageHashPrefix + '::' + symbols[i])
         else:
             messageHashes.append(messageHashPrefix)
-        subscribe: dict = {
+        subscribe = {
             'method': 'subscribe',
             'id': self.nonce(),
             'ch': name,
@@ -171,7 +171,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         messageHash = self.safe_string(splitName, 0)
         if symbol is not None:
             messageHash = messageHash + '::' + symbol
-        subscribe: dict = {
+        subscribe = {
             'method': name,
             'params': params,
             'id': self.nonce(),
@@ -188,7 +188,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         messageHash = str(self.nonce())
-        subscribe: dict = {
+        subscribe = {
             'method': name,
             'params': params,
             'id': messageHash,
@@ -211,7 +211,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str [params.method]: 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
         :param int [params.depth]: 5 , 10, or 20(default)
         :param int [params.speed]: 100(default), 500, or 1000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         options = self.safe_value(self.options, 'watchOrderBook')
         defaultMethod = self.safe_string(options, 'method', 'orderbook/full')
@@ -223,7 +223,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         elif name == 'orderbook/{depth}/{speed}/batch':
             name = 'orderbook/D' + depth + '/' + speed + 'ms/batch'
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -339,7 +339,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             for i in range(0, len(symbols)):
                 marketId = self.market_id(symbols[i])
                 marketIds.append(marketId)
-        request: dict = {
+        request = {
             'params': {
                 'symbols': marketIds,
             },
@@ -347,7 +347,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         newTickers = await self.subscribe_public(name, 'tickers', symbols, self.deep_extend(request, params))
         if self.newUpdates:
             if not isinstance(newTickers, list):
-                tickers: dict = {}
+                tickers = {}
                 tickers[newTickers['symbol']] = newTickers
                 return tickers
         return self.filter_by_array(newTickers, 'symbol', symbols)
@@ -482,7 +482,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         name = self.implode_params(method, {'speed': speed})
         params = self.omit(params, ['method', 'speed'])
         marketIds = self.market_ids(symbols)
-        request: dict = {
+        request = {
             'params': {
                 'symbols': marketIds,
             },
@@ -490,7 +490,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         newTickers = await self.subscribe_public(name, 'bidask', symbols, self.deep_extend(request, params))
         if self.newUpdates:
             if not isinstance(newTickers, list):
-                tickers: dict = {}
+                tickers = {}
                 tickers[newTickers['symbol']] = newTickers
                 return tickers
         return self.filter_by_array(newTickers, 'symbol', symbols)
@@ -552,7 +552,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -676,7 +676,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candles/' + period
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -781,8 +781,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        marketType: Str = None
-        market: Market = None
+        marketType = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType, params = self.handle_market_type_and_params('watchOrders', market, params)
@@ -963,13 +963,13 @@ class hitbtc(ccxt.async_support.hitbtc):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         tradeId = self.safe_string(order, 'trade_id')
-        trades: List = None
+        trades = None
         if tradeId is not None:
             trade = self.parse_ws_order_trade(order, market)
             trades = [trade]
         rawStatus = self.safe_string(order, 'status')
         report_type = self.safe_string(order, 'report_type')
-        parsedStatus: Str = None
+        parsedStatus = None
         if report_type == 'canceled':
             parsedStatus = self.parse_order_status(report_type)
         else:
@@ -1013,7 +1013,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        type: Str = None
+        type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         name = self.get_supported_mapping(type, {
             'spot': 'spot_balance_subscribe',
@@ -1022,7 +1022,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         })
         mode = self.safe_string(params, 'mode', 'batches')
         params = self.omit(params, 'mode')
-        request: dict = {
+        request = {
             'mode': mode,
         }
         return await self.subscribe_private(name, None, self.extend(request, params))
@@ -1050,10 +1050,10 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = None
-        marketType: Str = None
+        request = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('createOrder', market, params)
-        marginMode: Str = None
+        marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         request, params = self.create_order_request(market, marketType, type, side, amount, price, marginMode, params)
         request = self.extend(request, params)
@@ -1080,13 +1080,13 @@ class hitbtc(ccxt.async_support.hitbtc):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         request = {
             'client_order_id': id,
         }
         if symbol is not None:
             market = self.market(symbol)
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('cancelOrderWs', market, params)
         marginMode, query = self.handle_margin_mode_and_params('cancelOrderWs', params)
         request = self.extend(request, query)
@@ -1111,12 +1111,12 @@ class hitbtc(ccxt.async_support.hitbtc):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('cancelAllOrdersWs', market, params)
-        marginMode: Str = None
+        marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelAllOrdersWs', params)
         if marketType == 'swap':
             return await self.trade_request('futures_cancel_orders', params)
@@ -1142,14 +1142,14 @@ class hitbtc(ccxt.async_support.hitbtc):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
-        request: dict = {}
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrdersWs', market, params)
-        marginMode: Str = None
+        marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrdersWs', params)
         if marketType == 'swap':
             return await self.trade_request('futures_get_orders', request)
@@ -1238,7 +1238,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 channel2 = self.safe_string(splitChannel, 1)
                 if channel2 is not None and channel2 == 'top':
                     channel = 'orderbook/top'
-            methods: dict = {
+            methods = {
                 'candles': self.handle_ohlcv,
                 'ticker': self.handle_ticker,
                 'trades': self.handle_trades,

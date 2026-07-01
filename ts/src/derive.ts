@@ -20,7 +20,7 @@ export default class derive extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'derive',
-            'name': 'derive',
+            'name': 'Derive',
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,
@@ -136,9 +136,8 @@ export default class derive extends Exchange {
                 '1w': '1w',
                 '1M': '1M',
             },
-            'hostname': 'derive.xyz',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c',
+                'logo': 'https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed',
                 'api': {
                     'public': 'https://api.lyra.finance/public',
                     'private': 'https://api.lyra.finance/private',
@@ -1040,7 +1039,7 @@ export default class derive extends Exchange {
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {
             'instrument_name': market['id'],
         };
@@ -1159,7 +1158,7 @@ export default class derive extends Exchange {
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
         const newline = this.base16ToBinary ('0a');
-        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode ((this.numberToString (binaryMessageLength) as string)));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
@@ -1206,40 +1205,40 @@ export default class derive extends Exchange {
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
         }
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('createOrder', params);
         const test = this.safeBool (params, 'test', false);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const postOnly = this.safeBool (params, 'postOnly');
         const orderType = type.toLowerCase ();
-        const orderSide = side.toLowerCase ();
+        const orderSide = (side as string).toLowerCase ();
         const nonce = this.milliseconds ();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         const signatureExpiry = this.safeInteger (params, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        const priceString = this.numberToString (price);
+        const priceString = this.numberToString (price) as string;
         let maxFee: Num = undefined;
         [ maxFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'max_fee');
         if (maxFee === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a max_fee argument in params');
         }
-        const maxFeeString = this.numberToString (maxFee);
-        const amountString = this.numberToString (amount);
+        const maxFeeString = this.numberToString (maxFee) as string;
+        const amountString = this.numberToString (amount) as string;
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
             this.parseToNumeric (market['info']['base_asset_sub_id']),
-            this.convertToBigInt (this.parseUnits (priceString)),
-            this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
-            this.convertToBigInt (this.parseUnits (maxFeeString)),
+            this.convertToBigInt ((this.parseUnits (priceString) as string)),
+            this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
+            this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
-        let deriveWalletAddress: Str = undefined;
+        let deriveWalletAddress: Str | Dict = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('createOrder', params);
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
@@ -1371,7 +1370,7 @@ export default class derive extends Exchange {
         const result = this.safeDict (response, 'result');
         let rawOrder = this.safeDict (result, 'raw_data');
         if (rawOrder === undefined) {
-            rawOrder = this.safeDict (result, 'order');
+            rawOrder = this.safeDict (result, 'order', {});
         }
         const order = this.parseOrder (rawOrder, market);
         order['type'] = type;
@@ -1396,34 +1395,34 @@ export default class derive extends Exchange {
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('editOrder', params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const postOnly = this.safeBool (params, 'postOnly');
         const orderType = type.toLowerCase ();
-        const orderSide = side.toLowerCase ();
+        const orderSide = (side as string).toLowerCase ();
         const nonce = this.milliseconds ();
         const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        const priceString = this.numberToString (price);
+        const priceString = this.numberToString (price) as string;
         const maxFeeString = this.safeString (params, 'max_fee', '0');
-        const amountString = this.numberToString (amount);
+        const amountString = this.numberToString (amount) as string;
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
             market['info']['base_asset_address'],
             this.parseToNumeric (market['info']['base_asset_sub_id']),
-            this.convertToBigInt (this.parseUnits (priceString)),
-            this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
-            this.convertToBigInt (this.parseUnits (maxFeeString)),
+            this.convertToBigInt ((this.parseUnits (priceString) as string)),
+            this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
+            this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
             subaccountId,
             orderSide === 'buy',
         ]), keccak, 'binary');
-        let deriveWalletAddress: Str = undefined;
+        let deriveWalletAddress: Str | Dict = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('editOrder', params);
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
@@ -1541,7 +1540,7 @@ export default class derive extends Exchange {
         //   }
         //
         const result = this.safeDict (response, 'result');
-        const rawOrder = this.safeDict (result, 'order');
+        const rawOrder = this.safeDict (result, 'order', {});
         const order = this.parseOrder (rawOrder, market);
         return order;
     }
@@ -1565,7 +1564,7 @@ export default class derive extends Exchange {
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelOrder', params);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         const request: Dict = {
@@ -1632,7 +1631,7 @@ export default class derive extends Exchange {
         // }
         //
         const extendParams: Dict = { 'symbol': symbol };
-        const order = this.safeDict (response, 'result');
+        const order = this.safeDict (response, 'result', {});
         if (isByClientOrder) {
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
         }
@@ -1656,7 +1655,7 @@ export default class derive extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelAllOrders', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -1707,7 +1706,7 @@ export default class derive extends Exchange {
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrders', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -1775,12 +1774,12 @@ export default class derive extends Exchange {
         const page = this.safeInteger (params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict (data, 'pagination');
-            const currentPage = this.safeInteger (pagination, 'num_pages');
+            const currentPage = this.safeInteger (pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
         }
-        const orders = this.safeList (data, 'orders');
+        const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1845,7 +1844,7 @@ export default class derive extends Exchange {
             'gtc': 'GTC',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string));
     }
 
     parseOrderStatus (status: Str) {
@@ -2002,7 +2001,7 @@ export default class derive extends Exchange {
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchOrderTrades', params);
         const request: Dict = {
             'order_id': id,
@@ -2081,7 +2080,7 @@ export default class derive extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchMyTrades', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2138,7 +2137,7 @@ export default class derive extends Exchange {
         const page = this.safeInteger (params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict (result, 'pagination');
-            const currentPage = this.safeInteger (pagination, 'num_pages');
+            const currentPage = this.safeInteger (pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
@@ -2159,7 +2158,7 @@ export default class derive extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchPositions', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2305,7 +2304,7 @@ export default class derive extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
         }
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchFundingHistory', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2357,7 +2356,7 @@ export default class derive extends Exchange {
         const page = this.safeInteger (params, 'page');
         if (page !== undefined) {
             const pagination = this.safeDict (result, 'pagination');
-            const currentPage = this.safeInteger (pagination, 'num_pages');
+            const currentPage = this.safeInteger (pagination, 'num_pages', 0);
             if (page > currentPage) {
                 return [];
             }
@@ -2402,7 +2401,7 @@ export default class derive extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let deriveWalletAddress: Str = undefined;
+        let deriveWalletAddress: Str | Dict = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('fetchBalance', params);
         const request = {
             'wallet': deriveWalletAddress,
@@ -2498,7 +2497,7 @@ export default class derive extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchDeposits', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2527,7 +2526,7 @@ export default class derive extends Exchange {
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
-        const events = this.safeList (result, 'events');
+        const events = this.safeList (result, 'events', []);
         return this.parseTransactions (events, currency, since, limit, params);
     }
 
@@ -2545,7 +2544,7 @@ export default class derive extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        let subaccountId: Str = undefined;
+        let subaccountId: Str | Dict = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchWithdrawals', params);
         const request: Dict = {
             'subaccount_id': subaccountId,
@@ -2574,7 +2573,7 @@ export default class derive extends Exchange {
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
-        const events = this.safeList (result, 'events');
+        const events = this.safeList (result, 'events', []);
         return this.parseTransactions (events, currency, since, limit, params);
     }
 
@@ -2625,7 +2624,7 @@ export default class derive extends Exchange {
             'settled': 'ok',
             'reverted': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     handleDeriveSubaccountId (methodName: string, params: Dict) {

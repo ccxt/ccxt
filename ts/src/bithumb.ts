@@ -298,10 +298,10 @@ export default class bithumb extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const result = [];
+        const result: any[] = [];
         const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
-        const promises = [];
+        const promises: any[] = [];
         for (let i = 0; i < quotes.length; i++) {
             const request = {
                 'quoteId': quotes[i],
@@ -459,7 +459,7 @@ export default class bithumb extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -560,7 +560,7 @@ export default class bithumb extends Exchange {
         const result: Dict = {};
         const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
-        const promises = [];
+        const promises: any[] = [];
         for (let i = 0; i < quotes.length; i++) {
             const request: Dict = {
                 'quoteId': quotes[i],
@@ -769,11 +769,11 @@ export default class bithumb extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.fixCommaNumber (this.safeString2 (trade, 'units_traded', 'units'));
         const costString = this.safeString (trade, 'total');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
-            const feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
+            const feeCurrencyCode = this.commonCurrencyCode ((feeCurrencyId as string));
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -864,7 +864,7 @@ export default class bithumb extends Exchange {
             request['price'] = price;
             request['type'] = (side === 'buy') ? 'bid' : 'ask';
         } else {
-            method = 'privatePostTradeMarket' + this.capitalize (side);
+            method = 'privatePostTradeMarket' + this.capitalize ((side as string));
         }
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'order_id');
@@ -940,7 +940,7 @@ export default class bithumb extends Exchange {
             'Completed': 'closed',
             'Cancel': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1134,7 +1134,7 @@ export default class bithumb extends Exchange {
         const request: Dict = {
             'side': order['side'],
         };
-        return await this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
+        return await this.cancelOrder ((order['id'] as string), order['symbol'], this.extend (request, params));
     }
 
     /**

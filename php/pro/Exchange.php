@@ -10,8 +10,6 @@ namespace ccxt\pro;
 
 class Exchange extends \ccxt\async\Exchange {
 
-    use ClientTrait;
-
     public static $exchanges = array();
 }
 
@@ -62,6 +60,7 @@ Exchange::$exchanges = array(
     'exmo',
     'extended',
     'gate',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',
@@ -73,6 +72,7 @@ Exchange::$exchanges = array(
     'kraken',
     'krakenfutures',
     'kucoin',
+    'kucoineu',
     'kucoinfutures',
     'lbank',
     'lighter',

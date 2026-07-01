@@ -70,10 +70,10 @@ class lighter(ccxt.async_support.lighter):
 
     async def subscribe_public(self, messageHash, params={}):
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'type': 'subscribe',
         }
-        subscription: dict = {
+        subscription = {
             'messageHash': messageHash,
             'params': params,
         }
@@ -81,10 +81,10 @@ class lighter(ccxt.async_support.lighter):
 
     async def subscribe_public_multiple(self, messageHashes, params={}):
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'type': 'subscribe',
         }
-        subscription: dict = {
+        subscription = {
             'messageHashes': messageHashes,
             'params': params,
         }
@@ -92,10 +92,10 @@ class lighter(ccxt.async_support.lighter):
 
     async def unsubscribe(self, messageHash, params={}):
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'type': 'unsubscribe',
         }
-        subscription: dict = {
+        subscription = {
             'messageHash': messageHash,
             'params': params,
         }
@@ -180,11 +180,11 @@ class lighter(ccxt.async_support.lighter):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'channel': 'order_book/' + market['id'],
         }
         messageHash = self.get_message_hash('orderbook', symbol)
@@ -199,11 +199,11 @@ class lighter(ccxt.async_support.lighter):
 
         :param str symbol: unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'channel': 'order_book/' + market['id'],
         }
         messageHash = self.get_message_hash('unsubscribe', symbol)
@@ -293,7 +293,7 @@ class lighter(ccxt.async_support.lighter):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'channel': 'market_stats/' + market['id'],
         }
         messageHash = self.get_message_hash('ticker', symbol)
@@ -311,7 +311,7 @@ class lighter(ccxt.async_support.lighter):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'channel': 'market_stats/' + market['id'],
         }
         messageHash = self.get_message_hash('unsubscribe', symbol)
@@ -330,7 +330,7 @@ class lighter(ccxt.async_support.lighter):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             'channel': 'market_stats/all',
         }
         messageHashes = []
@@ -361,7 +361,7 @@ class lighter(ccxt.async_support.lighter):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'channel': 'market_stats/all',
         }
         messageHash = self.get_message_hash('unsubscribe')
@@ -540,7 +540,7 @@ class lighter(ccxt.async_support.lighter):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'channel': 'trade/' + market['id'],
         }
         messageHash = self.get_message_hash('trade', market['symbol'])
@@ -559,7 +559,7 @@ class lighter(ccxt.async_support.lighter):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'channel': 'trade/' + market['id'],
         }
         messageHash = self.get_message_hash('unsubscribe', symbol)
@@ -600,18 +600,26 @@ class lighter(ccxt.async_support.lighter):
         amountString = self.safe_string(trade, 'size')
         costString = self.safe_string(trade, 'usd_amount')
         isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
-        side = 'buy' if isMakerAsk else 'sell'
         accountIndex = self.safe_integer(trade, 'accountIndex')
-        order: Str = None
-        takerOrMaker: Str = None
+        bidAccountId = self.safe_integer(trade, 'bid_account_id')
+        askAccountId = self.safe_integer(trade, 'ask_account_id')
+        side = None
+        order = None
+        takerOrMaker = None
         if accountIndex is not None:
-            if self.safe_integer(trade, 'bid_account_id') == accountIndex:
+            if bidAccountId == accountIndex:
+                # Own trades should use the account's order side
+                side = 'buy'
                 order = self.safe_string(trade, 'bid_id')
                 takerOrMaker = 'taker' if isMakerAsk else 'maker'
-            elif self.safe_integer(trade, 'ask_account_id') == accountIndex:
+            elif askAccountId == accountIndex:
+                side = 'sell'
                 order = self.safe_string(trade, 'ask_id')
                 takerOrMaker = 'maker' if isMakerAsk else 'taker'
-        fee: NullableDict = None
+        # public trades use Lighter's taker-side convention
+        if side is None:
+            side = 'buy' if isMakerAsk else 'sell'
+        fee = None
         if takerOrMaker is not None:
             feeRateRaw = self.safe_string(trade, 'maker_fee') if (takerOrMaker == 'maker') else self.safe_string(trade, 'taker_fee')
             feeRate = Precise.string_div(feeRateRaw, '1000000') if (feeRateRaw is not None) else '0'
@@ -716,14 +724,14 @@ class lighter(ccxt.async_support.lighter):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
-        accountIndex: Int = None
+        accountIndex = None
         accountIndex, params = await self.handleAccountIndex(params, 'watchMyTrades', 'accountIndex', 'account_index')
         messageHash = self.get_message_hash('myTrades')
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = self.get_message_hash('myTrades', symbol)
-        request: dict = {
+        request = {
             'channel': 'account_all_trades/' + self.number_to_string(accountIndex),
         }
         trades = await self.subscribe_public(messageHash, self.extend(request, params))
@@ -741,7 +749,7 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        accountIndex: Int = None
+        accountIndex = None
         accountIndex, params = await self.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index')
         messageHash = self.get_message_hash('unsubscribe', 'myTrades')
         if symbol is not None:
@@ -749,7 +757,7 @@ class lighter(ccxt.async_support.lighter):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = self.get_message_hash('unsubscribe', symbol)
-        request: dict = {
+        request = {
             'channel': 'account_all_trades/' + accountIndex,
         }
         return await self.unsubscribe(messageHash, self.extend(request, params))
@@ -874,7 +882,7 @@ class lighter(ccxt.async_support.lighter):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'channel': 'trade/' + market['id'],
         }
         messageHash = self.get_message_hash('liquidations', symbol)
@@ -892,9 +900,9 @@ class lighter(ccxt.async_support.lighter):
         """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
-        type: Str = None
+        type = None
         type, params = self.handle_param_string(params, 'type', defaultType)
-        accountIndex: Int = None
+        accountIndex = None
         accountIndex, params = await self.handleAccountIndex(params, 'watchBalance', 'accountIndex', 'account_index')
         messageHash = self.get_message_hash('balances', None, type)
         request = {}
@@ -1005,9 +1013,9 @@ class lighter(ccxt.async_support.lighter):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        accountIndex: Int = None
+        accountIndex = None
         accountIndex, params = await self.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index')
-        messageHash: Str = None
+        messageHash = None
         request = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1032,9 +1040,9 @@ class lighter(ccxt.async_support.lighter):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        accountIndex: Int = None
+        accountIndex = None
         accountIndex, params = await self.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index')
-        messageHash: Str = None
+        messageHash = None
         request = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1180,7 +1188,7 @@ class lighter(ccxt.async_support.lighter):
         self.spawn(self.pong, client, message)
 
     async def pong(self, client, message):
-        request: dict = {
+        request = {
             'type': 'pong',
         }
         await client.send(request)

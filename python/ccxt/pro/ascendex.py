@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -56,7 +56,7 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'id': str(id),
             'op': 'sub',
         }
@@ -66,7 +66,7 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_public_multiple(self, messageHashes, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'id': str(id),
             'op': 'sub',
         }
@@ -79,7 +79,7 @@ class ascendex(ccxt.async_support.ascendex):
         url = self.urls['api']['ws']['private']
         url = self.implode_params(url, {'accountGroup': accountGroup})
         id = self.nonce()
-        request: dict = {
+        request = {
             'id': str(id),
             'op': 'sub',
             'ch': channel,
@@ -180,8 +180,8 @@ class ascendex(ccxt.async_support.ascendex):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, True)
-        marketIds: List = []
-        messageHashes: List = []
+        marketIds = []
+        messageHashes = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 market = self.market(symbols[i])
@@ -241,7 +241,7 @@ class ascendex(ccxt.async_support.ascendex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -393,8 +393,8 @@ class ascendex(ccxt.async_support.ascendex):
         """
         await self.load_markets()
         type, query = self.handle_market_type_and_params('watchBalance', None, params)
-        channel: Str = None
-        messageHash: Str = None
+        channel = None
+        messageHash = None
         if (type == 'spot') or (type == 'margin'):
             accountCategories = self.safe_value(self.options, 'accountCategories', {})
             accountCategory = self.safe_string(accountCategories, type, 'cash')  # cash, margin,
@@ -458,7 +458,7 @@ class ascendex(ccxt.async_support.ascendex):
         #
         channel = self.safe_string(message, 'm')
         result = None
-        type: Str = None
+        type = None
         if (channel == 'order') or (channel == 'futures-order'):
             data = self.safe_value(message, 'data')
             marketId = self.safe_string(data, 's')
@@ -483,7 +483,7 @@ class ascendex(ccxt.async_support.ascendex):
             type = self.safe_string(categoriesAccounts, accountType, 'spot')
             result = self.safe_value(self.balance, type, {})
             data = self.safe_value(message, 'data')
-            balances: NullableList = None
+            balances = None
             if data is None:
                 balances = self.safe_value(message, 'col')
             else:
@@ -511,13 +511,13 @@ class ascendex(ccxt.async_support.ascendex):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
         type, query = self.handle_market_type_and_params('watchOrders', market, params)
-        messageHash: Str = None
-        channel: Str = None
+        messageHash = None
+        channel = None
         if type != 'spot' and type != 'margin':
             channel = 'futures-order'
             messageHash = 'order:FUTURES'
@@ -661,7 +661,7 @@ class ascendex(ccxt.async_support.ascendex):
         type = self.safe_string_lower(order, 'ot')
         side = self.safe_string_lower(order, 'sd')
         feeCost = self.safe_number(order, 'cf')
-        fee: Fee = None
+        fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'fa')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -878,7 +878,7 @@ class ascendex(ccxt.async_support.ascendex):
         # }
         #
         subject = self.safe_string(message, 'm')
-        methods: dict = {
+        methods = {
             'ping': self.handle_ping,
             'auth': self.handle_authenticate,
             'sub': self.handle_subscription_status,
@@ -952,7 +952,7 @@ class ascendex(ccxt.async_support.ascendex):
             auth = timestamp + '+' + version + '/' + path
             secret = self.base64_to_binary(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64')
-            request: dict = {
+            request = {
                 'op': 'auth',
                 'id': str(self.nonce()),
                 't': timestamp,

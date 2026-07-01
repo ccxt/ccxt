@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.59'
+__version__ = '4.5.63'
 
 # -----------------------------------------------------------------------------
 
@@ -126,6 +126,7 @@ from ccxt.async_support.extended import extended                                
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
+from ccxt.async_support.gateeu import gateeu                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
 from ccxt.async_support.grvt import grvt                                        # noqa: F401
 from ccxt.async_support.hashkey import hashkey                                  # noqa: F401
@@ -139,6 +140,7 @@ from ccxt.async_support.indodax import indodax                                  
 from ccxt.async_support.kraken import kraken                                    # noqa: F401
 from ccxt.async_support.krakenfutures import krakenfutures                      # noqa: F401
 from ccxt.async_support.kucoin import kucoin                                    # noqa: F401
+from ccxt.async_support.kucoineu import kucoineu                                # noqa: F401
 from ccxt.async_support.kucoinfutures import kucoinfutures                      # noqa: F401
 from ccxt.async_support.latoken import latoken                                  # noqa: F401
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
@@ -234,6 +236,7 @@ exchanges = [
     'fmfwio',
     'foxbit',
     'gate',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',
@@ -247,6 +250,7 @@ exchanges = [
     'kraken',
     'krakenfutures',
     'kucoin',
+    'kucoineu',
     'kucoinfutures',
     'latoken',
     'lbank',

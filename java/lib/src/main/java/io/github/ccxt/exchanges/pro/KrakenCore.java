@@ -905,7 +905,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -927,7 +927,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
@@ -1018,13 +1018,16 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             {
                 marketsByWsName = new java.util.HashMap<String, Object>() {{}};
                 Object symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
-                    Object market = Helpers.GetValue(this.markets, symbol);
-                    Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
-                    Object wsName = ((String)this.safeString(info, "wsname"));
-                    Helpers.addElementToObject(marketsByWsName, wsName, market);
+                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                    {
+                        Object symbol = Helpers.GetValue(symbols, i);
+                        Object market = Helpers.GetValue(this.markets, symbol);
+                        Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
+                        Object wsName = ((String)this.safeString(info, "wsname"));
+                        Helpers.addElementToObject(marketsByWsName, wsName, market);
+                    }
                 }
                 Helpers.addElementToObject(this.options, "marketsByWsName", marketsByWsName);
             }
@@ -1705,6 +1708,10 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets()).join();
             // symbols are required
             symbols = this.marketSymbols(symbols, null, false, true, false);
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            {
+                return null;
+            }
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {

@@ -798,7 +798,7 @@ export default class paradex extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            result[(symbol as string)] = fee;
         }
         return result as TradingFees;
     }
@@ -1030,7 +1030,7 @@ export default class paradex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -1460,7 +1460,7 @@ export default class paradex extends Exchange {
         //
         const timestamp = this.safeInteger (order, 'created_at');
         const orderId = this.safeString (order, 'id');
-        const clientOrderId = this.omitZero (this.safeString (order, 'client_id'));
+        const clientOrderId = this.omitZero ((this.safeString (order, 'client_id') as string));
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1477,8 +1477,8 @@ export default class paradex extends Exchange {
             }
         }
         const side = this.safeStringLower (order, 'side');
-        const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
-        const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
+        const average = this.omitZero ((this.safeString (order, 'avg_fill_price') as string));
+        const remaining = this.omitZero ((this.safeString (order, 'remaining_size') as string));
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
         const flags = this.safeList (order, 'flags', []);
         let reduceOnly: Bool = undefined;
@@ -1523,7 +1523,7 @@ export default class paradex extends Exchange {
             'GTC': 'GTC',
             'POST_ONLY': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce);
+        return this.safeString (timeInForces, (timeInForce as string));
     }
 
     parseOrderStatus (status: Str) {
@@ -1546,7 +1546,7 @@ export default class paradex extends Exchange {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
         };
-        return this.safeStringLower (types, type, type);
+        return this.safeStringLower (types, (type as string), type);
     }
 
     scaleNumber (num: string) {
@@ -1557,7 +1557,7 @@ export default class paradex extends Exchange {
         const market = this.market (symbol);
         let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
-        const orderSide = side.toUpperCase ();
+        const orderSide = (side as string).toUpperCase ();
         const request: Dict = {
             'market': market['id'],
             'side': orderSide,
@@ -1828,7 +1828,7 @@ export default class paradex extends Exchange {
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (params, orderParams);
-            let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, extendedParams);
+            let orderRequest = this.createOrderRequest ((symbol as string), (type as string), side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest (orderRequest);
             ordersRequests.push (orderRequest);
         }
@@ -2767,7 +2767,7 @@ export default class paradex extends Exchange {
             'COMPLETED': 'ok',
             'FAILED': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -2829,7 +2829,7 @@ export default class paradex extends Exchange {
         this.checkRequiredArgument ('setMarginMode', symbol, 'symbol');
         await this.authenticateRest ();
         await this.loadMarkets ();
-        const market: Market = this.market (symbol);
+        const market: Market = this.market ((symbol as string));
         let leverage: Str = undefined;
         [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 1);
         const request: Dict = {
@@ -2909,7 +2909,7 @@ export default class paradex extends Exchange {
         this.checkRequiredArgument ('setLeverage', symbol, 'symbol');
         await this.authenticateRest ();
         await this.loadMarkets ();
-        const market: Market = this.market (symbol);
+        const market: Market = this.market ((symbol as string));
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
         const request: Dict = {
@@ -3252,7 +3252,7 @@ export default class paradex extends Exchange {
             version = 'v2';
             path = path.replace ('v2/', '');
         }
-        let url = this.implodeHostname (this.urls['api'][version]) + '/' + this.implodeParams (path, params);
+        let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {

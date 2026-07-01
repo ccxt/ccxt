@@ -97,7 +97,7 @@ class upbit(ccxt.async_support.upbit):
         """
         newTickers = await self.watch_public_multiple(symbols, 'ticker')
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[newTickers['symbol']] = newTickers
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -144,7 +144,7 @@ class upbit(ccxt.async_support.upbit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         orderbook = await self.watch_public_multiple([symbol], 'orderbook')
         return orderbook.limit()
@@ -312,10 +312,10 @@ class upbit(ccxt.async_support.upbit):
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
-        wsOptions: dict = self.safe_dict(self.options, 'ws', {})
+        wsOptions = self.safe_dict(self.options, 'ws', {})
         authenticated = self.safe_string(wsOptions, 'token')
         if authenticated is None:
-            auth: dict = {
+            auth = {
                 'access_key': self.apiKey,
                 'nonce': self.uuid(),
             }
@@ -416,7 +416,7 @@ class upbit(ccxt.async_support.upbit):
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def parse_ws_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
@@ -460,7 +460,7 @@ class upbit(ccxt.async_support.upbit):
         status = self.parse_ws_order_status(self.safe_string(order, 'state'))
         marketId = self.safe_string(order, 'code')
         market = self.safe_market(marketId, market)
-        fee: NullableDict = None
+        fee = None
         feeCost = self.safe_string(order, 'paid_fee')
         if feeCost is not None:
             fee = {
@@ -502,7 +502,7 @@ class upbit(ccxt.async_support.upbit):
         timestamp = self.parse8601(self.safe_string(trade, 'trade_timestamp'))
         marketId = self.safe_string(trade, 'code')
         market = self.safe_market(marketId, market)
-        fee: NullableDict = None
+        fee = None
         feeCost = self.safe_string(trade, 'paid_fee')
         if feeCost is not None:
             fee = {
@@ -621,7 +621,7 @@ class upbit(ccxt.async_support.upbit):
         client.resolve(self.balance, messageHash)
 
     def handle_message(self, client: Client, message):
-        methods: dict = {
+        methods = {
             'ticker': self.handle_ticker,
             'orderbook': self.handle_order_book,
             'trade': self.handle_trades,

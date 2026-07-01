@@ -9,6 +9,7 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
  * @class Exchange
  */
 export default class Exchange {
+    static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
     api: Dictionary<any>;
@@ -302,7 +303,6 @@ export default class Exchange {
     loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
-    checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
     throttle(cost?: Num): any;
     initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
@@ -363,7 +363,7 @@ export default class Exchange {
     onConnected(client: any, message?: any): void;
     onError(client: any, error: any): void;
     onClose(client: any, error: any): void;
-    close(): Promise<any[]>;
+    close(cleanInstanceCache?: boolean): Promise<void>;
     loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: string): string[];
@@ -423,6 +423,8 @@ export default class Exchange {
     setLastRestRequestTimestamp(): void;
     setLastRequest(request: any): void;
     describe(): any;
+    cleanRestData(): void;
+    cleanWsData(): void;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionaryOrList: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
     safeBool(dictionaryOrList: any, key: IndexType, defaultValue?: boolean): boolean | undefined;

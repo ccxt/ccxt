@@ -9,7 +9,7 @@ public partial class derive : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "derive" },
-            { "name", "derive" },
+            { "name", "Derive" },
             { "countries", new List<object>() {} },
             { "version", "v1" },
             { "rateLimit", 50 },
@@ -125,9 +125,8 @@ public partial class derive : Exchange
                 { "1w", "1w" },
                 { "1M", "1M" },
             } },
-            { "hostname", "derive.xyz" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c" },
+                { "logo", "https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.lyra.finance/public" },
                     { "private", "https://api.lyra.finance/private" },
@@ -946,7 +945,7 @@ public partial class derive : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
         };
@@ -1072,7 +1071,7 @@ public partial class derive : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((string)this.numberToString(binaryMessageLength))));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
@@ -1135,14 +1134,14 @@ public partial class derive : Exchange
         object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         object postOnly = this.safeBool(parameters, "postOnly");
         object orderType = ((string)type).ToLower();
-        object orderSide = ((string)side).ToLower();
+        object orderSide = ((string)((string)side)).ToLower();
         object nonce = this.milliseconds();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         object signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object TRADE_MODULE_ADDRESS = ((bool) isTrue((sandboxMode))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
-        object priceString = this.numberToString(price);
+        object priceString = ((string)this.numberToString(price));
         object maxFee = null;
         var maxFeeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "max_fee");
         maxFee = ((IList<object>)maxFeeparametersVariable)[0];
@@ -1151,9 +1150,9 @@ public partial class derive : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a max_fee argument in params")) ;
         }
-        object maxFeeString = this.numberToString(maxFee);
-        object amountString = this.numberToString(amount);
-        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, isEqual(orderSide, "buy")}), keccak, "binary");
+        object maxFeeString = ((string)this.numberToString(maxFee));
+        object amountString = ((string)this.numberToString(amount));
+        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, isEqual(orderSide, "buy")}), keccak, "binary");
         object deriveWalletAddress = null;
         var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("createOrder", parameters);
         deriveWalletAddress = ((IList<object>)deriveWalletAddressparametersVariable)[0];
@@ -1289,7 +1288,7 @@ public partial class derive : Exchange
         object rawOrder = this.safeDict(result, "raw_data");
         if (isTrue(isEqual(rawOrder, null)))
         {
-            rawOrder = this.safeDict(result, "order");
+            rawOrder = this.safeDict(result, "order", new Dictionary<string, object>() {});
         }
         object order = this.parseOrder(rawOrder, market);
         ((IDictionary<string,object>)order)["type"] = type;
@@ -1324,17 +1323,17 @@ public partial class derive : Exchange
         object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         object postOnly = this.safeBool(parameters, "postOnly");
         object orderType = ((string)type).ToLower();
-        object orderSide = ((string)side).ToLower();
+        object orderSide = ((string)((string)side)).ToLower();
         object nonce = this.milliseconds();
         object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         // TODO: subaccount id / trade module address
         object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object TRADE_MODULE_ADDRESS = ((bool) isTrue((sandboxMode))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
-        object priceString = this.numberToString(price);
+        object priceString = ((string)this.numberToString(price));
         object maxFeeString = this.safeString(parameters, "max_fee", "0");
-        object amountString = this.numberToString(amount);
-        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, isEqual(orderSide, "buy")}), keccak, "binary");
+        object amountString = ((string)this.numberToString(amount));
+        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(getValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(getValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, isEqual(orderSide, "buy")}), keccak, "binary");
         object deriveWalletAddress = null;
         var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("editOrder", parameters);
         deriveWalletAddress = ((IList<object>)deriveWalletAddressparametersVariable)[0];
@@ -1451,7 +1450,7 @@ public partial class derive : Exchange
         //   }
         //
         object result = this.safeDict(response, "result");
-        object rawOrder = this.safeDict(result, "order");
+        object rawOrder = this.safeDict(result, "order", new Dictionary<string, object>() {});
         object order = this.parseOrder(rawOrder, market);
         return order;
     }
@@ -1553,7 +1552,7 @@ public partial class derive : Exchange
         object extendParams = new Dictionary<string, object>() {
             { "symbol", symbol },
         };
-        object order = this.safeDict(response, "result");
+        object order = this.safeDict(response, "result", new Dictionary<string, object>() {});
         if (isTrue(isByClientOrder))
         {
             ((IDictionary<string,object>)extendParams)["client_order_id"] = clientOrderIdExchangeSpecific;
@@ -1718,13 +1717,13 @@ public partial class derive : Exchange
         if (isTrue(!isEqual(page, null)))
         {
             object pagination = this.safeDict(data, "pagination");
-            object currentPage = this.safeInteger(pagination, "num_pages");
+            object currentPage = this.safeInteger(pagination, "num_pages", 0);
             if (isTrue(isGreaterThan(page, currentPage)))
             {
                 return new List<object>() {};
             }
         }
-        object orders = this.safeList(data, "orders");
+        object orders = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1802,7 +1801,7 @@ public partial class derive : Exchange
             { "gtc", "GTC" },
             { "post_only", "PO" },
         };
-        return this.safeString(timeInForces, timeInForce);
+        return this.safeString(timeInForces, ((string)timeInForce));
     }
 
     public virtual object parseOrderStatus(object status)
@@ -2124,7 +2123,7 @@ public partial class derive : Exchange
         if (isTrue(!isEqual(page, null)))
         {
             object pagination = this.safeDict(result, "pagination");
-            object currentPage = this.safeInteger(pagination, "num_pages");
+            object currentPage = this.safeInteger(pagination, "num_pages", 0);
             if (isTrue(isGreaterThan(page, currentPage)))
             {
                 return new List<object>() {};
@@ -2362,7 +2361,7 @@ public partial class derive : Exchange
         if (isTrue(!isEqual(page, null)))
         {
             object pagination = this.safeDict(result, "pagination");
-            object currentPage = this.safeInteger(pagination, "num_pages");
+            object currentPage = this.safeInteger(pagination, "num_pages", 0);
             if (isTrue(isGreaterThan(page, currentPage)))
             {
                 return new List<object>() {};
@@ -2548,7 +2547,7 @@ public partial class derive : Exchange
         //
         object currency = this.safeCurrency(code);
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object events = this.safeList(result, "events");
+        object events = this.safeList(result, "events", new List<object>() {});
         return this.parseTransactions(events, currency, since, limit, parameters);
     }
 
@@ -2600,7 +2599,7 @@ public partial class derive : Exchange
         //
         object currency = this.safeCurrency(code);
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object events = this.safeList(result, "events");
+        object events = this.safeList(result, "events", new List<object>() {});
         return this.parseTransactions(events, currency, since, limit, parameters);
     }
 
@@ -2654,7 +2653,7 @@ public partial class derive : Exchange
             { "settled", "ok" },
             { "reverted", "failed" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object handleDeriveSubaccountId(object methodName, object parameters)

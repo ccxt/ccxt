@@ -507,7 +507,7 @@ class novadax(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.publicGetMarketTicker(self.extend(request, params))
@@ -566,7 +566,7 @@ class novadax(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(data)):
             ticker = self.parse_ticker(data[i])
             symbol = ticker['symbol']
@@ -582,11 +582,11 @@ class novadax(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -668,7 +668,7 @@ class novadax(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_string_lower(trade, 'role')
         feeString = self.safe_string(trade, 'fee')
-        fee: dict = None
+        fee = None
         if feeString is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -706,7 +706,7 @@ class novadax(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -741,7 +741,7 @@ class novadax(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'unit': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -806,7 +806,7 @@ class novadax(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data', [])
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -868,7 +868,7 @@ class novadax(Exchange, ImplicitAPI):
         market = self.market(symbol)
         uppercaseType = type.upper()
         uppercaseSide = side.upper()
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': uppercaseSide,  # or SELL
             # "amount": self.amount_to_precision(symbol, amount),
@@ -897,7 +897,7 @@ class novadax(Exchange, ImplicitAPI):
             if uppercaseSide == 'SELL':
                 request['amount'] = self.amount_to_precision(symbol, amount)
             elif uppercaseSide == 'BUY':
-                quoteAmount: Str = None
+                quoteAmount = None
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number_2(params, 'cost', 'value')
@@ -955,7 +955,7 @@ class novadax(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'id': id,
         }
         response = self.privatePostOrdersCancel(self.extend(request, params))
@@ -983,7 +983,7 @@ class novadax(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'id': id,
         }
         response = self.privateGetOrdersGet(self.extend(request, params))
@@ -1024,7 +1024,7 @@ class novadax(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             # 'symbol': market['id'],
             # 'status': 'SUBMITTED,PROCESSING',  # SUBMITTED, PROCESSING, PARTIAL_FILLED, CANCELING, FILLED, CANCELED, REJECTED
             # 'fromId': '...',  # order id to begin with
@@ -1033,7 +1033,7 @@ class novadax(Exchange, ImplicitAPI):
             # 'toTimestamp': self.milliseconds(),
             # 'limit': limit,  # default 100, max 100
         }
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1080,7 +1080,7 @@ class novadax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'status': 'SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1097,7 +1097,7 @@ class novadax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'status': 'FILLED,CANCELED,REJECTED',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1116,11 +1116,11 @@ class novadax(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             'id': id,
         }
         response = self.privateGetOrdersFill(self.extend(request, params))
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         data = self.safe_value(response, 'data', [])
@@ -1148,7 +1148,7 @@ class novadax(Exchange, ImplicitAPI):
         return self.parse_trades(data, market, since, limit)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'SUBMITTED': 'open',
             'PROCESSING': 'open',
             'PARTIAL_FILLED': 'open',
@@ -1197,7 +1197,7 @@ class novadax(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(order, 'timestamp')
         average = self.safe_string(order, 'averagePrice')
         filled = self.safe_string(order, 'filledAmount')
-        fee: dict = None
+        fee = None
         feeCost = self.safe_number(order, 'filledFee')
         if feeCost is not None:
             fee = {
@@ -1250,7 +1250,7 @@ class novadax(Exchange, ImplicitAPI):
         # master-transfer-in = from master account to subaccount
         # master-transfer-out = from subaccount to master account
         type = 'master-transfer-in' if (fromAccount == 'main') else 'master-transfer-out'
-        request: dict = {
+        request = {
             'transferAmount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
             'subId': toAccount if (type == 'master-transfer-in') else fromAccount,
@@ -1297,7 +1297,7 @@ class novadax(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'SUCCESS': 'pending',
         }
         return self.safe_string(statuses, status, 'failed')
@@ -1318,7 +1318,7 @@ class novadax(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'code': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'wallet': address,
@@ -1385,7 +1385,7 @@ class novadax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        request: dict = {
+        request = {
             'type': 'coin_in',
         }
         return self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
@@ -1402,7 +1402,7 @@ class novadax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        request: dict = {
+        request = {
             'type': 'coin_out',
         }
         return self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
@@ -1420,14 +1420,14 @@ class novadax(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             # 'currency': currency['id'],
             # 'type': 'coin_in',  # 'coin_out'
             # 'direct': 'asc',  # 'desc'
             # 'size': limit,  # default 100
             # 'start': id,  # offset id
         }
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -1465,7 +1465,7 @@ class novadax(Exchange, ImplicitAPI):
         # FAIL the record failed
         parts = status.split(' ')
         status = self.safe_string(parts, 1, status)
-        statuses: dict = {
+        statuses = {
             'Pending': 'pending',
             'confirming': 'pending',
             'SUCCESS': 'ok',
@@ -1555,7 +1555,7 @@ class novadax(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
-        request: dict = {
+        request = {
             #  'orderId': id,  # Order ID, string
             #  'symbol': market['id'],  # The trading symbol, like BTC_BRL, string
             #  'fromId': fromId,  # Search fill id to begin with, string
@@ -1565,7 +1565,7 @@ class novadax(Exchange, ImplicitAPI):
             #  'limit': limit,  # The number of fills to return, default 100, max 100, string
             #  'accountId': subaccountId,  # Sub account ID, if not informed, the fills will be return under master account, string
         }
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1612,7 +1612,7 @@ class novadax(Exchange, ImplicitAPI):
                 'X-Nova-Access-Key': self.apiKey,
                 'X-Nova-Timestamp': timestamp,
             }
-            queryString: Str = None
+            queryString = None
             if method == 'POST':
                 body = self.json(query)
                 queryString = self.hash(self.encode(body), 'md5')

@@ -64,7 +64,7 @@ class bitopro(ccxt.async_support.bitopro):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if limit is not None:
             if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500) and (limit != 1000):
@@ -73,7 +73,7 @@ class bitopro(ccxt.async_support.bitopro):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'ORDER_BOOK' + ':' + symbol
-        endPart: Str = None
+        endPart = None
         if limit is None:
             endPart = market['id']
         else:
@@ -275,7 +275,7 @@ class bitopro(ccxt.async_support.bitopro):
             elif side == 'bid':
                 side = 'buy'
         amount = self.safe_string(trade, 'volume')
-        fee: NullableDict = None
+        fee = None
         feeAmount = self.safe_string(trade, 'fee')
         feeSymbol = self.safe_currency_code(self.safe_string(trade, 'feeCurrency'))
         if feeAmount is not None:
@@ -285,7 +285,7 @@ class bitopro(ccxt.async_support.bitopro):
                 'rate': None,
             }
         isMaker = self.safe_value(trade, 'isMaker')
-        takerOrMaker: Str = None
+        takerOrMaker = None
         if isMaker is not None:
             if isMaker:
                 takerOrMaker = 'maker'
@@ -367,7 +367,7 @@ class bitopro(ccxt.async_support.bitopro):
         })
         payload = self.string_to_base64(rawData)
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
-        defaultOptions: dict = {
+        defaultOptions = {
             'ws': {
                 'options': {
                     'headers': {},
@@ -377,7 +377,7 @@ class bitopro(ccxt.async_support.bitopro):
         # self.options = self.extend(defaultOptions, self.options)
         self.extend_exchange_options(defaultOptions)
         originalHeaders = self.options['ws']['options']['headers']
-        headers: dict = {
+        headers = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': self.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
@@ -426,7 +426,7 @@ class bitopro(ccxt.async_support.bitopro):
         timestamp = self.safe_integer(message, 'timestamp')
         datetime = self.safe_string(message, 'datetime')
         currencies = list(data.keys())
-        result: dict = {
+        result = {
             'info': data,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -444,7 +444,7 @@ class bitopro(ccxt.async_support.bitopro):
         client.resolve(self.balance, event)
 
     def handle_message(self, client: Client, message):
-        methods: dict = {
+        methods = {
             'TRADE': self.handle_trade,
             'TICKER': self.handle_ticker,
             'ORDER_BOOK': self.handle_order_book,

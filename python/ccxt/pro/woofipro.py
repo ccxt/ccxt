@@ -86,7 +86,7 @@ class woofipro(ccxt.async_support.woofipro):
             id = self.accountId
         url = self.urls['api']['ws']['public'] + '/' + id
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -101,13 +101,13 @@ class woofipro(ccxt.async_support.woofipro):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         name = 'orderbook'
         market = self.market(symbol)
         topic = market['id'] + '@' + name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -165,7 +165,7 @@ class woofipro(ccxt.async_support.woofipro):
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@' + name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -251,7 +251,7 @@ class woofipro(ccxt.async_support.woofipro):
         symbols = self.market_symbols(symbols)
         name = 'tickers'
         topic = name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -305,7 +305,7 @@ class woofipro(ccxt.async_support.woofipro):
         symbols = self.market_symbols(symbols)
         name = 'bbos'
         topic = name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -375,7 +375,7 @@ class woofipro(ccxt.async_support.woofipro):
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'kline'
         topic = market['id'] + '@' + name + '_' + interval
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -445,7 +445,7 @@ class woofipro(ccxt.async_support.woofipro):
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@trade'
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -529,11 +529,11 @@ class woofipro(ccxt.async_support.woofipro):
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         timestamp = self.safe_integer(trade, 'timestamp')
-        takerOrMaker: Str = None
+        takerOrMaker = None
         maker = self.safe_bool(trade, 'maker')
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'
-        fee: NullableDict = None
+        fee = None
         feeValue = self.safe_string(trade, 'fee')
         if feeValue is not None:
             fee = {
@@ -593,7 +593,7 @@ class woofipro(ccxt.async_support.woofipro):
                 parts = secret.split('ed25519:')
                 secret = parts[1]
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
-            request: dict = {
+            request = {
                 'event': event,
                 'params': {
                     'orderly_key': self.apiKey,
@@ -609,7 +609,7 @@ class woofipro(ccxt.async_support.woofipro):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.accountId
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -619,7 +619,7 @@ class woofipro(ccxt.async_support.woofipro):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.accountId
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -648,7 +648,7 @@ class woofipro(ccxt.async_support.woofipro):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -681,7 +681,7 @@ class woofipro(ccxt.async_support.woofipro):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -954,7 +954,7 @@ class woofipro(ccxt.async_support.woofipro):
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': 'position',
         }
@@ -1066,7 +1066,7 @@ class woofipro(ccxt.async_support.woofipro):
         contract = self.safe_string(position, 'symbol')
         market = self.safe_market(contract, market)
         size = self.safe_string(position, 'positionQty')
-        side: Str = None
+        side = None
         if Precise.string_gt(size, '0'):
             side = 'long'
         else:
@@ -1121,7 +1121,7 @@ class woofipro(ccxt.async_support.woofipro):
         await self.load_markets()
         topic = 'balance'
         messageHash = topic
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -1205,7 +1205,7 @@ class woofipro(ccxt.async_support.woofipro):
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
-        methods: dict = {
+        methods = {
             'ping': self.handle_ping,
             'pong': self.handle_pong,
             'subscribe': self.handle_subscribe,

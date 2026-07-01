@@ -58,7 +58,7 @@ export default class coinone extends coinoneRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -192,9 +192,9 @@ export default class coinone extends coinoneRest {
         const data = this.safeValue (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        this.tickers[(symbol as string)] = ticker;
         const messageHash = 'ticker:' + symbol;
-        client.resolve (this.tickers[symbol], messageHash);
+        client.resolve (this.tickers[(symbol as string)], messageHash);
     }
 
     parseWsTicker (ticker, market: Market = undefined): Ticker {
@@ -305,11 +305,11 @@ export default class coinone extends coinoneRest {
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
+        let stored = this.safeValue (this.trades, (symbol as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+            this.trades[(symbol as string)] = stored;
         }
         stored.append (trade);
         const messageHash = 'trade:' + symbol;

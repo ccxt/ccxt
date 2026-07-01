@@ -128,7 +128,7 @@ public class XtCore extends XtApi
             }} );
             put( "precisionMode", TICK_SIZE );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg" );
+                put( "logo", "https://github.com/user-attachments/assets/1f916564-6507-4549-af96-22837bb0a0c7" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "spot", "https://sapi.xt.com" );
                     put( "linear", "https://fapi.xt.com" );

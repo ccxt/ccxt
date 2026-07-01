@@ -397,7 +397,7 @@ class coinmetro(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'symbol')
         code = self.safe_currency_code(id)
         typeRaw = self.safe_string(rawCurrency, 'type')
-        type: Str = None
+        type = None
         if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20' or typeRaw == 'crypto':
             type = 'crypto'
         elif typeRaw == 'fiat':
@@ -458,7 +458,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result: List[Market] = []
+        result = []
         for i in range(0, len(response)):
             market = self.parse_market(response[i])
             # there are several broken(unavailable info) markets
@@ -531,8 +531,8 @@ class coinmetro(Exchange, ImplicitAPI):
         })
 
     def parse_market_id(self, marketId):
-        baseId: Str = None
-        quoteId: Str = None
+        baseId = None
+        quoteId = None
         currencyIds = self.safe_value(self.options, 'currencyIdsListForParseMarket', [])
         # Bubble sort by length(longest first)
         currencyIdsLength = len(currencyIds)
@@ -564,7 +564,7 @@ class coinmetro(Exchange, ImplicitAPI):
             if marketId.endswith('USD'):
                 baseId = marketId.replace('USD', '')
                 quoteId = 'USD'
-        result: dict = {
+        result = {
             'baseId': baseId,
             'quoteId': quoteId,
         }
@@ -576,7 +576,7 @@ class coinmetro(Exchange, ImplicitAPI):
         limits = self.safe_value(currency, 'limits', {})
         amountLimits = self.safe_value(limits, 'amount', {})
         minLimit = self.safe_number(amountLimits, 'min')
-        result: dict = {
+        result = {
             'precision': self.safe_number(currency, 'precision'),
             'minLimit': minLimit,
         }
@@ -598,11 +598,11 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        until: Int = None
+        until = None
         if since is not None:
             request['from'] = since
             if limit is not None:
@@ -671,7 +671,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if since is not None:
@@ -724,10 +724,10 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if since is not None:
             request['since'] = since
         else:
@@ -827,11 +827,11 @@ class coinmetro(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.publicGetExchangeBookPair(self.extend(request, params))
@@ -865,7 +865,7 @@ class coinmetro(Exchange, ImplicitAPI):
         book = self.safe_value(response, 'book', {})
         rawBids = self.safe_value(book, 'bid', {})
         rawAsks = self.safe_value(book, 'ask', {})
-        rawOrderbook: dict = {
+        rawOrderbook = {
             'bids': rawBids,
             'asks': rawAsks,
         }
@@ -945,7 +945,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         latestPrices = self.safe_value(response, 'latestPrices', [])
         twentyFourHInfos = self.safe_value(response, '24hInfo', [])
-        tickersObject: dict = {}
+        tickersObject = {}
         # merging info from two lists into one
         for i in range(0, len(latestPrices)):
             latestPrice = latestPrices[i]
@@ -1066,7 +1066,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result: dict = {
+        result = {
             'info': balances,
         }
         for i in range(0, len(balances)):
@@ -1093,13 +1093,13 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
-        request: dict = {}
+        request = {}
         if since is not None:
             request['since'] = since
         else:
             # self endpoint accepts empty since param
             request['since'] = ''
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
         response = await self.privateGetUsersWalletsHistorySince(self.extend(request, params))
@@ -1217,7 +1217,7 @@ class coinmetro(Exchange, ImplicitAPI):
             'currency': None,
         }
         amount = self.safe_string(item, 'amount')
-        direction: Str = None
+        direction = None
         if amount is not None:
             if Precise.string_lt(amount, '0'):
                 direction = 'out'
@@ -1246,8 +1246,8 @@ class coinmetro(Exchange, ImplicitAPI):
         descriptionArray = []
         if description is not None:
             descriptionArray = description.split(' ')
-        type: Str = None
-        referenceId: Str = None
+        type = None
+        referenceId = None
         length = len(descriptionArray)
         if length > 1:
             type = self.parse_ledger_entry_type(descriptionArray[0])
@@ -1258,7 +1258,7 @@ class coinmetro(Exchange, ImplicitAPI):
         return [type, referenceId]
 
     def parse_ledger_entry_type(self, type):
-        types: dict = {
+        types = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
             'Order': 'trade',
@@ -1290,10 +1290,10 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
         }
         request['orderType'] = type
-        formattedAmount: Str = None
+        formattedAmount = None
         if amount is not None:
             formattedAmount = self.amount_to_precision(symbol, amount)
         cost = self.safe_value(params, 'cost')
@@ -1304,7 +1304,7 @@ class coinmetro(Exchange, ImplicitAPI):
             elif (price is not None) and (amount is not None):
                 costString = Precise.string_mul(self.number_to_string(price), self.number_to_string(formattedAmount))
                 cost = self.parse_to_numeric(costString)
-        precisedCost: Str = None
+        precisedCost = None
         if cost is not None:
             precisedCost = self.cost_to_precision(symbol, cost)
         if side == 'sell':
@@ -1375,7 +1375,7 @@ class coinmetro(Exchange, ImplicitAPI):
         return request
 
     def encode_order_time_in_force(self, timeInForce):
-        timeInForceTypes: dict = {
+        timeInForceTypes = {
             'GTC': 1,
             'IOC': 2,
             'GTD': 3,
@@ -1397,14 +1397,14 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'orderID': id,
         }
         marginMode = None
         params, params = self.handle_margin_mode_and_params('cancelOrder', params)
         isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, 'margin')
-        response: NullableDict = None
+        response = None
         if isMargin or (marginMode is not None):
             response = await self.privatePostExchangeOrdersCloseOrderID(self.extend(request, params))
         else:
@@ -1447,7 +1447,7 @@ class coinmetro(Exchange, ImplicitAPI):
         orderId = self.safe_string(params, 'orderId')
         if orderId is None:
             raise ArgumentsRequired(self.id + ' closePosition() requires a orderId parameter')
-        request: dict = {
+        request = {
             'orderID': orderId,
         }
         response = await self.privatePostExchangeOrdersCloseOrderID(self.extend(request, params))
@@ -1495,7 +1495,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         response = await self.privateGetExchangeOrdersActive(params)
@@ -1518,10 +1518,10 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if since is not None:
             request['since'] = since
         response = await self.privateGetExchangeOrdersHistorySince(self.extend(request, params))
@@ -1539,7 +1539,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request: dict = {
+        request = {
             'orderID': id,
         }
         response = await self.privateGetExchangeOrdersStatusOrderID(self.extend(request, params))
@@ -1759,7 +1759,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'creationTime')
         isCanceled = self.safe_value(order, 'canceled')
-        status: Str = None
+        status = None
         if isCanceled is True:
             if timestamp is None:
                 timestamp = self.safe_integer(order, 'completionTime')  # market orders with bad price gain IOC - we mark them as 'rejected'?
@@ -1783,13 +1783,13 @@ class coinmetro(Exchange, ImplicitAPI):
         sellingCurrencyId = self.safe_string(order, 'sellingCurrency', '')
         byuingIdPlusSellingId = buyingCurrencyId + sellingCurrencyId
         sellingIdPlusBuyingId = sellingCurrencyId + buyingCurrencyId
-        side: Str = None
-        marketId: Str = None
+        side = None
+        marketId = None
         baseAmount = buyingQty
         quoteAmount = buyingQty
-        filled: Str = None
-        cost: Str = None
-        feeInBaseOrQuote: Str = None
+        filled = None
+        cost = None
+        feeInBaseOrQuote = None
         marketsById = self.index_by(self.markets, 'id')
         if self.safe_value(marketsById, byuingIdPlusSellingId) is not None:
             side = 'buy'
@@ -1805,11 +1805,11 @@ class coinmetro(Exchange, ImplicitAPI):
             filled = soldQty
             cost = boughtQty
             feeInBaseOrQuote = 'quote'
-        price: Str = None
+        price = None
         if (baseAmount is not None) and (quoteAmount is not None):
             price = Precise.string_div(quoteAmount, baseAmount)
         market = self.safe_market(marketId, market)
-        fee: NullableDict = None
+        fee = None
         feeCost = self.safe_string(order, 'fees')
         if (feeCost is not None) and (feeInBaseOrQuote is not None):
             fee = {
@@ -1872,7 +1872,7 @@ class coinmetro(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         currencyId = currency['id']
-        request: dict = {}
+        request = {}
         request[currencyId] = self.currency_to_precision(code, amount)
         response = await self.privatePutUsersMarginCollateral(self.extend(request, params))
         #

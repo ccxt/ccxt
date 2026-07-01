@@ -14,6 +14,19 @@
     "methods": {
         "cancelOrderWithClientOrderId": [
             {
+                "description": "cancel inverse swap conditional order by client order id",
+                "method": "cancelOrderWithClientOrderId",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1782213044315&symbol=ETHUSD_PERP&clientAlgoId=Q2ayA6g41m6hGYhnZANh5E&recvWindow=10000&signature=175d59e6ede5d9d423a708f6c130a1b9a6dd50c252419644c6a6964fd5f3c289",
+                "input": [
+                    "Q2ayA6g41m6hGYhnZANh5E",
+                    "ETH/USD:ETH",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "cancel order with clientOrderId",
                 "method": "cancelOrderWithClientOrderId",
                 "url": "https://demo-fapi.binance.com/fapi/v1/order?timestamp=1762259428215&symbol=LTCUSDT&origClientOrderId=myid123&recvWindow=10000&signature=daf4d5fb32379b627965552800d412f40252494e7bd40bafab3cef56435378a5",
@@ -53,6 +66,38 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "Swap inverse market sell with stopLossPrice",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "stopLossPrice": 1000
+                    }
+                ],
+                "output": "timestamp=1782212047354&symbol=ETHUSD_PERP&side=SELL&newClientOrderId=x-xcKtGhcu816e735bb2af4b22b03c68&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=1000&algoType=CONDITIONAL&recvWindow=10000&signature=4c24bc0d0b5f62ac7c86a3f27622211990b457bde44e8ba598bc8044d770a2e7"
+            },
+            {
+                "description": "Swap inverse limit sell with takeProfitPrice (type 2)",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH",
+                    "limit",
+                    "sell",
+                    1,
+                    2500,
+                    {
+                        "takeProfitPrice": 2600
+                    }
+                ],
+                "output": "timestamp=1782211898027&symbol=ETHUSD_PERP&side=SELL&newClientOrderId=x-xcKtGhcu18b6588661a442c2a47097&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=2500&triggerPrice=2600&algoType=CONDITIONAL&recvWindow=10000&signature=2892c8bde1aa58603b1747ebc11638aa97bffb35ea45678ce25a1a0d50436d87"
+            },
             {
                 "description": "spot +selfTradePrevention +iceberg",
                 "method": "createOrder",
@@ -827,6 +872,19 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancel inverse swap conditional order by id",
+                "method": "cancelOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder?timestamp=1782212844546&symbol=ETHUSD_PERP&algoId=1000000114315066&recvWindow=10000&signature=8cacd463296502fd6f6aa77dedc90b13bc4b15329ad957344bfab96124630a08",
+                "input": [
+                    1000000114315066,
+                    "ETH/USD:ETH",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Swap cancelOrder",
                 "method": "cancelOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order?timestamp=1699382897679&symbol=LTCUSDT&orderId=652509009&recvWindow=10000&signature=02d0287d26b9b0603902e299840941f6738f9fbb3f497390b29d7077c42c318b",
@@ -1551,6 +1609,20 @@
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "Inverse swap conditional open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://demo-dapi.binance.com/dapi/v1/openAlgoOrders?timestamp=1782212489051&symbol=ETHUSD_PERP&recvWindow=10000&signature=39a95cad2f9f060dea469731b5207adf30f60c4916f95e91496cdc40b7d1fe3e",
+                "input": [
+                    "ETH/USD:ETH",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Swap open orders",
                 "method": "fetchOpenOrders",
@@ -3836,15 +3908,15 @@
                 "method": "withdraw",
                 "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
                 "input": [
-                  "ASR",
+                  "USDT",
                   10.34,
                   "xyz",
                   null,
                   {
-                    "network": "CHZ"
+                    "network": "TRX"
                   }
                 ],
-                "output": "timestamp=1718724487672&coin=ASR&address=xyz&amount=10&network=CHZ&recvWindow=10000&signature=signature"
+                "output": "timestamp=1718724487672&coin=USDT&address=xyz&amount=10.34&network=TRX&recvWindow=10000&signature=signature"
             }
         ],
         "fetchCurrencies": [

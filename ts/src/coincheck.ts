@@ -17,7 +17,7 @@ export default class coincheck extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coincheck',
-            'name': 'coincheck',
+            'name': 'Coincheck',
             'countries': [ 'JP', 'ID' ],
             'rateLimit': 1500,
             'has': {
@@ -91,6 +91,7 @@ export default class coincheck extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -123,6 +124,7 @@ export default class coincheck extends Exchange {
                 'public': {
                     'get': [
                         'exchange/orders/rate',
+                        'exchange_status',
                         'order_books',
                         'rate/{pair}',
                         'ticker',
@@ -136,7 +138,9 @@ export default class coincheck extends Exchange {
                         'accounts/leverage_balance',
                         'bank_accounts',
                         'deposit_money',
+                        'exchange/orders/{id}',
                         'exchange/orders/opens',
+                        'exchange/orders/cancel_status',
                         'exchange/orders/transactions',
                         'exchange/orders/transactions_pagination',
                         'exchange/leverage/positions',
@@ -282,6 +286,54 @@ export default class coincheck extends Exchange {
 
     /**
      * @method
+     * @name coincheck#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://coincheck.com/documents/exchange/api#status-retrieval
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    async fetchStatus (params = {}): Promise<Dict> {
+        const response = await this.publicGetExchangeStatus (params);
+        //
+        //     {
+        //         "exchange_status": [
+        //             {
+        //                 "pair": "btc_jpy",
+        //                 "status": "available",
+        //                 "timestamp": 1782787596,
+        //                 "availability": {
+        //                     "order": true,
+        //                     "market_order": true,
+        //                     "cancel": true
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const exchangeStatuses = this.safeList (response, 'exchange_status', []);
+        let status = 'ok';
+        let updated = undefined;
+        for (let i = 0; i < exchangeStatuses.length; i++) {
+            const exchangeStatus = exchangeStatuses[i];
+            const rawStatus = this.safeString (exchangeStatus, 'status');
+            if (updated === undefined) {
+                updated = this.safeTimestamp (exchangeStatus, 'timestamp');
+            }
+            if (rawStatus !== 'available') {
+                status = 'maintenance';
+            }
+        }
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+
+    /**
+     * @method
      * @name coincheck#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://coincheck.com/documents/exchange/api#order-transactions-pagination
@@ -379,7 +431,7 @@ export default class coincheck extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -515,8 +567,8 @@ export default class coincheck extends Exchange {
                 takerOrMaker = 'maker';
             }
             const funds = this.safeValue (trade, 'funds', {});
-            amountString = this.safeString (funds, baseId);
-            costString = this.safeString (funds, quoteId);
+            amountString = this.safeString (funds, (baseId as string));
+            costString = this.safeString (funds, (quoteId as string));
             fee = {
                 'currency': this.safeString (trade, 'fee_currency'),
                 'cost': this.safeString (trade, 'fee'),
@@ -557,7 +609,7 @@ export default class coincheck extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.market ((symbol as string));
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -656,10 +708,14 @@ export default class coincheck extends Exchange {
         //
         const fees = this.safeValue (response, 'exchange_fees', {});
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (fees, market['id'], {});
+            const fee = this.safeValue (fees, market['id'] as string, {});
             result[symbol] = {
                 'info': fee,
                 'symbol': symbol,
@@ -848,7 +904,7 @@ export default class coincheck extends Exchange {
             'confirmed': 'pending',
             'received': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

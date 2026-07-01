@@ -146,7 +146,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                     put( "public", "https://api-public.sandbox.exchange.coinbase.com" );
                     put( "private", "https://api-public.sandbox.exchange.coinbase.com" );
                 }} );
-                put( "logo", "https://github.com/ccxt/ccxt/assets/43336371/34a65553-88aa-4a38-a714-064bd228b97e" );
+                put( "logo", "https://github.com/user-attachments/assets/a99ef849-a4b2-4dd4-87fe-458ef17db7fd" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.{hostname}" );
                     put( "private", "https://api.{hostname}" );
@@ -531,7 +531,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 Object market = Helpers.GetValue(response, i);
                 Object id = this.safeString(market, "id");
-                var baseIdquoteIdVariable = Helpers.split(id, "-");
+                var baseIdquoteIdVariable = Helpers.split(((String)id), "-");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
@@ -707,7 +707,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1162,9 +1162,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object maker = this.safeNumber(response, "maker_fee_rate");
             Object taker = this.safeNumber(response, "taker_fee_rate");
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(((Object)this.symbols), i);
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -1315,7 +1315,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             put( "canceled", "canceled" );
             put( "canceling", "open" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -2078,7 +2078,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     Object account_id = this.safeString(Helpers.GetValue(response, i), "account_id");
-                    Object account = this.safeValue(this.accountsById, account_id);
+                    Object account = this.safeValue(this.accountsById, ((String)account_id));
                     Object codeInner = this.safeString(account, "code");
                     Helpers.addElementToObject(Helpers.GetValue(response, i), "currency", codeInner);
                 }

@@ -607,13 +607,13 @@ export default class bitfinex extends Exchange {
     async fetchMarkets(params = {}) {
         const labels = [
             'pub:info:pair',
-            // [  ['AAVE:USD',      [null,null,null,"0.02","5000.0",null,null,null,null,null,null,null,] ], ... ]
+            // sample: 'AAVE:USD' with fields null,null,null,"0.02","5000.0",null,null,null,null,null,null,null
             'pub:info:pair:futures',
-            // [  ['AAVEF0:USTF0',  [null,null,null,"0.02","5000.0",null,null,null,0.01,0.005,] ]]
+            // sample: 'AAVEF0:USTF0' with fields null,null,null,"0.02","5000.0",null,null,null,0.01,0.005
             'pub:list:pair:securities',
-            // ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"]]
+            // sample: "ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"
             'pub:list:pair:margin',
-            // [ 'ADABTC', 'AVAX:BTC', ... ] // delimiter inconsistency
+            // sample: 'ADABTC', 'AVAX:BTC', ... // delimiter inconsistency
         ];
         const config = labels.join(',');
         const request = {
@@ -1134,7 +1134,7 @@ export default class bitfinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1948,7 +1948,7 @@ export default class bitfinex extends Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const cid = this.safeValue2(params, 'cid', 'clientOrderId'); // client order id
-        let request = undefined;
+        let request;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2116,7 +2116,7 @@ export default class bitfinex extends Exchange {
         await this.loadMarkets();
         const request = {};
         let market = undefined;
-        let response = undefined;
+        let response;
         if (symbol === undefined) {
             response = await this.privatePostAuthROrders(this.extend(request, params));
         }
@@ -2200,7 +2200,7 @@ export default class bitfinex extends Exchange {
         }
         [request, params] = this.handleUntilOption('end', request, params);
         let market = undefined;
-        let response = undefined;
+        let response;
         if (symbol === undefined) {
             response = await this.privatePostAuthROrdersHist(this.extend(request, params));
         }
@@ -2308,7 +2308,7 @@ export default class bitfinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 25, max 1000
         }
-        let response = undefined;
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
@@ -2693,7 +2693,7 @@ export default class bitfinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000
         }
-        let response = undefined;
+        let response;
         if (code !== undefined) {
             currency = this.currency(code);
             request['currency'] = currency['id'];
@@ -3108,7 +3108,7 @@ export default class bitfinex extends Exchange {
             request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        let response = undefined;
+        let response;
         if (code !== undefined) {
             currency = this.currency(code);
             request['currency'] = currency['id'];
@@ -3774,7 +3774,7 @@ export default class bitfinex extends Exchange {
             'id': [this.parseToNumeric(id)],
         };
         let market = undefined;
-        let response = undefined;
+        let response;
         if (symbol === undefined) {
             response = await this.privatePostAuthROrders(this.extend(request, params));
         }

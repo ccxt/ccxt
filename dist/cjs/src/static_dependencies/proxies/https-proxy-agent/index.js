@@ -46,6 +46,7 @@ var assert__default = /*#__PURE__*/_interopDefaultLegacy(assert);
  * the connection to the proxy server has been established.
  */
 class HttpsProxyAgent extends index.Agent {
+    static { this.protocols = ['http', 'https']; }
     get secureProxy() {
         return isHTTPS(this.proxy.protocol);
     }
@@ -155,7 +156,6 @@ class HttpsProxyAgent extends index.Agent {
         return fakeSocket;
     }
 }
-HttpsProxyAgent.protocols = ['http', 'https'];
 function resume(socket) {
     socket.resume();
 }

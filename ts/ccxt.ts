@@ -40,9 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.59';
-
-(Exchange as any).ccxtVersion = version
+const version = '4.5.63';
 
 //-----------------------------------------------------------------------------
 
@@ -108,6 +106,7 @@ import extended from  './src/extended.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
+import gateeu from  './src/gateeu.js'
 import gemini from  './src/gemini.js'
 import grvt from  './src/grvt.js'
 import hashkey from  './src/hashkey.js'
@@ -121,6 +120,7 @@ import indodax from  './src/indodax.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
+import kucoineu from  './src/kucoineu.js'
 import kucoinfutures from  './src/kucoinfutures.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
@@ -198,6 +198,7 @@ import dydxPro from  './src/pro/dydx.js'
 import exmoPro from  './src/pro/exmo.js'
 import extendedPro from  './src/pro/extended.js'
 import gatePro from  './src/pro/gate.js'
+import gateeuPro from  './src/pro/gateeu.js'
 import geminiPro from  './src/pro/gemini.js'
 import grvtPro from  './src/pro/grvt.js'
 import hashkeyPro from  './src/pro/hashkey.js'
@@ -209,6 +210,7 @@ import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
 import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
+import kucoineuPro from  './src/pro/kucoineu.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lbankPro from  './src/pro/lbank.js'
 import lighterPro from  './src/pro/lighter.js'
@@ -297,6 +299,7 @@ const exchanges = {
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
     'gate':                   gate,
+    'gateeu':                 gateeu,
     'gemini':                 gemini,
     'grvt':                   grvt,
     'hashkey':                hashkey,
@@ -310,6 +313,7 @@ const exchanges = {
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
+    'kucoineu':               kucoineu,
     'kucoinfutures':          kucoinfutures,
     'latoken':                latoken,
     'lbank':                  lbank,
@@ -387,6 +391,7 @@ const pro = {
     'exmo':                   exmoPro,
     'extended':               extendedPro,
     'gate':                   gatePro,
+    'gateeu':                 gateeuPro,
     'gemini':                 geminiPro,
     'grvt':                   grvtPro,
     'hashkey':                hashkeyPro,
@@ -398,6 +403,7 @@ const pro = {
     'kraken':                 krakenPro,
     'krakenfutures':          krakenfuturesPro,
     'kucoin':                 kucoinPro,
+    'kucoineu':               kucoineuPro,
     'kucoinfutures':          kucoinfuturesPro,
     'lbank':                  lbankPro,
     'lighter':                lighterPro,
@@ -630,6 +636,7 @@ export {
     fmfwio,
     foxbit,
     gate,
+    gateeu,
     gemini,
     grvt,
     hashkey,
@@ -643,6 +650,7 @@ export {
     kraken,
     krakenfutures,
     kucoin,
+    kucoineu,
     kucoinfutures,
     latoken,
     lbank,

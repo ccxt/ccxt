@@ -126,7 +126,7 @@ class htx extends htx$1["default"] {
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfers': undefined,
+                'fetchTransfers': true,
                 'fetchWithdrawAddresses': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
@@ -451,6 +451,8 @@ class htx extends htx$1["default"] {
                             'v1/cross-margin/loan-orders': 1,
                             'v1/cross-margin/accounts/balance': 1,
                             'v2/account/repayment': 5,
+                            // Universal Transfer
+                            'v5/account/universal_transfer_records': 4, // 5 requests per 2 seconds
                             // Stable Coin Exchange
                             'v1/stable-coin/quote': 1,
                             'v1/stable_coin/exchange_rate': 1,
@@ -579,7 +581,7 @@ class htx extends htx$1["default"] {
                             'swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/swap_estimated_rate_kline': 1,
                             'index/market/history/swap_basis': 1,
-                            // Swap Market Data interface
+                            // Linear Swap Market Data interface
                             'linear-swap-api/v1/swap_contract_info': 1,
                             'linear-swap-api/v1/swap_index': 1,
                             'linear-swap-api/v1/swap_query_elements': 1,
@@ -593,7 +595,6 @@ class htx extends htx$1["default"] {
                             'v2/linear-swap-ex/market/detail/batch_merged': 1,
                             'linear-swap-ex/market/trade': 1,
                             'linear-swap-ex/market/history/trade': 1,
-                            'linear-swap-api/v1/swap_risk_info': 1,
                             'swap-api/v1/linear-swap-api/v1/swap_insurance_fund': 1,
                             'linear-swap-api/v1/swap_adjustfactor': 1,
                             'linear-swap-api/v1/swap_cross_adjustfactor': 1,
@@ -601,11 +602,8 @@ class htx extends htx$1["default"] {
                             'linear-swap-api/v1/swap_ladder_margin': 1,
                             'linear-swap-api/v1/swap_cross_ladder_margin': 1,
                             'linear-swap-api/v1/swap_api_state': 1,
-                            'linear-swap-api/v1/swap_cross_transfer_state': 1,
-                            'linear-swap-api/v1/swap_cross_trade_state': 1,
                             'linear-swap-api/v1/swap_elite_account_ratio': 1,
                             'linear-swap-api/v1/swap_elite_position_ratio': 1,
-                            'linear-swap-api/v1/swap_liquidation_orders': 1,
                             'linear-swap-api/v1/swap_settlement_records': 1,
                             'linear-swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/linear_swap_premium_index_kline': 1,
@@ -631,15 +629,7 @@ class htx extends htx$1["default"] {
                             // Swap Account Interface
                             'swap-api/v1/swap_sub_auth_list': 1,
                             'swap-api/v1/swap_api_trading_status': 1,
-                            // Swap Account Interface
-                            'linear-swap-api/v1/swap_sub_auth_list': 1,
-                            'linear-swap-api/v1/swap_api_trading_status': 1,
-                            'linear-swap-api/v1/swap_cross_position_side': 1,
-                            'linear-swap-api/v1/swap_position_side': 1,
-                            'linear-swap-api/v3/unified_account_info': 1,
-                            'linear-swap-api/v3/fix_position_margin_change_record': 1,
-                            'linear-swap-api/v3/swap_unified_account_type': 1,
-                            'linear-swap-api/v3/linear_swap_overview_account_info': 1,
+                            // Linear Swap Interface
                             'v5/account/asset_mode': 0.20834, // 48 requests per second = 1000ms / ( 100 * 0.20834)
                             'v5/account/balance': 0.20834,
                             'v5/account/bills': 0.20834,
@@ -777,49 +767,8 @@ class htx extends htx$1["default"] {
                             'swap-api/v1/swap_track_cancelall': 1,
                             'swap-api/v1/swap_track_openorders': 1,
                             'swap-api/v1/swap_track_hisorders': 1,
-                            // Swap Account Interface
-                            'linear-swap-api/v1/swap_lever_position_limit': 1,
-                            'linear-swap-api/v1/swap_cross_lever_position_limit': 1,
-                            'linear-swap-api/v1/swap_balance_valuation': 1,
-                            'linear-swap-api/v1/swap_sub_auth': 1,
-                            'linear-swap-api/v1/swap_sub_account_list': 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_list': 1,
-                            'linear-swap-api/v1/swap_sub_account_info_list': 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_info_list': 1,
-                            'linear-swap-api/v1/swap_sub_account_info': 1,
-                            'linear-swap-api/v1/swap_cross_sub_account_info': 1,
-                            'linear-swap-api/v1/swap_sub_position_info': 1,
-                            'linear-swap-api/v1/swap_cross_sub_position_info': 1,
-                            'linear-swap-api/v1/swap_financial_record': 1,
-                            'linear-swap-api/v1/swap_financial_record_exact': 1,
-                            'linear-swap-api/v1/swap_user_settlement_records': 1,
-                            'linear-swap-api/v1/swap_cross_user_settlement_records': 1,
-                            'linear-swap-api/v1/swap_available_level_rate': 1,
-                            'linear-swap-api/v1/swap_cross_available_level_rate': 1,
-                            'linear-swap-api/v1/swap_order_limit': 1,
-                            'linear-swap-api/v1/swap_fee': 1,
-                            'linear-swap-api/v1/swap_transfer_limit': 1,
-                            'linear-swap-api/v1/swap_cross_transfer_limit': 1,
-                            'linear-swap-api/v1/swap_position_limit': 1,
-                            'linear-swap-api/v1/swap_cross_position_limit': 1,
-                            'linear-swap-api/v1/swap_master_sub_transfer': 1,
-                            'linear-swap-api/v1/swap_master_sub_transfer_record': 1,
-                            'linear-swap-api/v1/swap_transfer_inner': 1,
-                            'linear-swap-api/v3/swap_financial_record': 1,
-                            'linear-swap-api/v3/swap_financial_record_exact': 1,
-                            // Swap Trade Interface
-                            'linear-swap-api/v1/swap_cross_matchresults': 1,
-                            'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
-                            'linear-swap-api/v1/linear-cancel-after': 1,
-                            'linear-swap-api/v3/swap_cross_matchresults': 1,
-                            'linear-swap-api/v3/swap_cross_matchresults_exact': 1,
-                            'linear-swap-api/v3/fix_position_margin_change': 1,
-                            'linear-swap-api/v3/swap_switch_account_type': 1,
-                            'linear-swap-api/v3/linear_swap_fee_switch': 1,
-                            // Swap Strategy Order Interface
-                            'linear-swap-api/v1/swap_relation_tpsl_order': 1,
-                            'linear-swap-api/v1/swap_cross_relation_tpsl_order': 1,
-                            'v5/account/asset_mode': 100, // 0.1 requests per second = 1000ms / ( 100 * 100)
+                            // Linear Swap Interface
+                            'v5/account/asset_mode': 100, // 0.1 requests per second = 1000ms / (100 * 100)
                             'v5/trade/order': 0.41679,
                             'v5/trade/batch_orders': 0.41679,
                             'v5/trade/cancel_order': 0.41679,
@@ -1166,6 +1115,9 @@ class htx extends htx$1["default"] {
                     'grid-trading': 'grid-trading',
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
+                    'linear-swap': 'swap',
+                    'swap': 'swap',
+                    'futures': 'future',
                 },
                 'typesByAccount': {
                     'pro': 'spot',
@@ -2573,7 +2525,7 @@ class htx extends htx$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3592,29 +3544,32 @@ class htx extends htx$1["default"] {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] linear or future
-     * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {string} [params.type] spot, margin, future or swap
+     * @param {string} [params.subType] linear or inverse
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
+        let isUnifiedAccount = undefined;
+        [isUnifiedAccount, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'unified', 'uta', false);
+        if (isUnifiedAccount) {
+            throw new errors.NotSupported(this.id + ' fetchBalance() unified account has been deprecated on htx');
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let subType = undefined;
-        let isUnifiedAccount = undefined;
         let isMultiAssetMode = undefined;
         [subType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
-        [isUnifiedAccount, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'unified', 'uta', false);
         [isMultiAssetMode, params] = this.handleOptionAndParams(params, 'fetchBalance', 'multiAssetMode', false);
         const request = {};
         const spot = (type === 'spot');
         const future = (type === 'future');
+        const swap = (type === 'swap');
         const inverse = (subType === 'inverse');
         const linear = (subType === 'linear');
         let marginMode = undefined;
@@ -3623,7 +3578,7 @@ class htx extends htx$1["default"] {
         const cross = (marginMode === 'cross');
         const margin = (type === 'margin') || (spot && (cross || isolated));
         let response = undefined;
-        if (isMultiAssetMode) {
+        if (isMultiAssetMode || (linear && (swap || future))) {
             response = await this.contractPrivateGetV5AccountBalance(this.extend(request, params));
         }
         else if (spot || margin) {
@@ -3641,12 +3596,6 @@ class htx extends htx$1["default"] {
                 request['account-id'] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, params));
             }
-        }
-        else if (linear) {
-            response = await this.contractPrivateGetV5AccountBalance(this.extend(request, params));
-        }
-        else if (isUnifiedAccount) {
-            response = await this.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(this.extend(request, params));
         }
         else if (inverse) {
             if (future) {
@@ -3800,14 +3749,15 @@ class htx extends htx$1["default"] {
         const finalResponse = response;
         let result = { 'info': finalResponse };
         const data = this.safeValue(response, 'data');
-        if (isMultiAssetMode) {
+        if (isMultiAssetMode || (linear && (swap || future))) {
             const details = this.safeList(data, 'details', []);
             for (let i = 0; i < details.length; i++) {
                 const balance = details[i];
                 const currencyId = this.safeString(balance, 'currency');
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
-                account['free'] = this.safeString(balance, 'withdraw_available');
+                account['free'] = this.safeString(balance, 'available_margin');
+                account['total'] = this.safeString(balance, 'equity');
                 result[code] = account;
             }
             result = this.safeBalance(result);
@@ -3837,46 +3787,6 @@ class htx extends htx$1["default"] {
                     result[code] = this.parseMarginBalanceHelper(balance, code, result);
                 }
                 result = this.safeBalance(result);
-            }
-        }
-        else if (linear) {
-            const details = this.safeList(data, 'details', []);
-            for (let i = 0; i < details.length; i++) {
-                const balance = details[i];
-                const currencyId = this.safeString(balance, 'currency');
-                const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['free'] = this.safeString(balance, 'withdraw_available');
-                result[code] = account;
-            }
-            result = this.safeBalance(result);
-        }
-        else if (isUnifiedAccount) {
-            for (let i = 0; i < data.length; i++) {
-                const entry = data[i];
-                const marginAsset = this.safeString(entry, 'margin_asset');
-                const currencyCode = this.safeCurrencyCode(marginAsset);
-                if (isolated) {
-                    const isolated_swap = this.safeValue(entry, 'isolated_swap', {});
-                    for (let j = 0; j < isolated_swap.length; j++) {
-                        const balance = isolated_swap[j];
-                        const marketId = this.safeString(balance, 'contract_code');
-                        const subBalance = {
-                            'code': currencyCode,
-                            'free': this.safeNumber(balance, 'margin_available'),
-                        };
-                        const symbol = this.safeSymbol(marketId);
-                        result[symbol] = subBalance;
-                        result = this.safeBalance(result);
-                    }
-                }
-                else {
-                    const account = this.account();
-                    account['free'] = this.safeString(entry, 'margin_static');
-                    account['used'] = this.safeString(entry, 'margin_frozen');
-                    result[currencyCode] = account;
-                    result = this.safeBalance(result);
-                }
             }
         }
         else if (inverse) {
@@ -7088,18 +6998,52 @@ class htx extends htx$1["default"] {
         //         "status": "ok"
         //     }
         //
-        const id = this.safeString(transfer, 'data');
-        const code = this.safeCurrencyCode(undefined, currency);
+        // fetchTransfers
+        //
+        //     {
+        //         "id": 12345,
+        //         "transfer_id": "12345",
+        //         "amount": "10",
+        //         "currency": "USDT",
+        //         "status": "success",
+        //         "from_account_type": "spot",
+        //         "to_account_type": "margin",
+        //         "from_asset_type": "",
+        //         "to_asset_type": "ETHUSDT",
+        //         "transfer_time": 1770357494000
+        //     }
+        //
+        const accountsById = this.safeDict(this.options, 'accountsById', {});
+        const id = this.safeString2(transfer, 'transfer_id', 'data');
+        const currencyId = this.safeString(transfer, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        const amount = this.safeNumber(transfer, 'amount');
+        const timestamp = this.safeInteger(transfer, 'transfer_time');
+        const fromAccountRaw = this.safeString(transfer, 'from_account_type');
+        const toAccountRaw = this.safeString(transfer, 'to_account_type');
+        const fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
+        const toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
+        const statusRaw = this.safeString(transfer, 'status');
+        let status = undefined;
+        if (statusRaw === 'success') {
+            status = 'ok';
+        }
+        else if (statusRaw === 'pending') {
+            status = 'pending';
+        }
+        else if (statusRaw === 'failed') {
+            status = 'failed';
+        }
         return {
             'info': transfer,
             'id': id,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'currency': code,
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': undefined,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
         };
     }
     /**
@@ -7197,6 +7141,64 @@ class htx extends htx$1["default"] {
         //    }
         //
         return this.parseTransfer(response, currency);
+    }
+    /**
+     * @method
+     * @name htx#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.huobi.com/en-us/opend/newApiPages/
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.status] transfer status: 'success', 'pending', 'failed'
+     * @param {int} [params.from] the starting ID for pagination
+     * @param {string} [params.direct] pagination direction: 'prev' or 'next', default 'next'
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['end_time'] = until;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.spotPrivateGetV5AccountUniversalTransferRecords(this.extend(request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": 12345,
+        //                 "transfer_id": "12345",
+        //                 "amount": "10",
+        //                 "currency": "USDT",
+        //                 "status": "success",
+        //                 "from_account_type": "spot",
+        //                 "to_account_type": "margin",
+        //                 "from_asset_type": "",
+        //                 "to_asset_type": "ETHUSDT",
+        //                 "transfer_time": 1770357494000
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseTransfers(data, currency, since, limit);
     }
     /**
      * @method
@@ -7931,63 +7933,66 @@ class htx extends htx$1["default"] {
      * @method
      * @name htx#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          // coin-m swaps
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchFundingHistory', market, params);
-        const request = {
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchFundingHistory', market, params);
+        let request = {
             'type': '30,31',
         };
+        [request, params] = this.handleUntilOption('end_time', request, params);
         if (since !== undefined) {
-            request['start_date'] = since;
+            if (market['linear']) {
+                request['start_time'] = since;
+            }
+            else {
+                request['start_date'] = since;
+            }
         }
         let response = undefined;
         if (marketType === 'swap') {
-            request['contract'] = market['id'];
             if (market['linear']) {
-                //
-                //    {
-                //        "status": "ok",
-                //        "data": {
-                //           "financial_record": [
-                //               {
-                //                   "id": "1320088022",
-                //                   "type": "30",
-                //                   "amount": "0.004732510000000000",
-                //                   "ts": "1641168019321",
-                //                   "contract_code": "BTC-USDT",
-                //                   "asset": "USDT",
-                //                   "margin_account": "BTC-USDT",
-                //                   "face_margin_account": ''
-                //               },
-                //           ],
-                //           "remain_size": "0",
-                //           "next_id": null
-                //        },
-                //        "ts": "1641189898425"
-                //    }
-                //
                 let marginMode = undefined;
                 [marginMode, params] = this.handleMarginModeAndParams('fetchFundingHistory', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    request['mar_acct'] = market['id'];
+                request['margin_mode'] = marginMode;
+                request['contract_code'] = market['id'];
+                if (limit !== undefined) {
+                    request['limit'] = limit;
                 }
-                else {
-                    request['mar_acct'] = market['quoteId'];
-                }
-                response = await this.contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(this.extend(request, query));
+                response = await this.contractPrivateGetV5AccountBills(this.extend(request, params));
+                //
+                //     {
+                //         "code": 200,
+                //         "message": "Success",
+                //         "data": [
+                //             {
+                //                 "id": "2194774775",
+                //                 "type": "30",
+                //                 "currency": "USDT",
+                //                 "amount": "0.000433432461821856",
+                //                 "contract_code": "BTC-USDT",
+                //                 "margin_mode": "cross",
+                //                 "created_time": "1780963213165"
+                //             },
+                //         ],
+                //         "ts": 1781772448836
+                //     }
+                //
             }
             else {
+                request['contract'] = market['id'];
                 //
                 //     {
                 //         "code": 200,
@@ -8008,12 +8013,12 @@ class htx extends htx$1["default"] {
                 //         "ts": 1604312615051
                 //     }
                 //
-                response = await this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, query));
+                response = await this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, params));
             }
         }
         else {
             request['symbol'] = market['id'];
-            response = await this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, query));
+            response = await this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, params));
         }
         const data = this.safeList(response, 'data', []);
         return this.parseIncomes(data, market, since, limit);
@@ -8107,12 +8112,24 @@ class htx extends htx$1["default"] {
         //       "contract_code": "BTC-USD"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id": "2194774775",
+        //         "type": "30",
+        //         "currency": "USDT",
+        //         "amount": "0.000433432461821856",
+        //         "contract_code": "BTC-USDT",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780963213165"
+        //     }
+        //
         const marketId = this.safeString(income, 'contract_code');
         const symbol = this.safeSymbol(marketId, market);
         const amount = this.safeNumber(income, 'amount');
-        const timestamp = this.safeInteger(income, 'ts');
+        const timestamp = this.safeInteger2(income, 'ts', 'created_time');
         const id = this.safeString(income, 'id');
-        const currencyId = this.safeString2(income, 'symbol', 'asset');
+        const currencyId = this.safeStringN(income, ['symbol', 'asset', 'currency']);
         const code = this.safeCurrencyCode(currencyId);
         return {
             'info': income,
@@ -9335,7 +9352,7 @@ class htx extends htx$1["default"] {
      * @description Fetches historical settlement records
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
      * @param {string} symbol unified symbol of the market to fetch the settlement history for
      * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
      * @param {int} [limit] page items, default 20, shall not exceed 50
@@ -9349,29 +9366,30 @@ class htx extends htx$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
-        const until = this.safeInteger(params, 'until');
-        params = this.omit(params, ['until']);
         const market = this.market(symbol);
-        const request = {};
+        let request = {};
         if (market['future']) {
             request['symbol'] = market['baseId'];
         }
         else {
             request['contract_code'] = market['id'];
         }
-        if (since !== undefined) {
-            request['start_at'] = since;
-        }
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            if (market['linear'] && market['swap']) {
+                request['limit'] = limit;
+            }
+            else {
+                request['page_size'] = limit;
+            }
         }
-        if (until !== undefined) {
-            request['end_at'] = until;
+        if (since !== undefined) {
+            request['start_time'] = since;
         }
+        [request, params] = this.handleUntilOption('end_time', request, params);
         let response = undefined;
         if (market['swap']) {
             if (market['linear']) {
-                response = await this.contractPublicGetLinearSwapApiV1SwapSettlementRecords(this.extend(request, params));
+                response = await this.contractPublicGetV5MarketSettlementHistory(this.extend(request, params));
             }
             else {
                 response = await this.contractPublicGetSwapApiV1SwapSettlementRecords(this.extend(request, params));
@@ -9381,7 +9399,7 @@ class htx extends htx$1["default"] {
             response = await this.contractPublicGetApiV1ContractSettlementRecords(this.extend(request, params));
         }
         //
-        // linear swap, coin-m swap
+        // coin-m swap
         //
         //    {
         //        "status": "ok",
@@ -9432,6 +9450,28 @@ class htx extends htx$1["default"] {
         //        }
         //    }
         //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "14900",
+        //                 "contract_code": "BTC-USDT",
+        //                 "settlement_time": "1781827200000",
+        //                 "clawback_ratio": "0",
+        //                 "settlement_price": "62933.747161774209291325"
+        //             },
+        //         ],
+        //         "ts": 1781853150623
+        //     }
+        //
+        if (market['linear']) {
+            const dataLinear = this.safeList(response, 'data', []);
+            const settlementsLinear = this.parseSettlements(dataLinear, market);
+            return this.sortBy(settlementsLinear, 'timestamp');
+        }
         const data = this.safeValue(response, 'data');
         const settlementRecord = this.safeValue(data, 'settlement_record');
         const settlements = this.parseSettlements(settlementRecord, market);
@@ -9557,7 +9597,7 @@ class htx extends htx$1["default"] {
     }
     parseSettlements(settlements, market) {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    [
         //        {
@@ -9592,11 +9632,27 @@ class htx extends htx$1["default"] {
         //        },
         //    ]
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     [
+        //         {
+        //             "id": "14900",
+        //             "contract_code": "BTC-USDT",
+        //             "settlement_time": "1781827200000",
+        //             "clawback_ratio": "0",
+        //             "settlement_price": "62933.747161774209291325"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
             const settlement = settlements[i];
             const list = this.safeValue(settlement, 'list');
-            if (list !== undefined) {
+            if (market['linear']) {
+                const parsedSettlement = this.parseSettlement(settlement, market);
+                result.push(parsedSettlement);
+            }
+            else if (list !== undefined) {
                 const timestamp = this.safeInteger(settlement, 'settlement_time');
                 const timestampDetails = {
                     'timestamp': timestamp,
@@ -9616,7 +9672,7 @@ class htx extends htx$1["default"] {
     }
     parseSettlement(settlement, market) {
         //
-        // linear swap, coin-m swap, fetchSettlementHistory
+        // coin-m swap, fetchSettlementHistory
         //
         //    {
         //        "symbol": "ADA",
@@ -9638,6 +9694,16 @@ class htx extends htx$1["default"] {
         //        "settlement_type": "settlement"
         //    }
         //
+        // linear swap fetchSettlementHistory
+        //
+        //     {
+        //         "id": "14900",
+        //         "contract_code": "BTC-USDT",
+        //         "settlement_time": "1781827200000",
+        //         "clawback_ratio": "0",
+        //         "settlement_price": "62933.747161774209291325"
+        //     }
+        //
         const timestamp = this.safeInteger(settlement, 'settlement_time');
         const marketId = this.safeString(settlement, 'contract_code');
         return {
@@ -9652,7 +9718,7 @@ class htx extends htx$1["default"] {
      * @method
      * @name htx#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
      * @param {string} symbol unified CCXT market symbol
@@ -9660,27 +9726,53 @@ class htx extends htx$1["default"] {
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the huobi api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @param {int} [params.tradeType] default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+     * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const tradeType = this.safeInteger(params, 'trade_type', 0);
-        let request = {
-            'trade_type': tradeType,
-        };
+        const tradeType = this.safeInteger2(params, 'trade_type', 'tradeType', 0);
+        let request = {};
+        if (!market['linear']) {
+            request['trade_type'] = tradeType;
+        }
+        params = this.omit(params, ['trade_type', 'tradeType']);
         if (since !== undefined) {
             request['start_time'] = since;
         }
         [request, params] = this.handleUntilOption('end_time', request, params);
         let response = undefined;
         if (market['swap']) {
-            request['contract'] = market['id'];
             if (market['linear']) {
-                response = await this.contractPublicGetLinearSwapApiV3SwapLiquidationOrders(this.extend(request, params));
+                request['contract_code'] = market['id'];
+                if (limit !== undefined) {
+                    request['limit'] = limit;
+                }
+                response = await this.contractPublicGetV5MarketLiquidationOrders(this.extend(request, params));
+                //
+                //     {
+                //         "code": 200,
+                //         "message": "Success",
+                //         "data": [
+                //             {
+                //                 "id": "150153038758",
+                //                 "contract_code": "BTC-USDT",
+                //                 "liquidation_time": "1781849094165",
+                //                 "side": "buy",
+                //                 "position_side": "short",
+                //                 "volume": "2",
+                //                 "amount": "2",
+                //                 "bankrupt_price": "62978.5",
+                //                 "trade_turnover": "125.957"
+                //             }
+                //         ],
+                //         "ts": 1781854869221
+                //     }
+                //
             }
             else {
+                request['contract'] = market['id'];
                 response = await this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(request, params));
             }
         }
@@ -9734,15 +9826,29 @@ class htx extends htx$1["default"] {
         //         "pair": "BTC-USDT"
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "id": "150153038758",
+        //         "contract_code": "BTC-USDT",
+        //         "liquidation_time": "1781849094165",
+        //         "side": "buy",
+        //         "position_side": "short",
+        //         "volume": "2",
+        //         "amount": "2",
+        //         "bankrupt_price": "62978.5",
+        //         "trade_turnover": "125.957"
+        //     }
+        //
         const marketId = this.safeString(liquidation, 'contract_code');
-        const timestamp = this.safeInteger(liquidation, 'created_at');
+        const timestamp = this.safeInteger2(liquidation, 'created_at', 'liquidation_time');
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.safeNumber(liquidation, 'volume'),
             'contractSize': this.safeNumber(market, 'contractSize'),
-            'price': this.safeNumber(liquidation, 'price'),
-            'side': this.safeStringLower(liquidation, 'direction'),
+            'price': this.safeNumber2(liquidation, 'price', 'bankrupt_price'),
+            'side': this.safeStringLower2(liquidation, 'direction', 'side'),
             'baseValue': this.safeNumber(liquidation, 'amount'),
             'quoteValue': this.safeNumber(liquidation, 'trade_turnover'),
             'timestamp': timestamp,
