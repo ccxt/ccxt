@@ -36,6 +36,7 @@ public class TestInit extends BaseTest
             (new TestParsePrecision()).testParsePrecision();
             (new TestArraysConcat()).testArraysConcat();
             ((new TestSleep()).testSleep()).join();
+            ((new TestSetRateLimit()).testSetRateLimit()).join();
             return true;
             }, io.github.ccxt.Exchange.VIRTUAL_EXECUTOR);
         

@@ -164,6 +164,16 @@ func (t *Throttler) rollingWindowLoop() {
 	}
 }
 
+func (t *Throttler) SetRateLimit(rateLimit float64) {
+	t.Mutex.Lock()
+	defer t.Mutex.Unlock()
+	t.Config["rateLimit"] = rateLimit
+	t.Config["refillRate"] = 1 / rateLimit
+	if t.Config["algorithm"] != "leakyBucket" {
+		t.Config["maxWeight"] = ToFloat64(t.Config["windowSize"]) / rateLimit
+	}
+}
+
 func filterTimestamps(timestamps []TimestampedCost, now int64, windowSize float64) []TimestampedCost {
 	result := []TimestampedCost{}
 	for _, t := range timestamps {

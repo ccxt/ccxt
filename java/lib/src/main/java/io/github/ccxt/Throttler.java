@@ -243,6 +243,18 @@ public class Throttler {
             }
         }
     }
+    
+    public void setRateLimit(double rateLimit) {
+        lock.lock();
+        try {
+            this.refillRate = 1.0 / rateLimit;
+            if (!"leakyBucket".equals(this.algorithm)) {
+                this.maxWeight = this.windowSize / rateLimit;
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
 
     private static long milliseconds() {
         return System.currentTimeMillis();

@@ -1604,6 +1604,11 @@ public class Exchange {
         return this.throttler.throttle(cost);
     }
 
+    public void setRateLimit(double rateLimit) {
+        this.rateLimit = rateLimit;
+        this.throttler.setRateLimit(rateLimit);
+    }
+
     public Object clone(Object s) {
         return s; // check later
     }

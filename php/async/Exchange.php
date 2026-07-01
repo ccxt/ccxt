@@ -349,6 +349,11 @@ class Exchange extends \ccxt\Exchange {
         $this->throttler = new Throttler($this->tokenBucket);
     }
 
+    public function set_rate_limit(float $rateLimit) {
+        $this->rateLimit = $rateLimit;
+        $this->throttler->set_rate_limit($rateLimit);
+    }
+
     public function throttle($cost = null) {
         // stub so the async throttler gets called instead of the sync throttler
         return call_user_func($this->throttler, $cost);

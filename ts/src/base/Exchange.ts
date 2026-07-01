@@ -679,6 +679,11 @@ export default class Exchange {
         this.throttler = new Throttler (this.tokenBucket);
     }
 
+    setRateLimit (rateLimit: number) {
+        this.rateLimit = rateLimit;
+        this.throttler.setRateLimit (rateLimit);
+    }
+
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
         const splitPath = path.split (/[^a-zA-Z0-9]/);
         const camelcaseSuffix = splitPath.map (this.capitalize).join ('');

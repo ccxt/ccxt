@@ -86,3 +86,9 @@ class Throttler:
             self.running = True
             asyncio.ensure_future(self.looper(), loop=self.loop)
         return future
+
+    def set_rate_limit(self, rate_limit: float):
+        self.config['rateLimit'] = rate_limit
+        self.config['refillRate'] = 1 / rate_limit
+        if self.config['algorithm'] != 'leakyBucket':
+            self.config['maxWeight'] = self.config['windowSize'] / rate_limit

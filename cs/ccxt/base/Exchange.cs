@@ -848,6 +848,12 @@ public partial class Exchange
         this.throttler = new Throttler(this.tokenBucket);
     }
 
+    public void setRateLimit(double rateLimit)
+    {
+        this.rateLimit = rateLimit;
+        this.throttler.setRateLimit(rateLimit);
+    }
+
     public bool isEmpty(object a)
     {
         if (a == null)
