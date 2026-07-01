@@ -2640,7 +2640,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params, 'isolated');
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarketLeverageTiers', 'uta', false);
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarketLeverageTiers', false);
         if (uta) {
             if (productType === 'SPOT') {
                 if (marginMode !== undefined) {
