@@ -56,6 +56,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -74,6 +75,13 @@ retrieves data on all markets for digifinex
 
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**
+
+- https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description
+- https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol
+- https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol
+- https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
 
 
 | Param | Type | Required | Description |
@@ -195,6 +203,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-timestamp  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -214,6 +223,7 @@ the latest known information on the availability of the exchange API
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-ping  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -396,6 +406,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -551,6 +562,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-address-inquiry  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -571,6 +583,7 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -593,6 +606,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
+**See**: https://docs.digifinex.com/en-ww/spot/v3/rest.html#withdrawal-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -749,6 +763,7 @@ fetches historical funding rate prices
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
+**See**: https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
