@@ -1012,7 +1012,7 @@ class bingx extends \ccxt\async\bingx {
             }
             $uuid = $this->uuid();
             $baseUrl = null;
-            $request = array();
+            $request = null;
             if ($type === 'swap') {
                 if ($subType === 'inverse') {
                     throw new NotSupported($this->id . ' watchOrders is not supported for inverse swap markets yet');
@@ -1129,13 +1129,15 @@ class bingx extends \ccxt\async\bingx {
             $swapMessageHash = 'swap:balance';
             $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
             $subscriptionHash = $isSpot ? $spotSubHash : $swapSubHash;
-            $request = array();
+            $request = null;
             $baseUrl = null;
             $uuid = $this->uuid();
             if ($type === 'swap') {
                 if ($subType === 'inverse') {
                     throw new NotSupported($this->id . ' watchBalance is not supported for inverse swap markets yet');
                 }
+                // swap balance updates are pushed automatically over the listenKey connection,
+                // so we must not send a $subscription message (an empty one is rejected with 80014)
                 $baseUrl = $this->safe_string($this->urls['api']['ws'], $subType);
             } else {
                 $baseUrl = $this->safe_string($this->urls['api']['ws'], $type);
