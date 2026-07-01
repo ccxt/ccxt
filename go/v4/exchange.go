@@ -186,7 +186,7 @@ type Exchange struct {
 	// tests only
 	FetchResponse any
 
-	IsSandboxModeEnabled bool
+	IsSandboxModeEnabled  bool
 	FetchHistoryCacheSize int
 	FetchHistoryCache     *ConcurrentListForRequests
 
