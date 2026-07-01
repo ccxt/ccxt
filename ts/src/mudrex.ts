@@ -83,7 +83,7 @@ export default class mudrex extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/2e949d9a-3fd1-4a4b-b313-d84d64872a36',
+                'logo': 'https://github.com/user-attachments/assets/12a65022-f416-4bf8-98eb-5b6b9b05cb6a',
                 'api': {
                     'public': 'https://trade.mudrex.com/fapi/v1',
                     'private': 'https://trade.mudrex.com/fapi/v1',
