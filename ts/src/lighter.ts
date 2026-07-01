@@ -1023,10 +1023,12 @@ export default class lighter extends Exchange {
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
-            'integrator_account_index': this.options['integratorAccountIndex'],
-            'integrator_taker_fee': this.options['integratorTakerFee'],
-            'integrator_maker_fee': this.options['integratorMakerFee'],
         };
+        if (this.safeBool (this.options, 'builderFee', true)) {
+            signRaw['integrator_account_index'] = this.options['integratorAccountIndex'];
+            signRaw['integrator_taker_fee'] = this.options['integratorTakerFee'];
+            signRaw['integrator_maker_fee'] = this.options['integratorMakerFee'];
+        }
         const [ txType, txInfo ] = this.lighterSignModifyOrder (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
