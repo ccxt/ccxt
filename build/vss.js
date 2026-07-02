@@ -48,10 +48,12 @@ async function vssEverything () {
     log.bright ('New version: '.cyan, version)
 
     vss ('./ts/ccxt.ts',                                 "const version = '{version}'",                                                 version)
+    vss ('./ts/src/base/Exchange.ts',                    "static ccxtVersion = '{version}'",                                            version)
     vss ('./dist/ccxt.browser.js',                       "const version = '{version}'",                                                 version)
     vss ('./dist/ccxt.browser.min.js',                   "const ps=\"{version}\"",                                                      version)
     vss ('./dist/cjs/ccxt.js',                           "const version = '{version}'",                                                 version)
     vss ('./php/Exchange.php',                           "$version = '{version}'",                                                      version)
+    vss ('./php/Exchange.php',                           "public static $ccxt_version = '{version}'",                                   version)
     vss ('./php/async/Exchange.php',                     "VERSION = '{version}'",                                                       version)
     vss ('./php/async/Exchange.php',                     "$version = '{version}'",                                                      version)
     vss ('./php/Exchange.php',                           "VERSION = '{version}'",                                                       version)

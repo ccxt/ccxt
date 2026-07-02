@@ -104,7 +104,7 @@ public partial class bitmart : Exchange
             } },
             { "hostname", "bitmart.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14" },
+                { "logo", "https://github.com/user-attachments/assets/3741e8c0-83a8-4504-ae68-32b00e3c27ee" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://api-cloud.{hostname}" },
                     { "swap", "https://api-cloud-v2.{hostname}" },
@@ -1657,7 +1657,7 @@ public partial class bitmart : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

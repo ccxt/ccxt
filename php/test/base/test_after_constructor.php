@@ -322,6 +322,9 @@ function helper_test_properties() {
         'XBT' => 'BTC',
         'BCHSV' => 'BSV',
     ));
+    // fetch history
+    $fetch_history_cache = $exchange->get_fetch_cache();
+    assert(count($fetch_history_cache) === 0, 'fetchHistoryCache should be an empty array');
 }
 
 

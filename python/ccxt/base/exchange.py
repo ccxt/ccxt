@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.59'
+__version__ = '4.5.63'
 
 # -----------------------------------------------------------------------------
 
@@ -393,6 +393,8 @@ class Exchange(object):
     enableLastHttpResponse = True
     enableLastJsonResponse = False
     enableLastResponseHeaders = True
+    fetchHistoryCacheSize = 0
+    fetchHistoryCache = collections.deque(maxlen=0)
     last_http_response = None
     last_json_response = None
     last_response_headers = None
@@ -553,6 +555,16 @@ class Exchange(object):
         if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
             return
         raise ValueError(f'invalid file path: {file_path}')
+
+    def add_fetch_cache(self, data):
+        if self.fetchHistoryCacheSize <= 0:
+            return
+        if self.fetchHistoryCache.maxlen == 0:
+            self.fetchHistoryCache = collections.deque(maxlen=self.fetchHistoryCacheSize)
+        self.fetchHistoryCache.append(data)
+
+    def get_fetch_cache(self):
+        return self.fetchHistoryCache
 
     @staticmethod
     def gzip_deflate(response, text):
@@ -1783,31 +1795,6 @@ class Exchange(object):
     @staticmethod
     def to_array(value):
         return list(value.values()) if type(value) is dict else value
-
-    @staticmethod
-    def check_required_version(required_version, error=True):
-        result = True
-        [major1, minor1, patch1] = required_version.split('.')
-        [major2, minor2, patch2] = __version__.split('.')
-        int_major1 = int(major1)
-        int_minor1 = int(minor1)
-        int_patch1 = int(patch1)
-        int_major2 = int(major2)
-        int_minor2 = int(minor2)
-        int_patch2 = int(patch2)
-        if int_major1 > int_major2:
-            result = False
-        if int_major1 == int_major2:
-            if int_minor1 > int_minor2:
-                result = False
-            elif int_minor1 == int_minor2 and int_patch1 > int_patch2:
-                result = False
-        if not result:
-            if error:
-                raise NotSupported('Your current version of CCXT is ' + __version__ + ', a newer version ' + required_version + ' is required, please, upgrade your version of CCXT')
-            else:
-                return error
-        return result
 
     def precision_from_string(self, str):
         # support string formats like '1e-4'
@@ -3359,7 +3346,7 @@ class Exchange(object):
         self.options['enableDemoTrading'] = enable
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
-        return {}
+        return {'url': None, 'method': None, 'headers': None, 'body': None}
 
     def fetch_accounts(self, params={}):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')
@@ -5564,13 +5551,26 @@ class Exchange(object):
         retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
         retryDelay = None
         retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
+        fetchData = None
+        fetchDataCacheEnabled = self.fetchHistoryCacheSize > 0
         for i in range(0, retries + 1):
+            if fetchDataCacheEnabled:
+                fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
                 self.set_last_rest_request_timestamp()
                 request = self.sign(path, api, method, params, headers, body)
+                if fetchDataCacheEnabled:
+                    fetchData['request'] = request
                 self.set_last_request(request)
-                return self.fetch(request['url'], request['method'], request['headers'], request['body'])
+                response = self.fetch(request['url'], request['method'], request['headers'], request['body'])
+                if fetchDataCacheEnabled:
+                    fetchData['response']['body'] = response
+                    self.add_fetch_cache(fetchData)
+                return response
             except Exception as e:
+                if fetchDataCacheEnabled:
+                    fetchData['error'] = e
+                    self.add_fetch_cache(fetchData)
                 if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:

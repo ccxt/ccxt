@@ -31,7 +31,7 @@ public class HashkeyCore extends HashkeyApi
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", false );
-                put( "swap", false );
+                put( "swap", true );
                 put( "future", false );
                 put( "option", false );
                 put( "addMargin", false );
@@ -177,7 +177,7 @@ public class HashkeyCore extends HashkeyApi
                 put( "1M", "1M" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/6dd6127b-cc19-4a13-9b29-a98d81f80e98" );
+                put( "logo", "https://github.com/user-attachments/assets/3dd65db2-5da9-4ecc-93ac-6d420f36261c" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api-glb.hashkey.com" );
                     put( "private", "https://api-glb.hashkey.com" );
@@ -1263,7 +1263,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

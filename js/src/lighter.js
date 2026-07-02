@@ -31,7 +31,7 @@ export default class lighter extends Exchange {
             'quoteJsonNumbers': false,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -1016,10 +1016,12 @@ export default class lighter extends Exchange {
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
-            'integrator_account_index': this.options['integratorAccountIndex'],
-            'integrator_taker_fee': this.options['integratorTakerFee'],
-            'integrator_maker_fee': this.options['integratorMakerFee'],
         };
+        if (this.safeBool(this.options, 'builderFee', true)) {
+            signRaw['integrator_account_index'] = this.options['integratorAccountIndex'];
+            signRaw['integrator_taker_fee'] = this.options['integratorTakerFee'];
+            signRaw['integrator_maker_fee'] = this.options['integratorMakerFee'];
+        }
         const [txType, txInfo] = this.lighterSignModifyOrder(signer, this.extend(signRaw, params));
         const request = {
             'tx_type': txType,
@@ -1321,7 +1323,7 @@ export default class lighter extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (symbol === undefined) {

@@ -51,7 +51,7 @@ class hashkey(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'addMargin': False,
@@ -197,7 +197,7 @@ class hashkey(Exchange, ImplicitAPI):
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/6dd6127b-cc19-4a13-9b29-a98d81f80e98',
+                'logo': 'https://github.com/user-attachments/assets/3dd65db2-5da9-4ecc-93ac-6d420f36261c',
                 'api': {
                     'public': 'https://api-glb.hashkey.com',
                     'private': 'https://api-glb.hashkey.com',
@@ -1251,7 +1251,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(maximum value is 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

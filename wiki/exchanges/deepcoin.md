@@ -78,7 +78,7 @@ deepcoin.fetchMarkets (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinMarket/marketBooks  
 
@@ -1040,7 +1040,7 @@ deepcoin.unWatchOHLCV (symbol, timeframe?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData  
 
@@ -1062,7 +1062,7 @@ deepcoin.watchOrderBook (symbol, limit?, params?)
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData  
 

@@ -9,12 +9,11 @@ use Exception; // a common import
 use ccxt\abstract\aftermath as Exchange;
 
 class aftermath extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'aftermath',
             'name' => 'AftermathFinance',
-            'countries' => [ ],
+            'countries' => array(),
             'version' => 'v1',
             'rateLimit' => 50, // 1200 requests per minute, 20 request per second
             'certified' => false,
@@ -163,7 +162,7 @@ class aftermath extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/currencies
@@ -172,7 +171,7 @@ class aftermath extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->publicGetCurrencies ($params);
+        $response = $this->publicGetCurrencies($params);
         $currencies = $this->parse_currencies($response);
         //
         // {
@@ -209,7 +208,7 @@ class aftermath extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/markets
@@ -218,7 +217,7 @@ class aftermath extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetMarkets ($params);
+        $response = $this->publicGetMarkets($params);
         //
         // array(
         //     {
@@ -372,7 +371,7 @@ class aftermath extends Exchange {
         ));
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/markets
@@ -399,7 +398,7 @@ class aftermath extends Exchange {
         );
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/ticker
@@ -414,7 +413,7 @@ class aftermath extends Exchange {
         $request = array(
             'chId' => $market['id'],
         );
-        $response = $this->publicPostTicker ($this->extend($request, $params));
+        $response = $this->publicPostTicker($this->extend($request, $params));
         //
         // {
         //     "ask" => 0.1,
@@ -470,7 +469,7 @@ class aftermath extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/orderbook
@@ -479,7 +478,7 @@ class aftermath extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -487,15 +486,15 @@ class aftermath extends Exchange {
         $request = array(
             'chId' => $chId,
         );
-        $response = $this->publicPostOrderbook ($this->extend($request, $params));
+        $response = $this->publicPostOrderbook($this->extend($request, $params));
         //
         // {
-        //     "asks":[
+        //     "asks":array(
         //         [76228.1534,11.58777]
-        //     ],
-        //     "bids":[
+        //     ),
+        //     "bids":array(
         //         [76213.4842,11.96145],
-        //     ],
+        //     ),
         //     "datetime":"2025-04-07 09:29:28.213 UTC",
         //     "timestamp":1744018168213,
         //     "symbol":"BTC/USD:USDC"
@@ -507,7 +506,7 @@ class aftermath extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/trades
@@ -527,9 +526,9 @@ class aftermath extends Exchange {
             'chId' => $chId,
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 50);
+            $request['limit'] = min($limit, 50);
         }
-        $response = $this->publicPostTrades ($this->extend($request, $params));
+        $response = $this->publicPostTrades($this->extend($request, $params));
         //
         //     {
         //         "trades" => array(
@@ -558,7 +557,7 @@ class aftermath extends Exchange {
         return $trade;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/ohlcv
@@ -584,7 +583,7 @@ class aftermath extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicPostOHLCV ($this->extend($request, $params));
+        $response = $this->publicPostOHLCV($this->extend($request, $params));
         //
         // array(
         //     array(
@@ -600,7 +599,7 @@ class aftermath extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/balance
@@ -618,7 +617,7 @@ class aftermath extends Exchange {
         if ($account === null) {
             throw new ArgumentsRequired($this->id . ' fetchBalance() requires account');
         }
-        $response = $this->privatePostBalance ($this->extend($request, $params));
+        $response = $this->privatePostBalance($this->extend($request, $params));
         //
         // {
         //     "timestamp" => 1744045700352,
@@ -655,7 +654,7 @@ class aftermath extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_accounts($params = array ()): array {
+    public function fetch_accounts($params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/accounts
@@ -668,7 +667,7 @@ class aftermath extends Exchange {
         $request = array(
             'address' => $this->walletAddress,
         );
-        $response = $this->privatePostAccounts ($this->extend($request, $params));
+        $response = $this->privatePostAccounts($this->extend($request, $params));
         //
         // array(
         //     {
@@ -691,7 +690,7 @@ class aftermath extends Exchange {
         );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/my_pending_orders
@@ -715,7 +714,7 @@ class aftermath extends Exchange {
             'chId' => $this->safe_string($market, 'id'),
             'accountNumber' => $accountNumber,
         );
-        $response = $this->privatePostMyPendingOrders ($this->extend($request, $params));
+        $response = $this->privatePostMyPendingOrders($this->extend($request, $params));
         //
         // array(
         //     {
@@ -739,7 +738,7 @@ class aftermath extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          * fetch data on an open position
          *
@@ -754,7 +753,7 @@ class aftermath extends Exchange {
         return $this->safe_dict($positions, 0, array());
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array()) {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/positions
@@ -774,7 +773,7 @@ class aftermath extends Exchange {
         $request = array(
             'accountNumber' => $accountNumber,
         );
-        $response = $this->privatePostPositions ($this->extend($request, $params));
+        $response = $this->privatePostPositions($this->extend($request, $params));
         //
         // array(
         //     {
@@ -807,7 +806,7 @@ class aftermath extends Exchange {
         return $this->safe_position($position);
     }
 
-    public function parse_create_edit_order_args(?string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function parse_create_edit_order_args(?string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $order = array(
@@ -824,7 +823,7 @@ class aftermath extends Exchange {
         return $order;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade $order
          *
@@ -850,7 +849,7 @@ class aftermath extends Exchange {
         return $orders[0];
     }
 
-    public function create_orders(array $orders, $params = array ()): array {
+    public function create_orders(array $orders, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/build_create_orders
@@ -894,9 +893,9 @@ class aftermath extends Exchange {
             'orders' => $ordersRequest,
             'deallocateFreeCollateral' => false,
         );
-        $tx = $this->privatePostBuildCreateOrders ($this->extend($txRequest, $params));
+        $tx = $this->privatePostBuildCreateOrders($this->extend($txRequest, $params));
         $request = $this->sign_tx_ed25519($tx);
-        $response = $this->privatePostSubmitCreateOrders ($request);
+        $response = $this->privatePostSubmitCreateOrders($request);
         //
         // array(
         //     {
@@ -921,7 +920,7 @@ class aftermath extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -937,7 +936,7 @@ class aftermath extends Exchange {
         return $this->safe_dict($orders, 0);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/build_cancel_orders
@@ -962,9 +961,9 @@ class aftermath extends Exchange {
             'chId' => $market['id'],
             'orderIds' => $ids,
         );
-        $tx = $this->privatePostBuildCancelOrders ($txRequest);
+        $tx = $this->privatePostBuildCancelOrders($txRequest);
         $request = $this->sign_tx_ed25519($tx);
-        $response = $this->privatePostSubmitCancelOrders ($request);
+        $response = $this->privatePostSubmitCancelOrders($request);
         //
         // array(
         //     {
@@ -988,7 +987,7 @@ class aftermath extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_account(string $symbol, $params = array ()): array {
+    public function create_account(string $symbol, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $settleId = $market['settleId'];
@@ -998,9 +997,9 @@ class aftermath extends Exchange {
             ),
             'settleId' => $settleId,
         );
-        $tx = $this->privatePostBuildCreateAccount ($txRequest);
+        $tx = $this->privatePostBuildCreateAccount($txRequest);
         $request = $this->sign_tx_ed25519($tx);
-        $response = $this->privatePostSubmitCreateAccount ($request);
+        $response = $this->privatePostSubmitCreateAccount($request);
         //
         // array(
         //     array(
@@ -1020,7 +1019,7 @@ class aftermath extends Exchange {
         return $response;
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/build_allocate
@@ -1045,9 +1044,9 @@ class aftermath extends Exchange {
                 'sender' => $this->walletAddress,
             ),
         );
-        $tx = $this->privatePostBuildAllocate ($txRequest);
+        $tx = $this->privatePostBuildAllocate($txRequest);
         $request = $this->sign_tx_ed25519($tx);
-        $response = $this->privatePostSubmitAllocate ($request);
+        $response = $this->privatePostSubmitAllocate($request);
         //
         // {
         //     "id" => "0xb60c5078b060e4aede8e670089c9b1bc6eb231b4bcc0bfb3e97534770ace4d0c:101",
@@ -1068,7 +1067,7 @@ class aftermath extends Exchange {
         return $response;
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/build_deallocate
@@ -1093,9 +1092,9 @@ class aftermath extends Exchange {
                 'sender' => $this->walletAddress,
             ),
         );
-        $tx = $this->privatePostBuildDeallocate ($txRequest);
+        $tx = $this->privatePostBuildDeallocate($txRequest);
         $request = $this->sign_tx_ed25519($tx);
-        $response = $this->privatePostSubmitDeallocate ($request);
+        $response = $this->privatePostSubmitDeallocate($request);
         //
         // {
         //     "id" => "0xb60c5078b060e4aede8e670089c9b1bc6eb231b4bcc0bfb3e97534770ace4d0c:101",
@@ -1116,7 +1115,7 @@ class aftermath extends Exchange {
         return $response;
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/build_deposit
@@ -1139,9 +1138,9 @@ class aftermath extends Exchange {
             'accountId' => $toAccount,
             'amount' => $amount,
         );
-        $tx = $this->privatePostBuildDeposit ($txRequest);
+        $tx = $this->privatePostBuildDeposit($txRequest);
         $request = $this->sign_tx_ed25519($tx);
-        $response = $this->privatePostSubmitDeposit ($request);
+        $response = $this->privatePostSubmitDeposit($request);
         //
         // {
         //     "id" => "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
@@ -1173,7 +1172,7 @@ class aftermath extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          *
          * @see https://testnet.aftermath.finance/docs/#/CCXT/build_withdraw
@@ -1202,9 +1201,9 @@ class aftermath extends Exchange {
             ),
             'amount' => $amount,
         );
-        $tx = $this->privatePostBuildWithdraw ($txRequest);
+        $tx = $this->privatePostBuildWithdraw($txRequest);
         $request = $this->sign_tx_ed25519($tx);
-        $response = $this->privatePostSubmitWithdraw ($request);
+        $response = $this->privatePostSubmitWithdraw($request);
         //
         // {
         //     "id" => "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
@@ -1249,7 +1248,7 @@ class aftermath extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -1277,9 +1276,9 @@ class aftermath extends Exchange {
                 'sender' => $this->walletAddress,
             ),
         );
-        $tx = $this->privatePostBuildSetLeverage ($txRequest);
+        $tx = $this->privatePostBuildSetLeverage($txRequest);
         $request = $this->sign_tx_ed25519($tx);
-        $response = $this->privatePostSubmitSetLeverage ($request);
+        $response = $this->privatePostSubmitSetLeverage($request);
         //
         // {
         //     "id" => "0xyydsxxxxxxxxyydsxxxxxxx:141",
@@ -1347,7 +1346,7 @@ class aftermath extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'POST', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'POST', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $path;
         if ($api === 'private') {
             $this->check_required_credentials();

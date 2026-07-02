@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.59'
+__version__ = '4.5.63'
 
 # ----------------------------------------------------------------------------
 
@@ -87,7 +87,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.aftermath import aftermath                                  # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
-from ccxt.ascendex import ascendex                                    # noqa: F401
 from ccxt.aster import aster                                          # noqa: F401
 from ccxt.backpack import backpack                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
@@ -129,7 +128,6 @@ from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F4
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
-from ccxt.coinmetro import coinmetro                                  # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
 from ccxt.coinsph import coinsph                                      # noqa: F401
 from ccxt.coinspot import coinspot                                    # noqa: F401
@@ -146,6 +144,7 @@ from ccxt.extended import extended                                    # noqa: F4
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
 from ccxt.foxbit import foxbit                                        # noqa: F401
 from ccxt.gate import gate                                            # noqa: F401
+from ccxt.gateeu import gateeu                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
 from ccxt.grvt import grvt                                            # noqa: F401
 from ccxt.hashkey import hashkey                                      # noqa: F401
@@ -159,6 +158,7 @@ from ccxt.indodax import indodax                                      # noqa: F4
 from ccxt.kraken import kraken                                        # noqa: F401
 from ccxt.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.kucoin import kucoin                                        # noqa: F401
+from ccxt.kucoineu import kucoineu                                    # noqa: F401
 from ccxt.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
@@ -169,7 +169,6 @@ from ccxt.mexc import mexc                                            # noqa: F4
 from ccxt.modetrade import modetrade                                  # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
-from ccxt.novadax import novadax                                      # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
@@ -194,7 +193,6 @@ exchanges = [
     'aftermath',
     'alpaca',
     'apex',
-    'ascendex',
     'aster',
     'backpack',
     'bequant',
@@ -236,7 +234,6 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinmate',
-    'coinmetro',
     'coinone',
     'coinsph',
     'coinspot',
@@ -253,6 +250,7 @@ exchanges = [
     'fmfwio',
     'foxbit',
     'gate',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',
@@ -266,6 +264,7 @@ exchanges = [
     'kraken',
     'krakenfutures',
     'kucoin',
+    'kucoineu',
     'kucoinfutures',
     'latoken',
     'lbank',
@@ -276,7 +275,6 @@ exchanges = [
     'modetrade',
     'myokx',
     'ndax',
-    'novadax',
     'okx',
     'okxus',
     'onetrading',

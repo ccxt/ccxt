@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\indodax as Exchange;
 
 class indodax extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'indodax',
@@ -306,7 +305,7 @@ class indodax extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -315,7 +314,7 @@ class indodax extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->publicGetApiServerTime ($params);
+        $response = $this->publicGetApiServerTime($params);
         //
         //     {
         //         "timezone" => "UTC",
@@ -325,7 +324,7 @@ class indodax extends Exchange {
         return $this->safe_integer($response, 'server_time');
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for indodax
          *
@@ -334,7 +333,7 @@ class indodax extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $response = $this->publicGetApiPairs ($params);
+        $response = $this->publicGetApiPairs($params);
         //
         //     array(
         //         {
@@ -448,7 +447,7 @@ class indodax extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -458,7 +457,7 @@ class indodax extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->privatePostGetInfo ($params);
+        $response = $this->privatePostGetInfo($params);
         //
         //     {
         //         "success":1,
@@ -492,7 +491,7 @@ class indodax extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -501,14 +500,14 @@ class indodax extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $orderbook = $this->publicGetApiDepthPair ($this->extend($request, $params));
+        $orderbook = $this->publicGetApiDepthPair($this->extend($request, $params));
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'buy', 'sell');
     }
 
@@ -554,7 +553,7 @@ class indodax extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -569,7 +568,7 @@ class indodax extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetApiTickerPair ($this->extend($request, $params));
+        $response = $this->publicGetApiTickerPair($this->extend($request, $params));
         //
         //     {
         //         "ticker" => {
@@ -588,7 +587,7 @@ class indodax extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
@@ -615,7 +614,7 @@ class indodax extends Exchange {
         //     }
         // }
         //
-        $response = $this->publicGetApiTickerAll ($params);
+        $response = $this->publicGetApiTickerAll($params);
         $tickers = $this->safe_dict($response, 'tickers', array());
         $keys = is_array($tickers) ? array_keys($tickers) : array();
         $parsedTickers = array();
@@ -649,7 +648,7 @@ class indodax extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -666,7 +665,7 @@ class indodax extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetApiTradesPair ($this->extend($request, $params));
+        $response = $this->publicGetApiTradesPair($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -691,7 +690,7 @@ class indodax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -722,7 +721,7 @@ class indodax extends Exchange {
             $duration = $this->parse_timeframe($timeframe);
             $request['from'] = $now - $limit * $duration - 1;
         }
-        $response = $this->publicGetTradingviewHistoryV2 ($this->extend($request, $params));
+        $response = $this->publicGetTradingviewHistoryV2($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -845,7 +844,7 @@ class indodax extends Exchange {
         ));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an $order made by the user
          *
@@ -865,14 +864,14 @@ class indodax extends Exchange {
             'pair' => $market['id'],
             'order_id' => $id,
         );
-        $response = $this->privatePostGetOrder ($this->extend($request, $params));
+        $response = $this->privatePostGetOrder($this->extend($request, $params));
         $orders = $response['return'];
         $order = $this->parse_order($this->extend(array( 'id' => $id ), $orders['order']), $market);
         $order['info'] = $response;
         return $order;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -891,7 +890,7 @@ class indodax extends Exchange {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
-        $response = $this->privatePostOpenOrders ($this->extend($request, $params));
+        $response = $this->privatePostOpenOrders($this->extend($request, $params));
         $rawOrders = $response['return']['orders'];
         // array( success => 1, return => array( orders => null )) if no orders
         if (!$rawOrders) {
@@ -914,7 +913,7 @@ class indodax extends Exchange {
         return $exchangeOrders;
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed $orders made by the user
          *
@@ -934,13 +933,13 @@ class indodax extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->privatePostOrderHistory ($this->extend($request, $params));
+        $response = $this->privatePostOrderHistory($this->extend($request, $params));
         $orders = $this->parse_orders($response['return']['orders'], $market);
         $orders = $this->filter_by($orders, 'status', 'closed');
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -999,7 +998,7 @@ class indodax extends Exchange {
         if ($quantityIsRequired) {
             $request[$market['baseId']] = $this->amount_to_precision($symbol, $amount);
         }
-        $result = $this->privatePostTrade ($this->extend($request, $params));
+        $result = $this->privatePostTrade($this->extend($request, $params));
         $data = $this->safe_value($result, 'return', array());
         $id = $this->safe_string($data, 'order_id');
         return $this->safe_order(array(
@@ -1008,7 +1007,7 @@ class indodax extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1033,7 +1032,7 @@ class indodax extends Exchange {
             'pair' => $market['id'],
             'type' => $side,
         );
-        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostCancelOrder($this->extend($request, $params));
         //
         //    {
         //        "success" => 1,
@@ -1057,7 +1056,7 @@ class indodax extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function fetch_transaction_fee(string $code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array()) {
         /**
          * fetch the fee for a transaction
          *
@@ -1072,7 +1071,7 @@ class indodax extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privatePostWithdrawFee ($this->extend($request, $params));
+        $response = $this->privatePostWithdrawFee($this->extend($request, $params));
         //
         //     {
         //         "success" => 1,
@@ -1092,7 +1091,7 @@ class indodax extends Exchange {
         );
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of $deposits and withdrawals
          *
@@ -1111,7 +1110,7 @@ class indodax extends Exchange {
             $request['start'] = $startTime;
             $request['end'] = $this->yyyymmdd($this->milliseconds());
         }
-        $response = $this->privatePostTransHistory ($this->extend($request, $params));
+        $response = $this->privatePostTransHistory($this->extend($request, $params));
         //
         //     {
         //         "success" => 1,
@@ -1194,7 +1193,7 @@ class indodax extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1227,7 +1226,7 @@ class indodax extends Exchange {
         if ($tag) {
             $request['withdraw_memo'] = $tag;
         }
-        $response = $this->privatePostWithdrawCoin ($this->extend($request, $params));
+        $response = $this->privatePostWithdrawCoin($this->extend($request, $params));
         //
         //     {
         //         "success" => 1,
@@ -1331,7 +1330,7 @@ class indodax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): array {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit $addresses for multiple currencies and chain types
          *
@@ -1342,7 +1341,7 @@ class indodax extends Exchange {
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=$address-structure $address structures~
          */
         $this->load_markets();
-        $response = $this->privatePostGetInfo ($params);
+        $response = $this->privatePostGetInfo($params);
         //
         //    {
         //        success => '1',
@@ -1417,7 +1416,7 @@ class indodax extends Exchange {
         return $result;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));

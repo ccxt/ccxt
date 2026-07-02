@@ -398,6 +398,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'CGLD': 'CELO',
             },
             'options': {
+                'mica': True,
                 'usePrivate': False,
                 'brokerId': 'ccxt',
                 'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
@@ -3848,7 +3849,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

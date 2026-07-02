@@ -488,6 +488,9 @@ class digifinex(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -577,6 +580,12 @@ class digifinex(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for digifinex
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol
+        https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -930,7 +939,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1360,6 +1369,9 @@ class digifinex(Exchange, ImplicitAPI):
     def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-timestamp
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -1375,6 +1387,9 @@ class digifinex(Exchange, ImplicitAPI):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-ping
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
@@ -1927,6 +1942,9 @@ class digifinex(Exchange, ImplicitAPI):
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+
         :param str[] ids: order ids
         :param str symbol: not used by digifinex cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2632,6 +2650,9 @@ class digifinex(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-address-inquiry
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
@@ -2707,6 +2728,9 @@ class digifinex(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -2718,6 +2742,9 @@ class digifinex(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#withdrawal-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -3213,6 +3240,9 @@ class digifinex(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
+
+        https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch

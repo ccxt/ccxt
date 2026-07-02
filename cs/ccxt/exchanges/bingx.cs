@@ -1578,7 +1578,7 @@ public partial class bingx : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -6196,7 +6196,6 @@ public partial class bingx : Exchange
         };
         object response = null;
         object commission = new Dictionary<string, object>() {};
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         if (isTrue(getValue(market, "spot")))
         {
             response = await this.spotV1PrivateGetUserCommissionRate(this.extend(request, parameters));
@@ -6211,7 +6210,7 @@ public partial class bingx : Exchange
             //         }
             //     }
             //
-            commission = data;
+            commission = this.safeDict(response, "data", new Dictionary<string, object>() {});
         } else
         {
             if (isTrue(getValue(market, "inverse")))
@@ -6228,7 +6227,7 @@ public partial class bingx : Exchange
                 //         }
                 //     }
                 //
-                commission = data;
+                commission = this.safeDict(response, "data", new Dictionary<string, object>() {});
             } else
             {
                 response = await this.swapV2PrivateGetUserCommissionRate(parameters);
@@ -6244,6 +6243,7 @@ public partial class bingx : Exchange
                 //         }
                 //     }
                 //
+                object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 commission = this.safeDict(data, "commission", new Dictionary<string, object>() {});
             }
         }

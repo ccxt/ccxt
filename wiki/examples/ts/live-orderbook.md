@@ -10,7 +10,7 @@ import ccxt from '../../js/ccxt.js';
 
 const { noLocate } = ololog;
 const log = noLocate;
-
+// @ts-expect-error
 ansicolor.nice
 
 let printSupportedExchanges = function () {

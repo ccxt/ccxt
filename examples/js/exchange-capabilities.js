@@ -5,6 +5,7 @@ import ansicolor from 'ansicolor';
 import asTable from 'as-table';
 const { noLocate } = ololog;
 const log = noLocate;
+// @ts-expect-error
 ansicolor.nice;
 const csv = process.argv.includes('--csv'), delimiter = csv ? ',' : '|', asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ };
 asTable.configure(asTableConfig);

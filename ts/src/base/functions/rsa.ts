@@ -1,82 +1,36 @@
-import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
-import { BigInteger } from "../../static_dependencies/jsencrypt/lib/jsbn/jsbn.js";
-import { CHash, utf8ToBytes } from '@noble/hashes/utils.js';
-import { hex as base16, base64, utf8 } from '@scure/base';
-import { urlencodeBase64, base16ToBinary, base64ToBinary, binaryToString, base64ToBase64Url } from './encode.js';
+import crypto from 'crypto';
+import { CHash } from '@noble/hashes/utils.js';
+import { utf8 } from '@scure/base';
+import { urlencodeBase64, base16ToBinary, base64ToBinary, base64ToBase64Url } from './encode.js';
 import { eddsa, hmac } from './crypto.js';
 import { p256 as P256 } from '@noble/curves/nist.js';
 import { ecdsa } from '../../base/functions/crypto.js';
 import { Dictionary } from "../types.js";
 import { ed25519 } from "@noble/curves/ed25519.js";
 
-function mgf1 (seed: Uint8Array, maskLen: number, hash: CHash): Uint8Array {
-    // MGF1 mask generation function (PKCS#1 / RFC 8017) using the given hash
-    const hLen = hash.outputLen;
-    const blocks = Math.ceil (maskLen / hLen);
-    const out = new Uint8Array (blocks * hLen);
-    for (let i = 0; i < blocks; i++) {
-        const counter = new Uint8Array ([ (i >>> 24) & 0xff, (i >>> 16) & 0xff, (i >>> 8) & 0xff, i & 0xff ]);
-        const input = new Uint8Array (seed.length + 4);
-        input.set (seed);
-        input.set (counter, seed.length);
-        out.set (hash (input), i * hLen);
+// RSASSA-PKCS1-v1_5 (and RSASSA-PSS via padding = 'pss') signing through Node's built-in
+// `crypto` module. This is synchronous and works in Node.js / Bun / Deno (anything exposing
+// node:crypto). It is NOT available in the browser bundle (rspack stubs the `crypto` module),
+// so rsa throws there: RSA signing is currently unsupported in the browser.
+function rsa (request: string, secret: string, hash: CHash, padding: string = 'pkcs1'): string {
+    if (crypto === undefined || crypto.createSign === undefined) {
+        throw new Error ('rsa is currently not supported in the browser');
     }
-    return out.slice (0, maskLen);
-}
-
-function rsaPss (request: string, secret: string, hash: CHash): string {
-    // RSASSA-PSS signature (RFC 8017) with salt length = hash output length, returned base64.
-    // implemented in pure JS (browser-safe) on top of the bundled RSA primitive, since the
-    // JSEncrypt signer only does PKCS#1 v1.5 padding
-    const RSA = new JSEncrypt ();
-    RSA.setPrivateKey (secret);
-    const key = RSA.getKey () as any;
-    const modBits = key.n.bitLength ();
-    const emBits = modBits - 1;
-    const emLen = Math.ceil (emBits / 8);
-    const hLen = hash.outputLen;
-    const sLen = hLen;
-    const mHash = hash (utf8ToBytes (request));
-    const salt = new Uint8Array (sLen);
-    globalThis.crypto.getRandomValues (salt);
-    // M' = (0x)00 00 00 00 00 00 00 00 || mHash || salt
-    const mPrime = new Uint8Array (8 + hLen + sLen);
-    mPrime.set (mHash, 8);
-    mPrime.set (salt, 8 + hLen);
-    const H = hash (mPrime);
-    const dbLen = emLen - hLen - 1;
-    const psLen = emLen - sLen - hLen - 2;
-    const db = new Uint8Array (dbLen);
-    db[psLen] = 0x01;
-    db.set (salt, psLen + 1);
-    const dbMask = mgf1 (H, dbLen, hash);
-    const maskedDb = new Uint8Array (dbLen);
-    for (let i = 0; i < dbLen; i++) {
-        maskedDb[i] = db[i] ^ dbMask[i];
-    }
-    // zero the leftmost (8*emLen - emBits) bits of the leftmost octet
-    maskedDb[0] &= (0xFF >> (8 * emLen - emBits));
-    const em = new Uint8Array (emLen);
-    em.set (maskedDb, 0);
-    em.set (H, dbLen);
-    em[emLen - 1] = 0xbc;
-    const c = key.doPrivate (new BigInteger (base16.encode (em), 16));
-    const modLen = (modBits + 7) >> 3;
-    let cHex = c.toString (16);
-    cHex = cHex.padStart (modLen * 2, '0');
-    return base64.encode (base16.decode (cHex));
-}
-
-function rsa (request: string, secret: string, hash: CHash, padding: string = 'pkcs1') {
-    if (padding === 'pss') {
-        return rsaPss (request, secret, hash);
-    }
-    const RSA = new JSEncrypt ()
-    const digester = (input: string | Uint8Array) => base16.encode (hash ((typeof input === 'string') ? utf8ToBytes (input) : input))
-    RSA.setPrivateKey (secret)
     // @noble/hashes v2 renamed the digest classes from SHA256 to _SHA256, etc
-    const name = (hash.create ()).constructor.name.toLowerCase ().replace ('_', '')
-    return RSA.sign (request, digester, name) as string;
+    const name = (hash.create ()).constructor.name.toLowerCase ().replace ('_', '');
+    const algorithms = {
+        'sha256': 'RSA-SHA256',
+        'sha384': 'RSA-SHA384',
+        'sha512': 'RSA-SHA512',
+    };
+    const algorithm = algorithms[name];
+    const signer = crypto.createSign (algorithm);
+    signer.update (request);
+    if (padding === 'pss') {
+        // RSASSA-PSS (RFC 8017), salt length = digest length, MGF1 with the same hash
+        return signer.sign ({ 'key': secret, 'padding': crypto.constants.RSA_PKCS1_PSS_PADDING, 'saltLength': crypto.constants.RSA_PSS_SALTLEN_DIGEST }, 'base64');
+    }
+    return signer.sign (secret, 'base64');
 }
 
 function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA = false, opts: Dictionary<any> = {}) {

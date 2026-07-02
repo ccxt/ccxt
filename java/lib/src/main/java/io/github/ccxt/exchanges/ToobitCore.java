@@ -86,7 +86,7 @@ public class ToobitCore extends ToobitApi
                 put( "withdraw", true );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e" );
+                put( "logo", "https://github.com/user-attachments/assets/58e1b718-c6fd-49e2-8a49-797da6b9c008" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "common", "https://api.toobit.com" );
                     put( "private", "https://api.toobit.com" );
@@ -937,7 +937,7 @@ public class ToobitCore extends ToobitApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

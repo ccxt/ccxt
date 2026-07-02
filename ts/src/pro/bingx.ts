@@ -543,7 +543,7 @@ export default class bingx extends bingxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -599,7 +599,7 @@ export default class bingx extends bingxRest {
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
@@ -992,7 +992,7 @@ export default class bingx extends bingxRest {
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
-        let request: Dict = {};
+        let request = undefined;
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' watchOrders is not supported for inverse swap markets yet');
@@ -1105,13 +1105,15 @@ export default class bingx extends bingxRest {
         const swapMessageHash = 'swap:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
-        let request: Dict = {};
+        let request = undefined;
         let baseUrl: Str = undefined;
         const uuid = this.uuid ();
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' watchBalance is not supported for inverse swap markets yet');
             }
+            // swap balance updates are pushed automatically over the listenKey connection,
+            // so we must not send a subscription message (an empty one is rejected with 80014)
             baseUrl = this.safeString (this.urls['api']['ws'], (subType as string));
         } else {
             baseUrl = this.safeString (this.urls['api']['ws'], type);

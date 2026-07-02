@@ -1015,7 +1015,12 @@ public partial class Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        return new Dictionary<string, object>() {};
+        return new Dictionary<string, object>() {
+            { "url", null },
+            { "method", null },
+            { "headers", null },
+            { "body", null },
+        };
     }
 
     public async virtual Task<object> fetchAccounts(object parameters = null)
@@ -4405,16 +4410,43 @@ public partial class Exchange
         var retryDelayparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", 0);
         retryDelay = ((IList<object>)retryDelayparametersVariable)[0];
         parameters = ((IList<object>)retryDelayparametersVariable)[1];
+        object fetchData = null;
+        object fetchDataCacheEnabled = isGreaterThan(this.fetchHistoryCacheSize, 0);
         for (object i = 0; isLessThan(i, add(retries, 1)); postFixIncrement(ref i))
         {
+            if (isTrue(fetchDataCacheEnabled))
+            {
+                fetchData = new Dictionary<string, object>() {
+                    { "request", null },
+                    { "response", new Dictionary<string, object>() {
+                        { "body", null },
+                    } },
+                    { "error", null },
+                };
+            }
             try
             {
                 this.setLastRestRequestTimestamp();
                 object request = this.sign(path, api, method, parameters, headers, body);
+                if (isTrue(fetchDataCacheEnabled))
+                {
+                    ((IDictionary<string,object>)fetchData)["request"] = request;
+                }
                 this.setLastRequest(request);
-                return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
+                object response = await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
+                if (isTrue(fetchDataCacheEnabled))
+                {
+                    ((IDictionary<string,object>)getValue(fetchData, "response"))["body"] = response;
+                    this.addFetchCache(fetchData);
+                }
+                return response;
             } catch(Exception e)
             {
+                if (isTrue(fetchDataCacheEnabled))
+                {
+                    ((IDictionary<string,object>)fetchData)["error"] = e;
+                    this.addFetchCache(fetchData);
+                }
                 if (isTrue(e is OperationFailed))
                 {
                     if (isTrue(isLessThan(i, retries)))

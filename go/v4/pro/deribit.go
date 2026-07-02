@@ -670,7 +670,7 @@ func  (this *DeribitCore) HandleMyTrades(client any, message any)  {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *DeribitCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -699,7 +699,7 @@ func  (this *DeribitCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *DeribitCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)

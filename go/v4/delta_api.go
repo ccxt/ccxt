@@ -119,6 +119,10 @@ func (this *DeltaCore) PrivateGetProfile(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetProfile", args...)
 }
 
+func (this *DeltaCore) PrivateGetRateLimitsQuota(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRateLimitsQuota", args...)
+}
+
 func (this *DeltaCore) PrivateGetHeartbeat(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetHeartbeat", args...)
 }
@@ -193,6 +197,10 @@ func (this *DeltaCore) PrivatePutUsersUpdateMmp(args ...any) <-chan any {
 
 func (this *DeltaCore) PrivatePutUsersResetMmp(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutUsersResetMmp", args...)
+}
+
+func (this *DeltaCore) PrivatePutUsersMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutUsersMarginMode", args...)
 }
 
 func (this *DeltaCore) PrivateDeleteOrders(args ...any) <-chan any {

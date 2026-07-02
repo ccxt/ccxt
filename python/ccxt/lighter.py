@@ -32,7 +32,7 @@ class lighter(Exchange, ImplicitAPI):
             'quoteJsonNumbers': False,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -943,10 +943,11 @@ class lighter(Exchange, ImplicitAPI):
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
-            'integrator_account_index': self.options['integratorAccountIndex'],
-            'integrator_taker_fee': self.options['integratorTakerFee'],
-            'integrator_maker_fee': self.options['integratorMakerFee'],
         }
+        if self.safe_bool(self.options, 'builderFee', True):
+            signRaw['integrator_account_index'] = self.options['integratorAccountIndex']
+            signRaw['integrator_taker_fee'] = self.options['integratorTakerFee']
+            signRaw['integrator_maker_fee'] = self.options['integratorMakerFee']
         txType, txInfo = self.lighter_sign_modify_order(signer, self.extend(signRaw, params))
         request = {
             'tx_type': txType,
@@ -1244,7 +1245,7 @@ class lighter(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')

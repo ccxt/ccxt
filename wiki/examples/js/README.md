@@ -23,10 +23,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Aggregate Orderbook](./examples/js/aggregate-orderbook.md)
 
-- [Apex Example](./examples/js/apex-example.md)
-
-- [Apex Watch](./examples/js/apex-watch.md)
-
 - [Arbitrage Pairs](./examples/js/arbitrage-pairs.md)
 
 - [Basic Chart](./examples/js/basic-chart.md)
@@ -39,8 +35,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Binance Fetch All Deposits](./examples/js/binance-fetch-all-deposits.md)
 
-- [Binance Fetch Balance Snapshot Watch Balance Updates](./examples/js/binance-fetch-balance-snapshot-watch-balance-updates.md)
-
 - [Binance Fetch Ohlcv Many Symbols Async Await](./examples/js/binance-fetch-ohlcv-many-symbols-async-await.md)
 
 - [Binance Fetch Ohlcv Many Symbols Promise Then Callbacks](./examples/js/binance-fetch-ohlcv-many-symbols-promise-then-callbacks.md)
@@ -48,8 +42,6 @@ node path/to/example.js # substitute for actual filename here
 - [Binance FetchTicker Delivery Vs Future](./examples/js/binance-fetchTicker-delivery-vs-future.md)
 
 - [Binance Futures Transfer From Sub Account To Master](./examples/js/binance-futures-transfer-from-sub-account-to-master.md)
-
-- [Binance Https Proxy](./examples/js/binance-https-proxy.md)
 
 - [Binance Margin Stop Order](./examples/js/binance-margin-stop-order.md)
 
@@ -74,8 +66,6 @@ node path/to/example.js # substitute for actual filename here
 - [Bitstamp Private Api](./examples/js/bitstamp-private-api.md)
 
 - [Bitstamp Public Api](./examples/js/bitstamp-public-api.md)
-
-- [Bittrex Balance](./examples/js/bittrex-balance.md)
 
 - [Bittrex Fetch Closed Orders History](./examples/js/bittrex-fetch-closed-orders-history.md)
 
@@ -199,18 +189,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Gate Watch Order Book](./examples/js/gate-watch-order-book.md)
 
-- [Gateio Create Batch Order](./examples/js/gateio-create-batch-order.md)
-
-- [Gateio Futures](./examples/js/gateio-futures.md)
-
-- [Gateio Open Close Contract](./examples/js/gateio-open-close-contract.md)
-
-- [Gateio Swap Watch Many Orderbooks](./examples/js/gateio-swap-watch-many-orderbooks.md)
-
-- [Gateio Swaps](./examples/js/gateio-swaps.md)
-
-- [Gateio Watch Order Book](./examples/js/gateio-watch-order-book.md)
-
 - [Graceful Shutdown](./examples/js/graceful-shutdown.md)
 
 - [Hibachi Example](./examples/js/hibachi-example.md)
@@ -232,8 +210,6 @@ node path/to/example.js # substitute for actual filename here
 - [HybridESMExample](./examples/js/hybridESMExample.md)
 
 - [Hyperliquid Load Hip3 Dexes](./examples/js/hyperliquid-load-hip3-dexes.md)
-
-- [Idex Fetch Balance](./examples/js/idex-fetch-balance.md)
 
 - [Instantiate All At Once](./examples/js/instantiate-all-at-once.md)
 
@@ -335,8 +311,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Symbols](./examples/js/symbols.md)
 
-- [Theocean](./examples/js/theocean.md)
-
 - [Tickers](./examples/js/tickers.md)
 
 - [Validate Paginated Data](./examples/js/validate-paginated-data.md)
@@ -367,25 +341,11 @@ node path/to/example.js # substitute for actual filename here
 
 - [Watch Vs Fetch](./examples/js/watch-vs-fetch.md)
 
-- [WatchPositions Many Exchanges Continuosly.D](./examples/js/watchPositions-many-exchanges-continuosly.d.md)
-
-- [WatchPositions Many Exchanges Continuosly.D.Ts](./examples/js/watchPositions-many-exchanges-continuosly.d.ts.md)
-
 - [WatchPositions Many Exchanges Continuosly](./examples/js/watchPositions-many-exchanges-continuosly.md)
-
-- [WatchPositions.D](./examples/js/watchPositions.d.md)
-
-- [WatchPositions.D.Ts](./examples/js/watchPositions.d.ts.md)
 
 - [WatchPositions](./examples/js/watchPositions.md)
 
-- [WatchPositionsForSymbols.D](./examples/js/watchPositionsForSymbols.d.md)
-
-- [WatchPositionsForSymbols.D.Ts](./examples/js/watchPositionsForSymbols.d.ts.md)
-
 - [WatchPositionsForSymbols](./examples/js/watchPositionsForSymbols.md)
-
-- [WatchTradesForSymbols](./examples/js/watchTradesForSymbols.md)
 
 - [Withdraw From One Exchange To Another](./examples/js/withdraw-from-one-exchange-to-another.md)
 
