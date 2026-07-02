@@ -11,7 +11,7 @@ async function testAfterConstruct (exchange: Exchange, skippedProperties: object
 function testOptionsNetworks (exchange: Exchange, skippedProperties: object) {
     if (!('networks' in skippedProperties)) {
         // only allow these whitelisted unified networkCodes to be repeated
-        const allowedUnifiedAliases = exchange.options['recognizedNetworkAliases'];
+        const allowedUnifiedAliases = exchange.options['allowedNetworkAliases'];
         const networks = exchange.safeDict (exchange.options, 'networks');
         if (networks === undefined) {
             return;
