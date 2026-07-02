@@ -465,6 +465,7 @@ public class BitstampCore extends BitstampApi
                 put( "UST", "USTC" );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "bitcoin-cash", "BCH" );
                     put( "bitcoin", "BTC" );
