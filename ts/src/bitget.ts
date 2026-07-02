@@ -1923,6 +1923,7 @@ export default class bitget extends Exchange {
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, methodName, 'uta');
         if (uta !== undefined) {
+            console.log ('first handleUTAAndParams: uta =', uta);
             return [ uta, params ];
         }
         if (this.checkRequiredCredentials (false)) {
@@ -1935,8 +1936,10 @@ export default class bitget extends Exchange {
             } catch (e) {
                 accountIsUTa = false;
             }
+            console.log ('handleUTAAndParams: accountIsUTa =', accountIsUTa);
             return [ accountIsUTa, params ];
         }
+        console.log ('default handleUTAAndParams: accountIsUTa =', defaultValue);
         return [ defaultValue, params ];
     }
 
