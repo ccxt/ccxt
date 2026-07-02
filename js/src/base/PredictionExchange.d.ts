@@ -291,6 +291,9 @@ export default class PredictionExchange extends Exchange {
     safePredictionPosition(position: Dict): PredictionPosition;
     safePredictionOrderBook(orderbook: Dict, outcomeObj?: Dict): PredictionOrderBook;
     toPredictionStructure(parsed: Dict, raw: Dict): any;
+    parsePredictionTrades(trades: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: {}): PredictionTrade[];
+    parsePredictionOrders(orders: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: {}): PredictionOrder[];
+    parsePredictionPositions(positions: any[], params?: {}): PredictionPosition[];
     filterByOutcomeSinceLimit(array: any, outcome?: Str, since?: Int, limit?: Int, tail?: boolean): any;
     filterByOutcomesSinceLimit(array: any, outcomes?: string[], since?: Int, limit?: Int, tail?: boolean): any;
     amountToPredictionPrecision(outcome: string, amount: any): string;

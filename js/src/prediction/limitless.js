@@ -17,7 +17,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import Exchange from '../abstract/prediction/limitless.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions.js';
 // ---------------------------------------------------------------------------
@@ -153,7 +153,7 @@ export default class limitless extends Exchange {
                 },
             },
             'requiredCredentials': {
-                'apiKey': true,
+                'apiKey': true, // Limitless API key
                 'secret': true,
             },
             'fees': {
@@ -167,13 +167,13 @@ export default class limitless extends Exchange {
             'options': {
                 'defaultFetchMarketsPages': 5,
                 'marketsPageSize': 25,
-                'usdcDecimals': 6,
-                'warnOnCancelAllOrdersWithOutcome': true,
+                'usdcDecimals': 6, // Limitless sizes are 6-decimal USDC
+                'warnOnCancelAllOrdersWithOutcome': true, // cancelAllOrders with an outcome will cancel all orders for the entire slug (both YES and NO outcomes), so we warn by default to prevent mistakes. Set this option to false to suppress the warning.
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
-                'chainId': 8453,
-                'rpcUrl': 'https://mainnet.base.org',
-                'collateralAddress': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-                'exchangeAddress': '0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5',
+                'chainId': 8453, // Base
+                'rpcUrl': 'https://mainnet.base.org', // Base RPC used by approve() for the on-chain allowance tx
+                'collateralAddress': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base (default approve token)
+                'exchangeAddress': '0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5', // Limitless CTF exchange (default approve spender)
                 'createMarketBuyOrderRequiresPrice': true,
             },
             'exceptions': {
@@ -1146,9 +1146,7 @@ export default class limitless extends Exchange {
             }
             filtered.push(row);
         }
-        // parse without a market (parsed trades carry `outcome`, not `symbol`) then filter by outcome
-        const parsedTrades = this.parseTrades(filtered, undefined);
-        return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit);
+        return this.parsePredictionTrades(filtered, outcomeObj, since, limit);
     }
     /**
      * @method
@@ -1352,7 +1350,7 @@ export default class limitless extends Exchange {
         const volume = this.safeNumber(ohlcv, 'volume', 0); // history endpoint has no volume → 0
         return [
             ts,
-            price, price, price, price,
+            price, price, price, price, // synthetic OHLC from single tick
             volume,
         ];
     }
@@ -1404,7 +1402,7 @@ export default class limitless extends Exchange {
         // pass undefined as market: parseOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
-        return this.parseOrders(response, undefined, since, limit);
+        return this.parsePredictionOrders(response, undefined, since, limit);
     }
     /**
      * @method
@@ -1459,7 +1457,9 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrdersByIds(ids, outcome = undefined, params = {}) {
-        await this.loadOutcome(outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
         const length = ids.length;
         if (length > 50) {
             throw new BadRequest(this.id + ' fetchOrdersByIds can only fetch up to 50 orders at a time');
@@ -1581,7 +1581,7 @@ export default class limitless extends Exchange {
                 found.push(item);
             }
         }
-        return this.parseOrders(found, undefined);
+        return this.parsePredictionOrders(found);
     }
     /**
      * @method
@@ -1594,7 +1594,9 @@ export default class limitless extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder(id, outcome = undefined, params = {}) {
-        await this.loadOutcome(outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
         const orders = await this.fetchOrdersByIds([id], outcome, params);
         const order = this.safeDict(orders, 0);
         if (order === undefined) {
@@ -2279,7 +2281,9 @@ export default class limitless extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrder(id, outcome = undefined, params = {}) {
-        await this.loadOutcome(outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
         const request = {
             'order_id': id,
         };
@@ -2305,7 +2309,9 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrders(ids, outcome = undefined, params = {}) {
-        await this.loadOutcome(outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
         const request = {
             'orderIds': ids,
         };
@@ -2318,7 +2324,7 @@ export default class limitless extends Exchange {
             const feedback = this.id + ' cancelOrders failed: ' + message;
             throw new OrderNotFound(feedback);
         }
-        return this.parseOrders(canceled);
+        return this.parsePredictionOrders(canceled);
     }
     /**
      * @method
@@ -2331,7 +2337,6 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelAllOrders(outcome = undefined, params = {}) {
-        await this.loadOutcome(outcome);
         if (outcome !== undefined) {
             let warn = true;
             [warn, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
@@ -2342,7 +2347,7 @@ export default class limitless extends Exchange {
         const request = {};
         const slug = this.safeString(params, 'slug');
         if (outcome !== undefined) {
-            const outcomeObj = this.outcome(outcome);
+            const outcomeObj = await this.loadOutcome(outcome);
             request['slug'] = this.safeString(outcomeObj['info'], 'slug');
         }
         else if (slug === undefined) {
@@ -2368,7 +2373,12 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadOutcome(outcome);
+        // resolve the handle for the final filter — the caller may have passed an outcomeId
+        let outcomeSymbol = outcome;
+        if (outcome !== undefined) {
+            const outcomeObj = await this.loadOutcome(outcome);
+            outcomeSymbol = this.safeString(outcomeObj, 'outcome');
+        }
         let paginate = false;
         const maxLimit = 100;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate', paginate);
@@ -2458,8 +2468,8 @@ export default class limitless extends Exchange {
                 }
             }
         }
-        const parsedTrades = this.parseTrades(trades, undefined);
-        return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit);
+        const parsedTrades = this.parsePredictionTrades(trades, undefined);
+        return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit);
     }
     /**
      * @ignore
@@ -2576,7 +2586,7 @@ export default class limitless extends Exchange {
             'order': undefined,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': takerOrMaker, // todo check
             'price': price,
             'amount': amount,
             'cost': cost,

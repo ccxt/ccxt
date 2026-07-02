@@ -19,7 +19,7 @@ import Exchange from '../abstract/prediction/myriad.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded } from '../../ccxt.js';
+import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded } from '../base/errors.js';
 // ---------------------------------------------------------------------------
 /**
  * @class myriad
@@ -183,8 +183,8 @@ export default class myriad extends Exchange {
             'options': {
                 'defaultFetchMarketsLimit': 50,
                 'defaultFetchEventsLimit': 50,
-                'defaultMarketStatus': 'open',
-                'defaultTradingModel': 'all',
+                'defaultMarketStatus': 'open', // 'open' | 'closed' | 'resolved'
+                'defaultTradingModel': 'all', // 'amm' | 'ob' | 'all' — markets listing includes both models
                 // network used for order-book trading when a market does not pin one (OB lives on BNB Chain)
                 'defaultNetworkId': '56',
                 // EIP-712 domain for order-book order/cancel signing (gasless CLOB)
@@ -1168,7 +1168,7 @@ export default class myriad extends Exchange {
             'network_id': this.parseToInt(networkId),
         };
         await this.myriadPublicPostOrdersCancelBatch(this.extend(request, params));
-        return this.parseOrders(wrappers, undefined, undefined, undefined);
+        return this.parsePredictionOrders(wrappers);
     }
     /**
      * @method
@@ -1224,7 +1224,7 @@ export default class myriad extends Exchange {
         // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
         // valid market), so parse every order — each self-resolves its outcome from the network/market/
         // outcome ids — and filter by the requested outcome client-side
-        const orders = this.parseOrders(data, undefined, undefined, undefined);
+        const orders = this.parsePredictionOrders(data);
         return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit);
     }
     /**
@@ -1822,8 +1822,8 @@ export default class myriad extends Exchange {
             'change': change,
             'percentage': change,
             'average': price,
-            'baseVolume': this.safeNumber(raw, 'volume24h'),
-            'quoteVolume': this.safeNumber(raw, 'volumeNotional24h'),
+            'baseVolume': this.safeNumber(raw, 'volume24h'), // 24h volume in outcome shares
+            'quoteVolume': this.safeNumber(raw, 'volumeNotional24h'), // 24h volume in USDC notional
             'info': raw,
         }, market);
     }
@@ -2297,7 +2297,7 @@ export default class myriad extends Exchange {
             }
             trades.push(row);
         }
-        return this.parseTrades(trades, outcomeObj, since, limit);
+        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
     /**
      * @ignore

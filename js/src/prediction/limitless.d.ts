@@ -1,4 +1,3 @@
-/// <reference lib="es2015" />
 import Exchange from '../abstract/prediction/limitless.js';
 import type { int, Int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Bool, Account, fetchEventsParams, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
 /**

@@ -3,7 +3,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/hyperliquid.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../../ccxt.js';
+import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 // ---------------------------------------------------------------------------
 /**
  * @class hyperliquid
@@ -113,7 +113,7 @@ export default class hyperliquid extends Exchange {
             },
             'options': {
                 'defaultType': 'prediction',
-                'sandboxMode': false,
+                'sandboxMode': false, // outcome markets currently deployed on testnet
                 'outcomeQuoteCurrency': 'USDH',
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
@@ -1438,7 +1438,7 @@ export default class hyperliquid extends Exchange {
             const order = response[i];
             ordersWithStatus.push(this.extend(order, { 'ccxtStatus': 'open' }));
         }
-        const parsed = this.parseOrders(ordersWithStatus, undefined, since, undefined);
+        const parsed = this.parsePredictionOrders(ordersWithStatus, undefined, since);
         let outcomeHandle = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
@@ -1487,7 +1487,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         const dedupedValues = Object.values(deduped);
-        const parsed = this.parseOrders(dedupedValues, undefined, since, undefined);
+        const parsed = this.parsePredictionOrders(dedupedValues, undefined, since);
         let outcomeHandle = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
@@ -1669,7 +1669,7 @@ export default class hyperliquid extends Exchange {
         // recentTrades returns the coin's most recent public trades (newest first)
         const response = await this.publicPostInfo(this.extend(request, params));
         const trades = (response !== undefined && response !== null) ? response : [];
-        return this.parseTrades(trades, outcomeObj, since, limit);
+        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
     /**
      * @method
@@ -1685,10 +1685,37 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
-        if (outcome === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires an outcome argument');
+        let outcomeHandle = undefined;
+        if (outcome !== undefined) {
+            const outcomeObj = await this.loadOutcome(outcome);
+            outcomeHandle = this.safeString(outcomeObj, 'outcome');
         }
-        return await this.fetchTrades(outcome, since, limit, params);
+        else {
+            // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
+            // cache (one market load) so parseTrade can resolve the unified outcome identity
+            await this.loadOutcomes();
+        }
+        let userAddress;
+        [userAddress, params] = this.handlePublicAddress('fetchMyTrades', params);
+        const request = { 'user': userAddress };
+        if (since !== undefined) {
+            request['type'] = 'userFillsByTime';
+            request['startTime'] = since;
+        }
+        else {
+            request['type'] = 'userFills';
+        }
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicPostInfo(this.extend(request, params));
+        const fills = (response !== undefined && response !== null) ? response : [];
+        // parse without an outcome fallback — fills span every market the wallet traded, so a
+        // requested-outcome fallback would mislabel fills whose market is no longer listed
+        const parsedTrades = this.parsePredictionTrades(fills, undefined);
+        return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
     }
     /**
      * @ignore

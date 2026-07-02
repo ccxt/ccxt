@@ -1,4 +1,3 @@
-/// <reference lib="es2015" />
 import Exchange from '../abstract/prediction/myriad.js';
 import type { Int, Str, Num, Dict, int, Strings, PredictionOrderRequest, Market, PredictionOrderBook, OHLCV, PredictionTradingFee, PredictionEvent, Balances, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
 /**

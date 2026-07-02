@@ -148,15 +148,15 @@ export default class kalshi extends Exchange {
                         'delete': {
                             'portfolio/orders/{order_id}': 1,
                             'portfolio/orders/batched': 1,
-                            'portfolio/events/orders/{order_id}': 1,
+                            'portfolio/events/orders/{order_id}': 1, // v2 cancel (the non-v2 paths above are 410 Gone)
                             'portfolio/order_groups/{order_group_id}': 1,
                         },
                     },
                 },
             },
             'requiredCredentials': {
-                'apiKey': true,
-                'secret': false,
+                'apiKey': true, // KALSHI-ACCESS-KEY (UUID)
+                'secret': false, // not used — signing is RSA with privateKey, override base default
                 'privateKey': true, // RSA PEM private key for signing
             },
             'fees': {
@@ -174,9 +174,9 @@ export default class kalshi extends Exchange {
                 'broad': {},
             },
             'options': {
-                'defaultFetchEventsLimit': 200,
-                'maxFetchMarketsLimit': 1000,
-                'defaultEventStatus': 'open',
+                'defaultFetchEventsLimit': 200, // events page size for the fetchEvents cursor scan
+                'maxFetchMarketsLimit': 1000, // markets page size / max markets collected per unscoped listing
+                'defaultEventStatus': 'open', // 'open' | 'closed' | 'settled'
                 // kalshi has tens of thousands of markets. false (default) = resolve each outcome on
                 // demand (~1s per market, cached) so hot paths are cheap; set true to bulk-load every
                 // outcome once up front (a multi-second listing scan) and make every later lookup a hit
@@ -760,7 +760,7 @@ export default class kalshi extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': average,
-            'baseVolume': this.safeNumberN(raw, ['volume_24h_fp', 'volume_24h', 'volume']),
+            'baseVolume': this.safeNumberN(raw, ['volume_24h_fp', 'volume_24h', 'volume']), // 24h volume in contracts
             'quoteVolume': undefined,
             'info': raw,
         }, market);
@@ -1101,7 +1101,7 @@ export default class kalshi extends Exchange {
                 filteredTrades.push(trade);
             }
         }
-        return this.parseTrades(filteredTrades, outcomeObj, since, limit);
+        return this.parsePredictionTrades(filteredTrades, outcomeObj, since, limit);
     }
     /**
      * @ignore
@@ -1221,7 +1221,31 @@ export default class kalshi extends Exchange {
         }
         const response = await this.kalshiPrivateGetPortfolioPositions(params);
         const positions = this.safeList(response, 'market_positions', []);
-        return this.parsePositions(positions, outcomes);
+        // filter by the requested outcomes' market tickers — a kalshi position is per market
+        // ticker and covers both the YES and the NO leg
+        const parsed = this.parsePredictionPositions(positions);
+        if (outcomesLength === 0) {
+            return parsed;
+        }
+        const wantedTickers = {};
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome(outcomes[i]);
+            const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
+            const marketTicker = this.safeString(outcomeInfo, 'ticker');
+            if (marketTicker !== undefined) {
+                wantedTickers[marketTicker] = true;
+            }
+        }
+        const result = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const position = parsed[i];
+            const positionInfo = this.safeDict(position, 'info', {});
+            const positionTicker = this.safeString(positionInfo, 'ticker');
+            if ((positionTicker !== undefined) && (positionTicker in wantedTickers)) {
+                result.push(position);
+            }
+        }
+        return result;
     }
     /**
      * @ignore
@@ -1299,7 +1323,7 @@ export default class kalshi extends Exchange {
         }
         const response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, params));
         const orders = this.safeList(response, 'orders', []);
-        return this.parseOrders(orders, outcomeObj, since, limit);
+        return this.parsePredictionOrders(orders, outcomeObj, since, limit);
     }
     /**
      * @method
@@ -1333,7 +1357,14 @@ export default class kalshi extends Exchange {
     parseOrder(order, market = undefined) {
         const id = this.safeString(order, 'order_id');
         const ticker = this.safeString(order, 'ticker');
-        const mkt = this.safeOutcome(ticker, market);
+        // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
+        // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
+        const sideLeg = this.safeStringLower(order, 'side');
+        let outcomeKey = ticker;
+        if ((sideLeg === 'no') && (ticker !== undefined)) {
+            outcomeKey = ticker + '-NO';
+        }
+        const mkt = this.safeOutcome(outcomeKey, market);
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const action = this.safeString(order, 'action');
         const side = (action === 'buy') ? 'buy' : 'sell';
@@ -1522,7 +1553,7 @@ export default class kalshi extends Exchange {
                 canceledOrders.push(this.safeDict(response, 'order', response));
             }
         }
-        return this.parseOrders(canceledOrders);
+        return this.parsePredictionOrders(canceledOrders);
     }
     /**
      * @method

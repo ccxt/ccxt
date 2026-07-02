@@ -716,6 +716,49 @@ export default class PredictionExchange extends Exchange {
         }
         return parsed;
     }
+    parsePredictionTrades(trades, outcomeObj = undefined, since = undefined, limit = undefined, params = {}) {
+        // prediction-market analogue of the base parseTrades: the base aggregator post-filters
+        // by the market's `symbol` key, but prediction structures carry an `outcome` handle
+        // instead — and an outcome object rebuilt from cached markets may still hold a legacy
+        // `symbol` key, which would silently drop every parsed row
+        const rows = this.toArray(trades);
+        let results = [];
+        for (let i = 0; i < rows.length; i++) {
+            const parsed = this.parseTrade(rows[i], outcomeObj);
+            const trade = this.extend(parsed, params);
+            results.push(trade);
+        }
+        results = this.sortBy2(results, 'timestamp', 'id');
+        const outcomeHandle = this.safeString(outcomeObj, 'outcome');
+        return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
+    }
+    parsePredictionOrders(orders, outcomeObj = undefined, since = undefined, limit = undefined, params = {}) {
+        // prediction-market analogue of the base parseOrders — see parsePredictionTrades
+        const rows = this.toArray(orders);
+        let results = [];
+        for (let i = 0; i < rows.length; i++) {
+            const parsed = this.parseOrder(rows[i], outcomeObj);
+            const order = this.extend(parsed, params);
+            results.push(order);
+        }
+        results = this.sortBy(results, 'timestamp');
+        const outcomeHandle = this.safeString(outcomeObj, 'outcome');
+        return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
+    }
+    parsePredictionPositions(positions, params = {}) {
+        // prediction-market analogue of the base parsePositions, which resolves its `symbols`
+        // argument through marketSymbols() and would throw BadSymbol on outcome handles.
+        // venue-specific outcome filtering stays in the exchange (position identity differs
+        // per venue: kalshi positions are market-level, polymarket ones are per token)
+        const rows = this.toArray(positions);
+        const results = [];
+        for (let i = 0; i < rows.length; i++) {
+            const parsed = this.parsePosition(rows[i]);
+            const position = this.extend(parsed, params);
+            results.push(position);
+        }
+        return results;
+    }
     filterByOutcomeSinceLimit(array, outcome = undefined, since = undefined, limit = undefined, tail = false) {
         return this.filterByValueSinceLimit(array, 'outcome', outcome, since, limit, 'timestamp', tail);
     }
