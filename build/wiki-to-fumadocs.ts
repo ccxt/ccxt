@@ -411,15 +411,43 @@ function main () {
         count++;
     }
 
-    // 2) exchanges
+    // 2) exchanges. Each exchange is a folder: index.md (the unified-API method
+    // reference, from jsdoc2md) + implicit-api.md (the raw `api`-block endpoints,
+    // generated here from the live library). The folder index keeps the
+    // /docs/exchanges/<id> URL unchanged; the sub-page lives at /<id>/implicit-api.
     const exOrder = exchangeOrder();
     ensure(path.join(OUT, 'exchanges'));
+    // implicit-api bodies: committed markdown written by build-docs (build/exchange-implicit-api.ts)
+    // to wiki/exchanges-implicit/<id>.md. Absent only if that build-docs stage hasn't run yet —
+    // then we simply emit the main exchange page without the sub-page.
+    const IMPLICIT_DIR = path.join(WIKI, 'exchanges-implicit');
+    const implicitAvailable = fs.existsSync(IMPLICIT_DIR)
+        ? new Set(fs.readdirSync(IMPLICIT_DIR).filter((f) => f.endsWith('.md')).map((f) => f.replace(/\.md$/, '')))
+        : new Set<string>();
+    if (implicitAvailable.size) console.log(`  🔌 implicit-api: ${implicitAvailable.size} exchanges`);
     for (const ex of exOrder) {
         const md = readWiki(path.join('exchanges', `${ex}.md`));
         const h = md.match(/^#{1,6}\s+(.*)$/m);
         const title = h ? stripInline(h[1]) || ex : ex;
         const desc = `${title} cryptocurrency exchange — CCXT unified API: methods, parameters and endpoints.`;
-        write(path.join(OUT, 'exchanges', `${ex}.md`), frontmatter(title, desc) + transform(md));
+        const hasImplicit = implicitAvailable.has(ex);
+        // surface the implicit-API sub-page from the top of the main exchange page.
+        const banner = hasImplicit
+            ? `> 🔌 Looking for raw exchange endpoints? See the [${ex} implicit API](/docs/exchanges/${ex}/implicit-api) — every endpoint in this exchange's API exposed as an implicit method.\n\n`
+            : '';
+        write(path.join(OUT, 'exchanges', ex, 'index.md'), frontmatter(title, desc) + banner + transform(md));
+        const subPages = ['index'];
+        if (hasImplicit) {
+            const idesc = `Every raw ${title} endpoint exposed as a CCXT implicit method — names, HTTP verbs, paths and rate-limit costs.`;
+            write(path.join(OUT, 'exchanges', ex, 'implicit-api.md'),
+                frontmatter(`${title} implicit API`, idesc) + transform(readWiki(path.join('exchanges-implicit', `${ex}.md`))));
+            subPages.push('implicit-api');
+            count++;
+        }
+        // per-folder meta: keep the exchange's display title as the sidebar label and
+        // order index before the implicit-api sub-page.
+        write(path.join(OUT, 'exchanges', ex, 'meta.json'),
+            JSON.stringify({ title, pages: subPages }, null, 2));
         count++;
     }
     // root:true -> renders as a sidebar tab (keeps /docs/exchanges/* URLs unchanged)

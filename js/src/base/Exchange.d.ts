@@ -9,6 +9,7 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
  * @class Exchange
  */
 export default class Exchange {
+    static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
     api: Dictionary<any>;
@@ -118,6 +119,8 @@ export default class Exchange {
     last_request_body: any;
     last_request_url: string;
     last_request_path: string;
+    fetchHistoryCache: Dictionary<any>[];
+    fetchHistoryCacheSize: number;
     id: string;
     markets: Dictionary<any>;
     has: Dictionary<boolean | 'emulated' | undefined>;
@@ -302,7 +305,6 @@ export default class Exchange {
     loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
-    checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
     throttle(cost?: Num): any;
     initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
@@ -312,6 +314,8 @@ export default class Exchange {
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     loadHttpProxyAgent(): Promise<any>;
     getHttpAgentIfNeeded(url: any): any;
+    addFetchCache(data: any): void;
+    getFetchCache(): Dictionary<any>[];
     isBinaryMessage(msg: any): msg is ArrayBuffer | Uint8Array<ArrayBufferLike>;
     stringToBinary(content: any): Uint8Array<ArrayBufferLike>;
     binaryToString(binary: any): string;
@@ -363,7 +367,7 @@ export default class Exchange {
     onConnected(client: any, message?: any): void;
     onError(client: any, error: any): void;
     onClose(client: any, error: any): void;
-    close(): Promise<any[]>;
+    close(cleanInstanceCache?: boolean): Promise<void>;
     loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: string): string[];
@@ -423,6 +427,8 @@ export default class Exchange {
     setLastRestRequestTimestamp(): void;
     setLastRequest(request: any): void;
     describe(): any;
+    cleanRestData(): void;
+    cleanWsData(): void;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionaryOrList: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
     safeBool(dictionaryOrList: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
@@ -469,7 +475,12 @@ export default class Exchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {};
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+        url: any;
+        method: any;
+        headers: any;
+        body: any;
+    };
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

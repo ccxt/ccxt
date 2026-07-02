@@ -9,6 +9,7 @@ import asTable from 'as-table';
 import log from 'ololog';
 import ansi from 'ansicolor';
 import ccxt from '../../js/ccxt.js';
+// @ts-expect-error
 ansi.nice; // eslint-disable-line no-unused-expressions
 // @ts-expect-error
 log.nice = log.configure({ locate: false, stringify: asTable.configure({ print: x => x }) }); // eslint-disable-line

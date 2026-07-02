@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bitbank as Exchange;
 
 class bitbank extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbank',
@@ -262,7 +261,7 @@ class bitbank extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves $data on all markets for bitbank
          *
@@ -271,7 +270,7 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
-        $response = $this->marketsGetSpotPairs ($params);
+        $response = $this->marketsGetSpotPairs($params);
         //
         //     {
         //       "success" => 1,
@@ -391,7 +390,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -406,12 +405,12 @@ class bitbank extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetPairTicker ($this->extend($request, $params));
+        $response = $this->publicGetPairTicker($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -420,14 +419,14 @@ class bitbank extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetPairDepth ($this->extend($request, $params));
+        $response = $this->publicGetPairDepth($this->extend($request, $params));
         $orderbook = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
@@ -479,7 +478,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
@@ -496,13 +495,13 @@ class bitbank extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetPairTransactions ($this->extend($request, $params));
+        $response = $this->publicGetPairTransactions($this->extend($request, $params));
         $data = $this->safe_value($response, 'data', array());
         $trades = $this->safe_list($data, 'transactions', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
@@ -512,7 +511,7 @@ class bitbank extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
          */
         $this->load_markets();
-        $response = $this->marketsGetSpotPairs ($params);
+        $response = $this->marketsGetSpotPairs($params);
         //
         //     {
         //         "success" => "1",
@@ -582,7 +581,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical $candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -609,21 +608,21 @@ class bitbank extends Exchange {
             'candletype' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'yyyymmdd' => $this->yyyymmdd($since, ''),
         );
-        $response = $this->publicGetPairCandlestickCandletypeYyyymmdd ($this->extend($request, $params));
+        $response = $this->publicGetPairCandlestickCandletypeYyyymmdd($this->extend($request, $params));
         //
         //     {
         //         "success":1,
         //         "data":{
-        //             "candlestick":[
+        //             "candlestick":array(
         //                 {
         //                     "type":"5min",
-        //                     "ohlcv":[
+        //                     "ohlcv":array(
         //                         ["0.02501786","0.02501786","0.02501786","0.02501786","0.0000",1591488000000],
         //                         ["0.02501747","0.02501953","0.02501747","0.02501953","0.3017",1591488300000],
         //                         ["0.02501762","0.02501762","0.02500392","0.02500392","0.1500",1591488600000],
-        //                     ]
+        //                     )
         //                 }
-        //             ],
+        //             ),
         //             "timestamp":1591508668190
         //         }
         //     }
@@ -656,7 +655,7 @@ class bitbank extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -666,7 +665,7 @@ class bitbank extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->privateGetUserAssets ($params);
+        $response = $this->privateGetUserAssets($params);
         //
         //     {
         //       "success" => "1",
@@ -752,7 +751,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -777,12 +776,12 @@ class bitbank extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostUserSpotOrder ($this->extend($request, $params));
+        $response = $this->privatePostUserSpotOrder($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -799,7 +798,7 @@ class bitbank extends Exchange {
             'order_id' => $id,
             'pair' => $market['id'],
         );
-        $response = $this->privatePostUserSpotCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostUserSpotCancelOrder($this->extend($request, $params));
         //
         //    {
         //        "success" => 1,
@@ -827,7 +826,7 @@ class bitbank extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -844,7 +843,7 @@ class bitbank extends Exchange {
             'order_id' => $id,
             'pair' => $market['id'],
         );
-        $response = $this->privateGetUserSpotOrder ($this->extend($request, $params));
+        $response = $this->privateGetUserSpotOrder($this->extend($request, $params));
         //
         //    {
         //        "success" => 1,
@@ -871,7 +870,7 @@ class bitbank extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open $orders
          *
@@ -894,13 +893,13 @@ class bitbank extends Exchange {
         if ($since !== null) {
             $request['since'] = $this->parse_to_int($since / 1000);
         }
-        $response = $this->privateGetUserSpotActiveOrders ($this->extend($request, $params));
+        $response = $this->privateGetUserSpotActiveOrders($this->extend($request, $params));
         $data = $this->safe_value($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all $trades made by the user
          *
@@ -925,13 +924,13 @@ class bitbank extends Exchange {
         if ($since !== null) {
             $request['since'] = $this->parse_to_int($since / 1000);
         }
-        $response = $this->privateGetUserSpotTradeHistory ($this->extend($request, $params));
+        $response = $this->privateGetUserSpotTradeHistory($this->extend($request, $params));
         $data = $this->safe_value($response, 'data', array());
         $trades = $this->safe_list($data, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          *
@@ -946,7 +945,7 @@ class bitbank extends Exchange {
         $request = array(
             'asset' => $currency['id'],
         );
-        $response = $this->privateGetUserWithdrawalAccount ($this->extend($request, $params));
+        $response = $this->privateGetUserWithdrawalAccount($this->extend($request, $params));
         $data = $this->safe_value($response, 'data', array());
         // Not sure about this if there could be more than one account...
         $accounts = $this->safe_value($data, 'accounts', array());
@@ -961,7 +960,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -984,7 +983,7 @@ class bitbank extends Exchange {
             'asset' => $currency['id'],
             'amount' => $amount,
         );
-        $response = $this->privatePostUserRequestWithdrawal ($this->extend($request, $params));
+        $response = $this->privatePostUserRequestWithdrawal($this->extend($request, $params));
         //
         //     {
         //         "success" => 1,
@@ -1053,7 +1052,7 @@ class bitbank extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/';
         if (($api === 'public') || ($api === 'markets')) {

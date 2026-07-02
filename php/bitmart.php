@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bitmart as Exchange;
 
 class bitmart extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitmart',
@@ -110,7 +109,7 @@ class bitmart extends Exchange {
             ),
             'hostname' => 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14',
+                'logo' => 'https://github.com/user-attachments/assets/3741e8c0-83a8-4504-ae68-32b00e3c27ee',
                 'api' => array(
                     'spot' => 'https://api-cloud.{hostname}',
                     'swap' => 'https://api-cloud-v2.{hostname}', // bitmart.info for Hong Kong users
@@ -865,7 +864,7 @@ class bitmart extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -874,7 +873,7 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->publicGetSystemTime ($params);
+        $response = $this->publicGetSystemTime($params);
         //
         //     {
         //         "message":"OK",
@@ -889,7 +888,7 @@ class bitmart extends Exchange {
         return $this->safe_integer($data, 'server_time');
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -903,7 +902,7 @@ class bitmart extends Exchange {
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
-        $response = $this->publicGetSystemService ($params);
+        $response = $this->publicGetSystemService($params);
         //
         //     {
         //         "message" => "OK",
@@ -956,8 +955,8 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_spot_markets($params = array ()): array {
-        $response = $this->publicGetSpotV1SymbolsDetails ($params);
+    public function fetch_spot_markets($params = array()): array {
+        $response = $this->publicGetSpotV1SymbolsDetails($params);
         //
         //     {
         //         "message":"OK",
@@ -1057,8 +1056,8 @@ class bitmart extends Exchange {
         return $result;
     }
 
-    public function fetch_contract_markets($params = array ()): array {
-        $response = $this->publicGetContractPublicDetails ($params);
+    public function fetch_contract_markets($params = array()): array {
+        $response = $this->publicGetContractPublicDetails($params);
         //
         //     {
         //         "code" => 1000,
@@ -1175,7 +1174,7 @@ class bitmart extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for bitmart
          *
@@ -1194,7 +1193,7 @@ class bitmart extends Exchange {
         return $this->array_concat($spot, $contract);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -1203,7 +1202,7 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->publicGetAccountV1Currencies ($params);
+        $response = $this->publicGetAccountV1Currencies($params);
         //
         //     {
         //         "message" => "OK",
@@ -1328,7 +1327,7 @@ class bitmart extends Exchange {
         return ($idFromNetwork !== null) ? $idFromNetwork : $id;
     }
 
-    public function fetch_transaction_fee(string $code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array()) {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFee instead
@@ -1344,7 +1343,7 @@ class bitmart extends Exchange {
         $request = array(
             'currency' => $this->get_currency_id_from_code_and_network($currency['code'], $network),
         );
-        $response = $this->privateGetAccountV1WithdrawCharge ($this->extend($request, $params));
+        $response = $this->privateGetAccountV1WithdrawCharge($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -1391,7 +1390,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array()) {
         /**
          * fetch the fee for deposits and withdrawals
          *
@@ -1408,7 +1407,7 @@ class bitmart extends Exchange {
         $request = array(
             'currency' => $this->get_currency_id_from_code_and_network($code, $network),
         );
-        $response = $this->privateGetAccountV1WithdrawCharge ($this->extend($request, $params));
+        $response = $this->privateGetAccountV1WithdrawCharge($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -1587,7 +1586,7 @@ class bitmart extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1604,7 +1603,7 @@ class bitmart extends Exchange {
         $response = null;
         if ($market['swap']) {
             $request['symbol'] = $market['id'];
-            $response = $this->publicGetContractPublicDetails ($this->extend($request, $params));
+            $response = $this->publicGetContractPublicDetails($this->extend($request, $params));
             //
             //     {
             //         "code" => 1000,
@@ -1646,7 +1645,7 @@ class bitmart extends Exchange {
             //
         } elseif ($market['spot']) {
             $request['symbol'] = $market['id'];
-            $response = $this->publicGetSpotQuotationV3Ticker ($this->extend($request, $params));
+            $response = $this->publicGetSpotQuotationV3Ticker($this->extend($request, $params));
             //
             //     {
             //         "code" => 1000,
@@ -1685,7 +1684,7 @@ class bitmart extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
@@ -1707,7 +1706,7 @@ class bitmart extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $response = null;
         if ($type === 'spot') {
-            $response = $this->publicGetSpotQuotationV3Tickers ($params);
+            $response = $this->publicGetSpotQuotationV3Tickers($params);
             //
             //     {
             //         "code" => 1000,
@@ -1733,7 +1732,7 @@ class bitmart extends Exchange {
             //     }
             //
         } elseif ($type === 'swap') {
-            $response = $this->publicGetContractPublicDetails ($params);
+            $response = $this->publicGetContractPublicDetails($params);
             //
             //     {
             //         "code" => 1000,
@@ -1797,7 +1796,7 @@ class bitmart extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
@@ -1807,7 +1806,7 @@ class bitmart extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1819,9 +1818,9 @@ class bitmart extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 35, max 50
             }
-            $response = $this->publicGetSpotQuotationV3Books ($this->extend($request, $params));
+            $response = $this->publicGetSpotQuotationV3Books($this->extend($request, $params));
         } elseif ($market['swap']) {
-            $response = $this->publicGetContractPublicDepth ($this->extend($request, $params));
+            $response = $this->publicGetContractPublicDepth($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchOrderBook() does not support ' . $market['type'] . ' markets, only spot and swap markets are accepted');
         }
@@ -1834,16 +1833,16 @@ class bitmart extends Exchange {
         //         "data" => array(
         //             "ts" => "1695264191808",
         //             "symbol" => "BTC_USDT",
-        //             "asks" => [
+        //             "asks" => array(
         //                 ["26942.57","0.06492"],
         //                 ["26942.73","0.05447"],
         //                 ["26943.00","0.07154"]
-        //             ],
-        //             "bids" => [
+        //             ),
+        //             "bids" => array(
         //                 ["26942.45","0.00074"],
         //                 ["26941.53","0.00371"],
         //                 ["26940.94","0.08992"]
-        //             ]
+        //             )
         //         ),
         //         "trace" => "430a7f69581d4258a8e4b424dfb10782.73.16952341919017619"
         //     }
@@ -1854,16 +1853,16 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "message" => "Ok",
         //         "data" => array(
-        //             "asks" => [
+        //             "asks" => array(
         //                 ["26938.3","3499","3499"],
         //                 ["26938.5","14702","18201"],
         //                 ["26938.6","20457","38658"]
-        //             ],
-        //             "bids" => [
+        //             ),
+        //             "bids" => array(
         //                 ["26938.2","20","20"],
         //                 ["26937.9","1913","1933"],
         //                 ["26937.8","2588","4521"]
-        //             ],
+        //             ),
         //             "timestamp" => 1695264383999,
         //             "symbol" => "BTCUSDT"
         //         ),
@@ -1981,7 +1980,7 @@ class bitmart extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get a list of the most recent trades for a particular $symbol
          *
@@ -2004,7 +2003,7 @@ class bitmart extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetSpotQuotationV3Trades ($this->extend($request, $params));
+        $response = $this->publicGetSpotQuotationV3Trades($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -2089,7 +2088,7 @@ class bitmart extends Exchange {
         }
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -2135,7 +2134,7 @@ class bitmart extends Exchange {
             if ($limit === null) {
                 $limit = $maxLimit;
             }
-            $limit = min ($maxLimit, $limit);
+            $limit = min($maxLimit, $limit);
             $now = $this->parse_to_int($this->milliseconds() / 1000);
             if ($since === null) {
                 $start = $now - $limit * $duration;
@@ -2145,7 +2144,7 @@ class bitmart extends Exchange {
                 $start = $this->parse_to_int(($since / 1000)) - 1;
                 $end = $this->sum($start, $limit * $duration);
                 $request['start_time'] = $start;
-                $request['end_time'] = min ($end, $now);
+                $request['end_time'] = min($end, $now);
             }
             list($request, $params) = $this->handle_until_option('end_time', $request, $params, 0.001);
         }
@@ -2154,12 +2153,12 @@ class bitmart extends Exchange {
             $price = $this->safe_string($params, 'price');
             if ($price === 'mark') {
                 $params = $this->omit($params, 'price');
-                $response = $this->publicGetContractPublicMarkpriceKline ($this->extend($request, $params));
+                $response = $this->publicGetContractPublicMarkpriceKline($this->extend($request, $params));
             } else {
-                $response = $this->publicGetContractPublicKline ($this->extend($request, $params));
+                $response = $this->publicGetContractPublicKline($this->extend($request, $params));
             }
         } else {
-            $response = $this->publicGetSpotQuotationV3Klines ($this->extend($request, $params));
+            $response = $this->publicGetSpotQuotationV3Klines($this->extend($request, $params));
         }
         //
         // spot
@@ -2167,11 +2166,11 @@ class bitmart extends Exchange {
         //     {
         //         "code" => 1000,
         //         "message" => "success",
-        //         "data" => [
+        //         "data" => array(
         //             ["1699512060","36746.49","36758.71","36736.13","36755.99","2.83965","104353.57"],
         //             ["1699512120","36756.00","36758.70","36737.14","36737.63","1.96070","72047.10"],
         //             ["1699512180","36737.63","36740.45","36737.62","36740.44","0.63194","23217.62"]
-        //         ],
+        //         ),
         //         "trace" => "6591fc7b508845359d5fa442e3b3a4fb.72.16995122398750695"
         //     }
         //
@@ -2198,7 +2197,7 @@ class bitmart extends Exchange {
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
          * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
@@ -2238,14 +2237,14 @@ class bitmart extends Exchange {
             if ($limit === null) {
                 $limit = $defaultLimit;
             }
-            $request['limit'] = min ($limit, $maxLimit);
+            $request['limit'] = min($limit, $maxLimit);
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = $this->privatePostSpotV4QueryTrades ($this->extend($request, $params));
+            $response = $this->privatePostSpotV4QueryTrades($this->extend($request, $params));
         } elseif ($type === 'swap') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -2256,7 +2255,7 @@ class bitmart extends Exchange {
             if ($until !== null) {
                 $request['end_time'] = $until;
             }
-            $response = $this->privateGetContractPrivateTrades ($this->extend($request, $params));
+            $response = $this->privateGetContractPrivateTrades($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchMyTrades() does not support ' . $type . ' orders, only spot and swap orders are accepted');
         }
@@ -2315,7 +2314,7 @@ class bitmart extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
          * @see https://developer-pro.bitmart.com/en/spot/#order-trade-list-v4-signed
@@ -2333,7 +2332,7 @@ class bitmart extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        $response = $this->privatePostSpotV4QueryOrderTrades ($this->extend($request, $params));
+        $response = $this->privatePostSpotV4QueryOrderTrades($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, null, $since, $limit);
     }
@@ -2390,7 +2389,7 @@ class bitmart extends Exchange {
         return $account;
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -2413,13 +2412,13 @@ class bitmart extends Exchange {
         }
         $response = null;
         if ($marketType === 'spot') {
-            $response = $this->privateGetSpotV1Wallet ($params);
+            $response = $this->privateGetSpotV1Wallet($params);
         } elseif ($marketType === 'swap') {
-            $response = $this->privateGetContractPrivateAssetsDetail ($params);
+            $response = $this->privateGetContractPrivateAssetsDetail($params);
         } elseif ($marketType === 'account') {
-            $response = $this->privateGetAccountV1Wallet ($params);
+            $response = $this->privateGetAccountV1Wallet($params);
         } elseif ($marketType === 'margin') {
-            $response = $this->privateGetSpotV1MarginIsolatedAccount ($params);
+            $response = $this->privateGetSpotV1MarginIsolatedAccount($params);
         } else {
             throw new NotSupported($this->id . ' fetchBalance() does not support ' . $marketType . ' markets, only spot, swap and account and margin markets are accepted');
         }
@@ -2540,7 +2539,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -2558,7 +2557,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetSpotV1TradeFee ($this->extend($request, $params));
+        $response = $this->privateGetSpotV1TradeFee($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -2740,7 +2739,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
@@ -2760,7 +2759,7 @@ class bitmart extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade $order
          *
@@ -2809,24 +2808,24 @@ class bitmart extends Exchange {
         if ($market['spot']) {
             $spotRequest = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
             if ($isStopLoss || $isTakeProfit || $isTriggerOrder) {
-                $response = $this->privatePostSpotV4AlgoSubmitOrder ($spotRequest);
+                $response = $this->privatePostSpotV4AlgoSubmitOrder($spotRequest);
             } elseif ($marginMode === 'isolated') {
-                $response = $this->privatePostSpotV1MarginSubmitOrder ($spotRequest);
+                $response = $this->privatePostSpotV1MarginSubmitOrder($spotRequest);
             } else {
-                $response = $this->privatePostSpotV2SubmitOrder ($spotRequest);
+                $response = $this->privatePostSpotV2SubmitOrder($spotRequest);
             }
         } else {
             $swapRequest = $this->create_swap_order_request($symbol, $type, $side, $amount, $price, $params);
             $activationPrice = $this->safe_string($swapRequest, 'activation_price');
             if ($activationPrice !== null) {
                 // if $type is trailing
-                $response = $this->privatePostContractPrivateSubmitTrailOrder ($swapRequest);
+                $response = $this->privatePostContractPrivateSubmitTrailOrder($swapRequest);
             } elseif ($isTriggerOrder) {
-                $response = $this->privatePostContractPrivateSubmitPlanOrder ($swapRequest);
+                $response = $this->privatePostContractPrivateSubmitPlanOrder($swapRequest);
             } elseif ($isStopLoss || $isTakeProfit) {
-                $response = $this->privatePostContractPrivateSubmitTpSlOrder ($swapRequest);
+                $response = $this->privatePostContractPrivateSubmitTpSlOrder($swapRequest);
             } else {
-                $response = $this->privatePostContractPrivateSubmitOrder ($swapRequest);
+                $response = $this->privatePostContractPrivateSubmitOrder($swapRequest);
             }
         }
         //
@@ -2853,7 +2852,7 @@ class bitmart extends Exchange {
         return $order;
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         /**
          * create a list of trade $orders
          *
@@ -2895,7 +2894,7 @@ class bitmart extends Exchange {
             'symbol' => $this->safe_string($market, 'id'),
             'orderParams' => $ordersRequests,
         );
-        $response = $this->privatePostSpotV4BatchOrders ($request);
+        $response = $this->privatePostSpotV4BatchOrders($request);
         //
         // {
         //     "message" => "OK",
@@ -2924,7 +2923,7 @@ class bitmart extends Exchange {
         return $parsedOrders;
     }
 
-    public function create_swap_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_swap_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * create a trade order
@@ -3070,7 +3069,7 @@ class bitmart extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * create a spot order $request
@@ -3175,7 +3174,7 @@ class bitmart extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open $order
          *
@@ -3221,17 +3220,17 @@ class bitmart extends Exchange {
                 } elseif ($trigger) {
                     $request['type'] = 'trigger';
                 }
-                $response = $this->privatePostSpotV4AlgoCancelOrder ($this->extend($request, $params));
+                $response = $this->privatePostSpotV4AlgoCancelOrder($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSpotV3CancelOrder ($this->extend($request, $params));
+                $response = $this->privatePostSpotV3CancelOrder($this->extend($request, $params));
             }
         } else {
             if ($trigger) {
-                $response = $this->privatePostContractPrivateCancelPlanOrder ($this->extend($request, $params));
+                $response = $this->privatePostContractPrivateCancelPlanOrder($this->extend($request, $params));
             } elseif ($trailing) {
-                $response = $this->privatePostContractPrivateCancelTrailOrder ($this->extend($request, $params));
+                $response = $this->privatePostContractPrivateCancelTrailOrder($this->extend($request, $params));
             } else {
-                $response = $this->privatePostContractPrivateCancelOrder ($this->extend($request, $params));
+                $response = $this->privatePostContractPrivateCancelOrder($this->extend($request, $params));
             }
         }
         // swap
@@ -3280,7 +3279,7 @@ class bitmart extends Exchange {
         return $order;
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -3310,7 +3309,7 @@ class bitmart extends Exchange {
         } else {
             $request['orderIds'] = $ids;
         }
-        $response = $this->privatePostSpotV4CancelOrders ($this->extend($request, $params));
+        $response = $this->privatePostSpotV4CancelOrders($this->extend($request, $params));
         //
         //  {
         //      "message" => "OK",
@@ -3342,7 +3341,7 @@ class bitmart extends Exchange {
         return $allOrders;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders in a $market
          *
@@ -3377,15 +3376,15 @@ class bitmart extends Exchange {
                 } elseif ($trigger) {
                     $request['type'] = 'trigger';
                 }
-                $response = $this->privatePostSpotV4AlgoCancelAll ($this->extend($request, $params));
+                $response = $this->privatePostSpotV4AlgoCancelAll($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSpotV4CancelAll ($this->extend($request, $params));
+                $response = $this->privatePostSpotV4CancelAll($this->extend($request, $params));
             }
         } elseif ($type === 'swap') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
             }
-            $response = $this->privatePostContractPrivateCancelOrders ($this->extend($request, $params));
+            $response = $this->privatePostContractPrivateCancelOrders($this->extend($request, $params));
         }
         //
         // spot
@@ -3408,7 +3407,7 @@ class bitmart extends Exchange {
         return array( $this->safe_order(array( 'info' => $response )) );
     }
 
-    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument');
         }
@@ -3431,7 +3430,7 @@ class bitmart extends Exchange {
         } else {
             $request['status'] = $status;
         }
-        $response = $this->privateGetSpotV3Orders ($this->extend($request, $params));
+        $response = $this->privateGetSpotV3Orders($this->extend($request, $params));
         //
         // spot
         //
@@ -3465,7 +3464,7 @@ class bitmart extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -3504,7 +3503,7 @@ class bitmart extends Exchange {
         $params = $this->omit($params, array( 'stop', 'trigger', 'stopLossTakeProfit' ));
         if ($type === 'spot') {
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 200);
+                $request['limit'] = min($limit, 200);
             }
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
@@ -3525,16 +3524,16 @@ class bitmart extends Exchange {
                 } elseif ($stopLossTakeProfit) {
                     $request['orderMode'] = 'tp/sl';
                 }
-                $response = $this->privatePostSpotV4QueryAlgoOpenOrders ($this->extend($request, $params));
+                $response = $this->privatePostSpotV4QueryAlgoOpenOrders($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSpotV4QueryOpenOrders ($this->extend($request, $params));
+                $response = $this->privatePostSpotV4QueryOpenOrders($this->extend($request, $params));
             }
         } elseif ($type === 'swap') {
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 100);
+                $request['limit'] = min($limit, 100);
             }
             if ($isTrigger) {
-                $response = $this->privateGetContractPrivateCurrentPlanOrder ($this->extend($request, $params));
+                $response = $this->privateGetContractPrivateCurrentPlanOrder($this->extend($request, $params));
             } else {
                 $trailing = $this->safe_bool($params, 'trailing', false);
                 $orderType = $this->safe_string($params, 'orderType');
@@ -3545,7 +3544,7 @@ class bitmart extends Exchange {
                 if ($orderType !== null) {
                     $request['type'] = $orderType;
                 }
-                $response = $this->privateGetContractPrivateGetOpenOrders ($this->extend($request, $params));
+                $response = $this->privateGetContractPrivateGetOpenOrders($this->extend($request, $params));
             }
         } else {
             throw new NotSupported($this->id . ' fetchOpenOrders() does not support ' . $type . ' orders, only spot and swap orders are accepted');
@@ -3608,7 +3607,7 @@ class bitmart extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -3667,18 +3666,18 @@ class bitmart extends Exchange {
                 } elseif ($stopLossTakeProfit) {
                     $request['orderMode'] = 'tp/sl';
                 }
-                $response = $this->privatePostSpotV4QueryAlgoHistoryOrders ($this->extend($request, $params));
+                $response = $this->privatePostSpotV4QueryAlgoHistoryOrders($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSpotV4QueryHistoryOrders ($this->extend($request, $params));
+                $response = $this->privatePostSpotV4QueryHistoryOrders($this->extend($request, $params));
             }
         } else {
-            $response = $this->privateGetContractPrivateOrderHistory ($this->extend($request, $params));
+            $response = $this->privateGetContractPrivateOrderHistory($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple canceled orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
@@ -3690,7 +3689,7 @@ class bitmart extends Exchange {
         return $this->fetch_orders_by_status('canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -3728,15 +3727,15 @@ class bitmart extends Exchange {
             }
             if ($trigger) {
                 if ($clientOrderId !== null) {
-                    $response = $this->privatePostSpotV4QueryAlgoClientOrder ($this->extend($request, $params));
+                    $response = $this->privatePostSpotV4QueryAlgoClientOrder($this->extend($request, $params));
                 } else {
-                    $response = $this->privatePostSpotV4QueryAlgoOrder ($this->extend($request, $params));
+                    $response = $this->privatePostSpotV4QueryAlgoOrder($this->extend($request, $params));
                 }
             } else {
                 if ($clientOrderId !== null) {
-                    $response = $this->privatePostSpotV4QueryClientOrder ($this->extend($request, $params));
+                    $response = $this->privatePostSpotV4QueryClientOrder($this->extend($request, $params));
                 } else {
-                    $response = $this->privatePostSpotV4QueryOrder ($this->extend($request, $params));
+                    $response = $this->privatePostSpotV4QueryOrder($this->extend($request, $params));
                 }
             }
         } elseif ($type === 'swap') {
@@ -3754,7 +3753,7 @@ class bitmart extends Exchange {
             }
             $request['symbol'] = $this->safe_string($market, 'id');
             $request['order_id'] = $id;
-            $response = $this->privateGetContractPrivateOrder ($this->extend($request, $params));
+            $response = $this->privateGetContractPrivateOrder($this->extend($request, $params));
         }
         //
         // spot
@@ -3810,7 +3809,7 @@ class bitmart extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          *
@@ -3827,7 +3826,7 @@ class bitmart extends Exchange {
         $request = array(
             'currency' => $this->get_currency_id_from_code_and_network($code, $network),
         );
-        $response = $this->privateGetAccountV1DepositAddress ($this->extend($request, $params));
+        $response = $this->privateGetAccountV1DepositAddress($this->extend($request, $params));
         //
         //    {
         //        "message" => "OK",
@@ -3889,7 +3888,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -3918,7 +3917,7 @@ class bitmart extends Exchange {
         if ($tag !== null) {
             $request['address_memo'] = $tag;
         }
-        $response = $this->privatePostAccountV1WithdrawApply ($this->extend($request, $params));
+        $response = $this->privatePostAccountV1WithdrawApply($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -3938,7 +3937,7 @@ class bitmart extends Exchange {
         ));
     }
 
-    public function fetch_transactions_by_type($type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_by_type($type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $this->load_markets();
         if ($limit === null) {
             $limit = 1000; // max 1000
@@ -3960,7 +3959,7 @@ class bitmart extends Exchange {
             $params = $this->omit($params, 'until');
             $request['endTime'] = $until;
         }
-        $response = $this->privateGetAccountV2DepositWithdrawHistory ($this->extend($request, $params));
+        $response = $this->privateGetAccountV2DepositWithdrawHistory($this->extend($request, $params));
         //
         //     {
         //         "message":"OK",
@@ -3990,7 +3989,7 @@ class bitmart extends Exchange {
         return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
         /**
          * fetch information on a deposit
          *
@@ -4005,7 +4004,7 @@ class bitmart extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetAccountV1DepositWithdrawDetail ($this->extend($request, $params));
+        $response = $this->privateGetAccountV1DepositWithdrawDetail($this->extend($request, $params));
         //
         //     {
         //         "message":"OK",
@@ -4033,7 +4032,7 @@ class bitmart extends Exchange {
         return $this->parse_transaction($record);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -4048,7 +4047,7 @@ class bitmart extends Exchange {
         return $this->fetch_transactions_by_type('deposit', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
         /**
          * fetch $data on a currency withdrawal via the withdrawal $id
          *
@@ -4063,7 +4062,7 @@ class bitmart extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetAccountV1DepositWithdrawDetail ($this->extend($request, $params));
+        $response = $this->privateGetAccountV1DepositWithdrawDetail($this->extend($request, $params));
         //
         //     {
         //         "message":"OK",
@@ -4091,7 +4090,7 @@ class bitmart extends Exchange {
         return $this->parse_transaction($record);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -4201,7 +4200,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -4221,7 +4220,7 @@ class bitmart extends Exchange {
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privatePostSpotV1MarginIsolatedRepay ($this->extend($request, $params));
+        $response = $this->privatePostSpotV1MarginIsolatedRepay($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -4240,7 +4239,7 @@ class bitmart extends Exchange {
         ));
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
         /**
          * create a loan to borrow margin
          *
@@ -4260,7 +4259,7 @@ class bitmart extends Exchange {
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privatePostSpotV1MarginIsolatedBorrow ($this->extend($request, $params));
+        $response = $this->privatePostSpotV1MarginIsolatedBorrow($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -4304,7 +4303,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): array {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array()): array {
         /**
          * fetch the rate of interest to borrow a currency for margin trading
          *
@@ -4319,7 +4318,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetSpotV1MarginIsolatedPairs ($this->extend($request, $params));
+        $response = $this->privateGetSpotV1MarginIsolatedPairs($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -4401,7 +4400,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()): array {
+    public function fetch_isolated_borrow_rates($params = array()): array {
         /**
          * fetch the borrow interest rates of all currencies, currently only works for isolated margin
          *
@@ -4411,7 +4410,7 @@ class bitmart extends Exchange {
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure isolated borrow rate structures~
          */
         $this->load_markets();
-        $response = $this->privateGetSpotV1MarginIsolatedPairs ($params);
+        $response = $this->privateGetSpotV1MarginIsolatedPairs($params);
         //
         //     {
         //         "message" => "OK",
@@ -4449,7 +4448,7 @@ class bitmart extends Exchange {
         return $this->parse_isolated_borrow_rates($symbols);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account, currently only supports transfer between spot and margin
          *
@@ -4491,9 +4490,9 @@ class bitmart extends Exchange {
         }
         $response = null;
         if (($fromAccount === 'margin') || ($toAccount === 'margin')) {
-            $response = $this->privatePostSpotV1MarginIsolatedTransfer ($this->extend($request, $params));
+            $response = $this->privatePostSpotV1MarginIsolatedTransfer($this->extend($request, $params));
         } elseif (($fromAccount === 'swap') || ($toAccount === 'swap')) {
-            $response = $this->privatePostAccountV1TransferContract ($this->extend($request, $params));
+            $response = $this->privatePostAccountV1TransferContract($this->extend($request, $params));
         }
         //
         // margin
@@ -4590,7 +4589,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
          *
@@ -4630,7 +4629,7 @@ class bitmart extends Exchange {
         if ($endTime !== null) {
             $request['time_end'] = $endTime;
         }
-        $response = $this->privatePostAccountV1TransferContractList ($this->extend($request, $params));
+        $response = $this->privatePostAccountV1TransferContractList($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -4655,7 +4654,7 @@ class bitmart extends Exchange {
         return $this->parse_transfers($records, $currency, $since, $limit);
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the $interest owed by the user for borrowing currency for margin trading
          *
@@ -4682,7 +4681,7 @@ class bitmart extends Exchange {
         if ($since !== null) {
             $request['start_time'] = $since;
         }
-        $response = $this->privateGetSpotV1MarginIsolatedBorrowRecord ($this->extend($request, $params));
+        $response = $this->privateGetSpotV1MarginIsolatedBorrowRecord($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -4739,7 +4738,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         /**
          * Retrieves the open interest of a currency
          *
@@ -4757,7 +4756,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetContractPublicOpenInterest ($this->extend($request, $params));
+        $response = $this->publicGetContractPublicOpenInterest($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -4796,7 +4795,7 @@ class bitmart extends Exchange {
         ), $market);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -4824,10 +4823,10 @@ class bitmart extends Exchange {
             'leverage' => (string) $leverage,
             'open_type' => $marginMode,
         );
-        return $this->privatePostContractPrivateSubmitLeverage ($this->extend($request, $params));
+        return $this->privatePostContractPrivateSubmitLeverage($this->extend($request, $params));
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate
          *
@@ -4845,7 +4844,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetContractPublicFundingRate ($this->extend($request, $params));
+        $response = $this->publicGetContractPublicFundingRate($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -4866,7 +4865,7 @@ class bitmart extends Exchange {
         return $this->parse_funding_rate($data, $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
          *
@@ -4889,7 +4888,7 @@ class bitmart extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetContractPublicFundingRateHistory ($this->extend($request, $params));
+        $response = $this->publicGetContractPublicFundingRateHistory($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -4977,7 +4976,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          * fetch $data on a single open contract trade position
          *
@@ -4992,7 +4991,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetContractPrivatePosition ($this->extend($request, $params));
+        $response = $this->privateGetContractPrivatePosition($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -5027,7 +5026,7 @@ class bitmart extends Exchange {
         return $this->parse_position($first, $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open contract $positions
          *
@@ -5051,7 +5050,7 @@ class bitmart extends Exchange {
             // only supports $symbols or sending one symbol
             $request['symbol'] = $this->safe_string($market, 'id');
         }
-        $response = $this->privateGetContractPrivatePositionV2 ($this->extend($request, $params));
+        $response = $this->privateGetContractPrivatePositionV2($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -5155,7 +5154,7 @@ class bitmart extends Exchange {
         ));
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * retrieves the users liquidated positions
          *
@@ -5183,7 +5182,7 @@ class bitmart extends Exchange {
             $request['start_time'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-        $response = $this->privateGetContractPrivateOrderHistory ($this->extend($request, $params));
+        $response = $this->privateGetContractPrivateOrderHistory($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -5260,7 +5259,7 @@ class bitmart extends Exchange {
         ));
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edits an open order
          *
@@ -5326,7 +5325,7 @@ class bitmart extends Exchange {
         if ($isTriggerOrder) {
             $request['type'] = $type;
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
-            $response = $this->privatePostContractPrivateModifyPlanOrder ($this->extend($request, $params));
+            $response = $this->privatePostContractPrivateModifyPlanOrder($this->extend($request, $params));
             //
             //     {
             //         "code" => 1000,
@@ -5344,7 +5343,7 @@ class bitmart extends Exchange {
             } else {
                 $request['trigger_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
             }
-            $response = $this->privatePostContractPrivateModifyTpSlOrder ($this->extend($request, $params));
+            $response = $this->privatePostContractPrivateModifyTpSlOrder($this->extend($request, $params));
             //
             //     {
             //         "code" => 1000,
@@ -5363,7 +5362,7 @@ class bitmart extends Exchange {
                 $request['preset_take_profit_price_type'] = $this->safe_integer($params, 'price_type', 1);
                 $request['preset_take_profit_price'] = $this->price_to_precision($symbol, $presetTakeProfit);
             }
-            $response = $this->privatePostContractPrivateModifyPresetPlanOrder ($this->extend($request, $params));
+            $response = $this->privatePostContractPrivateModifyPresetPlanOrder($this->extend($request, $params));
             //
             //     {
             //         "code" => 1000,
@@ -5382,7 +5381,7 @@ class bitmart extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = $this->privatePostContractPrivateModifyLimitOrder ($this->extend($request, $params));
+            $response = $this->privatePostContractPrivateModifyLimitOrder($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' editOrder() only supports limit, trigger, stop loss and take profit orders');
         }
@@ -5390,7 +5389,7 @@ class bitmart extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -5411,7 +5410,7 @@ class bitmart extends Exchange {
         $request = array();
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
         $transactionsRequest = $this->fetch_transactions_request(0, null, $since, $limit, $params);
-        $response = $this->privateGetContractPrivateTransactionHistory ($transactionsRequest);
+        $response = $this->privateGetContractPrivateTransactionHistory($transactionsRequest);
         //
         //     {
         //         "code" => 1000,
@@ -5488,7 +5487,7 @@ class bitmart extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_transactions_request(?int $flowType = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_request(?int $flowType = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $request = array();
         if ($flowType !== null) {
             $request['flow_type'] = $flowType;
@@ -5508,7 +5507,7 @@ class bitmart extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -5529,7 +5528,7 @@ class bitmart extends Exchange {
         $request = array();
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
         $transactionsRequest = $this->fetch_transactions_request(3, $symbol, $since, $limit, $params);
-        $response = $this->privateGetContractPrivateTransactionHistory ($transactionsRequest);
+        $response = $this->privateGetContractPrivateTransactionHistory($transactionsRequest);
         //
         //     {
         //         "code" => 1000,
@@ -5588,7 +5587,7 @@ class bitmart extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
-    public function fetch_withdraw_addresses(string $code, $note = null, $networkCode = null, $params = array ()) {
+    public function fetch_withdraw_addresses(string $code, $note = null, $networkCode = null, $params = array()) {
         $this->load_markets();
         $codes = null;
         if ($code !== null) {
@@ -5596,7 +5595,7 @@ class bitmart extends Exchange {
             $code = $currency['code'];
             $codes = array( $code );
         }
-        $response = $this->privateGetAccountV1WithdrawAddressList ($params);
+        $response = $this->privateGetAccountV1WithdrawAddressList($params);
         //
         //     {
         //         "message" => "OK",
@@ -5632,7 +5631,7 @@ class bitmart extends Exchange {
         return $addresses;
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         /**
          * set $hedged to true or false for a market
          *
@@ -5663,10 +5662,10 @@ class bitmart extends Exchange {
         //     }
         // }
         //
-        return $this->privatePostContractPrivateSetPositionMode ($this->extend($request, $params));
+        return $this->privatePostContractPrivateSetPositionMode($this->extend($request, $params));
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()) {
         /**
          * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
          *
@@ -5676,7 +5675,7 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an object detailing whether the market is in hedged or one-way mode
          */
-        $response = $this->privateGetContractPrivateGetPositionMode ($params);
+        $response = $this->privateGetContractPrivateGetPositionMode($params);
         //
         // {
         //     "code" => 1000,
@@ -5699,7 +5698,7 @@ class bitmart extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $parts = explode('/', $path);
         // to do => refactor $api endpoints with spot/swap sections
         $category = $this->safe_string($parts, 0, 'spot');

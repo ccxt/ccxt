@@ -97,8 +97,8 @@ jobs:
           echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
           COMMIT_MESSAGE=${NPM_VERSION:1}
           echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
-      - name: vss and copy python-files
-        run: npm run vss && npm run copy-python-files
+      - name: vss
+        run: npm run vss
       - name: Commit files
         run: git add . -A
       - name: Git status

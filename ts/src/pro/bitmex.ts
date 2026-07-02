@@ -925,6 +925,26 @@ export default class bitmex extends bitmexRest {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
+            let side = this.safeString (position, 'side');
+            if (side === undefined) {
+                // BitMEX 'update' rows are deltas and may omit homeNotional, so
+                // parsePosition returns side = undefined. Carry the side forward from
+                // the cached position for this symbol, otherwise appending would break
+                // the ArrayCacheBySymbolBySide index (see issue #29001).
+                const symbol = this.safeString (position, 'symbol');
+                const cachedBySide = this.safeDict (cache.hashmap, symbol, {});
+                const cachedSides = Object.keys (cachedBySide);
+                const sidesLength = cachedSides.length;
+                if (sidesLength === 1) {
+                    side = cachedSides[0];
+                    position['side'] = side;
+                }
+            }
+            if (side === undefined) {
+                // still unresolved (e.g. the very first message is a partial without
+                // homeNotional); skip this row rather than corrupt the cache
+                continue;
+            }
             newPositions.push (position);
             cache.append (position);
         }
@@ -1288,7 +1308,7 @@ export default class bitmex extends bitmexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
@@ -1302,7 +1322,7 @@ export default class bitmex extends bitmexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         let table: Str = undefined;

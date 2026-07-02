@@ -172,6 +172,7 @@ interface Exchange {
     spotPrivateGetV1CrossMarginLoanOrders(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetV1CrossMarginAccountsBalance(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetV2AccountRepayment(params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetV5AccountUniversalTransferRecords(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetV1StableCoinQuote(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetV1StableCoinExchangeRate(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetV2EtpTransactions(params?: {}): Promise<implicitReturnType>;

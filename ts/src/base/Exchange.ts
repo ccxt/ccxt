@@ -50,7 +50,6 @@ import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
-import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
@@ -180,6 +179,9 @@ let SignMode = undefined;
  * @class Exchange
  */
 export default class Exchange {
+    // this is updated by vss.js when building
+    static ccxtVersion = '4.5.63';
+
     options: Dict;
 
     isSandboxModeEnabled: boolean = false;
@@ -308,6 +310,8 @@ export default class Exchange {
     last_request_body: any = undefined;
     last_request_url: string = undefined;
     last_request_path: string = undefined;
+    fetchHistoryCache: Dictionary<any>[] = [];
+    fetchHistoryCacheSize: number = 0;
 
     id: string = 'Exchange';
 
@@ -520,7 +524,7 @@ export default class Exchange {
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //         this.userAgent = {
-        //             'User-Agent': 'ccxt/' + (Exchange as any).ccxtVersion +
+        //             'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
         //                 ' (+https://github.com/ccxt/ccxt)' +
         //                 ' Node.js/' + this.nodeVersion + ' (JavaScript)'
         //         }
@@ -667,36 +671,6 @@ export default class Exchange {
     encodeURIComponent (...args) {
         // @ts-expect-error
         return encodeURIComponent (...args);
-    }
-
-    checkRequiredVersion (requiredVersion, error = true) {
-        let result = true;
-        const [ major1, minor1, patch1 ] = requiredVersion.split ('.');
-        const [ major2, minor2, patch2 ] = (Exchange as any).ccxtVersion.split ('.');
-        const intMajor1 = this.parseToInt (major1);
-        const intMinor1 = this.parseToInt (minor1);
-        const intPatch1 = this.parseToInt (patch1);
-        const intMajor2 = this.parseToInt (major2);
-        const intMinor2 = this.parseToInt (minor2);
-        const intPatch2 = this.parseToInt (patch2);
-        if (intMajor1 > intMajor2) {
-            result = false;
-        }
-        if (intMajor1 === intMajor2) {
-            if (intMinor1 > intMinor2) {
-                result = false;
-            } else if (intMinor1 === intMinor2 && intPatch1 > intPatch2) {
-                result = false;
-            }
-        }
-        if (!result) {
-            if (error) {
-                throw new NotSupported ('Your current version of CCXT is ' + (Exchange as any).ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT');
-            } else {
-                return error;
-            }
-        }
-        return result;
     }
 
     throttle (cost: Num = undefined) {
@@ -853,6 +827,20 @@ export default class Exchange {
             }
         }
         return undefined;
+    }
+
+    addFetchCache (data) {
+        if (this.fetchHistoryCacheSize <= 0) {
+            return;
+        }
+        if (this.fetchHistoryCache.length >= this.fetchHistoryCacheSize) {
+            this.fetchHistoryCache.shift ();
+        }
+        this.fetchHistoryCache.push (data);
+    }
+
+    getFetchCache () {
+        return this.fetchHistoryCache;
     }
 
     isBinaryMessage (msg) {
@@ -1528,8 +1516,8 @@ export default class Exchange {
         }
     }
 
-    async close () {
-        // test by running ts/src/pro/test/base/test.close.ts
+    async close (cleanInstanceCache = false) {
+        // [WS]
         await this.sleep (0); // allow other futures to run
         const clients = Object.values (this.clients || {});
         const closedClients = [];
@@ -1543,7 +1531,14 @@ export default class Exchange {
             delete this.clients[client.url];
             closedClients.push (client.close ());
         }
-        return Promise.all (closedClients);
+        await Promise.all (closedClients);
+        if (cleanInstanceCache) {
+            this.cleanWsData ();
+        }
+        // [REST]
+        if (cleanInstanceCache) {
+            this.cleanRestData ();
+        }
     }
 
     async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
@@ -1604,7 +1599,7 @@ export default class Exchange {
         obj[property] = defaultValue;
     }
 
-    exceptionMessage (exc, includeStack: boolean = true) {
+    exceptionMessage (exc: any, includeStack: boolean = true): string {
         const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
         const length = Math.min (100000, message.length);
         return message.slice (0, length);
@@ -1932,11 +1927,9 @@ export default class Exchange {
     }
 
     randomBytes (length: number) {
-        const rng = new SecureRandom ();
-        const x:number[] = [];
-        x.length = length;
-        rng.nextBytes (x);
-        return Buffer.from (x).toString ('hex');
+        const x = new Uint8Array (length);
+        crypto.getRandomValues (x);
+        return this.binaryToBase16 (x);
     }
 
     randNumber (size: number) {
@@ -2618,6 +2611,36 @@ export default class Exchange {
         };
     }
 
+    cleanRestData () {
+        this.ids = undefined;
+        this.markets = undefined;
+        this.markets_by_id = undefined;
+        this.symbols = undefined;
+        this.codes = undefined;
+        this.currencies = this.createSafeDictionary ();
+        this.currencies_by_id = undefined;
+        this.baseCurrencies = undefined;
+        this.quoteCurrencies = undefined;
+        this.last_http_response = undefined;
+        // this.last_json_response = undefined; // not unified prop
+        this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+    }
+
+    cleanWsData () {
+        this.balance = this.createSafeDictionary (true);
+        this.orderbooks = this.createSafeDictionary (true);
+        this.tickers = this.createSafeDictionary (true);
+        this.liquidations = undefined;
+        this.myLiquidations = undefined;
+        this.orders = undefined;
+        this.trades = this.createSafeDictionary (true);
+        this.transactions = this.createSafeDictionary ();
+        this.ohlcvs = this.createSafeDictionary (true);
+        this.myTrades = undefined;
+        this.positions = undefined;
+    }
+
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
@@ -3130,7 +3153,7 @@ export default class Exchange {
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        return {};
+        return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
     async fetchAccounts (params = {}): Promise<Account[]> {
@@ -5842,13 +5865,30 @@ export default class Exchange {
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
+        let fetchData: Dict = undefined;
+        const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
+            if (fetchDataCacheEnabled) {
+                fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
+            }
             try {
                 this.setLastRestRequestTimestamp ();
                 const request = this.sign (path, api, method, params, headers, body);
+                if (fetchDataCacheEnabled) {
+                    fetchData['request'] = request;
+                }
                 this.setLastRequest (request);
-                return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+                const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+                if (fetchDataCacheEnabled) {
+                    fetchData['response']['body'] = response;
+                    this.addFetchCache (fetchData);
+                }
+                return response;
             } catch (e) {
+                if (fetchDataCacheEnabled) {
+                    fetchData['error'] = e;
+                    this.addFetchCache (fetchData);
+                }
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
@@ -9176,7 +9216,7 @@ export default class Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
          */
         throw new NotSupported (this.id + ' fetchOrdersByStatusWs () is not supported yet');
     }

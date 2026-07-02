@@ -66,6 +66,7 @@ public partial class BaseTest
             testUnique();
             testUrlencodeNested();
             await testSleep();
+            await testFetchHistory();
             testIo();
             testIsJsonEncodedObject();
             testEncodeDecode();

@@ -8,11 +8,10 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class ascendex extends \ccxt\async\ascendex {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -52,7 +51,7 @@ class ascendex extends \ccxt\async\ascendex {
         ));
     }
 
-    public function watch_public($messageHash, $params = array ()) {
+    public function watch_public($messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $url = $this->urls['api']['ws']['public'];
             $id = $this->nonce();
@@ -62,10 +61,10 @@ class ascendex extends \ccxt\async\ascendex {
             );
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        }) ();
+        })();
     }
 
-    public function watch_public_multiple($messageHashes, $params = array ()) {
+    public function watch_public_multiple($messageHashes, $params = array()) {
         return Async\async(function () use ($messageHashes, $params) {
             $url = $this->urls['api']['ws']['public'];
             $id = $this->nonce();
@@ -75,10 +74,10 @@ class ascendex extends \ccxt\async\ascendex {
             );
             $message = $this->extend($request, $params);
             return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
-        }) ();
+        })();
     }
 
-    public function watch_private($channel, $messageHash, $params = array ()) {
+    public function watch_private($channel, $messageHash, $params = array()) {
         return Async\async(function () use ($channel, $messageHash, $params) {
             Async\await($this->load_accounts());
             $accountGroup = $this->safe_string($this->options, 'account-group');
@@ -93,10 +92,10 @@ class ascendex extends \ccxt\async\ascendex {
             $message = $this->extend($request, $params);
             Async\await($this->authenticate($url, $params));
             return Async\await($this->watch($url, $messageHash, $message, $channel));
-        }) ();
+        })();
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -123,10 +122,10 @@ class ascendex extends \ccxt\async\ascendex {
             );
             $ohlcv = Async\await($this->watch_public($channel, $params));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -158,15 +157,15 @@ class ascendex extends \ccxt\async\ascendex {
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp ($limit);
+            $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
-        $stored->append ($parsed);
-        $client->resolve ($stored, $messageHash);
+        $stored->append($parsed);
+        $client->resolve($stored, $messageHash);
         return $message;
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -180,10 +179,10 @@ class ascendex extends \ccxt\async\ascendex {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
@@ -216,10 +215,10 @@ class ascendex extends \ccxt\async\ascendex {
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit ($tradeSymbol, $limit);
+                $limit = $trades->getLimit($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
     public function handle_trades(Client $client, $message) {
@@ -251,16 +250,16 @@ class ascendex extends \ccxt\async\ascendex {
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $tradesArray = new ArrayCache ($limit);
+            $tradesArray = new ArrayCache($limit);
         }
         for ($i = 0; $i < count($trades); $i++) {
-            $tradesArray->append ($trades[$i]);
+            $tradesArray->append($trades[$i]);
         }
         $this->trades[$symbol] = $tradesArray;
-        $client->resolve ($tradesArray, $messageHash);
+        $client->resolve($tradesArray, $messageHash);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -270,7 +269,7 @@ class ascendex extends \ccxt\async\ascendex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -279,11 +278,11 @@ class ascendex extends \ccxt\async\ascendex {
                 'ch' => $channel,
             ));
             $orderbook = Async\await($this->watch_public($channel, $params));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function watch_order_book_snapshot(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book_snapshot(string $symbol, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -297,20 +296,20 @@ class ascendex extends \ccxt\async\ascendex {
                 'op' => 'req',
             ));
             $orderbook = Async\await($this->watch_public($channel, $params));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function fetch_order_book_snapshot_custom(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book_snapshot_custom(string $symbol, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             $restOrderBook = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
             if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
                 $this->orderbooks[$symbol] = $this->order_book();
             }
             $orderbook = $this->orderbooks[$symbol];
-            $orderbook->reset ($restOrderBook);
+            $orderbook->reset($restOrderBook);
             return $orderbook;
-        }) ();
+        })();
     }
 
     public function handle_order_book_snapshot(Client $client, $message) {
@@ -321,14 +320,14 @@ class ascendex extends \ccxt\async\ascendex {
         //     "data" => {
         //       "ts" => 1647520500149,
         //       "seqnum" => 28590487626,
-        //       "asks" => [
+        //       "asks" => array(
         //         [Array], [Array], [Array],
         //         [Array], [Array], [Array],
-        //       ],
-        //       "bids" => [
+        //       ),
+        //       "bids" => array(
         //         [Array], [Array], [Array],
         //         [Array], [Array], [Array],
-        //       ]
+        //       )
         //     }
         //   }
         //
@@ -340,7 +339,7 @@ class ascendex extends \ccxt\async\ascendex {
         $data = $this->safe_value($message, 'data');
         $snapshot = $this->parse_order_book($data, $symbol);
         $snapshot['nonce'] = $this->safe_integer($data, 'seqnum');
-        $orderbook->reset ($snapshot);
+        $orderbook->reset($snapshot);
         // unroll the accumulated deltas
         $messages = $orderbook->cache;
         for ($i = 0; $i < count($messages); $i++) {
@@ -348,7 +347,7 @@ class ascendex extends \ccxt\async\ascendex {
             $this->handle_order_book_message($client, $messageItem, $orderbook);
         }
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -359,8 +358,8 @@ class ascendex extends \ccxt\async\ascendex {
         //       "data" => {
         //         "ts" => 1647515136144,
         //         "seqnum" => 28590470736,
-        //         "asks" => [ [Array], [Array] ],
-        //         "bids" => [ [Array], [Array], [Array], [Array], [Array], [Array] ]
+        //         "asks" => array( [Array], [Array] ),
+        //         "bids" => array( [Array], [Array], [Array], [Array], [Array], [Array] )
         //       }
         //   }
         //
@@ -376,7 +375,7 @@ class ascendex extends \ccxt\async\ascendex {
             $orderbook->cache[] = $message;
         } else {
             $this->handle_order_book_message($client, $message, $orderbook);
-            $client->resolve ($orderbook, $messageHash);
+            $client->resolve($orderbook, $messageHash);
         }
     }
 
@@ -386,7 +385,7 @@ class ascendex extends \ccxt\async\ascendex {
         //
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
-        $bookside->store ($price, $amount);
+        $bookside->store($price, $amount);
     }
 
     public function handle_deltas($bookside, $deltas) {
@@ -403,15 +402,15 @@ class ascendex extends \ccxt\async\ascendex {
         //     "data":{
         //        "ts":1647527417715,
         //        "seqnum":28590257013,
-        //        "asks":[
+        //        "asks":array(
         //           ["40990.47","0.01619"],
         //           ["41021.21","0"],
         //           ["41031.59","0.06096"]
-        //        ],
-        //        "bids":[
+        //        ),
+        //        "bids":array(
         //           ["40990.46","0.76114"],
         //           ["40985.18","0"]
-        //        ]
+        //        )
         //     }
         //  }
         //
@@ -430,7 +429,7 @@ class ascendex extends \ccxt\async\ascendex {
         return $orderbook;
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -455,7 +454,7 @@ class ascendex extends \ccxt\async\ascendex {
                 $messageHash = 'balance:swap';
             }
             return Async\await($this->watch_private($channel, $messageHash, $query));
-        }) ();
+        })();
     }
 
     public function handle_balance(Client $client, $message) {
@@ -552,10 +551,10 @@ class ascendex extends \ccxt\async\ascendex {
             }
         }
         $messageHash = 'balance' . ':' . $type;
-        $client->resolve ($this->safe_balance($result), $messageHash);
+        $client->resolve($this->safe_balance($result), $messageHash);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -592,10 +591,10 @@ class ascendex extends \ccxt\async\ascendex {
             }
             $orders = Async\await($this->watch_private($channel, $messageHash, $query));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_order(Client $client, $message) {
@@ -646,13 +645,13 @@ class ascendex extends \ccxt\async\ascendex {
         $order = $this->parse_ws_order($data);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $orders = $this->orders;
-        $orders->append ($order);
+        $orders->append($order);
         $symbolMessageHash = $messageHash . ':' . $order['symbol'];
-        $client->resolve ($orders, $symbolMessageHash);
-        $client->resolve ($orders, $messageHash);
+        $client->resolve($orders, $symbolMessageHash);
+        $client->resolve($orders, $messageHash);
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -786,12 +785,12 @@ class ascendex extends \ccxt\async\ascendex {
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
                 $messageHash = 'authenticated';
-                $client->reject ($e, $messageHash);
+                $client->reject($e, $messageHash);
                 if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
-                $client->reject ($e);
+                $client->reject($e);
             }
             return true;
         }
@@ -802,7 +801,7 @@ class ascendex extends \ccxt\async\ascendex {
         //     array( m => "auth", id => "1647605234", code => 0 )
         //
         $messageHash = 'authenticated';
-        $client->resolve ($message, $messageHash);
+        $client->resolve($message, $messageHash);
     }
 
     public function handle_message(Client $client, $message) {
@@ -867,15 +866,15 @@ class ascendex extends \ccxt\async\ascendex {
         //     "data":{
         //        "ts":1647527417715,
         //        "seqnum":28590257013,
-        //        "asks":[
+        //        "asks":array(
         //           ["40990.47","0.01619"],
         //           ["41021.21","0"],
         //           ["41031.59","0.06096"]
-        //        ],
-        //        "bids":[
+        //        ),
+        //        "bids":array(
         //           ["40990.46","0.76114"],
         //           ["40985.18","0"]
-        //        ]
+        //        )
         //     }
         //  }
         //
@@ -886,12 +885,12 @@ class ascendex extends \ccxt\async\ascendex {
         //     "data" => {
         //       "ts" => 1647525938513,
         //       "seqnum" => 28590504772,
-        //       "asks" => [
+        //       "asks" => array(
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         //          (...)
-        //       ]
+        //       )
         //  }
         //
         // spot order update
@@ -1016,19 +1015,19 @@ class ascendex extends \ccxt\async\ascendex {
             //     array( m => "ping", hp => 3 )
             //
             try {
-                Async\await($client->send (array( 'op' => 'pong', 'hp' => $this->safe_integer($message, 'hp') )));
+                Async\await($client->send(array( 'op' => 'pong', 'hp' => $this->safe_integer($message, 'hp') )));
             } catch (Exception $e) {
-                $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->exception_message($e));
-                $client->reset ($error);
+                $error = new NetworkError($this->id . ' handlePing failed with $error ' . $this->exception_message($e));
+                $client->reset($error);
             }
-        }) ();
+        })();
     }
 
     public function handle_ping(Client $client, $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function authenticate($url, $params = array ()) {
+    public function authenticate($url, $params = array()) {
         return Async\async(function () use ($url, $params) {
             $this->check_required_credentials();
             $messageHash = 'authenticated';
@@ -1054,6 +1053,6 @@ class ascendex extends \ccxt\async\ascendex {
                 $client->subscriptions[$messageHash] = $future;
             }
             return $future;
-        }) ();
+        })();
     }
 }

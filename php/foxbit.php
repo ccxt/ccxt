@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\foxbit as Exchange;
 
 class foxbit extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'foxbit',
@@ -323,8 +322,8 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): array {
-        $response = $this->v3PublicGetCurrencies ($params);
+    public function fetch_currencies($params = array()): array {
+        $response = $this->v3PublicGetCurrencies($params);
         // {
         //   "data" => array(
         //     {
@@ -439,7 +438,7 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * Retrieves data on all $markets for foxbit.
          *
@@ -448,7 +447,7 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->v3PublicGetMarkets ($params);
+        $response = $this->v3PublicGetMarkets($params);
         // {
         //     "data" => array(
         //       {
@@ -547,7 +546,7 @@ class foxbit extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * Get last 24 hours ticker information, in real-time, for given $market->
          *
@@ -562,7 +561,7 @@ class foxbit extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v3PublicGetMarketsMarketTicker24hr ($this->extend($request, $params));
+        $response = $this->v3PublicGetMarketsMarketTicker24hr($this->extend($request, $params));
         //  {
         //    "data" => array(
         //      {
@@ -599,7 +598,7 @@ class foxbit extends Exchange {
         return $this->parse_ticker($result, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * Retrieve the ticker $data of all markets.
          *
@@ -611,7 +610,7 @@ class foxbit extends Exchange {
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $response = $this->v3PublicGetMarketsTicker24hr ($params);
+        $response = $this->v3PublicGetMarketsTicker24hr($params);
         //  {
         //    "data" => array(
         //      {
@@ -637,7 +636,7 @@ class foxbit extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
@@ -647,7 +646,7 @@ class foxbit extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
          */
         $this->load_markets();
-        $response = $this->v3PrivateGetMeFeesTrading ($params);
+        $response = $this->v3PrivateGetMeFeesTrading($params);
         // array(
         //     {
         //         "market_symbol" => "btcbrl",
@@ -667,7 +666,7 @@ class foxbit extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * Exports a copy of the order book of a specific $market->
          *
@@ -676,7 +675,7 @@ class foxbit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return, the maximum is 100
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -685,7 +684,7 @@ class foxbit extends Exchange {
             'market' => $market['id'],
             'depth' => ($limit === null) ? $defaultLimit : $limit,
         );
-        $response = $this->v3PublicGetMarketsMarketOrderbook ($this->extend($request, $params));
+        $response = $this->v3PublicGetMarketsMarketOrderbook($this->extend($request, $params));
         //  {
         //    "sequence_id" => 1234567890,
         //    "timestamp" => 1713187921336,
@@ -714,7 +713,7 @@ class foxbit extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Retrieve the trades of a specific $market->
          *
@@ -746,12 +745,12 @@ class foxbit extends Exchange {
         //         "created_at" => "2024-01-01T00:00:00Z"
         //     }
         // )
-        $response = $this->v3PublicGetMarketsMarketTradesHistory ($this->extend($request, $params));
+        $response = $this->v3PublicGetMarketsMarketTradesHistory($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a $market->
          *
@@ -780,7 +779,7 @@ class foxbit extends Exchange {
                 $request['limit'] = 500;
             }
         }
-        $response = $this->v3PublicGetMarketsMarketCandlesticks ($this->extend($request, $params));
+        $response = $this->v3PublicGetMarketsMarketCandlesticks($this->extend($request, $params));
         // array(
         //     array(
         //         "1692918000000", // timestamp
@@ -799,7 +798,7 @@ class foxbit extends Exchange {
         return $this->parse_ohlcvs($response, $market, $interval, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * Query for balance and get the amount of funds available for trading or funds locked in orders.
          *
@@ -809,7 +808,7 @@ class foxbit extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->v3PrivateGetAccounts ($params);
+        $response = $this->v3PrivateGetAccounts($params);
         // {
         //     "data" => array(
         //         {
@@ -841,7 +840,7 @@ class foxbit extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Fetch all unfilled currently open orders.
          *
@@ -856,7 +855,7 @@ class foxbit extends Exchange {
         return $this->fetch_orders_by_status('ACTIVE', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Fetch all currently closed orders.
          *
@@ -871,11 +870,11 @@ class foxbit extends Exchange {
         return $this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         return $this->fetch_orders_by_status('CANCELED', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $this->load_markets();
         $market = null;
         $request = array(
@@ -894,12 +893,12 @@ class foxbit extends Exchange {
                 $request['page_size'] = 100;
             }
         }
-        $response = $this->v3PrivateGetOrders ($this->extend($request, $params));
+        $response = $this->v3PrivateGetOrders($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * Create an order with the specified characteristics
          *
@@ -962,7 +961,7 @@ class foxbit extends Exchange {
             $request['client_order_id'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId' ));
-        $response = $this->v3PrivatePostOrders ($this->extend($request, $params));
+        $response = $this->v3PrivatePostOrders($this->extend($request, $params));
         // {
         //     "id" => 1234567890,
         //     "sn" => "OKMAKSDHRVVREK",
@@ -971,7 +970,7 @@ class foxbit extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         /**
          * create a list of trade $orders
          *
@@ -1032,7 +1031,7 @@ class foxbit extends Exchange {
             $ordersRequests[] = $this->extend($request, $orderParams);
         }
         $createOrdersRequest = array( 'data' => $ordersRequests );
-        $response = $this->v3PrivatePostOrdersBatch ($this->extend($createOrdersRequest, $params));
+        $response = $this->v3PrivatePostOrdersBatch($this->extend($createOrdersRequest, $params));
         // {
         //     "data" => array(
         //         {
@@ -1052,7 +1051,7 @@ class foxbit extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * Cancel open orders.
          *
@@ -1068,7 +1067,7 @@ class foxbit extends Exchange {
             'id' => $this->parse_number($id),
             'type' => 'ID',
         );
-        $response = $this->v3PrivatePutOrdersCancel ($this->extend($request, $params));
+        $response = $this->v3PrivatePutOrdersCancel($this->extend($request, $params));
         // {
         //     "data" => array(
         //         {
@@ -1082,7 +1081,7 @@ class foxbit extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * Cancel all open orders or all open orders for a specific $market->
          *
@@ -1101,7 +1100,7 @@ class foxbit extends Exchange {
             $request['type'] = 'MARKET';
             $request['market_symbol'] = $market['id'];
         }
-        $response = $this->v3PrivatePutOrdersCancel ($this->extend($request, $params));
+        $response = $this->v3PrivatePutOrdersCancel($this->extend($request, $params));
         // {
         //     "data" => array(
         //         {
@@ -1115,7 +1114,7 @@ class foxbit extends Exchange {
         )) );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * Get an order by ID.
          *
@@ -1130,7 +1129,7 @@ class foxbit extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->v3PrivateGetOrdersByOrderIdId ($this->extend($request, $params));
+        $response = $this->v3PrivateGetOrdersByOrderIdId($this->extend($request, $params));
         // {
         //     "id" => "1234567890",
         //     "sn" => "OKMAKSDHRVVREK",
@@ -1153,7 +1152,7 @@ class foxbit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
@@ -1183,7 +1182,7 @@ class foxbit extends Exchange {
                 $request['page_size'] = 100;
             }
         }
-        $response = $this->v3PrivateGetOrders ($this->extend($request, $params));
+        $response = $this->v3PrivateGetOrders($this->extend($request, $params));
         // {
         //     "data" => array(
         //         {
@@ -1211,7 +1210,7 @@ class foxbit extends Exchange {
         return $this->parse_orders($list, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Trade history queries will only have $data available for the last 3 months, in descending order (most recents trades first).
          *
@@ -1240,7 +1239,7 @@ class foxbit extends Exchange {
                 $request['page_size'] = 100;
             }
         }
-        $response = $this->v3PrivateGetTrades ($this->extend($request, $params));
+        $response = $this->v3PrivateGetTrades($this->extend($request, $params));
         // {
         //     "data" => array(
         //         "id" => 1234567890,
@@ -1259,7 +1258,7 @@ class foxbit extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * Fetch the deposit address for a $currency associated with this account.
          *
@@ -1279,7 +1278,7 @@ class foxbit extends Exchange {
         if ($networkCode !== null) {
             $request['network_code'] = $this->network_code_to_id($networkCode, $code);
         }
-        $response = $this->v3PrivateGetDepositsAddress ($this->extend($request, $paramsOmited));
+        $response = $this->v3PrivateGetDepositsAddress($this->extend($request, $paramsOmited));
         // {
         //     "currency_symbol" => "btc",
         //     "address" => "2N9sS8LgrY19rvcCWDmE1ou1tTVmqk4KQAB",
@@ -1293,7 +1292,7 @@ class foxbit extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Fetch all deposits made to an account.
          *
@@ -1320,7 +1319,7 @@ class foxbit extends Exchange {
         if ($since !== null) {
             $request['start_time'] = $this->iso8601($since);
         }
-        $response = $this->v3PrivateGetDeposits ($this->extend($request, $params));
+        $response = $this->v3PrivateGetDeposits($this->extend($request, $params));
         // {
         //     "data" => array(
         //         {
@@ -1341,7 +1340,7 @@ class foxbit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Fetch all withdrawals made from an account.
          *
@@ -1368,7 +1367,7 @@ class foxbit extends Exchange {
         if ($since !== null) {
             $request['start_time'] = $this->iso8601($since);
         }
-        $response = $this->v3PrivateGetWithdrawals ($this->extend($request, $params));
+        $response = $this->v3PrivateGetWithdrawals($this->extend($request, $params));
         // {
         //     "data" => array(
         //         {
@@ -1404,7 +1403,7 @@ class foxbit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Fetch all transactions ($deposits and $withdrawals) made from an account.
          *
@@ -1424,7 +1423,7 @@ class foxbit extends Exchange {
         return $result;
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         /**
          * The latest known information on the availability of the exchange API.
          *
@@ -1433,7 +1432,7 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
-        $response = $this->statusPublicGetStatus ($params);
+        $response = $this->statusPublicGetStatus($params);
         // {
         //     "data" => {
         //       "id" => 1,
@@ -1464,7 +1463,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * Simultaneously cancel an existing order and create a new one.
          *
@@ -1513,7 +1512,7 @@ class foxbit extends Exchange {
         if ($type === 'INSTANT') {
             $request['create']['amount'] = $this->price_to_precision($symbol, $amount);
         }
-        $response = $this->v3PrivatePostOrdersCancelReplace ($this->extend($request, $params));
+        $response = $this->v3PrivatePostOrdersCancelReplace($this->extend($request, $params));
         // {
         //     "cancel" => array(
         //         "id" => 123456789
@@ -1526,7 +1525,7 @@ class foxbit extends Exchange {
         return $this->parse_order($response['create'], $market);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * Make a withdrawal.
          *
@@ -1555,7 +1554,7 @@ class foxbit extends Exchange {
         if ($networkCode !== null) {
             $request['network_code'] = $this->network_code_to_id($networkCode, $code);
         }
-        $response = $this->v3PrivatePostWithdrawals ($this->extend($request, $params));
+        $response = $this->v3PrivatePostWithdrawals($this->extend($request, $params));
         // {
         //     "amount" => "2",
         //     "currency_symbol" => "xrp",
@@ -1566,7 +1565,7 @@ class foxbit extends Exchange {
         return $this->parse_transaction($response);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          *
@@ -1594,7 +1593,7 @@ class foxbit extends Exchange {
         }
         $currency = $this->currency($code);
         $request['symbol'] = $currency['id'];
-        $response = $this->v3PrivateGetAccountsSymbolTransactions ($this->extend($request, $params));
+        $response = $this->v3PrivateGetAccountsSymbolTransactions($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
@@ -1967,7 +1966,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = [], $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);

@@ -233,7 +233,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -262,7 +262,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -1585,8 +1585,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (isTrue(isEqual(channel, "error")))
         {
             object ret_msg = this.safeString(message, "data", "");
-            object errorMsg = add(add(this.id, " "), ret_msg);
-            ((WebSocketClient)client).reject(errorMsg);
+            var error = new ExchangeError(add(add(this.id, " "), ret_msg));
+            ((WebSocketClient)client).reject(error);
             return true;
         }
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
@@ -1600,14 +1600,14 @@ public partial class hyperliquid : ccxt.hyperliquid
         object status = this.safeString(payload, "status");
         if (isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "ok"))))
         {
-            object errorMsg = add(add(this.id, " "), this.json(payload));
-            ((WebSocketClient)client).reject(errorMsg, id);
+            var error = new ExchangeError(add(add(this.id, " "), this.json(payload)));
+            ((WebSocketClient)client).reject(error, id);
             return true;
         }
         object type = this.safeString(payload, "type");
         if (isTrue(isEqual(type, "error")))
         {
-            object error = add(add(this.id, " "), this.json(payload));
+            var error = new ExchangeError(add(add(this.id, " "), this.json(payload)));
             ((WebSocketClient)client).reject(error, id);
             return true;
         }

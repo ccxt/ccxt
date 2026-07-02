@@ -167,16 +167,16 @@ public class ExtendedCore extends ExtendedApi
             }} );
             put( "hostname", "extended.exchange" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299" );
+                put( "logo", "https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://api.starknet.{hostname}" );
                 }} );
                 put( "test", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://api.starknet.sepolia.{hostname}" );
                 }} );
-                put( "www", "https://app.{hostname}" );
-                put( "doc", "https://api.docs.{hostname}" );
-                put( "fees", "https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates" );
+                put( "www", "https://app.extended.exchange" );
+                put( "doc", "https://api.docs.extended.exchange" );
+                put( "fees", "https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates" );
                 put( "referral", "" );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
@@ -895,7 +895,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

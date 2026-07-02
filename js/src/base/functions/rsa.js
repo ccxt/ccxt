@@ -4,21 +4,32 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
-import { utf8ToBytes } from '@noble/hashes/utils.js';
-import { hex as base16, utf8 } from '@scure/base';
+import crypto from 'crypto';
+import { utf8 } from '@scure/base';
 import { urlencodeBase64, base16ToBinary, base64ToBinary, base64ToBase64Url } from './encode.js';
 import { eddsa, hmac } from './crypto.js';
 import { p256 as P256 } from '@noble/curves/nist.js';
 import { ecdsa } from '../../base/functions/crypto.js';
 import { ed25519 } from "@noble/curves/ed25519.js";
+// RSASSA-PKCS1-v1_5 signing via Node's built-in `crypto` module. This is synchronous
+// and works in Node.js / Bun / Deno (anything exposing node:crypto). It is NOT available
+// in the browser bundle (rspack stubs the `crypto` module), so rsa throws there: RSA
+// signing is currently unsupported in the browser.
 function rsa(request, secret, hash) {
-    const RSA = new JSEncrypt();
-    const digester = (input) => base16.encode(hash((typeof input === 'string') ? utf8ToBytes(input) : input));
-    RSA.setPrivateKey(secret);
+    if (crypto === undefined || crypto.createSign === undefined) {
+        throw new Error('rsa is currently not supported in the browser');
+    }
     // @noble/hashes v2 renamed the digest classes from SHA256 to _SHA256, etc
     const name = (hash.create()).constructor.name.toLowerCase().replace('_', '');
-    return RSA.sign(request, digester, name);
+    const algorithms = {
+        'sha256': 'RSA-SHA256',
+        'sha384': 'RSA-SHA384',
+        'sha512': 'RSA-SHA512',
+    };
+    const algorithm = algorithms[name];
+    const signer = crypto.createSign(algorithm);
+    signer.update(request);
+    return signer.sign(secret, 'base64');
 }
 function jwt(request, secret, hash, isRSA = false, opts = {}) {
     let alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8);
