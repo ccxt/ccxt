@@ -1282,13 +1282,6 @@ export default class Exchange {
         //   token is 16+ chars long or in exponent form, nothing can lose precision and the whole
         //   quoting pass is skipped after one cheap test() scan (~7% instead of ~43%); docs that
         //   do contain a risky token keep the old quote-everything behavior
-        // - the spec'd alternative, JSON.parse with a source-access reviver
-        //   (JSON.parse (body, (k, v, ctx) => ctx.source)), keeps the same precision but is 4-10x
-        //   slower than regex + JSON.parse because of the per-key callback overhead - rejected
-        // - regex shape variants profiled at the optimum already: factoring the '":' prefix out of
-        //   the guard's alternation is within noise, a deterministic guard ([0-9.+-]{16}|[0-9.+-]{0,15}[eE])
-        //   is ~20% slower, and the replace's lookahead beats both the delimiter-consuming form
-        //   (capturing $2, ~10% slower) and a lookbehind + $& form (~30% slower)
         if (!this.quoteJsonNumbers) {
             return responseBody;
         }
