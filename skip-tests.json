@@ -1,5 +1,6 @@
 {
     "mudrex": {
+        "skip": "load markets is private",
         "skipMethods": {
             "fetchOrderBook": "mudrex does not provide an orderbook endpoint"
         }
