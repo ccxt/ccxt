@@ -23,7 +23,7 @@ func (this *GateCore) Describe() any {
 		"certified": true,
 		"pro":       true,
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85",
+			"logo": "https://github.com/user-attachments/assets/b4fd9d41-eaed-46fe-8a7b-b2677edface0",
 			"doc":  "https://www.gate.com/docs/developers/apiv4/en",
 			"www":  "https://gate.com",
 			"api": map[string]any{
@@ -2975,7 +2975,7 @@ func (this *GateCore) ParseFundingHistory(info any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *GateCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

@@ -146,6 +146,11 @@ public partial class bybiteu : bybit
         return await this.callAsync ("publicGetV5AnnouncementsIndex",parameters);
     }
 
+    public async Task<object> publicGetV5SystemStatus (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5SystemStatus",parameters);
+    }
+
     public async Task<object> publicGetV5MarketTime (object parameters = null)
     {
         return await this.callAsync ("publicGetV5MarketTime",parameters);
@@ -179,6 +184,16 @@ public partial class bybiteu : bybit
     public async Task<object> publicGetV5MarketOrderbook (object parameters = null)
     {
         return await this.callAsync ("publicGetV5MarketOrderbook",parameters);
+    }
+
+    public async Task<object> publicGetV5MarketRpiOrderbook (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5MarketRpiOrderbook",parameters);
+    }
+
+    public async Task<object> publicGetV5MarketFullOrderbook (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5MarketFullOrderbook",parameters);
     }
 
     public async Task<object> publicGetV5MarketTickers (object parameters = null)
@@ -221,9 +236,34 @@ public partial class bybiteu : bybit
         return await this.callAsync ("publicGetV5MarketDeliveryPrice",parameters);
     }
 
+    public async Task<object> publicGetV5MarketNewDeliveryPrice (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5MarketNewDeliveryPrice",parameters);
+    }
+
     public async Task<object> publicGetV5MarketAccountRatio (object parameters = null)
     {
         return await this.callAsync ("publicGetV5MarketAccountRatio",parameters);
+    }
+
+    public async Task<object> publicGetV5MarketIndexPriceComponents (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5MarketIndexPriceComponents",parameters);
+    }
+
+    public async Task<object> publicGetV5MarketPriceLimit (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5MarketPriceLimit",parameters);
+    }
+
+    public async Task<object> publicGetV5MarketAdlAlert (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5MarketAdlAlert",parameters);
+    }
+
+    public async Task<object> publicGetV5MarketFeeGroupInfo (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5MarketFeeGroupInfo",parameters);
     }
 
     public async Task<object> publicGetV5SpotLeverTokenInfo (object parameters = null)
@@ -616,9 +656,19 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privateGetV5PositionClosedPnl",parameters);
     }
 
+    public async Task<object> privateGetV5PositionGetClosedPositions (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5PositionGetClosedPositions",parameters);
+    }
+
     public async Task<object> privateGetV5PositionMoveHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetV5PositionMoveHistory",parameters);
+    }
+
+    public async Task<object> privateGetV5PositionSymbolInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5PositionSymbolInfo",parameters);
     }
 
     public async Task<object> privateGetV5PreUpgradeOrderHistory (object parameters = null)
@@ -671,6 +721,11 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privateGetV5AccountCollateralInfo",parameters);
     }
 
+    public async Task<object> privateGetV5AccountOptionAssetInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AccountOptionAssetInfo",parameters);
+    }
+
     public async Task<object> privateGetV5AssetCoinGreeks (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AssetCoinGreeks",parameters);
@@ -696,6 +751,26 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privateGetV5AccountContractTransactionLog",parameters);
     }
 
+    public async Task<object> privateGetV5AccountQueryDcpInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AccountQueryDcpInfo",parameters);
+    }
+
+    public async Task<object> privateGetV5AccountUserSettingConfig (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AccountUserSettingConfig",parameters);
+    }
+
+    public async Task<object> privateGetV5AccountPayInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AccountPayInfo",parameters);
+    }
+
+    public async Task<object> privateGetV5AccountTradeInfoForAnalysis (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AccountTradeInfoForAnalysis",parameters);
+    }
+
     public async Task<object> privateGetV5AccountSmpGroup (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AccountSmpGroup",parameters);
@@ -709,6 +784,11 @@ public partial class bybiteu : bybit
     public async Task<object> privateGetV5AccountWithdrawal (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AccountWithdrawal",parameters);
+    }
+
+    public async Task<object> privateGetV5AssetAssetOverview (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AssetAssetOverview",parameters);
     }
 
     public async Task<object> privateGetV5AssetExchangeQueryCoinList (object parameters = null)
@@ -729,6 +809,21 @@ public partial class bybiteu : bybit
     public async Task<object> privateGetV5AssetExchangeOrderRecord (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AssetExchangeOrderRecord",parameters);
+    }
+
+    public async Task<object> privateGetV5AssetFundinghistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AssetFundinghistory",parameters);
+    }
+
+    public async Task<object> privateGetV5AssetPortfolioMargin (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AssetPortfolioMargin",parameters);
+    }
+
+    public async Task<object> privateGetV5AssetTotalMembersAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AssetTotalMembersAssets",parameters);
     }
 
     public async Task<object> privateGetV5AssetDeliveryRecord (object parameters = null)
@@ -831,6 +926,16 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privateGetV5AssetWithdrawVaspList",parameters);
     }
 
+    public async Task<object> privateGetV5AssetCovertSmallBalanceList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AssetCovertSmallBalanceList",parameters);
+    }
+
+    public async Task<object> privateGetV5AssetCovertSmallBalanceHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AssetCovertSmallBalanceHistory",parameters);
+    }
+
     public async Task<object> privateGetV5AssetConvertSmallBalanceList (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AssetConvertSmallBalanceList",parameters);
@@ -901,9 +1006,24 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privateGetV5UserSubmembers",parameters);
     }
 
+    public async Task<object> privateGetV5UserEscrowSubMembers (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5UserEscrowSubMembers",parameters);
+    }
+
+    public async Task<object> privateGetV5UserInvitationReferrals (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5UserInvitationReferrals",parameters);
+    }
+
     public async Task<object> privateGetV5AffiliateAffUserList (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AffiliateAffUserList",parameters);
+    }
+
+    public async Task<object> privateGetV5AffiliateAffiliateSubList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AffiliateAffiliateSubList",parameters);
     }
 
     public async Task<object> privateGetV5SpotLeverTokenOrderRecord (object parameters = null)
@@ -934,6 +1054,31 @@ public partial class bybiteu : bybit
     public async Task<object> privateGetV5SpotMarginTradeCoinstate (object parameters = null)
     {
         return await this.callAsync ("privateGetV5SpotMarginTradeCoinstate",parameters);
+    }
+
+    public async Task<object> privateGetV5SpotMarginTradeCurrencyData (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeCurrencyData",parameters);
+    }
+
+    public async Task<object> privateGetV5SpotMarginTradeFixedborrowContractInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeFixedborrowContractInfo",parameters);
+    }
+
+    public async Task<object> privateGetV5SpotMarginTradeFixedborrowOrderInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeFixedborrowOrderInfo",parameters);
+    }
+
+    public async Task<object> privateGetV5SpotMarginTradeFixedborrowOrderQuote (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeFixedborrowOrderQuote",parameters);
+    }
+
+    public async Task<object> privateGetV5SpotMarginTradeLiability (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeLiability",parameters);
     }
 
     public async Task<object> privateGetV5SpotMarginTradeRepaymentAvailableAmount (object parameters = null)
@@ -1061,6 +1206,11 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privateGetV5InsLoanProductInfos",parameters);
     }
 
+    public async Task<object> privateGetV5InsLoanEnsureTokens (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5InsLoanEnsureTokens",parameters);
+    }
+
     public async Task<object> privateGetV5InsLoanEnsureTokensConvert (object parameters = null)
     {
         return await this.callAsync ("privateGetV5InsLoanEnsureTokensConvert",parameters);
@@ -1076,9 +1226,19 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privateGetV5InsLoanRepaidHistory",parameters);
     }
 
+    public async Task<object> privateGetV5InsLoanLtv (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5InsLoanLtv",parameters);
+    }
+
     public async Task<object> privateGetV5InsLoanLtvConvert (object parameters = null)
     {
         return await this.callAsync ("privateGetV5InsLoanLtvConvert",parameters);
+    }
+
+    public async Task<object> privateGetV5InsLoanCoinDeltaAmount (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5InsLoanCoinDeltaAmount",parameters);
     }
 
     public async Task<object> privateGetV5LendingInfo (object parameters = null)
@@ -1461,6 +1621,11 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privatePostV5OrderDisconnectedCancelAll",parameters);
     }
 
+    public async Task<object> privatePostV5OrderPreCheck (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5OrderPreCheck",parameters);
+    }
+
     public async Task<object> privatePostV5PositionSetLeverage (object parameters = null)
     {
         return await this.callAsync ("privatePostV5PositionSetLeverage",parameters);
@@ -1561,6 +1726,11 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privatePostV5AccountSetLimitPxAction",parameters);
     }
 
+    public async Task<object> privatePostV5AccountSetDeltaMode (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5AccountSetDeltaMode",parameters);
+    }
+
     public async Task<object> privatePostV5AssetExchangeQuoteApply (object parameters = null)
     {
         return await this.callAsync ("privatePostV5AssetExchangeQuoteApply",parameters);
@@ -1589,6 +1759,11 @@ public partial class bybiteu : bybit
     public async Task<object> privatePostV5AssetDepositDepositToAccount (object parameters = null)
     {
         return await this.callAsync ("privatePostV5AssetDepositDepositToAccount",parameters);
+    }
+
+    public async Task<object> privatePostV5AssetTravelRuleDepositSubmit (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5AssetTravelRuleDepositSubmit",parameters);
     }
 
     public async Task<object> privatePostV5AssetWithdrawCreate (object parameters = null)
@@ -1656,6 +1831,16 @@ public partial class bybiteu : bybit
         return await this.callAsync ("privatePostV5UserDeleteSubApi",parameters);
     }
 
+    public async Task<object> privatePostV5UserAgreement (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5UserAgreement",parameters);
+    }
+
+    public async Task<object> privatePostV5UserCreateDemoMember (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5UserCreateDemoMember",parameters);
+    }
+
     public async Task<object> privatePostV5SpotLeverTokenPurchase (object parameters = null)
     {
         return await this.callAsync ("privatePostV5SpotLeverTokenPurchase",parameters);
@@ -1679,6 +1864,16 @@ public partial class bybiteu : bybit
     public async Task<object> privatePostV5SpotMarginTradeSetAutoRepayMode (object parameters = null)
     {
         return await this.callAsync ("privatePostV5SpotMarginTradeSetAutoRepayMode",parameters);
+    }
+
+    public async Task<object> privatePostV5SpotMarginTradeFixedborrow (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5SpotMarginTradeFixedborrow",parameters);
+    }
+
+    public async Task<object> privatePostV5SpotMarginTradeFixedborrowRenew (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5SpotMarginTradeFixedborrowRenew",parameters);
     }
 
     public async Task<object> privatePostV5SpotCrossMarginTradeLoan (object parameters = null)

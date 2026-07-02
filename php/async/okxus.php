@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\async\abstract\okxus as okx;
 
 class okxus extends okx {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'okxus',

@@ -321,6 +321,9 @@ public partial class BaseTest
                 { "XBT", "BTC" },
                 { "BCHSV", "BSV" },
             });
+            // fetch history
+            object fetchHistoryCache = exchange.getFetchCache();
+            Assert(isEqual(getArrayLength(fetchHistoryCache), 0), "fetchHistoryCache should be an empty array");
         }
         public void testAfterConstructor()
         {

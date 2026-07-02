@@ -136,8 +136,6 @@
 
 - [Fetch Funding Rate History](./examples/ts/fetch-funding-rate-history.md)
 
-- [📂 Fetch Futures](https://github.com/ccxt/ccxt/tree/master/./examples/ts/fetch-futures)
-
 - [Fetch Ohlcv From To Mark Index Premium](./examples/ts/fetch-ohlcv-from-to-mark-index-premium.md)
 
 - [Fetch Ohlcv Many Exchanges Continuosly](./examples/ts/fetch-ohlcv-many-exchanges-continuosly.md)
@@ -152,25 +150,19 @@
 
 - [Fetch Ticker Where Available](./examples/ts/fetch-ticker-where-available.md)
 
-- [📂 Fetch Tickers](https://github.com/ccxt/ccxt/tree/master/./examples/ts/fetch-tickers)
+- [Gate Create Batch Order](./examples/ts/gate-create-batch-order.md)
+
+- [Gate Futures](./examples/ts/gate-futures.md)
+
+- [Gate Open Close Contract](./examples/ts/gate-open-close-contract.md)
 
 - [Gate Swap Watch Many Orderbooks](./examples/ts/gate-swap-watch-many-orderbooks.md)
+
+- [Gate Swaps](./examples/ts/gate-swaps.md)
 
 - [Gate Watch Balance](./examples/ts/gate-watch-balance.md)
 
 - [Gate Watch Order Book](./examples/ts/gate-watch-order-book.md)
-
-- [Gateio Create Batch Order](./examples/ts/gateio-create-batch-order.md)
-
-- [Gateio Futures](./examples/ts/gateio-futures.md)
-
-- [Gateio Open Close Contract](./examples/ts/gateio-open-close-contract.md)
-
-- [Gateio Swap Watch Many Orderbooks](./examples/ts/gateio-swap-watch-many-orderbooks.md)
-
-- [Gateio Swaps](./examples/ts/gateio-swaps.md)
-
-- [Gateio Watch Order Book](./examples/ts/gateio-watch-order-book.md)
 
 - [Graceful Shutdown](./examples/ts/graceful-shutdown.md)
 

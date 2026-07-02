@@ -29,7 +29,7 @@ public class TestAfterConstruct extends BaseTest {
         {
             // only allow these whitelisted unified networkCodes to be repeated
             Object allowedUnifiedAliases = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SPL", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA"));
-            Object networks = Helpers.GetValue(exchange.options, "networks");
+            Object networks = exchange.safeDict(exchange.options, "networks");
             if (Helpers.isTrue(Helpers.isEqual(networks, null)))
             {
                 return;

@@ -329,6 +329,8 @@ type ICoreExchange interface {
 	WatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WithdrawWs(code any, amount any, address any, optionalArgs ...any) <-chan any
 	Close(cleanInstanceCache ...any) []error
+	CleanWsData()
+	CleanRestData()
 	ParseTimeframe(timeframe any) any
 }
 

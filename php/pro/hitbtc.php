@@ -9,11 +9,10 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class hitbtc extends \ccxt\async\hitbtc {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), $this->describe_data());
     }
@@ -85,7 +84,7 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function authenticate() {
-        return Async\async(function ()  {
+        return Async\async(function () {
             /**
              * @ignore
              * authenticates the user to access private web socket channels
@@ -98,7 +97,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $url = $this->urls['api']['ws']['private'];
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->reusableFuture ($messageHash);
+            $future = $client->reusableFuture($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = $this->milliseconds();
@@ -132,10 +131,10 @@ class hitbtc extends \ccxt\async\hitbtc {
                 //
             }
             return Async\await($future);
-        }) ();
+        })();
     }
 
-    public function subscribe_public(string $name, string $messageHashPrefix, ?array $symbols = null, $params = array ()) {
+    public function subscribe_public(string $name, string $messageHashPrefix, ?array $symbols = null, $params = array()) {
         return Async\async(function () use ($name, $messageHashPrefix, $symbols, $params) {
             /**
              * @ignore
@@ -163,10 +162,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             );
             $request = $this->extend($subscribe, $params);
             return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
-        }) ();
+        })();
     }
 
-    public function subscribe_private(string $name, ?string $symbol = null, $params = array ()) {
+    public function subscribe_private(string $name, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($name, $symbol, $params) {
             /**
              * @ignore
@@ -188,10 +187,10 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'id' => $this->nonce(),
             );
             return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
-        }) ();
+        })();
     }
 
-    public function trade_request(string $name, $params = array ()) {
+    public function trade_request(string $name, $params = array()) {
         return Async\async(function () use ($name, $params) {
             /**
              * @ignore
@@ -208,10 +207,10 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'id' => $messageHash,
             );
             return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
-        }) ();
+        })();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -228,7 +227,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} [$params->method] 'orderbook/full', 'orderbook/{$depth}/{$speed}', 'orderbook/{$depth}/{$speed}/batch'
              * @param {int} [$params->depth] 5 , 10, or 20 (default)
              * @param {int} [$params->speed] 100 (default), 500, or 1000
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $options = $this->safe_value($this->options, 'watchOrderBook');
             $defaultMethod = $this->safe_string($options, 'method', 'orderbook/full');
@@ -243,12 +242,12 @@ class hitbtc extends \ccxt\async\hitbtc {
             $market = $this->market($symbol);
             $request = array(
                 'params' => array(
-                    'symbols' => [ $market['id'] ],
+                    'symbols' => array( $market['id'] ),
                 ),
             );
             $orderbook = Async\await($this->subscribe_public($name, 'orderbooks', array( $symbol ), $this->deep_extend($request, $params)));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -259,18 +258,18 @@ class hitbtc extends \ccxt\async\hitbtc {
         //            "ETHBTC" => {
         //                "t" => 1626866578796,             // Timestamp in milliseconds
         //                "s" => 27617207,                  // Sequence number
-        //                "a" => [                          // Asks
+        //                "a" => array(                          // Asks
         //                    ["0.060506", "0"],
         //                    ["0.060549", "12.6431"],
         //                    ["0.060570", "0"],
         //                    ["0.060612", "0"]
-        //                ],
-        //                "b" => [                          // Bids
+        //                ),
+        //                "b" => array(                          // Bids
         //                    ["0.060439", "4.4095"],
         //                    ["0.060414", "0"],
         //                    ["0.060407", "7.3349"],
         //                    ["0.060390", "0"]
-        //                ]
+        //                )
         //            }
         //        }
         //    }
@@ -296,7 +295,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $nonce = $this->safe_integer($item, 's');
             if ($type === 'snapshot') {
                 $parsedSnapshot = $this->parse_order_book($item, $symbol, $timestamp, 'b', 'a');
-                $orderbook->reset ($parsedSnapshot);
+                $orderbook->reset($parsedSnapshot);
             } else {
                 $asks = $this->safe_list($item, 'a', array());
                 $bids = $this->safe_list($item, 'b', array());
@@ -308,14 +307,14 @@ class hitbtc extends \ccxt\async\hitbtc {
             $orderbook['nonce'] = $nonce;
             $orderbook['symbol'] = $symbol;
             $this->orderbooks[$symbol] = $orderbook;
-            $client->resolve ($orderbook, $messageHash);
+            $client->resolve($orderbook, $messageHash);
         }
     }
 
     public function handle_delta($bookside, $delta) {
         $price = $this->safe_number($delta, 0);
         $amount = $this->safe_number($delta, 1);
-        $bookside->store ($price, $amount);
+        $bookside->store($price, $amount);
     }
 
     public function handle_deltas($bookside, $deltas) {
@@ -324,7 +323,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -342,10 +341,10 @@ class hitbtc extends \ccxt\async\hitbtc {
              */
             $ticker = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $this->safe_value($ticker, $symbol);
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -386,7 +385,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 }
             }
             return $this->filter_by_array($newTickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -440,9 +439,9 @@ class hitbtc extends \ccxt\async\hitbtc {
             $this->tickers[$symbol] = $ticker;
             $result[] = $ticker;
             $messageHash = $topic . '::' . $symbol;
-            $client->resolve ($ticker, $messageHash);
+            $client->resolve($ticker, $messageHash);
         }
-        $client->resolve ($result, $topic);
+        $client->resolve($result, $topic);
     }
 
     public function parse_ws_ticker($ticker, $market = null) {
@@ -501,7 +500,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ), $market);
     }
 
-    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches best bid & ask for $symbols
@@ -537,7 +536,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 }
             }
             return $this->filter_by_array($newTickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
     public function handle_bid_ask(Client $client, $message) {
@@ -567,9 +566,9 @@ class hitbtc extends \ccxt\async\hitbtc {
             $this->bidsasks[$symbol] = $ticker;
             $result[] = $ticker;
             $messageHash = $topic . '::' . $symbol;
-            $client->resolve ($ticker, $messageHash);
+            $client->resolve($ticker, $messageHash);
         }
-        $client->resolve ($result, $topic);
+        $client->resolve($result, $topic);
     }
 
     public function parse_ws_bid_ask($ticker, $market = null) {
@@ -586,7 +585,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ), $market);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -603,7 +602,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $market = $this->market($symbol);
             $request = array(
                 'params' => array(
-                    'symbols' => [ $market['id'] ],
+                    'symbols' => array( $market['id'] ),
                 ),
             );
             if ($limit !== null) {
@@ -612,10 +611,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             $name = 'trades';
             $trades = Async\await($this->subscribe_public($name, 'trades', array( $symbol ), $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
-        }) ();
+        })();
     }
 
     public function handle_trades(Client $client, $message) {
@@ -667,20 +666,20 @@ class hitbtc extends \ccxt\async\hitbtc {
             $symbol = $market['symbol'];
             $stored = $this->safe_value($this->trades, $symbol);
             if ($stored === null) {
-                $stored = new ArrayCache ($tradesLimit);
+                $stored = new ArrayCache($tradesLimit);
                 $this->trades[$symbol] = $stored;
             }
             $trades = $this->parse_ws_trades($data[$marketId], $market);
             for ($j = 0; $j < count($trades); $j++) {
-                $stored->append ($trades[$j]);
+                $stored->append($trades[$j]);
             }
             $messageHash = 'trades::' . $symbol;
-            $client->resolve ($stored, $messageHash);
+            $client->resolve($stored, $messageHash);
         }
         return $message;
     }
 
-    public function parse_ws_trades($trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_ws_trades($trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $trades = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
@@ -720,7 +719,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -739,7 +738,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $market = $this->market($symbol);
             $request = array(
                 'params' => array(
-                    'symbols' => [ $market['id'] ],
+                    'symbols' => array( $market['id'] ),
                 ),
             );
             if ($limit !== null) {
@@ -747,10 +746,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             }
             $ohlcv = Async\await($this->subscribe_public($name, 'candles', array( $symbol ), $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
-        }) ();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -801,15 +800,15 @@ class hitbtc extends \ccxt\async\hitbtc {
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCacheByTimestamp ($limit);
+                $stored = new ArrayCacheByTimestamp($limit);
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             $ohlcvs = $this->parse_ws_ohlcvs($data[$marketId], $market);
             for ($j = 0; $j < count($ohlcvs); $j++) {
-                $stored->append ($ohlcvs[$j]);
+                $stored->append($ohlcvs[$j]);
             }
             $messageHash = 'candles::' . $symbol;
-            $client->resolve ($stored, $messageHash);
+            $client->resolve($stored, $messageHash);
         }
         return $message;
     }
@@ -836,7 +835,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         );
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -866,10 +865,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             ));
             $orders = Async\await($this->subscribe_private($name, $symbol, $params));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
-        }) ();
+        })();
     }
 
     public function handle_order(Client $client, $message) {
@@ -936,7 +935,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit');
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $data = $this->safe_value($message, 'params', array());
         if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
@@ -958,9 +957,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         $messageHash = $this->safe_string($splitMethod, 0);
         $symbol = $this->safe_symbol($marketId);
         $parsed = $this->parse_order($order);
-        $orders->append ($parsed);
-        $client->resolve ($orders, $messageHash);
-        $client->resolve ($orders, $messageHash . '::' . $symbol);
+        $orders->append($parsed);
+        $client->resolve($orders, $messageHash);
+        $client->resolve($orders, $messageHash . '::' . $symbol);
     }
 
     public function parse_ws_order_trade($trade, $market = null) {
@@ -1082,7 +1081,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ), $market);
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watches balance updates, cannot subscribe to margin account balances
@@ -1111,10 +1110,10 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'mode' => $mode,
             );
             return Async\await($this->subscribe_private($name, null, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1152,10 +1151,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             } else {
                 return Async\await($this->trade_request('spot_new_order', $request));
             }
-        }) ();
+        })();
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
@@ -1190,10 +1189,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             } else {
                 return Async\await($this->trade_request('spot_cancel_order', $request));
             }
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -1223,10 +1222,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             } else {
                 return Async\await($this->trade_request('spot_cancel_orders', $params));
             }
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -1261,7 +1260,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             } else {
                 return Async\await($this->trade_request('spot_get_orders', $request));
             }
-        }) ();
+        })();
     }
 
     public function handle_balance(Client $client, $message) {
@@ -1284,7 +1283,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $params = $this->safe_value($message, 'params');
         $balance = $this->parse_balance($params);
         $this->balance = $this->deep_extend($this->balance, $balance);
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve($this->balance, $messageHash);
     }
 
     public function handle_notification(Client $client, $message) {
@@ -1330,10 +1329,10 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $parsedOrder = $this->parse_ws_order($result[$i]);
                 $parsedOrders[] = $parsedOrder;
             }
-            $client->resolve ($parsedOrders, $messageHash);
+            $client->resolve($parsedOrders, $messageHash);
         } else {
             $parsedOrder = $this->parse_ws_order($result);
-            $client->resolve ($parsedOrder, $messageHash);
+            $client->resolve($parsedOrder, $messageHash);
         }
         return $message;
     }
@@ -1402,10 +1401,10 @@ class hitbtc extends \ccxt\async\hitbtc {
         $messageHash = 'authenticated';
         if ($success) {
             $future = $this->safe_value($client->futures, $messageHash);
-            $future->resolve (true);
+            $future->resolve(true);
         } else {
-            $error = new AuthenticationError ($this->id . ' ' . $this->json($message));
-            $client->reject ($error, $messageHash);
+            $error = new AuthenticationError($this->id . ' ' . $this->json($message));
+            $client->reject($error, $messageHash);
             if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
@@ -1438,13 +1437,13 @@ class hitbtc extends \ccxt\async\hitbtc {
             } catch (Exception $e) {
                 if ($e instanceof AuthenticationError) {
                     $messageHash = 'authenticated';
-                    $client->reject ($e, $messageHash);
+                    $client->reject($e, $messageHash);
                     if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
                         unset($client->subscriptions[$messageHash]);
                     }
                 } else {
                     $id = $this->safe_string($message, 'id');
-                    $client->reject ($e, $id);
+                    $client->reject($e, $id);
                 }
                 return true;
             }

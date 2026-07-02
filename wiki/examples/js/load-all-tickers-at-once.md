@@ -4,6 +4,7 @@ import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog';
 import ansicolor from 'ansicolor';
 const log = ololog.configure({ locate: false });
+// @ts-expect-error
 ansicolor.nice;
 //-----------------------------------------------------------------------------
 process.on('uncaughtException', e => { log.bright.red.error(e); process.exit(1); });

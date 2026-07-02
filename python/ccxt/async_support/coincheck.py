@@ -20,7 +20,7 @@ class coincheck(Exchange, ImplicitAPI):
     def describe(self) -> Any:
         return self.deep_extend(super(coincheck, self).describe(), {
             'id': 'coincheck',
-            'name': 'coincheck',
+            'name': 'Coincheck',
             'countries': ['JP', 'ID'],
             'rateLimit': 1500,
             'has': {
@@ -94,6 +94,7 @@ class coincheck(Exchange, ImplicitAPI):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -126,6 +127,7 @@ class coincheck(Exchange, ImplicitAPI):
                 'public': {
                     'get': [
                         'exchange/orders/rate',
+                        'exchange_status',
                         'order_books',
                         'rate/{pair}',
                         'ticker',
@@ -139,7 +141,9 @@ class coincheck(Exchange, ImplicitAPI):
                         'accounts/leverage_balance',
                         'bank_accounts',
                         'deposit_money',
+                        'exchange/orders/{id}',
                         'exchange/orders/opens',
+                        'exchange/orders/cancel_status',
                         'exchange/orders/transactions',
                         'exchange/orders/transactions_pagination',
                         'exchange/leverage/positions',
@@ -279,6 +283,50 @@ class coincheck(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
+    async def fetch_status(self, params={}) -> dict:
+        """
+        the latest known information on the availability of the exchange API
+
+        https://coincheck.com/documents/exchange/api#status-retrieval
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
+        """
+        response = await self.publicGetExchangeStatus(params)
+        #
+        #     {
+        #         "exchange_status": [
+        #             {
+        #                 "pair": "btc_jpy",
+        #                 "status": "available",
+        #                 "timestamp": 1782787596,
+        #                 "availability": {
+        #                     "order": True,
+        #                     "market_order": True,
+        #                     "cancel": True
+        #                 }
+        #             }
+        #         ]
+        #     }
+        #
+        exchangeStatuses = self.safe_list(response, 'exchange_status', [])
+        status = 'ok'
+        updated = None
+        for i in range(0, len(exchangeStatuses)):
+            exchangeStatus = exchangeStatuses[i]
+            rawStatus = self.safe_string(exchangeStatus, 'status')
+            if updated is None:
+                updated = self.safe_timestamp(exchangeStatus, 'timestamp')
+            if rawStatus != 'available':
+                status = 'maintenance'
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
+
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
@@ -374,7 +422,7 @@ class coincheck(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
