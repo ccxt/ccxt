@@ -203,7 +203,7 @@ export default class mudrex extends Exchange {
                     query = this.omit (query, 'is_symbol');
                     url += '?' + this.urlencode ({ 'is_symbol': isSymbol });
                 }
-                if (methodUpper === 'DELETE' && Object.keys (query).length === 0) {
+                if ((methodUpper === 'DELETE') && this.isEmpty (query)) {
                     return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': headers };
                 }
                 const bodyStr = this.json (query);
