@@ -1122,7 +1122,8 @@
             "loadMarkets": {
                 "currency": "messed",
                 "currencyIdAndCode": "messed"
-            }
+            },
+            "fetchOrderBook": "not implemented"
         }
     },
     "digifinex": {
