@@ -31,7 +31,7 @@ public class ExtendedCore extends ExtendedApi
             put( "dex", true );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", false );
+                put( "spot", true );
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", false );
