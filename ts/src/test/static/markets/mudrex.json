@@ -38545,6 +38545,7 @@
     },
     "DOGE/USDT:USDT": {
         "id": "DOGEUSDT",
+        "lowercaseId": null,
         "symbol": "DOGE/USDT:USDT",
         "base": "DOGE",
         "quote": "USDT",
@@ -38558,18 +38559,28 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": 0.00059,
+        "maker": 0.00023,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1,
                 "max": 43678900
@@ -38579,10 +38590,15 @@
                 "max": 199.99998
             },
             "cost": {
-                "min": 5
+                "min": 5,
+                "max": null
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "id": "01903bcd-4ce6-7759-90ea-c6bc68608aea",
             "name": "Dogecoin",
@@ -38595,19 +38611,21 @@
             "price_step": "0.00001",
             "max_market_contract": "5991100",
             "min_notional_value": "5",
-            "funding_fee_perc": "0.00009564",
+            "funding_fee_perc": "0.0001",
             "max_funding_rate": "0.0058",
             "min_funding_rate": "-0.0058",
             "leverage_step": "0.01",
             "min_leverage": "1",
             "max_leverage": "75",
-            "funding_interval": "1782921600",
-            "price": "0.07342",
-            "last_day_price": "0.07098",
-            "change_perc": "3.43758805297267",
-            "volume": "1162376079",
+            "funding_interval": "1783008000",
+            "price": "0.07277",
+            "last_day_price": "0.07135",
+            "change_perc": "1.99018920812894",
+            "volume": "1277728175",
             "popularity": "7"
-        }
+        },
+        "tierBased": false,
+        "percentage": true
     },
     "XRP/USDT:USDT": {
         "id": "XRPUSDT",
@@ -38941,6 +38959,7 @@
     },
     "BTC/USDT:USDT": {
         "id": "BTCUSDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT:USDT",
         "base": "BTC",
         "quote": "USDT",
@@ -38954,18 +38973,28 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": 0.00059,
+        "maker": 0.00023,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.001,
             "price": 0.1
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.001,
                 "max": 1500
@@ -38975,10 +39004,15 @@
                 "max": 1999999.8
             },
             "cost": {
-                "min": 5
+                "min": 5,
+                "max": null
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "id": "01903a7b-bf65-707d-a7dc-d7b84c3c756c",
             "name": "Bitcoin",
@@ -38991,18 +39025,20 @@
             "price_step": "0.1",
             "max_market_contract": "150",
             "min_notional_value": "5",
-            "funding_fee_perc": "0.00008015",
+            "funding_fee_perc": "0.0001",
             "max_funding_rate": "0.005",
             "min_funding_rate": "-0.005",
             "leverage_step": "0.01",
             "min_leverage": "1",
             "max_leverage": "100",
-            "funding_interval": "1782921600",
-            "price": "60116.7",
-            "last_day_price": "58383",
-            "change_perc": "2.96952880119213",
-            "volume": "92441.108",
+            "funding_interval": "1783008000",
+            "price": "60425.1",
+            "last_day_price": "58903.8",
+            "change_perc": "2.58268566713862",
+            "volume": "100428.929",
             "popularity": "1"
-        }
+        },
+        "tierBased": false,
+        "percentage": true
     }
 }
