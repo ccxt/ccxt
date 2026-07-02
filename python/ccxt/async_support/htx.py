@@ -143,7 +143,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchTransactionFee': None,
                 'fetchTransactionFees': None,
                 'fetchTransactions': None,
-                'fetchTransfers': None,
+                'fetchTransfers': True,
                 'fetchWithdrawAddresses': True,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
@@ -468,6 +468,8 @@ class htx(Exchange, ImplicitAPI):
                             'v1/cross-margin/loan-orders': 1,
                             'v1/cross-margin/accounts/balance': 1,
                             'v2/account/repayment': 5,
+                            # Universal Transfer
+                            'v5/account/universal_transfer_records': 4,  # 5 requests per 2 seconds
                             # Stable Coin Exchange
                             'v1/stable-coin/quote': 1,
                             'v1/stable_coin/exchange_rate': 1,
@@ -1130,6 +1132,9 @@ class htx(Exchange, ImplicitAPI):
                     'grid-trading': 'grid-trading',
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
+                    'linear-swap': 'swap',
+                    'swap': 'swap',
+                    'futures': 'future',
                 },
                 'typesByAccount': {
                     'pro': 'spot',
@@ -2458,7 +2463,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -6453,18 +6458,49 @@ class htx(Exchange, ImplicitAPI):
         #         "status": "ok"
         #     }
         #
-        id = self.safe_string(transfer, 'data')
-        code = self.safe_currency_code(None, currency)
+        # fetchTransfers
+        #
+        #     {
+        #         "id": 12345,
+        #         "transfer_id": "12345",
+        #         "amount": "10",
+        #         "currency": "USDT",
+        #         "status": "success",
+        #         "from_account_type": "spot",
+        #         "to_account_type": "margin",
+        #         "from_asset_type": "",
+        #         "to_asset_type": "ETHUSDT",
+        #         "transfer_time": 1770357494000
+        #     }
+        #
+        accountsById = self.safe_dict(self.options, 'accountsById', {})
+        id = self.safe_string_2(transfer, 'transfer_id', 'data')
+        currencyId = self.safe_string(transfer, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        amount = self.safe_number(transfer, 'amount')
+        timestamp = self.safe_integer(transfer, 'transfer_time')
+        fromAccountRaw = self.safe_string(transfer, 'from_account_type')
+        toAccountRaw = self.safe_string(transfer, 'to_account_type')
+        fromAccount = self.safe_string(accountsById, fromAccountRaw, fromAccountRaw)
+        toAccount = self.safe_string(accountsById, toAccountRaw, toAccountRaw)
+        statusRaw = self.safe_string(transfer, 'status')
+        status = None
+        if statusRaw == 'success':
+            status = 'ok'
+        elif statusRaw == 'pending':
+            status = 'pending'
+        elif statusRaw == 'failed':
+            status = 'failed'
         return {
             'info': transfer,
             'id': id,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'currency': code,
-            'amount': None,
-            'fromAccount': None,
-            'toAccount': None,
-            'status': None,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
         }
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -6550,6 +6586,60 @@ class htx(Exchange, ImplicitAPI):
         #    }
         #
         return self.parse_transfer(response, currency)
+
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+        """
+        fetch a history of internal transfers made on an account
+
+        https://www.huobi.com/en-us/opend/newApiPages/
+
+        :param str [code]: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of transfer structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.status]: transfer status: 'success', 'pending', 'failed'
+        :param int [params.from]: the starting ID for pagination
+        :param str [params.direct]: pagination direction: 'prev' or 'next', default 'next'
+        :param int [params.until]: the latest time in ms to fetch transfers for
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['start_time'] = since
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['end_time'] = until
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.spotPrivateGetV5AccountUniversalTransferRecords(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": [
+        #             {
+        #                 "id": 12345,
+        #                 "transfer_id": "12345",
+        #                 "amount": "10",
+        #                 "currency": "USDT",
+        #                 "status": "success",
+        #                 "from_account_type": "spot",
+        #                 "to_account_type": "margin",
+        #                 "from_asset_type": "",
+        #                 "to_asset_type": "ETHUSDT",
+        #                 "transfer_time": 1770357494000
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_transfers(data, currency, since, limit)
 
     async def fetch_isolated_borrow_rates(self, params={}) -> IsolatedBorrowRates:
         """

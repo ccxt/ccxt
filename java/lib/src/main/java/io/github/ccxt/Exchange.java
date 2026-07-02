@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
@@ -37,7 +38,6 @@ import io.github.ccxt.base.Strings;
 import io.github.ccxt.errors.*;
 import java.util.Random;
 import java.lang.reflect.Constructor;
-
 
 
 public class Exchange {
@@ -163,6 +163,9 @@ public class Exchange {
     public volatile Object last_http_response;
     public volatile Object last_request_body;
     public volatile Object last_request_url;
+    public final ConcurrentLinkedQueue<Map<String, Object>> fetchHistoryCache = new ConcurrentLinkedQueue<>();
+    public int fetchHistoryCacheSize = 0;
+
     public boolean returnResponseHeaders = false;
     public Map<String, Object> headers = new HashMap<>();
     public Object httpExceptions;
@@ -536,6 +539,25 @@ public class Exchange {
 
     public void setWss_proxy(Object v) {
         this.wss_proxy = v;
+    }
+
+    public void addFetchCache(Object data) {
+        if (fetchHistoryCacheSize <= 0) {
+            return;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> mapData = (Map<String, Object>) data;
+        
+        fetchHistoryCache.offer(mapData);
+        
+        while (fetchHistoryCache.size() > fetchHistoryCacheSize) {
+            fetchHistoryCache.poll(); // drops oldest
+        }
+    }
+
+    public List<Map<String, Object>> getFetchCache() {
+        return new ArrayList<>(fetchHistoryCache);
     }
 
     // === HELPERS === //
@@ -1224,7 +1246,11 @@ public class Exchange {
     }
 
     public HashMap<String, Object> createSafeDictionary() {
-        return new HashMap<String, Object>();
+        return new HashMap<>();
+    }
+
+    public ConcurrentHashMap<String, Object> createSafeDictionary(boolean isWs) {
+        return new ConcurrentHashMap<>();
     }
 
     public Map<String, Object> convertToSafeDictionary(Object obj) {
@@ -3576,7 +3602,25 @@ public class Exchange {
      * Always hand-written: TS source has close() above the transpile delimiter.
      */
     @SuppressWarnings("unchecked")
+    public java.util.concurrent.CompletableFuture<Object> close(boolean cleanInstanceData) {
+        closeWsClients().join();
+        // [WS]
+        if (cleanInstanceData) {
+            this.cleanWsData();
+        }
+        // [REST]
+        if (cleanInstanceData) {
+            this.cleanRestData();
+        }
+        return java.util.concurrent.CompletableFuture.completedFuture(null);
+    }
+
     public java.util.concurrent.CompletableFuture<Object> close() {
+        return close(false);
+    }
+
+    @SuppressWarnings("unchecked")
+    public java.util.concurrent.CompletableFuture<Object> closeWsClients() {
         Map<String, Object> clientsMap = (Map<String, Object>) this.clients;
         if (clientsMap == null || clientsMap.isEmpty()) {
             return java.util.concurrent.CompletableFuture.completedFuture(null);
@@ -4000,6 +4044,38 @@ public Object describe()
             }} );
             put( "rollingWindowSize", 60000 );
         }};
+    }
+
+    public void cleanRestData()
+    {
+        this.ids = null;
+        this.markets = null;
+        this.markets_by_id = null;
+        this.symbols = null;
+        this.codes = null;
+        this.currencies = this.createSafeDictionary();
+        this.currencies_by_id = null;
+        this.baseCurrencies = null;
+        this.quoteCurrencies = null;
+        this.last_http_response = null;
+        // this.last_json_response = undefined; // not unified prop
+        this.last_response_headers = null;
+        this.last_request_headers = null;
+    }
+
+    public void cleanWsData()
+    {
+        this.balance = this.createSafeDictionary(true);
+        this.orderbooks = this.createSafeDictionary(true);
+        this.tickers = this.createSafeDictionary(true);
+        this.liquidations = null;
+        this.myLiquidations = null;
+        this.orders = null;
+        this.trades = this.createSafeDictionary(true);
+        this.transactions = this.createSafeDictionary();
+        this.ohlcvs = this.createSafeDictionary(true);
+        this.myTrades = null;
+        this.positions = null;
     }
 
     public Object safeBoolN(Object dictionaryOrList, Object keys, Object... optionalArgs)
@@ -4646,7 +4722,12 @@ public Object describe()
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        return new java.util.HashMap<String, Object>() {{}};
+        return new java.util.HashMap<String, Object>() {{
+            put( "url", null );
+            put( "method", null );
+            put( "headers", null );
+            put( "body", null );
+        }};
     }
 
     public java.util.concurrent.CompletableFuture<Object> fetchAccounts(Object... optionalArgs)
@@ -8612,16 +8693,43 @@ public Object describe()
             var retryDelayparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", 0);
             retryDelay = ((java.util.List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((java.util.List<Object>) retryDelayparametersVariable).get(1);
+            Object fetchData = null;
+            Object fetchDataCacheEnabled = Helpers.isGreaterThan(this.fetchHistoryCacheSize, 0);
             for (var i = 0; Helpers.isLessThan(i, Helpers.add(retries, 1)); i++)
             {
+                if (Helpers.isTrue(fetchDataCacheEnabled))
+                {
+                    fetchData = new java.util.HashMap<String, Object>() {{
+                        put( "request", null );
+                        put( "response", new java.util.HashMap<String, Object>() {{
+                            put( "body", null );
+                        }} );
+                        put( "error", null );
+                    }};
+                }
                 try
                 {
                     this.setLastRestRequestTimestamp();
                     Object request = this.sign(path, api, method, parameters, headers, body);
+                    if (Helpers.isTrue(fetchDataCacheEnabled))
+                    {
+                        Helpers.addElementToObject(fetchData, "request", request);
+                    }
                     this.setLastRequest(request);
-                    return (this.fetch(Helpers.GetValue(request, "url"), Helpers.GetValue(request, "method"), Helpers.GetValue(request, "headers"), Helpers.GetValue(request, "body"))).join();
+                    Object response = (this.fetch(Helpers.GetValue(request, "url"), Helpers.GetValue(request, "method"), Helpers.GetValue(request, "headers"), Helpers.GetValue(request, "body"))).join();
+                    if (Helpers.isTrue(fetchDataCacheEnabled))
+                    {
+                        Helpers.addElementToObject(Helpers.GetValue(fetchData, "response"), "body", response);
+                        this.addFetchCache(fetchData);
+                    }
+                    return response;
                 } catch(Exception e)
                 {
+                    if (Helpers.isTrue(fetchDataCacheEnabled))
+                    {
+                        Helpers.addElementToObject(fetchData, "error", e);
+                        this.addFetchCache(fetchData);
+                    }
                     if (Helpers.isTrue(Helpers.isInstance(e, OperationFailed.class)))
                     {
                         if (Helpers.isTrue(Helpers.isLessThan(i, retries)))

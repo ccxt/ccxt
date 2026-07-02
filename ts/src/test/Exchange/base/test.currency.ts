@@ -59,7 +59,7 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
     try {
         testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     } catch (e) {
-        const message = exchange.exceptionMessage (e);
+        const message: string = exchange.exceptionMessage (e);
         // check structure if key is numeric, not string
         if (message.indexOf ('"id" key') >= 0) {
             // @ts-ignore

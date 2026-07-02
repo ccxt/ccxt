@@ -8,11 +8,10 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class pacifica extends \ccxt\async\pacifica {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -84,7 +83,7 @@ class pacifica extends \ccxt\async\pacifica {
         $this->options['ws']['options']['headers'] = $headers;
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -168,10 +167,10 @@ class pacifica extends \ccxt\async\pacifica {
             $orderId = $this->safe_string($order, 'i');
             $clientOrderId = $this->safe_string($order, 'I');
             return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
-        }) ();
+        })();
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade $order
@@ -228,10 +227,10 @@ class pacifica extends \ccxt\async\pacifica {
             $orderId = $this->safe_string($order, 'i');
             $clientOrderId = $this->safe_string($order, 'I');
             return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
-        }) ();
+        })();
     }
 
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -253,7 +252,7 @@ class pacifica extends \ccxt\async\pacifica {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . 'cancelOrders() requires a "symbol" argument!');
             }
-            $request = $this->cancelOrdersRequest ($ids, $symbol, $params);
+            $request = $this->cancelOrdersRequest($ids, $symbol, $params);
             $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds' ));
             $isTestnet = $this->isSandboxModeEnabled;
             $urlKey = ($isTestnet) ? 'test' : 'api';
@@ -304,10 +303,10 @@ class pacifica extends \ccxt\async\pacifica {
                 $ordersToReturn[] = $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $market['symbol'] ));
             }
             return $ordersToReturn;
-        }) ();
+        })();
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -365,10 +364,10 @@ class pacifica extends \ccxt\async\pacifica {
             $orderId = $this->safe_string($order, 'i');
             $clientOrderId = $this->safe_string($order, 'I');
             return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a market
@@ -385,7 +384,7 @@ class pacifica extends \ccxt\async\pacifica {
              */
             Async\await($this->load_markets());
             $operationType = 'cancel_all_orders';
-            $request = $this->cancelAllOrdersRequest ($symbol, $params);
+            $request = $this->cancelAllOrdersRequest($symbol, $params);
             $params = $this->omit($params, array( 'excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow' ));
             $isTestnet = $this->isSandboxModeEnabled;
             $urlKey = ($isTestnet) ? 'test' : 'api';
@@ -408,10 +407,10 @@ class pacifica extends \ccxt\async\pacifica {
                     'info' => $response,
                 )),
             );
-        }) ();
+        })();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -422,7 +421,7 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int|null} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $this->setup_api_key_headers();
             Async\await($this->load_markets());
@@ -443,11 +442,11 @@ class pacifica extends \ccxt\async\pacifica {
             );
             $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -457,7 +456,7 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int|null} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -478,7 +477,7 @@ class pacifica extends \ccxt\async\pacifica {
             );
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_order_book($client, $message) {
@@ -535,12 +534,12 @@ class pacifica extends \ccxt\async\pacifica {
             $this->orderbooks[$symbol] = $ob;
         }
         $orderbook = $this->orderbooks[$symbol];
-        $orderbook->reset ($snapshot);
+        $orderbook->reset($snapshot);
         $messageHash = 'orderbook:' . $symbol;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -553,10 +552,10 @@ class pacifica extends \ccxt\async\pacifica {
              */
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -585,10 +584,10 @@ class pacifica extends \ccxt\async\pacifica {
                 return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
             }
             return $this->tickers;
-        }) ();
+        })();
     }
 
-    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -613,10 +612,10 @@ class pacifica extends \ccxt\async\pacifica {
                 ),
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+        })();
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -631,7 +630,7 @@ class pacifica extends \ccxt\async\pacifica {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $userAddress = null;
-            list($userAddress, $params) = $this->handleOriginAndSingleAddress ('watchMyTrades', $params);
+            list($userAddress, $params) = $this->handleOriginAndSingleAddress('watchMyTrades', $params);
             Async\await($this->load_markets());
             $messageHash = 'myTrades';
             if ($symbol !== null) {
@@ -651,13 +650,13 @@ class pacifica extends \ccxt\async\pacifica {
             $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
-    public function un_watch_my_trades(?string $symbol = null, $params = array ()): PromiseInterface {
+    public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on multiple trades made by the user
@@ -674,7 +673,7 @@ class pacifica extends \ccxt\async\pacifica {
                 throw new NotSupported($this->id . ' unWatchMyTrades does not support a $symbol argument, unWatch from all markets only');
             }
             $userAddress = null;
-            list($userAddress, $params) = $this->handleOriginAndSingleAddress ('unWatchMyTrades', $params);
+            list($userAddress, $params) = $this->handleOriginAndSingleAddress('unWatchMyTrades', $params);
             $messageHash = 'unsubscribe:myTrades';
             $isTestnet = $this->isSandboxModeEnabled;
             $urlKey = ($isTestnet) ? 'test' : 'api';
@@ -688,7 +687,7 @@ class pacifica extends \ccxt\async\pacifica {
             );
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_ws_tickers(Client $client, $message) {
@@ -724,7 +723,7 @@ class pacifica extends \ccxt\async\pacifica {
             $parsedTickers[] = $ticker;
         }
         $tickers = $this->index_by($parsedTickers, 'symbol');
-        $client->resolve ($tickers, 'tickers');
+        $client->resolve($tickers, 'tickers');
         return true;
     }
 
@@ -759,7 +758,7 @@ class pacifica extends \ccxt\async\pacifica {
         //
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
         $trades = $this->myTrades;
         $symbols = array();
@@ -773,19 +772,19 @@ class pacifica extends \ccxt\async\pacifica {
             $parsed = $this->parse_ws_trade($rawTrade);
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
-            $trades->append ($parsed);
+            $trades->append($parsed);
         }
         $keys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $currentMessageHash = 'myTrades:' . $keys[$i];
-            $client->resolve ($trades, $currentMessageHash);
+            $client->resolve($trades, $currentMessageHash);
         }
         // non-$symbol specific
         $messageHash = 'myTrades';
-        $client->resolve ($trades, $messageHash);
+        $client->resolve($trades, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
@@ -815,13 +814,13 @@ class pacifica extends \ccxt\async\pacifica {
             $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
-    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on multiple trades made in a $market
@@ -849,7 +848,7 @@ class pacifica extends \ccxt\async\pacifica {
             );
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_trades(Client $client, $message) {
@@ -877,17 +876,17 @@ class pacifica extends \ccxt\async\pacifica {
         $symbol = $market['symbol'];
         if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $trades = $this->trades[$symbol];
         for ($i = 0; $i < count($entry); $i++) {
             $data = $this->safe_dict($entry, $i);
             $trade = $this->parse_ws_trade($data);
-            $trades->append ($trade);
+            $trades->append($trade);
         }
         $messageHash = 'trade:' . $symbol;
-        $client->resolve ($trades, $messageHash);
+        $client->resolve($trades, $messageHash);
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
@@ -970,7 +969,7 @@ class pacifica extends \ccxt\async\pacifica {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
@@ -1003,13 +1002,13 @@ class pacifica extends \ccxt\async\pacifica {
             $message = $this->extend($request, $params);
             $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
-    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
@@ -1039,7 +1038,7 @@ class pacifica extends \ccxt\async\pacifica {
             $messagehash = 'unsubscribe:' . $subMessageHash;
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messagehash, $message, $messagehash));
-        }) ();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -1070,17 +1069,17 @@ class pacifica extends \ccxt\async\pacifica {
         }
         if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp ($limit);
+            $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
         $ohlcv = $this->ohlcvs[$symbol][$timeframe];
         $parsed = $this->parse_ohlcv($data);
-        $ohlcv->append ($parsed);
+        $ohlcv->append($parsed);
         $messageHash = 'candles:' . $timeframe . ':' . $symbol;
-        $client->resolve ($ohlcv, $messageHash);
+        $client->resolve($ohlcv, $messageHash);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -1096,7 +1095,7 @@ class pacifica extends \ccxt\async\pacifica {
              */
             Async\await($this->load_markets());
             $userAddress = null;
-            list($userAddress, $params) = $this->handleOriginAndSingleAddress ('watchOrders', $params);
+            list($userAddress, $params) = $this->handleOriginAndSingleAddress('watchOrders', $params);
             $market = null;
             $messageHash = 'order';
             if ($symbol !== null) {
@@ -1117,13 +1116,13 @@ class pacifica extends \ccxt\async\pacifica {
             $message = $this->extend($request, $params);
             $orders = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
-    public function un_watch_orders(?string $symbol = null, $params = array ()): PromiseInterface {
+    public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on multiple orders made by the user
@@ -1144,7 +1143,7 @@ class pacifica extends \ccxt\async\pacifica {
             $urlKey = ($isTestnet) ? 'test' : 'api';
             $url = $this->urls[$urlKey]['ws']['public'];
             $userAddress = null;
-            list($userAddress, $params) = $this->handleOriginAndSingleAddress ('unWatchOrders', $params);
+            list($userAddress, $params) = $this->handleOriginAndSingleAddress('unWatchOrders', $params);
             $request = array(
                 'method' => 'unsubscribe',
                 'params' => array(
@@ -1154,7 +1153,7 @@ class pacifica extends \ccxt\async\pacifica {
             );
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_order(Client $client, $message) {
@@ -1188,7 +1187,7 @@ class pacifica extends \ccxt\async\pacifica {
         $data = $this->safe_list($message, 'data', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $dataLength = count($data);
         if ($dataLength === 0) {
@@ -1200,7 +1199,7 @@ class pacifica extends \ccxt\async\pacifica {
         for ($i = 0; $i < count($data); $i++) {
             $rawOrder = $data[$i];
             $order = $this->parse_order($rawOrder);
-            $stored->append ($order);
+            $stored->append($order);
             $symbol = $this->safe_string($order, 'symbol');
             $marketSymbols[$symbol] = true;
         }
@@ -1208,9 +1207,9 @@ class pacifica extends \ccxt\async\pacifica {
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
             $innerMessageHash = $messageHash . ':' . $symbol;
-            $client->resolve ($stored, $innerMessageHash);
+            $client->resolve($stored, $innerMessageHash);
         }
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
     public function handle_error_message(Client $client, $message): ?bool {
@@ -1228,7 +1227,7 @@ class pacifica extends \ccxt\async\pacifica {
         try {
             $this->handle_errors(0, $error, '', $postType, $this->options['ws']['options']['headers'], $this->json($data), $message, array(), array());
         } catch (Exception $e) {
-            $client->reject ($e, $id);
+            $client->reject($e, $id);
             return true;
         }
         return false;
@@ -1457,6 +1456,6 @@ class pacifica extends \ccxt\async\pacifica {
         // }
         //
         $id = $this->safe_string($message, 'id');
-        $client->resolve ($message, $id);
+        $client->resolve($message, $id);
     }
 }

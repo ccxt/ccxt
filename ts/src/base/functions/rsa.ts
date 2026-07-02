@@ -1,7 +1,7 @@
-import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
-import { CHash, utf8ToBytes } from '@noble/hashes/utils.js';
-import { hex as base16, base64, utf8 } from '@scure/base';
-import { urlencodeBase64, base16ToBinary, base64ToBinary, binaryToString, base64ToBase64Url } from './encode.js';
+import crypto from 'crypto';
+import { CHash } from '@noble/hashes/utils.js';
+import { utf8 } from '@scure/base';
+import { urlencodeBase64, base16ToBinary, base64ToBinary, base64ToBase64Url } from './encode.js';
 import { eddsa, hmac } from './crypto.js';
 import { p256 as P256 } from '@noble/curves/nist.js';
 import { ecdsa } from '../../base/functions/crypto.js';
@@ -9,13 +9,25 @@ import { Dictionary } from "../types.js";
 import { Str } from "../types.js";
 import { ed25519 } from "@noble/curves/ed25519.js";
 
-function rsa (request: string, secret: string, hash: CHash) {
-    const RSA = new JSEncrypt ()
-    const digester = (input: string | Uint8Array) => base16.encode (hash ((typeof input === 'string') ? utf8ToBytes (input) : input))
-    RSA.setPrivateKey (secret)
+// RSASSA-PKCS1-v1_5 signing via Node's built-in `crypto` module. This is synchronous
+// and works in Node.js / Bun / Deno (anything exposing node:crypto). It is NOT available
+// in the browser bundle (rspack stubs the `crypto` module), so rsa throws there: RSA
+// signing is currently unsupported in the browser.
+function rsa (request: string, secret: string, hash: CHash): string {
+    if (crypto === undefined || crypto.createSign === undefined) {
+        throw new Error ('rsa is currently not supported in the browser');
+    }
     // @noble/hashes v2 renamed the digest classes from SHA256 to _SHA256, etc
-    const name = (hash.create ()).constructor.name.toLowerCase ().replace ('_', '')
-    return RSA.sign (request, digester, name) as string;
+    const name = (hash.create ()).constructor.name.toLowerCase ().replace ('_', '');
+    const algorithms = {
+        'sha256': 'RSA-SHA256',
+        'sha384': 'RSA-SHA384',
+        'sha512': 'RSA-SHA512',
+    };
+    const algorithm = algorithms[name];
+    const signer = crypto.createSign (algorithm);
+    signer.update (request);
+    return signer.sign (secret, 'base64');
 }
 
 function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA = false, opts: Dictionary<any> = {}) {

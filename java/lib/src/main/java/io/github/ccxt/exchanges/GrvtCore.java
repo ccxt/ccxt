@@ -85,7 +85,7 @@ public class GrvtCore extends GrvtApi
                 put( "4w", "CI_4_W" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6" );
+                put( "logo", "https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "privateEdge", "https://edge.grvt.io/" );
                     put( "privateTrading", "https://trades.grvt.io/" );
