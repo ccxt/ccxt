@@ -136,7 +136,7 @@ export default class pacifica extends Exchange {
             },
             'hostname': 'pacifica.fi',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4',
+                'logo': 'https://github.com/user-attachments/assets/03ed021f-cdec-43c8-acb4-941f1282f610',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
@@ -844,7 +844,7 @@ export default class pacifica extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();

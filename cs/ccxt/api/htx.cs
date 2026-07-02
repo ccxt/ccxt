@@ -866,6 +866,11 @@ public partial class htx : Exchange
         return await this.callAsync ("spotPrivateGetV2AccountRepayment",parameters);
     }
 
+    public async Task<object> spotPrivateGetV5AccountUniversalTransferRecords (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetV5AccountUniversalTransferRecords",parameters);
+    }
+
     public async Task<object> spotPrivateGetV1StableCoinQuote (object parameters = null)
     {
         return await this.callAsync ("spotPrivateGetV1StableCoinQuote",parameters);

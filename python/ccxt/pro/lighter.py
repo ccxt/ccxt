@@ -180,7 +180,7 @@ class lighter(ccxt.async_support.lighter):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -199,7 +199,7 @@ class lighter(ccxt.async_support.lighter):
 
         :param str symbol: unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -600,17 +600,25 @@ class lighter(ccxt.async_support.lighter):
         amountString = self.safe_string(trade, 'size')
         costString = self.safe_string(trade, 'usd_amount')
         isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
-        side = 'buy' if isMakerAsk else 'sell'
         accountIndex = self.safe_integer(trade, 'accountIndex')
+        bidAccountId = self.safe_integer(trade, 'bid_account_id')
+        askAccountId = self.safe_integer(trade, 'ask_account_id')
+        side = None
         order = None
         takerOrMaker = None
         if accountIndex is not None:
-            if self.safe_integer(trade, 'bid_account_id') == accountIndex:
+            if bidAccountId == accountIndex:
+                # Own trades should use the account's order side
+                side = 'buy'
                 order = self.safe_string(trade, 'bid_id')
                 takerOrMaker = 'taker' if isMakerAsk else 'maker'
-            elif self.safe_integer(trade, 'ask_account_id') == accountIndex:
+            elif askAccountId == accountIndex:
+                side = 'sell'
                 order = self.safe_string(trade, 'ask_id')
                 takerOrMaker = 'maker' if isMakerAsk else 'taker'
+        # public trades use Lighter's taker-side convention
+        if side is None:
+            side = 'buy' if isMakerAsk else 'sell'
         fee = None
         if takerOrMaker is not None:
             feeRateRaw = self.safe_string(trade, 'maker_fee') if (takerOrMaker == 'maker') else self.safe_string(trade, 'taker_fee')

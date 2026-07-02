@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import hyperliquidRest from '../hyperliquid.js';
-import { NotSupported } from '../base/errors.js';
+import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class hyperliquid extends hyperliquidRest {
@@ -213,7 +213,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -239,7 +239,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
         await this.loadMarkets();
@@ -1416,8 +1416,8 @@ export default class hyperliquid extends hyperliquidRest {
         const channel = this.safeString(message, 'channel', '');
         if (channel === 'error') {
             const ret_msg = this.safeString(message, 'data', '');
-            const errorMsg = this.id + ' ' + ret_msg;
-            client.reject(errorMsg);
+            const error = new ExchangeError(this.id + ' ' + ret_msg);
+            client.reject(error);
             return true;
         }
         const data = this.safeDict(message, 'data', {});
@@ -1429,13 +1429,13 @@ export default class hyperliquid extends hyperliquidRest {
         const payload = this.safeDict(response, 'payload', {});
         const status = this.safeString(payload, 'status');
         if (status !== undefined && status !== 'ok') {
-            const errorMsg = this.id + ' ' + this.json(payload);
-            client.reject(errorMsg, id);
+            const error = new ExchangeError(this.id + ' ' + this.json(payload));
+            client.reject(error, id);
             return true;
         }
         const type = this.safeString(payload, 'type');
         if (type === 'error') {
-            const error = this.id + ' ' + this.json(payload);
+            const error = new ExchangeError(this.id + ' ' + this.json(payload));
             client.reject(error, id);
             return true;
         }

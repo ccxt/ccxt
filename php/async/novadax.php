@@ -11,11 +11,10 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class novadax extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'novadax',
@@ -328,7 +327,7 @@ class novadax extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -338,7 +337,7 @@ class novadax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetCommonTimestamp ($params));
+            $response = Async\await($this->publicGetCommonTimestamp($params));
             //
             //     {
             //         "code":"A10000",
@@ -347,10 +346,10 @@ class novadax extends Exchange {
             //     }
             //
             return $this->safe_integer($response, 'data');
-        }) ();
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for novadax
@@ -360,7 +359,7 @@ class novadax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
-            $response = Async\await($this->publicGetCommonSymbols ($params));
+            $response = Async\await($this->publicGetCommonSymbols($params));
             //
             //     {
             //         "code":"A10000",
@@ -382,7 +381,7 @@ class novadax extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_markets($data);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -492,7 +491,7 @@ class novadax extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -508,7 +507,7 @@ class novadax extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketTicker ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketTicker($this->extend($request, $params)));
             //
             //     {
             //         "code":"A10000",
@@ -529,10 +528,10 @@ class novadax extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -545,7 +544,7 @@ class novadax extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetMarketTickers ($params));
+            $response = Async\await($this->publicGetMarketTickers($params));
             //
             //     {
             //         "code":"A10000",
@@ -574,10 +573,10 @@ class novadax extends Exchange {
                 $result[$symbol] = $ticker;
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -587,7 +586,7 @@ class novadax extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -597,21 +596,21 @@ class novadax extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 10, max 20
             }
-            $response = Async\await($this->publicGetMarketDepth ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketDepth($this->extend($request, $params)));
             //
             //     {
             //         "code":"A10000",
             //         "data":array(
-            //             "asks":[
+            //             "asks":array(
             //                 ["0.037159","0.3741"],
             //                 ["0.037215","0.2706"],
             //                 ["0.037222","1.8459"],
-            //             ],
-            //             "bids":[
+            //             ),
+            //             "bids":array(
             //                 ["0.037053","0.3857"],
             //                 ["0.036969","0.8101"],
             //                 ["0.036953","1.5226"],
-            //             ],
+            //             ),
             //             "timestamp":1599280414448
             //         ),
             //         "message":"Success"
@@ -620,7 +619,7 @@ class novadax extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $timestamp = $this->safe_integer($data, 'timestamp');
             return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks');
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -702,7 +701,7 @@ class novadax extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -723,7 +722,7 @@ class novadax extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100
             }
-            $response = Async\await($this->publicGetMarketTrades ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketTrades($this->extend($request, $params)));
             //
             //     {
             //         "code":"A10000",
@@ -737,10 +736,10 @@ class novadax extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -773,7 +772,7 @@ class novadax extends Exchange {
                 $request['from'] = $startFrom;
                 $request['to'] = $this->sum($startFrom, $limit * $duration);
             }
-            $response = Async\await($this->publicGetMarketKlineHistory ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketKlineHistory($this->extend($request, $params)));
             //
             //     {
             //         "code" => "A10000",
@@ -795,7 +794,7 @@ class novadax extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -844,7 +843,7 @@ class novadax extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -855,7 +854,7 @@ class novadax extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetAccountGetBalance ($params));
+            $response = Async\await($this->privateGetAccountGetBalance($params));
             //
             //     {
             //         "code" => "A10000",
@@ -871,10 +870,10 @@ class novadax extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -949,7 +948,7 @@ class novadax extends Exchange {
                 }
             }
             $request['type'] = $uppercaseType;
-            $response = Async\await($this->privatePostOrdersCreate ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrdersCreate($this->extend($request, $params)));
             //
             //     {
             //         "code" => "A10000",
@@ -975,10 +974,10 @@ class novadax extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -994,7 +993,7 @@ class novadax extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privatePostOrdersCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrdersCancel($this->extend($request, $params)));
             //
             //     {
             //         "code" => "A10000",
@@ -1006,10 +1005,10 @@ class novadax extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data);
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1025,7 +1024,7 @@ class novadax extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privateGetOrdersGet ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrdersGet($this->extend($request, $params)));
             //
             //     {
             //         "code" => "A10000",
@@ -1049,10 +1048,10 @@ class novadax extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1086,7 +1085,7 @@ class novadax extends Exchange {
             if ($since !== null) {
                 $request['fromTimestamp'] = $since;
             }
-            $response = Async\await($this->privateGetOrdersList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrdersList($this->extend($request, $params)));
             //
             //     {
             //         "code" => "A10000",
@@ -1112,10 +1111,10 @@ class novadax extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1132,10 +1131,10 @@ class novadax extends Exchange {
                 'status' => 'SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1152,10 +1151,10 @@ class novadax extends Exchange {
                 'status' => 'FILLED,CANCELED,REJECTED',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -1173,7 +1172,7 @@ class novadax extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privateGetOrdersFill ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrdersFill($this->extend($request, $params)));
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1201,7 +1200,7 @@ class novadax extends Exchange {
             //      }
             //
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -1290,7 +1289,7 @@ class novadax extends Exchange {
         ), $market);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -1318,7 +1317,7 @@ class novadax extends Exchange {
                 'subId' => ($type === 'master-$transfer-in') ? $toAccount : $fromAccount,
                 'transferType' => $type,
             );
-            $response = Async\await($this->privatePostAccountSubsTransfer ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAccountSubsTransfer($this->extend($request, $params)));
             //
             //    {
             //        "code":"A10000",
@@ -1335,7 +1334,7 @@ class novadax extends Exchange {
                 $transfer['amount'] = $amount;
             }
             return $transfer;
-        }) ();
+        })();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -1369,7 +1368,7 @@ class novadax extends Exchange {
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1394,7 +1393,7 @@ class novadax extends Exchange {
             if ($tag !== null) {
                 $request['tag'] = $tag;
             }
-            $response = Async\await($this->privatePostAccountWithdrawCoin ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAccountWithdrawCoin($this->extend($request, $params)));
             //
             //     {
             //         "code":"A10000",
@@ -1403,10 +1402,10 @@ class novadax extends Exchange {
             //     }
             //
             return $this->parse_transaction($response, $currency);
-        }) ();
+        })();
     }
 
-    public function fetch_accounts($params = array ()): PromiseInterface {
+    public function fetch_accounts($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -1416,7 +1415,7 @@ class novadax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account $type
              */
-            $response = Async\await($this->privateGetAccountSubs ($params));
+            $response = Async\await($this->privateGetAccountSubs($params));
             //
             //     {
             //         "code" => "A10000",
@@ -1445,10 +1444,10 @@ class novadax extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1465,10 +1464,10 @@ class novadax extends Exchange {
                 'type' => 'coin_in',
             );
             return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1485,10 +1484,10 @@ class novadax extends Exchange {
                 'type' => 'coin_out',
             );
             return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1517,7 +1516,7 @@ class novadax extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit;
             }
-            $response = Async\await($this->privateGetWalletQueryDepositWithdraw ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWalletQueryDepositWithdraw($this->extend($request, $params)));
             //
             //     {
             //         "code" => "A10000",
@@ -1541,7 +1540,7 @@ class novadax extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_transaction_status(?string $status) {
@@ -1631,7 +1630,7 @@ class novadax extends Exchange {
         );
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -1666,7 +1665,7 @@ class novadax extends Exchange {
             if ($since !== null) {
                 $request['fromTimestamp'] = $since;
             }
-            $response = Async\await($this->privateGetOrdersFills ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrdersFills($this->extend($request, $params)));
             //
             //      {
             //          "code" => "A10000",
@@ -1690,10 +1689,10 @@ class novadax extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $request;
         $query = $this->omit($params, $this->extract_params($path));

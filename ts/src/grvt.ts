@@ -84,7 +84,7 @@ export default class grvt extends Exchange {
                 '4w': 'CI_4_W',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6',
+                'logo': 'https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18',
                 'api': {
                     'privateEdge': 'https://edge.grvt.io/',
                     'privateTrading': 'https://trades.grvt.io/',

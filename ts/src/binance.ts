@@ -785,14 +785,15 @@ export default class binance extends Exchange {
                         'order': 1,
                         'openOrder': 1,
                         'openOrders': { 'cost': 1, 'noSymbol': 5 },
-                        'allOrders': { 'cost': 20, 'noSymbol': 40 },
+                        'openAlgoOrders': { 'cost': 1, 'noSymbol': 40 },
+                        'allOrders': 5,
                         'balance': 1,
                         'account': 5,
                         'positionMargin/history': 1,
                         'positionRisk': 1,
-                        'userTrades': { 'cost': 20, 'noSymbol': 40 },
+                        'userTrades': 5,
                         'income': 20,
-                        'leverageBracket': 1,
+                        'leverageBracket': { 'cost': 2, 'noSymbol': 2 },
                         'forceOrders': { 'cost': 20, 'noSymbol': 50 },
                         'adlQuantile': 5,
                         'commissionRate': 20,
@@ -808,6 +809,7 @@ export default class binance extends Exchange {
                     'post': {
                         'positionSide/dual': 1,
                         'order': 4,
+                        'algoOrder': 1,
                         'batchOrders': 5,
                         'countdownCancelAll': 10,
                         'leverage': 1,
@@ -822,6 +824,7 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         'order': 1,
+                        'algoOrder': 1,
                         'allOpenOrders': 1,
                         'batchOrders': 5,
                         'listenKey': 1,
@@ -1337,6 +1340,7 @@ export default class binance extends Exchange {
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                'warnOnSTPForInverse': true,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
@@ -4109,7 +4113,7 @@ export default class binance extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -5516,9 +5520,10 @@ export default class binance extends Exchange {
         return this.extend (request, params);
     }
 
-    editContractOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' editContractOrderRequest() requires a side argument');
+    editContractOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if ((price === undefined) && !('priceMatch' in params)) {
+            // moved here from editContractOrder for warning in case of calling editOrderWs() without price argument for swap orders
+            throw new ArgumentsRequired (this.id + ' editOrder() and editOrderWs() require a price argument for swap orders');
         }
         const market = this.market (symbol);
         if (!market['contract']) {
@@ -5563,12 +5568,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'editContractOrder', 'papi', 'portfolioMargin');
-        if (market['linear'] || isPortfolioMargin) {
-            if ((price === undefined) && !('priceMatch' in params)) {
-                throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument for portfolio margin and linear orders');
-            }
-        }
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'editContractOrder', 'papi', 'portfolioMargin', false);
         const request = this.editContractOrderRequest (id, symbol, type, side, amount, price, params);
         let response: Dict = {};
         if (market['linear']) {
@@ -6560,7 +6560,12 @@ export default class binance extends Exchange {
                     response = await this.papiPostCmOrder (request);
                 }
             } else {
-                response = await this.dapiPrivatePostOrder (request);
+                if (isConditional) {
+                    request['algoType'] = 'CONDITIONAL';
+                    response = await this.dapiPrivatePostAlgoOrder (request);
+                } else {
+                    response = await this.dapiPrivatePostOrder (request);
+                }
             }
         } else if (marketType === 'margin' || marginMode !== undefined || isPortfolioMargin) {
             if (isPortfolioMargin) {
@@ -6865,7 +6870,7 @@ export default class binance extends Exchange {
                 }
             }
             if (stopPrice !== undefined) {
-                if (market['linear'] && market['swap'] && !isPortfolioMargin) {
+                if (market['swap'] && !isPortfolioMargin) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
                 } else {
                     request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
@@ -6894,9 +6899,10 @@ export default class binance extends Exchange {
         let selfTradePrevention = undefined;
         [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
-            if (market['spot']) {
-                request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase (); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            if (market['inverse'] && this.options['warnOnSTPForInverse']) {
+                throw new NotSupported (this.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the "warnOnSTPForInverse" option to false.');
             }
+            request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase (); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         const icebergAmount = this.safeNumber (params, 'icebergAmount');
@@ -7415,7 +7421,11 @@ export default class binance extends Exchange {
                     response = await this.papiGetCmOpenOrders (this.extend (request, params));
                 }
             } else {
-                response = await this.dapiPrivateGetOpenOrders (this.extend (request, params));
+                if (isConditional) {
+                    response = await this.dapiPrivateGetOpenAlgoOrders (this.extend (request, params));
+                } else {
+                    response = await this.dapiPrivateGetOpenOrders (this.extend (request, params));
+                }
             }
         } else if (type === 'margin' || marginMode !== undefined || isPortfolioMargin) {
             if (isPortfolioMargin) {
@@ -7785,7 +7795,7 @@ export default class binance extends Exchange {
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            } else if (market['swap'] && isConditional && !isPortfolioMargin) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 if (isPortfolioMargin && isConditional) {
@@ -7797,7 +7807,7 @@ export default class binance extends Exchange {
         } else {
             if (isPortfolioMargin && isConditional) {
                 request['strategyId'] = id;
-            } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            } else if (market['swap'] && isConditional && !isPortfolioMargin) {
                 request['algoId'] = id;
             } else {
                 request['orderId'] = id;
@@ -7829,7 +7839,11 @@ export default class binance extends Exchange {
                     response = await this.papiDeleteCmOrder (this.extend (request, params));
                 }
             } else {
-                response = await this.dapiPrivateDeleteOrder (this.extend (request, params));
+                if (isConditional) {
+                    response = await this.dapiPrivateDeleteAlgoOrder (this.extend (request, params));
+                } else {
+                    response = await this.dapiPrivateDeleteOrder (this.extend (request, params));
+                }
             }
         } else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
@@ -13736,12 +13750,12 @@ export default class binance extends Exchange {
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
         let response = undefined;
-        if (subType === 'linear') {
-            response = await this.fapiPrivateGetPositionSideDual (params);
-        } else if (subType === 'inverse') {
+        // we still have two working endpoints but positionMode is common for linear and inverse markets
+        // thus we do not throw an error if the subType is not specified and default to linear for now
+        if (subType === 'inverse') {
             response = await this.dapiPrivateGetPositionSideDual (params);
         } else {
-            throw new BadRequest (this.id + ' fetchPositionMode requires either a symbol argument or params["subType"]');
+            response = await this.fapiPrivateGetPositionSideDual (params);
         }
         //
         //    {

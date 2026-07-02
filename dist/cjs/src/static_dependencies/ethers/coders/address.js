@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var address = require('../address/address.js');
 require('../utils/base58.js');
 require('../utils/errors.js');
-require('../utils/events.js');
 require('../utils/fixednumber.js');
 var maths = require('../utils/maths.js');
 require('../utils/utf8.js');

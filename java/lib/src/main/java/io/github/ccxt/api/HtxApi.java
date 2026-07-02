@@ -874,6 +874,11 @@ public class HtxApi extends Exchange
         return this.callAsync ("spotPrivateGetV2AccountRepayment", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  spotPrivateGetV5AccountUniversalTransferRecords (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivateGetV5AccountUniversalTransferRecords", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  spotPrivateGetV1StableCoinQuote (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetV1StableCoinQuote", optionalArgs);

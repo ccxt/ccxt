@@ -134,6 +134,7 @@ exports.ecdsa = crypto.ecdsa;
 exports.eddsa = crypto.eddsa;
 exports.hash = crypto.hash;
 exports.hmac = crypto.hmac;
+exports.pemToDer = crypto.pemToDer;
 exports.TimedOut = time.TimedOut;
 exports.iso8601 = time.iso8601;
 exports.mdy = time.mdy;

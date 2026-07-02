@@ -266,6 +266,7 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/wallet/v1/withdraw/apply': 600,
                         'openapi/v1/order/test': 1,
                         'openapi/v1/order': 1,
+                        'openapi/v1/order/cancelReplace': 1,
                         'openapi/v1/capital/withdraw/apply': 1,
                         'openapi/v1/capital/deposit/apply': 1,
                         'openapi/v3/payment-request/payment-requests': 1,
@@ -276,14 +277,20 @@ class coinsph(Exchange, ImplicitAPI):
                         'merchant-api/v1/invoices-cancel': 1,
                         'openapi/convert/v1/get-supported-trading-pairs': 1,
                         'openapi/convert/v1/get-quote': 1,
-                        'openapi/convert/v1/accpet-quote': 1,
+                        'openapi/convert/v1/accept-quote': 1,
                         'openapi/convert/v1/query-order-history': 1,
+                        'openapi/otc-trade/v1/get-supported-trading-pairs': 1,
+                        'openapi/otc-trade/v1/create-rfq': 1,
+                        'openapi/otc-trade/v1/accept-rfq': 1,
+                        'openapi/otc-trade/v1/manual-settle': 1,
+                        'openapi/otc-trade/v1/query-order-history': 1,
                         'openapi/fiat/v1/support-channel': 1,
                         'openapi/fiat/v1/cash-out': 1,
                         'openapi/fiat/v1/history': 1,
                         'openapi/migration/v4/sellorder': 1,
                         'openapi/migration/v4/validate-field': 1,
                         'openapi/transfer/v3/transfers': 1,
+                        'openapi/transfer/v4/transfers': 1,
                         'openapi/v1/sub-account/create': 30,
                         'openapi/v1/sub-account/transfer/universal-transfer': 100,
                         'openapi/v1/sub-account/transfer/sub-to-master': 100,
@@ -707,7 +714,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
 
-        https://coins-docs.github.io/rest-api/#test-connectivity
+        https://docs.coins.ph/rest-api/#test-connectivity
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
@@ -725,7 +732,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://coins-docs.github.io/rest-api/#check-server-time
+        https://docs.coins.ph/rest-api/#check-server-time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -740,7 +747,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for coinsph
 
-        https://coins-docs.github.io/rest-api/#exchange-information
+        https://docs.coins.ph/rest-api/#exchange-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -876,9 +883,9 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-        https://coins-docs.github.io/rest-api/#symbol-price-ticker
-        https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+        https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+        https://docs.coins.ph/rest-api/#symbol-price-ticker
+        https://docs.coins.ph/rest-api/#symbol-order-book-ticker
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -909,9 +916,9 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-        https://coins-docs.github.io/rest-api/#symbol-price-ticker
-        https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+        https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+        https://docs.coins.ph/rest-api/#symbol-price-ticker
+        https://docs.coins.ph/rest-api/#symbol-order-book-ticker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1016,12 +1023,12 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://coins-docs.github.io/rest-api/#order-book
+        https://docs.coins.ph/rest-api/#order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1052,7 +1059,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://coins-docs.github.io/rest-api/#klinecandlestick-data
+        https://docs.coins.ph/rest-api/#klinecandlestick-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1123,7 +1130,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://coins-docs.github.io/rest-api/#recent-trades-list
+        https://docs.coins.ph/rest-api/#recent-trades-list
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1162,7 +1169,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+        https://docs.coins.ph/rest-api/#account-trade-list-user_data
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1190,7 +1197,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+        https://docs.coins.ph/rest-api/#account-trade-list-user_data
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -1292,7 +1299,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://coins-docs.github.io/rest-api/#accept-the-quote
+        https://docs.coins.ph/rest-api/#accept-the-quote
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -1343,7 +1350,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://coins-docs.github.io/rest-api/#new-order--trade
+        https://docs.coins.ph/rest-api/#new-order--trade
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
@@ -1449,7 +1456,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://coins-docs.github.io/rest-api/#query-order-user_data
+        https://docs.coins.ph/rest-api/#query-order-user_data
 
         :param int|str id: order id
         :param str symbol: not used by coinsph fetchOrder()
@@ -1471,7 +1478,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://coins-docs.github.io/rest-api/#current-open-orders-user_data
+        https://docs.coins.ph/rest-api/#current-open-orders-user_data
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1492,7 +1499,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://coins-docs.github.io/rest-api/#history-orders-user_data
+        https://docs.coins.ph/rest-api/#history-orders-user_data
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1520,7 +1527,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://coins-docs.github.io/rest-api/#cancel-order-trade
+        https://docs.coins.ph/rest-api/#cancel-order-trade
 
         :param str id: order id
         :param str symbol: not used by coinsph cancelOrder()
@@ -1542,7 +1549,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         cancel open orders of market
 
-        https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+        https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-symbol-trade
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1721,7 +1728,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch the trading fees for a market
 
-        https://coins-docs.github.io/rest-api/#trade-fee-user_data
+        https://docs.coins.ph/rest-api/#trade-fee-user_data
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1749,7 +1756,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
 
-        https://coins-docs.github.io/rest-api/#trade-fee-user_data
+        https://docs.coins.ph/rest-api/#trade-fee-user_data
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
@@ -1801,7 +1808,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         make a withdrawal to coins_ph account
 
-        https://coins-docs.github.io/rest-api/#withdrawuser_data
+        https://docs.coins.ph/rest-api/#withdrawuser_data
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -1836,7 +1843,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
 
-        https://coins-docs.github.io/rest-api/#deposit-history-user_data
+        https://docs.coins.ph/rest-api/#deposit-history-user_data
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -1890,7 +1897,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+        https://docs.coins.ph/rest-api/#withdraw-history-user_data
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -2046,7 +2053,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
 
-        https://coins-docs.github.io/rest-api/#deposit-address-user_data
+        https://docs.coins.ph/rest-api/#deposit-address-user_data
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint

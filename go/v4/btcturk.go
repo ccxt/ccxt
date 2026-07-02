@@ -123,7 +123,7 @@ func (this *BtcturkCore) Describe() any {
 			"1y":  "1 y",
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/10e0a238-9f60-4b06-9dda-edfc7602f1d6",
+			"logo": "https://github.com/user-attachments/assets/710711ff-1278-4e7a-9b03-b5503dd85b59",
 			"api": map[string]any{
 				"public":  "https://api.btcturk.com/api/v2",
 				"private": "https://api.btcturk.com/api/v1",
@@ -464,7 +464,7 @@ func (this *BtcturkCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BtcturkCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

@@ -1,5 +1,9 @@
 import Exchange from './abstract/aftermath.js';
 import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction, OrderType, OrderSide, Num, NullableDict } from './base/types.js';
+/**
+ * @class aftermath
+ * @augments Exchange
+ */
 export default class aftermath extends Exchange {
     describe(): any;
     /**
@@ -52,7 +56,7 @@ export default class aftermath extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**

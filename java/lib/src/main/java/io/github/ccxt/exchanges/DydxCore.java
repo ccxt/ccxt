@@ -131,7 +131,7 @@ public class DydxCore extends DydxApi
                 put( "1d", "1DAY" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1" );
+                put( "logo", "https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "indexer", "https://indexer.dydx.trade/v4" );
                     put( "nodeRpc", "https://dydx-ops-rpc.kingnodes.com" );
@@ -1933,7 +1933,7 @@ public class DydxCore extends DydxApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

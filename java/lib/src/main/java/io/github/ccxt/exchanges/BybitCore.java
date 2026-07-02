@@ -125,6 +125,7 @@ public class BybitCore extends BybitApi
                 put( "fetchPositionsHistory", true );
                 put( "fetchPremiumIndexOHLCV", true );
                 put( "fetchSettlementHistory", true );
+                put( "fetchStatus", true );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTime", true );
@@ -217,6 +218,7 @@ public class BybitCore extends BybitApi
                         put( "derivatives/v3/public/open-interest", 1 );
                         put( "derivatives/v3/public/insurance", 1 );
                         put( "v5/announcements/index", 5 );
+                        put( "v5/system/status", 5 );
                         put( "v5/market/time", 5 );
                         put( "v5/market/kline", 5 );
                         put( "v5/market/mark-price-kline", 5 );
@@ -224,6 +226,8 @@ public class BybitCore extends BybitApi
                         put( "v5/market/premium-index-price-kline", 5 );
                         put( "v5/market/instruments-info", 5 );
                         put( "v5/market/orderbook", 5 );
+                        put( "v5/market/rpi_orderbook", 5 );
+                        put( "v5/market/full_orderbook", 5 );
                         put( "v5/market/tickers", 5 );
                         put( "v5/market/funding/history", 5 );
                         put( "v5/market/recent-trade", 5 );
@@ -232,7 +236,12 @@ public class BybitCore extends BybitApi
                         put( "v5/market/insurance", 5 );
                         put( "v5/market/risk-limit", 5 );
                         put( "v5/market/delivery-price", 5 );
+                        put( "v5/market/new-delivery-price", 5 );
                         put( "v5/market/account-ratio", 5 );
+                        put( "v5/market/index-price-components", 5 );
+                        put( "v5/market/price-limit", 5 );
+                        put( "v5/market/adlAlert", 5 );
+                        put( "v5/market/fee-group-info", 5 );
                         put( "v5/spot-lever-token/info", 5 );
                         put( "v5/spot-lever-token/reference", 5 );
                         put( "v5/spot-margin-trade/data", 5 );
@@ -315,7 +324,9 @@ public class BybitCore extends BybitApi
                         put( "v5/position/list", 5 );
                         put( "v5/execution/list", 5 );
                         put( "v5/position/closed-pnl", 5 );
+                        put( "v5/position/get-closed-positions", 5 );
                         put( "v5/position/move-history", 5 );
+                        put( "v5/position/symbol-info", 5 );
                         put( "v5/pre-upgrade/order/history", 5 );
                         put( "v5/pre-upgrade/execution/list", 5 );
                         put( "v5/pre-upgrade/position/closed-pnl", 5 );
@@ -326,18 +337,27 @@ public class BybitCore extends BybitApi
                         put( "v5/account/borrow-history", 1 );
                         put( "v5/account/instruments-info", 1 );
                         put( "v5/account/collateral-info", 1 );
+                        put( "v5/account/option-asset-info", 1 );
                         put( "v5/asset/coin-greeks", 1 );
                         put( "v5/account/fee-rate", 10 );
                         put( "v5/account/info", 5 );
                         put( "v5/account/transaction-log", 1.66 );
                         put( "v5/account/contract-transaction-log", 1 );
+                        put( "v5/account/query-dcp-info", 5 );
+                        put( "v5/account/user-setting-config", 5 );
+                        put( "v5/account/pay-info", 5 );
+                        put( "v5/account/trade-info-for-analysis", 5 );
                         put( "v5/account/smp-group", 1 );
                         put( "v5/account/mmp-state", 5 );
                         put( "v5/account/withdrawal", 5 );
+                        put( "v5/asset/asset-overview", 5 );
                         put( "v5/asset/exchange/query-coin-list", 0.5 );
                         put( "v5/asset/exchange/convert-result-query", 0.5 );
                         put( "v5/asset/exchange/query-convert-history", 0.5 );
                         put( "v5/asset/exchange/order-record", 5 );
+                        put( "v5/asset/fundinghistory", 5 );
+                        put( "v5/asset/portfolio-margin", 5 );
+                        put( "v5/asset/total-members-assets", 5 );
                         put( "v5/asset/delivery-record", 5 );
                         put( "v5/asset/settlement-record", 5 );
                         put( "v5/asset/transfer/query-asset-info", 50 );
@@ -358,6 +378,8 @@ public class BybitCore extends BybitApi
                         put( "v5/asset/withdraw/query-record", 10 );
                         put( "v5/asset/withdraw/withdrawable-amount", 5 );
                         put( "v5/asset/withdraw/vasp/list", 5 );
+                        put( "v5/asset/covert/small-balance-list", 5 );
+                        put( "v5/asset/covert/small-balance-history", 5 );
                         put( "v5/asset/convert/small-balance-list", 5 );
                         put( "v5/asset/convert/small-balance-history", 5 );
                         put( "v5/fiat/query-coin-list", 5 );
@@ -372,13 +394,21 @@ public class BybitCore extends BybitApi
                         put( "v5/user/aff-customer-info", 5 );
                         put( "v5/user/del-submember", 5 );
                         put( "v5/user/submembers", 5 );
+                        put( "v5/user/escrow_sub_members", 5 );
+                        put( "v5/user/invitation/referrals", 5 );
                         put( "v5/affiliate/aff-user-list", 5 );
+                        put( "v5/affiliate/affiliate-sub-list", 5 );
                         put( "v5/spot-lever-token/order-record", 1 );
                         put( "v5/spot-margin-trade/interest-rate-history", 5 );
                         put( "v5/spot-margin-trade/state", 5 );
                         put( "v5/spot-margin-trade/max-borrowable", 5 );
                         put( "v5/spot-margin-trade/position-tiers", 5 );
                         put( "v5/spot-margin-trade/coinstate", 5 );
+                        put( "v5/spot-margin-trade/currency-data", 5 );
+                        put( "v5/spot-margin-trade/fixedborrow-contract-info", 5 );
+                        put( "v5/spot-margin-trade/fixedborrow-order-info", 5 );
+                        put( "v5/spot-margin-trade/fixedborrow-order-quote", 5 );
+                        put( "v5/spot-margin-trade/liability", 5 );
                         put( "v5/spot-margin-trade/repayment-available-amount", 5 );
                         put( "v5/spot-margin-trade/get-auto-repay-mode", 5 );
                         put( "v5/spot-cross-margin-trade/loan-info", 1 );
@@ -404,10 +434,13 @@ public class BybitCore extends BybitApi
                         put( "v5/crypto-loan-fixed/supply-order-info", 10 );
                         put( "v5/crypto-loan-fixed/repayment-history", 10 );
                         put( "v5/ins-loan/product-infos", 5 );
+                        put( "v5/ins-loan/ensure-tokens", 5 );
                         put( "v5/ins-loan/ensure-tokens-convert", 5 );
                         put( "v5/ins-loan/loan-order", 5 );
                         put( "v5/ins-loan/repaid-history", 5 );
+                        put( "v5/ins-loan/ltv", 5 );
                         put( "v5/ins-loan/ltv-convert", 5 );
+                        put( "v5/ins-loan/coin-delta-amount", 5 );
                         put( "v5/lending/info", 5 );
                         put( "v5/lending/history-order", 5 );
                         put( "v5/lending/account", 5 );
@@ -486,6 +519,7 @@ public class BybitCore extends BybitApi
                         put( "v5/order/amend-batch", 5 );
                         put( "v5/order/cancel-batch", 5 );
                         put( "v5/order/disconnected-cancel-all", 5 );
+                        put( "v5/order/pre-check", 5 );
                         put( "v5/position/set-leverage", 5 );
                         put( "v5/position/switch-isolated", 5 );
                         put( "v5/position/set-tpsl-mode", 5 );
@@ -506,12 +540,14 @@ public class BybitCore extends BybitApi
                         put( "v5/account/repay", 5 );
                         put( "v5/account/no-convert-repay", 5 );
                         put( "v5/account/set-limit-px-action", 5 );
+                        put( "v5/account/set-delta-mode", 5 );
                         put( "v5/asset/exchange/quote-apply", 1 );
                         put( "v5/asset/exchange/convert-execute", 1 );
                         put( "v5/asset/transfer/inter-transfer", 50 );
                         put( "v5/asset/transfer/save-transfer-sub-member", 150 );
                         put( "v5/asset/transfer/universal-transfer", 10 );
                         put( "v5/asset/deposit/deposit-to-account", 5 );
+                        put( "v5/asset/travel-rule/deposit/submit", 5 );
                         put( "v5/asset/withdraw/create", 50 );
                         put( "v5/asset/withdraw/cancel", 50 );
                         put( "v5/asset/covert/get-quote", 10 );
@@ -525,11 +561,15 @@ public class BybitCore extends BybitApi
                         put( "v5/user/update-sub-api", 10 );
                         put( "v5/user/delete-api", 10 );
                         put( "v5/user/delete-sub-api", 10 );
+                        put( "v5/user/agreement", 10 );
+                        put( "v5/user/create-demo-member", 10 );
                         put( "v5/spot-lever-token/purchase", 2.5 );
                         put( "v5/spot-lever-token/redeem", 2.5 );
                         put( "v5/spot-margin-trade/switch-mode", 5 );
                         put( "v5/spot-margin-trade/set-leverage", 5 );
                         put( "v5/spot-margin-trade/set-auto-repay-mode", 5 );
+                        put( "v5/spot-margin-trade/fixedborrow", 5 );
+                        put( "v5/spot-margin-trade/fixedborrow-renew", 5 );
                         put( "v5/spot-cross-margin-trade/loan", 2.5 );
                         put( "v5/spot-cross-margin-trade/repay", 2.5 );
                         put( "v5/spot-cross-margin-trade/switch", 2.5 );
@@ -1629,6 +1669,81 @@ public class BybitCore extends BybitApi
             return this.costToPrecision(symbol, cost);
         }
         return cost;
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://bybit-exchange.github.io/docs/v5/system-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchStatus(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object response = (this.publicGetV5SystemStatus(parameters)).join();
+            //
+            //     {
+            //         "retCode": 0,
+            //         "retMsg": "OK",
+            //         "result": {
+            //             "list": [
+            //                 {
+            //                     "id": "f9d6842d-5331-11f0-8fd3-c241b123dd9e",
+            //                     "title": "t01",
+            //                     "state": "completed",
+            //                     "begin": "1751012688000",
+            //                     "end": "1751012760000",
+            //                     "href": "",
+            //                     "serviceTypes": [ 1, 2, 3, 4, 5 ],
+            //                     "product": [ 1, 2, 3, 4 ],
+            //                     "uidSuffix": [],
+            //                     "maintainType": 3,
+            //                     "env": 2
+            //                 }
+            //             ]
+            //         },
+            //         "retExtInfo": {},
+            //         "time": 1751858399649
+            //     }
+            //
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            Object list = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object status = "ok";
+            Object eta = null;
+            Object url = null;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(list)); i++)
+            {
+                Object eventVar = Helpers.GetValue(list, i);
+                Object state = this.safeString(eventVar, "state");
+                if (Helpers.isTrue(Helpers.isEqual(state, "ongoing")))
+                {
+                    status = "maintenance";
+                    eta = this.safeInteger(eventVar, "end");
+                    url = this.safeString(eventVar, "href");
+                    break;
+                } else if (Helpers.isTrue(Helpers.isEqual(state, "scheduled")))
+                {
+                    eta = this.safeInteger(eventVar, "begin");
+                    url = this.safeString(eventVar, "href");
+                }
+            }
+            final Object finalStatus = status;
+            final Object finalEta = eta;
+            final Object finalUrl = url;
+            return new java.util.HashMap<String, Object>() {{
+                put( "status", finalStatus );
+                put( "updated", null );
+                put( "eta", finalEta );
+                put( "url", finalUrl );
+                put( "info", response );
+            }};
+        });
+
     }
 
     /**
@@ -3518,7 +3633,7 @@ public class BybitCore extends BybitApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol2, Object... optionalArgs)
     {

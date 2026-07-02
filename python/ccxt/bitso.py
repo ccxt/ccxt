@@ -138,7 +138,7 @@ class bitso(Exchange, ImplicitAPI):
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975',
+                'logo': 'https://github.com/user-attachments/assets/3d0c1e5e-8aaa-419f-968a-2b7409381ce4',
                 'api': {
                     'rest': 'https://bitso.com/api',
                 },
@@ -651,7 +651,7 @@ class bitso(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
