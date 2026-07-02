@@ -183,7 +183,6 @@ type ICoreExchange interface {
 	FetchOrderBooks(optionalArgs ...any) <-chan any
 	FetchTickers(optionalArgs ...any) <-chan any
 	FetchTrades(symbol any, optionalArgs ...any) <-chan any
-	FetchTransfers(optionalArgs ...any) <-chan any
 	FetchWithdrawals(optionalArgs ...any) <-chan any
 	Currency(code any) any
 	ParseDate(datetime2 any) any
