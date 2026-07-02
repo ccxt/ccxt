@@ -906,6 +906,18 @@ public partial class PredictionExchange : Exchange
         return parsed;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionTrades
+     * @description parses a list of raw trades with the exchange's parseTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
+     * @param {object[]} trades the raw trades
+     * @param {object} [outcomeObj] the resolved outcome object the trades belong to
+     * @param {int} [since] timestamp in ms of the earliest trade to return
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra fields to merge into every parsed trade
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
     public virtual object parsePredictionTrades(object trades, object outcomeObj = null, object since = null, object limit = null, object parameters = null)
     {
         // prediction-market analogue of the base parseTrades: the base aggregator post-filters
@@ -926,6 +938,18 @@ public partial class PredictionExchange : Exchange
         return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionOrders
+     * @description parses a list of raw orders with the exchange's parseOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
+     * @param {object[]} orders the raw orders
+     * @param {object} [outcomeObj] the resolved outcome object the orders belong to
+     * @param {int} [since] timestamp in ms of the earliest order to return
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra fields to merge into every parsed order
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     public virtual object parsePredictionOrders(object orders, object outcomeObj = null, object since = null, object limit = null, object parameters = null)
     {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
@@ -943,6 +967,15 @@ public partial class PredictionExchange : Exchange
         return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionPositions
+     * @description parses a list of raw positions with the exchange's parsePosition — the prediction analogue of the base parsePositions
+     * @param {object[]} positions the raw positions
+     * @param {object} [params] extra fields to merge into every parsed position
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
     public virtual object parsePredictionPositions(object positions, object parameters = null)
     {
         // prediction-market analogue of the base parsePositions, which resolves its `symbols`

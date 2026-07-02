@@ -620,6 +620,16 @@ class PredictionExchange(Exchange):
         return parsed
 
     def parse_prediction_trades(self, trades: List[Any], outcomeObj: Any = None, since: Int = None, limit: Int = None, params={}):
+        """
+ @ignore
+        parses a list of raw trades with the exchange's parseTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
+        :param dict[] trades: the raw trades
+        :param dict [outcomeObj]: the resolved outcome object the trades belong to
+        :param int [since]: timestamp in ms of the earliest trade to return
+        :param int [limit]: the maximum number of trades to return
+        :param dict [params]: extra fields to merge into every parsed trade
+        :returns dict[]: a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+        """
         # prediction-market analogue of the base parseTrades: the base aggregator post-filters
         # by the market's `symbol` key, but prediction structures carry an `outcome` handle
         # instead — and an outcome object rebuilt from cached markets may still hold a legacy
@@ -635,6 +645,16 @@ class PredictionExchange(Exchange):
         return self.filter_by_outcome_since_limit(results, outcomeHandle, since, limit)
 
     def parse_prediction_orders(self, orders: List[Any], outcomeObj: Any = None, since: Int = None, limit: Int = None, params={}):
+        """
+ @ignore
+        parses a list of raw orders with the exchange's parseOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
+        :param dict[] orders: the raw orders
+        :param dict [outcomeObj]: the resolved outcome object the orders belong to
+        :param int [since]: timestamp in ms of the earliest order to return
+        :param int [limit]: the maximum number of orders to return
+        :param dict [params]: extra fields to merge into every parsed order
+        :returns dict[]: a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        """
         # prediction-market analogue of the base parseOrders — see parsePredictionTrades
         rows = self.to_array(orders)
         results = []
@@ -647,6 +667,13 @@ class PredictionExchange(Exchange):
         return self.filter_by_outcome_since_limit(results, outcomeHandle, since, limit)
 
     def parse_prediction_positions(self, positions: List[Any], params={}):
+        """
+ @ignore
+        parses a list of raw positions with the exchange's parsePosition — the prediction analogue of the base parsePositions
+        :param dict[] positions: the raw positions
+        :param dict [params]: extra fields to merge into every parsed position
+        :returns dict[]: a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+        """
         # prediction-market analogue of the base parsePositions, which resolves its `symbols`
         # argument through marketSymbols() and would raise BadSymbol on outcome handles.
         # venue-specific outcome filtering stays in the exchange(position identity differs

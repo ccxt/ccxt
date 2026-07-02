@@ -757,6 +757,16 @@ class PredictionExchange extends \ccxt\async\Exchange {
     }
 
     public function parse_prediction_trades(array $trades, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * @ignore
+         * parses a list of raw $trades with the exchange's parseTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
+         * @param {array[]} $trades the raw $trades
+         * @param {array} [$outcomeObj] the resolved outcome object the $trades belong to
+         * @param {int} [$since] timestamp in ms of the earliest $trade to return
+         * @param {int} [$limit] the maximum number of $trades to return
+         * @param {array} [$params] extra fields to merge into every $parsed $trade
+         * @return {array[]} a list of prediction [$trade structures](https://docs.ccxt.com/#/?id=public-$trades)
+         */
         // prediction-market analogue of the base parseTrades => the base aggregator post-filters
         // by the market's `symbol` key, but prediction structures carry an `outcome` handle
         // instead — and an outcome object rebuilt from cached markets may still hold a legacy
@@ -774,6 +784,16 @@ class PredictionExchange extends \ccxt\async\Exchange {
     }
 
     public function parse_prediction_orders(array $orders, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * @ignore
+         * parses a list of raw $orders with the exchange's parseOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
+         * @param {array[]} $orders the raw $orders
+         * @param {array} [$outcomeObj] the resolved outcome object the $orders belong to
+         * @param {int} [$since] timestamp in ms of the earliest $order to return
+         * @param {int} [$limit] the maximum number of $orders to return
+         * @param {array} [$params] extra fields to merge into every $parsed $order
+         * @return {array[]} a list of prediction [$order structures](https://docs.ccxt.com/#/?id=$order-structure)
+         */
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         $rows = $this->to_array($orders);
         $results = array();
@@ -788,6 +808,13 @@ class PredictionExchange extends \ccxt\async\Exchange {
     }
 
     public function parse_prediction_positions(array $positions, $params = array ()) {
+        /**
+         * @ignore
+         * parses a list of raw $positions with the exchange's parsePosition — the prediction analogue of the base parsePositions
+         * @param {array[]} $positions the raw $positions
+         * @param {array} [$params] extra fields to merge into every $parsed $position
+         * @return {array[]} a list of prediction [$position structures](https://docs.ccxt.com/#/?id=$position-structure)
+         */
         // prediction-market analogue of the base parsePositions, which resolves its `symbols`
         // argument through marketSymbols() and would throw BadSymbol on outcome handles.
         // venue-specific outcome filtering stays in the exchange ($position identity differs
