@@ -130,7 +130,7 @@ public partial class hyperliquid : Exchange
             } },
             { "hostname", "hyperliquid.xyz" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b" },
+                { "logo", "https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.{hostname}" },
                     { "private", "https://api.{hostname}" },
@@ -1246,7 +1246,7 @@ public partial class hyperliquid : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1992,10 +1992,6 @@ public partial class hyperliquid : Exchange
     public async virtual Task<object> handleBuilderFeeApproval()
     {
         object buildFee = this.safeBool(this.options, "builderFee", true);
-        if (!isTrue(buildFee))
-        {
-            return false;  // skip if builder fee is not enabled
-        }
         object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(approvedBuilderFee))
         {
@@ -2004,7 +2000,13 @@ public partial class hyperliquid : Exchange
         try
         {
             object builder = this.safeString(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+            // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
+            // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             object maxFeeRate = this.safeString(this.options, "feeRate", "0.01%");
+            if (!isTrue(buildFee))
+            {
+                maxFeeRate = "0%";
+            }
             await this.approveBuilderFee(builder, maxFeeRate);
             ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
         } catch(Exception e)
@@ -2580,9 +2582,15 @@ public partial class hyperliquid : Exchange
         if (isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
         {
             object wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+            // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
+            object feeInt = this.safeInteger(this.options, "feeInt", 10);
+            if (!isTrue(this.safeBool(this.options, "builderFee", true)))
+            {
+                feeInt = 0;
+            }
             ((IDictionary<string,object>)orderAction)["builder"] = new Dictionary<string, object>() {
                 { "b", wallet },
-                { "f", this.safeInteger(this.options, "feeInt", 10) },
+                { "f", feeInt },
             };
         }
         object signature = this.signL1Action(orderAction, nonce, vaultAddress);

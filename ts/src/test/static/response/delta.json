@@ -803,6 +803,33 @@
             }
           }
         ],
+        "setMarginMode": [
+          {
+            "description": "set margin mode",
+            "method": "setMarginMode",
+            "input": [
+              "isolated",
+              null,
+              {
+                "subaccount_user_id": "30084879"
+              }
+            ],
+            "httpResponse": {
+              "success": true,
+              "result": {
+                "id": "30084879",
+                "margin_mode": "isolated"
+              }
+            },
+            "parsedResponse": {
+              "success": true,
+              "result": {
+                "id": "30084879",
+                "margin_mode": "isolated"
+              }
+            }
+          }
+        ],
         "fetchOrder": [
             {
                 "description": "fetchOrder",

@@ -847,6 +847,7 @@ public partial class testMainClass
             { "fetchTransactions", new List<object>() {code} },
             { "fetchDeposits", new List<object>() {code} },
             { "fetchWithdrawals", new List<object>() {code} },
+            { "fetchTransfers", new List<object>() {code} },
             { "fetchBorrowInterest", new List<object>() {code, symbol} },
             { "cancelAllOrders", new List<object>() {symbol} },
             { "fetchCanceledOrders", new List<object>() {symbol} },

@@ -14,12 +14,11 @@ use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 
 class bybit extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bybit',
@@ -127,6 +126,7 @@ class bybit extends Exchange {
                 'fetchPositionsHistory' => true,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -227,6 +227,7 @@ class bybit extends Exchange {
                         'derivatives/v3/public/insurance' => 1,
                         // v5
                         'v5/announcements/index' => 5, // 10/s = 1000 / (20 * 5)
+                        'v5/system/status' => 5,
                         // market
                         'v5/market/time' => 5,
                         'v5/market/kline' => 5,
@@ -235,6 +236,8 @@ class bybit extends Exchange {
                         'v5/market/premium-index-price-kline' => 5,
                         'v5/market/instruments-info' => 5,
                         'v5/market/orderbook' => 5,
+                        'v5/market/rpi_orderbook' => 5,
+                        'v5/market/full_orderbook' => 5,
                         'v5/market/tickers' => 5,
                         'v5/market/funding/history' => 5,
                         'v5/market/recent-trade' => 5,
@@ -243,7 +246,12 @@ class bybit extends Exchange {
                         'v5/market/insurance' => 5,
                         'v5/market/risk-limit' => 5,
                         'v5/market/delivery-price' => 5,
+                        'v5/market/new-delivery-price' => 5,
                         'v5/market/account-ratio' => 5,
+                        'v5/market/index-price-components' => 5,
+                        'v5/market/price-limit' => 5,
+                        'v5/market/adlAlert' => 5,
+                        'v5/market/fee-group-info' => 5,
                         // spot leverage token
                         'v5/spot-lever-token/info' => 5,
                         'v5/spot-lever-token/reference' => 5,
@@ -339,7 +347,9 @@ class bybit extends Exchange {
                         'v5/position/list' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/execution/list' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/closed-pnl' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/get-closed-positions' => 5,
                         'v5/position/move-history' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/symbol-info' => 5,
                         // pre-upgrade
                         'v5/pre-upgrade/order/history' => 5,
                         'v5/pre-upgrade/execution/list' => 5,
@@ -352,22 +362,31 @@ class bybit extends Exchange {
                         'v5/account/borrow-history' => 1,
                         'v5/account/instruments-info' => 1,
                         'v5/account/collateral-info' => 1,
+                        'v5/account/option-asset-info' => 1,
                         'v5/asset/coin-greeks' => 1,
                         'v5/account/fee-rate' => 10, // 5/s = 1000 / (20 * 10)
                         'v5/account/info' => 5,
                         'v5/account/transaction-log' => 1.66, // 30/s = 50 / 30
-                        'v5/account/contract-transaction-log' => 1,
+                        'v5/account/contract-transaction-log' => 1, // deprecated
+                        'v5/account/query-dcp-info' => 5,
+                        'v5/account/user-setting-config' => 5,
+                        'v5/account/pay-info' => 5,
+                        'v5/account/trade-info-for-analysis' => 5,
                         'v5/account/smp-group' => 1,
                         'v5/account/mmp-state' => 5,
                         'v5/account/withdrawal' => 5,
                         // asset
+                        'v5/asset/asset-overview' => 5,
                         'v5/asset/exchange/query-coin-list' => 0.5, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/convert-result-query' => 0.5, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/query-convert-history' => 0.5, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/order-record' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/fundinghistory' => 5,
+                        'v5/asset/portfolio-margin' => 5,
+                        'v5/asset/total-members-assets' => 5,
                         'v5/asset/delivery-record' => 5,
                         'v5/asset/settlement-record' => 5,
-                        'v5/asset/transfer/query-asset-info' => 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-asset-info' => 50, // deprecated, 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-account-coins-balance' => 25, // 2/s => cost = 50 / 2 = 25
                         'v5/asset/transfer/query-account-coin-balance' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-transfer-coin-list' => 50, // 1/s => cost = 50 / 1 = 50
@@ -385,6 +404,8 @@ class bybit extends Exchange {
                         'v5/asset/withdraw/query-record' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount' => 5,
                         'v5/asset/withdraw/vasp/list' => 5,
+                        'v5/asset/covert/small-balance-list' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/covert/small-balance-history' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/asset/convert/small-balance-list' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/asset/convert/small-balance-history' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/fiat/query-coin-list' => 5,
@@ -400,8 +421,11 @@ class bybit extends Exchange {
                         'v5/user/aff-customer-info' => 5,
                         'v5/user/del-submember' => 5,
                         'v5/user/submembers' => 5,
+                        'v5/user/escrow_sub_members' => 5,
+                        'v5/user/invitation/referrals' => 5,
                         // affilate
                         'v5/affiliate/aff-user-list' => 5,
+                        'v5/affiliate/affiliate-sub-list' => 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record' => 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
@@ -410,6 +434,11 @@ class bybit extends Exchange {
                         'v5/spot-margin-trade/max-borrowable' => 5,
                         'v5/spot-margin-trade/position-tiers' => 5,
                         'v5/spot-margin-trade/coinstate' => 5,
+                        'v5/spot-margin-trade/currency-data' => 5,
+                        'v5/spot-margin-trade/fixedborrow-contract-info' => 5,
+                        'v5/spot-margin-trade/fixedborrow-order-info' => 5,
+                        'v5/spot-margin-trade/fixedborrow-order-quote' => 5,
+                        'v5/spot-margin-trade/liability' => 5,
                         'v5/spot-margin-trade/repayment-available-amount' => 5,
                         'v5/spot-margin-trade/get-auto-repay-mode' => 5,
                         'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
@@ -438,14 +467,17 @@ class bybit extends Exchange {
                         'v5/crypto-loan-fixed/repayment-history' => 10, // 5/s => cost = 50 / 5 = 10
                         // institutional lending
                         'v5/ins-loan/product-infos' => 5,
+                        'v5/ins-loan/ensure-tokens' => 5, // deprecated
                         'v5/ins-loan/ensure-tokens-convert' => 5,
                         'v5/ins-loan/loan-order' => 5,
                         'v5/ins-loan/repaid-history' => 5,
+                        'v5/ins-loan/ltv' => 5, // deprecated
                         'v5/ins-loan/ltv-convert' => 5,
+                        'v5/ins-loan/coin-delta-amount' => 5,
                         // c2c lending
-                        'v5/lending/info' => 5,
-                        'v5/lending/history-order' => 5,
-                        'v5/lending/account' => 5,
+                        'v5/lending/info' => 5, // deprecated
+                        'v5/lending/history-order' => 5, // deprecated
+                        'v5/lending/account' => 5, // deprecated
                         // broker
                         'v5/broker/earning-record' => 5, // deprecated
                         'v5/broker/earnings-info' => 5,
@@ -530,12 +562,13 @@ class bybit extends Exchange {
                         'v5/order/amend-batch' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/cancel-batch' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/disconnected-cancel-all' => 5,
+                        'v5/order/pre-check' => 5,
                         // position
                         'v5/position/set-leverage' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-isolated' => 5,
-                        'v5/position/set-tpsl-mode' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/switch-isolated' => 5, // deprecated
+                        'v5/position/set-tpsl-mode' => 5, // deprecated, 10/s => cost = 50 / 10 = 5
                         'v5/position/switch-mode' => 5,
-                        'v5/position/set-risk-limit' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/set-risk-limit' => 5, // deprecated, 10/s => cost = 50 / 10 = 5
                         'v5/position/trading-stop' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin' => 5,
                         'v5/position/add-margin' => 5,
@@ -552,13 +585,15 @@ class bybit extends Exchange {
                         'v5/account/repay' => 5,
                         'v5/account/no-convert-repay' => 5,
                         'v5/account/set-limit-px-action' => 5,
+                        'v5/account/set-delta-mode' => 5,
                         // asset
                         'v5/asset/exchange/quote-apply' => 1, // 50/s
                         'v5/asset/exchange/convert-execute' => 1, // 50/s
                         'v5/asset/transfer/inter-transfer' => 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/save-transfer-sub-member' => 150, // 1/3/s => cost = 50 / 1/3 = 150
+                        'v5/asset/transfer/save-transfer-sub-member' => 150, // deprecated, 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account' => 5,
+                        'v5/asset/travel-rule/deposit/submit' => 5,
                         'v5/asset/withdraw/create' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/withdraw/cancel' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/covert/get-quote' => 10, // 5/s => cost = 50 / 5 = 10
@@ -573,6 +608,8 @@ class bybit extends Exchange {
                         'v5/user/update-sub-api' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/user/delete-api' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/user/delete-sub-api' => 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/agreement' => 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-demo-member' => 10, // 5/s => cost = 50 / 5 = 10
                         // spot leverage token
                         'v5/spot-lever-token/purchase' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-lever-token/redeem' => 2.5, // 20/s => cost = 50 / 20 = 2.5
@@ -580,6 +617,8 @@ class bybit extends Exchange {
                         'v5/spot-margin-trade/switch-mode' => 5,
                         'v5/spot-margin-trade/set-leverage' => 5,
                         'v5/spot-margin-trade/set-auto-repay-mode' => 5,
+                        'v5/spot-margin-trade/fixedborrow' => 5,
+                        'v5/spot-margin-trade/fixedborrow-renew' => 5,
                         'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
@@ -604,9 +643,9 @@ class bybit extends Exchange {
                         'v5/ins-loan/association-uid' => 5,
                         'v5/ins-loan/repay-loan' => 5,
                         // c2c lending
-                        'v5/lending/purchase' => 5,
-                        'v5/lending/redeem' => 5,
-                        'v5/lending/redeem-cancel' => 5,
+                        'v5/lending/purchase' => 5, // deprecated
+                        'v5/lending/redeem' => 5, // deprecated
+                        'v5/lending/redeem-cancel' => 5, // deprecated
                         'v5/account/set-collateral-switch' => 5,
                         'v5/account/set-collateral-switch-batch' => 5,
                         // demo trading
@@ -1395,7 +1434,7 @@ class bybit extends Exchange {
         return $data;
     }
 
-    public function is_unified_enabled($params = array ()) {
+    public function is_unified_enabled($params = array()) {
         return Async\async(function () use ($params) {
             /**
              *
@@ -1418,9 +1457,9 @@ class bybit extends Exchange {
                     $this->options['enableUnifiedMargin'] = false;
                     $this->options['enableUnifiedAccount'] = true;
                     $this->options['unifiedMarginStatus'] = 6;
-                    return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
+                    return array( $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] );
                 }
-                $rawPromises = array( $this->privateGetV5UserQueryApi ($params), $this->privateGetV5AccountInfo ($params) );
+                $rawPromises = array( $this->privateGetV5UserQueryApi($params), $this->privateGetV5AccountInfo($params) );
                 $promises = Async\await(Promise\all($rawPromises));
                 $response = $promises[0];
                 $accountInfo = $promises[1];
@@ -1485,11 +1524,11 @@ class bybit extends Exchange {
                 $this->options['enableUnifiedAccount'] = $this->safe_integer($result, 'uta') === 1;
                 $this->options['unifiedMarginStatus'] = $this->safe_integer($accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
             }
-            return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
-        }) ();
+            return array( $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] );
+        })();
     }
 
-    public function upgrade_unified_trade_account($params = array ()) {
+    public function upgrade_unified_trade_account($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * upgrades the account to unified trade account *warning* this is irreversible
@@ -1499,8 +1538,8 @@ class bybit extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} nothing
              */
-            return Async\await($this->privatePostV5AccountUpgradeToUta ($params));
-        }) ();
+            return Async\await($this->privatePostV5AccountUpgradeToUta($params));
+        })();
     }
 
     public function create_expired_option_market(string $symbol) {
@@ -1603,7 +1642,7 @@ class bybit extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function get_bybit_type($method, $market, $params = array ()): array {
+    public function get_bybit_type($method, $market, $params = array()): array {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params($method, $market, $params);
         $subType = null;
@@ -1647,7 +1686,71 @@ class bybit extends Exchange {
         return $cost;
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_status($params = array()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * the latest known information on the availability of the exchange API
+             *
+             * @see https://bybit-exchange.github.io/docs/v5/system-$status
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a [$status structure](https://docs.ccxt.com/#/?id=exchange-$status-structure)
+             */
+            $response = Async\await($this->publicGetV5SystemStatus($params));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => {
+            //             "list" => array(
+            //                 array(
+            //                     "id" => "f9d6842d-5331-11f0-8fd3-c241b123dd9e",
+            //                     "title" => "t01",
+            //                     "state" => "completed",
+            //                     "begin" => "1751012688000",
+            //                     "end" => "1751012760000",
+            //                     "href" => "",
+            //                     "serviceTypes" => array( 1, 2, 3, 4, 5 ),
+            //                     "product" => array( 1, 2, 3, 4 ),
+            //                     "uidSuffix" => array(),
+            //                     "maintainType" => 3,
+            //                     "env" => 2
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1751858399649
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $list = $this->safe_list($result, 'list', array());
+            $status = 'ok';
+            $eta = null;
+            $url = null;
+            for ($i = 0; $i < count($list); $i++) {
+                $event = $list[$i];
+                $state = $this->safe_string($event, 'state');
+                if ($state === 'ongoing') {
+                    $status = 'maintenance';
+                    $eta = $this->safe_integer($event, 'end');
+                    $url = $this->safe_string($event, 'href');
+                    break;
+                } elseif ($state === 'scheduled') {
+                    $eta = $this->safe_integer($event, 'begin');
+                    $url = $this->safe_string($event, 'href');
+                }
+            }
+            return array(
+                'status' => $status,
+                'updated' => null,
+                'eta' => $eta,
+                'url' => $url,
+                'info' => $response,
+            );
+        })();
+    }
+
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1657,7 +1760,7 @@ class bybit extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetV5MarketTime ($params));
+            $response = Async\await($this->publicGetV5MarketTime($params));
             //
             //    {
             //         "retCode" => "0",
@@ -1671,10 +1774,10 @@ class bybit extends Exchange {
             //     }
             //
             return $this->safe_integer($response, 'time');
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -1690,7 +1793,7 @@ class bybit extends Exchange {
             if ($this->options['enableDemoTrading']) {
                 return array();
             }
-            $response = Async\await($this->privateGetV5AssetCoinQueryInfo ($params));
+            $response = Async\await($this->privateGetV5AssetCoinQueryInfo($params));
             //
             //     {
             //         "retCode" => 0,
@@ -1724,7 +1827,7 @@ class bybit extends Exchange {
             $data = $this->safe_dict($response, 'result', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_currencies($rows);
-        }) ();
+        })();
     }
 
     public function parse_currency(array $currency): array {
@@ -1787,7 +1890,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bybit
@@ -1846,7 +1949,7 @@ class bybit extends Exchange {
             // $derivativeMarkets = $this->array_concat($futureMarkets, $optionMarkets);
             // return $this->array_concat($spotMarkets, $derivativeMarkets);
             return $result;
-        }) ();
+        })();
     }
 
     public function fetch_spot_markets($params): PromiseInterface {
@@ -1856,9 +1959,9 @@ class bybit extends Exchange {
             );
             $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
             if ($usePrivateInstrumentsInfo) {
-                $response = Async\await($this->privateGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV5MarketInstrumentsInfo($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetV5MarketInstrumentsInfo($this->extend($request, $params)));
             }
             //
             //     {
@@ -1965,10 +2068,10 @@ class bybit extends Exchange {
                 ));
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_future_markets($params = array ()): PromiseInterface {
+    public function fetch_future_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             $params = $this->extend($params, array());
             $params['limit'] = 1000; // minimize number of requests
@@ -1976,11 +2079,11 @@ class bybit extends Exchange {
             $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
             $response = null;
             if ($usePrivateInstrumentsInfo) {
-                $response = Async\await($this->privateGetV5MarketInstrumentsInfo ($params));
+                $response = Async\await($this->privateGetV5MarketInstrumentsInfo($params));
             } else {
                 $linearPromises = array(
-                    $this->publicGetV5MarketInstrumentsInfo ($params),
-                    $this->publicGetV5MarketInstrumentsInfo ($this->extend($params, array( 'status' => 'PreLaunch' ))),
+                    $this->publicGetV5MarketInstrumentsInfo($params),
+                    $this->publicGetV5MarketInstrumentsInfo($this->extend($params, array( 'status' => 'PreLaunch' ))),
                 );
                 $promises = Async\await(Promise\all($linearPromises));
                 $response = $this->safe_dict($promises, 0, array());
@@ -1993,9 +2096,9 @@ class bybit extends Exchange {
                 while ($paginationCursor !== null) {
                     $params['cursor'] = $paginationCursor;
                     if ($usePrivateInstrumentsInfo) {
-                        $responseInner = Async\await($this->privateGetV5MarketInstrumentsInfo ($params));
+                        $responseInner = Async\await($this->privateGetV5MarketInstrumentsInfo($params));
                     } else {
-                        $responseInner = Async\await($this->publicGetV5MarketInstrumentsInfo ($params));
+                        $responseInner = Async\await($this->publicGetV5MarketInstrumentsInfo($params));
                     }
                     $dataNew = $this->safe_dict($responseInner, 'result', array());
                     $rawMarkets = $this->safe_list($dataNew, 'list', array());
@@ -2162,7 +2265,7 @@ class bybit extends Exchange {
                 $result[] = $parsedMarket;
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function fetch_option_markets($params): PromiseInterface {
@@ -2172,9 +2275,9 @@ class bybit extends Exchange {
             );
             $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
             if ($usePrivateInstrumentsInfo) {
-                $response = Async\await($this->privateGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV5MarketInstrumentsInfo($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetV5MarketInstrumentsInfo($this->extend($request, $params)));
             }
             $data = $this->safe_dict($response, 'result', array());
             $markets = $this->safe_list($data, 'list', array());
@@ -2185,9 +2288,9 @@ class bybit extends Exchange {
                     while ($paginationCursor !== null) {
                         $request['cursor'] = $paginationCursor;
                         if ($usePrivateInstrumentsInfo) {
-                            $responseInner = Async\await($this->privateGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+                            $responseInner = Async\await($this->privateGetV5MarketInstrumentsInfo($this->extend($request, $params)));
                         } else {
-                            $responseInner = Async\await($this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+                            $responseInner = Async\await($this->publicGetV5MarketInstrumentsInfo($this->extend($request, $params)));
                         }
                         $dataNew = $this->safe_dict($responseInner, 'result', array());
                         $rawMarkets = $this->safe_list($dataNew, 'list', array());
@@ -2310,7 +2413,7 @@ class bybit extends Exchange {
                 }
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -2433,7 +2536,7 @@ class bybit extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -2457,7 +2560,7 @@ class bybit extends Exchange {
             $category = null;
             list($category, $params) = $this->get_bybit_type('fetchTicker', $market, $params);
             $request['category'] = $category;
-            $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketTickers($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -2500,10 +2603,10 @@ class bybit extends Exchange {
             $tickers = $this->safe_list($result, 'list', array());
             $rawTicker = $this->safe_dict($tickers, 0);
             return $this->parse_ticker($rawTicker, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -2568,7 +2671,7 @@ class bybit extends Exchange {
                 }
                 $request['baseCoin'] = $code;
             }
-            $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketTickers($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -2610,10 +2713,10 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $tickerList = $this->safe_list($result, 'list', array());
             return $this->parse_tickers($tickerList, $parsedSymbols);
-        }) ();
+        })();
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
@@ -2627,7 +2730,7 @@ class bybit extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
             return Async\await($this->fetch_tickers($symbols, $params));
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -2654,7 +2757,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -2699,7 +2802,7 @@ class bybit extends Exchange {
             $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             if ($market['spot']) {
                 $request['category'] = 'spot';
-                $response = Async\await($this->publicGetV5MarketKline ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetV5MarketKline($this->extend($request, $params)));
             } else {
                 $price = $this->safe_string($params, 'price');
                 $params = $this->omit($params, 'price');
@@ -2711,13 +2814,13 @@ class bybit extends Exchange {
                     throw new NotSupported($this->id . ' fetchOHLCV() is not supported for option markets');
                 }
                 if ($price === 'mark') {
-                    $response = Async\await($this->publicGetV5MarketMarkPriceKline ($this->extend($request, $params)));
+                    $response = Async\await($this->publicGetV5MarketMarkPriceKline($this->extend($request, $params)));
                 } elseif ($price === 'index') {
-                    $response = Async\await($this->publicGetV5MarketIndexPriceKline ($this->extend($request, $params)));
+                    $response = Async\await($this->publicGetV5MarketIndexPriceKline($this->extend($request, $params)));
                 } elseif ($price === 'premiumIndex') {
-                    $response = Async\await($this->publicGetV5MarketPremiumIndexPriceKline ($this->extend($request, $params)));
+                    $response = Async\await($this->publicGetV5MarketPremiumIndexPriceKline($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->publicGetV5MarketKline ($this->extend($request, $params)));
+                    $response = Async\await($this->publicGetV5MarketKline($this->extend($request, $params)));
                 }
             }
             //
@@ -2764,7 +2867,7 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $ohlcvs = $this->safe_list($result, 'list', array());
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($ticker, ?array $market = null): array {
@@ -2830,7 +2933,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches funding rates for multiple markets
@@ -2861,7 +2964,7 @@ class bybit extends Exchange {
                 list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRates', $market, $params, 'linear');
                 $request['category'] = $subType;
             }
-            $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketTickers($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -2905,10 +3008,10 @@ class bybit extends Exchange {
                 $tickerList[$i]['timestamp'] = $timestamp; // will be removed inside the parser
             }
             return $this->parse_funding_rates($tickerList, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -2970,7 +3073,7 @@ class bybit extends Exchange {
                     $request['endTime'] = $this->sum($since, $limit * $fundingInterval);
                 }
             }
-            $response = Async\await($this->publicGetV5MarketFundingHistory ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketFundingHistory($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -3005,7 +3108,7 @@ class bybit extends Exchange {
             }
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -3245,7 +3348,7 @@ class bybit extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -3278,7 +3381,7 @@ class bybit extends Exchange {
             $type = null;
             list($type, $params) = $this->get_bybit_type('fetchTrades', $market, $params);
             $request['category'] = $type;
-            $response = Async\await($this->publicGetV5MarketRecentTrade ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketRecentTrade($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -3304,10 +3407,10 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $trades = $this->safe_list($result, 'list', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -3317,7 +3420,7 @@ class bybit extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
@@ -3345,7 +3448,7 @@ class bybit extends Exchange {
                 }
             }
             $request['limit'] = ($limit !== null) ? $limit : $defaultLimit;
-            $response = Async\await($this->publicGetV5MarketOrderbook ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketOrderbook($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -3374,7 +3477,7 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $timestamp = $this->safe_integer($result, 'ts');
             return $this->parse_order_book($result, $symbol, $timestamp, 'b', 'a');
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -3545,7 +3648,7 @@ class bybit extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -3597,15 +3700,15 @@ class bybit extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
             if ($isSpot && ($marginMode !== null)) {
-                $response = Async\await($this->privateGetV5SpotCrossMarginTradeAccount ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV5SpotCrossMarginTradeAccount($this->extend($request, $params)));
             } elseif ($isFunding) {
                 // use this endpoint only we have no other choice
                 // because it requires transfer permission
                 $request['accountType'] = 'FUND';
-                $response = Async\await($this->privateGetV5AssetTransferQueryAccountCoinsBalance ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV5AssetTransferQueryAccountCoinsBalance($this->extend($request, $params)));
             } else {
                 $request['accountType'] = $unifiedType;
-                $response = Async\await($this->privateGetV5AccountWalletBalance ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV5AccountWalletBalance($this->extend($request, $params)));
             }
             //
             // cross
@@ -3710,7 +3813,7 @@ class bybit extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -3972,7 +4075,7 @@ class bybit extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()): PromiseInterface {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -3993,10 +4096,10 @@ class bybit extends Exchange {
                 'cost' => $cost,
             );
             return Async\await($this->create_order($symbol, 'market', 'buy', -1, null, $this->extend($req, $params)));
-        }) ();
+        })();
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()): PromiseInterface {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market sell order by providing the $symbol and $cost
@@ -4022,10 +4125,10 @@ class bybit extends Exchange {
                 'cost' => $cost,
             );
             return Async\await($this->create_order($symbol, 'market', 'sell', -1, null, $this->extend($req, $params)));
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -4080,9 +4183,9 @@ class bybit extends Exchange {
             $method = null;
             list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', $defaultMethod);
             if ($method === 'privatePostV5PositionTradingStop') {
-                $response = Async\await($this->privatePostV5PositionTradingStop ($orderRequest));
+                $response = Async\await($this->privatePostV5PositionTradingStop($orderRequest));
             } else {
-                $response = Async\await($this->privatePostV5OrderCreate ($orderRequest));
+                $response = Async\await($this->privatePostV5OrderCreate($orderRequest));
             }
             //
             //     {
@@ -4098,10 +4201,10 @@ class bybit extends Exchange {
             //
             $order = $this->safe_dict($response, 'result', array());
             return $this->parse_order($order, $market);
-        }) ();
+        })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array (), $isUTA = true) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array(), $isUTA = true) {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $lowerCaseType = strtolower($type);
@@ -4386,7 +4489,7 @@ class bybit extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_orders(array $orders, $params = array ()): PromiseInterface {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(function () use ($orders, $params) {
             /**
              * create a list of trade $orders
@@ -4427,7 +4530,7 @@ class bybit extends Exchange {
                 'category' => $category,
                 'request' => $ordersRequests,
             );
-            $response = Async\await($this->privatePostV5OrderCreateBatch ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5OrderCreateBatch($this->extend($request, $params)));
             $result = $this->safe_dict($response, 'result', array());
             $data = $this->safe_list($result, 'list', array());
             $retInfo = $this->safe_dict($response, 'retExtInfo', array());
@@ -4478,10 +4581,10 @@ class bybit extends Exchange {
             // }
             //
             return $this->parse_orders($data);
-        }) ();
+        })();
     }
 
-    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -4549,7 +4652,7 @@ class bybit extends Exchange {
         return $request;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -4584,7 +4687,7 @@ class bybit extends Exchange {
             }
             $market = $this->market($symbol);
             $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
-            $response = Async\await($this->privatePostV5OrderAmend ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5OrderAmend($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -4603,10 +4706,10 @@ class bybit extends Exchange {
                 'id' => $this->safe_string($result, 'orderId'),
                 'clientOrderId' => $this->safe_string($result, 'orderLinkId'),
             ), $market);
-        }) ();
+        })();
     }
 
-    public function edit_orders(array $orders, $params = array ()): PromiseInterface {
+    public function edit_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(function () use ($orders, $params) {
             /**
              * edit a list of trade $orders
@@ -4646,7 +4749,7 @@ class bybit extends Exchange {
                 'category' => $category,
                 'request' => $ordersRequests,
             );
-            $response = Async\await($this->privatePostV5OrderAmendBatch ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5OrderAmendBatch($this->extend($request, $params)));
             $result = $this->safe_dict($response, 'result', array());
             $data = $this->safe_list($result, 'list', array());
             $retInfo = $this->safe_dict($response, 'retExtInfo', array());
@@ -4695,10 +4798,10 @@ class bybit extends Exchange {
             // }
             //
             return $this->parse_orders($data);
-        }) ();
+        })();
     }
 
-    public function cancel_order_request(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order_request(string $id, ?string $symbol = null, $params = array()) {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -4722,7 +4825,7 @@ class bybit extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -4743,7 +4846,7 @@ class bybit extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $requestExtended = $this->cancel_order_request($id, $symbol, $params);
-            $response = Async\await($this->privatePostV5OrderCancel ($requestExtended));
+            $response = Async\await($this->privatePostV5OrderCancel($requestExtended));
             //
             //     {
             //         "retCode" => 0,
@@ -4758,10 +4861,10 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -4808,7 +4911,7 @@ class bybit extends Exchange {
                 'category' => $category,
                 'request' => $ordersRequests,
             );
-            $response = Async\await($this->privatePostV5OrderCancelBatch ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5OrderCancelBatch($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => "0",
@@ -4847,10 +4950,10 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $row = $this->safe_list($result, 'list', array());
             return $this->parse_orders($row, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()) {
         return Async\async(function () use ($timeout, $params) {
             /**
              * dead man's switch, cancel all orders after the given $timeout
@@ -4875,7 +4978,7 @@ class bybit extends Exchange {
             );
             $product = $this->safe_string($productMap, $type, $type);
             $request['product'] = $product;
-            $response = Async\await($this->privatePostV5OrderDisconnectedCancelAll ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5OrderDisconnectedCancelAll($this->extend($request, $params)));
             //
             // {
             //     "retCode" => 0,
@@ -4883,10 +4986,10 @@ class bybit extends Exchange {
             // }
             //
             return $response;
-        }) ();
+        })();
     }
 
-    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+    public function cancel_orders_for_symbols(array $orders, $params = array()) {
         return Async\async(function () use ($orders, $params) {
             /**
              * cancel multiple $orders for multiple symbols
@@ -4934,7 +5037,7 @@ class bybit extends Exchange {
                 'category' => $category,
                 'request' => $ordersRequests,
             );
-            $response = Async\await($this->privatePostV5OrderCancelBatch ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5OrderCancelBatch($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => "0",
@@ -4973,10 +5076,10 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $row = $this->safe_list($result, 'list', array());
             return $this->parse_orders($row);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open $orders
@@ -5020,7 +5123,7 @@ class bybit extends Exchange {
             if ($isTrigger) {
                 $request['orderFilter'] = 'StopOrder';
             }
-            $response = Async\await($this->privatePostV5OrderCancelAll ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5OrderCancelAll($this->extend($request, $params)));
             //
             // linear / inverse / option
             //     {
@@ -5055,10 +5158,10 @@ class bybit extends Exchange {
                 return array( $this->safe_order(array( 'info' => $response )) );
             }
             return $this->parse_orders($orders, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_order_classic(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function fetch_order_classic(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user *classic accounts only*
@@ -5092,10 +5195,10 @@ class bybit extends Exchange {
                 throw new InvalidOrder($this->id . ' returned more than one order');
             }
             return $this->safe_value($result, 0);
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *  *classic accounts only/ spot not supported*  fetches information on an $order made by the user *classic accounts only*
@@ -5132,7 +5235,7 @@ class bybit extends Exchange {
             if ($isTrigger) {
                 $request['orderFilter'] = 'StopOrder';
             }
-            $response = Async\await($this->privateGetV5OrderRealtime ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5OrderRealtime($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -5190,10 +5293,10 @@ class bybit extends Exchange {
             }
             $order = $this->safe_dict($innerList, 0, array());
             return $this->parse_order($order, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             $res = Async\await($this->is_unified_enabled());
             /**
@@ -5217,10 +5320,10 @@ class bybit extends Exchange {
                 throw new NotSupported($this->id . ' fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders');
             }
             return Async\await($this->fetch_orders_classic($symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_orders_classic(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders_classic(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user *classic accounts only*
@@ -5275,7 +5378,7 @@ class bybit extends Exchange {
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
             }
-            $response = Async\await($this->privateGetV5OrderHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5OrderHistory($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -5328,10 +5431,10 @@ class bybit extends Exchange {
             //
             $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on a closed order made by the user
@@ -5363,10 +5466,10 @@ class bybit extends Exchange {
                 throw new InvalidOrder($this->id . ' returned more than one order');
             }
             return $this->safe_value($result, 0);
-        }) ();
+        })();
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an open order made by the user
@@ -5400,10 +5503,10 @@ class bybit extends Exchange {
                 throw new InvalidOrder($this->id . ' returned more than one order');
             }
             return $this->safe_value($result, 0);
-        }) ();
+        })();
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled and closed orders made by the user
@@ -5455,7 +5558,7 @@ class bybit extends Exchange {
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
             }
-            $response = Async\await($this->privateGetV5OrderHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5OrderHistory($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -5522,10 +5625,10 @@ class bybit extends Exchange {
             //
             $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -5550,10 +5653,10 @@ class bybit extends Exchange {
                 'orderStatus' => 'Filled',
             );
             return Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
@@ -5578,10 +5681,10 @@ class bybit extends Exchange {
                 'orderStatus' => 'Cancelled',
             );
             return Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -5633,7 +5736,7 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV5OrderRealtime ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5OrderRealtime($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -5700,10 +5803,10 @@ class bybit extends Exchange {
             //
             $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -5726,10 +5829,10 @@ class bybit extends Exchange {
             }
             $params = $this->omit($params, array( 'clientOrderId', 'orderLinkId' ));
             return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -5769,7 +5872,7 @@ class bybit extends Exchange {
                 $request['startTime'] = $since;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->privateGetV5ExecutionList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5ExecutionList($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -5812,7 +5915,7 @@ class bybit extends Exchange {
             //
             $trades = $this->add_pagination_cursor_to_result($response);
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -5837,7 +5940,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network
@@ -5858,7 +5961,7 @@ class bybit extends Exchange {
             if ($networkCode !== null) {
                 $request['chainType'] = $this->network_code_to_id($networkCode, $code);
             }
-            $response = Async\await($this->privateGetV5AssetDepositQueryAddress ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5AssetDepositQueryAddress($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -5882,14 +5985,14 @@ class bybit extends Exchange {
             $chains = $this->safe_list($result, 'chains', array());
             $coin = $this->safe_string($result, 'coin');
             $currencyFromResponse = $this->currency($coin);
-            $parsed = $this->parse_deposit_addresses($chains, [ $currencyFromResponse['code'] ], false, array(
+            $parsed = $this->parse_deposit_addresses($chains, array( $currencyFromResponse['code'] ), false, array(
                 'currency' => $currencyFromResponse['code'],
             ));
             return $this->index_by($parsed, 'network');
-        }) ();
+        })();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -5906,10 +6009,10 @@ class bybit extends Exchange {
             $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
             $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
             return $indexedAddresses[$selectedNetworkCode];
-        }) ();
+        })();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -5949,7 +6052,7 @@ class bybit extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->privateGetV5AssetDepositQueryRecord ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5AssetDepositQueryRecord($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -5979,10 +6082,10 @@ class bybit extends Exchange {
             //
             $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_transactions($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -6020,7 +6123,7 @@ class bybit extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->privateGetV5AssetWithdrawQueryRecord ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5AssetWithdrawQueryRecord($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -6064,7 +6167,7 @@ class bybit extends Exchange {
             //
             $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_transactions($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_transaction_status(?string $status) {
@@ -6167,7 +6270,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -6233,12 +6336,12 @@ class bybit extends Exchange {
             if ($enableUnified[1]) {
                 $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
                 if ($subType === 'inverse' && ($unifiedMarginStatus < 5)) {
-                    $response = Async\await($this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params)));
+                    $response = Async\await($this->privateGetV5AccountContractTransactionLog($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->privateGetV5AccountTransactionLog ($this->extend($request, $params)));
+                    $response = Async\await($this->privateGetV5AccountTransactionLog($this->extend($request, $params)));
                 }
             } else {
-                $response = Async\await($this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV5AccountContractTransactionLog($this->extend($request, $params)));
             }
             //
             //     {
@@ -6345,7 +6448,7 @@ class bybit extends Exchange {
             //
             $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_ledger($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -6452,7 +6555,7 @@ class bybit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -6493,7 +6596,7 @@ class bybit extends Exchange {
             if ($networkId !== null) {
                 $request['chain'] = strtoupper($networkId);
             }
-            $response = Async\await($this->privatePostV5AssetWithdrawCreate ($this->extend($request, $query)));
+            $response = Async\await($this->privatePostV5AssetWithdrawCreate($this->extend($request, $query)));
             //
             //    {
             //         "retCode" => "0",
@@ -6507,10 +6610,10 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_transaction($result, $currency);
-        }) ();
+        })();
     }
 
-    public function fetch_position(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade $position
@@ -6533,7 +6636,7 @@ class bybit extends Exchange {
             $type = null;
             list($type, $params) = $this->get_bybit_type('fetchPosition', $market, $params);
             $request['category'] = $type;
-            $response = Async\await($this->privateGetV5PositionList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5PositionList($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -6582,10 +6685,10 @@ class bybit extends Exchange {
             $position['timestamp'] = $timestamp;
             $position['datetime'] = $this->iso8601($timestamp);
             return $position;
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
@@ -6649,7 +6752,7 @@ class bybit extends Exchange {
             }
             $params = $this->omit($params, array( 'type' ));
             $request['category'] = $type;
-            $response = Async\await($this->privateGetV5PositionList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5PositionList($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -6696,7 +6799,7 @@ class bybit extends Exchange {
                 $results[] = $this->parse_position($rawPosition);
             }
             return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -6945,7 +7048,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -6960,7 +7063,7 @@ class bybit extends Exchange {
             $market = $this->market($symbol);
             $position = Async\await($this->fetch_position($symbol, $params));
             return $this->parse_leverage($position, $market);
-        }) ();
+        })();
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -6975,7 +7078,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode (account) or trade mode ($symbol)
@@ -7006,7 +7109,7 @@ class bybit extends Exchange {
                 $request = array(
                     'setMarginMode' => $marginMode,
                 );
-                $response = Async\await($this->privatePostV5AccountSetMarginMode ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostV5AccountSetMarginMode($this->extend($request, $params)));
             } else {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol parameter for non unified account');
@@ -7024,7 +7127,7 @@ class bybit extends Exchange {
                     $request = array(
                         'setMarginMode' => $marginMode,
                     );
-                    $response = Async\await($this->privatePostV5AccountSetMarginMode ($this->extend($request, $params)));
+                    $response = Async\await($this->privatePostV5AccountSetMarginMode($this->extend($request, $params)));
                 } else {
                     $type = null;
                     list($type, $params) = $this->get_bybit_type('setPositionMode', $market, $params);
@@ -7064,14 +7167,14 @@ class bybit extends Exchange {
                         'buyLeverage' => $buyLeverage,
                         'sellLeverage' => $sellLeverage,
                     );
-                    $response = Async\await($this->privatePostV5PositionSwitchIsolated ($this->extend($request, $params)));
+                    $response = Async\await($this->privatePostV5PositionSwitchIsolated($this->extend($request, $params)));
                 }
             }
             return $response;
-        }) ();
+        })();
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -7109,12 +7212,12 @@ class bybit extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' setLeverage() only support linear and inverse market');
             }
-            $response = Async\await($this->privatePostV5PositionSetLeverage ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5PositionSetLeverage($this->extend($request, $params)));
             return $response;
-        }) ();
+        })();
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false for a $market
@@ -7153,7 +7256,7 @@ class bybit extends Exchange {
                 $request['category'] = $type;
             }
             $params = $this->omit($params, 'type');
-            $response = Async\await($this->privatePostV5PositionSwitchMode ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5PositionSwitchMode($this->extend($request, $params)));
             //
             // v5
             //     {
@@ -7164,10 +7267,10 @@ class bybit extends Exchange {
             //         "time" => 1675249072814
             //     }
             return $response;
-        }) ();
+        })();
     }
 
-    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -7194,7 +7297,7 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetV5MarketOpenInterest ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketOpenInterest($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -7223,10 +7326,10 @@ class bybit extends Exchange {
             $id = $this->safe_string($result, 'symbol');
             $safeMarketObj = $this->safe_market($id, $market, null, 'contract');
             return $this->parse_open_interests_history($data, $safeMarketObj, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * Retrieves the open interest of a derivative trading pair
@@ -7257,7 +7360,7 @@ class bybit extends Exchange {
                 'intervalTime' => $interval,
                 'category' => $category,
             );
-            $response = Async\await($this->publicGetV5MarketOpenInterest ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketOpenInterest($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -7286,10 +7389,10 @@ class bybit extends Exchange {
             $safeMarketObj = $this->safe_market($id, $market, null, 'contract');
             $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_open_interest($data[0], $safeMarketObj);
-        }) ();
+        })();
     }
 
-    public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
@@ -7325,7 +7428,7 @@ class bybit extends Exchange {
                 $request['limit'] = $limit;
             }
             return Async\await($this->fetch_derivatives_open_interest_history($symbol, $timeframe, $since, $limit, $params));
-        }) ();
+        })();
     }
 
     public function parse_open_interest($interest, ?array $market = null) {
@@ -7350,7 +7453,7 @@ class bybit extends Exchange {
         ), $market);
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()): PromiseInterface {
+    public function fetch_cross_borrow_rate(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the rate of interest to borrow a $currency for margin trading
@@ -7366,7 +7469,7 @@ class bybit extends Exchange {
             $request = array(
                 'coin' => $currency['id'],
             );
-            $response = Async\await($this->privateGetV5SpotCrossMarginTradeLoanInfo ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5SpotCrossMarginTradeLoanInfo($this->extend($request, $params)));
             //
             //    {
             //         "retCode" => "0",
@@ -7385,7 +7488,7 @@ class bybit extends Exchange {
             $data = $this->safe_dict($response, 'result', array());
             $data['timestamp'] = $timestamp;
             return $this->parse_borrow_rate($data, $currency);
-        }) ();
+        })();
     }
 
     public function parse_borrow_rate($info, ?array $currency = null) {
@@ -7420,7 +7523,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing currency for margin trading
@@ -7436,7 +7539,7 @@ class bybit extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $response = Async\await($this->privateGetV5SpotCrossMarginTradeAccount ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5SpotCrossMarginTradeAccount($this->extend($request, $params)));
             //
             //     {
             //         "ret_code" => 0,
@@ -7466,10 +7569,10 @@ class bybit extends Exchange {
             $rows = $this->safe_list($data, 'loanAccountList', array());
             $interest = $this->parse_borrow_interests($rows);
             return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * retrieves a history of a currencies borrow interest rate at specific time slots
@@ -7498,7 +7601,7 @@ class bybit extends Exchange {
                 $endTime = $since + 86400000 * 30; // $since + 30 days
             }
             $request['endTime'] = $endTime;
-            $response = Async\await($this->privateGetV5SpotMarginTradeInterestRateHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5SpotMarginTradeInterestRateHistory($this->extend($request, $params)));
             //
             //   {
             //       "retCode" => 0,
@@ -7520,7 +7623,7 @@ class bybit extends Exchange {
             $data = $this->safe_dict($response, 'result');
             $rows = $this->safe_list($data, 'list', array());
             return $this->parse_borrow_rate_history($rows, $code, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_borrow_interest(array $info, ?array $market = null): array {
@@ -7547,7 +7650,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -7576,7 +7679,7 @@ class bybit extends Exchange {
                 'coin' => $currency['id'],
                 'amount' => $amountToPrecision,
             );
-            $response = Async\await($this->privatePostV5AssetTransferInterTransfer ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5AssetTransferInterTransfer($this->extend($request, $params)));
             //
             // {
             //     "retCode" => 0,
@@ -7600,10 +7703,10 @@ class bybit extends Exchange {
                 'toAccount' => $toAccount,
                 'status' => $status,
             ));
-        }) ();
+        })();
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -7637,7 +7740,7 @@ class bybit extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->privateGetV5AssetTransferQueryInterTransferList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5AssetTransferQueryInterTransferList($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -7662,10 +7765,10 @@ class bybit extends Exchange {
             //
             $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_transfers($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -7683,7 +7786,7 @@ class bybit extends Exchange {
                 'coin' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $response = Async\await($this->privatePostV5AccountBorrow ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5AccountBorrow($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -7698,10 +7801,10 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_margin_loan($result, $currency);
-        }) ();
+        })();
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+    public function repay_cross_margin(string $code, $amount, $params = array()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -7719,7 +7822,7 @@ class bybit extends Exchange {
                 'coin' => $currency['id'],
                 'amount' => $this->number_to_string($amount),
             );
-            $response = Async\await($this->privatePostV5AccountNoConvertRepay ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5AccountNoConvertRepay($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -7736,7 +7839,7 @@ class bybit extends Exchange {
             return $this->extend($transaction, array(
                 'amount' => $amount,
             ));
-        }) ();
+        })();
     }
 
     public function parse_margin_loan($info, ?array $currency = null): array {
@@ -7815,7 +7918,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_derivatives_market_leverage_tiers(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_derivatives_market_leverage_tiers(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -7827,7 +7930,7 @@ class bybit extends Exchange {
             } elseif ($market['inverse']) {
                 $request['category'] = 'inverse';
             }
-            $response = Async\await($this->publicGetV5MarketRiskLimit ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketRiskLimit($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -7854,10 +7957,10 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result');
             $tiers = $this->safe_list($result, 'list');
             return $this->parse_market_leverage_tiers($tiers, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
@@ -7877,7 +7980,7 @@ class bybit extends Exchange {
             }
             $request['symbol'] = $market['id'];
             return Async\await($this->fetch_derivatives_market_leverage_tiers($symbol, $params));
-        }) ();
+        })();
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
@@ -7901,7 +8004,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading $fees for a $market
@@ -7920,7 +8023,7 @@ class bybit extends Exchange {
             $category = null;
             list($category, $params) = $this->get_bybit_type('fetchTradingFee', $market, $params);
             $request['category'] = $category;
-            $response = Async\await($this->privateGetV5AccountFeeRate ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5AccountFeeRate($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -7942,10 +8045,10 @@ class bybit extends Exchange {
             $fees = $this->safe_list($result, 'list', array());
             $first = $this->safe_dict($fees, 0, array());
             return $this->parse_trading_fee($first, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
+    public function fetch_trading_fees($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets
@@ -7962,7 +8065,7 @@ class bybit extends Exchange {
             if ($type === 'spot') {
                 throw new NotSupported($this->id . ' fetchTradingFees() is not supported for spot market');
             }
-            $response = Async\await($this->privateGetV5AccountFeeRate ($params));
+            $response = Async\await($this->privateGetV5AccountFeeRate($params));
             //
             //     {
             //         "retCode" => 0,
@@ -7989,7 +8092,7 @@ class bybit extends Exchange {
                 $result[$symbol] = $fee;
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_deposit_withdraw_fee($fee, ?array $currency = null): mixed {
@@ -8046,7 +8149,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -8059,7 +8162,7 @@ class bybit extends Exchange {
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetV5AssetCoinQueryInfo ($params));
+            $response = Async\await($this->privateGetV5AssetCoinQueryInfo($params));
             //
             //     {
             //         "retCode" => 0,
@@ -8093,10 +8196,10 @@ class bybit extends Exchange {
             $data = $this->safe_dict($response, 'result', array());
             $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_deposit_withdraw_fees($rows, $codes, 'coin');
-        }) ();
+        })();
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical settlement records
@@ -8127,7 +8230,7 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetV5MarketDeliveryPrice ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketDeliveryPrice($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -8152,10 +8255,10 @@ class bybit extends Exchange {
             $settlements = $this->parse_settlements($data, $market);
             $sorted = $this->sort_by($settlements, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical settlement records of the user
@@ -8186,7 +8289,7 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV5AssetDeliveryRecord ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5AssetDeliveryRecord($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -8216,7 +8319,7 @@ class bybit extends Exchange {
             $settlements = $this->parse_settlements($data, $market);
             $sorted = $this->sort_by($settlements, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_settlement($settlement, $market) {
@@ -8287,7 +8390,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_volatility_history(string $code, $params = array ()) {
+    public function fetch_volatility_history(string $code, $params = array()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the historical $volatility of an option market based on an underlying asset
@@ -8305,7 +8408,7 @@ class bybit extends Exchange {
                 'category' => 'option',
                 'baseCoin' => $currency['id'],
             );
-            $response = Async\await($this->publicGetV5MarketHistoricalVolatility ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketHistoricalVolatility($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -8322,7 +8425,7 @@ class bybit extends Exchange {
             //
             $volatility = $this->safe_list($response, 'result', array());
             return $this->parse_volatility_history($volatility);
-        }) ();
+        })();
     }
 
     public function parse_volatility_history($volatility) {
@@ -8347,7 +8450,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_greeks(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches an option contracts $greeks, financial metrics used to measure the factors that affect the price of an options contract
@@ -8364,7 +8467,7 @@ class bybit extends Exchange {
                 'symbol' => $market['id'],
                 'category' => 'option',
             );
-            $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketTickers($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -8413,10 +8516,10 @@ class bybit extends Exchange {
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
             ));
-        }) ();
+        })();
     }
 
-    public function fetch_all_greeks(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_all_greeks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
@@ -8443,7 +8546,7 @@ class bybit extends Exchange {
                     $request['symbol'] = $market['id'];
                 }
             }
-            $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketTickers($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -8487,7 +8590,7 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $data = $this->safe_list($result, 'list', array());
             return $this->parse_all_greeks($data, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_greeks(array $greeks, ?array $market = null): array {
@@ -8545,7 +8648,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * retrieves the users liquidated positions
@@ -8585,7 +8688,7 @@ class bybit extends Exchange {
                 $request['startTime'] = $since;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->privateGetV5ExecutionList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5ExecutionList($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -8628,7 +8731,7 @@ class bybit extends Exchange {
             //
             $liquidations = $this->add_pagination_cursor_to_result($response);
             return $this->parse_liquidations($liquidations, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_liquidation($liquidation, ?array $market = null): array {
@@ -8680,7 +8783,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function get_leverage_tiers_paginated(?string $symbol = null, $params = array ()) {
+    public function get_leverage_tiers_paginated(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = null;
@@ -8697,7 +8800,7 @@ class bybit extends Exchange {
             $request = array(
                 'category' => $subType,
             );
-            $response = Async\await($this->publicGetV5MarketRiskLimit ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketRiskLimit($this->extend($request, $params)));
             $result = $this->add_pagination_cursor_to_result($response);
             $first = $this->safe_dict($result, 0);
             $total = count($result);
@@ -8709,10 +8812,10 @@ class bybit extends Exchange {
             );
             $result[$lastIndex] = $last;
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, for different trade sizes
@@ -8738,7 +8841,7 @@ class bybit extends Exchange {
             $data = Async\await($this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 50 ), $params)));
             $symbols = $this->market_symbols($symbols);
             return $this->parse_leverage_tiers($data, $symbols, 'symbol');
-        }) ();
+        })();
     }
 
     public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null): array {
@@ -8811,7 +8914,7 @@ class bybit extends Exchange {
         return $tiers;
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
@@ -8854,10 +8957,10 @@ class bybit extends Exchange {
                 $request['size'] = 100;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->privateGetV5ExecutionList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5ExecutionList($this->extend($request, $params)));
             $fundings = $this->add_pagination_cursor_to_result($response);
             return $this->parse_incomes($fundings, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_income($income, ?array $market = null): array {
@@ -8914,7 +9017,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_option(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_option(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches option data that is commonly found in an option $chain
@@ -8931,7 +9034,7 @@ class bybit extends Exchange {
                 'category' => 'option',
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketTickers($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -8976,10 +9079,10 @@ class bybit extends Exchange {
             $resultList = $this->safe_list($result, 'list', array());
             $chain = $this->safe_dict($resultList, 0, array());
             return $this->parse_option($chain, null, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_option_chain(string $code, $params = array ()): PromiseInterface {
+    public function fetch_option_chain(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetches data for an underlying asset that is commonly found in an option chain
@@ -8996,7 +9099,7 @@ class bybit extends Exchange {
                 'category' => 'option',
                 'baseCoin' => $currency['id'],
             );
-            $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketTickers($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -9040,7 +9143,7 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $resultList = $this->safe_list($result, 'list', array());
             return $this->parse_option_chain($resultList, null, 'symbol');
-        }) ();
+        })();
     }
 
     public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
@@ -9096,7 +9199,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * fetches historical $positions
@@ -9139,7 +9242,7 @@ class bybit extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->privateGetV5PositionClosedPnl ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5PositionClosedPnl($this->extend($request, $params)));
             //
             //    {
             //        retCode => '0',
@@ -9177,10 +9280,10 @@ class bybit extends Exchange {
             $rawPositions = $this->safe_list($result, 'list');
             $positions = $this->parse_positions($rawPositions, $symbols, $params);
             return $this->filter_by_since_limit($positions, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_convert_currencies($params = array ()): PromiseInterface {
+    public function fetch_convert_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies that can be converted
@@ -9200,7 +9303,7 @@ class bybit extends Exchange {
             $request = array(
                 'accountType' => $accountType,
             );
-            $response = Async\await($this->privateGetV5AssetExchangeQueryCoinList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5AssetExchangeQueryCoinList($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -9274,10 +9377,10 @@ class bybit extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
             /**
              * fetch a quote for converting from one currency to another
@@ -9304,7 +9407,7 @@ class bybit extends Exchange {
                 'requestCoin' => $fromCode,
                 'accountType' => $accountType,
             );
-            $response = Async\await($this->privatePostV5AssetExchangeQuoteApply ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5AssetExchangeQuoteApply($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -9331,10 +9434,10 @@ class bybit extends Exchange {
             $toCurrencyId = $this->safe_string($data, 'toCoin', $toCode);
             $toCurrency = $this->currency($toCurrencyId);
             return $this->parse_conversion($data, $fromCurrency, $toCurrency);
-        }) ();
+        })();
     }
 
-    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $fromCode, $toCode, $amount, $params) {
             /**
              * convert from one currency to another
@@ -9352,7 +9455,7 @@ class bybit extends Exchange {
             $request = array(
                 'quoteTxId' => $id,
             );
-            $response = Async\await($this->privatePostV5AssetExchangeConvertExecute ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV5AssetExchangeConvertExecute($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -9367,10 +9470,10 @@ class bybit extends Exchange {
             //
             $data = $this->safe_dict($response, 'result', array());
             return $this->parse_conversion($data);
-        }) ();
+        })();
     }
 
-    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): PromiseInterface {
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch the $data for a conversion trade
@@ -9393,7 +9496,7 @@ class bybit extends Exchange {
                 'quoteTxId' => $id,
                 'accountType' => $accountType,
             );
-            $response = Async\await($this->privateGetV5AssetExchangeConvertResultQuery ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5AssetExchangeConvertResultQuery($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -9432,10 +9535,10 @@ class bybit extends Exchange {
                 $toCurrency = $this->currency($toCurrencyId);
             }
             return $this->parse_conversion($result, $fromCurrency, $toCurrency);
-        }) ();
+        })();
     }
 
-    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the users history of conversion trades
@@ -9454,7 +9557,7 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV5AssetExchangeQueryConvertHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5AssetExchangeQueryConvertHistory($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -9485,7 +9588,7 @@ class bybit extends Exchange {
             $data = $this->safe_dict($response, 'result', array());
             $dataList = $this->safe_list($data, 'list', array());
             return $this->parse_conversions($dataList, $code, 'fromCoin', 'toCoin', $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
@@ -9549,7 +9652,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches the long short ratio history for a unified $market $symbol
@@ -9581,7 +9684,7 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetV5MarketAccountRatio ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV5MarketAccountRatio($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -9603,7 +9706,7 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $data = $this->safe_list($result, 'list', array());
             return $this->parse_long_short_ratio_history($data, $market);
-        }) ();
+        })();
     }
 
     public function parse_long_short_ratio(array $info, ?array $market = null): array {
@@ -9629,7 +9732,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the auto deleveraging rank and risk percentage for a list of $symbols
@@ -9653,7 +9756,7 @@ class bybit extends Exchange {
             $type = null;
             list($type, $params) = $this->get_bybit_type('fetchPositionsADLRank', $market, $params);
             $request['category'] = $type;
-            $response = Async\await($this->privateGetV5PositionList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV5PositionList($this->extend($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -9708,7 +9811,7 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $ranks = $this->safe_list($result, 'list', array());
             return $this->parse_adl_ranks($ranks, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_adl_rank(array $info, ?array $market = null): array {
@@ -9766,7 +9869,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_margin_mode(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches the margin mode of the trading pair
@@ -9779,7 +9882,7 @@ class bybit extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $response = Async\await($this->privateGetV5AccountInfo ($params));
+            $response = Async\await($this->privateGetV5AccountInfo($params));
             //
             //     {
             //         "retCode" => 0,
@@ -9798,7 +9901,7 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_margin_mode($result, $market);
-        }) ();
+        })();
     }
 
     public function parse_margin_mode(array $marginMode, $market = null): array {
@@ -9819,7 +9922,7 @@ class bybit extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         if ($api === 'public') {
             if ($params) {

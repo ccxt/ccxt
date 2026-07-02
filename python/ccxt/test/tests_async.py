@@ -581,6 +581,7 @@ class testMainClass:
             'fetchTransactions': [code],
             'fetchDeposits': [code],
             'fetchWithdrawals': [code],
+            'fetchTransfers': [code],
             'fetchBorrowInterest': [code, symbol],
             'cancelAllOrders': [symbol],
             'fetchCanceledOrders': [symbol],

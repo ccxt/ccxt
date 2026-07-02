@@ -153,7 +153,7 @@ public class OnetradingCore extends OnetradingApi
                 put( "1M", "1/MONTHS" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c" );
+                put( "logo", "https://github.com/user-attachments/assets/341a1b01-7660-402a-9a2b-876391e52f15" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.onetrading.com/fast" );
                     put( "private", "https://api.onetrading.com/fast" );
@@ -953,7 +953,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

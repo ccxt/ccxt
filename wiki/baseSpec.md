@@ -4893,7 +4893,7 @@ fetches information on an order made by the user
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -5006,7 +5006,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -5813,6 +5813,8 @@ the latest known information on the availability of the exchange API
 * [bitfinex](/exchanges/bitfinex.md#fetchstatus)
 * [bitmart](/exchanges/bitmart.md#fetchstatus)
 * [bitrue](/exchanges/bitrue.md#fetchstatus)
+* [bybit](/exchanges/bybit.md#fetchstatus)
+* [coincheck](/exchanges/coincheck.md#fetchstatus)
 * [coinsph](/exchanges/coinsph.md#fetchstatus)
 * [delta](/exchanges/delta.md#fetchstatus)
 * [deribit](/exchanges/deribit.md#fetchstatus)
@@ -6559,6 +6561,7 @@ fetch a history of internal transfers made on an account
 * [dydx](/exchanges/dydx.md#fetchtransfers)
 * [extended](/exchanges/extended.md#fetchtransfers)
 * [grvt](/exchanges/grvt.md#fetchtransfers)
+* [htx](/exchanges/htx.md#fetchtransfers)
 * [kucoin](/exchanges/kucoin.md#fetchtransfers)
 * [latoken](/exchanges/latoken.md#fetchtransfers)
 * [lighter](/exchanges/lighter.md#fetchtransfers)
@@ -7233,6 +7236,7 @@ set margin mode to 'cross' or 'isolated'
 * [bybit](/exchanges/bybit.md#setmarginmode)
 * [bydfi](/exchanges/bydfi.md#setmarginmode)
 * [coinex](/exchanges/coinex.md#setmarginmode)
+* [delta](/exchanges/delta.md#setmarginmode)
 * [digifinex](/exchanges/digifinex.md#setmarginmode)
 * [hyperliquid](/exchanges/hyperliquid.md#setmarginmode)
 * [kucoin](/exchanges/kucoin.md#setmarginmode)
@@ -7699,7 +7703,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 unsubscribe from the orderbook channel
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -7740,7 +7744,7 @@ unsubscribe from the orderbook channel
 unsubscribe from the orderbook channel
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -8450,7 +8454,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -8460,6 +8464,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#watchorderbook)
 * [alpaca](/exchanges/alpaca.md#watchorderbook)
 * [apex](/exchanges/apex.md#watchorderbook)
 * [ascendex](/exchanges/ascendex.md#watchorderbook)
@@ -8527,7 +8532,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -8682,12 +8687,14 @@ watch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
-| limit | <code>int</code> | No | the maximum number of positions to retrieve |
+| limit | <code>int</code> | No | the maximum number of position structures to retrieve |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| params.accountNumber | <code>int</code> | No | account number to query orders for, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#watchpositions)
 * [apex](/exchanges/apex.md#watchpositions)
 * [aster](/exchanges/aster.md#watchpositions)
 * [backpack](/exchanges/backpack.md#watchpositions)
@@ -8851,11 +8858,12 @@ watches information on multiple trades made in a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#watchtrades)
 * [alpaca](/exchanges/alpaca.md#watchtrades)
 * [apex](/exchanges/apex.md#watchtrades)
 * [ascendex](/exchanges/ascendex.md#watchtrades)

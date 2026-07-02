@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.59'
+__version__ = '4.5.63'
 
 # ----------------------------------------------------------------------------
 
@@ -100,6 +100,7 @@ from ccxt.pro.dydx import dydx                                            # noqa
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.extended import extended                                    # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
+from ccxt.pro.gateeu import gateeu                                        # noqa: F401
 from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.grvt import grvt                                            # noqa: F401
 from ccxt.pro.hashkey import hashkey                                      # noqa: F401
@@ -111,6 +112,7 @@ from ccxt.pro.independentreserve import independentreserve                # noqa
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
+from ccxt.pro.kucoineu import kucoineu                                    # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.lbank import lbank                                          # noqa: F401
 from ccxt.pro.lighter import lighter                                      # noqa: F401
@@ -179,6 +181,7 @@ exchanges = [
     'exmo',
     'extended',
     'gate',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',
@@ -190,6 +193,7 @@ exchanges = [
     'kraken',
     'krakenfutures',
     'kucoin',
+    'kucoineu',
     'kucoinfutures',
     'lbank',
     'lighter',

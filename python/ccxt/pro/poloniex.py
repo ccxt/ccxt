@@ -437,7 +437,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by poloniex watchOrderBook
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         watchOrderBookOptions = self.safe_value(self.options, 'watchOrderBook')
