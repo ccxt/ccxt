@@ -415,9 +415,9 @@ public partial class kalshi : PredictionExchange
         object status = this.safeString(raw, "status");
         object active = isTrue((isEqual(status, "active"))) || isTrue((isEqual(status, "open")));
         object endDate = this.safeString(raw, "expiration_time");
-        object volume = this.safeNumber(raw, "volume");
-        object liquidity = this.safeNumber(raw, "liquidity");
-        object openInt = this.safeNumber(raw, "open_interest");
+        object volume = this.safeNumber2(raw, "volume_fp", "volume");
+        object liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity");
+        object openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest");
         // Derive series ticker: drop last hyphen-segment from event_ticker
         object eventParts = new List<object>() {};
         if (isTrue(eventTicker))
@@ -1059,6 +1059,10 @@ public partial class kalshi : PredictionExchange
             {
                 object end = this.sum(sinceS, multiply(limit, tf));
                 ((IDictionary<string,object>)request)["end_ts"] = ((bool) isTrue((isLessThan(end, now)))) ? end : now;
+            } else
+            {
+                // the candlesticks endpoint requires end_ts - default to now
+                ((IDictionary<string,object>)request)["end_ts"] = now;
             }
         } else
         {
@@ -1681,7 +1685,17 @@ public partial class kalshi : PredictionExchange
         object response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new Dictionary<string, object>() {
             { "order_id", id },
         }, parameters));
-        return this.parseOrder(this.safeDict(response, "order", response));
+        object order = this.parseOrder(this.safeDict(response, "order", response));
+        // the delete response carries no id/status - backfill the requested id and the outcome
+        if (isTrue(isEqual(getValue(order, "id"), null)))
+        {
+            ((IDictionary<string,object>)order)["id"] = id;
+        }
+        if (isTrue(isEqual(getValue(order, "status"), null)))
+        {
+            ((IDictionary<string,object>)order)["status"] = "canceled";
+        }
+        return order;
     }
 
     /**

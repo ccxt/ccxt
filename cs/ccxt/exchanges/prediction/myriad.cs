@@ -14,7 +14,7 @@ public partial class myriad : PredictionExchange
             { "countries", new List<object>() {} },
             { "rateLimit", 200 },
             { "certified", false },
-            { "pro", false },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", false },

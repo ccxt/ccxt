@@ -2390,6 +2390,8 @@ public partial class polymarket : PredictionExchange
                 }
             }
         }
+        // uniform id/slug-keyed entries alongside polymarket's own shortened-slug keys
+        this.setEvents(result);
         // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
         // client-side (searchIn defaults to 'title', matching the reference behaviour)
         object filtered = result;
@@ -2499,23 +2501,36 @@ public partial class polymarket : PredictionExchange
         // }
         object marketsList = this.parseEventToMarkets(rawEvent);
         object slug = this.safeString(rawEvent, "slug");
+        // gamma events use camelCase keys (createdAt/endDate/image/updatedAt/closed);
+        // the snake_case fallbacks cover older payload shapes
+        object createdAt = this.safeString2(rawEvent, "createdAt", "created_date_iso");
+        object endDate = this.safeString2(rawEvent, "endDate", "end_date_iso");
+        object updatedAt = this.safeString2(rawEvent, "updatedAt", "last_updated_date_iso");
+        object rawActive = this.safeBool(rawEvent, "active");
+        object closed = this.safeBool(rawEvent, "closed", false);
+        object active = null;
+        if (isTrue(!isEqual(rawActive, null)))
+        {
+            active = isTrue(rawActive) && !isTrue(closed);
+        }
         return this.extend(new Dictionary<string, object>() {
             { "id", this.safeString(rawEvent, "id") },
             { "slug", slug },
             { "event", ((bool) isTrue(slug)) ? this.shortenSlug(slug) : null },
             { "title", this.safeString(rawEvent, "title") },
             { "markets", marketsList },
+            { "active", active },
             { "url", this.safeString(rawEvent, "url") },
-            { "image", this.safeString(rawEvent, "image_url") },
-            { "created", this.parse8601(this.safeString(rawEvent, "created_date_iso")) },
-            { "createdDatetime", this.safeString(rawEvent, "created_date_iso") },
-            { "end", this.parse8601(this.safeString(rawEvent, "end_date_iso")) },
-            { "endDatetime", this.safeString(rawEvent, "end_date_iso") },
+            { "image", this.safeString2(rawEvent, "image", "image_url") },
+            { "created", this.parse8601(createdAt) },
+            { "createdDatetime", createdAt },
+            { "end", this.parse8601(endDate) },
+            { "endDatetime", endDate },
             { "category", this.safeString(rawEvent, "category") },
-            { "lastUpdatedAt", this.parse8601(this.safeString(rawEvent, "last_updated_date_iso")) },
-            { "lastUpdatedAtDatetime", this.safeString(rawEvent, "last_updated_date_iso") },
-            { "resolutionSource", this.safeString(rawEvent, "resolution_source") },
-            { "resolved", this.safeBool(rawEvent, "resolved") },
+            { "lastUpdatedAt", this.parse8601(updatedAt) },
+            { "lastUpdatedAtDatetime", updatedAt },
+            { "resolutionSource", this.safeString2(rawEvent, "resolutionSource", "resolution_source") },
+            { "resolved", this.safeBool2(rawEvent, "closed", "resolved") },
             { "info", rawEvent },
         });
     }

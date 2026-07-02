@@ -1,5 +1,5 @@
 import { Exchange } from './Exchange.js';
-import type { Str, Strings, Num, Int, Bool, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
  * @augments Exchange
@@ -12,8 +12,6 @@ export default class PredictionExchange extends Exchange {
     outcomes_by_id: Dictionary<any>;
     events: Dictionary<any>;
     events_by_slug: Dictionary<any>;
-    reloadingEvents: Bool;
-    eventsLoading: Promise<Dictionary<any>>;
     isPrediction(): boolean;
     parseSearchQueries(params?: {}): Strings;
     requireEventQuery(params?: {}): any;
@@ -25,6 +23,7 @@ export default class PredictionExchange extends Exchange {
     setEvents(events: any[]): Dictionary<any>;
     loadEventsHelper(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     loadEvents(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
+    getEvent(eventIdOrSlug: string): any;
     outcome(outcomeSymbol: string): any;
     safeOutcome(outcomeIdOrSymbol: Str, outcomeObj?: any): any;
     safeOutcomeSymbol(outcomeIdOrSymbol: Str, outcomeObj?: any): Str;

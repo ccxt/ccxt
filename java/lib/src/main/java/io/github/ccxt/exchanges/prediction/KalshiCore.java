@@ -439,9 +439,9 @@ public class KalshiCore extends KalshiApi
         Object status = this.safeString(raw, "status");
         Object active = Helpers.isTrue((Helpers.isEqual(status, "active"))) || Helpers.isTrue((Helpers.isEqual(status, "open")));
         Object endDate = this.safeString(raw, "expiration_time");
-        Object volume = this.safeNumber(raw, "volume");
-        Object liquidity = this.safeNumber(raw, "liquidity");
-        Object openInt = this.safeNumber(raw, "open_interest");
+        Object volume = this.safeNumber2(raw, "volume_fp", "volume");
+        Object liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity");
+        Object openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest");
         // Derive series ticker: drop last hyphen-segment from event_ticker
         Object eventParts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(eventTicker))
@@ -1135,6 +1135,10 @@ final Object finalOi = oi;
                 {
                     Object end = this.sum(sinceS, Helpers.multiply(limit, tf));
                     Helpers.addElementToObject(request, "end_ts", ((Helpers.isTrue((Helpers.isLessThan(end, now))))) ? end : now);
+                } else
+                {
+                    // the candlesticks endpoint requires end_ts - default to now
+                    Helpers.addElementToObject(request, "end_ts", now);
                 }
             } else
             {
@@ -1821,7 +1825,17 @@ final Object finalOi = oi;
             Object response = (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }}, parameters))).join();
-            return this.parseOrder(this.safeDict(response, "order", response));
+            Object order = this.parseOrder(this.safeDict(response, "order", response));
+            // the delete response carries no id/status - backfill the requested id and the outcome
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "id"), null)))
+            {
+                Helpers.addElementToObject(order, "id", id);
+            }
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "status"), null)))
+            {
+                Helpers.addElementToObject(order, "status", "canceled");
+            }
+            return order;
         });
 
     }

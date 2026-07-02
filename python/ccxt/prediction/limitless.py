@@ -36,10 +36,12 @@ class limitless(PredictionExchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'approve': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
@@ -203,7 +205,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         allRaw = []
         queriesLength = len(queries)
         if queries and queriesLength > 0:
-            limit = self.safe_integer(rest, 'limit', 50)
+            requestedLimit = self.safe_integer(params, 'limit', 50)
+            # the search endpoint rejects limit > 50 - cap the per-query request and             # maxMarkets bound the overall collection
+            limit = min(requestedLimit, 50)
             searchRest = self.omit(rest, ['limit'])
             seen = {}
             for i in range(0, len(queries)):
@@ -229,7 +233,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             allRaw = self.array_concat(allRaw, firstData)
             promises = []
             cappedPages = int(math.ceil(maxMarkets / pageSize))
-            allPages = int(math.ceil(totalMarketsCount / pageSize))
+            knownTotal = totalMarketsCount if (totalMarketsCount is not None) else 0
+            allPages = int(math.ceil(knownTotal / pageSize))
             totalPages = min(allPages, cappedPages)
             for i in range(2, totalPages):
                 page = i
@@ -1854,7 +1859,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'taker': taker,
             'tokenId': outcomeObj['outcomeId'],
             'nonce': 0,
-            'feeRateBps': self.safe_integer(rank, 'feeRateBps'),
+            'feeRateBps': self.safe_integer(rank, 'feeRateBps', 0),
             'side': sideValue,
             'signatureType': signatureType,
         }
@@ -1927,6 +1932,8 @@ class limitless(PredictionExchange, ImplicitAPI):
 
     def sign_order_request(self, signRequest: dict, marketSymbol):
         self.check_required_credentials()
+        if self.privateKey is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey(the embedded/trading wallet key) to sign orders')
         market = self.market(marketSymbol)
         info = self.safe_dict(market, 'info')
         venue = self.safe_dict(info, 'venue')
@@ -2651,7 +2658,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         if not queries or queriesLength == 0:
             result = list(self.events.values())
         else:
-            limit = self.safe_integer(params, 'limit', 50)
+            requestedLimit = self.safe_integer(params, 'limit', 50)
+            # the search endpoint rejects limit > 50 - cap the per-query request and             # maxMarkets bound the overall collection
+            limit = min(requestedLimit, 50)
             rest = self.omit(params, ['query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status'])
             seen = {}
             rawMarkets = []

@@ -921,6 +921,11 @@ async function exportEverything () {
             replacement: `var Exchanges []string = []string{ ${wsIds.map(i=>`"${i}"`).join(', ')} }`,
         },
         {
+            file: './go/v4/prediction/exchange_metadata.go',
+            regex: /var Exchanges \[\]string = \[\]string\{\s+?.+$/gm,
+            replacement: `var Exchanges []string = []string{ ${predictionIds.map(i=>`"${i}"`).join(', ')} }`,
+        },
+        {
             file: './java/lib/src/main/java/io/github/ccxt/MetaData.java',
             regex: /public static final List<String> Exchanges = new java.util.ArrayList<String>\(java.util.Arrays.asList\(.+/,
             replacement: `public static final List<String> Exchanges = new java.util.ArrayList<String>(java.util.Arrays.asList(${ids.map(i=>`"${i}"`).join(', ')}));`,

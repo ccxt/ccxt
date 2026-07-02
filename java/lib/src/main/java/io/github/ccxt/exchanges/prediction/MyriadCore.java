@@ -27,7 +27,7 @@ public class MyriadCore extends MyriadApi
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             put( "rateLimit", 200 );
             put( "certified", false );
-            put( "pro", false );
+            put( "pro", true );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );

@@ -22,10 +22,12 @@ public partial class limitless : PredictionExchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
+                { "approve", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "createOrder", true },
+                { "fetchAccounts", true },
                 { "fetchBalance", false },
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", false },
@@ -193,7 +195,10 @@ public partial class limitless : PredictionExchange
         object queriesLength = getArrayLength(queries);
         if (isTrue(isTrue(queries) && isTrue(isGreaterThan(queriesLength, 0))))
         {
-            object limit = this.safeInteger(rest, "limit", 50);
+            object requestedLimit = this.safeInteger(parameters, "limit", 50);
+            // the search endpoint rejects limit > 50 - cap the per-query request and let
+            // maxMarkets bound the overall collection
+            object limit = mathMin(requestedLimit, 50);
             object searchRest = this.omit(rest, new List<object>() {"limit"});
             object seen = new Dictionary<string, object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
@@ -229,7 +234,8 @@ public partial class limitless : PredictionExchange
             allRaw = this.arrayConcat(allRaw, firstData);
             object promises = new List<object>() {};
             object cappedPages = Math.Ceiling(Convert.ToDouble(divide(maxMarkets, pageSize)));
-            object allPages = Math.Ceiling(Convert.ToDouble(divide(totalMarketsCount, pageSize)));
+            object knownTotal = ((bool) isTrue((!isEqual(totalMarketsCount, null)))) ? totalMarketsCount : 0;
+            object allPages = Math.Ceiling(Convert.ToDouble(divide(knownTotal, pageSize)));
             object totalPages = mathMin(allPages, cappedPages);
             for (object i = 2; isLessThanOrEqual(i, totalPages); postFixIncrement(ref i))
             {
@@ -2113,7 +2119,7 @@ public partial class limitless : PredictionExchange
             { "taker", taker },
             { "tokenId", getValue(outcomeObj, "outcomeId") },
             { "nonce", 0 },
-            { "feeRateBps", this.safeInteger(rank, "feeRateBps") },
+            { "feeRateBps", this.safeInteger(rank, "feeRateBps", 0) },
             { "side", sideValue },
             { "signatureType", signatureType },
         };
@@ -2216,6 +2222,10 @@ public partial class limitless : PredictionExchange
     public virtual object signOrderRequest(object signRequest, object marketSymbol)
     {
         this.checkRequiredCredentials();
+        if (isTrue(isEqual(this.privateKey, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders")) ;
+        }
         object market = this.market(marketSymbol);
         object info = this.safeDict(market, "info");
         object venue = this.safeDict(info, "venue");
@@ -3124,7 +3134,10 @@ public partial class limitless : PredictionExchange
             result = (IList<object>)(new List<object>(((IDictionary<string,object>)this.events).Values));
         } else
         {
-            object limit = this.safeInteger(parameters, "limit", 50);
+            object requestedLimit = this.safeInteger(parameters, "limit", 50);
+            // the search endpoint rejects limit > 50 - cap the per-query request and let
+            // maxMarkets bound the overall collection
+            object limit = mathMin(requestedLimit, 50);
             object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status"});
             object seen = new Dictionary<string, object>() {};
             object rawMarkets = new List<object>() {};

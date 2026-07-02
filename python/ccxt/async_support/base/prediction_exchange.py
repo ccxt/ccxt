@@ -49,7 +49,10 @@ class PredictionExchange(Exchange):
 
     def apply_event_fetch_params(self, events: List[Any], params={}, queries: List[str] = None):
         # applies the unified fetchEvents options client-side(eventId/slug/status/searchIn/sort/limit)
-        # so exchanges whose API can't filter natively still support them consistently
+        # so exchanges whose API can't filter natively still support them consistently.
+        # every fetched event lands in the cache before filtering, so loadEvents()/event()
+        # serve them later without another request
+        self.set_events(events)
         result = events
         eventId = self.safe_string(params, 'eventId')
         slug = self.safe_string(params, 'slug')
@@ -135,8 +138,11 @@ class PredictionExchange(Exchange):
         raise NotSupported(self.id + ' fetchEvent() is not supported yet')
 
     def set_events(self, events: List[Any]):
-        self.events = {}
-        self.events_by_slug = {}
+        # merge(not reset) so successive scoped fetchEvents calls accumulate into the cache
+        if self.events is None:
+            self.events = {}
+        if self.events_by_slug is None:
+            self.events_by_slug = {}
         for i in range(0, len(events)):
             event = events[i]
             id = self.safe_string(event, 'id')
@@ -154,7 +160,19 @@ class PredictionExchange(Exchange):
         return self.set_events(events)
 
     async def load_events(self, reload=False, params={}):
+        # cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
+        # promise coalescing: the promise-sharing idiom is not expressible in the transpiled
+        # base, so two truly concurrent first calls may fetch twice(both land in the cache)
         return await self.load_events_helper(reload, params)
+
+    def get_event(self, eventIdOrSlug: str):
+        # cache-only event resolver(the event analogue of self.outcome) - the cache fills
+        # through fetchEvents/loadEvents; self never fetches
+        if (self.events is not None) and (eventIdOrSlug in self.events):
+            return self.events[eventIdOrSlug]
+        if (self.events_by_slug is not None) and (eventIdOrSlug in self.events_by_slug):
+            return self.events_by_slug[eventIdOrSlug]
+        raise BadSymbol(self.id + ' has no cached event ' + eventIdOrSlug + ' - call loadEvents() or fetchEvents() first')
 
     def outcome(self, outcomeSymbol: str):
         if self.outcomes is None:

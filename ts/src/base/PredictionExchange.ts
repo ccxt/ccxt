@@ -2,7 +2,7 @@
 
 import { Exchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Bool, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -18,8 +18,6 @@ export default class PredictionExchange extends Exchange {
     outcomes_by_id: Dictionary<any> = undefined;
     events: Dictionary<any> = undefined;
     events_by_slug: Dictionary<any> = undefined;
-    reloadingEvents: Bool = undefined;
-    eventsLoading: Promise<Dictionary<any>> = undefined;
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
@@ -52,7 +50,10 @@ export default class PredictionExchange extends Exchange {
 
     applyEventFetchParams (events: any[], params = {}, queries: string[] = undefined): any[] {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
-        // so exchanges whose API can't filter natively still support them consistently
+        // so exchanges whose API can't filter natively still support them consistently.
+        // every fetched event lands in the cache before filtering, so loadEvents()/event()
+        // serve them later without another request
+        this.setEvents (events);
         let result = events;
         const eventId = this.safeString (params, 'eventId');
         const slug = this.safeString (params, 'slug');
@@ -162,8 +163,13 @@ export default class PredictionExchange extends Exchange {
     }
 
     setEvents (events: any[]): Dictionary<any> {
-        this.events = {};
-        this.events_by_slug = {};
+        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache
+        if (this.events === undefined) {
+            this.events = {};
+        }
+        if (this.events_by_slug === undefined) {
+            this.events_by_slug = {};
+        }
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const id = this.safeString (event, 'id');
@@ -187,7 +193,22 @@ export default class PredictionExchange extends Exchange {
     }
 
     async loadEvents (reload = false, params = {}): Promise<Dictionary<any>> {
+        // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
+        // promise coalescing: the promise-sharing idiom is not expressible in the transpiled
+        // base, so two truly concurrent first calls may fetch twice (both land in the cache)
         return await this.loadEventsHelper (reload, params);
+    }
+
+    getEvent (eventIdOrSlug: string): any {
+        // cache-only event resolver (the event analogue of this.outcome) - the cache fills
+        // through fetchEvents/loadEvents; this never fetches
+        if ((this.events !== undefined) && (eventIdOrSlug in this.events)) {
+            return this.events[eventIdOrSlug];
+        }
+        if ((this.events_by_slug !== undefined) && (eventIdOrSlug in this.events_by_slug)) {
+            return this.events_by_slug[eventIdOrSlug];
+        }
+        throw new BadSymbol (this.id + ' has no cached event ' + eventIdOrSlug + ' - call loadEvents() or fetchEvents() first');
     }
 
     outcome (outcomeSymbol: string): any {

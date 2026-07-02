@@ -401,9 +401,9 @@ export default class kalshi extends Exchange {
         const status = this.safeString (raw, 'status');
         const active = (status === 'active') || (status === 'open');
         const endDate = this.safeString (raw, 'expiration_time');
-        const volume = this.safeNumber (raw, 'volume');
-        const liquidity = this.safeNumber (raw, 'liquidity');
-        const openInt = this.safeNumber (raw, 'open_interest');
+        const volume = this.safeNumber2 (raw, 'volume_fp', 'volume');
+        const liquidity = this.safeNumber2 (raw, 'liquidity_dollars', 'liquidity');
+        const openInt = this.safeNumber2 (raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
         let eventParts = [];
         if (eventTicker) {
@@ -984,6 +984,9 @@ export default class kalshi extends Exchange {
             if (limit !== undefined) {
                 const end = this.sum (sinceS, limit * tf);
                 request['end_ts'] = (end < now) ? end : now;
+            } else {
+                // the candlesticks endpoint requires end_ts - default to now
+                request['end_ts'] = now;
             }
         } else {
             const defaultLimit = this.safeInteger (this.options, 'defaultFetchOHLCVLimit', 200);
@@ -1540,7 +1543,15 @@ export default class kalshi extends Exchange {
         // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
         // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': id }, params));
-        return this.parseOrder (this.safeDict (response, 'order', response));
+        const order = this.parseOrder (this.safeDict (response, 'order', response));
+        // the delete response carries no id/status - backfill the requested id and the outcome
+        if (order['id'] === undefined) {
+            order['id'] = id;
+        }
+        if (order['status'] === undefined) {
+            order['status'] = 'canceled';
+        }
+        return order;
     }
 
     /**

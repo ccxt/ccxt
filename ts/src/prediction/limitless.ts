@@ -53,10 +53,12 @@ export default class limitless extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'approve': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
@@ -221,7 +223,10 @@ export default class limitless extends Exchange {
         let allRaw: any[] = [];
         const queriesLength = queries.length;
         if (queries && queriesLength > 0) {
-            const limit = this.safeInteger (rest, 'limit', 50);
+            const requestedLimit = this.safeInteger (params, 'limit', 50);
+            // the search endpoint rejects limit > 50 - cap the per-query request and let
+            // maxMarkets bound the overall collection
+            const limit = Math.min (requestedLimit, 50);
             const searchRest = this.omit (rest, [ 'limit' ]);
             const seen: Dict = {};
             for (let i = 0; i < queries.length; i++) {
@@ -250,7 +255,8 @@ export default class limitless extends Exchange {
             allRaw = this.arrayConcat (allRaw, firstData);
             const promises = [];
             const cappedPages = Math.ceil (maxMarkets / pageSize);
-            const allPages = Math.ceil (totalMarketsCount / pageSize);
+            const knownTotal = (totalMarketsCount !== undefined) ? totalMarketsCount : 0;
+            const allPages = Math.ceil (knownTotal / pageSize);
             const totalPages = Math.min (allPages, cappedPages);
             for (let i = 2; i <= totalPages; i++) {
                 page = i;
@@ -1983,7 +1989,7 @@ export default class limitless extends Exchange {
             'taker': taker,
             'tokenId': outcomeObj['outcomeId'],
             'nonce': 0,
-            'feeRateBps': this.safeInteger (rank, 'feeRateBps'),
+            'feeRateBps': this.safeInteger (rank, 'feeRateBps', 0),
             'side': sideValue,
             'signatureType': signatureType,
         };
@@ -2066,6 +2072,9 @@ export default class limitless extends Exchange {
 
     signOrderRequest (signRequest: Dict, marketSymbol) {
         this.checkRequiredCredentials ();
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders');
+        }
         const market = this.market (marketSymbol);
         const info = this.safeDict (market, 'info');
         const venue = this.safeDict (info, 'venue');
@@ -2865,7 +2874,10 @@ export default class limitless extends Exchange {
         if (!queries || queriesLength === 0) {
             result = Object.values (this.events as Dict) as any[];
         } else {
-            const limit = this.safeInteger (params, 'limit', 50);
+            const requestedLimit = this.safeInteger (params, 'limit', 50);
+            // the search endpoint rejects limit > 50 - cap the per-query request and let
+            // maxMarkets bound the overall collection
+            const limit = Math.min (requestedLimit, 50);
             const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
             const seen: Dict = {};
             const rawMarkets: any[] = [];

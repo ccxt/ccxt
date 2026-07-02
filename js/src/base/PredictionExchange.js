@@ -16,8 +16,6 @@ export default class PredictionExchange extends Exchange {
         this.outcomes_by_id = undefined;
         this.events = undefined;
         this.events_by_slug = undefined;
-        this.reloadingEvents = undefined;
-        this.eventsLoading = undefined;
     }
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
     isPrediction() {
@@ -46,7 +44,10 @@ export default class PredictionExchange extends Exchange {
     }
     applyEventFetchParams(events, params = {}, queries = undefined) {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
-        // so exchanges whose API can't filter natively still support them consistently
+        // so exchanges whose API can't filter natively still support them consistently.
+        // every fetched event lands in the cache before filtering, so loadEvents()/event()
+        // serve them later without another request
+        this.setEvents(events);
         let result = events;
         const eventId = this.safeString(params, 'eventId');
         const slug = this.safeString(params, 'slug');
@@ -153,8 +154,13 @@ export default class PredictionExchange extends Exchange {
         throw new NotSupported(this.id + ' fetchEvent() is not supported yet');
     }
     setEvents(events) {
-        this.events = {};
-        this.events_by_slug = {};
+        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache
+        if (this.events === undefined) {
+            this.events = {};
+        }
+        if (this.events_by_slug === undefined) {
+            this.events_by_slug = {};
+        }
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const id = this.safeString(event, 'id');
@@ -176,7 +182,21 @@ export default class PredictionExchange extends Exchange {
         return this.setEvents(events);
     }
     async loadEvents(reload = false, params = {}) {
+        // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
+        // promise coalescing: the promise-sharing idiom is not expressible in the transpiled
+        // base, so two truly concurrent first calls may fetch twice (both land in the cache)
         return await this.loadEventsHelper(reload, params);
+    }
+    getEvent(eventIdOrSlug) {
+        // cache-only event resolver (the event analogue of this.outcome) - the cache fills
+        // through fetchEvents/loadEvents; this never fetches
+        if ((this.events !== undefined) && (eventIdOrSlug in this.events)) {
+            return this.events[eventIdOrSlug];
+        }
+        if ((this.events_by_slug !== undefined) && (eventIdOrSlug in this.events_by_slug)) {
+            return this.events_by_slug[eventIdOrSlug];
+        }
+        throw new BadSymbol(this.id + ' has no cached event ' + eventIdOrSlug + ' - call loadEvents() or fetchEvents() first');
     }
     outcome(outcomeSymbol) {
         if (this.outcomes === undefined) {

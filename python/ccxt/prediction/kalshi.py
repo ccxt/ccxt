@@ -373,9 +373,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         status = self.safe_string(raw, 'status')
         active = (status == 'active') or (status == 'open')
         endDate = self.safe_string(raw, 'expiration_time')
-        volume = self.safe_number(raw, 'volume')
-        liquidity = self.safe_number(raw, 'liquidity')
-        openInt = self.safe_number(raw, 'open_interest')
+        volume = self.safe_number_2(raw, 'volume_fp', 'volume')
+        liquidity = self.safe_number_2(raw, 'liquidity_dollars', 'liquidity')
+        openInt = self.safe_number_2(raw, 'open_interest_fp', 'open_interest')
         # Derive series ticker: drop last hyphen-segment from event_ticker
         eventParts = []
         if eventTicker:
@@ -917,6 +917,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
             if limit is not None:
                 end = self.sum(sinceS, limit * tf)
                 request['end_ts'] = end if (end < now) else now
+            else:
+                # the candlesticks endpoint requires end_ts - default to now
+                request['end_ts'] = now
         else:
             defaultLimit = self.safe_integer(self.options, 'defaultFetchOHLCVLimit', 200)
             candlesCount = limit if (limit is not None) else defaultLimit
@@ -1414,7 +1417,13 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # v2 cancel: DELETE /portfolio/events/orders/{order_id}(the /portfolio/orders/{id}
         # and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         response = await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': id}, params))
-        return self.parse_order(self.safe_dict(response, 'order', response))
+        order = self.parse_order(self.safe_dict(response, 'order', response))
+        # the del response carries no id/status - backfill the requested id and the outcome
+        if order['id'] is None:
+            order['id'] = id
+        if order['status'] is None:
+            order['status'] = 'canceled'
+        return order
 
     async def cancel_all_orders(self, outcome: Str = None, params={}) -> List[PredictionOrder]:
         """

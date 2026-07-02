@@ -31,7 +31,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'countries': [],
             'rateLimit': 200,
             'certified': False,
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': False,

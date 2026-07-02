@@ -35,10 +35,12 @@ public class LimitlessCore extends LimitlessApi
                 put( "swap", false );
                 put( "future", false );
                 put( "option", false );
+                put( "approve", true );
                 put( "cancelAllOrders", true );
                 put( "cancelOrder", true );
                 put( "cancelOrders", true );
                 put( "createOrder", true );
+                put( "fetchAccounts", true );
                 put( "fetchBalance", false );
                 put( "fetchClosedOrders", true );
                 put( "fetchCurrencies", false );
@@ -209,7 +211,10 @@ public class LimitlessCore extends LimitlessApi
             Object queriesLength = Helpers.getArrayLength(queries);
             if (Helpers.isTrue(Helpers.isTrue(queries) && Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0))))
             {
-                Object limit = this.safeInteger(rest, "limit", 50);
+                Object requestedLimit = this.safeInteger(parameters, "limit", 50);
+                // the search endpoint rejects limit > 50 - cap the per-query request and let
+                // maxMarkets bound the overall collection
+                Object limit = Helpers.mathMin(requestedLimit, 50);
                 Object searchRest = this.omit(rest, new java.util.ArrayList<Object>(java.util.Arrays.asList("limit")));
                 Object seen = new java.util.HashMap<String, Object>() {{}};
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(queries)); i++)
@@ -246,7 +251,8 @@ public class LimitlessCore extends LimitlessApi
                 allRaw = this.arrayConcat(allRaw, firstData);
                 Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 Object cappedPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(maxMarkets, pageSize))));
-                Object allPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(totalMarketsCount, pageSize))));
+                Object knownTotal = ((Helpers.isTrue((!Helpers.isEqual(totalMarketsCount, null))))) ? totalMarketsCount : 0;
+                Object allPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(knownTotal, pageSize))));
                 Object totalPages = Helpers.mathMin(allPages, cappedPages);
                 for (var i = 2; Helpers.isLessThanOrEqual(i, totalPages); i++)
                 {
@@ -2242,7 +2248,7 @@ public class LimitlessCore extends LimitlessApi
                 put( "taker", finalTaker );
                 put( "tokenId", Helpers.GetValue(outcomeObj, "outcomeId") );
                 put( "nonce", 0 );
-                put( "feeRateBps", LimitlessCore.this.safeInteger(rank, "feeRateBps") );
+                put( "feeRateBps", LimitlessCore.this.safeInteger(rank, "feeRateBps", 0) );
                 put( "side", sideValue );
                 put( "signatureType", finalSignatureType );
             }};
@@ -2348,6 +2354,10 @@ public class LimitlessCore extends LimitlessApi
     public Object signOrderRequest(Object signRequest, Object marketSymbol)
     {
         this.checkRequiredCredentials();
+        if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders")) ;
+        }
         Object market = this.market(marketSymbol);
         Object info = this.safeDict(market, "info");
         Object venue = this.safeDict(info, "venue");
@@ -3320,7 +3330,10 @@ public class LimitlessCore extends LimitlessApi
                 result = (java.util.List<Object>)(Helpers.objectValues(this.events));
             } else
             {
-                Object limit = this.safeInteger(parameters, "limit", 50);
+                Object requestedLimit = this.safeInteger(parameters, "limit", 50);
+                // the search endpoint rejects limit > 50 - cap the per-query request and let
+                // maxMarkets bound the overall collection
+                Object limit = Helpers.mathMin(requestedLimit, 50);
                 Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status")));
                 Object seen = new java.util.HashMap<String, Object>() {{}};
                 Object rawMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());

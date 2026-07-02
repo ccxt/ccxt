@@ -70,6 +70,7 @@ async function vssEverything () {
     vss ('./cs/ccxt/ccxt.csproj',                         "<FileVersion>{version}</FileVersion>",                                       version)
     vss ('./go/v4/exchange_metadata.go',                 "var Version string = \"{version}\"",                                          version)
     vss ('./go/v4/pro/exchange_metadata.go',                 "var Version string = \"{version}\"",                                      version)
+    vss ('./go/v4/prediction/exchange_metadata.go',          "var Version string = \"{version}\"",                                      version)
     vss ('./java/lib/src/main/java/io/github/ccxt/Version.java', "public static final String VERSION = \"{version}\";",                 version)
     vss ('./java/gradle.properties',                          "version={version}",                                                      version)
 

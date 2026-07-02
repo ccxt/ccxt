@@ -2591,6 +2591,8 @@ final Object finalMarketSymbol = marketSymbol;
                     }
                 }
             }
+            // uniform id/slug-keyed entries alongside polymarket's own shortened-slug keys
+            this.setEvents(result);
             // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
             // client-side (searchIn defaults to 'title', matching the reference behaviour)
             Object filtered = result;
@@ -2707,23 +2709,37 @@ final Object finalMarketSymbol = marketSymbol;
         // }
         Object marketsList = this.parseEventToMarkets(rawEvent);
         Object slug = this.safeString(rawEvent, "slug");
+        // gamma events use camelCase keys (createdAt/endDate/image/updatedAt/closed);
+        // the snake_case fallbacks cover older payload shapes
+        Object createdAt = this.safeString2(rawEvent, "createdAt", "created_date_iso");
+        Object endDate = this.safeString2(rawEvent, "endDate", "end_date_iso");
+        Object updatedAt = this.safeString2(rawEvent, "updatedAt", "last_updated_date_iso");
+        Object rawActive = this.safeBool(rawEvent, "active");
+        Object closed = this.safeBool(rawEvent, "closed", false);
+        Object active = null;
+        if (Helpers.isTrue(!Helpers.isEqual(rawActive, null)))
+        {
+            active = Helpers.isTrue(rawActive) && !Helpers.isTrue(closed);
+        }
+        final Object finalActive = active;
         return this.extend(new java.util.HashMap<String, Object>() {{
             put( "id", PolymarketCore.this.safeString(rawEvent, "id") );
             put( "slug", slug );
             put( "event", ((Helpers.isTrue(slug))) ? PolymarketCore.this.shortenSlug(slug) : null );
             put( "title", PolymarketCore.this.safeString(rawEvent, "title") );
             put( "markets", marketsList );
+            put( "active", finalActive );
             put( "url", PolymarketCore.this.safeString(rawEvent, "url") );
-            put( "image", PolymarketCore.this.safeString(rawEvent, "image_url") );
-            put( "created", PolymarketCore.this.parse8601(PolymarketCore.this.safeString(rawEvent, "created_date_iso")) );
-            put( "createdDatetime", PolymarketCore.this.safeString(rawEvent, "created_date_iso") );
-            put( "end", PolymarketCore.this.parse8601(PolymarketCore.this.safeString(rawEvent, "end_date_iso")) );
-            put( "endDatetime", PolymarketCore.this.safeString(rawEvent, "end_date_iso") );
+            put( "image", PolymarketCore.this.safeString2(rawEvent, "image", "image_url") );
+            put( "created", PolymarketCore.this.parse8601(createdAt) );
+            put( "createdDatetime", createdAt );
+            put( "end", PolymarketCore.this.parse8601(endDate) );
+            put( "endDatetime", endDate );
             put( "category", PolymarketCore.this.safeString(rawEvent, "category") );
-            put( "lastUpdatedAt", PolymarketCore.this.parse8601(PolymarketCore.this.safeString(rawEvent, "last_updated_date_iso")) );
-            put( "lastUpdatedAtDatetime", PolymarketCore.this.safeString(rawEvent, "last_updated_date_iso") );
-            put( "resolutionSource", PolymarketCore.this.safeString(rawEvent, "resolution_source") );
-            put( "resolved", PolymarketCore.this.safeBool(rawEvent, "resolved") );
+            put( "lastUpdatedAt", PolymarketCore.this.parse8601(updatedAt) );
+            put( "lastUpdatedAtDatetime", updatedAt );
+            put( "resolutionSource", PolymarketCore.this.safeString2(rawEvent, "resolutionSource", "resolution_source") );
+            put( "resolved", PolymarketCore.this.safeBool2(rawEvent, "closed", "resolved") );
             put( "info", rawEvent );
         }});
     }

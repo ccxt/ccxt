@@ -67,9 +67,12 @@ public Object isPrediction()
     public Object applyEventFetchParams(Object events, Object... optionalArgs)
     {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
-        // so exchanges whose API can't filter natively still support them consistently
+        // so exchanges whose API can't filter natively still support them consistently.
+        // every fetched event lands in the cache before filtering, so loadEvents()/event()
+        // serve them later without another request
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object queries = Helpers.getArg(optionalArgs, 1, null);
+        this.setEvents(events);
         Object result = events;
         Object eventId = this.safeString(parameters, "eventId");
         Object slug = this.safeString(parameters, "slug");
@@ -219,8 +222,15 @@ public Object isPrediction()
 
     public Object setEvents(Object events)
     {
-        this.events = new java.util.HashMap<String, Object>() {{}};
-        this.events_by_slug = new java.util.HashMap<String, Object>() {{}};
+        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache
+        if (Helpers.isTrue(Helpers.isEqual(this.events, null)))
+        {
+            this.events = new java.util.HashMap<String, Object>() {{}};
+        }
+        if (Helpers.isTrue(Helpers.isEqual(this.events_by_slug, null)))
+        {
+            this.events_by_slug = new java.util.HashMap<String, Object>() {{}};
+        }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
@@ -260,11 +270,29 @@ public Object isPrediction()
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
+            // promise coalescing: the promise-sharing idiom is not expressible in the transpiled
+            // base, so two truly concurrent first calls may fetch twice (both land in the cache)
             Object reload = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.loadEventsHelper(reload, parameters)).join();
         });
 
+    }
+
+    public Object getEvent(Object eventIdOrSlug)
+    {
+        // cache-only event resolver (the event analogue of this.outcome) - the cache fills
+        // through fetchEvents/loadEvents; this never fetches
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.events, null))) && Helpers.isTrue((Helpers.inOp(this.events, eventIdOrSlug)))))
+        {
+            return Helpers.GetValue(this.events, eventIdOrSlug);
+        }
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.events_by_slug, null))) && Helpers.isTrue((Helpers.inOp(this.events_by_slug, eventIdOrSlug)))))
+        {
+            return Helpers.GetValue(this.events_by_slug, eventIdOrSlug);
+        }
+        throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " has no cached event "), eventIdOrSlug), " - call loadEvents() or fetchEvents() first")) ;
     }
 
     public Object outcome(Object outcomeSymbol)

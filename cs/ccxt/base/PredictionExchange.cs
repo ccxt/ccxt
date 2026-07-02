@@ -51,8 +51,11 @@ public partial class PredictionExchange : Exchange
     public virtual object applyEventFetchParams(object events, object parameters = null, object queries = null)
     {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
-        // so exchanges whose API can't filter natively still support them consistently
+        // so exchanges whose API can't filter natively still support them consistently.
+        // every fetched event lands in the cache before filtering, so loadEvents()/event()
+        // serve them later without another request
         parameters ??= new Dictionary<string, object>();
+        this.setEvents(events);
         object result = events;
         object eventId = this.safeString(parameters, "eventId");
         object slug = this.safeString(parameters, "slug");
@@ -190,8 +193,15 @@ public partial class PredictionExchange : Exchange
 
     public virtual object setEvents(object events)
     {
-        this.events = new Dictionary<string, object>() {};
-        this.events_by_slug = new Dictionary<string, object>() {};
+        // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache
+        if (isTrue(isEqual(this.events, null)))
+        {
+            this.events = new Dictionary<string, object>() {};
+        }
+        if (isTrue(isEqual(this.events_by_slug, null)))
+        {
+            this.events_by_slug = new Dictionary<string, object>() {};
+        }
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
@@ -223,9 +233,27 @@ public partial class PredictionExchange : Exchange
 
     public async virtual Task<object> loadEvents(object reload = null, object parameters = null)
     {
+        // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
+        // promise coalescing: the promise-sharing idiom is not expressible in the transpiled
+        // base, so two truly concurrent first calls may fetch twice (both land in the cache)
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         return await this.loadEventsHelper(reload, parameters);
+    }
+
+    public virtual object getEvent(object eventIdOrSlug)
+    {
+        // cache-only event resolver (the event analogue of this.outcome) - the cache fills
+        // through fetchEvents/loadEvents; this never fetches
+        if (isTrue(isTrue((!isEqual(this.events, null))) && isTrue((inOp(this.events, eventIdOrSlug)))))
+        {
+            return getValue(this.events, eventIdOrSlug);
+        }
+        if (isTrue(isTrue((!isEqual(this.events_by_slug, null))) && isTrue((inOp(this.events_by_slug, eventIdOrSlug)))))
+        {
+            return getValue(this.events_by_slug, eventIdOrSlug);
+        }
+        throw new BadSymbol ((string)add(add(add(this.id, " has no cached event "), eventIdOrSlug), " - call loadEvents() or fetchEvents() first")) ;
     }
 
     public virtual object outcome(object outcomeSymbol)

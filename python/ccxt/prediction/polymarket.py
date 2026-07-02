@@ -1955,6 +1955,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 ocId = self.safe_string(oc, 'outcomeId')
                 if ocId is not None:
                     self.outcomes_by_id[ocId] = oc
+        # uniform id/slug-keyed entries alongside polymarket's own shortened-slug keys
+        self.set_events(result)
         # the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
         # client-side(searchIn defaults to 'title', matching the reference behaviour)
         filtered = result
@@ -2048,23 +2050,34 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # }
         marketsList = self.parse_event_to_markets(rawEvent)
         slug = self.safe_string(rawEvent, 'slug')
+        # gamma events use camelCase keys(createdAt/endDate/image/updatedAt/closed)
+        # the snake_case fallbacks cover older payload shapes
+        createdAt = self.safe_string_2(rawEvent, 'createdAt', 'created_date_iso')
+        endDate = self.safe_string_2(rawEvent, 'endDate', 'end_date_iso')
+        updatedAt = self.safe_string_2(rawEvent, 'updatedAt', 'last_updated_date_iso')
+        rawActive = self.safe_bool(rawEvent, 'active')
+        closed = self.safe_bool(rawEvent, 'closed', False)
+        active = None
+        if rawActive is not None:
+            active = rawActive and not closed
         return self.extend({
             'id': self.safe_string(rawEvent, 'id'),
             'slug': slug,
             'event': self.shorten_slug(slug) if slug else None,
             'title': self.safe_string(rawEvent, 'title'),
             'markets': marketsList,
+            'active': active,
             'url': self.safe_string(rawEvent, 'url'),
-            'image': self.safe_string(rawEvent, 'image_url'),
-            'created': self.parse8601(self.safe_string(rawEvent, 'created_date_iso')),
-            'createdDatetime': self.safe_string(rawEvent, 'created_date_iso'),
-            'end': self.parse8601(self.safe_string(rawEvent, 'end_date_iso')),
-            'endDatetime': self.safe_string(rawEvent, 'end_date_iso'),
+            'image': self.safe_string_2(rawEvent, 'image', 'image_url'),
+            'created': self.parse8601(createdAt),
+            'createdDatetime': createdAt,
+            'end': self.parse8601(endDate),
+            'endDatetime': endDate,
             'category': self.safe_string(rawEvent, 'category'),
-            'lastUpdatedAt': self.parse8601(self.safe_string(rawEvent, 'last_updated_date_iso')),
-            'lastUpdatedAtDatetime': self.safe_string(rawEvent, 'last_updated_date_iso'),
-            'resolutionSource': self.safe_string(rawEvent, 'resolution_source'),
-            'resolved': self.safe_bool(rawEvent, 'resolved'),
+            'lastUpdatedAt': self.parse8601(updatedAt),
+            'lastUpdatedAtDatetime': updatedAt,
+            'resolutionSource': self.safe_string_2(rawEvent, 'resolutionSource', 'resolution_source'),
+            'resolved': self.safe_bool_2(rawEvent, 'closed', 'resolved'),
             'info': rawEvent,
         })
 

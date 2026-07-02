@@ -43,7 +43,7 @@ export default class myriad extends Exchange {
             'countries': [],
             'rateLimit': 200,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
