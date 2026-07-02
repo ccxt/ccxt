@@ -131,7 +131,7 @@ func (this *BitmexCore) Describe() any {
 				"public":  "https://testnet.bitmex.com",
 				"private": "https://testnet.bitmex.com",
 			},
-			"logo": "https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04",
+			"logo": "https://github.com/user-attachments/assets/3360333d-35a6-4503-bbba-92a6bc0c174f",
 			"api": map[string]any{
 				"public":  "https://www.bitmex.com",
 				"private": "https://www.bitmex.com",
@@ -856,7 +856,7 @@ func (this *BitmexCore) ParseMarket(market any) any {
 		}
 		expiryDatetime = this.SafeString2(market, "expiry", "closingTimestamp")
 		expiry = this.Parse8601(expiryDatetime)
-		if IsTrue(!IsEqual(expiry, nil)) {
+		if IsTrue(IsTrue(!IsEqual(expiry, nil)) && IsTrue(future)) {
 			symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 		}
 	} else {
@@ -1080,7 +1080,7 @@ func (this *BitmexCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitmexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

@@ -39,7 +39,7 @@ class gate(Exchange, ImplicitAPI):
             'certified': True,
             'pro': True,
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85',
+                'logo': 'https://github.com/user-attachments/assets/b4fd9d41-eaed-46fe-8a7b-b2677edface0',
                 'doc': 'https://www.gate.com/docs/developers/apiv4/en',
                 'www': 'https://gate.com',
                 'api': {
@@ -200,7 +200,7 @@ class gate(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    # All public endpoints 200r/10s per endpoint
+                    # all public endpoints 200r/10s per endpoint
                     'wallet': {
                         'get': {
                             'currency_chains': 1,
@@ -2633,7 +2633,7 @@ class gate(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

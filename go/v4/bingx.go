@@ -1657,7 +1657,7 @@ func (this *BingxCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BingxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -6877,7 +6877,6 @@ func (this *BingxCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan a
 		}
 		var response any = nil
 		var commission any = map[string]any{}
-		var data any = this.SafeDict(response, "data", map[string]any{})
 		if IsTrue(GetValue(market, "spot")) {
 
 			response = (<-this.SpotV1PrivateGetUserCommissionRate(this.Extend(request, params)))
@@ -6893,7 +6892,7 @@ func (this *BingxCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan a
 			//         }
 			//     }
 			//
-			commission = data
+			commission = this.SafeDict(response, "data", map[string]any{})
 		} else {
 			if IsTrue(GetValue(market, "inverse")) {
 
@@ -6910,7 +6909,7 @@ func (this *BingxCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan a
 				//         }
 				//     }
 				//
-				commission = data
+				commission = this.SafeDict(response, "data", map[string]any{})
 			} else {
 
 				response = (<-this.SwapV2PrivateGetUserCommissionRate(params))
@@ -6927,6 +6926,7 @@ func (this *BingxCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan a
 				//         }
 				//     }
 				//
+				var data any = this.SafeDict(response, "data", map[string]any{})
 				commission = this.SafeDict(data, "commission", map[string]any{})
 			}
 		}

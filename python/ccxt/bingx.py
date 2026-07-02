@@ -1516,7 +1516,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -6346,7 +6346,6 @@ class bingx(Exchange, ImplicitAPI):
         }
         response = None
         commission = {}
-        data = self.safe_dict(response, 'data', {})
         if market['spot']:
             response = self.spotV1PrivateGetUserCommissionRate(self.extend(request, params))
             #
@@ -6360,7 +6359,7 @@ class bingx(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            commission = data
+            commission = self.safe_dict(response, 'data', {})
         else:
             if market['inverse']:
                 response = self.cswapV1PrivateGetUserCommissionRate(params)
@@ -6375,7 +6374,7 @@ class bingx(Exchange, ImplicitAPI):
                 #         }
                 #     }
                 #
-                commission = data
+                commission = self.safe_dict(response, 'data', {})
             else:
                 response = self.swapV2PrivateGetUserCommissionRate(params)
                 #
@@ -6390,6 +6389,7 @@ class bingx(Exchange, ImplicitAPI):
                 #         }
                 #     }
                 #
+                data = self.safe_dict(response, 'data', {})
                 commission = self.safe_dict(data, 'commission', {})
         return self.parse_trading_fee(commission, market)
 

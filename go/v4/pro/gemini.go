@@ -34,7 +34,6 @@ func  (this *GeminiCore) Describe() any  {
             "watchOrderBookForSymbols": true,
             "watchOHLCV": true,
         },
-        "hostname": "api.gemini.com",
         "urls": map[string]any {
             "api": map[string]any {
                 "ws": "wss://api.gemini.com",
@@ -68,8 +67,8 @@ func  (this *GeminiCore) WatchTrades(symbol any, optionalArgs ...any) <- chan an
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes528 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes528)
+            retRes518 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes518)
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add("trades:", ccxt.GetValue(market, "symbol"))
             var marketId any = ccxt.GetValue(market, "id")
@@ -325,8 +324,8 @@ func  (this *GeminiCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes2798 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2798)
+            retRes2788 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2788)
             var market any = this.Market(symbol)
             var timeframeId any = this.SafeString(this.Timeframes, timeframe, timeframe)
             var request any = map[string]any {
@@ -415,7 +414,7 @@ func  (this *GeminiCore) HandleOHLCV(client any, message any) any  {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *GeminiCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -427,8 +426,8 @@ func  (this *GeminiCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes3708 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3708)
+            retRes3698 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3698)
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
             var marketId any = ccxt.GetValue(market, "id")
@@ -483,7 +482,7 @@ func  (this *GeminiCore) HandleOrderBook(client any, message any)  {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *GeminiCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -523,9 +522,9 @@ func  (this *GeminiCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes44115 :=  (<-this.HelperForWatchMultipleConstruct("bidsasks", symbols, params))
-                ccxt.PanicOnError(retRes44115)
-                ch <- retRes44115
+                retRes44015 :=  (<-this.HelperForWatchMultipleConstruct("bidsasks", symbols, params))
+                ccxt.PanicOnError(retRes44015)
+                ch <- retRes44015
                 return nil
         
             }()
@@ -604,8 +603,8 @@ func  (this *GeminiCore) HelperForWatchMultipleConstruct(itemHashName any, optio
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes5098 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5098)
+            retRes5088 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5088)
             if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
                 panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchMultiple requires at least one symbol")))
             }
@@ -633,9 +632,9 @@ func  (this *GeminiCore) HelperForWatchMultipleConstruct(itemHashName any, optio
                 url = ccxt.Add(url, "trades=true&bids=false&offers=false")
             }
         
-                retRes53615 :=  (<-this.WatchMultiple(url, messageHashes, nil))
-                ccxt.PanicOnError(retRes53615)
-                ch <- retRes53615
+                retRes53515 :=  (<-this.WatchMultiple(url, messageHashes, nil))
+                ccxt.PanicOnError(retRes53515)
+                ch <- retRes53515
                 return nil
         
             }()
@@ -755,14 +754,14 @@ func  (this *GeminiCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = params
             var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked")
         
-            retRes6428 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6428)
+            retRes6418 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6418)
             var authParams any = map[string]any {
                 "url": url,
             }
         
-            retRes6468 := (<-this.Authenticate(authParams))
-            ccxt.PanicOnError(retRes6468)
+            retRes6458 := (<-this.Authenticate(authParams))
+            ccxt.PanicOnError(retRes6458)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 var market any = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
