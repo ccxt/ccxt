@@ -945,7 +945,7 @@ export default class Exchange {
                     const undiciModule = await import (/* webpackIgnore: true */ 'undici');
                     this.undiciModule = undiciModule;
                     this.fetchImplementation = undiciModule.fetch;
-                    this.fetchDispatcher = new undiciModule.Agent (this.fetchDispatcherOptions (true));
+                    this.fetchDispatcher = new undiciModule.Agent (this.getDispatcherOptions (true));
                     this.fetchIsNative = true;
                     return;
                 } catch (e) {
@@ -966,12 +966,12 @@ export default class Exchange {
     /**
      * @ignore
      * @method
-     * @name Exchange#fetchDispatcherOptions
+     * @name Exchange#getDispatcherOptions
      * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly
      * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
      * @returns {object} undici dispatcher options
      */
-    fetchDispatcherOptions (isPlainAgent = false) {
+    getDispatcherOptions (isPlainAgent = false) {
         const options = {
             'keepAliveTimeout': 60 * 1000, // hold idle sockets for 60s (server keep-alive hints still apply)
             'keepAliveMaxTimeout': 10 * 60 * 1000, // cap server-suggested keep-alive at 10 minutes
@@ -979,7 +979,7 @@ export default class Exchange {
             'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
             'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
         };
-        if (!this.fetchServerSslValidation ()) {
+        if (!this.shouldValidateServerSsl ()) {
             const tlsOptions = { 'rejectUnauthorized': false };
             if (isPlainAgent) {
                 options['connect'] = tlsOptions;
@@ -993,11 +993,11 @@ export default class Exchange {
     /**
      * @ignore
      * @method
-     * @name Exchange#fetchServerSslValidation
+     * @name Exchange#shouldValidateServerSsl
      * @description whether server certificates should be validated, honoring both this.validateServerSsl and legacy agents constructed with rejectUnauthorized false
      * @returns {boolean} true when server ssl certificates must be validated
      */
-    fetchServerSslValidation () {
+    shouldValidateServerSsl () {
         if (!this.validateServerSsl) {
             return false;
         }
@@ -1049,7 +1049,7 @@ export default class Exchange {
             if ((lowercaseProxyUrl.indexOf ('socks4:') === 0) || (lowercaseProxyUrl.indexOf ('socks4a:') === 0)) {
                 throw new NotSupported (this.id + ' - socks4 proxies are not supported by the built-in fetch, please use a socks5:// proxy');
             }
-            const options = this.fetchDispatcherOptions (false);
+            const options = this.getDispatcherOptions (false);
             options['uri'] = proxyUrl;
             this.fetchProxyDispatchers[proxyUrl] = new this.undiciModule.ProxyAgent (options);
         }
