@@ -1634,6 +1634,13 @@
             }
         }
     },
+    "kucoineu": {
+        "skipMethods":{
+            "fetchCurrencies": {
+                "currencyIdAndCode": "messed https://github.com/ccxt/ccxt/actions/runs/28543101209/job/84622191645?pr=29055#step:10:695"
+            }
+        }
+    },
     "latoken": {
         "skipMethods":{
             "loadMarkets": {
