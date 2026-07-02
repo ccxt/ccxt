@@ -128,6 +128,7 @@ class testMainClass {
             'timeout': 30000,
         };
         const exchange = initExchange (exchangeId, exchangeArgs, this.wsTests);
+        this.removeWarning (exchange);
         if (exchange.alias) {
             dump (this.addPadding ("[INFO] skipping alias", 25));
             exitScript (0);
@@ -140,6 +141,13 @@ class testMainClass {
         await this.startTest (exchange, symbolArgv);
         exitScript (0); // needed to be explicitly finished for WS tests
         return true; // required for c#
+    }
+
+    removeWarning (exchange: Exchange) {
+        const showWarning = exchange.safeString (exchange.options, 'warning');
+        if (showWarning !== undefined) {
+            dump ('[INFO] WARNING: ' + exchange.id + ' has a warning, but still being processed by tests. The warning is: ' + showWarning);
+        }
     }
 
     checkIfSpecificTestIsChosen (methodArgv) {
@@ -1418,6 +1426,7 @@ class testMainClass {
             options['secret'] = "";
         }
         const exchange = initExchange (exchangeName, options);
+        this.removeWarning (exchange);
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
         return exchange;

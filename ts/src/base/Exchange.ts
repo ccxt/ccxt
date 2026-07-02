@@ -3587,6 +3587,10 @@ export default class Exchange {
     }
 
     afterConstruct () {
+        const showWarning = this.safeString (this.options, 'warning');
+        if (showWarning !== undefined) {
+            throw new ExchangeError (this.id + ' has been disabled by default, the reason is: ' + showWarning + '. If you want to use it, please set exchange.options["warning"] = undefined');
+        }
         // networks
         this.createNetworksByIdObject ();
         this.featuresGenerator ();

@@ -83,6 +83,9 @@
         }
     },
     "ascendex": {
+        "options": {
+            "warning": null
+        },
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
