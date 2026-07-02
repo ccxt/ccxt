@@ -265,6 +265,7 @@ class kraken extends kraken$1["default"] {
                 'ZUSD': 'USD',
             },
             'options': {
+                'mica': true,
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'marketsByAltname': {},

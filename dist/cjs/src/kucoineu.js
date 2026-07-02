@@ -25,6 +25,9 @@ class kucoineu extends kucoin["default"] {
                     'https://www.kucoin.com/en-eu/docs-new',
                 ],
             },
+            'options': {
+                'mica': true,
+            },
         });
     }
 }

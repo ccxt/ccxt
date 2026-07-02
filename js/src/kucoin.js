@@ -32,7 +32,7 @@ export default class kucoin extends Exchange {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': true,
                 'borrowCrossMargin': true,
