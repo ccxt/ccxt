@@ -257,6 +257,20 @@ export default class mudrex extends Exchange {
         ];
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.price] "mark" to fetch mark price candles
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -302,10 +316,31 @@ export default class mudrex extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchMarkOHLCV
+     * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchMarkOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (params, { 'price': 'mark' }));
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -318,6 +353,15 @@ export default class mudrex extends Exchange {
         return this.parseTicker (data, market);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const request: Dict = {};
@@ -371,6 +415,14 @@ export default class mudrex extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchMarkets
+     * @description retrieves data on all markets for the exchange
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const aggregated = [];
         let offset = 0;
@@ -476,6 +528,15 @@ export default class mudrex extends Exchange {
         } as Market;
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.trade_currency] the settlement currency to query the balance for
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const tradeCurrency = this.safeString2 (params, 'trade_currency', 'tradeCurrency');
@@ -516,6 +577,15 @@ export default class mudrex extends Exchange {
         return this.safeBalance (balance);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+     */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -534,6 +604,17 @@ export default class mudrex extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name mudrex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
+     * @returns {object} response from the exchange
+     */
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol');
@@ -611,6 +692,20 @@ export default class mudrex extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    /**
+     * @method
+     * @name mudrex#editOrder
+     * @description edit a trade order
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         let market: Market = undefined;
@@ -701,6 +796,16 @@ export default class mudrex extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name mudrex#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         let market: Market = undefined;
@@ -715,6 +820,16 @@ export default class mudrex extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} id the order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         let market: Market = undefined;
@@ -729,6 +844,18 @@ export default class mudrex extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchOrdersByState
+     * @ignore
+     * @description fetches a list of orders filtered by their state
+     * @param {string} state the state of the orders to fetch
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async fetchOrdersByState (state: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const q: Dict = {};
@@ -755,18 +882,61 @@ export default class mudrex extends Exchange {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersByState ('closed', symbol, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersByState ('open', symbol, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersByState ('closed', symbol, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.trade_currency] the settlement currency to query positions for
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const q: Dict = {};
@@ -837,6 +1007,18 @@ export default class mudrex extends Exchange {
         } as Position;
     }
 
+    /**
+     * @method
+     * @name mudrex#closePosition
+     * @description closes an open position for a market
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} symbol unified CCXT market symbol
+     * @param {string} [side] 'buy' or 'sell', not required by mudrex
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.position_id] the id of the position to close, resolved from the symbol if not provided
+     * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         let positionId = this.safeString (params, 'position_id');
@@ -876,6 +1058,17 @@ export default class mudrex extends Exchange {
         return await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name mudrex#addMargin
+     * @description add margin to a position
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
+     * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+     */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         let positionId = this.safeString (params, 'position_id');
@@ -900,10 +1093,32 @@ export default class mudrex extends Exchange {
         return await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name mudrex#reduceMargin
+     * @description remove margin from a position
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+     */
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.addMargin (symbol, -amount, params);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.trade_currency] the settlement currency to filter trades by
+     * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
@@ -967,6 +1182,18 @@ export default class mudrex extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name mudrex#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://docs.trade.mudrex.com/docs
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount 'spot' or 'futures'
+     * @param {string} toAccount 'spot' or 'futures'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+     */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         const mp: Dict = {
             'spot': 'SPOT',
