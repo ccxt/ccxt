@@ -1100,7 +1100,6 @@ export default class okx extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'sandboxMode': false,
-                'mica': true,
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'ETH': 'ERC20',
