@@ -1476,7 +1476,7 @@ export default class bitget extends Exchange {
                 'TONCOIN': 'TON',
             },
             'options': {
-                'uta': false,
+                'uta': undefined,
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'timeframes': {
@@ -1923,7 +1923,6 @@ export default class bitget extends Exchange {
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, methodName, 'uta');
         if (uta !== undefined) {
-            console.log ('first handleUTAAndParams: uta =', uta);
             return [ uta, params ];
         }
         if (this.checkRequiredCredentials (false)) {
@@ -1932,14 +1931,12 @@ export default class bitget extends Exchange {
             try {
                 await this.privateUtaGetV3AccountSettings (params);
                 accountIsUTa = true;
-                this.options['uta'] = true;
             } catch (e) {
                 accountIsUTa = false;
             }
-            console.log ('handleUTAAndParams: accountIsUTa =', accountIsUTa);
+            this.options['uta'] = accountIsUTa;
             return [ accountIsUTa, params ];
         }
-        console.log ('default handleUTAAndParams: accountIsUTa =', defaultValue);
         return [ defaultValue, params ];
     }
 
