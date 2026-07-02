@@ -33,7 +33,6 @@ class woofipro(Exchange, ImplicitAPI):
             'certified': True,
             'pro': True,
             'dex': True,
-            'hostname': 'dex.woo.org',
             'has': {
                 'CORS': None,
                 'spot': False,
@@ -1216,7 +1215,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2784,8 +2783,7 @@ class woofipro(Exchange, ImplicitAPI):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
-        url = self.implode_hostname(self.urls['api'][access])
-        url += '/' + version + '/'
+        url = self.urls['api'][access] + '/' + version + '/'
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         if access == 'public':

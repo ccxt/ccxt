@@ -21,7 +21,7 @@ public class DeriveCore extends DeriveApi
     {
         return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
             put( "id", "derive" );
-            put( "name", "derive" );
+            put( "name", "Derive" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             put( "version", "v1" );
             put( "rateLimit", 50 );
@@ -137,9 +137,8 @@ public class DeriveCore extends DeriveApi
                 put( "1w", "1w" );
                 put( "1M", "1M" );
             }} );
-            put( "hostname", "derive.xyz" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c" );
+                put( "logo", "https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.lyra.finance/public" );
                     put( "private", "https://api.lyra.finance/private" );

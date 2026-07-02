@@ -148,7 +148,7 @@ public class BackpackCore extends BackpackApi
                 put( "1M", "1month" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f" );
+                put( "logo", "https://github.com/user-attachments/assets/7f682234-3eb1-48ab-a5ec-250a3227c985" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.backpack.exchange" );
                     put( "private", "https://api.backpack.exchange" );

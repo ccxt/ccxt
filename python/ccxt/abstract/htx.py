@@ -173,6 +173,7 @@ class ImplicitAPI:
     spot_private_get_v1_cross_margin_loan_orders = spotPrivateGetV1CrossMarginLoanOrders = Entry('v1/cross-margin/loan-orders', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_v1_cross_margin_accounts_balance = spotPrivateGetV1CrossMarginAccountsBalance = Entry('v1/cross-margin/accounts/balance', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_v2_account_repayment = spotPrivateGetV2AccountRepayment = Entry('v2/account/repayment', ['spot', 'private'], 'GET', {'cost': 5})
+    spot_private_get_v5_account_universal_transfer_records = spotPrivateGetV5AccountUniversalTransferRecords = Entry('v5/account/universal_transfer_records', ['spot', 'private'], 'GET', {'cost': 4})
     spot_private_get_v1_stable_coin_quote = spotPrivateGetV1StableCoinQuote = Entry('v1/stable-coin/quote', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_v1_stable_coin_exchange_rate = spotPrivateGetV1StableCoinExchangeRate = Entry('v1/stable_coin/exchange_rate', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_v2_etp_transactions = spotPrivateGetV2EtpTransactions = Entry('v2/etp/transactions', ['spot', 'private'], 'GET', {'cost': 5})

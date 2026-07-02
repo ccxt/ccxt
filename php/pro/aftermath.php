@@ -8,11 +8,10 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class aftermath extends \ccxt\async\aftermath {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -61,17 +60,17 @@ class aftermath extends \ccxt\async\aftermath {
         return Async\async(function () use ($suffix, $messageHash, $message) {
             $url = $this->urls['api']['ws']['swap'] . '/' . $suffix;
             return Async\await($this->watch($url, $messageHash, $this->json($message), $messageHash, $message));
-        }) ();
+        })();
     }
 
     public function watch_public_multiple($suffix, $messageHashes, $message) {
         return Async\async(function () use ($suffix, $messageHashes, $message) {
             $url = $this->urls['api']['ws']['swap'] . '/' . $suffix;
             return Async\await($this->watch_multiple($url, $messageHashes, $this->json($message), $messageHashes, $message));
-        }) ();
+        })();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
@@ -94,10 +93,10 @@ class aftermath extends \ccxt\async\aftermath {
             $message = $this->extend($request, $params);
             $trades = Async\await($this->watch_public('trades', $topic, $message));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($market['symbol'], $limit);
+                $limit = $trades->getLimit($market['symbol'], $limit);
             }
             return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_trade(Client $client, $message) {
@@ -122,17 +121,17 @@ class aftermath extends \ccxt\async\aftermath {
         $market = $this->market($symbol);
         if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $messageHash = $market['id'] . '@trade';
         $trades = $this->trades[$symbol];
-        $trades->append ($trade);
+        $trades->append($trade);
         $this->trades[$symbol] = $trades;
-        $client->resolve ($trades, $messageHash);
+        $client->resolve($trades, $messageHash);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
@@ -142,7 +141,7 @@ class aftermath extends \ccxt\async\aftermath {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -153,8 +152,8 @@ class aftermath extends \ccxt\async\aftermath {
             );
             $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch_public('orderbook', $topic, $message));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -188,7 +187,7 @@ class aftermath extends \ccxt\async\aftermath {
             $nonce = $this->safe_integer($message, 'nonce');
             if ($nonce === ($prevNonce + 1)) {
                 $this->handle_order_book_message($client, $message, $orderbook);
-                $client->resolve ($orderbook, $topic);
+                $client->resolve($orderbook, $topic);
             }
         }
     }
@@ -208,14 +207,14 @@ class aftermath extends \ccxt\async\aftermath {
                     return;
                 }
                 $orderbook = $this->orderbooks[$symbol];
-                $orderbook->reset ($snapshot);
+                $orderbook->reset($snapshot);
                 $this->orderbooks[$symbol] = $orderbook;
-                $client->resolve ($orderbook, $messageHash);
+                $client->resolve($orderbook, $messageHash);
             } catch (Exception $e) {
                 unset($client->subscriptions[$messageHash]);
-                $client->reject ($e, $messageHash);
+                $client->reject($e, $messageHash);
             }
-        }) ();
+        })();
     }
 
     public function handle_order_book_message(Client $client, $message, $orderbook) {
@@ -232,7 +231,7 @@ class aftermath extends \ccxt\async\aftermath {
     public function handle_delta($bookside, $delta) {
         $price = $this->safe_float_2($delta, 'price', 0);
         $amount = $this->safe_float_2($delta, 'quantity', 1);
-        $bookside->store ($price, $amount);
+        $bookside->store($price, $amount);
     }
 
     public function handle_deltas($bookside, $deltas) {
@@ -241,7 +240,7 @@ class aftermath extends \ccxt\async\aftermath {
         }
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
@@ -278,7 +277,7 @@ class aftermath extends \ccxt\async\aftermath {
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
             $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
-                $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
+                $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
             }
             $newPositions = Async\await($this->watch_public_multiple($suffix, $messageHashes, $message));
@@ -286,36 +285,36 @@ class aftermath extends \ccxt\async\aftermath {
                 return $newPositions;
             }
             return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        }) ();
+        })();
     }
 
-    public function set_positions_cache(Client $client, ?array $symbols = null, array $params = array ()) {
+    public function set_positions_cache(Client $client, ?array $symbols = null, array $params = array()) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
-                $client->future ($messageHash);
+                $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $symbols, $params);
             }
         } else {
-            $this->positions = new ArrayCacheBySymbolBySide ();
+            $this->positions = new ArrayCacheBySymbolBySide();
         }
     }
 
     public function load_positions_snapshot($client, $messageHash, $symbols, $params) {
         return Async\async(function () use ($client, $messageHash, $symbols, $params) {
             $positions = Async\await($this->fetch_positions($symbols, $params));
-            $this->positions = new ArrayCacheBySymbolBySide ();
+            $this->positions = new ArrayCacheBySymbolBySide();
             $cache = $this->positions;
             for ($i = 0; $i < count($positions); $i++) {
                 $position = $positions[$i];
-                $cache->append ($position);
+                $cache->append($position);
             }
             // don't remove the $future from the .futures $cache
             $future = $client->futures[$messageHash];
-            $future->resolve ($cache);
-            $client->resolve ($cache, 'positions');
-        }) ();
+            $future->resolve($cache);
+            $client->resolve($cache, 'positions');
+        })();
     }
 
     public function handle_positions($client, $message) {
@@ -343,16 +342,16 @@ class aftermath extends \ccxt\async\aftermath {
         // }
         //
         if ($this->positions === null) {
-            $this->positions = new ArrayCacheBySymbolBySide ();
+            $this->positions = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions;
         $symbol = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($symbol);
         $position = $this->parse_position($message, $market);
-        $cache->append ($position);
+        $cache->append($position);
         $messageHash = 'positions::' . $market['symbol'];
-        $client->resolve ($position, $messageHash);
-        $client->resolve (array( $position ), 'positions');
+        $client->resolve($position, $messageHash);
+        $client->resolve(array( $position ), 'positions');
     }
 
     public function handle_error_message(Client $client, $message) {
@@ -368,12 +367,12 @@ class aftermath extends \ccxt\async\aftermath {
                 } catch (Exception $error) {
                     if ($error instanceof AuthenticationError) {
                         $messageHash = 'authenticated';
-                        $client->reject ($error, $messageHash);
+                        $client->reject($error, $messageHash);
                         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
                             unset($client->subscriptions[$messageHash]);
                         }
                     } else {
-                        $client->reject ($error);
+                        $client->reject($error);
                     }
                     return true;
                 }

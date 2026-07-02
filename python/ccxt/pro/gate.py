@@ -21,7 +21,11 @@ from ccxt.base.precise import Precise
 class gate(ccxt.async_support.gate):
 
     def describe(self) -> Any:
-        return self.deep_extend(super(gate, self).describe(), {
+        superDescribe = super(gate, self).describe()
+        return self.deep_extend(superDescribe, self.describe_data())
+
+    def describe_data(self) -> Any:
+        return {
             'has': {
                 'ws': True,
                 'cancelAllOrdersWs': True,
@@ -141,7 +145,7 @@ class gate(ccxt.async_support.gate):
                     'broad': {},
                 },
             },
-        })
+        }
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -391,24 +395,28 @@ class gate(ccxt.async_support.gate):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         marketId = market['id']
-        intervalDefault = '50' if (market['spot']) else '100ms'
+        url = self.get_url_by_market(market)
+        isEuUrl = url.find('gateeu') >= 0
+        intervalDefault = '50' if (market['spot'] and not isEuUrl) else '100ms'
         interval, query = self.handle_option_and_params(params, 'watchOrderBook', 'interval', intervalDefault)
         messageType = self.get_type_by_market(market)
         messageHash = 'orderbook' + ':' + symbol
-        url = self.get_url_by_market(market)
         if limit is None:
             limit = 50 if (market['spot']) else 100  # max 100 atm
             if messageType == 'options':
                 limit = 50  # max 50 for options
         payload = []
         channel = ''
-        if market['spot']:
+        if isEuUrl:
+            channel = 'spot.order_book_update'
+            payload = [marketId, interval]
+        elif market['spot']:
             channel = 'spot.obu'
             finalInterval = interval
             if limit == 400:
@@ -431,24 +439,41 @@ class gate(ccxt.async_support.gate):
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
+        url = self.get_url_by_market(market)
         symbol = market['symbol']
         marketId = market['id']
-        interval = '100ms'
+        isEuUrl = url.find('gateeu') >= 0
+        intervalDefault = '50' if (market['spot'] and not isEuUrl) else '100ms'
+        interval = intervalDefault
         interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', interval)
         messageType = self.get_type_by_market(market)
-        channel = messageType + '.order_book_update'
-        subMessageHash = 'orderbook' + ':' + symbol
-        messageHash = 'unsubscribe:orderbook' + ':' + symbol
-        url = self.get_url_by_market(market)
-        payload = [marketId, interval]
-        limit = self.safe_integer(params, 'limit', 100)
-        if market['contract']:
+        limit = self.safe_integer(params, 'limit')
+        if limit is None:
+            limit = 50 if (market['spot']) else 100  # max 100 atm
+            if messageType == 'options':
+                limit = 50  # max 50 for options
+        payload = []
+        channel = ''
+        if isEuUrl:
+            channel = 'spot.order_book_update'
+            payload = [marketId, interval]
+        elif market['spot']:
+            channel = 'spot.obu'
+            finalInterval = interval
+            if limit == 400:
+                finalInterval = '400'
+            payload = ['ob.' + market['id'] + '.' + finalInterval]
+        else:
+            channel = messageType + '.order_book_update'
+            payload = [marketId, interval]
             stringLimit = str(limit)
             payload.append(stringLimit)
+        subMessageHash = 'orderbook' + ':' + symbol
+        messageHash = 'unsubscribe:orderbook' + ':' + symbol
         return await self.un_subscribe_public_multiple(url, 'orderbook', [symbol], [messageHash], [subMessageHash], payload, channel, params)
 
     def handle_order_book_subscription(self, client: Client, message, subscription):

@@ -307,7 +307,7 @@ func (this *Htx) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices,
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Htx) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -1676,6 +1676,55 @@ func (this *Htx) Transfer(code string, amount float64, fromAccount string, toAcc
 
 /**
  * @method
+ * @name htx#fetchTransfers
+ * @description fetch a history of internal transfers made on an account
+ * @see https://www.huobi.com/en-us/opend/newApiPages/
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {int} [since] the earliest time in ms to fetch transfers for
+ * @param {int} [limit] the maximum number of transfer structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.status] transfer status: 'success', 'pending', 'failed'
+ * @param {int} [params.from] the starting ID for pagination
+ * @param {string} [params.direct] pagination direction: 'prev' or 'next', default 'next'
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Htx) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
+
+	opts := FetchTransfersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTransfers(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTransferEntryArray(res), nil
+}
+
+/**
+ * @method
  * @name htx#fetchIsolatedBorrowRates
  * @description fetch the borrow interest rates of all currencies
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated
@@ -2633,9 +2682,6 @@ func (this *Htx) FetchTransactions(options ...FetchTransactionsOptions) ([]Trans
 }
 func (this *Htx) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
 	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Htx) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
 }
 func (this *Htx) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)

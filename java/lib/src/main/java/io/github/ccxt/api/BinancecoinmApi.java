@@ -2264,6 +2264,11 @@ public class BinancecoinmApi extends BinanceCore
         return this.callAsync ("dapiPrivateGetOpenOrders", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  dapiPrivateGetOpenAlgoOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("dapiPrivateGetOpenAlgoOrders", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  dapiPrivateGetAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateGetAllOrders", optionalArgs);
@@ -2369,6 +2374,11 @@ public class BinancecoinmApi extends BinanceCore
         return this.callAsync ("dapiPrivatePostOrder", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  dapiPrivatePostAlgoOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("dapiPrivatePostAlgoOrder", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  dapiPrivatePostBatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivatePostBatchOrders", optionalArgs);
@@ -2417,6 +2427,11 @@ public class BinancecoinmApi extends BinanceCore
     public java.util.concurrent.CompletableFuture<Object>  dapiPrivateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("dapiPrivateDeleteOrder", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  dapiPrivateDeleteAlgoOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("dapiPrivateDeleteAlgoOrder", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  dapiPrivateDeleteAllOpenOrders (Object... optionalArgs)

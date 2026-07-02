@@ -142,7 +142,7 @@ public class HyperliquidCore extends HyperliquidApi
             }} );
             put( "hostname", "hyperliquid.xyz" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b" );
+                put( "logo", "https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.{hostname}" );
                     put( "private", "https://api.{hostname}" );
@@ -1309,7 +1309,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2114,10 +2114,6 @@ public class HyperliquidCore extends HyperliquidApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object buildFee = this.safeBool(this.options, "builderFee", true);
-            if (!Helpers.isTrue(buildFee))
-            {
-                return false;  // skip if builder fee is not enabled
-            }
             Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
             if (Helpers.isTrue(approvedBuilderFee))
             {
@@ -2126,7 +2122,13 @@ public class HyperliquidCore extends HyperliquidApi
             try
             {
                 Object builder = this.safeString(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+                // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
+                // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
                 Object maxFeeRate = this.safeString(this.options, "feeRate", "0.01%");
+                if (!Helpers.isTrue(buildFee))
+                {
+                    maxFeeRate = "0%";
+                }
                 (this.approveBuilderFee(builder, maxFeeRate)).join();
                 Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
             } catch(Exception e)
@@ -2753,9 +2755,16 @@ public class HyperliquidCore extends HyperliquidApi
         if (Helpers.isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
         {
             Object wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+            // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
+            Object feeInt = this.safeInteger(this.options, "feeInt", 10);
+            if (!Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
+            {
+                feeInt = 0;
+            }
+            final Object finalFeeInt = feeInt;
             Helpers.addElementToObject(orderAction, "builder", new java.util.HashMap<String, Object>() {{
     put( "b", wallet );
-    put( "f", HyperliquidCore.this.safeInteger(HyperliquidCore.this.options, "feeInt", 10) );
+    put( "f", finalFeeInt );
 }});
         }
         Object signature = this.signL1Action(orderAction, nonce, vaultAddress);

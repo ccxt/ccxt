@@ -4,18 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var _TypedDataEncoder_instances, _TypedDataEncoder_types, _TypedDataEncoder_fullTypes, _TypedDataEncoder_encoderCache, _TypedDataEncoder_getEncoder;
 //import { TypedDataDomain, TypedDataField } from "@ethersproject/providerabstract-signer";
 import { getAddress } from "../address/index.js";
 import { concat, defineProperties, getBigInt, getBytes, hexlify, isHexString, mask, toBeHex, toQuantity, toTwos, zeroPadValue, assertArgument, keccak256, id } from "../utils/index.js";
@@ -137,12 +125,15 @@ function encodeType(name, fields) {
  *  higher level [[Signer-signTypedData]] is more useful.
  */
 export class TypedDataEncoder {
+    #types;
     /**
      *  The types.
      */
     get types() {
-        return JSON.parse(__classPrivateFieldGet(this, _TypedDataEncoder_types, "f"));
+        return JSON.parse(this.#types);
     }
+    #fullTypes;
+    #encoderCache;
     /**
      *  Create a new **TypedDataEncoder** for %%types%%.
      *
@@ -151,13 +142,9 @@ export class TypedDataEncoder {
      *  well as computes the [[primaryType]].
      */
     constructor(types) {
-        _TypedDataEncoder_instances.add(this);
-        _TypedDataEncoder_types.set(this, void 0);
-        _TypedDataEncoder_fullTypes.set(this, void 0);
-        _TypedDataEncoder_encoderCache.set(this, void 0);
-        __classPrivateFieldSet(this, _TypedDataEncoder_types, JSON.stringify(types), "f");
-        __classPrivateFieldSet(this, _TypedDataEncoder_fullTypes, new Map(), "f");
-        __classPrivateFieldSet(this, _TypedDataEncoder_encoderCache, new Map(), "f");
+        this.#types = JSON.stringify(types);
+        this.#fullTypes = new Map();
+        this.#encoderCache = new Map();
         // Link struct types to their direct child structs
         const links = new Map();
         // Link structs to structs which contain them as a child
@@ -216,25 +203,65 @@ export class TypedDataEncoder {
         for (const [name, set] of subtypes) {
             const st = Array.from(set);
             st.sort();
-            __classPrivateFieldGet(this, _TypedDataEncoder_fullTypes, "f").set(name, encodeType(name, types[name]) + st.map((t) => encodeType(t, types[t])).join(""));
+            this.#fullTypes.set(name, encodeType(name, types[name]) + st.map((t) => encodeType(t, types[t])).join(""));
         }
     }
     /**
      *  Returnthe encoder for the specific %%type%%.
      */
     getEncoder(type) {
-        let encoder = __classPrivateFieldGet(this, _TypedDataEncoder_encoderCache, "f").get(type);
+        let encoder = this.#encoderCache.get(type);
         if (!encoder) {
-            encoder = __classPrivateFieldGet(this, _TypedDataEncoder_instances, "m", _TypedDataEncoder_getEncoder).call(this, type);
-            __classPrivateFieldGet(this, _TypedDataEncoder_encoderCache, "f").set(type, encoder);
+            encoder = this.#getEncoder(type);
+            this.#encoderCache.set(type, encoder);
         }
         return encoder;
+    }
+    #getEncoder(type) {
+        // Basic encoder type (address, bool, uint256, etc)
+        {
+            const encoder = getBaseEncoder(type);
+            if (encoder) {
+                return encoder;
+            }
+        }
+        // Array
+        const match = type.match(/^(.*)(\x5b(\d*)\x5d)$/);
+        if (match) {
+            const subtype = match[1];
+            const subEncoder = this.getEncoder(subtype);
+            return (value) => {
+                assertArgument(!match[3] || parseInt(match[3]) === value.length, `array length mismatch; expected length ${parseInt(match[3])}`, "value", value);
+                let result = value.map(subEncoder);
+                if (this.#fullTypes.has(subtype)) {
+                    result = result.map(keccak256);
+                }
+                return keccak256(getBytes(concat(result)));
+            };
+        }
+        // Struct
+        const fields = this.types[type];
+        if (fields) {
+            const encodedType = id(this.#fullTypes.get(type));
+            return (value) => {
+                const values = fields.map(({ name, type }) => {
+                    const result = this.getEncoder(type)(value[name]);
+                    if (this.#fullTypes.has(type)) {
+                        return keccak256(result);
+                    }
+                    return result;
+                });
+                values.unshift(encodedType);
+                return concat(values);
+            };
+        }
+        assertArgument(false, `unknown type: ${type}`, "type", type);
     }
     /**
      *  Return the full type for %%name%%.
      */
     encodeType(name) {
-        const result = __classPrivateFieldGet(this, _TypedDataEncoder_fullTypes, "f").get(name);
+        const result = this.#fullTypes.get(name);
         assertArgument(result, `unknown type: ${JSON.stringify(name)}`, "name", name);
         return result;
     }
@@ -448,43 +475,3 @@ export class TypedDataEncoder {
         };
     }
 }
-_TypedDataEncoder_types = new WeakMap(), _TypedDataEncoder_fullTypes = new WeakMap(), _TypedDataEncoder_encoderCache = new WeakMap(), _TypedDataEncoder_instances = new WeakSet(), _TypedDataEncoder_getEncoder = function _TypedDataEncoder_getEncoder(type) {
-    // Basic encoder type (address, bool, uint256, etc)
-    {
-        const encoder = getBaseEncoder(type);
-        if (encoder) {
-            return encoder;
-        }
-    }
-    // Array
-    const match = type.match(/^(.*)(\x5b(\d*)\x5d)$/);
-    if (match) {
-        const subtype = match[1];
-        const subEncoder = this.getEncoder(subtype);
-        return (value) => {
-            assertArgument(!match[3] || parseInt(match[3]) === value.length, `array length mismatch; expected length ${parseInt(match[3])}`, "value", value);
-            let result = value.map(subEncoder);
-            if (__classPrivateFieldGet(this, _TypedDataEncoder_fullTypes, "f").has(subtype)) {
-                result = result.map(keccak256);
-            }
-            return keccak256(getBytes(concat(result)));
-        };
-    }
-    // Struct
-    const fields = this.types[type];
-    if (fields) {
-        const encodedType = id(__classPrivateFieldGet(this, _TypedDataEncoder_fullTypes, "f").get(type));
-        return (value) => {
-            const values = fields.map(({ name, type }) => {
-                const result = this.getEncoder(type)(value[name]);
-                if (__classPrivateFieldGet(this, _TypedDataEncoder_fullTypes, "f").has(type)) {
-                    return keccak256(result);
-                }
-                return result;
-            });
-            values.unshift(encodedType);
-            return concat(values);
-        };
-    }
-    assertArgument(false, `unknown type: ${type}`, "type", type);
-};

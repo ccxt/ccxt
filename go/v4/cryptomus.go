@@ -155,7 +155,7 @@ func (this *CryptomusCore) Describe() any {
 		},
 		"timeframes": map[string]any{},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7",
+			"logo": "https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0",
 			"api": map[string]any{
 				"public":  "https://api.cryptomus.com",
 				"private": "https://api.cryptomus.com",
@@ -568,7 +568,7 @@ func (this *CryptomusCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CryptomusCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

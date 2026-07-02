@@ -87,7 +87,7 @@ public class ZebpayCore extends ZebpayApi
                 put( "1w", 10080 );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad" );
+                put( "logo", "https://github.com/user-attachments/assets/0e88d86a-a1cd-49df-a826-054cd8caafa6" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "spot", "https://sapi.zebpay.com" );
                     put( "swap", "https://futuresbe.zebpay.com" );
@@ -638,7 +638,7 @@ public class ZebpayCore extends ZebpayApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {

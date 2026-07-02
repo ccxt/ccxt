@@ -610,13 +610,13 @@ export default class bitfinex extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const labels = [
             'pub:info:pair',
-            // [  ['AAVE:USD',      [null,null,null,"0.02","5000.0",null,null,null,null,null,null,null,] ], ... ]
+            // sample: 'AAVE:USD' with fields null,null,null,"0.02","5000.0",null,null,null,null,null,null,null
             'pub:info:pair:futures',
-            // [  ['AAVEF0:USTF0',  [null,null,null,"0.02","5000.0",null,null,null,0.01,0.005,] ]]
+            // sample: 'AAVEF0:USTF0' with fields null,null,null,"0.02","5000.0",null,null,null,0.01,0.005
             'pub:list:pair:securities',
-            // ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"]]
+            // sample: "ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"
             'pub:list:pair:margin',
-            // [ 'ADABTC', 'AVAX:BTC', ... ] // delimiter inconsistency
+            // sample: 'ADABTC', 'AVAX:BTC', ... // delimiter inconsistency
         ];
         const config = labels.join (',');
         const request: Dict = {
@@ -1142,7 +1142,7 @@ export default class bitfinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();

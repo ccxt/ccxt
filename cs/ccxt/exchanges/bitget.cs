@@ -153,7 +153,7 @@ public partial class bitget : Exchange
             } },
             { "hostname", "bitget.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658" },
+                { "logo", "https://github.com/user-attachments/assets/b54bb4c2-416d-4231-8968-85a77748ba45" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://api.{hostname}" },
                     { "mix", "https://api.{hostname}" },
@@ -3223,7 +3223,7 @@ public partial class bitget : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

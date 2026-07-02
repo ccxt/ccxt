@@ -183,7 +183,7 @@ export default class lighter extends lighterRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -202,7 +202,7 @@ export default class lighter extends lighterRest {
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#order-book
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
         await this.loadMarkets();
@@ -615,19 +615,28 @@ export default class lighter extends lighterRest {
         const amountString = this.safeString(trade, 'size');
         const costString = this.safeString(trade, 'usd_amount');
         const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
-        const side = isMakerAsk ? 'buy' : 'sell';
         const accountIndex = this.safeInteger(trade, 'accountIndex');
+        const bidAccountId = this.safeInteger(trade, 'bid_account_id');
+        const askAccountId = this.safeInteger(trade, 'ask_account_id');
+        let side = undefined;
         let order = undefined;
         let takerOrMaker = undefined;
         if (accountIndex !== undefined) {
-            if (this.safeInteger(trade, 'bid_account_id') === accountIndex) {
+            if (bidAccountId === accountIndex) {
+                // Own trades should use the account's order side
+                side = 'buy';
                 order = this.safeString(trade, 'bid_id');
                 takerOrMaker = isMakerAsk ? 'taker' : 'maker';
             }
-            else if (this.safeInteger(trade, 'ask_account_id') === accountIndex) {
+            else if (askAccountId === accountIndex) {
+                side = 'sell';
                 order = this.safeString(trade, 'ask_id');
                 takerOrMaker = isMakerAsk ? 'maker' : 'taker';
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if (side === undefined) {
+            side = isMakerAsk ? 'buy' : 'sell';
         }
         let fee = undefined;
         if (takerOrMaker !== undefined) {

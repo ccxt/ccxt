@@ -95,7 +95,7 @@ class zebpay(Exchange, ImplicitAPI):
                 '1w': 10080,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad',
+                'logo': 'https://github.com/user-attachments/assets/0e88d86a-a1cd-49df-a826-054cd8caafa6',
                 'api': {
                     'spot': 'https://sapi.zebpay.com',
                     'swap': 'https://futuresbe.zebpay.com',
@@ -553,7 +553,7 @@ class zebpay(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)

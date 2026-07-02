@@ -167,7 +167,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 '1d': '1d',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8',
+                'logo': 'https://github.com/user-attachments/assets/35d690b1-5710-47f6-86e9-d638ce38685a',
                 'api': {
                     'public': 'https://api.bitvavo.com',
                     'private': 'https://api.bitvavo.com',
@@ -1033,7 +1033,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
