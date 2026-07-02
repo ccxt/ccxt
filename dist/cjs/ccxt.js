@@ -11,7 +11,6 @@ var errors = require('./src/base/errors.js');
 var aftermath = require('./src/aftermath.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
-var ascendex = require('./src/ascendex.js');
 var aster = require('./src/aster.js');
 var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
@@ -118,7 +117,6 @@ var zebpay = require('./src/zebpay.js');
 var aftermath$1 = require('./src/pro/aftermath.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
-var ascendex$1 = require('./src/pro/ascendex.js');
 var aster$1 = require('./src/pro/aster.js');
 var backpack$1 = require('./src/pro/backpack.js');
 var bequant$1 = require('./src/pro/bequant.js');
@@ -202,7 +200,6 @@ const exchanges = {
     'aftermath': aftermath["default"],
     'alpaca': alpaca["default"],
     'apex': apex["default"],
-    'ascendex': ascendex["default"],
     'aster': aster["default"],
     'backpack': backpack["default"],
     'bequant': bequant["default"],
@@ -311,7 +308,6 @@ const pro = {
     'aftermath': aftermath$1["default"],
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
-    'ascendex': ascendex$1["default"],
     'aster': aster$1["default"],
     'backpack': backpack$1["default"],
     'bequant': bequant$1["default"],
@@ -442,7 +438,6 @@ exports.errors = errors;
 exports.aftermath = aftermath["default"];
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
-exports.ascendex = ascendex["default"];
 exports.aster = aster["default"];
 exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];

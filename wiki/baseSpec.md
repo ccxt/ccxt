@@ -17,7 +17,6 @@ add margin
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#addmargin)
-* [ascendex](/exchanges/ascendex.md#addmargin)
 * [aster](/exchanges/aster.md#addmargin)
 * [binance](/exchanges/binance.md#addmargin)
 * [bitget](/exchanges/bitget.md#addmargin)
@@ -152,7 +151,6 @@ cancel all open orders in a market
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#cancelallorders)
 * [apex](/exchanges/apex.md#cancelallorders)
-* [ascendex](/exchanges/ascendex.md#cancelallorders)
 * [aster](/exchanges/aster.md#cancelallorders)
 * [backpack](/exchanges/backpack.md#cancelallorders)
 * [bigone](/exchanges/bigone.md#cancelallorders)
@@ -355,7 +353,6 @@ cancels an open order
 * [aftermath](/exchanges/aftermath.md#cancelorder)
 * [alpaca](/exchanges/alpaca.md#cancelorder)
 * [apex](/exchanges/apex.md#cancelorder)
-* [ascendex](/exchanges/ascendex.md#cancelorder)
 * [aster](/exchanges/aster.md#cancelorder)
 * [backpack](/exchanges/backpack.md#cancelorder)
 * [bigone](/exchanges/bigone.md#cancelorder)
@@ -1063,7 +1060,6 @@ create a trade order
 * [aftermath](/exchanges/aftermath.md#createorder)
 * [alpaca](/exchanges/alpaca.md#createorder)
 * [apex](/exchanges/apex.md#createorder)
-* [ascendex](/exchanges/ascendex.md#createorder)
 * [aster](/exchanges/aster.md#createorder)
 * [backpack](/exchanges/backpack.md#createorder)
 * [bigone](/exchanges/bigone.md#createorder)
@@ -1209,7 +1205,6 @@ create a list of trade orders
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#createorders)
-* [ascendex](/exchanges/ascendex.md#createorders)
 * [aster](/exchanges/aster.md#createorders)
 * [backpack](/exchanges/backpack.md#createorders)
 * [binance](/exchanges/binance.md#createorders)
@@ -1821,7 +1816,6 @@ query for accounts owned by the walletAddress. An Account is needed for all trad
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchaccounts)
-* [ascendex](/exchanges/ascendex.md#fetchaccounts)
 * [bittrade](/exchanges/bittrade.md#fetchaccounts)
 * [bitvavo](/exchanges/bitvavo.md#fetchaccounts)
 * [bullish](/exchanges/bullish.md#fetchaccounts)
@@ -1886,7 +1880,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [aftermath](/exchanges/aftermath.md#fetchbalance)
 * [alpaca](/exchanges/alpaca.md#fetchbalance)
 * [apex](/exchanges/apex.md#fetchbalance)
-* [ascendex](/exchanges/ascendex.md#fetchbalance)
 * [aster](/exchanges/aster.md#fetchbalance)
 * [backpack](/exchanges/backpack.md#fetchbalance)
 * [bigone](/exchanges/bigone.md#fetchbalance)
@@ -2240,7 +2233,6 @@ fetches information on multiple closed orders made by the user
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchclosedorders)
-* [ascendex](/exchanges/ascendex.md#fetchclosedorders)
 * [bigone](/exchanges/bigone.md#fetchclosedorders)
 * [binance](/exchanges/binance.md#fetchclosedorders)
 * [bingx](/exchanges/bingx.md#fetchclosedorders)
@@ -2615,7 +2607,6 @@ fetches all available currencies on an exchange
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchcurrencies)
 * [apex](/exchanges/apex.md#fetchcurrencies)
-* [ascendex](/exchanges/ascendex.md#fetchcurrencies)
 * [aster](/exchanges/aster.md#fetchcurrencies)
 * [backpack](/exchanges/backpack.md#fetchcurrencies)
 * [bigone](/exchanges/bigone.md#fetchcurrencies)
@@ -2741,7 +2732,6 @@ fetch the deposit address for a currency associated with this account
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchdepositaddress)
-* [ascendex](/exchanges/ascendex.md#fetchdepositaddress)
 * [backpack](/exchanges/backpack.md#fetchdepositaddress)
 * [bigone](/exchanges/bigone.md#fetchdepositaddress)
 * [binance](/exchanges/binance.md#fetchdepositaddress)
@@ -2933,16 +2923,15 @@ fetch the fee for deposits and withdrawals
 fetch deposit and withdraw fees
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified currency codes |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by binance fetchDepositWithdrawFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchdepositwithdrawfees)
 * [binance](/exchanges/binance.md#fetchdepositwithdrawfees)
 * [bingx](/exchanges/bingx.md#fetchdepositwithdrawfees)
 * [bitget](/exchanges/bitget.md#fetchdepositwithdrawfees)
@@ -2989,7 +2978,6 @@ fetch all deposits made to an account
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchdeposits)
-* [ascendex](/exchanges/ascendex.md#fetchdeposits)
 * [backpack](/exchanges/backpack.md#fetchdeposits)
 * [bigone](/exchanges/bigone.md#fetchdeposits)
 * [binance](/exchanges/binance.md#fetchdeposits)
@@ -3071,7 +3059,6 @@ fetch history of deposits and withdrawals
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchdepositswithdrawals)
-* [ascendex](/exchanges/ascendex.md#fetchdepositswithdrawals)
 * [bitfinex](/exchanges/bitfinex.md#fetchdepositswithdrawals)
 * [bitmex](/exchanges/bitmex.md#fetchdepositswithdrawals)
 * [bitstamp](/exchanges/bitstamp.md#fetchdepositswithdrawals)
@@ -3139,7 +3126,6 @@ fetches information on multiple orders made by the user *classic accounts only*
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#fetchfundinghistory)
-* [ascendex](/exchanges/ascendex.md#fetchfundinghistory)
 * [aster](/exchanges/aster.md#fetchfundinghistory)
 * [backpack](/exchanges/backpack.md#fetchfundinghistory)
 * [binance](/exchanges/binance.md#fetchfundinghistory)
@@ -3358,19 +3344,18 @@ fetches historical funding rate prices
 <a name="fetchFundingRates" id="fetchfundingrates"></a>
 
 ## fetchFundingRates
-fetch the funding rate for multiple markets
+fetch the current funding rate for multiple symbols
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchfundingrates)
 * [aster](/exchanges/aster.md#fetchfundingrates)
 * [binance](/exchanges/binance.md#fetchfundingrates)
 * [bingx](/exchanges/bingx.md#fetchfundingrates)
@@ -3667,9 +3652,10 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch the leverage tiers for a portfolio margin account |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchleveragetiers)
 * [binance](/exchanges/binance.md#fetchleveragetiers)
 * [bybit](/exchanges/bybit.md#fetchleveragetiers)
 * [coinex](/exchanges/coinex.md#fetchleveragetiers)
@@ -3688,7 +3674,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 <a name="fetchLeverages" id="fetchleverages"></a>
 
 ## fetchLeverages
-fetch the set leverage for all contract markets
+fetch the set leverage for all markets
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
@@ -3700,7 +3686,6 @@ fetch the set leverage for all contract markets
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchleverages)
 * [aster](/exchanges/aster.md#fetchleverages)
 * [binance](/exchanges/binance.md#fetchleverages)
 * [bitmex](/exchanges/bitmex.md#fetchleverages)
@@ -3825,7 +3810,7 @@ fetches the margin mode of a specific symbol
 <a name="fetchMarginModes" id="fetchmarginmodes"></a>
 
 ## fetchMarginModes
-fetches the set margin mode of the user
+fetches margin mode of the user
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/?id=margin-mode-structure)
@@ -3833,11 +3818,10 @@ fetches the set margin mode of the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchmarginmodes)
 * [aster](/exchanges/aster.md#fetchmarginmodes)
 * [binance](/exchanges/binance.md#fetchmarginmodes)
 * [grvt](/exchanges/grvt.md#fetchmarginmodes)
@@ -3937,7 +3921,6 @@ retrieves data on all markets for woo
 * [aftermath](/exchanges/aftermath.md#fetchmarkets)
 * [alpaca](/exchanges/alpaca.md#fetchmarkets)
 * [apex](/exchanges/apex.md#fetchmarkets)
-* [ascendex](/exchanges/ascendex.md#fetchmarkets)
 * [aster](/exchanges/aster.md#fetchmarkets)
 * [backpack](/exchanges/backpack.md#fetchmarkets)
 * [bigone](/exchanges/bigone.md#fetchmarkets)
@@ -4351,7 +4334,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [aftermath](/exchanges/aftermath.md#fetchohlcv)
 * [alpaca](/exchanges/alpaca.md#fetchohlcv)
 * [apex](/exchanges/apex.md#fetchohlcv)
-* [ascendex](/exchanges/ascendex.md#fetchohlcv)
 * [aster](/exchanges/aster.md#fetchohlcv)
 * [backpack](/exchanges/backpack.md#fetchohlcv)
 * [bigone](/exchanges/bigone.md#fetchohlcv)
@@ -4542,7 +4524,6 @@ Retrieves the open interest for a list of symbols
 | params | <code>object</code> | No | exchange specific parameters |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchopeninterests)
 * [bitfinex](/exchanges/bitfinex.md#fetchopeninterests)
 * [bitmex](/exchanges/bitmex.md#fetchopeninterests)
 * [hitbtc](/exchanges/hitbtc.md#fetchopeninterests)
@@ -4604,7 +4585,6 @@ fetch all unfilled currently open orders
 * [aftermath](/exchanges/aftermath.md#fetchopenorders)
 * [alpaca](/exchanges/alpaca.md#fetchopenorders)
 * [apex](/exchanges/apex.md#fetchopenorders)
-* [ascendex](/exchanges/ascendex.md#fetchopenorders)
 * [aster](/exchanges/aster.md#fetchopenorders)
 * [backpack](/exchanges/backpack.md#fetchopenorders)
 * [bigone](/exchanges/bigone.md#fetchopenorders)
@@ -4805,7 +4785,6 @@ fetches information on an order made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchorder)
 * [apex](/exchanges/apex.md#fetchorder)
-* [ascendex](/exchanges/ascendex.md#fetchorder)
 * [aster](/exchanges/aster.md#fetchorder)
 * [bigone](/exchanges/bigone.md#fetchorder)
 * [binance](/exchanges/binance.md#fetchorder)
@@ -4906,7 +4885,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [aftermath](/exchanges/aftermath.md#fetchorderbook)
 * [alpaca](/exchanges/alpaca.md#fetchorderbook)
 * [apex](/exchanges/apex.md#fetchorderbook)
-* [ascendex](/exchanges/ascendex.md#fetchorderbook)
 * [aster](/exchanges/aster.md#fetchorderbook)
 * [backpack](/exchanges/backpack.md#fetchorderbook)
 * [bigone](/exchanges/bigone.md#fetchorderbook)
@@ -5516,7 +5494,6 @@ fetch all open positions
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchpositions)
 * [apex](/exchanges/apex.md#fetchpositions)
-* [ascendex](/exchanges/ascendex.md#fetchpositions)
 * [aster](/exchanges/aster.md#fetchpositions)
 * [backpack](/exchanges/backpack.md#fetchpositions)
 * [binance](/exchanges/binance.md#fetchpositions)
@@ -5876,7 +5853,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [aftermath](/exchanges/aftermath.md#fetchticker)
 * [alpaca](/exchanges/alpaca.md#fetchticker)
 * [apex](/exchanges/apex.md#fetchticker)
-* [ascendex](/exchanges/ascendex.md#fetchticker)
 * [aster](/exchanges/aster.md#fetchticker)
 * [backpack](/exchanges/backpack.md#fetchticker)
 * [bigone](/exchanges/bigone.md#fetchticker)
@@ -6000,7 +5976,6 @@ fetches price tickers for multiple markets, statistical information calculated o
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchtickers)
 * [apex](/exchanges/apex.md#fetchtickers)
-* [ascendex](/exchanges/ascendex.md#fetchtickers)
 * [aster](/exchanges/aster.md#fetchtickers)
 * [backpack](/exchanges/backpack.md#fetchtickers)
 * [bigone](/exchanges/bigone.md#fetchtickers)
@@ -6093,7 +6068,6 @@ fetches the current integer timestamp in milliseconds from the exchange server
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchtime)
 * [apex](/exchanges/apex.md#fetchtime)
-* [ascendex](/exchanges/ascendex.md#fetchtime)
 * [aster](/exchanges/aster.md#fetchtime)
 * [backpack](/exchanges/backpack.md#fetchtime)
 * [bigone](/exchanges/bigone.md#fetchtime)
@@ -6168,7 +6142,6 @@ get the list of most recent trades for a particular symbol
 * [aftermath](/exchanges/aftermath.md#fetchtrades)
 * [alpaca](/exchanges/alpaca.md#fetchtrades)
 * [apex](/exchanges/apex.md#fetchtrades)
-* [ascendex](/exchanges/ascendex.md#fetchtrades)
 * [aster](/exchanges/aster.md#fetchtrades)
 * [backpack](/exchanges/backpack.md#fetchtrades)
 * [bigone](/exchanges/bigone.md#fetchtrades)
@@ -6347,9 +6320,9 @@ fetch the trading fees for multiple markets
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchtradingfees)
 * [binance](/exchanges/binance.md#fetchtradingfees)
 * [bit2c](/exchanges/bit2c.md#fetchtradingfees)
 * [bitbank](/exchanges/bitbank.md#fetchtradingfees)
@@ -6729,7 +6702,6 @@ fetch all withdrawals made from an account
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchwithdrawals)
-* [ascendex](/exchanges/ascendex.md#fetchwithdrawals)
 * [backpack](/exchanges/backpack.md#fetchwithdrawals)
 * [bigone](/exchanges/bigone.md#fetchwithdrawals)
 * [binance](/exchanges/binance.md#fetchwithdrawals)
@@ -6966,7 +6938,6 @@ remove margin from a position
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#reducemargin)
-* [ascendex](/exchanges/ascendex.md#reducemargin)
 * [aster](/exchanges/aster.md#reducemargin)
 * [binance](/exchanges/binance.md#reducemargin)
 * [bitget](/exchanges/bitget.md#reducemargin)
@@ -7143,7 +7114,6 @@ set the level of leverage for a market
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#setleverage)
 * [apex](/exchanges/apex.md#setleverage)
-* [ascendex](/exchanges/ascendex.md#setleverage)
 * [aster](/exchanges/aster.md#setleverage)
 * [binance](/exchanges/binance.md#setleverage)
 * [bingx](/exchanges/bingx.md#setleverage)
@@ -7226,7 +7196,6 @@ set margin mode to 'cross' or 'isolated'
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#setmarginmode)
 * [aster](/exchanges/aster.md#setmarginmode)
 * [binance](/exchanges/binance.md#setmarginmode)
 * [bingx](/exchanges/bingx.md#setmarginmode)
@@ -7384,7 +7353,6 @@ transfer currency internally between wallets on the same account
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#transfer)
 * [apex](/exchanges/apex.md#transfer)
-* [ascendex](/exchanges/ascendex.md#transfer)
 * [aster](/exchanges/aster.md#transfer)
 * [bigone](/exchanges/bigone.md#transfer)
 * [binance](/exchanges/binance.md#transfer)
@@ -7991,7 +7959,7 @@ verify gift code
 <a name="watchBalance" id="watchbalance"></a>
 
 ## watchBalance
-watch balance and get the amount of funds available for trading or funds locked in orders
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
@@ -8000,9 +7968,9 @@ watch balance and get the amount of funds available for trading or funds locked 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', default is 'spot' |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#watchbalance)
 * [aster](/exchanges/aster.md#watchbalance)
 * [binance](/exchanges/binance.md#watchbalance)
 * [bingx](/exchanges/bingx.md#watchbalance)
@@ -8370,7 +8338,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchohlcv)
 * [apex](/exchanges/apex.md#watchohlcv)
-* [ascendex](/exchanges/ascendex.md#watchohlcv)
 * [aster](/exchanges/aster.md#watchohlcv)
 * [backpack](/exchanges/backpack.md#watchohlcv)
 * [binance](/exchanges/binance.md#watchohlcv)
@@ -8467,7 +8434,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [aftermath](/exchanges/aftermath.md#watchorderbook)
 * [alpaca](/exchanges/alpaca.md#watchorderbook)
 * [apex](/exchanges/apex.md#watchorderbook)
-* [ascendex](/exchanges/ascendex.md#watchorderbook)
 * [aster](/exchanges/aster.md#watchorderbook)
 * [backpack](/exchanges/backpack.md#watchorderbook)
 * [binance](/exchanges/binance.md#watchorderbook)
@@ -8584,7 +8550,6 @@ watches information on multiple orders made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchorders)
 * [apex](/exchanges/apex.md#watchorders)
-* [ascendex](/exchanges/ascendex.md#watchorders)
 * [aster](/exchanges/aster.md#watchorders)
 * [backpack](/exchanges/backpack.md#watchorders)
 * [binance](/exchanges/binance.md#watchorders)
@@ -8866,7 +8831,6 @@ watches information on multiple trades made in a market
 * [aftermath](/exchanges/aftermath.md#watchtrades)
 * [alpaca](/exchanges/alpaca.md#watchtrades)
 * [apex](/exchanges/apex.md#watchtrades)
-* [ascendex](/exchanges/ascendex.md#watchtrades)
 * [aster](/exchanges/aster.md#watchtrades)
 * [backpack](/exchanges/backpack.md#watchtrades)
 * [binance](/exchanges/binance.md#watchtrades)
@@ -8942,7 +8906,6 @@ get the list of most recent trades for a list of symbols
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#watchtradesforsymbols)
-* [ascendex](/exchanges/ascendex.md#watchtradesforsymbols)
 * [aster](/exchanges/aster.md#watchtradesforsymbols)
 * [backpack](/exchanges/backpack.md#watchtradesforsymbols)
 * [binance](/exchanges/binance.md#watchtradesforsymbols)

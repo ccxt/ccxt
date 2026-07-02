@@ -14,7 +14,6 @@
 	- [aftermath](exchanges/aftermath.md)
 	- [alpaca](exchanges/alpaca.md)
 	- [apex](exchanges/apex.md)
-	- [ascendex](exchanges/ascendex.md)
 	- [aster](exchanges/aster.md)
 	- [backpack](exchanges/backpack.md)
 	- [bigone](exchanges/bigone.md)
