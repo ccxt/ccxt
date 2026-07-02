@@ -33,7 +33,7 @@ export default class okxus extends okx {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
             },
