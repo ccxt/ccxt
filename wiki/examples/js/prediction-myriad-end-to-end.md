@@ -24,90 +24,89 @@
 //
 // Usage:
 //   MYRIAD_PRIVATEKEY=0x... npx tsx examples/ts/prediction-myriad-end-to-end.ts
-
 import ccxt from '../../js/ccxt.js';
-
-const MAX_NOTIONAL_USD = 25;     // hard cap per trade
-const ORDER_SIZE_SHARES = 5;     // 5 shares * 0.02 = 0.10 collateral notional
-
-
-async function main () {
+const MAX_NOTIONAL_USD = 25; // hard cap per trade
+const ORDER_SIZE_SHARES = 5; // 5 shares * 0.02 = 0.10 collateral notional
+async function main() {
     const privateKey = process.env['MYRIAD_PRIVATEKEY'];
     if (!privateKey) {
-        console.log ('Set MYRIAD_PRIVATEKEY env var first (see the header for where to export it).');
+        console.log('Set MYRIAD_PRIVATEKEY env var first (see the header for where to export it).');
         return;
     }
-    const exchange = new ccxt.prediction.myriad ({
+    const exchange = new ccxt.prediction.myriad({
         'privateKey': privateKey,
     });
-
     // 1) pick an order-book (gasless) outcome with a live two-sided book and an ask high enough
     //    that a 0.02 buy cannot cross it ----------------------------------------------------
-    const outcomeKeys = Object.keys (exchange.outcomes || {});
-    let chosen: any = undefined;
+    const outcomeKeys = Object.keys(exchange.outcomes || {});
+    let chosen = undefined;
     let probes = 0;
     for (const key of outcomeKeys) {
         if (probes >= 40) {
             break;
         }
-        const outcomeObj = exchange.outcome (key);
+        const outcomeObj = exchange.outcome(key);
         // only order-book markets are gasless; AMM markets need native gas and an explicit opt-in
-        if (exchange.safeString (outcomeObj['info'], 'tradingModel') !== 'ob') {
+        if (exchange.safeString(outcomeObj['info'], 'tradingModel') !== 'ob') {
             continue;
         }
         probes += 1;
         try {
-            const ob = await exchange.fetchOrderBook (key);
-            if (ob.bids.length > 0 && ob.asks.length > 0 && (ob.asks[0][0] as number) >= 0.20) {
+            const ob = await exchange.fetchOrderBook(key);
+            if (ob.bids.length > 0 && ob.asks.length > 0 && ob.asks[0][0] >= 0.20) {
                 chosen = { 'outcome': key, 'orderbook': ob };
                 break;
             }
-        } catch (e) { /* keep probing */ }
+        }
+        catch (e) { /* keep probing */ }
     }
     if (chosen === undefined) {
-        console.log ('Could not find an order-book outcome with a suitable two-sided book right now.');
+        console.log('Could not find an order-book outcome with a suitable two-sided book right now.');
         return;
     }
     const symbol = chosen.outcome;
-    const outcomeObj = exchange.outcome (symbol);
-    console.log ('outcome:', symbol, '| network:', exchange.safeString (outcomeObj['info'], 'networkId'));
-    console.log ('orderbook bid/ask:', chosen.orderbook.bids[0], '/', chosen.orderbook.asks[0]);
-
+    const outcomeObj = exchange.outcome(symbol);
+    console.log('outcome:', symbol, '| network:', exchange.safeString(outcomeObj['info'], 'networkId'));
+    console.log('orderbook bid/ask:', chosen.orderbook.bids[0], '/', chosen.orderbook.asks[0]);
     // 2) market data for the chosen outcome -------------------------------------------------
-    console.log ('\n--- market data ---');
+    console.log('\n--- market data ---');
     try {
-        const ticker = await exchange.fetchTicker (symbol);
-        console.log ('ticker bid/ask/last:', ticker.bid, '/', ticker.ask, '/', ticker.last);
-    } catch (e) { console.log ('ticker:        n/a (' + (e as Error).constructor.name + ')'); }
+        const ticker = await exchange.fetchTicker(symbol);
+        console.log('ticker bid/ask/last:', ticker.bid, '/', ticker.ask, '/', ticker.last);
+    }
+    catch (e) {
+        console.log('ticker:        n/a (' + e.constructor.name + ')');
+    }
     try {
-        const trades = await exchange.fetchTrades (symbol, undefined, 3);
-        console.log ('recent trades:', trades.length, trades[0] ? ('last @ ' + trades[0].price) : '');
-    } catch (e) { console.log ('trades:        n/a (' + (e as Error).constructor.name + ')'); }
-
+        const trades = await exchange.fetchTrades(symbol, undefined, 3);
+        console.log('recent trades:', trades.length, trades[0] ? ('last @ ' + trades[0].price) : '');
+    }
+    catch (e) {
+        console.log('trades:        n/a (' + e.constructor.name + ')');
+    }
     // 3) place a resting limit BUY far below the book, confirm it, then cancel --------------
-    const price = 0.02;     // far below any ask >= 0.20, so it cannot fill
+    const price = 0.02; // far below any ask >= 0.20, so it cannot fill
     const notional = ORDER_SIZE_SHARES * price;
-    console.log ('\n--- order (gasless order book) ---');
-    console.log ('placing limit BUY', ORDER_SIZE_SHARES, 'shares @', price, '(notional', notional.toFixed (2), 'USD)');
+    console.log('\n--- order (gasless order book) ---');
+    console.log('placing limit BUY', ORDER_SIZE_SHARES, 'shares @', price, '(notional', notional.toFixed(2), 'USD)');
     if (notional >= MAX_NOTIONAL_USD) {
-        console.log ('ABORT: notional >= ' + MAX_NOTIONAL_USD + ' USD safety cap.');
+        console.log('ABORT: notional >= ' + MAX_NOTIONAL_USD + ' USD safety cap.');
         return;
     }
-
-    let order: any = undefined;
+    let order = undefined;
     try {
-        order = await exchange.createOrder (symbol, 'limit', 'buy', ORDER_SIZE_SHARES, price, { 'tradingModel': 'ob' });
-        console.log ('placed:  id', order.id, '| status', order.status);
-        const open = await exchange.fetchOrders (symbol);
-        console.log ('orders for outcome:', open.length);
-    } finally {
+        order = await exchange.createOrder(symbol, 'limit', 'buy', ORDER_SIZE_SHARES, price, { 'tradingModel': 'ob' });
+        console.log('placed:  id', order.id, '| status', order.status);
+        const open = await exchange.fetchOrders(symbol);
+        console.log('orders for outcome:', open.length);
+    }
+    finally {
         if (order && order.id) {
-            const canceled = await exchange.cancelOrder (order.id, symbol);
-            console.log ('canceled: id', canceled.id, '| status', canceled.status);
+            const canceled = await exchange.cancelOrder(order.id, symbol);
+            console.log('canceled: id', canceled.id, '| status', canceled.status);
         }
     }
 }
-
-main ();
+main();
 
 ```

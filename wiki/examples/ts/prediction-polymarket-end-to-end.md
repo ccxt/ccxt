@@ -1,4 +1,5 @@
 ```javascript
+// @NO_AUTO_TRANSPILE
 // Polymarket end-to-end example (read market data + place/fetch/cancel one order)
 //
 // Flow:

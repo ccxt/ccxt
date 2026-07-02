@@ -258,6 +258,12 @@
 
 - [Phemex Create Order Position With Takeprofit Stoploss](./examples/ts/phemex-create-order-position-with-takeprofit-stoploss.md)
 
+- [Poll Ohlcv](./examples/ts/poll-ohlcv.md)
+
+- [Poloniex Fetch Order Books](./examples/ts/poloniex-fetch-order-books.md)
+
+- [Poloniex Limits Amount Min](./examples/ts/poloniex-limits-amount-min.md)
+
 - [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/./examples/ts/prediction)
 
 - [Prediction Common Fed Event](./examples/ts/prediction-common-fed-event.md)
@@ -273,11 +279,8 @@
 - [Prediction Myriad End To End](./examples/ts/prediction-myriad-end-to-end.md)
 
 - [Prediction Polymarket End To End](./examples/ts/prediction-polymarket-end-to-end.md)
-- [Poll Ohlcv](./examples/ts/poll-ohlcv.md)
 
-- [Poloniex Fetch Order Books](./examples/ts/poloniex-fetch-order-books.md)
-
-- [Poloniex Limits Amount Min](./examples/ts/poloniex-limits-amount-min.md)
+- [Prediction Polymarket Spain World Cup](./examples/ts/prediction-polymarket-spain-world-cup.md)
 
 - [Proxy Round Robin](./examples/ts/proxy-round-robin.md)
 

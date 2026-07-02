@@ -305,6 +305,22 @@ node path/to/example.js # substitute for actual filename here
 
 - [Poloniex Limits Amount Min](./examples/js/poloniex-limits-amount-min.md)
 
+- [Prediction Common Fed Event](./examples/js/prediction-common-fed-event.md)
+
+- [Prediction Fetch Events Options](./examples/js/prediction-fetch-events-options.md)
+
+- [Prediction Hyperliquid End To End](./examples/js/prediction-hyperliquid-end-to-end.md)
+
+- [Prediction Limitless End To End](./examples/js/prediction-limitless-end-to-end.md)
+
+- [Prediction Markets](./examples/js/prediction-markets.md)
+
+- [Prediction Myriad End To End](./examples/js/prediction-myriad-end-to-end.md)
+
+- [Prediction Polymarket End To End](./examples/js/prediction-polymarket-end-to-end.md)
+
+- [Prediction Polymarket Spain World Cup](./examples/js/prediction-polymarket-spain-world-cup.md)
+
 - [Proxy Round Robin](./examples/js/proxy-round-robin.md)
 
 - [Proxy Usage](./examples/js/proxy-usage.md)
