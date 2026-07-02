@@ -57,6 +57,7 @@ export default class mudrex extends Exchange {
                 'fetchOrderBook': false,
                 'fetchOrders': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': false,
@@ -69,18 +70,18 @@ export default class mudrex extends Exchange {
             },
             'timeframes': {
                 '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
+                '3m': '3t',
+                '5m': '5t',
+                '10m': '10t',
+                '15m': '15t',
+                '30m': '30t',
                 '1h': '1h',
-                '2h': '2h',
                 '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1d',
                 '1w': '1w',
-                '1M': '1M',
+                '1M': '1mth',
             },
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/12a65022-f416-4bf8-98eb-5b6b9b05cb6a',
@@ -152,6 +153,7 @@ export default class mudrex extends Exchange {
                 },
             },
             'options': {
+                'defaultType': 'swap',
                 'broker': '42ce8902-8585-448c-a1e8-0371a6ca7ca8',
             },
             'exceptions': {
@@ -247,13 +249,17 @@ export default class mudrex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
+        //     [ timestampInSeconds, open, high, low, close, volume ]
+        //
         return [
-            this.safeTimestamp (ohlcv, 't'),
-            this.safeNumber (ohlcv, 'o'),
-            this.safeNumber (ohlcv, 'h'),
-            this.safeNumber (ohlcv, 'l'),
-            this.safeNumber (ohlcv, 'c'),
-            this.safeNumber (ohlcv, 'v'),
+            this.safeTimestamp (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -261,7 +267,7 @@ export default class mudrex extends Exchange {
      * @method
      * @name mudrex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.trade.mudrex.com/docs
+     * @see https://docs.trade.mudrex.com/docs/historical-kline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -276,11 +282,13 @@ export default class mudrex extends Exchange {
         const market = this.market (symbol);
         const priceType = this.safeString (params, 'price');
         params = this.omit (params, 'price');
+        // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
+        const assetPair = market['baseId'] + '/' + market['quoteId'];
         const request: Dict = {
-            'assets': market['id'],
-            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
+            'assets': assetPair,
+            'aggregation': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        // the endpoint requires an explicit time window
+        // the endpoint requires an explicit time window (in seconds)
         const duration = this.parseTimeframe (timeframe);
         let requestLimit = limit;
         if (requestLimit === undefined) {
@@ -303,17 +311,26 @@ export default class mudrex extends Exchange {
         }
         request['start_time'] = startTime;
         request['end_time'] = endTime;
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         let response = undefined;
         if (priceType === 'mark') {
             response = await this.marketGetPriceMarkKline (this.extend (request, params));
         } else {
             response = await this.marketGetPriceKline (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "asset_ticks": {
+        //                 "btc/usdt": [ [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ] ]
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const assetTicks = this.safeDict (data, 'asset_ticks', {});
+        const ohlcvs = this.safeList (assetTicks, assetPair.toLowerCase (), []);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     /**
@@ -534,47 +551,59 @@ export default class mudrex extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.trade.mudrex.com/docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'swap' (default) or 'spot' - which wallet balance to fetch
      * @param {string} [params.trade_currency] the settlement currency to query the balance for
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const tradeCurrency = this.safeString2 (params, 'trade_currency', 'tradeCurrency');
-        const spotReq: Dict = {};
-        const futReq: Dict = {};
-        if (tradeCurrency !== undefined) {
-            spotReq['currency'] = tradeCurrency;
-            futReq['trade_currency'] = tradeCurrency;
-        } else if (params['currency'] !== undefined) {
-            spotReq['currency'] = params['currency'];
-            futReq['trade_currency'] = params['currency'];
+        let type: Str = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'swap');
+        const requested = this.safeStringN (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
+        params = this.omit (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
+        const request: Dict = {};
+        let response = undefined;
+        if (type === 'spot') {
+            if (requested !== undefined) {
+                request['currency'] = requested;
+            }
+            response = await this.privateGetWalletFunds (this.extend (request, params));
+        } else {
+            if (requested !== undefined) {
+                request['trade_currency'] = requested;
+            }
+            response = await this.privateGetFuturesFunds (this.extend (request, params));
         }
-        const p1 = this.omit (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
-        const spot = await this.privateGetWalletFunds (this.extend (spotReq, p1));
-        const fut = await this.privateGetFuturesFunds (this.extend (futReq, p1));
-        const currency = this.safeString (spotReq, 'currency', 'USDT');
-        return this.parseBalance ({ 'spot': spot, 'futures': fut, 'currency': currency });
+        let currency = requested;
+        if (currency === undefined) {
+            currency = 'USDT';
+        }
+        response['currency'] = currency;
+        return this.parseBalance (response);
     }
 
     parseBalance (response: any): Balances {
-        const spotR = this.safeDict (response, 'spot', {});
-        const futR = this.safeDict (response, 'futures', {});
-        const futD = this.safeDict (futR, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const currency = this.safeString (response, 'currency', 'USDT');
-        const futBal = this.safeString (futD, 'balance');
-        const futLocked = this.safeString (futD, 'locked_amount');
         const timestamp = this.milliseconds ();
-        const balance: Dict = {
-            'info': [ spotR, futR ],
+        const result: Dict = {
+            'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
         const account = this.account ();
-        account['total'] = futBal;
-        account['used'] = futLocked;
-        account['free'] = Precise.stringSub (futBal, futLocked);
-        balance[currency] = account;
-        return this.safeBalance (balance);
+        const futuresBalance = this.safeString (data, 'balance');
+        if (futuresBalance !== undefined) {
+            // futures wallet: balance is the free/available margin, locked_amount is used, safeBalance derives total
+            account['free'] = futuresBalance;
+            account['used'] = this.safeString (data, 'locked_amount');
+        } else {
+            // spot wallet: total is the total, withdrawable is free, safeBalance derives used
+            account['total'] = this.safeString (data, 'total');
+            account['free'] = this.safeString (data, 'withdrawable');
+        }
+        result[currency] = account;
+        return this.safeBalance (result);
     }
 
     /**
@@ -652,12 +681,40 @@ export default class mudrex extends Exchange {
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the trigger price of the stop-loss order attached to this order
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.takeProfitPrice] the trigger price for a standalone take-profit order on an existing position (requires params.positionId)
+     * @param {float} [params.stopLossPrice] the trigger price for a standalone stop-loss order on an existing position (requires params.positionId)
+     * @param {string} [params.positionId] the id of the position the standalone stopLossPrice/takeProfitPrice order is attached to
      * @param {string} [params.trade_currency] the settlement currency for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
+        // an existing position through the riskorder endpoint, so a positionId is required
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined)) {
+            const positionId = this.safeString2 (params, 'positionId', 'position_id');
+            if (positionId === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order');
+            }
+            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id' ]);
+            const riskRequest: Dict = {
+                'position_id': positionId,
+            };
+            if (takeProfitPrice !== undefined) {
+                riskRequest['is_takeprofit'] = true;
+                riskRequest['takeprofit_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+            }
+            if (stopLossPrice !== undefined) {
+                riskRequest['is_stoploss'] = true;
+                riskRequest['stoploss_price'] = this.priceToPrecision (symbol, stopLossPrice);
+            }
+            const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder (this.extend (riskRequest, params));
+            const riskData = this.safeDict (riskResponse, 'data', riskResponse);
+            return this.parseOrder (riskData, market);
+        }
         const lev = this.safeInteger (params, 'leverage', 1);
         if ((type === 'market') && (price === undefined)) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for market orders');
@@ -957,11 +1014,58 @@ export default class mudrex extends Exchange {
         return this.filterByArrayPositions (out, 'symbol', symbols, false);
     }
 
+    /**
+     * @method
+     * @name mudrex#fetchPositionsHistory
+     * @description fetches the history of closed positions
+     * @see https://docs.trade.mudrex.com/docs/get-position-history
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.trade_currency] the settlement currency to filter positions by
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetFuturesPositionsHistory (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "id": "019f1ed6-...",
+        //                 "position_type": "SHORT",
+        //                 "status": "CLOSED",
+        //                 "leverage": "3",
+        //                 "entry_price": "1.3112",
+        //                 "closed_price": "1.3395",
+        //                 "quantity": "34",
+        //                 "pnl": "-0.9622",
+        //                 "created_at": "2026-07-01T10:18:57Z",
+        //                 "updated_at": "2026-07-01T18:00:21Z",
+        //                 "symbol": "CAKEUSDT",
+        //                 "trade_currency": "USDT"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const positions = this.parsePositions (data, symbols);
+        return this.filterBySinceLimit (positions, since, limit);
+    }
+
     parsePosition (position: Dict, market: Market = undefined): Position {
         market = this.safeMarket (undefined, market);
         const ms = this.safeString (position, 'symbol');
         const symbol = this.safeSymbol (ms, market);
-        const rawSide = this.safeStringUpper (position, 'order_type');
+        // open positions use "order_type", closed positions (history) use "position_type"
+        const rawSide = this.safeStringUpper2 (position, 'order_type', 'position_type');
         let side: string = undefined;
         if (rawSide === 'LONG') {
             side = 'long';
@@ -993,6 +1097,7 @@ export default class mudrex extends Exchange {
             'contractSize': this.safeNumber (market, 'contractSize'),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'markPrice': undefined,
+            'lastPrice': this.safeNumber (position, 'closed_price'), // exit price for closed positions
             'notional': notional,
             'leverage': this.safeInteger (position, 'leverage'),
             'collateral': this.parseNumber (initialMargin),
@@ -1001,6 +1106,7 @@ export default class mudrex extends Exchange {
             'maintenanceMargin': this.safeNumber (position, 'maintenance_margin'),
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
+            'realizedPnl': this.safeNumber (position, 'pnl'), // realized pnl for closed positions
             'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
             'marginMode': 'isolated',
             'percentage': undefined,
