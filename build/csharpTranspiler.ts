@@ -978,8 +978,16 @@ class NewTranspiler {
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
-        if (prediction && !exchanges.length) {
-            exchanges = predictionIds;
+        if (prediction) {
+            // a scoped run (e.g. a --multi worker chunk of regular exchanges) carries regular
+            // ids in argv — the prediction pass must not try to transpile those from
+            // ts/src/prediction/ (the files don't exist there); the multi parent transpiles
+            // the prediction set itself after the workers finish
+            const predictionOnly = exchanges.filter ((x: string) => predictionIds.includes (x))
+            if (exchanges.length && !predictionOnly.length) {
+                return;
+            }
+            exchanges = predictionOnly.length ? predictionOnly : predictionIds;
         }
         const options = { csharpFolder, exchanges }
 
@@ -1131,7 +1139,7 @@ class NewTranspiler {
         if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
-            content = this.replaceImportedRestClasses (content, csharpVersion.imports, restNamespace);
+            content = this.replaceImportedRestClasses (content, csharpVersion.imports);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             const classNameExec = classNameRegex.exec(content);
             const className = classNameExec ? classNameExec[1] : '';

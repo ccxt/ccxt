@@ -2258,7 +2258,7 @@ class limitless extends Exchange {
             $start = $this->milliseconds();
             while (($this->milliseconds() - $start) < $timeout) {
                 $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));
-                if (($receipt !== null) && ($receipt !== null)) {
+                if ($receipt) {
                     return $receipt;
                 }
                 Async\await($this->sleep(2000));

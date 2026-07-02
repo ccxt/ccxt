@@ -316,7 +316,7 @@ export default class kalshi extends Exchange {
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
-        // outage (the base otherwise maps a bare 404 to ExchangeNotAvailable). unmapped codes fall
+        // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
         // through to the base http-status handling.
         if (!response) {
             return undefined;
@@ -1174,7 +1174,6 @@ export default class kalshi extends Exchange {
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance(params = {}) {
-        await this.loadOutcomes();
         const response = await this.kalshiPrivateGetPortfolioBalance(params);
         return this.parseBalance(response);
     }
@@ -1336,11 +1335,10 @@ export default class kalshi extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder(id, outcome = undefined, params = {}) {
+        // outcome is only a labelling hint here — the request needs just the id, and
+        // parseOrder resolves identity cache-only, so don't force a full market scan
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
-        }
-        else {
-            await this.loadOutcomes();
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend({ 'order_id': id }, params));
         return this.parseOrder(this.safeValue(response, 'order', response));
@@ -1454,7 +1452,7 @@ export default class kalshi extends Exchange {
         const isBuy = (side === 'buy');
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
-        // (buy NO @ q == sell YES @ 1-q), so flip the book side and the price
+        // buy NO @ q == sell YES @ 1-q - flip the book side and the price
         let bookSide = (isBuy) ? 'bid' : 'ask';
         let yesPrice = price;
         if (isNo) {
@@ -1510,9 +1508,6 @@ export default class kalshi extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
         }
-        else {
-            await this.loadOutcomes();
-        }
         // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
         // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend({ 'order_id': id }, params));
@@ -1530,9 +1525,6 @@ export default class kalshi extends Exchange {
     async cancelAllOrders(outcome = undefined, params = {}) {
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
-        }
-        else {
-            await this.loadOutcomes();
         }
         // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
         // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
@@ -1593,7 +1585,7 @@ export default class kalshi extends Exchange {
         }
         const lowerQueriesLength = lowerQueries.length;
         // sequential cursor scan over events ONLY (no nested markets): a nested page is ~2.6 MB
-        // (200 events + ~1200 markets), so scanning every open event that way transfers tens of MB
+        // 200 events + ~1200 markets - scanning every open event that way transfers tens of MB
         // and takes ~100s. Event-only pages are ~25x smaller; the few events that match the query
         // then fetch their markets individually below (the per-event fallback). Net: seconds, not minutes.
         const matchedEvents = [];

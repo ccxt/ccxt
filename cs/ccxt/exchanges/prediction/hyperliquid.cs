@@ -1930,7 +1930,7 @@ public partial class hyperliquid : PredictionExchange
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         object response = await this.publicPostInfo(this.extend(request, parameters));
-        object trades = ((bool) isTrue((isTrue(!isEqual(response, null)) && isTrue(!isEqual(response, null))))) ? response : new List<object>() {};
+        object trades = ((bool) isTrue((response))) ? response : new List<object>() {};
         return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
 
@@ -1983,7 +1983,7 @@ public partial class hyperliquid : PredictionExchange
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
         object response = await this.publicPostInfo(this.extend(request, parameters));
-        object fills = ((bool) isTrue((isTrue(!isEqual(response, null)) && isTrue(!isEqual(response, null))))) ? response : new List<object>() {};
+        object fills = ((bool) isTrue((response))) ? response : new List<object>() {};
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         object parsedTrades = this.parsePredictionTrades((IList<object>)(fills), null);

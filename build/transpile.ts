@@ -821,14 +821,16 @@ class Transpiler {
             libraries.push ('import numbers')
         }
         // WS infrastructure imports (ArrayCache, order-book sides) needed when watch*
-        // methods live in the (async) exchange file — e.g. prediction exchanges merge REST+WS
+        // methods live in the (async) exchange file — prediction exchanges merge REST+WS.
+        // regular pro files get these imports from transpileWS's createPythonClassHeader,
+        // so emitting them here too would duplicate the import line
         const wsAsyncString = (async ? '.async_support' : '')
-        const wsCacheClasses = bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g)
+        const wsCacheClasses = this.isPrediction ? bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g) : undefined
         if (wsCacheClasses) {
             const uniqueCacheClasses = unique (wsCacheClasses).sort ()
             libraries.push ('from ccxt' + wsAsyncString + '.base.ws.cache import ' + uniqueCacheClasses.join (', '))
         }
-        const wsOrderBookSides = bodyAsString.match (/\s(Asks|Bids|CountedAsks|CountedBids|IndexedAsks|IndexedBids)\(/g)
+        const wsOrderBookSides = this.isPrediction ? bodyAsString.match (/\s(Asks|Bids|CountedAsks|CountedBids|IndexedAsks|IndexedBids)\(/g) : undefined
         if (wsOrderBookSides) {
             const uniqueSides = unique (wsOrderBookSides.map (m => m.trim ().replace ('(', ''))).sort ()
             libraries.push ('from ccxt' + wsAsyncString + '.base.ws.order_book_side import ' + uniqueSides.join (', '))

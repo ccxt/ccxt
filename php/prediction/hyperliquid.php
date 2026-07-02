@@ -1696,7 +1696,7 @@ class hyperliquid extends Exchange {
             );
             // recentTrades returns the coin's most recent public $trades (newest first)
             $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
-            $trades = ($response !== null && $response !== null) ? $response : array();
+            $trades = ($response) ? $response : array();
             return $this->parse_prediction_trades($trades, $outcomeObj, $since, $limit);
         }) ();
     }
@@ -1739,7 +1739,7 @@ class hyperliquid extends Exchange {
                 $request['endTime'] = $until;
             }
             $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
-            $fills = ($response !== null && $response !== null) ? $response : array();
+            $fills = ($response) ? $response : array();
             // parse without an $outcome fallback — $fills span every market the wallet traded, so a
             // requested-$outcome fallback would mislabel $fills whose market is no longer listed
             $parsedTrades = $this->parse_prediction_trades($fills, null);

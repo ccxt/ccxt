@@ -338,7 +338,7 @@ export default class PredictionExchange extends Exchange {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
         // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-        // (kalshi) set it false and override fetchOutcome to fetch just the requested one on demand.
+        // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
         if (this.outcomes !== undefined) {
             if (outcomeSymbol in this.outcomes) {
                 return this.outcomes[outcomeSymbol];
@@ -692,7 +692,7 @@ export default class PredictionExchange extends Exchange {
     safePredictionOrderBook(orderbook, outcomeObj = undefined) {
         // normalize a parsed order book to the prediction shape: replace the unified
         // `symbol` with the `outcome` handle and attach the outcome identity fields
-        // (outcomeId / market) so books match the PredictionOrderBook structure.
+        // outcomeId and market - so books match the PredictionOrderBook structure.
         const fallback = this.safeString2(orderbook, 'outcome', 'symbol');
         orderbook['outcome'] = (outcomeObj === undefined) ? fallback : this.safeString(outcomeObj, 'outcome', fallback);
         orderbook['outcomeId'] = (outcomeObj === undefined) ? this.safeString(orderbook, 'outcomeId') : this.safeString(outcomeObj, 'outcomeId');
@@ -716,6 +716,18 @@ export default class PredictionExchange extends Exchange {
         }
         return parsed;
     }
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionTrades
+     * @description parses a list of raw trades with the exchange's parseTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
+     * @param {object[]} trades the raw trades
+     * @param {object} [outcomeObj] the resolved outcome object the trades belong to
+     * @param {int} [since] timestamp in ms of the earliest trade to return
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra fields to merge into every parsed trade
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
     parsePredictionTrades(trades, outcomeObj = undefined, since = undefined, limit = undefined, params = {}) {
         // prediction-market analogue of the base parseTrades: the base aggregator post-filters
         // by the market's `symbol` key, but prediction structures carry an `outcome` handle
@@ -732,6 +744,18 @@ export default class PredictionExchange extends Exchange {
         const outcomeHandle = this.safeString(outcomeObj, 'outcome');
         return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
     }
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionOrders
+     * @description parses a list of raw orders with the exchange's parseOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
+     * @param {object[]} orders the raw orders
+     * @param {object} [outcomeObj] the resolved outcome object the orders belong to
+     * @param {int} [since] timestamp in ms of the earliest order to return
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra fields to merge into every parsed order
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     parsePredictionOrders(orders, outcomeObj = undefined, since = undefined, limit = undefined, params = {}) {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         const rows = this.toArray(orders);
@@ -745,6 +769,15 @@ export default class PredictionExchange extends Exchange {
         const outcomeHandle = this.safeString(outcomeObj, 'outcome');
         return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
     }
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionPositions
+     * @description parses a list of raw positions with the exchange's parsePosition — the prediction analogue of the base parsePositions
+     * @param {object[]} positions the raw positions
+     * @param {object} [params] extra fields to merge into every parsed position
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
     parsePredictionPositions(positions, params = {}) {
         // prediction-market analogue of the base parsePositions, which resolves its `symbols`
         // argument through marketSymbols() and would throw BadSymbol on outcome handles.

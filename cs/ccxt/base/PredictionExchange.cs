@@ -430,7 +430,7 @@ public partial class PredictionExchange : Exchange
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
         // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-        // (kalshi) set it false and override fetchOutcome to fetch just the requested one on demand.
+        // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
         if (isTrue(!isEqual(this.outcomes, null)))
         {
             if (isTrue(inOp(this.outcomes, outcomeSymbol)))
@@ -878,7 +878,7 @@ public partial class PredictionExchange : Exchange
     {
         // normalize a parsed order book to the prediction shape: replace the unified
         // `symbol` with the `outcome` handle and attach the outcome identity fields
-        // (outcomeId / market) so books match the PredictionOrderBook structure.
+        // outcomeId and market - so books match the PredictionOrderBook structure.
         object fallback = this.safeString2(orderbook, "outcome", "symbol");
         ((IDictionary<string,object>)orderbook)["outcome"] = ((bool) isTrue((isEqual(outcomeObj, null)))) ? fallback : this.safeString(outcomeObj, "outcome", fallback);
         ((IDictionary<string,object>)orderbook)["outcomeId"] = ((bool) isTrue((isEqual(outcomeObj, null)))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId");

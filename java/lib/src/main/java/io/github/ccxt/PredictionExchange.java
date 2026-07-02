@@ -481,7 +481,7 @@ public Object isPrediction()
             // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
             // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
             // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-            // (kalshi) set it false and override fetchOutcome to fetch just the requested one on demand.
+            // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
             if (Helpers.isTrue(!Helpers.isEqual(this.outcomes, null)))
             {
                 if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
@@ -1092,7 +1092,7 @@ public Object isPrediction()
     {
         // normalize a parsed order book to the prediction shape: replace the unified
         // `symbol` with the `outcome` handle and attach the outcome identity fields
-        // (outcomeId / market) so books match the PredictionOrderBook structure.
+        // outcomeId and market - so books match the PredictionOrderBook structure.
         Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
         Object fallback = this.safeString2(orderbook, "outcome", "symbol");
         Helpers.addElementToObject(orderbook, "outcome", ((Helpers.isTrue((Helpers.isEqual(outcomeObj, null))))) ? fallback : this.safeString(outcomeObj, "outcome", fallback));

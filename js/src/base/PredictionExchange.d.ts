@@ -291,8 +291,41 @@ export default class PredictionExchange extends Exchange {
     safePredictionPosition(position: Dict): PredictionPosition;
     safePredictionOrderBook(orderbook: Dict, outcomeObj?: Dict): PredictionOrderBook;
     toPredictionStructure(parsed: Dict, raw: Dict): any;
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionTrades
+     * @description parses a list of raw trades with the exchange's parseTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
+     * @param {object[]} trades the raw trades
+     * @param {object} [outcomeObj] the resolved outcome object the trades belong to
+     * @param {int} [since] timestamp in ms of the earliest trade to return
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra fields to merge into every parsed trade
+     * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
     parsePredictionTrades(trades: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: {}): PredictionTrade[];
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionOrders
+     * @description parses a list of raw orders with the exchange's parseOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
+     * @param {object[]} orders the raw orders
+     * @param {object} [outcomeObj] the resolved outcome object the orders belong to
+     * @param {int} [since] timestamp in ms of the earliest order to return
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra fields to merge into every parsed order
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
     parsePredictionOrders(orders: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: {}): PredictionOrder[];
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#parsePredictionPositions
+     * @description parses a list of raw positions with the exchange's parsePosition — the prediction analogue of the base parsePositions
+     * @param {object[]} positions the raw positions
+     * @param {object} [params] extra fields to merge into every parsed position
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
     parsePredictionPositions(positions: any[], params?: {}): PredictionPosition[];
     filterByOutcomeSinceLimit(array: any, outcome?: Str, since?: Int, limit?: Int, tail?: boolean): any;
     filterByOutcomesSinceLimit(array: any, outcomes?: string[], since?: Int, limit?: Int, tail?: boolean): any;

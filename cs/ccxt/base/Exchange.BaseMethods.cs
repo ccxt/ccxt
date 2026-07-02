@@ -922,7 +922,9 @@ public partial class Exchange
             for (object i = 0; isLessThan(i, getArrayLength(parsedArray)); postFixIncrement(ref i))
             {
                 object entry = getValue(parsedArray, i);
-                object entryFiledEqualValue = isEqual(getValue(entry, field), value);
+                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // KeyError in python/php — prediction structures key on outcome, not symbol
+                object entryFiledEqualValue = isEqual(this.safeValue(entry, field), value);
                 object firstCondition = ((bool) isTrue(valueIsDefined)) ? entryFiledEqualValue : true;
                 object entryKeyValue = this.safeValue(entry, key);
                 object entryKeyGESince = isTrue(isTrue((entryKeyValue)) && isTrue((!isEqual(since, null)))) && isTrue((isGreaterThanOrEqual(entryKeyValue, since)));
@@ -2760,7 +2762,7 @@ public partial class Exchange
             }
         }
         results = this.sortBy(results, "timestamp");
-        object symbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
+        object symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
 
@@ -3596,22 +3598,27 @@ public partial class Exchange
         });
     }
 
-    public virtual object filterBySymbol(object objects, object symbol = null)
+    public virtual object filterByKey(object objects, object key, object value = null)
     {
-        if (isTrue(isEqual(symbol, null)))
+        if (isTrue(isEqual(value, null)))
         {
             return objects;
         }
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(objects)); postFixIncrement(ref i))
         {
-            object objectSymbol = this.safeString(getValue(objects, i), "symbol");
-            if (isTrue(isEqual(objectSymbol, symbol)))
+            object objectValue = this.safeString(getValue(objects, i), key);
+            if (isTrue(isEqual(objectValue, value)))
             {
                 ((IList<object>)result).Add(getValue(objects, i));
             }
         }
         return result;
+    }
+
+    public virtual object filterBySymbol(object objects, object symbol = null)
+    {
+        return this.filterByKey(objects, "symbol", symbol);
     }
 
     public virtual object parseOHLCV(object ohlcv, object market = null)
@@ -4073,7 +4080,7 @@ public partial class Exchange
             ((IList<object>)result).Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
-        object symbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
+        object symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 

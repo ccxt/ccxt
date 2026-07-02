@@ -271,7 +271,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             },
             'requiredCredentials': {
                 # dual auth: either pass the L2 api credentials directly
-                #(apiKey=POLY_API_KEY, secret=POLY_API_SECRET, password=POLY_PASSPHRASE)
+                # apiKey=POLY_API_KEY, secret=POLY_API_SECRET, password=POLY_PASSPHRASE
                 # or a privateKey to derive them(see loadApiCredentials); none are
                 # individually required, so validation happens in loadApiCredentials
                 'apiKey': False,
@@ -1754,7 +1754,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             return eoaSignature.lower()
         # POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         # ethAbiEncode needs portable value types: bytes32, uint256
-        #(raw hex/decimal strings encode in ethers/JS but raise in the python/php codecs)
+        # raw hex/decimal strings encode in ethers/JS but raise in the python/php codecs
         orderTypeHash = self.hash(self.encode(orderTypeString), 'keccak', 'binary')
         contentsData = self.eth_abi_encode(
             ['bytes32', 'uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint8', 'uint8', 'uint256', 'bytes32', 'bytes32'],

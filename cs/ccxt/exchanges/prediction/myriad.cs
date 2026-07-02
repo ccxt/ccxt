@@ -686,7 +686,7 @@ public partial class myriad : PredictionExchange
         while (isLessThan((subtract(this.milliseconds(), start)), timeout))
         {
             object receipt = await this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new List<object>() {txHash});
-            if (isTrue(isTrue((!isEqual(receipt, null))) && isTrue((!isEqual(receipt, null)))))
+            if (isTrue(receipt))
             {
                 return ((object)receipt);
             }
@@ -785,7 +785,7 @@ public partial class myriad : PredictionExchange
         object outcomeObj = this.outcome(outcome);
         object parsed = this.parseOrder(wrapper, ((object)outcomeObj));
         // the POST /orders response is minimal (hash + status), so backfill the known request values
-        // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+        // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
         object sideStr = ((bool) isTrue((isEqual(side, null)))) ? null : ((string)((string)side)).ToLower();
         object typeStr = ((bool) isTrue((isEqual(type, null)))) ? "limit" : ((string)((string)type)).ToLower();
         if (isTrue(isEqual(this.safeString(parsed, "side"), null)))

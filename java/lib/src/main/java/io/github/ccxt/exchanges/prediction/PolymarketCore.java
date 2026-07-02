@@ -2285,7 +2285,7 @@ final Object finalMarketSymbol = marketSymbol;
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
-        // (raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs)
+        // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         Object orderTypeHash = this.hash(this.encode(orderTypeString), keccak(), "binary");
         Object contentsData = this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new java.util.ArrayList<Object>(java.util.Arrays.asList(orderTypeHash, this.convertToBigInt(Helpers.GetValue(message, "salt")), Helpers.GetValue(message, "maker"), Helpers.GetValue(message, "signer"), this.convertToBigInt(Helpers.GetValue(message, "tokenId")), this.convertToBigInt(Helpers.GetValue(message, "makerAmount")), this.convertToBigInt(Helpers.GetValue(message, "takerAmount")), Helpers.GetValue(message, "side"), Helpers.GetValue(message, "signatureType"), this.convertToBigInt(Helpers.GetValue(message, "timestamp")), this.base16ToBinary(this.remove0xPrefix(Helpers.GetValue(message, "metadata"))), this.base16ToBinary(this.remove0xPrefix(Helpers.GetValue(message, "builder"))))));
         Object contentsHash = Helpers.add("0x", this.hash(contentsData, keccak(), "hex"));

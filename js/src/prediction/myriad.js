@@ -625,7 +625,7 @@ export default class myriad extends Exchange {
         const start = this.milliseconds();
         while ((this.milliseconds() - start) < timeout) {
             const receipt = await this.ethRpc(rpcUrl, 'eth_getTransactionReceipt', [txHash]);
-            if ((receipt !== undefined) && (receipt !== null)) {
+            if (receipt) {
                 return receipt;
             }
             await this.sleep(2000);
@@ -705,7 +705,7 @@ export default class myriad extends Exchange {
         const outcomeObj = this.outcome(outcome);
         const parsed = this.parseOrder(wrapper, outcomeObj);
         // the POST /orders response is minimal (hash + status), so backfill the known request values
-        // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+        // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
         const sideStr = (side === undefined) ? undefined : side.toLowerCase();
         const typeStr = (type === undefined) ? 'limit' : type.toLowerCase();
         if (this.safeString(parsed, 'side') === undefined) {
@@ -1041,9 +1041,9 @@ export default class myriad extends Exchange {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'outcome': outcome,
-            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
             'label': this.safeString(outcomeObj, 'label'),
-            'market': this.safeString(outcomeObj, 'outcome'),
+            'market': this.safeString(outcomeObj, 'market'),
             'type': isMarketTif ? 'market' : 'limit',
             'timeInForce': tif,
             'postOnly': (tif === 'PO'),
@@ -1404,7 +1404,7 @@ export default class myriad extends Exchange {
             'outcome': this.safeString(market, 'outcome'),
             'outcomeId': this.safeString(market, 'id'),
             'label': this.safeString(market, 'label'),
-            'market': this.safeString(market, 'outcome'),
+            'market': this.safeString(market, 'market'),
             'type': 'market',
             'side': side,
             'price': this.safeNumber(quote, 'priceAverage'),
@@ -1805,7 +1805,7 @@ export default class myriad extends Exchange {
             'outcome': this.safeString(market, 'outcome'),
             'outcomeId': this.safeString(market, 'id'),
             'label': this.safeString(market, 'label'),
-            'market': this.safeString(market, 'outcome'),
+            'market': this.safeString(market, 'market'),
             'timestamp': now,
             'datetime': this.iso8601(now),
             'high': undefined,
@@ -2324,7 +2324,7 @@ export default class myriad extends Exchange {
             'outcome': this.safeString(market, 'outcome'),
             'outcomeId': this.safeString(market, 'id'),
             'label': this.safeString(market, 'label'),
-            'market': this.safeString(market, 'outcome'),
+            'market': this.safeString(market, 'market'),
             'order': undefined,
             'type': undefined,
             'side': this.safeString(trade, 'action'),
@@ -2701,9 +2701,9 @@ export default class myriad extends Exchange {
             'timestamp': ts,
             'datetime': this.iso8601(ts),
             'outcome': sym,
-            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
             'label': this.safeString(outcomeObj, 'label'),
-            'market': this.safeString(outcomeObj, 'outcome'),
+            'market': this.safeString(outcomeObj, 'market'),
             'order': this.safeString(taker, 'orderHash'),
             'type': undefined,
             'side': this.safeStringLower(taker, 'side'),
@@ -2752,7 +2752,7 @@ export default class myriad extends Exchange {
                         'outcome': makerSym,
                         'outcomeId': this.safeString(makerOutcomeObj, 'id'),
                         'label': this.safeString(makerOutcomeObj, 'label'),
-                        'market': this.safeString(makerOutcomeObj, 'outcome'),
+                        'market': this.safeString(makerOutcomeObj, 'market'),
                         'order': this.safeString(maker, 'orderHash'),
                         'type': undefined,
                         'side': this.safeStringLower(maker, 'side'),
@@ -2884,9 +2884,9 @@ export default class myriad extends Exchange {
             const last = this.fromWei(this.safeString(oc, 'last'));
             const ticker = this.safePredictionTicker({
                 'outcome': sym,
-                'outcomeId': this.safeString(outcomeObj, 'id'),
+                'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
                 'label': this.safeString(outcomeObj, 'label'),
-                'market': this.safeString(outcomeObj, 'outcome'),
+                'market': this.safeString(outcomeObj, 'market'),
                 'timestamp': ts,
                 'datetime': this.iso8601(ts),
                 'high': undefined,
@@ -2962,9 +2962,9 @@ export default class myriad extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'outcome': sym,
-            'outcomeId': this.safeString(outcomeObj, 'id'),
+            'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
             'label': this.safeString(outcomeObj, 'label'),
-            'market': this.safeString(outcomeObj, 'outcome'),
+            'market': this.safeString(outcomeObj, 'market'),
             'type': isMarketTif ? 'market' : 'limit',
             'timeInForce': tif,
             'side': this.safeStringLower(data, 'side'),
@@ -3068,7 +3068,7 @@ export default class myriad extends Exchange {
             'outcome': sym,
             'outcomeId': posId,
             'label': this.safeString(outcomeObj, 'label'),
-            'market': this.safeString(outcomeObj, 'outcome'),
+            'market': this.safeString(outcomeObj, 'market'),
             'timestamp': ts,
             'datetime': this.iso8601(ts),
             'side': 'long',

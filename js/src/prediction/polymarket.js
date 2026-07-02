@@ -262,7 +262,7 @@ export default class polymarket extends Exchange {
             },
             'requiredCredentials': {
                 // dual auth: either pass the L2 api credentials directly
-                // (apiKey=POLY_API_KEY, secret=POLY_API_SECRET, password=POLY_PASSPHRASE)
+                // apiKey=POLY_API_KEY, secret=POLY_API_SECRET, password=POLY_PASSPHRASE
                 // or a privateKey to derive them (see loadApiCredentials); none are
                 // individually required, so validation happens in loadApiCredentials
                 'apiKey': false,
@@ -1852,7 +1852,7 @@ export default class polymarket extends Exchange {
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
-        // (raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs)
+        // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         const orderTypeHash = this.hash(this.encode(orderTypeString), keccak, 'binary');
         const contentsData = this.ethAbiEncode(['bytes32', 'uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint8', 'uint8', 'uint256', 'bytes32', 'bytes32'], [orderTypeHash, this.convertToBigInt(message['salt']), message['maker'], message['signer'], this.convertToBigInt(message['tokenId']), this.convertToBigInt(message['makerAmount']), this.convertToBigInt(message['takerAmount']), message['side'], message['signatureType'], this.convertToBigInt(message['timestamp']), this.base16ToBinary(this.remove0xPrefix(message['metadata'])), this.base16ToBinary(this.remove0xPrefix(message['builder']))]);
         const contentsHash = '0x' + this.hash(contentsData, keccak, 'hex');
@@ -2618,13 +2618,13 @@ export default class polymarket extends Exchange {
      * @method
      * @name polymarket#watchOrderBook
      * @description streams live order-book updates for a single Polymarket outcome token
-     * @param {string} outcome unified outcome (e.g. "ELECTION/YES:USDC")
+     * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
      * @param {int} [limit] optional depth limit applied after resolving
      * @param {object} [params] extra params (currently unused)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
     async watchOrderBook(outcome, limit = undefined, params = {}) {
-        const outcomeObj = this.outcome(outcome);
+        const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = this.safeString(outcomeObj, 'outcomeId');
         outcome = this.safeString(outcomeObj, 'outcome');
         const messageHash = 'orderbook::' + outcome;
@@ -2645,7 +2645,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
-        const outcomeObj = this.outcome(outcome);
+        const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = this.safeString(outcomeObj, 'outcomeId');
         outcome = this.safeString(outcomeObj, 'outcome');
         const messageHash = 'trades::' + outcome;
@@ -2664,7 +2664,7 @@ export default class polymarket extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTicker(outcome, params = {}) {
-        const outcomeObj = this.outcome(outcome);
+        const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = this.safeString(outcomeObj, 'outcomeId');
         outcome = this.safeString(outcomeObj, 'outcome');
         const messageHash = 'ticker::' + outcome;
@@ -2751,7 +2751,7 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials();
         let messageHash = 'orders';
         if (outcome !== undefined) {
-            const outcomeObj = this.outcome(outcome);
+            const outcomeObj = await this.loadOutcome(outcome);
             outcome = this.safeString(outcomeObj, 'outcome');
             messageHash = 'orders::' + outcome;
         }
@@ -2776,7 +2776,7 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials();
         let messageHash = 'myTrades';
         if (outcome !== undefined) {
-            const outcomeObj = this.outcome(outcome);
+            const outcomeObj = await this.loadOutcome(outcome);
             outcome = this.safeString(outcomeObj, 'outcome');
             messageHash = 'myTrades::' + outcome;
         }

@@ -756,7 +756,14 @@ public partial class Exchange
         }
         if (value is string)
         {
-            return BigInteger.Parse((string)value);
+            var str = (string)value;
+            if (str.StartsWith("0x") || str.StartsWith("0X"))
+            {
+                // hex strings pass through unchanged — the stark/eth helpers parse hex
+                // themselves (extended's pedersen chain expects the string form)
+                return value;
+            }
+            return BigInteger.Parse(str);
         }
         return new BigInteger(Convert.ToInt64(value));
     }

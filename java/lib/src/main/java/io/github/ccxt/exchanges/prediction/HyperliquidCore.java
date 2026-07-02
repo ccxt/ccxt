@@ -2063,7 +2063,7 @@ public class HyperliquidCore extends HyperliquidApi
             }};
             // recentTrades returns the coin's most recent public trades (newest first)
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
-            Object trades = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(response, null)) && Helpers.isTrue(!Helpers.isEqual(response, null)))))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object trades = ((Helpers.isTrue((response)))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
             return this.parsePredictionTrades(trades, outcomeObj, since, limit);
         });
 
@@ -2125,7 +2125,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Helpers.addElementToObject(request, "endTime", until);
             }
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
-            Object fills = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(response, null)) && Helpers.isTrue(!Helpers.isEqual(response, null)))))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object fills = ((Helpers.isTrue((response)))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
             // parse without an outcome fallback — fills span every market the wallet traded, so a
             // requested-outcome fallback would mislabel fills whose market is no longer listed
             Object parsedTrades = this.parsePredictionTrades((java.util.List<Object>)(fills), null);

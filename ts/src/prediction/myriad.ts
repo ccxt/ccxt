@@ -649,7 +649,7 @@ export default class myriad extends Exchange {
         const start = this.milliseconds ();
         while ((this.milliseconds () - start) < timeout) {
             const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);
-            if ((receipt !== undefined) && (receipt !== null)) {
+            if (receipt) {
                 return receipt as any;
             }
             await this.sleep (2000);
@@ -732,7 +732,7 @@ export default class myriad extends Exchange {
         const outcomeObj = this.outcome (outcome);
         const parsed = this.parseOrder (wrapper, outcomeObj as any);
         // the POST /orders response is minimal (hash + status), so backfill the known request values
-        // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+        // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
         const sideStr = (side === undefined) ? undefined : (side as string).toLowerCase ();
         const typeStr = (type === undefined) ? 'limit' : (type as string).toLowerCase ();
         if (this.safeString (parsed, 'side') === undefined) {

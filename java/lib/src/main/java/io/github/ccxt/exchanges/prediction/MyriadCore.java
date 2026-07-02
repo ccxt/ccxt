@@ -749,7 +749,7 @@ public class MyriadCore extends MyriadApi
             while (Helpers.isLessThan((Helpers.subtract(this.milliseconds(), start)), timeout))
             {
                 Object receipt = (this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new java.util.ArrayList<Object>(java.util.Arrays.asList(txHash)))).join();
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(receipt, null))) && Helpers.isTrue((!Helpers.isEqual(receipt, null)))))
+                if (Helpers.isTrue(receipt))
                 {
                     return receipt;
                 }
@@ -869,7 +869,7 @@ public class MyriadCore extends MyriadApi
             Object outcomeObj = this.outcome(outcome);
             Object parsed = this.parseOrder(wrapper, ((Object)outcomeObj));
             // the POST /orders response is minimal (hash + status), so backfill the known request values
-            // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+            // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
             Object sideStr = ((Helpers.isTrue((Helpers.isEqual(side, null))))) ? null : ((String)((String)side)).toLowerCase();
             Object typeStr = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? "limit" : ((String)((String)type)).toLowerCase();
             if (Helpers.isTrue(Helpers.isEqual(this.safeString(parsed, "side"), null)))

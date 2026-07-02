@@ -2149,6 +2149,14 @@ ${caseStatements.join('\n')}
             force = true; // when transpiling single exchange, we always force
         }
         if (prediction) {
+            if (exchanges.length) {
+                const predictionOnly = exchanges.filter ((x: string) => predictionIds.includes (x));
+                if (!predictionOnly.length) {
+                    // a scoped regular-exchange run (e.g. a --multi worker chunk) has no
+                    // prediction work — ts/src/prediction/ has no files for those ids
+                    return;
+                }
+            }
             // a single-exchange prediction transpile would truncate the shared
             // exchange_wrapper_structs.go to that one exchange — the namespace is
             // small, so always emit the full set
@@ -2257,20 +2265,24 @@ ${caseStatements.join('\n')}
             : './go/v4/exchange_wrapper_structs.go';
 
         const file = [
-            isPrediction ? 'package ccxtprediction' : (isWs ? 'package ccxtpro' : 'package ccxt'),
-            needsCcxtImport ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
+            ws ? 'package ccxtpro' : 'package ccxt',
+            ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
             this.createGeneratedHeader().join('\n'),
             ''
         ];
         // add simple Options
-        if (!isWs && !isPrediction) {
+        if (!ws) {
             file.push('type Options struct {');
             file.push('    Params *map[string]any');
             file.push('}');
             file.push('');
         }
 
-        file.push(structsContent);
+        for (const key in goTypeOptions) {
+            const struct = goTypeOptions[key];
+            file.push(struct);
+            file.push('');
+        }
 
         fs.writeFileSync (EXCHANGE_OPTIONS_FILE, file.join('\n'));
     }

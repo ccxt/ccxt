@@ -2220,7 +2220,7 @@ export default class limitless extends Exchange {
         const start = this.milliseconds();
         while ((this.milliseconds() - start) < timeout) {
             const receipt = await this.ethRpc(rpcUrl, 'eth_getTransactionReceipt', [txHash]);
-            if ((receipt !== undefined) && (receipt !== null)) {
+            if (receipt) {
                 return receipt;
             }
             await this.sleep(2000);

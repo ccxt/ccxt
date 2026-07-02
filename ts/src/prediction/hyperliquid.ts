@@ -1707,7 +1707,7 @@ export default class hyperliquid extends Exchange {
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         const response = await this.publicPostInfo (this.extend (request, params));
-        const trades = (response !== undefined && response !== null) ? response : [];
+        const trades = (response) ? response : [];
         return this.parsePredictionTrades (trades, outcomeObj, since, limit);
     }
 
@@ -1749,7 +1749,7 @@ export default class hyperliquid extends Exchange {
             request['endTime'] = until;
         }
         const response = await this.publicPostInfo (this.extend (request, params));
-        const fills = (response !== undefined && response !== null) ? response : [];
+        const fills = (response) ? response : [];
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         const parsedTrades = this.parsePredictionTrades (fills as any[], undefined);

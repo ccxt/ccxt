@@ -672,11 +672,14 @@ export default class hyperliquid extends Exchange {
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
-                await this.loadOutcome(requested);
-                const requestedOutcomeObj = this.outcome(requested);
+                const requestedOutcomeObj = await this.loadOutcome(requested);
                 const requestedOutcome = this.safeString(requestedOutcomeObj, 'outcome', requested);
                 requestedOutcomeSymbols[requestedOutcome] = true;
             }
+        }
+        else {
+            // no filter — warm the whole outcome set so identities resolve from the cache
+            await this.loadOutcomes();
         }
         const response = await this.publicPostInfo(this.extend({ 'type': 'allMids' }, params));
         //
@@ -743,8 +746,8 @@ export default class hyperliquid extends Exchange {
         if (mid === undefined && bid !== undefined && ask !== undefined) {
             mid = this.sum(bid, ask) / 2;
         }
-        // day volume lives on the parent market's ctx; resolve it from the outcome's marketSymbol
-        const parentSymbol = this.safeString(mkt, 'outcome');
+        // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
+        const parentSymbol = this.safeString(mkt, 'market');
         const parentMarket = (parentSymbol !== undefined) ? this.safeMarket(parentSymbol) : undefined;
         const ctx = (parentMarket !== undefined) ? this.safeDict(this.safeDict(parentMarket, 'info', {}), 'ctx', {}) : {};
         const dayVolume = this.safeNumber(ctx, 'dayNtlVlm');
@@ -752,7 +755,7 @@ export default class hyperliquid extends Exchange {
             'outcome': outcome,
             'outcomeId': this.safeString2(mkt, 'outcomeId', 'id'),
             'label': this.safeString(mkt, 'label'),
-            'market': this.safeString(mkt, 'outcome'),
+            'market': this.safeString(mkt, 'market'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': undefined,
@@ -969,11 +972,14 @@ export default class hyperliquid extends Exchange {
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
-                await this.loadOutcome(requested);
-                const requestedOutcomeObj = this.outcome(requested);
+                const requestedOutcomeObj = await this.loadOutcome(requested);
                 const requestedOutcome = this.safeString(requestedOutcomeObj, 'outcome', requested);
                 requestedOutcomeSymbols[requestedOutcome] = true;
             }
+        }
+        else {
+            // no filter — warm the whole outcome set so identities resolve from the cache
+            await this.loadOutcomes();
         }
         let userAddress;
         [userAddress, params] = this.handlePublicAddress('fetchPositions', params);
@@ -1054,7 +1060,7 @@ export default class hyperliquid extends Exchange {
             'id': undefined,
             'outcome': this.safeString(outcomeObj, 'outcome'),
             'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
-            'market': this.safeString(outcomeObj, 'outcome'),
+            'market': this.safeString(outcomeObj, 'market'),
             'timestamp': undefined,
             'datetime': undefined,
             'isolated': false,
@@ -1292,7 +1298,7 @@ export default class hyperliquid extends Exchange {
             'outcome': this.safeString(outcomeObj, 'outcome', outcome),
             'outcomeId': this.safeString(outcomeObj, 'id'),
             'label': this.safeString(outcomeObj, 'label'),
-            'market': this.safeString(outcomeObj, 'outcome'),
+            'market': this.safeString(outcomeObj, 'market'),
             'type': type,
             'side': side,
             'price': price,
@@ -1405,7 +1411,7 @@ export default class hyperliquid extends Exchange {
                 'outcome': outcomeSymbol,
                 'outcomeId': this.safeString(outcomeObj, 'id'),
                 'label': this.safeString(outcomeObj, 'label'),
-                'market': this.safeString(outcomeObj, 'outcome'),
+                'market': this.safeString(outcomeObj, 'market'),
                 'timestamp': this.milliseconds(),
                 'datetime': this.iso8601(this.milliseconds()),
             };
@@ -1592,7 +1598,7 @@ export default class hyperliquid extends Exchange {
             'outcome': this.safeString(outcomeObj, 'outcome'),
             'outcomeId': this.safeString(outcomeObj, 'id'),
             'label': this.safeString(outcomeObj, 'label'),
-            'market': this.safeString(outcomeObj, 'outcome'),
+            'market': this.safeString(outcomeObj, 'market'),
             'type': this.parseOrderType(this.safeString(entry, 'orderType', 'limit')),
             'timeInForce': tif,
             'postOnly': postOnly,
@@ -1668,7 +1674,7 @@ export default class hyperliquid extends Exchange {
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         const response = await this.publicPostInfo(this.extend(request, params));
-        const trades = (response !== undefined && response !== null) ? response : [];
+        const trades = (response) ? response : [];
         return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
     /**
@@ -1711,7 +1717,7 @@ export default class hyperliquid extends Exchange {
             request['endTime'] = until;
         }
         const response = await this.publicPostInfo(this.extend(request, params));
-        const fills = (response !== undefined && response !== null) ? response : [];
+        const fills = (response) ? response : [];
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         const parsedTrades = this.parsePredictionTrades(fills, undefined);
@@ -1774,7 +1780,7 @@ export default class hyperliquid extends Exchange {
             'outcome': outcomeSymbol,
             'outcomeId': this.safeString(outcomeObj, 'id'),
             'label': this.safeString(outcomeObj, 'label'),
-            'market': this.safeString(outcomeObj, 'outcome'),
+            'market': this.safeString(outcomeObj, 'market'),
             'order': this.safeString(trade, 'oid'),
             'type': 'limit',
             'side': side,

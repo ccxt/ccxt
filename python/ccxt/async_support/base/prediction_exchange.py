@@ -6,7 +6,6 @@
 # transpiled from ts/src/base/PredictionExchange.ts
 # ----------------------------------------------------------------------------
 
-import asyncio
 from typing import Any, List
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.types import Str, Strings, Int, Num, OrderType, OrderSide, PredictionOrderRequest, fetchEventsParams
@@ -299,7 +298,7 @@ class PredictionExchange(Exchange):
         # resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         # returns at once. on a miss, options.loadAllOutcomes(default True) bulk-loads the whole set
         # once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-        #(kalshi) set it False and override fetchOutcome to fetch just the requested one on demand.
+        # kalshi sets it False and overrides fetchOutcome to fetch just the requested one on demand.
         if self.outcomes is not None:
             if outcomeSymbol in self.outcomes:
                 return self.outcomes[outcomeSymbol]
@@ -596,7 +595,7 @@ class PredictionExchange(Exchange):
     def safe_prediction_order_book(self, orderbook: dict, outcomeObj: dict = None):
         # normalize a parsed order book to the prediction shape: replace the unified
         # `symbol` with the `outcome` handle and attach the outcome identity fields
-        #(outcomeId / market) so books match the PredictionOrderBook structure.
+        # outcomeId and market - so books match the PredictionOrderBook structure.
         fallback = self.safe_string_2(orderbook, 'outcome', 'symbol')
         orderbook['outcome'] = fallback if (outcomeObj is None) else self.safe_string(outcomeObj, 'outcome', fallback)
         orderbook['outcomeId'] = self.safe_string(orderbook, 'outcomeId') if (outcomeObj is None) else self.safe_string(outcomeObj, 'outcomeId')

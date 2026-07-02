@@ -359,7 +359,7 @@ export default class PredictionExchange extends Exchange {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
         // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-        // (kalshi) set it false and override fetchOutcome to fetch just the requested one on demand.
+        // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
         if (this.outcomes !== undefined) {
             if (outcomeSymbol in this.outcomes) {
                 return this.outcomes[outcomeSymbol];
@@ -743,7 +743,7 @@ export default class PredictionExchange extends Exchange {
     safePredictionOrderBook (orderbook: Dict, outcomeObj: Dict = undefined): PredictionOrderBook {
         // normalize a parsed order book to the prediction shape: replace the unified
         // `symbol` with the `outcome` handle and attach the outcome identity fields
-        // (outcomeId / market) so books match the PredictionOrderBook structure.
+        // outcomeId and market - so books match the PredictionOrderBook structure.
         const fallback = this.safeString2 (orderbook, 'outcome', 'symbol');
         orderbook['outcome'] = (outcomeObj === undefined) ? fallback : this.safeString (outcomeObj, 'outcome', fallback);
         orderbook['outcomeId'] = (outcomeObj === undefined) ? this.safeString (orderbook, 'outcomeId') : this.safeString (outcomeObj, 'outcomeId');

@@ -1527,7 +1527,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         }
         # recentTrades returns the coin's most recent public trades(newest first)
         response = await self.publicPostInfo(self.extend(request, params))
-        trades = response if (response is not None and response != None) else []
+        trades = response if (response) else []
         return self.parse_prediction_trades(trades, outcomeObj, since, limit)
 
     async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
@@ -1565,7 +1565,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
         response = await self.publicPostInfo(self.extend(request, params))
-        fills = response if (response is not None and response != None) else []
+        fills = response if (response) else []
         # parse without an outcome fallback — fills span every market the wallet traded, so a
         # requested-outcome fallback would mislabel fills whose market is no longer listed
         parsedTrades = self.parse_prediction_trades(fills, None)

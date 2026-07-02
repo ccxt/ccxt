@@ -646,7 +646,7 @@ class myriad extends Exchange {
             $start = $this->milliseconds();
             while (($this->milliseconds() - $start) < $timeout) {
                 $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));
-                if (($receipt !== null) && ($receipt !== null)) {
+                if ($receipt) {
                     return $receipt;
                 }
                 Async\await($this->sleep(2000));
@@ -733,7 +733,7 @@ class myriad extends Exchange {
             $outcomeObj = $this->outcome($outcome);
             $parsed = $this->parse_order($wrapper, $outcomeObj);
             // the POST /orders $response is minimal (hash . status), so backfill the known $request values
-            // (side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+            // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
             $sideStr = ($side === null) ? null : strtolower($side);
             $typeStr = ($type === null) ? 'limit' : strtolower($type);
             if ($this->safe_string($parsed, 'side') === null) {

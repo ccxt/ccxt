@@ -369,7 +369,7 @@ class PredictionExchange extends \ccxt\async\Exchange {
             // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
             // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
             // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-            // (kalshi) set it false and override fetchOutcome to fetch just the requested one on demand.
+            // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
             if ($this->outcomes !== null) {
                 if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
                     return $this->outcomes[$outcomeSymbol];
@@ -730,7 +730,7 @@ class PredictionExchange extends \ccxt\async\Exchange {
     public function safe_prediction_order_book(array $orderbook, ?array $outcomeObj = null) {
         // normalize a parsed order book to the prediction shape => replace the unified
         // `symbol` with the `outcome` handle and attach the outcome identity fields
-        // (outcomeId / market) so books match the PredictionOrderBook structure.
+        // outcomeId and market - so books match the PredictionOrderBook structure.
         $fallback = $this->safe_string_2($orderbook, 'outcome', 'symbol');
         $orderbook['outcome'] = ($outcomeObj === null) ? $fallback : $this->safe_string($outcomeObj, 'outcome', $fallback);
         $orderbook['outcomeId'] = ($outcomeObj === null) ? $this->safe_string($orderbook, 'outcomeId') : $this->safe_string($outcomeObj, 'outcomeId');

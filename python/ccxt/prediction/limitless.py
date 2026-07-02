@@ -2092,7 +2092,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         start = self.milliseconds()
         while((self.milliseconds() - start) < timeout):
             receipt = await self.eth_rpc(rpcUrl, 'eth_getTransactionReceipt', [txHash])
-            if (receipt is not None) and (receipt != None):
+            if receipt:
                 return receipt
             await self.sleep(2000)
         raise ExchangeError(self.id + ' transaction ' + txHash + ' not mined within timeout')

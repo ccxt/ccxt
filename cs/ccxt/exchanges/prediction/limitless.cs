@@ -2451,7 +2451,7 @@ public partial class limitless : PredictionExchange
         while (isLessThan((subtract(this.milliseconds(), start)), timeout))
         {
             object receipt = await this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new List<object>() {txHash});
-            if (isTrue(isTrue((!isEqual(receipt, null))) && isTrue((!isEqual(receipt, null)))))
+            if (isTrue(receipt))
             {
                 return receipt;
             }

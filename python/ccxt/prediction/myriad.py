@@ -584,7 +584,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         start = self.milliseconds()
         while((self.milliseconds() - start) < timeout):
             receipt = await self.eth_rpc(rpcUrl, 'eth_getTransactionReceipt', [txHash])
-            if (receipt is not None) and (receipt != None):
+            if receipt:
                 return receipt
             await self.sleep(2000)
         raise ExchangeError(self.id + ' transaction ' + txHash + ' not mined within timeout')
@@ -657,7 +657,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         outcomeObj = self.outcome(outcome)
         parsed = self.parse_order(wrapper, outcomeObj)
         # the POST /orders response is minimal(hash + status), so backfill the known request values
-        #(side/type/price/amount/timeInForce and a creation timestamp) when parseOrder left them empty
+        # side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
         sideStr = None if (side is None) else side.lower()
         typeStr = 'limit' if (type is None) else type.lower()
         if self.safe_string(parsed, 'side') is None:

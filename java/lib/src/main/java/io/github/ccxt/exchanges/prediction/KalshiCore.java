@@ -363,7 +363,7 @@ public class KalshiCore extends KalshiApi
     {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
-        // outage (the base otherwise maps a bare 404 to ExchangeNotAvailable). unmapped codes fall
+        // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
         // through to the base http-status handling.
         if (!Helpers.isTrue(response))
         {
@@ -1738,7 +1738,7 @@ final Object finalOi = oi;
             Object isBuy = (Helpers.isEqual(side, "buy"));
             // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
             // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
-            // (buy NO @ q == sell YES @ 1-q), so flip the book side and the price
+            // buy NO @ q == sell YES @ 1-q - flip the book side and the price
             Object bookSide = ((Helpers.isTrue((isBuy)))) ? "bid" : "ask";
             Object yesPrice = price;
             if (Helpers.isTrue(isNo))
@@ -1925,7 +1925,7 @@ final Object finalOi = oi;
             }
             Object lowerQueriesLength = Helpers.getArrayLength(lowerQueries);
             // sequential cursor scan over events ONLY (no nested markets): a nested page is ~2.6 MB
-            // (200 events + ~1200 markets), so scanning every open event that way transfers tens of MB
+            // 200 events + ~1200 markets - scanning every open event that way transfers tens of MB
             // and takes ~100s. Event-only pages are ~25x smaller; the few events that match the query
             // then fetch their markets individually below (the per-event fallback). Net: seconds, not minutes.
             Object matchedEvents = new java.util.ArrayList<Object>(java.util.Arrays.asList());
