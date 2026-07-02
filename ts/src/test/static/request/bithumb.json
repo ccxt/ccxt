@@ -121,13 +121,26 @@
         ],
         "fetchTrades": [
             {
-                "description": "fetchTrades",
+                "description": "generation 1 fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.bithumb.com/public/transaction_history/BTC_KRW?count=5",
+                "url": "https://api.bithumb.com/public/transaction_history/USDC_BTC?count=3",
                 "input": [
-                    "BTC/KRW",
+                    "USDC/BTC",
                     null,
-                    5
+                    3,
+                    {
+                        "generation": 1
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bithumb.com/v1/trades/ticks?count=3&market=BTC-USDC",
+                "input": [
+                    "USDC/BTC",
+                    null,
+                    3
                 ]
             }
         ],

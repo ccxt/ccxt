@@ -641,22 +641,39 @@
         ],
         "fetchTrades": [
             {
-                "description": "fetchTrades",
+                "description": "generation 1 fetch trades",
                 "method": "fetchTrades",
                 "input": [
-                    "BTC/KRW",
+                    "USDC/BTC",
                     null,
-                    1
+                    3,
+                    {
+                        "generation": 1
+                    }
                 ],
                 "httpResponse": {
                     "status": "0000",
                     "data": [
                         {
-                            "transaction_date": "2024-08-08 17:14:33",
+                            "transaction_date": "2026-07-02 17:41:10",
                             "type": "ask",
-                            "units_traded": "0.0006",
-                            "price": "80649000",
-                            "total": "48389"
+                            "units_traded": "42.0335581",
+                            "price": "0.00001646",
+                            "total": "0.00069187"
+                        },
+                        {
+                            "transaction_date": "2026-07-02 17:41:25",
+                            "type": "bid",
+                            "units_traded": "12.0409392",
+                            "price": "0.00001661",
+                            "total": "0.0002"
+                        },
+                        {
+                            "transaction_date": "2026-07-02 17:59:44",
+                            "type": "ask",
+                            "units_traded": "70",
+                            "price": "0.0000165",
+                            "total": "0.001155"
                         }
                     ]
                 },
@@ -664,23 +681,215 @@
                     {
                         "id": null,
                         "info": {
-                            "transaction_date": "2024-08-08 17:14:33",
+                            "transaction_date": "2026-07-02 17:41:10",
                             "type": "ask",
-                            "units_traded": "0.0006",
-                            "price": "80649000",
-                            "total": "48389"
+                            "units_traded": "42.0335581",
+                            "price": "0.00001646",
+                            "total": "0.00069187"
                         },
-                        "timestamp": 1723104873000,
-                        "datetime": "2024-08-08T08:14:33.000Z",
-                        "symbol": "BTC/KRW",
+                        "timestamp": 1782981670000,
+                        "datetime": "2026-07-02T08:41:10.000Z",
+                        "symbol": "USDC/BTC",
                         "order": null,
                         "type": null,
                         "side": "sell",
                         "takerOrMaker": null,
-                        "price": 80649000,
-                        "amount": 0.0006,
-                        "cost": 48389,
-                        "fee": {"cost": null, "currency": null },
+                        "price": 0.00001646,
+                        "amount": 42.0335581,
+                        "cost": 0.00069187,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "info": {
+                            "transaction_date": "2026-07-02 17:41:25",
+                            "type": "bid",
+                            "units_traded": "12.0409392",
+                            "price": "0.00001661",
+                            "total": "0.0002"
+                        },
+                        "timestamp": 1782981685000,
+                        "datetime": "2026-07-02T08:41:25.000Z",
+                        "symbol": "USDC/BTC",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.00001661,
+                        "amount": 12.0409392,
+                        "cost": 0.0002,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "info": {
+                            "transaction_date": "2026-07-02 17:59:44",
+                            "type": "ask",
+                            "units_traded": "70",
+                            "price": "0.0000165",
+                            "total": "0.001155"
+                        },
+                        "timestamp": 1782982784000,
+                        "datetime": "2026-07-02T08:59:44.000Z",
+                        "symbol": "USDC/BTC",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.0000165,
+                        "amount": 70,
+                        "cost": 0.001155,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 fetch trades",
+                "method": "fetchTrades",
+                "input": [
+                    "USDC/BTC",
+                    null,
+                    3
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-USDC",
+                        "trade_date_utc": "2026-07-02",
+                        "trade_time_utc": "08:59:44",
+                        "timestamp": "1782982784329",
+                        "trade_price": "0.0000165",
+                        "trade_volume": "70",
+                        "prev_closing_price": "0.00001673",
+                        "change_price": "-2.3E-7",
+                        "ask_bid": "ASK",
+                        "sequential_id": "17829827843290000"
+                    },
+                    {
+                        "market": "BTC-USDC",
+                        "trade_date_utc": "2026-07-02",
+                        "trade_time_utc": "08:41:25",
+                        "timestamp": "1782981685716",
+                        "trade_price": "0.00001661",
+                        "trade_volume": "12.0409392",
+                        "prev_closing_price": "0.00001673",
+                        "change_price": "-1.2E-7",
+                        "ask_bid": "BID",
+                        "sequential_id": "17829816857160000"
+                    },
+                    {
+                        "market": "BTC-USDC",
+                        "trade_date_utc": "2026-07-02",
+                        "trade_time_utc": "08:41:10",
+                        "timestamp": "1782981670705",
+                        "trade_price": "0.00001646",
+                        "trade_volume": "42.0335581",
+                        "prev_closing_price": "0.00001673",
+                        "change_price": "-2.7E-7",
+                        "ask_bid": "ASK",
+                        "sequential_id": "17829816707050000"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "info": {
+                            "market": "BTC-USDC",
+                            "trade_date_utc": "2026-07-02",
+                            "trade_time_utc": "08:41:10",
+                            "timestamp": "1782981670705",
+                            "trade_price": "0.00001646",
+                            "trade_volume": "42.0335581",
+                            "prev_closing_price": "0.00001673",
+                            "change_price": "-2.7E-7",
+                            "ask_bid": "ASK",
+                            "sequential_id": "17829816707050000"
+                        },
+                        "timestamp": 1782981670705,
+                        "datetime": "2026-07-02T08:41:10.705Z",
+                        "symbol": "USDC/BTC",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.00001646,
+                        "amount": 42.0335581,
+                        "cost": 0.000691872366326,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "info": {
+                            "market": "BTC-USDC",
+                            "trade_date_utc": "2026-07-02",
+                            "trade_time_utc": "08:41:25",
+                            "timestamp": "1782981685716",
+                            "trade_price": "0.00001661",
+                            "trade_volume": "12.0409392",
+                            "prev_closing_price": "0.00001673",
+                            "change_price": "-1.2E-7",
+                            "ask_bid": "BID",
+                            "sequential_id": "17829816857160000"
+                        },
+                        "timestamp": 1782981685716,
+                        "datetime": "2026-07-02T08:41:25.716Z",
+                        "symbol": "USDC/BTC",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.00001661,
+                        "amount": 12.0409392,
+                        "cost": 0.000200000000112,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "info": {
+                            "market": "BTC-USDC",
+                            "trade_date_utc": "2026-07-02",
+                            "trade_time_utc": "08:59:44",
+                            "timestamp": "1782982784329",
+                            "trade_price": "0.0000165",
+                            "trade_volume": "70",
+                            "prev_closing_price": "0.00001673",
+                            "change_price": "-2.3E-7",
+                            "ask_bid": "ASK",
+                            "sequential_id": "17829827843290000"
+                        },
+                        "timestamp": 1782982784329,
+                        "datetime": "2026-07-02T08:59:44.329Z",
+                        "symbol": "USDC/BTC",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.0000165,
+                        "amount": 70,
+                        "cost": 0.001155,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
                         "fees": []
                     }
                 ]

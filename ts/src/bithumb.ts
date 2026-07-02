@@ -1200,7 +1200,7 @@ export default class bithumb extends Exchange {
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
-        // fetchTrades (public)
+        // generation 1: fetchTrades (public)
         //
         //     {
         //         "transaction_date":"2020-04-23 22:21:46",
@@ -1210,7 +1210,7 @@ export default class bithumb extends Exchange {
         //         "total":"108337"
         //     }
         //
-        // fetchOrder (private)
+        // generation 1: fetchOrder (private)
         //
         //     {
         //         "transaction_date": "1572497603902030",
@@ -1221,8 +1221,24 @@ export default class bithumb extends Exchange {
         //         "total": "43005"
         //     }
         //
+        // generation 2: fetchTrades
+        //
+        //     {
+        //         "market": "BTC-USDC",
+        //         "trade_date_utc": "2026-07-02",
+        //         "trade_time_utc": "08:41:10",
+        //         "timestamp": "1782981670705",
+        //         "trade_price": "0.00001646",
+        //         "trade_volume": "42.0335581",
+        //         "prev_closing_price": "0.00001673",
+        //         "change_price": "-2.7E-7",
+        //         "ask_bid": "ASK",
+        //         "sequential_id": "17829816707050000"
+        //     }
+        //
         // a workaround for their bug in date format, hours are not 0-padded
-        let timestamp: Int = undefined;
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        const isGenerationTwo = (timestamp !== undefined);
         const transactionDatetime = this.safeString (trade, 'transaction_date');
         if (transactionDatetime !== undefined) {
             const parts = transactionDatetime.split (' ');
@@ -1238,16 +1254,20 @@ export default class bithumb extends Exchange {
                 timestamp = this.safeIntegerProduct (trade, 'transaction_date', 0.001);
             }
         }
-        if (timestamp !== undefined) {
+        if ((timestamp !== undefined) && (!isGenerationTwo)) {
             timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
         }
         const type = undefined;
-        let side = this.safeString (trade, 'type');
+        let side = this.safeStringLower2 (trade, 'type', 'ask_bid');
         side = (side === 'ask') ? 'sell' : 'buy';
         const id = this.safeString (trade, 'cont_no');
-        market = this.safeMarket (undefined, market);
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.fixCommaNumber (this.safeString2 (trade, 'units_traded', 'units'));
+        const marketId = this.safeString (trade, 'market');
+        market = this.safeMarket (marketId, market);
+        const priceString = this.safeString2 (trade, 'price', 'trade_price');
+        let amountString = this.safeString (trade, 'trade_volume');
+        if (amountString === undefined) {
+            amountString = this.fixCommaNumber (this.safeString2 (trade, 'units_traded', 'units'));
+        }
         const costString = this.safeString (trade, 'total');
         let fee: NullableDict = undefined;
         const feeCostString = this.safeString (trade, 'fee');
@@ -1281,38 +1301,65 @@ export default class bithumb extends Exchange {
      * @name bithumb#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+     * @see https://apidocs.bithumb.com/reference/%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'generation', 2);
+        await this.loadMarketsGeneration (generation);
         const market = this.market (symbol);
-        const request: Dict = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
-        };
+        const request: Dict = {};
         if (limit !== undefined) {
-            request['count'] = limit; // default 20, max 100
+            request['count'] = limit;
         }
-        const response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId (this.extend (request, params));
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":[
-        //             {
-        //                 "transaction_date":"2020-04-23 22:21:46",
-        //                 "type":"ask",
-        //                 "units_traded":"0.0125",
-        //                 "price":"8667000",
-        //                 "total":"108337"
-        //             },
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
+        let response = undefined;
+        let data = undefined;
+        if (generation === 2) {
+            request['market'] = market['id'];
+            response = await this.publicGetV1TradesTicks (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date_utc": "2026-07-02",
+            //             "trade_time_utc": "08:41:10",
+            //             "timestamp": "1782981670705",
+            //             "trade_price": "0.00001646",
+            //             "trade_volume": "42.0335581",
+            //             "prev_closing_price": "0.00001673",
+            //             "change_price": "-2.7E-7",
+            //             "ask_bid": "ASK",
+            //             "sequential_id": "17829816707050000"
+            //         }
+            //     ]
+            //
+            data = response;
+        } else {
+            request['baseId'] = market['baseId'];
+            request['quoteId'] = market['quoteId'];
+            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId (this.extend (request, params));
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":[
+            //             {
+            //                 "transaction_date":"2020-04-23 22:21:46",
+            //                 "type":"ask",
+            //                 "units_traded":"0.0125",
+            //                 "price":"8667000",
+            //                 "total":"108337"
+            //             },
+            //         ]
+            //     }
+            //
+            data = this.safeList (response, 'data', []);
+        }
         return this.parseTrades (data, market, since, limit);
     }
 
