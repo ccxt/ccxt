@@ -52,7 +52,6 @@ var coinbaseinternational = require('./src/coinbaseinternational.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinmate = require('./src/coinmate.js');
-var coinmetro = require('./src/coinmetro.js');
 var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
@@ -94,7 +93,6 @@ var mexc = require('./src/mexc.js');
 var modetrade = require('./src/modetrade.js');
 var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
-var novadax = require('./src/novadax.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
@@ -241,7 +239,6 @@ const exchanges = {
     'coincheck': coincheck["default"],
     'coinex': coinex["default"],
     'coinmate': coinmate["default"],
-    'coinmetro': coinmetro["default"],
     'coinone': coinone["default"],
     'coinsph': coinsph["default"],
     'coinspot': coinspot["default"],
@@ -283,7 +280,6 @@ const exchanges = {
     'modetrade': modetrade["default"],
     'myokx': myokx["default"],
     'ndax': ndax["default"],
-    'novadax': novadax["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
     'onetrading': onetrading["default"],
@@ -479,7 +475,6 @@ exports.coinbaseinternational = coinbaseinternational["default"];
 exports.coincheck = coincheck["default"];
 exports.coinex = coinex["default"];
 exports.coinmate = coinmate["default"];
-exports.coinmetro = coinmetro["default"];
 exports.coinone = coinone["default"];
 exports.coinsph = coinsph["default"];
 exports.coinspot = coinspot["default"];
@@ -521,7 +516,6 @@ exports.mexc = mexc["default"];
 exports.modetrade = modetrade["default"];
 exports.myokx = myokx["default"];
 exports.ndax = ndax["default"];
-exports.novadax = novadax["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];

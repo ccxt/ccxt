@@ -32,7 +32,7 @@ class pacifica extends pacifica$1["default"] {
                 'spot': false,
                 'margin': false,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,

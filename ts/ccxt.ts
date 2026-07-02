@@ -88,7 +88,6 @@ import coinbaseinternational from  './src/coinbaseinternational.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinmate from  './src/coinmate.js'
-import coinmetro from  './src/coinmetro.js'
 import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
@@ -130,7 +129,6 @@ import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
 import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
-import novadax from  './src/novadax.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
@@ -277,7 +275,6 @@ const exchanges = {
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinmate':               coinmate,
-    'coinmetro':              coinmetro,
     'coinone':                coinone,
     'coinsph':                coinsph,
     'coinspot':               coinspot,
@@ -319,7 +316,6 @@ const exchanges = {
     'modetrade':              modetrade,
     'myokx':                  myokx,
     'ndax':                   ndax,
-    'novadax':                novadax,
     'okx':                    okx,
     'okxus':                  okxus,
     'onetrading':             onetrading,
@@ -610,7 +606,6 @@ export {
     coincheck,
     coinex,
     coinmate,
-    coinmetro,
     coinone,
     coinsph,
     coinspot,
@@ -652,7 +647,6 @@ export {
     modetrade,
     myokx,
     ndax,
-    novadax,
     okx,
     okxus,
     onetrading,

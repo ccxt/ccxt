@@ -28,7 +28,7 @@ class hashkey extends hashkey$1["default"] {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
