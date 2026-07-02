@@ -310,6 +310,7 @@ export default class ascendex extends Exchange {
                     'MATIC': 'Matic Network',
                     'AKT': 'Akash',
                 },
+                'warning': 'There have been multiple reports that the exchange has been holding withdrawals - https://t.me/investigations/349',
             },
             'features': {
                 'default': {
