@@ -289,15 +289,14 @@ export default class bithumb extends Exchange {
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '10m': '10m',
-                '30m': '30m',
-                '1h': '1h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '24h',
+                '1m': 1,
+                '3m': 3,
+                '5m': 5,
+                '10m': 10,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '4h': 240,
             },
             'options': {
                 'generation': 2, // either API generation 1 or 2
@@ -1057,6 +1056,8 @@ export default class bithumb extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
+        // generation 1
+        //
         //     [
         //         1576823400000, // 기준 시간
         //         "8284000", // 시가
@@ -1066,13 +1067,29 @@ export default class bithumb extends Exchange {
         //         "15.41503692" // 거래량
         //     ]
         //
+        // generation 2
+        //
+        //     {
+        //         "market": "BTC-USDC",
+        //         "candle_date_time_utc": "2026-07-02T08:59:00",
+        //         "candle_date_time_kst": "2026-07-02T17:59:00",
+        //         "opening_price": 0.0000165,
+        //         "high_price": 0.0000165,
+        //         "low_price": 0.0000165,
+        //         "trade_price": 0.0000165,
+        //         "timestamp": 1782982784329,
+        //         "candle_acc_trade_price": 0.001155,
+        //         "candle_acc_trade_volume": 70,
+        //         "unit": 1
+        //     }
+        //
         return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 5),
+            this.safeInteger2 (ohlcv, 0, 'timestamp'),
+            this.safeNumber2 (ohlcv, 1, 'opening_price'),
+            this.safeNumber2 (ohlcv, 3, 'high_price'),
+            this.safeNumber2 (ohlcv, 4, 'low_price'),
+            this.safeNumber2 (ohlcv, 2, 'trade_price'),
+            this.safeNumber2 (ohlcv, 5, 'candle_acc_trade_volume'),
         ];
     }
 
@@ -1081,46 +1098,103 @@ export default class bithumb extends Exchange {
      * @name bithumb#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
+     * @see https://apidocs.bithumb.com/reference/%EB%B6%84minute-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9D%BCday-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BCweek-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%EC%9B%94month-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'generation', 2);
+        await this.loadMarketsGeneration (generation);
         const market = this.market (symbol);
-        const request: Dict = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
-            'interval': this.safeString (this.timeframes, timeframe, timeframe),
-        };
-        const response = await this.publicGetPublicCandlestickBaseIdQuoteIdInterval (this.extend (request, params));
-        //
-        //     {
-        //         "status": "0000",
-        //         "data": {
-        //             [
-        //                 1576823400000, // 기준 시간
-        //                 "8284000", // 시가
-        //                 "8286000", // 종가
-        //                 "8289000", // 고가
-        //                 "8276000", // 저가
-        //                 "15.41503692" // 거래량
-        //             ],
-        //             [
-        //                 1576824000000, // 기준 시간
-        //                 "8284000", // 시가
-        //                 "8281000", // 종가
-        //                 "8289000", // 고가
-        //                 "8275000", // 저가
-        //                 "6.19584467" // 거래량
-        //             ],
-        //         }
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
+        const request: Dict = {};
+        let response = undefined;
+        let data = undefined;
+        if (generation === 2) {
+            request['market'] = market['id'];
+            if (limit !== undefined) {
+                request['count'] = limit;
+            }
+            if (timeframe === '1d') {
+                response = await this.publicGetV1CandlesDays (this.extend (request, params));
+            } else if (timeframe === '1w') {
+                response = await this.publicGetV1CandlesWeeks (this.extend (request, params));
+            } else if (timeframe === '1M') {
+                response = await this.publicGetV1CandlesMonths (this.extend (request, params));
+            } else {
+                const timeframeInteger = this.parseToInt (timeframe);
+                request['unit'] = this.safeInteger (this.timeframes, timeframe, timeframeInteger);
+                response = await this.publicGetV1CandlesMinutesUnit (this.extend (request, params));
+            }
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "candle_date_time_utc": "2026-07-02T08:59:00",
+            //             "candle_date_time_kst": "2026-07-02T17:59:00",
+            //             "opening_price": 0.0000165,
+            //             "high_price": 0.0000165,
+            //             "low_price": 0.0000165,
+            //             "trade_price": 0.0000165,
+            //             "timestamp": 1782982784329,
+            //             "candle_acc_trade_price": 0.001155,
+            //             "candle_acc_trade_volume": 70,
+            //             "unit": 1
+            //         },
+            //     ]
+            //
+            data = response;
+        } else {
+            const legacyTimeframes: Dict = {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '10m': '10m',
+                '30m': '30m',
+                '1h': '1h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '24h',
+                '1w': '1w',
+                '1M': '1mm',
+            };
+            request['interval'] = this.safeString (legacyTimeframes, timeframe, timeframe);
+            request['baseId'] = market['baseId'];
+            request['quoteId'] = market['quoteId'];
+            response = await this.publicGetPublicCandlestickBaseIdQuoteIdInterval (this.extend (request, params));
+            //
+            //     {
+            //         "status": "0000",
+            //         "data": {
+            //             [
+            //                 1576823400000, // 기준 시간
+            //                 "8284000", // 시가
+            //                 "8286000", // 종가
+            //                 "8289000", // 고가
+            //                 "8276000", // 저가
+            //                 "15.41503692" // 거래량
+            //             ],
+            //             [
+            //                 1576824000000, // 기준 시간
+            //                 "8284000", // 시가
+            //                 "8281000", // 종가
+            //                 "8289000", // 고가
+            //                 "8275000", // 저가
+            //                 "6.19584467" // 거래량
+            //             ],
+            //         }
+            //     }
+            //
+            data = this.safeList (response, 'data', []);
+        }
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 

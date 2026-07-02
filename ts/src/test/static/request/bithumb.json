@@ -94,14 +94,28 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "fetchOHLCV",
+                "description": "generation 1 fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://api.bithumb.com/public/candlestick/BTC_KRW/1m",
+                "url": "https://api.bithumb.com/public/candlestick/USDC_BTC/1m",
                 "input": [
-                    "BTC/KRW",
+                    "USDC/BTC",
                     "1m",
                     null,
-                    5
+                    3,
+                    {
+                        "generation": 1
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.bithumb.com/v1/candles/minutes/1?market=BTC-USDC&count=3",
+                "input": [
+                    "USDC/BTC",
+                    "1m",
+                    null,
+                    3
                 ]
             }
         ],
