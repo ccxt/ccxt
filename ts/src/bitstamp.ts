@@ -489,6 +489,7 @@ export default class bitstamp extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'mica': true,
                 'networksById': {
                     'bitcoin-cash': 'BCH',
                     'bitcoin': 'BTC',
