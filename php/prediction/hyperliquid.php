@@ -673,11 +673,13 @@ class hyperliquid extends Exchange {
             if ($outcomes !== null) {
                 for ($i = 0; $i < count($outcomes); $i++) {
                     $requested = $outcomes[$i];
-                    Async\await($this->load_outcome($requested));
-                    $requestedOutcomeObj = $this->outcome($requested);
+                    $requestedOutcomeObj = Async\await($this->load_outcome($requested));
                     $requestedOutcome = $this->safe_string($requestedOutcomeObj, 'outcome', $requested);
                     $requestedOutcomeSymbols[$requestedOutcome] = true;
                 }
+            } else {
+                // no filter — warm the whole outcome set so identities resolve from the cache
+                Async\await($this->load_outcomes());
             }
             $response = Async\await($this->publicPostInfo ($this->extend(array( 'type' => 'allMids' ), $params)));
             //
@@ -744,8 +746,8 @@ class hyperliquid extends Exchange {
         if ($mid === null && $bid !== null && $ask !== null) {
             $mid = $this->sum($bid, $ask) / 2;
         }
-        // day volume lives on the parent market's $ctx; resolve it from the outcome's marketSymbol
-        $parentSymbol = $this->safe_string($mkt, 'outcome');
+        // day volume lives on the parent market's $ctx; resolve it from the outcome's parent $market
+        $parentSymbol = $this->safe_string($mkt, 'market');
         $parentMarket = ($parentSymbol !== null) ? $this->safe_market($parentSymbol) : null;
         $ctx = ($parentMarket !== null) ? $this->safe_dict($this->safe_dict($parentMarket, 'info', array()), 'ctx', array()) : array();
         $dayVolume = $this->safe_number($ctx, 'dayNtlVlm');
@@ -753,7 +755,7 @@ class hyperliquid extends Exchange {
             'outcome' => $outcome,
             'outcomeId' => $this->safe_string_2($mkt, 'outcomeId', 'id'),
             'label' => $this->safe_string($mkt, 'label'),
-            'market' => $this->safe_string($mkt, 'outcome'),
+            'market' => $this->safe_string($mkt, 'market'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
@@ -979,11 +981,13 @@ class hyperliquid extends Exchange {
             if ($outcomes !== null) {
                 for ($i = 0; $i < count($outcomes); $i++) {
                     $requested = $outcomes[$i];
-                    Async\await($this->load_outcome($requested));
-                    $requestedOutcomeObj = $this->outcome($requested);
+                    $requestedOutcomeObj = Async\await($this->load_outcome($requested));
                     $requestedOutcome = $this->safe_string($requestedOutcomeObj, 'outcome', $requested);
                     $requestedOutcomeSymbols[$requestedOutcome] = true;
                 }
+            } else {
+                // no filter — warm the whole outcome set so identities resolve from the cache
+                Async\await($this->load_outcomes());
             }
             list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
             $request = array(
@@ -1063,7 +1067,7 @@ class hyperliquid extends Exchange {
             'id' => null,
             'outcome' => $this->safe_string($outcomeObj, 'outcome'),
             'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
-            'market' => $this->safe_string($outcomeObj, 'outcome'),
+            'market' => $this->safe_string($outcomeObj, 'market'),
             'timestamp' => null,
             'datetime' => null,
             'isolated' => false,
@@ -1304,7 +1308,7 @@ class hyperliquid extends Exchange {
                 'outcome' => $this->safe_string($outcomeObj, 'outcome', $outcome),
                 'outcomeId' => $this->safe_string($outcomeObj, 'id'),
                 'label' => $this->safe_string($outcomeObj, 'label'),
-                'market' => $this->safe_string($outcomeObj, 'outcome'),
+                'market' => $this->safe_string($outcomeObj, 'market'),
                 'type' => $type,
                 'side' => $side,
                 'price' => $price,
@@ -1421,7 +1425,7 @@ class hyperliquid extends Exchange {
                     'outcome' => $outcomeSymbol,
                     'outcomeId' => $this->safe_string($outcomeObj, 'id'),
                     'label' => $this->safe_string($outcomeObj, 'label'),
-                    'market' => $this->safe_string($outcomeObj, 'outcome'),
+                    'market' => $this->safe_string($outcomeObj, 'market'),
                     'timestamp' => $this->milliseconds(),
                     'datetime' => $this->iso8601($this->milliseconds()),
                 );
@@ -1611,7 +1615,7 @@ class hyperliquid extends Exchange {
             'outcome' => $this->safe_string($outcomeObj, 'outcome'),
             'outcomeId' => $this->safe_string($outcomeObj, 'id'),
             'label' => $this->safe_string($outcomeObj, 'label'),
-            'market' => $this->safe_string($outcomeObj, 'outcome'),
+            'market' => $this->safe_string($outcomeObj, 'market'),
             'type' => $this->parse_order_type($this->safe_string($entry, 'orderType', 'limit')),
             'timeInForce' => $tif,
             'postOnly' => $postOnly,
@@ -1798,7 +1802,7 @@ class hyperliquid extends Exchange {
             'outcome' => $outcomeSymbol,
             'outcomeId' => $this->safe_string($outcomeObj, 'id'),
             'label' => $this->safe_string($outcomeObj, 'label'),
-            'market' => $this->safe_string($outcomeObj, 'outcome'),
+            'market' => $this->safe_string($outcomeObj, 'market'),
             'order' => $this->safe_string($trade, 'oid'),
             'type' => 'limit',
             'side' => $side,

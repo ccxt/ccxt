@@ -1198,7 +1198,6 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
              */
-            Async\await($this->load_outcomes());
             $response = Async\await($this->kalshiPrivateGetPortfolioBalance ($params));
             return $this->parse_balance($response);
         }) ();
@@ -1364,10 +1363,10 @@ class kalshi extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
+            // $outcome is only a labelling hint here — the request needs just the $id, and
+            // parseOrder resolves identity cache-only, so don't force a full market scan
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
-            } else {
-                Async\await($this->load_outcomes());
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioOrdersOrderId ($this->extend(array( 'order_id' => $id ), $params)));
             return $this->parse_order($this->safe_value($response, 'order', $response));
@@ -1540,8 +1539,6 @@ class kalshi extends Exchange {
              */
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
-            } else {
-                Async\await($this->load_outcomes());
             }
             // v2 cancel => DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{$id}
             // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
@@ -1563,8 +1560,6 @@ class kalshi extends Exchange {
              */
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
-            } else {
-                Async\await($this->load_outcomes());
             }
             // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
             // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and

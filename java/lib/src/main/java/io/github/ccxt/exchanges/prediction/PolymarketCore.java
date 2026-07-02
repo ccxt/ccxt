@@ -3271,7 +3271,7 @@ final Object finalOutcome = outcome;
      * @method
      * @name polymarket#watchOrderBook
      * @description streams live order-book updates for a single Polymarket outcome token
-     * @param {string} outcome unified outcome (e.g. "ELECTION/YES:USDC")
+     * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
      * @param {int} [limit] optional depth limit applied after resolving
      * @param {object} [params] extra params (currently unused)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
@@ -3283,7 +3283,7 @@ final Object finalOutcome = outcome;
             Object outcome = outcome3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object outcomeObj = this.outcome(outcome);
+            Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
             Object messageHash = Helpers.add("orderbook::", outcome);
@@ -3317,7 +3317,7 @@ final Object finalOutcome = outcome;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object outcomeObj = this.outcome(outcome);
+            Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
             Object messageHash = Helpers.add("trades::", outcome);
@@ -3347,7 +3347,7 @@ final Object finalOutcome = outcome;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object outcome = outcome3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object outcomeObj = this.outcome(outcome);
+            Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
             Object messageHash = Helpers.add("ticker::", outcome);
@@ -3461,7 +3461,7 @@ final Object finalOutcome = outcome;
             Object messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                Object outcomeObj = this.outcome(outcome);
+                Object outcomeObj = (this.loadOutcome(outcome)).join();
                 outcome = this.safeString(outcomeObj, "outcome");
                 messageHash = Helpers.add("orders::", outcome);
             }
@@ -3499,7 +3499,7 @@ final Object finalOutcome = outcome;
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                Object outcomeObj = this.outcome(outcome);
+                Object outcomeObj = (this.loadOutcome(outcome)).join();
                 outcome = this.safeString(outcomeObj, "outcome");
                 messageHash = Helpers.add("myTrades::", outcome);
             }

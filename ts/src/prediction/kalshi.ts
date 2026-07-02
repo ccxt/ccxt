@@ -1196,7 +1196,6 @@ export default class kalshi extends Exchange {
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadOutcomes ();
         const response = await this.kalshiPrivateGetPortfolioBalance (params);
         return this.parseBalance (response);
     }
@@ -1361,10 +1360,10 @@ export default class kalshi extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        // outcome is only a labelling hint here — the request needs just the id, and
+        // parseOrder resolves identity cache-only, so don't force a full market scan
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
-        } else {
-            await this.loadOutcomes ();
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
         return this.parseOrder (this.safeValue (response, 'order', response));
@@ -1537,8 +1536,6 @@ export default class kalshi extends Exchange {
     async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
-        } else {
-            await this.loadOutcomes ();
         }
         // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
         // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
@@ -1558,8 +1555,6 @@ export default class kalshi extends Exchange {
     async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
-        } else {
-            await this.loadOutcomes ();
         }
         // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
         // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and

@@ -760,11 +760,14 @@ public partial class hyperliquid : PredictionExchange
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                await this.loadOutcome(requested);
-                object requestedOutcomeObj = this.outcome(requested);
+                object requestedOutcomeObj = await this.loadOutcome(requested);
                 object requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
             }
+        } else
+        {
+            // no filter — warm the whole outcome set so identities resolve from the cache
+            await this.loadOutcomes();
         }
         object response = await this.publicPostInfo(this.extend(new Dictionary<string, object>() {
             { "type", "allMids" },
@@ -843,8 +846,8 @@ public partial class hyperliquid : PredictionExchange
         {
             mid = divide(this.sum(bid, ask), 2);
         }
-        // day volume lives on the parent market's ctx; resolve it from the outcome's marketSymbol
-        object parentSymbol = this.safeString(mkt, "outcome");
+        // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
+        object parentSymbol = this.safeString(mkt, "market");
         object parentMarket = ((bool) isTrue((!isEqual(parentSymbol, null)))) ? this.safeMarket(parentSymbol) : null;
         object ctx = ((bool) isTrue((!isEqual(parentMarket, null)))) ? this.safeDict(this.safeDict(((object)parentMarket), "info", new Dictionary<string, object>() {}), "ctx", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         object dayVolume = this.safeNumber(ctx, "dayNtlVlm");
@@ -852,7 +855,7 @@ public partial class hyperliquid : PredictionExchange
             { "outcome", outcome },
             { "outcomeId", this.safeString2(mkt, "outcomeId", "id") },
             { "label", this.safeString(mkt, "label") },
-            { "market", this.safeString(mkt, "outcome") },
+            { "market", this.safeString(mkt, "market") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", null },
@@ -1089,11 +1092,14 @@ public partial class hyperliquid : PredictionExchange
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                await this.loadOutcome(requested);
-                object requestedOutcomeObj = this.outcome(requested);
+                object requestedOutcomeObj = await this.loadOutcome(requested);
                 object requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
             }
+        } else
+        {
+            // no filter — warm the whole outcome set so identities resolve from the cache
+            await this.loadOutcomes();
         }
         object userAddress = null;
         var userAddressparametersVariable = this.handlePublicAddress("fetchPositions", parameters);
@@ -1187,7 +1193,7 @@ public partial class hyperliquid : PredictionExchange
             { "id", null },
             { "outcome", this.safeString(outcomeObj, "outcome") },
             { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "timestamp", null },
             { "datetime", null },
             { "isolated", false },
@@ -1467,7 +1473,7 @@ public partial class hyperliquid : PredictionExchange
             { "outcome", this.safeString(outcomeObj, "outcome", outcome) },
             { "outcomeId", this.safeString(outcomeObj, "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "type", type },
             { "side", side },
             { "price", price },
@@ -1607,7 +1613,7 @@ public partial class hyperliquid : PredictionExchange
                 { "outcome", outcomeSymbol },
                 { "outcomeId", this.safeString(outcomeObj, "id") },
                 { "label", this.safeString(outcomeObj, "label") },
-                { "market", this.safeString(outcomeObj, "outcome") },
+                { "market", this.safeString(outcomeObj, "market") },
                 { "timestamp", this.milliseconds() },
                 { "datetime", this.iso8601(this.milliseconds()) },
             };
@@ -1836,7 +1842,7 @@ public partial class hyperliquid : PredictionExchange
             { "outcome", this.safeString(outcomeObj, "outcome") },
             { "outcomeId", this.safeString(outcomeObj, "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "type", this.parseOrderType(this.safeString(entry, "orderType", "limit")) },
             { "timeInForce", tif },
             { "postOnly", postOnly },
@@ -2047,7 +2053,7 @@ public partial class hyperliquid : PredictionExchange
             { "outcome", outcomeSymbol },
             { "outcomeId", this.safeString(outcomeObj, "id") },
             { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "outcome") },
+            { "market", this.safeString(outcomeObj, "market") },
             { "order", this.safeString(trade, "oid") },
             { "type", "limit" },
             { "side", side },

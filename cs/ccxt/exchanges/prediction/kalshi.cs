@@ -1282,7 +1282,6 @@ public partial class kalshi : PredictionExchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadOutcomes();
         object response = await this.kalshiPrivateGetPortfolioBalance(parameters);
         return this.parseBalance(response);
     }
@@ -1476,13 +1475,12 @@ public partial class kalshi : PredictionExchange
      */
     public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
+        // outcome is only a labelling hint here — the request needs just the id, and
+        // parseOrder resolves identity cache-only, so don't force a full market scan
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
         {
             await this.loadOutcome(outcome);
-        } else
-        {
-            await this.loadOutcomes();
         }
         object response = await this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new Dictionary<string, object>() {
             { "order_id", id },
@@ -1677,9 +1675,6 @@ public partial class kalshi : PredictionExchange
         if (isTrue(!isEqual(outcome, null)))
         {
             await this.loadOutcome(outcome);
-        } else
-        {
-            await this.loadOutcomes();
         }
         // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
         // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
@@ -1704,9 +1699,6 @@ public partial class kalshi : PredictionExchange
         if (isTrue(!isEqual(outcome, null)))
         {
             await this.loadOutcome(outcome);
-        } else
-        {
-            await this.loadOutcomes();
         }
         // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
         // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and

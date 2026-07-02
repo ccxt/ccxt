@@ -3033,7 +3033,7 @@ public partial class polymarket : PredictionExchange
      * @method
      * @name polymarket#watchOrderBook
      * @description streams live order-book updates for a single Polymarket outcome token
-     * @param {string} outcome unified outcome (e.g. "ELECTION/YES:USDC")
+     * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
      * @param {int} [limit] optional depth limit applied after resolving
      * @param {object} [params] extra params (currently unused)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
@@ -3041,7 +3041,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<object> watchOrderBook(object outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcomeObj = this.outcome(outcome);
+        object outcomeObj = await this.loadOutcome(outcome);
         object tokenId = this.safeString(outcomeObj, "outcomeId");
         outcome = this.safeString(outcomeObj, "outcome");
         object messageHash = add("orderbook::", outcome);
@@ -3068,7 +3068,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<object> watchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcomeObj = this.outcome(outcome);
+        object outcomeObj = await this.loadOutcome(outcome);
         object tokenId = this.safeString(outcomeObj, "outcomeId");
         outcome = this.safeString(outcomeObj, "outcome");
         object messageHash = add("trades::", outcome);
@@ -3093,7 +3093,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<object> watchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcomeObj = this.outcome(outcome);
+        object outcomeObj = await this.loadOutcome(outcome);
         object tokenId = this.safeString(outcomeObj, "outcomeId");
         outcome = this.safeString(outcomeObj, "outcome");
         object messageHash = add("ticker::", outcome);
@@ -3193,7 +3193,7 @@ public partial class polymarket : PredictionExchange
         object messageHash = "orders";
         if (isTrue(!isEqual(outcome, null)))
         {
-            object outcomeObj = this.outcome(outcome);
+            object outcomeObj = await this.loadOutcome(outcome);
             outcome = this.safeString(outcomeObj, "outcome");
             messageHash = add("orders::", outcome);
         }
@@ -3223,7 +3223,7 @@ public partial class polymarket : PredictionExchange
         object messageHash = "myTrades";
         if (isTrue(!isEqual(outcome, null)))
         {
-            object outcomeObj = this.outcome(outcome);
+            object outcomeObj = await this.loadOutcome(outcome);
             outcome = this.safeString(outcomeObj, "outcome");
             messageHash = add("myTrades::", outcome);
         }

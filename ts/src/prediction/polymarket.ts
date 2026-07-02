@@ -2669,13 +2669,13 @@ export default class polymarket extends Exchange {
      * @method
      * @name polymarket#watchOrderBook
      * @description streams live order-book updates for a single Polymarket outcome token
-     * @param {string} outcome unified outcome (e.g. "ELECTION/YES:USDC")
+     * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
      * @param {int} [limit] optional depth limit applied after resolving
      * @param {object} [params] extra params (currently unused)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
     async watchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        const outcomeObj = this.outcome (outcome);
+        const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         outcome = this.safeString (outcomeObj, 'outcome');
         const messageHash = 'orderbook::' + outcome;
@@ -2697,7 +2697,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async watchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        const outcomeObj = this.outcome (outcome);
+        const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         outcome = this.safeString (outcomeObj, 'outcome');
         const messageHash = 'trades::' + outcome;
@@ -2717,7 +2717,7 @@ export default class polymarket extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
-        const outcomeObj = this.outcome (outcome);
+        const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         outcome = this.safeString (outcomeObj, 'outcome');
         const messageHash = 'ticker::' + outcome;
@@ -2803,7 +2803,7 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials ();
         let messageHash = 'orders';
         if (outcome !== undefined) {
-            const outcomeObj = this.outcome (outcome);
+            const outcomeObj = await this.loadOutcome (outcome);
             outcome = this.safeString (outcomeObj, 'outcome');
             messageHash = 'orders::' + outcome;
         }
@@ -2829,7 +2829,7 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials ();
         let messageHash = 'myTrades';
         if (outcome !== undefined) {
-            const outcomeObj = this.outcome (outcome);
+            const outcomeObj = await this.loadOutcome (outcome);
             outcome = this.safeString (outcomeObj, 'outcome');
             messageHash = 'myTrades::' + outcome;
         }

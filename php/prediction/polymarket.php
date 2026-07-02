@@ -2709,12 +2709,12 @@ class polymarket extends Exchange {
         return Async\async(function () use ($outcome, $limit, $params) {
             /**
              * streams live order-book updates for a single Polymarket $outcome token
-             * @param {string} $outcome unified $outcome (e.g. "ELECTION/YES:USDC")
+             * @param {string} $outcome unified $outcome (e.g. "TRUMP_WINS_2028:YES") or an $outcome token id
              * @param {int} [$limit] optional depth $limit applied after resolving
              * @param {array} [$params] extra $params (currently unused)
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
              */
-            $outcomeObj = $this->outcome($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
             $outcome = $this->safe_string($outcomeObj, 'outcome');
             $messageHash = 'orderbook::' . $outcome;
@@ -2736,7 +2736,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra $params (unused)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
-            $outcomeObj = $this->outcome($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
             $outcome = $this->safe_string($outcomeObj, 'outcome');
             $messageHash = 'trades::' . $outcome;
@@ -2756,7 +2756,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra $params (unused)
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
-            $outcomeObj = $this->outcome($outcome);
+            $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
             $outcome = $this->safe_string($outcomeObj, 'outcome');
             $messageHash = 'ticker::' . $outcome;
@@ -2844,7 +2844,7 @@ class polymarket extends Exchange {
             Async\await($this->load_api_credentials());
             $messageHash = 'orders';
             if ($outcome !== null) {
-                $outcomeObj = $this->outcome($outcome);
+                $outcomeObj = Async\await($this->load_outcome($outcome));
                 $outcome = $this->safe_string($outcomeObj, 'outcome');
                 $messageHash = 'orders::' . $outcome;
             }
@@ -2872,7 +2872,7 @@ class polymarket extends Exchange {
             Async\await($this->load_api_credentials());
             $messageHash = 'myTrades';
             if ($outcome !== null) {
-                $outcomeObj = $this->outcome($outcome);
+                $outcomeObj = Async\await($this->load_outcome($outcome));
                 $outcome = $this->safe_string($outcomeObj, 'outcome');
                 $messageHash = 'myTrades::' . $outcome;
             }

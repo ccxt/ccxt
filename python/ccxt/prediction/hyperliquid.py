@@ -615,10 +615,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if outcomes is not None:
             for i in range(0, len(outcomes)):
                 requested = outcomes[i]
-                await self.load_outcome(requested)
-                requestedOutcomeObj = self.outcome(requested)
+                requestedOutcomeObj = await self.load_outcome(requested)
                 requestedOutcome = self.safe_string(requestedOutcomeObj, 'outcome', requested)
                 requestedOutcomeSymbols[requestedOutcome] = True
+        else:
+            # no filter — warm the whole outcome set so identities resolve from the cache
+            await self.load_outcomes()
         response = await self.publicPostInfo(self.extend({'type': 'allMids'}, params))
         #
         # {"mids": {"#10": "0.45", "#11": "0.55", ...}}
@@ -678,8 +680,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         mid = self.safe_number(raw, 'mid')
         if mid is None and bid is not None and ask is not None:
             mid = self.sum(bid, ask) / 2
-        # day volume lives on the parent market's ctx; resolve it from the outcome's marketSymbol
-        parentSymbol = self.safe_string(mkt, 'outcome')
+        # day volume lives on the parent market's ctx; resolve it from the outcome's parent market
+        parentSymbol = self.safe_string(mkt, 'market')
         parentMarket = self.safe_market(parentSymbol) if (parentSymbol is not None) else None
         ctx = self.safe_dict(self.safe_dict(parentMarket, 'info', {}), 'ctx', {}) if (parentMarket is not None) else {}
         dayVolume = self.safe_number(ctx, 'dayNtlVlm')
@@ -687,7 +689,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'outcome': outcome,
             'outcomeId': self.safe_string_2(mkt, 'outcomeId', 'id'),
             'label': self.safe_string(mkt, 'label'),
-            'market': self.safe_string(mkt, 'outcome'),
+            'market': self.safe_string(mkt, 'market'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
@@ -897,10 +899,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if outcomes is not None:
             for i in range(0, len(outcomes)):
                 requested = outcomes[i]
-                await self.load_outcome(requested)
-                requestedOutcomeObj = self.outcome(requested)
+                requestedOutcomeObj = await self.load_outcome(requested)
                 requestedOutcome = self.safe_string(requestedOutcomeObj, 'outcome', requested)
                 requestedOutcomeSymbols[requestedOutcome] = True
+        else:
+            # no filter — warm the whole outcome set so identities resolve from the cache
+            await self.load_outcomes()
         userAddress: Str
         userAddress, params = self.handle_public_address('fetchPositions', params)
         request = {
@@ -970,7 +974,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'id': None,
             'outcome': self.safe_string(outcomeObj, 'outcome'),
             'outcomeId': self.safe_string_2(outcomeObj, 'outcomeId', 'id'),
-            'market': self.safe_string(outcomeObj, 'outcome'),
+            'market': self.safe_string(outcomeObj, 'market'),
             'timestamp': None,
             'datetime': None,
             'isolated': False,
@@ -1178,7 +1182,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'outcome': self.safe_string(outcomeObj, 'outcome', outcome),
             'outcomeId': self.safe_string(outcomeObj, 'id'),
             'label': self.safe_string(outcomeObj, 'label'),
-            'market': self.safe_string(outcomeObj, 'outcome'),
+            'market': self.safe_string(outcomeObj, 'market'),
             'type': type,
             'side': side,
             'price': price,
@@ -1280,7 +1284,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 'outcome': outcomeSymbol,
                 'outcomeId': self.safe_string(outcomeObj, 'id'),
                 'label': self.safe_string(outcomeObj, 'label'),
-                'market': self.safe_string(outcomeObj, 'outcome'),
+                'market': self.safe_string(outcomeObj, 'market'),
                 'timestamp': self.milliseconds(),
                 'datetime': self.iso8601(self.milliseconds()),
             }
@@ -1450,7 +1454,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'outcome': self.safe_string(outcomeObj, 'outcome'),
             'outcomeId': self.safe_string(outcomeObj, 'id'),
             'label': self.safe_string(outcomeObj, 'label'),
-            'market': self.safe_string(outcomeObj, 'outcome'),
+            'market': self.safe_string(outcomeObj, 'market'),
             'type': self.parse_order_type(self.safe_string(entry, 'orderType', 'limit')),
             'timeInForce': tif,
             'postOnly': postOnly,
@@ -1620,7 +1624,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'outcome': outcomeSymbol,
             'outcomeId': self.safe_string(outcomeObj, 'id'),
             'label': self.safe_string(outcomeObj, 'label'),
-            'market': self.safe_string(outcomeObj, 'outcome'),
+            'market': self.safe_string(outcomeObj, 'market'),
             'order': self.safe_string(trade, 'oid'),
             'type': 'limit',
             'side': side,

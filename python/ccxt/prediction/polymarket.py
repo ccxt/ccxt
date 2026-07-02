@@ -2453,12 +2453,12 @@ class polymarket(PredictionExchange, ImplicitAPI):
     async def watch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
         """
         streams live order-book updates for a single Polymarket outcome token
-        :param str outcome: unified outcome(e.g. "ELECTION/YES:USDC")
+        :param str outcome: unified outcome(e.g. "TRUMP_WINS_2028:YES") or an outcome token id
         :param int [limit]: optional depth limit applied after resolving
         :param dict [params]: extra params(currently unused)
         :returns dict: an `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
         """
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
         outcome = self.safe_string(outcomeObj, 'outcome')
         messageHash = 'orderbook::' + outcome
@@ -2477,7 +2477,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra params(unused)
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
         outcome = self.safe_string(outcomeObj, 'outcome')
         messageHash = 'trades::' + outcome
@@ -2494,7 +2494,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra params(unused)
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
         outcome = self.safe_string(outcomeObj, 'outcome')
         messageHash = 'ticker::' + outcome
@@ -2573,7 +2573,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         await self.load_api_credentials()
         messageHash = 'orders'
         if outcome is not None:
-            outcomeObj = self.outcome(outcome)
+            outcomeObj = await self.load_outcome(outcome)
             outcome = self.safe_string(outcomeObj, 'outcome')
             messageHash = 'orders::' + outcome
         orders = await self.subscribe_user_channel(messageHash, params)
@@ -2596,7 +2596,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         await self.load_api_credentials()
         messageHash = 'myTrades'
         if outcome is not None:
-            outcomeObj = self.outcome(outcome)
+            outcomeObj = await self.load_outcome(outcome)
             outcome = self.safe_string(outcomeObj, 'outcome')
             messageHash = 'myTrades::' + outcome
         trades = await self.subscribe_user_channel(messageHash, params)

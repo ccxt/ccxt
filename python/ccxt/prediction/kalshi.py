@@ -1111,7 +1111,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
         """
-        await self.load_outcomes()
         response = await self.kalshiPrivateGetPortfolioBalance(params)
         return self.parse_balance(response)
 
@@ -1255,10 +1254,10 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
+        # outcome is only a labelling hint here — the request needs just the id, and
+        # parseOrder resolves identity cache-only, so don't force a full market scan
         if outcome is not None:
             await self.load_outcome(outcome)
-        else:
-            await self.load_outcomes()
         response = await self.kalshiPrivateGetPortfolioOrdersOrderId(self.extend({'order_id': id}, params))
         return self.parse_order(self.safe_value(response, 'order', response))
 
@@ -1413,8 +1412,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         if outcome is not None:
             await self.load_outcome(outcome)
-        else:
-            await self.load_outcomes()
         # v2 cancel: DELETE /portfolio/events/orders/{order_id}(the /portfolio/orders/{id}
         # and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         response = await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': id}, params))
@@ -1432,8 +1429,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         if outcome is not None:
             await self.load_outcome(outcome)
-        else:
-            await self.load_outcomes()
         # kalshi has no "cancel all" / batch-cancel endpoint(the v1 DELETE /portfolio/orders
         # and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
         # cancel them one by one via the v2 DELETE /portfolio/events/orders/{order_id}
