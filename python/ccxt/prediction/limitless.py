@@ -1093,9 +1093,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             if (tokenId is not None) and (rowTokenId is not None) and (rowTokenId != tokenId):
                 continue
             filtered.append(row)
-        # parse without a market(parsed trades carry `outcome`, not `symbol`) then filter by outcome
-        parsedTrades = self.parse_trades(filtered, None)
-        return self.filter_by_outcome_since_limit(parsedTrades, outcome, since, limit)
+        return self.parse_prediction_trades(filtered, outcomeObj, since, limit)
 
     async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
         """
@@ -1333,7 +1331,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # pass None: parseOrder sets outcome to the market outcome while the outcome
         # lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         # endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
-        return self.parse_orders(response, None, since, limit)
+        return self.parse_prediction_orders(response, None, since, limit)
 
     async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
         """
@@ -1386,7 +1384,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
-        await self.load_outcome(outcome)
+        if outcome is not None:
+            await self.load_outcome(outcome)
         length = len(ids)
         if length > 50:
             raise BadRequest(self.id + ' fetchOrdersByIds can only fetch up to 50 orders at a time')
@@ -1504,7 +1503,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             itemStatus = self.safe_string(item, 'status')
             if itemStatus == 'found':
                 found.append(item)
-        return self.parse_orders(found, None)
+        return self.parse_prediction_orders(found)
 
     async def fetch_order(self, id: str, outcome: Str = None, params={}) -> PredictionOrder:
         """
@@ -1517,7 +1516,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        await self.load_outcome(outcome)
+        if outcome is not None:
+            await self.load_outcome(outcome)
         orders = await self.fetch_orders_by_ids([id], outcome, params)
         order = self.safe_dict(orders, 0)
         if order is None:
@@ -2146,7 +2146,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        await self.load_outcome(outcome)
+        if outcome is not None:
+            await self.load_outcome(outcome)
         request = {
             'order_id': id,
         }
@@ -2170,7 +2171,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
-        await self.load_outcome(outcome)
+        if outcome is not None:
+            await self.load_outcome(outcome)
         request = {
             'orderIds': ids,
         }
@@ -2182,7 +2184,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             message = self.json(response)
             feedback = self.id + ' cancelOrders failed: ' + message
             raise OrderNotFound(feedback)
-        return self.parse_orders(canceled)
+        return self.parse_prediction_orders(canceled)
 
     async def cancel_all_orders(self, outcome: Str = None, params={}) -> List[PredictionOrder]:
         """
@@ -2195,7 +2197,6 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param str [params.slug]: the market slug to cancel all orders for
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
-        await self.load_outcome(outcome)
         if outcome is not None:
             warn = True
             warn, params = self.handle_option_and_params(params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn)
@@ -2204,7 +2205,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         request = {}
         slug = self.safe_string(params, 'slug')
         if outcome is not None:
-            outcomeObj = self.outcome(outcome)
+            outcomeObj = await self.load_outcome(outcome)
             request['slug'] = self.safe_string(outcomeObj['info'], 'slug')
         elif slug is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders requires either an outcome argument or a slug parameter')
@@ -2228,7 +2229,11 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
         """
-        await self.load_outcome(outcome)
+        # resolve the handle for the final filter — the caller may have passed an outcomeId
+        outcomeSymbol = outcome
+        if outcome is not None:
+            outcomeObj = await self.load_outcome(outcome)
+            outcomeSymbol = self.safe_string(outcomeObj, 'outcome')
         paginate = False
         maxLimit = 100
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate', paginate)
@@ -2313,8 +2318,8 @@ class limitless(PredictionExchange, ImplicitAPI):
                 sellIndex = strategy.find('sell')
                 if (buyIndex >= 0) or (sellIndex >= 0):
                     trades.append(item)
-        parsedTrades = self.parse_trades(trades, None)
-        return self.filter_by_outcome_since_limit(parsedTrades, outcome, since, limit)
+        parsedTrades = self.parse_prediction_trades(trades, None)
+        return self.filter_by_outcome_since_limit(parsedTrades, outcomeSymbol, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
         """

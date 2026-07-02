@@ -1152,9 +1152,7 @@ class limitless extends Exchange {
                 }
                 $filtered[] = $row;
             }
-            // parse without a market (parsed trades carry `$outcome`, not `symbol`) then filter by $outcome
-            $parsedTrades = $this->parse_trades($filtered, null);
-            return $this->filter_by_outcome_since_limit($parsedTrades, $outcome, $since, $limit);
+            return $this->parse_prediction_trades($filtered, $outcomeObj, $since, $limit);
         }) ();
     }
 
@@ -1417,7 +1415,7 @@ class limitless extends Exchange {
             // pass null => parseOrder sets $outcome to the market $outcome while the $outcome
             // lives under 'outcome', so the base $outcome filter would drop every order; the per-slug
             // endpoint already scopes results and parseOrder resolves the $outcome via outcomes_by_id
-            return $this->parse_orders($response, null, $since, $limit);
+            return $this->parse_prediction_orders($response, null, $since, $limit);
         }) ();
     }
 
@@ -1481,7 +1479,9 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?$id=order-structure)
              */
-            Async\await($this->load_outcome($outcome));
+            if ($outcome !== null) {
+                Async\await($this->load_outcome($outcome));
+            }
             $length = count($ids);
             if ($length > 50) {
                 throw new BadRequest($this->id . ' fetchOrdersByIds can only fetch up to 50 orders at a time');
@@ -1603,7 +1603,7 @@ class limitless extends Exchange {
                     $found[] = $item;
                 }
             }
-            return $this->parse_orders($found, null);
+            return $this->parse_prediction_orders($found);
         }) ();
     }
 
@@ -1619,7 +1619,9 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
              */
-            Async\await($this->load_outcome($outcome));
+            if ($outcome !== null) {
+                Async\await($this->load_outcome($outcome));
+            }
             $orders = Async\await($this->fetch_orders_by_ids(array( $id ), $outcome, $params));
             $order = $this->safe_dict($orders, 0);
             if ($order === null) {
@@ -2321,7 +2323,9 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
              */
-            Async\await($this->load_outcome($outcome));
+            if ($outcome !== null) {
+                Async\await($this->load_outcome($outcome));
+            }
             $request = array(
                 'order_id' => $id,
             );
@@ -2350,7 +2354,9 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            Async\await($this->load_outcome($outcome));
+            if ($outcome !== null) {
+                Async\await($this->load_outcome($outcome));
+            }
             $request = array(
                 'orderIds' => $ids,
             );
@@ -2363,7 +2369,7 @@ class limitless extends Exchange {
                 $feedback = $this->id . ' cancelOrders $failed => ' . $message;
                 throw new OrderNotFound($feedback);
             }
-            return $this->parse_orders($canceled);
+            return $this->parse_prediction_orders($canceled);
         }) ();
     }
 
@@ -2379,7 +2385,6 @@ class limitless extends Exchange {
              * @param {string} [$params->slug] the market $slug to cancel all orders for
              * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
              */
-            Async\await($this->load_outcome($outcome));
             if ($outcome !== null) {
                 $warn = true;
                 list($warn, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', $warn);
@@ -2390,7 +2395,7 @@ class limitless extends Exchange {
             $request = array();
             $slug = $this->safe_string($params, 'slug');
             if ($outcome !== null) {
-                $outcomeObj = $this->outcome($outcome);
+                $outcomeObj = Async\await($this->load_outcome($outcome));
                 $request['slug'] = $this->safe_string($outcomeObj['info'], 'slug');
             } elseif ($slug === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders requires either an $outcome argument or a $slug parameter');
@@ -2418,7 +2423,12 @@ class limitless extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
              */
-            Async\await($this->load_outcome($outcome));
+            // resolve the handle for the final filter — the caller may have passed an outcomeId
+            $outcomeSymbol = $outcome;
+            if ($outcome !== null) {
+                $outcomeObj = Async\await($this->load_outcome($outcome));
+                $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome');
+            }
             $paginate = false;
             $maxLimit = 100;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', $paginate);
@@ -2508,8 +2518,8 @@ class limitless extends Exchange {
                     }
                 }
             }
-            $parsedTrades = $this->parse_trades($trades, null);
-            return $this->filter_by_outcome_since_limit($parsedTrades, $outcome, $since, $limit);
+            $parsedTrades = $this->parse_prediction_trades($trades, null);
+            return $this->filter_by_outcome_since_limit($parsedTrades, $outcomeSymbol, $since, $limit);
         }) ();
     }
 

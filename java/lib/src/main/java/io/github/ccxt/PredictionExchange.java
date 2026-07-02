@@ -1121,6 +1121,67 @@ public Object isPrediction()
         return parsed;
     }
 
+    public Object parsePredictionTrades(Object trades, Object... optionalArgs)
+    {
+        // prediction-market analogue of the base parseTrades: the base aggregator post-filters
+        // by the market's `symbol` key, but prediction structures carry an `outcome` handle
+        // instead — and an outcome object rebuilt from cached markets may still hold a legacy
+        // `symbol` key, which would silently drop every parsed row
+        Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+        Object rows = this.toArray(trades);
+        Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+        {
+            Object parsed = this.parseTrade(Helpers.GetValue(rows, i), outcomeObj);
+            Object trade = this.extend(parsed, parameters);
+            ((java.util.List<Object>)results).add(trade);
+        }
+        results = this.sortBy2(results, "timestamp", "id");
+        Object outcomeHandle = this.safeString(outcomeObj, "outcome");
+        return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
+    }
+
+    public Object parsePredictionOrders(Object orders, Object... optionalArgs)
+    {
+        // prediction-market analogue of the base parseOrders — see parsePredictionTrades
+        Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+        Object rows = this.toArray(orders);
+        Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+        {
+            Object parsed = this.parseOrder(Helpers.GetValue(rows, i), outcomeObj);
+            Object order = this.extend(parsed, parameters);
+            ((java.util.List<Object>)results).add(order);
+        }
+        results = this.sortBy(results, "timestamp");
+        Object outcomeHandle = this.safeString(outcomeObj, "outcome");
+        return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
+    }
+
+    public Object parsePredictionPositions(Object positions, Object... optionalArgs)
+    {
+        // prediction-market analogue of the base parsePositions, which resolves its `symbols`
+        // argument through marketSymbols() and would throw BadSymbol on outcome handles.
+        // venue-specific outcome filtering stays in the exchange (position identity differs
+        // per venue: kalshi positions are market-level, polymarket ones are per token)
+        Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        Object rows = this.toArray(positions);
+        Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+        {
+            Object parsed = this.parsePosition(Helpers.GetValue(rows, i));
+            Object position = this.extend(parsed, parameters);
+            ((java.util.List<Object>)results).add(position);
+        }
+        return results;
+    }
+
     public Object filterByOutcomeSinceLimit(Object array, Object... optionalArgs)
     {
         Object outcome = Helpers.getArg(optionalArgs, 0, null);

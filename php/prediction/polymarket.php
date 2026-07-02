@@ -1237,11 +1237,9 @@ class polymarket extends Exchange {
                     $filteredTrades[] = $trade;
                 }
             }
-            // the trades are already narrowed to this $outcome by asset id above; pass no market so the
-            // base parseTrades doesn't apply its $outcome filter (prediction trades carry `$outcome`, not
-            // `symbol`, so a $outcome-bearing $outcome object would drop them all). parseTrade resolves the
-            // $outcome from each trade's asset id.
-            return $this->parse_trades($filteredTrades, null, $since, $limit);
+            // the trades are already narrowed to this $outcome by asset id above;
+            // parseTrade resolves the $outcome from each trade's asset id
+            return $this->parse_prediction_trades($filteredTrades, null, $since, $limit);
         }) ();
     }
 
@@ -1267,7 +1265,7 @@ class polymarket extends Exchange {
             }
             $response = Async\await($this->clobPrivateGetDataTrades ($this->extend($request, $params)));
             $rawTrades = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) ? $response : $this->safe_list($response, 'data', array());
-            return $this->parse_trades($rawTrades, $outcomeObj, $since, $limit);
+            return $this->parse_prediction_trades($rawTrades, $outcomeObj, $since, $limit);
         }) ();
     }
 
@@ -1431,7 +1429,7 @@ class polymarket extends Exchange {
             $positions = $this->safe_list($response, 'data', array());
             // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
             // then filter by the requested outcomes' token ids ourselves
-            $parsed = $this->parse_positions($positions, null);
+            $parsed = $this->parse_prediction_positions($positions);
             if ($outcomesLength === 0) {
                 return $parsed;
             }
@@ -1488,11 +1486,13 @@ class polymarket extends Exchange {
         }
         return $this->safe_prediction_position(array(
             'id' => $this->safe_string($position, 'id'),
-            'outcome' => $marketData['outcome'],
-            'outcomeId' => $marketData['outcomeId'],
-            'market' => $marketData['market'],
-            'label' => $marketData['label'],
-            'event' => $marketData['event'],
+            // safe access => safeOutcome stubs (unknown assets) carry no 'event' key, and raw
+            // bracket access on a missing key raises in Python/PHP
+            'outcome' => $this->safe_string($marketData, 'outcome'),
+            'outcomeId' => $this->safe_string($marketData, 'outcomeId'),
+            'market' => $this->safe_string($marketData, 'market'),
+            'label' => $this->safe_string($marketData, 'label'),
+            'event' => $this->safe_string($marketData, 'event'),
             'timestamp' => null,
             'datetime' => null,
             'contracts' => $size,
@@ -1541,7 +1541,7 @@ class polymarket extends Exchange {
             }
             $response = Async\await($this->clobPrivateGetDataOrders ($this->extend($request, $params)));
             $orders = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($orders, $outcomeObj, $since, $limit);
+            return $this->parse_prediction_orders($orders, $outcomeObj, $since, $limit);
         }) ();
     }
 
@@ -2300,7 +2300,14 @@ class polymarket extends Exchange {
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['gamma']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
-        $isArrayBody = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
+        // an empty $params container must not become a $body => in PHP an empty array is
+        // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "array()"
+        $isArrayBody = false;
+        if ((gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)))) {
+            $paramsList = $params;
+            $paramsListLength = count($paramsList);
+            $isArrayBody = $paramsListLength > 0;
+        }
         $query = array();
         if (!$isArrayBody) {
             $query = $this->omit($params, $this->extract_params($path));

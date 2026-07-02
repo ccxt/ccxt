@@ -1481,7 +1481,7 @@ public class MyriadCore extends MyriadApi
                 put( "network_id", MyriadCore.this.parseToInt(finalNetworkId) );
             }};
             (this.myriadPublicPostOrdersCancelBatch(this.extend(request, parameters))).join();
-            return this.parseOrders(wrappers, null, null, null);
+            return this.parsePredictionOrders(wrappers);
         });
 
     }
@@ -1563,7 +1563,7 @@ public class MyriadCore extends MyriadApi
             // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
             // valid market), so parse every order — each self-resolves its outcome from the network/market/
             // outcome ids — and filter by the requested outcome client-side
-            Object orders = this.parseOrders(data, null, null, null);
+            Object orders = this.parsePredictionOrders(data);
             return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit);
         });
 
@@ -2834,7 +2834,7 @@ final Object finalNetworkId = networkId;
                 }
                 ((java.util.List<Object>)trades).add(row);
             }
-            return this.parseTrades(trades, ((Object)outcomeObj), since, limit);
+            return this.parsePredictionTrades(trades, outcomeObj, since, limit);
         });
 
     }

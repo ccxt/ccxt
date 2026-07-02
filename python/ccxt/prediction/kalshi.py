@@ -1046,7 +1046,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             tradeTicker = self.safe_string_2(trade, 'ticker', 'market_ticker')
             if tradeTicker is None or tradeTicker == ticker:
                 filteredTrades.append(trade)
-        return self.parse_trades(filteredTrades, outcomeObj, since, limit)
+        return self.parse_prediction_trades(filteredTrades, outcomeObj, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
         """
@@ -1151,7 +1151,26 @@ class kalshi(PredictionExchange, ImplicitAPI):
             await self.load_outcomes()
         response = await self.kalshiPrivateGetPortfolioPositions(params)
         positions = self.safe_list(response, 'market_positions', [])
-        return self.parse_positions(positions, outcomes)
+        # filter by the requested outcomes' market tickers — a kalshi position is per market
+        # ticker and covers both the YES and the NO leg
+        parsed = self.parse_prediction_positions(positions)
+        if outcomesLength == 0:
+            return parsed
+        wantedTickers = {}
+        for i in range(0, len(outcomes)):
+            outcomeObj = self.outcome(outcomes[i])
+            outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
+            marketTicker = self.safe_string(outcomeInfo, 'ticker')
+            if marketTicker is not None:
+                wantedTickers[marketTicker] = True
+        result = []
+        for i in range(0, len(parsed)):
+            position = parsed[i]
+            positionInfo = self.safe_dict(position, 'info', {})
+            positionTicker = self.safe_string(positionInfo, 'ticker')
+            if (positionTicker is not None) and (positionTicker in wantedTickers):
+                result.append(position)
+        return result
 
     def parse_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
@@ -1223,7 +1242,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
         response = await self.kalshiPrivateGetPortfolioOrders(self.extend(request, params))
         orders = self.safe_list(response, 'orders', [])
-        return self.parse_orders(orders, outcomeObj, since, limit)
+        return self.parse_prediction_orders(orders, outcomeObj, since, limit)
 
     async def fetch_order(self, id: Str, outcome: Str = None, params={}) -> PredictionOrder:
         """
@@ -1253,7 +1272,13 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         id = self.safe_string(order, 'order_id')
         ticker = self.safe_string(order, 'ticker')
-        mkt = self.safe_outcome(ticker, market)
+        # a kalshi order is leg-specific: the raw `side` field says which leg('yes'|'no')
+        # the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
+        sideLeg = self.safe_string_lower(order, 'side')
+        outcomeKey = ticker
+        if (sideLeg == 'no') and (ticker is not None):
+            outcomeKey = ticker + '-NO'
+        mkt = self.safe_outcome(outcomeKey, market)
         status = self.parse_order_status(self.safe_string(order, 'status'))
         action = self.safe_string(order, 'action')
         side = 'buy' if (action == 'buy') else 'sell'
@@ -1425,7 +1450,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             if orderId is not None:
                 response = await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': orderId}, params))
                 canceledOrders.append(self.safe_dict(response, 'order', response))
-        return self.parse_orders(canceledOrders)
+        return self.parse_prediction_orders(canceledOrders)
 
     async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
         """

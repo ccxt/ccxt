@@ -847,7 +847,47 @@
 						"hasPrev": false
 					}
 				},
-				"parsedResponse": []
+				"parsedResponse": [
+					{
+						"id": "0x7cb221d8f840a7f5fb4d2655d34df7092b4b40762c34ebdd2233e81daa60365d",
+						"info": {
+							"user": "0xD567662886faC76A73537c7a0cb18f4D5c2D841F",
+							"action": "sell",
+							"marketTitle": "Polymarket or Kalshi?",
+							"marketSlug": "polymarket-or-kalshi",
+							"marketId": "549",
+							"networkId": "2741",
+							"outcomeTitle": "Polymarket",
+							"outcomeId": "0",
+							"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+							"shares": "1.418676",
+							"value": "1.029",
+							"timestamp": "1780852609",
+							"blockNumber": "68248304",
+							"token": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+							"txId": "0x7cb221d8f840a7f5fb4d2655d34df7092b4b40762c34ebdd2233e81daa60365d"
+						},
+						"timestamp": 1780852609000,
+						"datetime": "2026-06-07T17:16:49.000Z",
+						"outcome": "POLYMARKET_KALSHI:POLYMARKET",
+						"outcomeId": "2741:549/0",
+						"label": "Polymarket",
+						"market": "POLYMARKET_KALSHI:POLYMARKET",
+						"order": null,
+						"type": null,
+						"side": "sell",
+						"takerOrMaker": "taker",
+						"price": 0.7253241754988454,
+						"amount": 1.418676,
+						"cost": 1.029,
+						"fee": {
+							"cost": null,
+							"currency": null
+						},
+						"fees": [],
+						"event": null
+					}
+				]
 			}
 		],
 		"fetchOHLCV": [

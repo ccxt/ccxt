@@ -1224,9 +1224,7 @@ public partial class limitless : PredictionExchange
             }
             ((IList<object>)filtered).Add(row);
         }
-        // parse without a market (parsed trades carry `outcome`, not `symbol`) then filter by outcome
-        object parsedTrades = this.parseTrades(filtered, null);
-        return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit);
+        return this.parsePredictionTrades(filtered, outcomeObj, since, limit);
     }
 
     /**
@@ -1505,7 +1503,7 @@ public partial class limitless : PredictionExchange
         // pass undefined as market: parseOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
-        return this.parseOrders(response, null, since, limit);
+        return this.parsePredictionOrders(response, null, since, limit);
     }
 
     /**
@@ -1571,7 +1569,10 @@ public partial class limitless : PredictionExchange
     public async virtual Task<object> fetchOrdersByIds(object ids, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadOutcome(outcome);
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            await this.loadOutcome(outcome);
+        }
         object length = getArrayLength(ids);
         if (isTrue(isGreaterThan(length, 50)))
         {
@@ -1697,7 +1698,7 @@ public partial class limitless : PredictionExchange
                 ((IList<object>)found).Add(item);
             }
         }
-        return this.parseOrders(found, null);
+        return this.parsePredictionOrders(found);
     }
 
     /**
@@ -1713,7 +1714,10 @@ public partial class limitless : PredictionExchange
     public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadOutcome(outcome);
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            await this.loadOutcome(outcome);
+        }
         object orders = await this.fetchOrdersByIds(new List<object>() {id}, outcome, parameters);
         object order = this.safeDict(orders, 0);
         if (isTrue(isEqual(order, null)))
@@ -2518,7 +2522,10 @@ public partial class limitless : PredictionExchange
     public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadOutcome(outcome);
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            await this.loadOutcome(outcome);
+        }
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -2549,7 +2556,10 @@ public partial class limitless : PredictionExchange
     public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadOutcome(outcome);
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            await this.loadOutcome(outcome);
+        }
         object request = new Dictionary<string, object>() {
             { "orderIds", ids },
         };
@@ -2563,7 +2573,7 @@ public partial class limitless : PredictionExchange
             object feedback = add(add(this.id, " cancelOrders failed: "), message);
             throw new OrderNotFound ((string)feedback) ;
         }
-        return this.parseOrders(canceled);
+        return this.parsePredictionOrders(canceled);
     }
 
     /**
@@ -2579,7 +2589,6 @@ public partial class limitless : PredictionExchange
     public async override Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadOutcome(outcome);
         if (isTrue(!isEqual(outcome, null)))
         {
             object warn = true;
@@ -2595,7 +2604,7 @@ public partial class limitless : PredictionExchange
         object slug = this.safeString(parameters, "slug");
         if (isTrue(!isEqual(outcome, null)))
         {
-            object outcomeObj = this.outcome(outcome);
+            object outcomeObj = await this.loadOutcome(outcome);
             ((IDictionary<string,object>)request)["slug"] = this.safeString(getValue(outcomeObj, "info"), "slug");
         } else if (isTrue(isEqual(slug, null)))
         {
@@ -2625,8 +2634,14 @@ public partial class limitless : PredictionExchange
      */
     public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
+        // resolve the handle for the final filter — the caller may have passed an outcomeId
         parameters ??= new Dictionary<string, object>();
-        await this.loadOutcome(outcome);
+        object outcomeSymbol = outcome;
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            object outcomeObj = await this.loadOutcome(outcome);
+            outcomeSymbol = this.safeString(outcomeObj, "outcome");
+        }
         object paginate = false;
         object maxLimit = 100;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", paginate);
@@ -2723,8 +2738,8 @@ public partial class limitless : PredictionExchange
                 }
             }
         }
-        object parsedTrades = this.parseTrades(trades, null);
-        return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit);
+        object parsedTrades = this.parsePredictionTrades(trades, null);
+        return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit);
     }
 
     /**

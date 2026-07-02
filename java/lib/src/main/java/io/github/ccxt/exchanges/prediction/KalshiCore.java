@@ -1284,7 +1284,7 @@ final Object finalOi = oi;
                     ((java.util.List<Object>)filteredTrades).add(trade);
                 }
             }
-            return this.parseTrades(filteredTrades, ((Object)outcomeObj), since, limit);
+            return this.parsePredictionTrades(filteredTrades, outcomeObj, since, limit);
         });
 
     }
@@ -1445,7 +1445,36 @@ final Object finalOi = oi;
             }
             Object response = (this.kalshiPrivateGetPortfolioPositions(parameters)).join();
             Object positions = (java.util.List<Object>)(this.safeList(response, "market_positions", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-            return this.parsePositions(positions, outcomes);
+            // filter by the requested outcomes' market tickers — a kalshi position is per market
+            // ticker and covers both the YES and the NO leg
+            Object parsed = this.parsePredictionPositions(positions);
+            if (Helpers.isTrue(Helpers.isEqual(outcomesLength, 0)))
+            {
+                return parsed;
+            }
+            Object wantedTickers = new java.util.HashMap<String, Object>() {{}};
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
+            {
+                Object outcomeObj = this.outcome(Helpers.GetValue(outcomes, i));
+                Object outcomeInfo = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
+                Object marketTicker = this.safeString(outcomeInfo, "ticker");
+                if (Helpers.isTrue(!Helpers.isEqual(marketTicker, null)))
+                {
+                    Helpers.addElementToObject(wantedTickers, marketTicker, true);
+                }
+            }
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
+            {
+                Object position = Helpers.GetValue(parsed, i);
+                Object positionInfo = this.safeDict(position, "info", new java.util.HashMap<String, Object>() {{}});
+                Object positionTicker = this.safeString(positionInfo, "ticker");
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(positionTicker, null))) && Helpers.isTrue((Helpers.inOp(wantedTickers, positionTicker)))))
+                {
+                    ((java.util.List<Object>)result).add(position);
+                }
+            }
+            return result;
         });
 
     }
@@ -1544,7 +1573,7 @@ final Object finalOi = oi;
             }
             Object response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             Object orders = (java.util.List<Object>)(this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-            return this.parseOrders(orders, ((Object)outcomeObj), since, limit);
+            return this.parsePredictionOrders(orders, outcomeObj, since, limit);
         });
 
     }
@@ -1595,7 +1624,15 @@ final Object finalOi = oi;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(order, "order_id");
         Object ticker = this.safeString(order, "ticker");
-        Object mkt = this.safeOutcome(ticker, ((Object)market));
+        // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
+        // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
+        Object sideLeg = this.safeStringLower(order, "side");
+        Object outcomeKey = ticker;
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sideLeg, "no"))) && Helpers.isTrue((!Helpers.isEqual(ticker, null)))))
+        {
+            outcomeKey = Helpers.add(ticker, "-NO");
+        }
+        Object mkt = this.safeOutcome(outcomeKey, ((Object)market));
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
         Object action = this.safeString(order, "action");
         Object side = ((Helpers.isTrue((Helpers.isEqual(action, "buy"))))) ? "buy" : "sell";
@@ -1844,7 +1881,7 @@ final Object finalOi = oi;
                     ((java.util.List<Object>)canceledOrders).add(this.safeDict(response, "order", response));
                 }
             }
-            return this.parseOrders(canceledOrders);
+            return this.parsePredictionOrders(canceledOrders);
         });
 
     }

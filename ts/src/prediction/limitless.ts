@@ -27,7 +27,7 @@ import type {
     Account, fetchEventsParams,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions.js';
 
@@ -1163,9 +1163,7 @@ export default class limitless extends Exchange {
             }
             filtered.push (row);
         }
-        // parse without a market (parsed trades carry `outcome`, not `symbol`) then filter by outcome
-        const parsedTrades = this.parseTrades (filtered, undefined);
-        return this.filterByOutcomeSinceLimit (parsedTrades, outcome, since, limit);
+        return this.parsePredictionTrades (filtered, outcomeObj, since, limit);
     }
 
     /**
@@ -1424,7 +1422,7 @@ export default class limitless extends Exchange {
         // pass undefined as market: parseOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
-        return this.parseOrders (response, undefined, since, limit) as PredictionOrder[];
+        return this.parsePredictionOrders (response, undefined, since, limit);
     }
 
     /**
@@ -1482,7 +1480,9 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrdersByIds (ids, outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
-        await this.loadOutcome (outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+        }
         const length = ids.length;
         if (length > 50) {
             throw new BadRequest (this.id + ' fetchOrdersByIds can only fetch up to 50 orders at a time');
@@ -1604,7 +1604,7 @@ export default class limitless extends Exchange {
                 found.push (item);
             }
         }
-        return this.parseOrders (found, undefined) as PredictionOrder[];
+        return this.parsePredictionOrders (found);
     }
 
     /**
@@ -1618,7 +1618,9 @@ export default class limitless extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
-        await this.loadOutcome (outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+        }
         const orders = await this.fetchOrdersByIds ([ id ], outcome, params);
         const order = this.safeDict (orders, 0);
         if (order === undefined) {
@@ -2316,7 +2318,9 @@ export default class limitless extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
-        await this.loadOutcome (outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+        }
         const request: Dict = {
             'order_id': id,
         };
@@ -2343,7 +2347,9 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
-        await this.loadOutcome (outcome);
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+        }
         const request: Dict = {
             'orderIds': ids,
         };
@@ -2356,7 +2362,7 @@ export default class limitless extends Exchange {
             const feedback = this.id + ' cancelOrders failed: ' + message;
             throw new OrderNotFound (feedback);
         }
-        return this.parseOrders (canceled) as PredictionOrder[];
+        return this.parsePredictionOrders (canceled);
     }
 
     /**
@@ -2370,7 +2376,6 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
-        await this.loadOutcome (outcome);
         if (outcome !== undefined) {
             let warn = true;
             [ warn, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
@@ -2381,7 +2386,7 @@ export default class limitless extends Exchange {
         const request: Dict = {};
         const slug = this.safeString (params, 'slug');
         if (outcome !== undefined) {
-            const outcomeObj = this.outcome (outcome);
+            const outcomeObj = await this.loadOutcome (outcome);
             request['slug'] = this.safeString (outcomeObj['info'], 'slug');
         } else if (slug === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders requires either an outcome argument or a slug parameter');
@@ -2407,7 +2412,12 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        await this.loadOutcome (outcome);
+        // resolve the handle for the final filter — the caller may have passed an outcomeId
+        let outcomeSymbol = outcome;
+        if (outcome !== undefined) {
+            const outcomeObj = await this.loadOutcome (outcome);
+            outcomeSymbol = this.safeString (outcomeObj, 'outcome');
+        }
         let paginate = false;
         const maxLimit = 100;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', paginate);
@@ -2497,8 +2507,8 @@ export default class limitless extends Exchange {
                 }
             }
         }
-        const parsedTrades = this.parseTrades (trades, undefined);
-        return this.filterByOutcomeSinceLimit (parsedTrades, outcome, since, limit);
+        const parsedTrades = this.parsePredictionTrades (trades, undefined);
+        return this.filterByOutcomeSinceLimit (parsedTrades, outcomeSymbol, since, limit);
     }
 
     /**

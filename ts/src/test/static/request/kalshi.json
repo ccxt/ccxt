@@ -61,5 +61,8 @@
                 ]
             }
         ]
+    },
+    "options": {
+        "loadAllOutcomes": true
     }
 }

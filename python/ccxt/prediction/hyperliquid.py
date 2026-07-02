@@ -1311,7 +1311,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         for i in range(0, len(response)):
             order = response[i]
             ordersWithStatus.append(self.extend(order, {'ccxtStatus': 'open'}))
-        parsed = self.parse_orders(ordersWithStatus, None, since, None)
+        parsed = self.parse_prediction_orders(ordersWithStatus, None, since)
         outcomeHandle = None
         if outcome is not None:
             await self.load_outcome(outcome)
@@ -1353,7 +1353,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     if currentTs is not None and (existingTs is None or currentTs > existingTs):
                         deduped[oid] = raw
         dedupedValues = list(deduped.values())
-        parsed = self.parse_orders(dedupedValues, None, since, None)
+        parsed = self.parse_prediction_orders(dedupedValues, None, since)
         outcomeHandle = None
         if outcome is not None:
             await self.load_outcome(outcome)
@@ -1524,7 +1524,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # recentTrades returns the coin's most recent public trades(newest first)
         response = await self.publicPostInfo(self.extend(request, params))
         trades = response if (response is not None and response != None) else []
-        return self.parse_trades(trades, outcomeObj, since, limit)
+        return self.parse_prediction_trades(trades, outcomeObj, since, limit)
 
     async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
         """
@@ -1540,9 +1540,32 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int [params.until]: end timestamp in ms
         :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
         """
-        if outcome is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires an outcome argument')
-        return await self.fetch_trades(outcome, since, limit, params)
+        outcomeHandle = None
+        if outcome is not None:
+            outcomeObj = await self.load_outcome(outcome)
+            outcomeHandle = self.safe_string(outcomeObj, 'outcome')
+        else:
+            # fills identify their outcome only by the raw coin handle(e.g. "#10") — warm the
+            # cache(one market load) so parseTrade can resolve the unified outcome identity
+            await self.load_outcomes()
+        userAddress: Str
+        userAddress, params = self.handle_public_address('fetchMyTrades', params)
+        request = {'user': userAddress}
+        if since is not None:
+            request['type'] = 'userFillsByTime'
+            request['startTime'] = since
+        else:
+            request['type'] = 'userFills'
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
+        if until is not None:
+            request['endTime'] = until
+        response = await self.publicPostInfo(self.extend(request, params))
+        fills = response if (response is not None and response != None) else []
+        # parse without an outcome fallback — fills span every market the wallet traded, so a
+        # requested-outcome fallback would mislabel fills whose market is no longer listed
+        parsedTrades = self.parse_prediction_trades(fills, None)
+        return self.filter_by_outcome_since_limit(parsedTrades, outcomeHandle, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
         """

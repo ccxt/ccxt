@@ -766,7 +766,134 @@
 					"totalPages": "8",
 					"totalRows": "24"
 				},
-				"parsedResponse": []
+				"parsedResponse": [
+					{
+						"id": "0xa435c825bc71641b7ad96ccddf0f4fc8b6743f8b0273ba4b5680928de40c3745",
+						"info": {
+							"createdAt": "2026-06-12T17:42:31.312Z",
+							"makerAmount": "99999424",
+							"matchedSize": "107758000",
+							"price": "0.928",
+							"profile": {
+								"id": "191123",
+								"account": "0xd1af707df546e3195618E4519F5e78ceE9247678",
+								"username": "Winryy",
+								"displayName": "Winryy",
+								"pfpUrl": null,
+								"socialUrl": null,
+								"rankName": "Bronze"
+							},
+							"side": "0",
+							"takerAmount": "99999424",
+							"title": "",
+							"tokenId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+							"txHash": "0xa435c825bc71641b7ad96ccddf0f4fc8b6743f8b0273ba4b5680928de40c3745"
+						},
+						"timestamp": 1781286151312,
+						"datetime": "2026-06-12T17:42:31.312Z",
+						"outcome": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910:YES",
+						"outcomeId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+						"label": "yes",
+						"market": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.928,
+						"amount": 107.758,
+						"cost": 99.999424,
+						"fee": {
+							"cost": null,
+							"currency": null
+						},
+						"fees": [],
+						"event": null
+					},
+					{
+						"id": "0x24054841959e28097ffd054b180a49c2127c89e36ea41eccd989f6bbc044ec74",
+						"info": {
+							"createdAt": "2026-06-12T17:42:49.105Z",
+							"makerAmount": "99999492",
+							"matchedSize": "106044000",
+							"price": "0.943",
+							"profile": {
+								"id": "191123",
+								"account": "0xd1af707df546e3195618E4519F5e78ceE9247678",
+								"username": "Winryy",
+								"displayName": "Winryy",
+								"pfpUrl": null,
+								"socialUrl": null,
+								"rankName": "Bronze"
+							},
+							"side": "0",
+							"takerAmount": "99999492",
+							"title": "",
+							"tokenId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+							"txHash": "0x24054841959e28097ffd054b180a49c2127c89e36ea41eccd989f6bbc044ec74"
+						},
+						"timestamp": 1781286169105,
+						"datetime": "2026-06-12T17:42:49.105Z",
+						"outcome": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910:YES",
+						"outcomeId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+						"label": "yes",
+						"market": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.943,
+						"amount": 106.044,
+						"cost": 99.999492,
+						"fee": {
+							"cost": null,
+							"currency": null
+						},
+						"fees": [],
+						"event": null
+					},
+					{
+						"id": "0x2538d5ebe92b2ed1ee0f9c759c28fa7b4103110bd5c4701e8f96756d1b18a015",
+						"info": {
+							"createdAt": "2026-06-12T17:43:09.095Z",
+							"makerAmount": "99999512",
+							"matchedSize": "104602000",
+							"price": "0.956",
+							"profile": {
+								"id": "191123",
+								"account": "0xd1af707df546e3195618E4519F5e78ceE9247678",
+								"username": "Winryy",
+								"displayName": "Winryy",
+								"pfpUrl": null,
+								"socialUrl": null,
+								"rankName": "Bronze"
+							},
+							"side": "0",
+							"takerAmount": "99999512",
+							"title": "",
+							"tokenId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+							"txHash": "0x2538d5ebe92b2ed1ee0f9c759c28fa7b4103110bd5c4701e8f96756d1b18a015"
+						},
+						"timestamp": 1781286189095,
+						"datetime": "2026-06-12T17:43:09.095Z",
+						"outcome": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910:YES",
+						"outcomeId": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+						"label": "yes",
+						"market": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.956,
+						"amount": 104.602,
+						"cost": 99.999512,
+						"fee": {
+							"cost": null,
+							"currency": null
+						},
+						"fees": [],
+						"event": null
+					}
+				]
 			}
 		],
 		"fetchOHLCV": [

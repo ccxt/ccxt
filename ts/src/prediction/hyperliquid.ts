@@ -10,7 +10,7 @@ import type {
     Strings,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
-import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../../ccxt.js';
+import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1468,7 +1468,7 @@ export default class hyperliquid extends Exchange {
             const order = response[i];
             ordersWithStatus.push (this.extend (order, { 'ccxtStatus': 'open' }));
         }
-        const parsed = this.parseOrders (ordersWithStatus, undefined, since, undefined);
+        const parsed = this.parsePredictionOrders (ordersWithStatus, undefined, since);
         let outcomeHandle: Str = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
@@ -1517,7 +1517,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         const dedupedValues = Object.values (deduped);
-        const parsed = this.parseOrders (dedupedValues, undefined, since, undefined);
+        const parsed = this.parsePredictionOrders (dedupedValues, undefined, since);
         let outcomeHandle: Str = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
@@ -1704,7 +1704,7 @@ export default class hyperliquid extends Exchange {
         // recentTrades returns the coin's most recent public trades (newest first)
         const response = await this.publicPostInfo (this.extend (request, params));
         const trades = (response !== undefined && response !== null) ? response : [];
-        return this.parseTrades (trades, outcomeObj as any, since, limit) as PredictionTrade[];
+        return this.parsePredictionTrades (trades, outcomeObj, since, limit);
     }
 
     /**
@@ -1721,10 +1721,35 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        if (outcome === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires an outcome argument');
+        let outcomeHandle: Str = undefined;
+        if (outcome !== undefined) {
+            const outcomeObj = await this.loadOutcome (outcome);
+            outcomeHandle = this.safeString (outcomeObj, 'outcome');
+        } else {
+            // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
+            // cache (one market load) so parseTrade can resolve the unified outcome identity
+            await this.loadOutcomes ();
         }
-        return await this.fetchTrades (outcome, since, limit, params) as PredictionTrade[];
+        let userAddress: Str;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchMyTrades', params);
+        const request: Dict = { 'user': userAddress };
+        if (since !== undefined) {
+            request['type'] = 'userFillsByTime';
+            request['startTime'] = since;
+        } else {
+            request['type'] = 'userFills';
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        const fills = (response !== undefined && response !== null) ? response : [];
+        // parse without an outcome fallback — fills span every market the wallet traded, so a
+        // requested-outcome fallback would mislabel fills whose market is no longer listed
+        const parsedTrades = this.parsePredictionTrades (fills as any[], undefined);
+        return this.filterByOutcomeSinceLimit (parsedTrades, outcomeHandle, since, limit);
     }
 
     /**

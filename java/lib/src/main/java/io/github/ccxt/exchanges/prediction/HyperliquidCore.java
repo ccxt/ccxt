@@ -1758,7 +1758,7 @@ public class HyperliquidCore extends HyperliquidApi
                     put( "ccxtStatus", "open" );
                 }}));
             }
-            Object parsed = this.parseOrders(ordersWithStatus, null, since, null);
+            Object parsed = this.parsePredictionOrders(ordersWithStatus, null, since);
             Object outcomeHandle = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
@@ -1830,7 +1830,7 @@ public class HyperliquidCore extends HyperliquidApi
                 }
             }
             Object dedupedValues = Helpers.objectValues(deduped);
-            Object parsed = this.parseOrders(dedupedValues, null, since, null);
+            Object parsed = this.parsePredictionOrders(dedupedValues, null, since);
             Object outcomeHandle = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
@@ -2058,7 +2058,7 @@ public class HyperliquidCore extends HyperliquidApi
             // recentTrades returns the coin's most recent public trades (newest first)
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             Object trades = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(response, null)) && Helpers.isTrue(!Helpers.isEqual(response, null)))))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            return this.parseTrades(trades, ((Object)outcomeObj), since, limit);
+            return this.parsePredictionTrades(trades, outcomeObj, since, limit);
         });
 
     }
@@ -2085,11 +2085,45 @@ public class HyperliquidCore extends HyperliquidApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
+            Object outcomeHandle = null;
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires an outcome argument")) ;
+                Object outcomeObj = (this.loadOutcome(outcome)).join();
+                outcomeHandle = this.safeString(outcomeObj, "outcome");
+            } else
+            {
+                // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
+                // cache (one market load) so parseTrade can resolve the unified outcome identity
+                (this.loadOutcomes()).join();
             }
-            return (this.fetchTrades((Object)(outcome), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            Object userAddress = null;
+            var userAddressparametersVariable = this.handlePublicAddress("fetchMyTrades", parameters);
+            userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
+            final Object finalUserAddress = userAddress;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "user", finalUserAddress );
+            }};
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "type", "userFillsByTime");
+                Helpers.addElementToObject(request, "startTime", since);
+            } else
+            {
+                Helpers.addElementToObject(request, "type", "userFills");
+            }
+            Object until = this.safeInteger(parameters, "until");
+            parameters = this.omit(parameters, "until");
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            {
+                Helpers.addElementToObject(request, "endTime", until);
+            }
+            Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
+            Object fills = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(response, null)) && Helpers.isTrue(!Helpers.isEqual(response, null)))))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            // parse without an outcome fallback — fills span every market the wallet traded, so a
+            // requested-outcome fallback would mislabel fills whose market is no longer listed
+            Object parsedTrades = this.parsePredictionTrades((java.util.List<Object>)(fills), null);
+            return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
         });
 
     }

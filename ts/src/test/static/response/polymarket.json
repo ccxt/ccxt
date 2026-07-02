@@ -987,6 +987,135 @@
 					"event": null
 				}
 			}
+		],
+		"fetchPositions": [
+			{
+				"description": "fetchPositions parses data-api positions (known and unknown asset)",
+				"method": "fetchPositions",
+				"input": [],
+				"httpResponse": {
+					"data": [
+						{
+							"proxyWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+							"asset": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+							"conditionId": "0x178a769e2b4b4a3b3f5c1c9d9e2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e",
+							"size": 25.5,
+							"avgPrice": 0.12,
+							"initialValue": 3.06,
+							"currentValue": 3.8632,
+							"cashPnl": 0.8032,
+							"percentPnl": 26.24,
+							"totalBought": 25.5,
+							"realizedPnl": 0,
+							"curPrice": 0.1515,
+							"currentPrice": 0.1515,
+							"title": "Will JD Vance win the 2028 US Presidential Election?",
+							"outcome": "Yes"
+						},
+						{
+							"proxyWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+							"asset": "99999999999999999999999999999999999999999999999999",
+							"conditionId": "0x2222222222222222222222222222222222222222222222222222222222222222",
+							"size": 10,
+							"avgPrice": 0.5,
+							"currentPrice": 0.55,
+							"realizedPnl": 1.25,
+							"title": "Unknown market not in the outcome cache",
+							"outcome": "No"
+						}
+					]
+				},
+				"parsedResponse": [
+					{
+						"id": null,
+						"outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+						"outcomeId": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+						"market": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION",
+						"label": "Yes",
+						"event": null,
+						"timestamp": null,
+						"datetime": null,
+						"contracts": 25.5,
+						"contractSize": 1,
+						"side": "long",
+						"notional": 3.86325,
+						"leverage": 1,
+						"unrealizedPnl": null,
+						"realizedPnl": 0,
+						"collateral": null,
+						"entryPrice": 0.12,
+						"markPrice": 0.1515,
+						"liquidationPrice": null,
+						"hedged": false,
+						"maintenanceMargin": null,
+						"maintenanceMarginPercentage": null,
+						"initialMargin": null,
+						"initialMarginPercentage": null,
+						"marginRatio": null,
+						"marginMode": "cross",
+						"marginType": "cross",
+						"percentage": null,
+						"info": {
+							"proxyWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+							"asset": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+							"conditionId": "0x178a769e2b4b4a3b3f5c1c9d9e2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e",
+							"size": 25.5,
+							"avgPrice": 0.12,
+							"initialValue": 3.06,
+							"currentValue": 3.8632,
+							"cashPnl": 0.8032,
+							"percentPnl": 26.24,
+							"totalBought": 25.5,
+							"realizedPnl": 0,
+							"curPrice": 0.1515,
+							"currentPrice": 0.1515,
+							"title": "Will JD Vance win the 2028 US Presidential Election?",
+							"outcome": "Yes"
+						}
+					},
+					{
+						"id": null,
+						"outcome": "99999999999999999999999999999999999999999999999999",
+						"outcomeId": "99999999999999999999999999999999999999999999999999",
+						"market": null,
+						"label": null,
+						"event": null,
+						"timestamp": null,
+						"datetime": null,
+						"contracts": 10,
+						"contractSize": 1,
+						"side": "long",
+						"notional": 5.5,
+						"leverage": 1,
+						"unrealizedPnl": null,
+						"realizedPnl": 1.25,
+						"collateral": null,
+						"entryPrice": 0.5,
+						"markPrice": 0.55,
+						"liquidationPrice": null,
+						"hedged": false,
+						"maintenanceMargin": null,
+						"maintenanceMarginPercentage": null,
+						"initialMargin": null,
+						"initialMarginPercentage": null,
+						"marginRatio": null,
+						"marginMode": "cross",
+						"marginType": "cross",
+						"percentage": null,
+						"info": {
+							"proxyWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+							"asset": "99999999999999999999999999999999999999999999999999",
+							"conditionId": "0x2222222222222222222222222222222222222222222222222222222222222222",
+							"size": 10,
+							"avgPrice": 0.5,
+							"currentPrice": 0.55,
+							"realizedPnl": 1.25,
+							"title": "Unknown market not in the outcome cache",
+							"outcome": "No"
+						}
+					}
+				]
+			}
 		]
 	}
 }

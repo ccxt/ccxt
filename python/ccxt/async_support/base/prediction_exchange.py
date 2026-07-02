@@ -619,6 +619,46 @@ class PredictionExchange(Exchange):
             del parsed['symbol']
         return parsed
 
+    def parse_prediction_trades(self, trades: List[Any], outcomeObj: Any = None, since: Int = None, limit: Int = None, params={}):
+        # prediction-market analogue of the base parseTrades: the base aggregator post-filters
+        # by the market's `symbol` key, but prediction structures carry an `outcome` handle
+        # instead — and an outcome object rebuilt from cached markets may still hold a legacy
+        # `symbol` key, which would silently drop every parsed row
+        rows = self.to_array(trades)
+        results = []
+        for i in range(0, len(rows)):
+            parsed = self.parse_trade(rows[i], outcomeObj)
+            trade = self.extend(parsed, params)
+            results.append(trade)
+        results = self.sort_by_2(results, 'timestamp', 'id')
+        outcomeHandle = self.safe_string(outcomeObj, 'outcome')
+        return self.filter_by_outcome_since_limit(results, outcomeHandle, since, limit)
+
+    def parse_prediction_orders(self, orders: List[Any], outcomeObj: Any = None, since: Int = None, limit: Int = None, params={}):
+        # prediction-market analogue of the base parseOrders — see parsePredictionTrades
+        rows = self.to_array(orders)
+        results = []
+        for i in range(0, len(rows)):
+            parsed = self.parse_order(rows[i], outcomeObj)
+            order = self.extend(parsed, params)
+            results.append(order)
+        results = self.sort_by(results, 'timestamp')
+        outcomeHandle = self.safe_string(outcomeObj, 'outcome')
+        return self.filter_by_outcome_since_limit(results, outcomeHandle, since, limit)
+
+    def parse_prediction_positions(self, positions: List[Any], params={}):
+        # prediction-market analogue of the base parsePositions, which resolves its `symbols`
+        # argument through marketSymbols() and would raise BadSymbol on outcome handles.
+        # venue-specific outcome filtering stays in the exchange(position identity differs
+        # per venue: kalshi positions are market-level, polymarket ones are per token)
+        rows = self.to_array(positions)
+        results = []
+        for i in range(0, len(rows)):
+            parsed = self.parse_position(rows[i])
+            position = self.extend(parsed, params)
+            results.append(position)
+        return results
+
     def filter_by_outcome_since_limit(self, array, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
         return self.filter_by_value_since_limit(array, 'outcome', outcome, since, limit, 'timestamp', tail)
 

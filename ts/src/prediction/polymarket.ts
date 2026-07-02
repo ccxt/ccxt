@@ -14,7 +14,7 @@ import type {
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
     fetchEventsParams,
 } from '../base/types.js';
-import { ArgumentsRequired, BadRequest, AuthenticationError } from '../../ccxt.js';
+import { ArgumentsRequired, BadRequest, AuthenticationError } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1218,11 +1218,9 @@ export default class polymarket extends Exchange {
                 filteredTrades.push (trade);
             }
         }
-        // the trades are already narrowed to this outcome by asset id above; pass no market so the
-        // base parseTrades doesn't apply its outcome filter (prediction trades carry `outcome`, not
-        // `symbol`, so a outcome-bearing outcome object would drop them all). parseTrade resolves the
-        // outcome from each trade's asset id.
-        return this.parseTrades (filteredTrades, undefined, since, limit) as PredictionTrade[];
+        // the trades are already narrowed to this outcome by asset id above;
+        // parseTrade resolves the outcome from each trade's asset id
+        return this.parsePredictionTrades (filteredTrades, undefined, since, limit);
     }
 
     /**
@@ -1246,7 +1244,7 @@ export default class polymarket extends Exchange {
         }
         const response = await this.clobPrivateGetDataTrades (this.extend (request, params));
         const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []) as any[];
-        return this.parseTrades (rawTrades, outcomeObj, since, limit) as PredictionTrade[];
+        return this.parsePredictionTrades (rawTrades, outcomeObj, since, limit);
     }
 
     /**
@@ -1408,7 +1406,7 @@ export default class polymarket extends Exchange {
         const positions = this.safeList (response, 'data', []) as any[];
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        const parsed = this.parsePositions (positions, undefined) as PredictionPosition[];
+        const parsed = this.parsePredictionPositions (positions);
         if (outcomesLength === 0) {
             return parsed;
         }
@@ -1464,11 +1462,13 @@ export default class polymarket extends Exchange {
         }
         return this.safePredictionPosition ({
             'id': this.safeString (position, 'id'),
-            'outcome': marketData['outcome'],
-            'outcomeId': marketData['outcomeId'],
-            'market': marketData['market'],
-            'label': marketData['label'],
-            'event': marketData['event'],
+            // safe access: safeOutcome stubs (unknown assets) carry no 'event' key, and raw
+            // bracket access on a missing key raises in Python/PHP
+            'outcome': this.safeString (marketData, 'outcome'),
+            'outcomeId': this.safeString (marketData, 'outcomeId'),
+            'market': this.safeString (marketData, 'market'),
+            'label': this.safeString (marketData, 'label'),
+            'event': this.safeString (marketData, 'event'),
             'timestamp': undefined,
             'datetime': undefined,
             'contracts': size,
@@ -1516,7 +1516,7 @@ export default class polymarket extends Exchange {
         }
         const response = await this.clobPrivateGetDataOrders (this.extend (request, params));
         const orders = this.safeList (response, 'data', []) as any[];
-        return this.parseOrders (orders, outcomeObj as any, since, limit) as PredictionOrder[];
+        return this.parsePredictionOrders (orders, outcomeObj, since, limit);
     }
 
     /**
@@ -2266,7 +2266,14 @@ export default class polymarket extends Exchange {
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['gamma'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
-        const isArrayBody = Array.isArray (params);
+        // an empty params container must not become a body: in PHP an empty array is
+        // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
+        let isArrayBody = false;
+        if (Array.isArray (params)) {
+            const paramsList = params as any[];
+            const paramsListLength = paramsList.length;
+            isArrayBody = paramsListLength > 0;
+        }
         let query: Dict = {};
         if (!isArrayBody) {
             query = this.omit (params, this.extractParams (path));

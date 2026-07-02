@@ -35,6 +35,18 @@
                     "1d"
                 ]
             }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades without an outcome must not require the outcome cache",
+                "method": "fetchMyTrades",
+                "url": "https://api.limitless.exchange/portfolio/history?limit=5",
+                "input": [
+                    null,
+                    null,
+                    5
+                ]
+            }
         ]
     }
 }

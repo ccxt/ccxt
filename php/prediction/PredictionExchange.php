@@ -756,6 +756,52 @@ class PredictionExchange extends \ccxt\async\Exchange {
         return $parsed;
     }
 
+    public function parse_prediction_trades(array $trades, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        // prediction-market analogue of the base parseTrades => the base aggregator post-filters
+        // by the market's `symbol` key, but prediction structures carry an `outcome` handle
+        // instead — and an outcome object rebuilt from cached markets may still hold a legacy
+        // `symbol` key, which would silently drop every $parsed row
+        $rows = $this->to_array($trades);
+        $results = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $parsed = $this->parse_trade($rows[$i], $outcomeObj);
+            $trade = $this->extend($parsed, $params);
+            $results[] = $trade;
+        }
+        $results = $this->sort_by_2($results, 'timestamp', 'id');
+        $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
+        return $this->filter_by_outcome_since_limit($results, $outcomeHandle, $since, $limit);
+    }
+
+    public function parse_prediction_orders(array $orders, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        // prediction-market analogue of the base parseOrders — see parsePredictionTrades
+        $rows = $this->to_array($orders);
+        $results = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $parsed = $this->parse_order($rows[$i], $outcomeObj);
+            $order = $this->extend($parsed, $params);
+            $results[] = $order;
+        }
+        $results = $this->sort_by($results, 'timestamp');
+        $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
+        return $this->filter_by_outcome_since_limit($results, $outcomeHandle, $since, $limit);
+    }
+
+    public function parse_prediction_positions(array $positions, $params = array ()) {
+        // prediction-market analogue of the base parsePositions, which resolves its `symbols`
+        // argument through marketSymbols() and would throw BadSymbol on outcome handles.
+        // venue-specific outcome filtering stays in the exchange ($position identity differs
+        // per venue => kalshi $positions are market-level, polymarket ones are per token)
+        $rows = $this->to_array($positions);
+        $results = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $parsed = $this->parse_position($rows[$i]);
+            $position = $this->extend($parsed, $params);
+            $results[] = $position;
+        }
+        return $results;
+    }
+
     public function filter_by_outcome_since_limit($array, ?string $outcome = null, ?int $since = null, ?int $limit = null, $tail = false) {
         return $this->filter_by_value_since_limit($array, 'outcome', $outcome, $since, $limit, 'timestamp', $tail);
     }

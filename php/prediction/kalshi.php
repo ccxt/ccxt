@@ -1126,7 +1126,7 @@ class kalshi extends Exchange {
                     $filteredTrades[] = $trade;
                 }
             }
-            return $this->parse_trades($filteredTrades, $outcomeObj, $since, $limit);
+            return $this->parse_prediction_trades($filteredTrades, $outcomeObj, $since, $limit);
         }) ();
     }
 
@@ -1231,7 +1231,7 @@ class kalshi extends Exchange {
              *
              * @param {string[]} [$outcomes] filter by outcome ids or $outcomes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+             * @return {array[]} a list of [$position structures](https://docs.ccxt.com/#/?id=$position-structure)
              */
             $outcomesLength = 0;
             if ($outcomes !== null) {
@@ -1246,7 +1246,31 @@ class kalshi extends Exchange {
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioPositions ($params));
             $positions = $this->safe_list($response, 'market_positions', array());
-            return $this->parse_positions($positions, $outcomes);
+            // filter by the requested outcomes' market tickers — a kalshi $position is per market
+            // ticker and covers both the YES and the NO leg
+            $parsed = $this->parse_prediction_positions($positions);
+            if ($outcomesLength === 0) {
+                return $parsed;
+            }
+            $wantedTickers = array();
+            for ($i = 0; $i < count($outcomes); $i++) {
+                $outcomeObj = $this->outcome($outcomes[$i]);
+                $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
+                $marketTicker = $this->safe_string($outcomeInfo, 'ticker');
+                if ($marketTicker !== null) {
+                    $wantedTickers[$marketTicker] = true;
+                }
+            }
+            $result = array();
+            for ($i = 0; $i < count($parsed); $i++) {
+                $position = $parsed[$i];
+                $positionInfo = $this->safe_dict($position, 'info', array());
+                $positionTicker = $this->safe_string($positionInfo, 'ticker');
+                if (($positionTicker !== null) && (is_array($wantedTickers) && array_key_exists($positionTicker, $wantedTickers))) {
+                    $result[] = $position;
+                }
+            }
+            return $result;
         }) ();
     }
 
@@ -1324,7 +1348,7 @@ class kalshi extends Exchange {
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioOrders ($this->extend($request, $params)));
             $orders = $this->safe_list($response, 'orders', array());
-            return $this->parse_orders($orders, $outcomeObj, $since, $limit);
+            return $this->parse_prediction_orders($orders, $outcomeObj, $since, $limit);
         }) ();
     }
 
@@ -1360,7 +1384,14 @@ class kalshi extends Exchange {
          */
         $id = $this->safe_string($order, 'order_id');
         $ticker = $this->safe_string($order, 'ticker');
-        $mkt = $this->safe_outcome($ticker, $market);
+        // a kalshi $order is leg-specific => the raw `$side` field says which leg ('yes'|'no');
+        // the bare $ticker is the YES outcome's $id, the NO leg is addressed as `<$ticker>-NO`
+        $sideLeg = $this->safe_string_lower($order, 'side');
+        $outcomeKey = $ticker;
+        if (($sideLeg === 'no') && ($ticker !== null)) {
+            $outcomeKey = $ticker . '-NO';
+        }
+        $mkt = $this->safe_outcome($outcomeKey, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $action = $this->safe_string($order, 'action');
         $side = ($action === 'buy') ? 'buy' : 'sell';
@@ -1554,7 +1585,7 @@ class kalshi extends Exchange {
                     $canceledOrders[] = $this->safe_dict($response, 'order', $response);
                 }
             }
-            return $this->parse_orders($canceledOrders);
+            return $this->parse_prediction_orders($canceledOrders);
         }) ();
     }
 

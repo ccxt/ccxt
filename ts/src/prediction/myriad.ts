@@ -27,7 +27,7 @@ import type {
     PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded } from '../../ccxt.js';
+import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1208,7 +1208,7 @@ export default class myriad extends Exchange {
             'network_id': this.parseToInt (networkId),
         };
         await this.myriadPublicPostOrdersCancelBatch (this.extend (request, params));
-        return this.parseOrders (wrappers, undefined, undefined, undefined) as PredictionOrder[];
+        return this.parsePredictionOrders (wrappers);
     }
 
     /**
@@ -1265,7 +1265,7 @@ export default class myriad extends Exchange {
         // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
         // valid market), so parse every order — each self-resolves its outcome from the network/market/
         // outcome ids — and filter by the requested outcome client-side
-        const orders = this.parseOrders (data, undefined, undefined, undefined);
+        const orders = this.parsePredictionOrders (data);
         return this.filterByOutcomeSinceLimit (orders, outcomeSymbol, since, limit) as PredictionOrder[];
     }
 
@@ -2357,7 +2357,7 @@ export default class myriad extends Exchange {
             }
             trades.push (row);
         }
-        return this.parseTrades (trades, outcomeObj as any, since, limit) as PredictionTrade[];
+        return this.parsePredictionTrades (trades, outcomeObj, since, limit);
     }
 
     /**

@@ -906,6 +906,61 @@ public partial class PredictionExchange : Exchange
         return parsed;
     }
 
+    public virtual object parsePredictionTrades(object trades, object outcomeObj = null, object since = null, object limit = null, object parameters = null)
+    {
+        // prediction-market analogue of the base parseTrades: the base aggregator post-filters
+        // by the market's `symbol` key, but prediction structures carry an `outcome` handle
+        // instead — and an outcome object rebuilt from cached markets may still hold a legacy
+        // `symbol` key, which would silently drop every parsed row
+        parameters ??= new Dictionary<string, object>();
+        object rows = this.toArray(trades);
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object parsed = this.parseTrade(getValue(rows, i), outcomeObj);
+            object trade = this.extend(parsed, parameters);
+            ((IList<object>)results).Add(trade);
+        }
+        results = this.sortBy2(results, "timestamp", "id");
+        object outcomeHandle = this.safeString(outcomeObj, "outcome");
+        return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
+    }
+
+    public virtual object parsePredictionOrders(object orders, object outcomeObj = null, object since = null, object limit = null, object parameters = null)
+    {
+        // prediction-market analogue of the base parseOrders — see parsePredictionTrades
+        parameters ??= new Dictionary<string, object>();
+        object rows = this.toArray(orders);
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object parsed = this.parseOrder(getValue(rows, i), outcomeObj);
+            object order = this.extend(parsed, parameters);
+            ((IList<object>)results).Add(order);
+        }
+        results = this.sortBy(results, "timestamp");
+        object outcomeHandle = this.safeString(outcomeObj, "outcome");
+        return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
+    }
+
+    public virtual object parsePredictionPositions(object positions, object parameters = null)
+    {
+        // prediction-market analogue of the base parsePositions, which resolves its `symbols`
+        // argument through marketSymbols() and would throw BadSymbol on outcome handles.
+        // venue-specific outcome filtering stays in the exchange (position identity differs
+        // per venue: kalshi positions are market-level, polymarket ones are per token)
+        parameters ??= new Dictionary<string, object>();
+        object rows = this.toArray(positions);
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object parsed = this.parsePosition(getValue(rows, i));
+            object position = this.extend(parsed, parameters);
+            ((IList<object>)results).Add(position);
+        }
+        return results;
+    }
+
     public virtual object filterByOutcomeSinceLimit(object array, object outcome = null, object since = null, object limit = null, object tail = null)
     {
         tail ??= false;

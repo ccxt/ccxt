@@ -1200,7 +1200,7 @@ public partial class kalshi : PredictionExchange
                 ((IList<object>)filteredTrades).Add(trade);
             }
         }
-        return this.parseTrades(filteredTrades, ((object)outcomeObj), since, limit);
+        return this.parsePredictionTrades(filteredTrades, outcomeObj, since, limit);
     }
 
     /**
@@ -1344,7 +1344,36 @@ public partial class kalshi : PredictionExchange
         }
         object response = await this.kalshiPrivateGetPortfolioPositions(parameters);
         object positions = (IList<object>)(this.safeList(response, "market_positions", new List<object>() {}));
-        return this.parsePositions(positions, outcomes);
+        // filter by the requested outcomes' market tickers — a kalshi position is per market
+        // ticker and covers both the YES and the NO leg
+        object parsed = this.parsePredictionPositions(positions);
+        if (isTrue(isEqual(outcomesLength, 0)))
+        {
+            return parsed;
+        }
+        object wantedTickers = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
+        {
+            object outcomeObj = this.outcome(getValue(outcomes, i));
+            object outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
+            object marketTicker = this.safeString(outcomeInfo, "ticker");
+            if (isTrue(!isEqual(marketTicker, null)))
+            {
+                ((IDictionary<string,object>)wantedTickers)[(string)marketTicker] = true;
+            }
+        }
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        {
+            object position = getValue(parsed, i);
+            object positionInfo = this.safeDict(position, "info", new Dictionary<string, object>() {});
+            object positionTicker = this.safeString(positionInfo, "ticker");
+            if (isTrue(isTrue((!isEqual(positionTicker, null))) && isTrue((inOp(wantedTickers, positionTicker)))))
+            {
+                ((IList<object>)result).Add(position);
+            }
+        }
+        return result;
     }
 
     /**
@@ -1432,7 +1461,7 @@ public partial class kalshi : PredictionExchange
         }
         object response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters));
         object orders = (IList<object>)(this.safeList(response, "orders", new List<object>() {}));
-        return this.parseOrders(orders, ((object)outcomeObj), since, limit);
+        return this.parsePredictionOrders(orders, outcomeObj, since, limit);
     }
 
     /**
@@ -1474,7 +1503,15 @@ public partial class kalshi : PredictionExchange
     {
         object id = this.safeString(order, "order_id");
         object ticker = this.safeString(order, "ticker");
-        object mkt = this.safeOutcome(ticker, ((object)market));
+        // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
+        // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
+        object sideLeg = this.safeStringLower(order, "side");
+        object outcomeKey = ticker;
+        if (isTrue(isTrue((isEqual(sideLeg, "no"))) && isTrue((!isEqual(ticker, null)))))
+        {
+            outcomeKey = add(ticker, "-NO");
+        }
+        object mkt = this.safeOutcome(outcomeKey, ((object)market));
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         object action = this.safeString(order, "action");
         object side = ((bool) isTrue((isEqual(action, "buy")))) ? "buy" : "sell";
@@ -1697,7 +1734,7 @@ public partial class kalshi : PredictionExchange
                 ((IList<object>)canceledOrders).Add(this.safeDict(response, "order", response));
             }
         }
-        return this.parseOrders(canceledOrders);
+        return this.parsePredictionOrders(canceledOrders);
     }
 
     /**

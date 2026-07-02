@@ -1349,7 +1349,7 @@ public partial class myriad : PredictionExchange
             { "network_id", this.parseToInt(networkId) },
         };
         await this.myriadPublicPostOrdersCancelBatch(this.extend(request, parameters));
-        return this.parseOrders(wrappers, null, null, null);
+        return this.parsePredictionOrders(wrappers);
     }
 
     /**
@@ -1417,7 +1417,7 @@ public partial class myriad : PredictionExchange
         // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
         // valid market), so parse every order — each self-resolves its outcome from the network/market/
         // outcome ids — and filter by the requested outcome client-side
-        object orders = this.parseOrders(data, null, null, null);
+        object orders = this.parsePredictionOrders(data);
         return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit);
     }
 
@@ -2600,7 +2600,7 @@ public partial class myriad : PredictionExchange
             }
             ((IList<object>)trades).Add(row);
         }
-        return this.parseTrades(trades, ((object)outcomeObj), since, limit);
+        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
 
     /**

@@ -1455,7 +1455,7 @@ class hyperliquid extends Exchange {
                 $order = $response[$i];
                 $ordersWithStatus[] = $this->extend($order, array( 'ccxtStatus' => 'open' ));
             }
-            $parsed = $this->parse_orders($ordersWithStatus, null, $since, null);
+            $parsed = $this->parse_prediction_orders($ordersWithStatus, null, $since);
             $outcomeHandle = null;
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
@@ -1505,7 +1505,7 @@ class hyperliquid extends Exchange {
                 }
             }
             $dedupedValues = is_array($deduped) ? array_values($deduped) : array();
-            $parsed = $this->parse_orders($dedupedValues, null, $since, null);
+            $parsed = $this->parse_prediction_orders($dedupedValues, null, $since);
             $outcomeHandle = null;
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
@@ -1693,7 +1693,7 @@ class hyperliquid extends Exchange {
             // recentTrades returns the coin's most recent public $trades (newest first)
             $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             $trades = ($response !== null && $response !== null) ? $response : array();
-            return $this->parse_trades($trades, $outcomeObj, $since, $limit);
+            return $this->parse_prediction_trades($trades, $outcomeObj, $since, $limit);
         }) ();
     }
 
@@ -1702,7 +1702,7 @@ class hyperliquid extends Exchange {
             /**
              * fetches the authenticated user's fill history
              *
-             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-$fills
              *
              * @param {string} [$outcome] filter by $outcome
              * @param {int} [$since] start timestamp in ms
@@ -1712,10 +1712,34 @@ class hyperliquid extends Exchange {
              * @param {int} [$params->until] end timestamp in ms
              * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
              */
-            if ($outcome === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires an $outcome argument');
+            $outcomeHandle = null;
+            if ($outcome !== null) {
+                $outcomeObj = Async\await($this->load_outcome($outcome));
+                $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
+            } else {
+                // $fills identify their $outcome only by the raw coin handle (e.g. "#10") — warm the
+                // cache (one market load) so parseTrade can resolve the unified $outcome identity
+                Async\await($this->load_outcomes());
             }
-            return Async\await($this->fetch_trades($outcome, $since, $limit, $params));
+            list($userAddress, $params) = $this->handle_public_address('fetchMyTrades', $params);
+            $request = array( 'user' => $userAddress );
+            if ($since !== null) {
+                $request['type'] = 'userFillsByTime';
+                $request['startTime'] = $since;
+            } else {
+                $request['type'] = 'userFills';
+            }
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
+            $fills = ($response !== null && $response !== null) ? $response : array();
+            // parse without an $outcome fallback — $fills span every market the wallet traded, so a
+            // requested-$outcome fallback would mislabel $fills whose market is no longer listed
+            $parsedTrades = $this->parse_prediction_trades($fills, null);
+            return $this->filter_by_outcome_since_limit($parsedTrades, $outcomeHandle, $since, $limit);
         }) ();
     }
 

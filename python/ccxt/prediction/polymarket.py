@@ -1140,11 +1140,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
             tradeAsset = self.safe_string(trade, 'asset')
             if tradeAsset == tokenId:
                 filteredTrades.append(trade)
-        # the trades are already narrowed to self outcome by asset id above; pass no market so the
-        # base parseTrades doesn't apply its outcome filter(prediction trades carry `outcome`, not
-        # `symbol`, so a outcome-bearing outcome object would drop them all). parseTrade resolves the
-        # outcome from each trade's asset id.
-        return self.parse_trades(filteredTrades, None, since, limit)
+        # the trades are already narrowed to self outcome by asset id above
+        # parseTrade resolves the outcome from each trade's asset id
+        return self.parse_prediction_trades(filteredTrades, None, since, limit)
 
     async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
         """
@@ -1166,7 +1164,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             request['asset_id'] = outcomeObj['outcomeId']
         response = await self.clobPrivateGetDataTrades(self.extend(request, params))
         rawTrades = response if isinstance(response, list) else self.safe_list(response, 'data', [])
-        return self.parse_trades(rawTrades, outcomeObj, since, limit)
+        return self.parse_prediction_trades(rawTrades, outcomeObj, since, limit)
 
     async def fetch_order_trades(self, id: str, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
         """
@@ -1310,7 +1308,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         positions = self.safe_list(response, 'data', [])
         # parse without the base outcome filter(it resolves standard markets, not outcome tokens),
         # then filter by the requested outcomes' token ids ourselves
-        parsed = self.parse_positions(positions, None)
+        parsed = self.parse_prediction_positions(positions)
         if outcomesLength == 0:
             return parsed
         wantedIds = {}
@@ -1357,11 +1355,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
             notional = size * curPrice
         return self.safe_prediction_position({
             'id': self.safe_string(position, 'id'),
-            'outcome': marketData['outcome'],
-            'outcomeId': marketData['outcomeId'],
-            'market': marketData['market'],
-            'label': marketData['label'],
-            'event': marketData['event'],
+            # safe access: safeOutcome stubs(unknown assets) carry no 'event' key, and raw
+            # bracket access on a missing key raises in Python/PHP
+            'outcome': self.safe_string(marketData, 'outcome'),
+            'outcomeId': self.safe_string(marketData, 'outcomeId'),
+            'market': self.safe_string(marketData, 'market'),
+            'label': self.safe_string(marketData, 'label'),
+            'event': self.safe_string(marketData, 'event'),
             'timestamp': None,
             'datetime': None,
             'contracts': size,
@@ -1407,7 +1407,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             request['asset_id'] = outcomeObj['outcomeId']
         response = await self.clobPrivateGetDataOrders(self.extend(request, params))
         orders = self.safe_list(response, 'data', [])
-        return self.parse_orders(orders, outcomeObj, since, limit)
+        return self.parse_prediction_orders(orders, outcomeObj, since, limit)
 
     async def fetch_order(self, id: Str, outcome: Str = None, params={}) -> PredictionOrder:
         """
@@ -2099,7 +2099,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['gamma'])
         url = baseUrl + '/' + self.implode_params(path, params)
-        isArrayBody = isinstance(params, list)
+        # an empty params container must not become a body: in PHP an empty array is
+        # indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
+        isArrayBody = False
+        if isinstance(params, list):
+            paramsList = params
+            paramsListLength = len(paramsList)
+            isArrayBody = paramsListLength > 0
         query = {}
         if not isArrayBody:
             query = self.omit(params, self.extract_params(path))

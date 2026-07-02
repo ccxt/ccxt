@@ -1426,11 +1426,9 @@ final Object finalMarketSymbol = marketSymbol;
                     ((java.util.List<Object>)filteredTrades).add(trade);
                 }
             }
-            // the trades are already narrowed to this outcome by asset id above; pass no market so the
-            // base parseTrades doesn't apply its outcome filter (prediction trades carry `outcome`, not
-            // `symbol`, so a outcome-bearing outcome object would drop them all). parseTrade resolves the
-            // outcome from each trade's asset id.
-            return this.parseTrades(filteredTrades, null, since, limit);
+            // the trades are already narrowed to this outcome by asset id above;
+            // parseTrade resolves the outcome from each trade's asset id
+            return this.parsePredictionTrades(filteredTrades, null, since, limit);
         });
 
     }
@@ -1465,7 +1463,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Object response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
             Object rawTrades = ((Helpers.isTrue(Helpers.isArray(response)))) ? response : (java.util.List<Object>)(this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-            return this.parseTrades(rawTrades, outcomeObj, since, limit);
+            return this.parsePredictionTrades(rawTrades, outcomeObj, since, limit);
         });
 
     }
@@ -1670,7 +1668,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object positions = (java.util.List<Object>)(this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
             // then filter by the requested outcomes' token ids ourselves
-            Object parsed = this.parsePositions(positions, null);
+            Object parsed = this.parsePredictionPositions(positions);
             if (Helpers.isTrue(Helpers.isEqual(outcomesLength, 0)))
             {
                 return parsed;
@@ -1745,11 +1743,11 @@ final Object finalMarketSymbol = marketSymbol;
         final Object finalCurPrice = curPrice;
         return this.safePredictionPosition(new java.util.HashMap<String, Object>() {{
             put( "id", PolymarketCore.this.safeString(position, "id") );
-            put( "outcome", Helpers.GetValue(marketData, "outcome") );
-            put( "outcomeId", Helpers.GetValue(marketData, "outcomeId") );
-            put( "market", Helpers.GetValue(marketData, "market") );
-            put( "label", Helpers.GetValue(marketData, "label") );
-            put( "event", Helpers.GetValue(marketData, "event") );
+            put( "outcome", PolymarketCore.this.safeString(marketData, "outcome") );
+            put( "outcomeId", PolymarketCore.this.safeString(marketData, "outcomeId") );
+            put( "market", PolymarketCore.this.safeString(marketData, "market") );
+            put( "label", PolymarketCore.this.safeString(marketData, "label") );
+            put( "event", PolymarketCore.this.safeString(marketData, "event") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "contracts", finalSize );
@@ -1806,7 +1804,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Object response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
             Object orders = (java.util.List<Object>)(this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-            return this.parseOrders(orders, ((Object)outcomeObj), since, limit);
+            return this.parsePredictionOrders(orders, outcomeObj, since, limit);
         });
 
     }
@@ -2775,7 +2773,15 @@ final Object finalMarketSymbol = marketSymbol;
         Object baseUrls = Helpers.GetValue(this.urls, "api");
         Object baseUrl = this.safeString(baseUrls, apiGroup, ((String)Helpers.GetValue(baseUrls, "gamma")));
         Object url = Helpers.add(Helpers.add(baseUrl, "/"), this.implodeParams(path, parameters));
-        Object isArrayBody = Helpers.isArray(parameters);
+        // an empty params container must not become a body: in PHP an empty array is
+        // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
+        Object isArrayBody = false;
+        if (Helpers.isTrue(Helpers.isArray(parameters)))
+        {
+            Object paramsList = (java.util.List<Object>)(parameters);
+            Object paramsListLength = Helpers.getArrayLength(paramsList);
+            isArrayBody = Helpers.isGreaterThan(paramsListLength, 0);
+        }
         Object query = new java.util.HashMap<String, Object>() {{}};
         if (!Helpers.isTrue(isArrayBody))
         {

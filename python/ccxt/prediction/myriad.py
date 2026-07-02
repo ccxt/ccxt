@@ -1078,7 +1078,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'network_id': self.parse_to_int(networkId),
         }
         await self.myriadPublicPostOrdersCancelBatch(self.extend(request, params))
-        return self.parse_orders(wrappers, None, None, None)
+        return self.parse_prediction_orders(wrappers)
 
     async def fetch_order(self, id: str, outcome: Str = None, params={}) -> PredictionOrder:
         """
@@ -1129,7 +1129,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # the /orders endpoint ignores a market_id filter server-side(it returns nothing even for a
         # valid market), so parse every order — each self-resolves its outcome from the network/market/
         # outcome ids — and filter by the requested outcome client-side
-        orders = self.parse_orders(data, None, None, None)
+        orders = self.parse_prediction_orders(data)
         return self.filter_by_outcome_since_limit(orders, outcomeSymbol, since, limit)
 
     async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
@@ -2147,7 +2147,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             if (outcomeId is not None) and (rowOutcomeId != outcomeId):
                 continue
             trades.append(row)
-        return self.parse_trades(trades, outcomeObj, since, limit)
+        return self.parse_prediction_trades(trades, outcomeObj, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
         """

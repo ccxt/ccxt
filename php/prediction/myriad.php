@@ -1207,7 +1207,7 @@ class myriad extends Exchange {
                 'network_id' => $this->parse_to_int($networkId),
             );
             Async\await($this->myriadPublicPostOrdersCancelBatch ($this->extend($request, $params)));
-            return $this->parse_orders($wrappers, null, null, null);
+            return $this->parse_prediction_orders($wrappers);
         }) ();
     }
 
@@ -1268,7 +1268,7 @@ class myriad extends Exchange {
             // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
             // valid market), so parse every order — each self-resolves its $outcome from the network/market/
             // $outcome ids — and filter by the requested $outcome client-side
-            $orders = $this->parse_orders($data, null, null, null);
+            $orders = $this->parse_prediction_orders($data);
             return $this->filter_by_outcome_since_limit($orders, $outcomeSymbol, $since, $limit);
         }) ();
     }
@@ -2372,7 +2372,7 @@ class myriad extends Exchange {
                 }
                 $trades[] = $row;
             }
-            return $this->parse_trades($trades, $outcomeObj, $since, $limit);
+            return $this->parse_prediction_trades($trades, $outcomeObj, $since, $limit);
         }) ();
     }
 

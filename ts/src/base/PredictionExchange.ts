@@ -2,7 +2,7 @@
 
 import { Exchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Bool, Dictionary, Ticker, OrderBook, OHLCV, Trade, Order, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Bool, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -26,7 +26,6 @@ export default class PredictionExchange extends Exchange {
     isPrediction (): boolean {
         return this.safeBool (this.has, 'prediction', false);
     }
-
 
     parseSearchQueries (params = {}): Strings {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
@@ -768,6 +767,52 @@ export default class PredictionExchange extends Exchange {
             delete parsed['symbol'];
         }
         return parsed;
+    }
+
+    parsePredictionTrades (trades: any[], outcomeObj: any = undefined, since: Int = undefined, limit: Int = undefined, params = {}): PredictionTrade[] {
+        // prediction-market analogue of the base parseTrades: the base aggregator post-filters
+        // by the market's `symbol` key, but prediction structures carry an `outcome` handle
+        // instead — and an outcome object rebuilt from cached markets may still hold a legacy
+        // `symbol` key, which would silently drop every parsed row
+        const rows = this.toArray (trades);
+        let results = [];
+        for (let i = 0; i < rows.length; i++) {
+            const parsed = this.parseTrade (rows[i], outcomeObj);
+            const trade = this.extend (parsed, params);
+            results.push (trade);
+        }
+        results = this.sortBy2 (results, 'timestamp', 'id');
+        const outcomeHandle = this.safeString (outcomeObj, 'outcome');
+        return this.filterByOutcomeSinceLimit (results, outcomeHandle, since, limit) as PredictionTrade[];
+    }
+
+    parsePredictionOrders (orders: any[], outcomeObj: any = undefined, since: Int = undefined, limit: Int = undefined, params = {}): PredictionOrder[] {
+        // prediction-market analogue of the base parseOrders — see parsePredictionTrades
+        const rows = this.toArray (orders);
+        let results = [];
+        for (let i = 0; i < rows.length; i++) {
+            const parsed = this.parseOrder (rows[i], outcomeObj);
+            const order = this.extend (parsed, params);
+            results.push (order);
+        }
+        results = this.sortBy (results, 'timestamp');
+        const outcomeHandle = this.safeString (outcomeObj, 'outcome');
+        return this.filterByOutcomeSinceLimit (results, outcomeHandle, since, limit) as PredictionOrder[];
+    }
+
+    parsePredictionPositions (positions: any[], params = {}): PredictionPosition[] {
+        // prediction-market analogue of the base parsePositions, which resolves its `symbols`
+        // argument through marketSymbols() and would throw BadSymbol on outcome handles.
+        // venue-specific outcome filtering stays in the exchange (position identity differs
+        // per venue: kalshi positions are market-level, polymarket ones are per token)
+        const rows = this.toArray (positions);
+        const results = [];
+        for (let i = 0; i < rows.length; i++) {
+            const parsed = this.parsePosition (rows[i]);
+            const position = this.extend (parsed, params);
+            results.push (position);
+        }
+        return results as PredictionPosition[];
     }
 
     filterByOutcomeSinceLimit (array, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {

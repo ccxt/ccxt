@@ -1331,11 +1331,9 @@ public partial class polymarket : PredictionExchange
                 ((IList<object>)filteredTrades).Add(trade);
             }
         }
-        // the trades are already narrowed to this outcome by asset id above; pass no market so the
-        // base parseTrades doesn't apply its outcome filter (prediction trades carry `outcome`, not
-        // `symbol`, so a outcome-bearing outcome object would drop them all). parseTrade resolves the
-        // outcome from each trade's asset id.
-        return this.parseTrades(filteredTrades, null, since, limit);
+        // the trades are already narrowed to this outcome by asset id above;
+        // parseTrade resolves the outcome from each trade's asset id
+        return this.parsePredictionTrades(filteredTrades, null, since, limit);
     }
 
     /**
@@ -1362,7 +1360,7 @@ public partial class polymarket : PredictionExchange
         }
         object response = await this.clobPrivateGetDataTrades(this.extend(request, parameters));
         object rawTrades = ((bool) isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? response : (IList<object>)(this.safeList(response, "data", new List<object>() {}));
-        return this.parseTrades(rawTrades, outcomeObj, since, limit);
+        return this.parsePredictionTrades(rawTrades, outcomeObj, since, limit);
     }
 
     /**
@@ -1543,7 +1541,7 @@ public partial class polymarket : PredictionExchange
         object positions = (IList<object>)(this.safeList(response, "data", new List<object>() {}));
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        object parsed = this.parsePositions(positions, null);
+        object parsed = this.parsePredictionPositions(positions);
         if (isTrue(isEqual(outcomesLength, 0)))
         {
             return parsed;
@@ -1607,11 +1605,11 @@ public partial class polymarket : PredictionExchange
         }
         return this.safePredictionPosition(new Dictionary<string, object>() {
             { "id", this.safeString(position, "id") },
-            { "outcome", getValue(marketData, "outcome") },
-            { "outcomeId", getValue(marketData, "outcomeId") },
-            { "market", getValue(marketData, "market") },
-            { "label", getValue(marketData, "label") },
-            { "event", getValue(marketData, "event") },
+            { "outcome", this.safeString(marketData, "outcome") },
+            { "outcomeId", this.safeString(marketData, "outcomeId") },
+            { "market", this.safeString(marketData, "market") },
+            { "label", this.safeString(marketData, "label") },
+            { "event", this.safeString(marketData, "event") },
             { "timestamp", null },
             { "datetime", null },
             { "contracts", size },
@@ -1662,7 +1660,7 @@ public partial class polymarket : PredictionExchange
         }
         object response = await this.clobPrivateGetDataOrders(this.extend(request, parameters));
         object orders = (IList<object>)(this.safeList(response, "data", new List<object>() {}));
-        return this.parseOrders(orders, ((object)outcomeObj), since, limit);
+        return this.parsePredictionOrders(orders, outcomeObj, since, limit);
     }
 
     /**
@@ -2565,7 +2563,15 @@ public partial class polymarket : PredictionExchange
         object baseUrls = getValue(this.urls, "api");
         object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "gamma")));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
-        object isArrayBody = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        // an empty params container must not become a body: in PHP an empty array is
+        // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
+        object isArrayBody = false;
+        if (isTrue(((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            object paramsList = (IList<object>)(parameters);
+            object paramsListLength = getArrayLength(paramsList);
+            isArrayBody = isGreaterThan(paramsListLength, 0);
+        }
         object query = new Dictionary<string, object>() {};
         if (!isTrue(isArrayBody))
         {

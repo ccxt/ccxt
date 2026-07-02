@@ -1276,9 +1276,7 @@ public class LimitlessCore extends LimitlessApi
                 }
                 ((java.util.List<Object>)filtered).add(row);
             }
-            // parse without a market (parsed trades carry `outcome`, not `symbol`) then filter by outcome
-            Object parsedTrades = this.parseTrades(filtered, null);
-            return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit);
+            return this.parsePredictionTrades(filtered, outcomeObj, since, limit);
         });
 
     }
@@ -1579,7 +1577,7 @@ public class LimitlessCore extends LimitlessApi
             // pass undefined as market: parseOrder sets outcome to the market outcome while the outcome
             // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
             // endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
-            return this.parseOrders(response, null, since, limit);
+            return this.parsePredictionOrders(response, null, since, limit);
         });
 
     }
@@ -1667,7 +1665,10 @@ public class LimitlessCore extends LimitlessApi
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadOutcome(outcome)).join();
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
+            {
+                (this.loadOutcome(outcome)).join();
+            }
             Object length = Helpers.getArrayLength(ids);
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 50)))
             {
@@ -1793,7 +1794,7 @@ public class LimitlessCore extends LimitlessApi
                     ((java.util.List<Object>)found).add(item);
                 }
             }
-            return this.parseOrders(found, null);
+            return this.parsePredictionOrders(found);
         });
 
     }
@@ -1815,7 +1816,10 @@ public class LimitlessCore extends LimitlessApi
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadOutcome(outcome)).join();
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
+            {
+                (this.loadOutcome(outcome)).join();
+            }
             Object orders = (this.fetchOrdersByIds(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), outcome, parameters)).join();
             Object order = this.safeDict(orders, 0);
             if (Helpers.isTrue(Helpers.isEqual(order, null)))
@@ -2674,7 +2678,10 @@ public class LimitlessCore extends LimitlessApi
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadOutcome(outcome)).join();
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
+            {
+                (this.loadOutcome(outcome)).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
@@ -2711,7 +2718,10 @@ public class LimitlessCore extends LimitlessApi
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadOutcome(outcome)).join();
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
+            {
+                (this.loadOutcome(outcome)).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderIds", ids );
             }};
@@ -2725,7 +2735,7 @@ public class LimitlessCore extends LimitlessApi
                 Object feedback = Helpers.add(Helpers.add(this.id, " cancelOrders failed: "), message);
                 throw new OrderNotFound((String)feedback) ;
             }
-            return this.parseOrders(canceled);
+            return this.parsePredictionOrders(canceled);
         });
 
     }
@@ -2747,7 +2757,6 @@ public class LimitlessCore extends LimitlessApi
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadOutcome(outcome)).join();
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 Object warn = true;
@@ -2763,7 +2772,7 @@ public class LimitlessCore extends LimitlessApi
             Object slug = this.safeString(parameters, "slug");
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
-                Object outcomeObj = this.outcome(outcome);
+                Object outcomeObj = (this.loadOutcome(outcome)).join();
                 Helpers.addElementToObject(request, "slug", this.safeString(Helpers.GetValue(outcomeObj, "info"), "slug"));
             } else if (Helpers.isTrue(Helpers.isEqual(slug, null)))
             {
@@ -2798,11 +2807,17 @@ public class LimitlessCore extends LimitlessApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // resolve the handle for the final filter — the caller may have passed an outcomeId
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadOutcome(outcome)).join();
+            Object outcomeSymbol = outcome;
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
+            {
+                Object outcomeObj = (this.loadOutcome(outcome)).join();
+                outcomeSymbol = this.safeString(outcomeObj, "outcome");
+            }
             Object paginate = false;
             Object maxLimit = 100;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", paginate);
@@ -2899,8 +2914,8 @@ public class LimitlessCore extends LimitlessApi
                     }
                 }
             }
-            Object parsedTrades = this.parseTrades(trades, null);
-            return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit);
+            Object parsedTrades = this.parsePredictionTrades(trades, null);
+            return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit);
         });
 
     }

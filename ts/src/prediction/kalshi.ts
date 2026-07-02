@@ -1123,7 +1123,7 @@ export default class kalshi extends Exchange {
                 filteredTrades.push (trade);
             }
         }
-        return this.parseTrades (filteredTrades, outcomeObj as any, since, limit) as PredictionTrade[];
+        return this.parsePredictionTrades (filteredTrades, outcomeObj, since, limit);
     }
 
     /**
@@ -1244,7 +1244,31 @@ export default class kalshi extends Exchange {
         }
         const response = await this.kalshiPrivateGetPortfolioPositions (params);
         const positions = this.safeList (response, 'market_positions', []) as any[];
-        return this.parsePositions (positions, outcomes) as PredictionPosition[];
+        // filter by the requested outcomes' market tickers — a kalshi position is per market
+        // ticker and covers both the YES and the NO leg
+        const parsed = this.parsePredictionPositions (positions);
+        if (outcomesLength === 0) {
+            return parsed as PredictionPosition[];
+        }
+        const wantedTickers: Dict = {};
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
+            const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
+            const marketTicker = this.safeString (outcomeInfo, 'ticker');
+            if (marketTicker !== undefined) {
+                wantedTickers[marketTicker] = true;
+            }
+        }
+        const result = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const position = parsed[i];
+            const positionInfo = this.safeDict (position, 'info', {});
+            const positionTicker = this.safeString (positionInfo, 'ticker');
+            if ((positionTicker !== undefined) && (positionTicker in wantedTickers)) {
+                result.push (position);
+            }
+        }
+        return result as PredictionPosition[];
     }
 
     /**
@@ -1323,7 +1347,7 @@ export default class kalshi extends Exchange {
         }
         const response = await this.kalshiPrivateGetPortfolioOrders (this.extend (request, params));
         const orders = this.safeList (response, 'orders', []) as any[];
-        return this.parseOrders (orders, outcomeObj as any, since, limit) as PredictionOrder[];
+        return this.parsePredictionOrders (orders, outcomeObj, since, limit);
     }
 
     /**
@@ -1358,7 +1382,14 @@ export default class kalshi extends Exchange {
     parseOrder (order: Dict, market: Market = undefined): PredictionOrder {
         const id = this.safeString (order, 'order_id');
         const ticker = this.safeString (order, 'ticker');
-        const mkt = this.safeOutcome (ticker, market as any);
+        // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
+        // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
+        const sideLeg = this.safeStringLower (order, 'side');
+        let outcomeKey = ticker;
+        if ((sideLeg === 'no') && (ticker !== undefined)) {
+            outcomeKey = ticker + '-NO';
+        }
+        const mkt = this.safeOutcome (outcomeKey, market as any);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const action = this.safeString (order, 'action');
         const side = (action === 'buy') ? 'buy' : 'sell';
@@ -1549,7 +1580,7 @@ export default class kalshi extends Exchange {
                 canceledOrders.push (this.safeDict (response, 'order', response));
             }
         }
-        return this.parseOrders (canceledOrders) as PredictionOrder[];
+        return this.parsePredictionOrders (canceledOrders);
     }
 
     /**

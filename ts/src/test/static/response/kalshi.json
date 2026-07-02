@@ -692,7 +692,110 @@
 						}
 					]
 				},
-				"parsedResponse": []
+				"parsedResponse": [
+					{
+						"id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+						"info": {
+							"count_fp": "9.40",
+							"created_time": "2026-06-12T14:45:56.123182Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9200",
+							"taker_book_side": "ask",
+							"taker_outcome_side": "no",
+							"taker_side": "no",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+							"yes_price_dollars": "0.0800"
+						},
+						"timestamp": 1781275556123,
+						"datetime": "2026-06-12T14:45:56.123Z",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+						"outcomeId": "KXELONMARS-99",
+						"label": "YES",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"order": null,
+						"type": null,
+						"side": "sell",
+						"takerOrMaker": "taker",
+						"price": 0.08,
+						"amount": 9.4,
+						"cost": 0.752,
+						"fee": {
+							"cost": null,
+							"currency": null
+						},
+						"fees": [],
+						"event": null
+					},
+					{
+						"id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+						"info": {
+							"count_fp": "0.94",
+							"created_time": "2026-06-12T15:45:05.842468Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9000",
+							"taker_book_side": "bid",
+							"taker_outcome_side": "yes",
+							"taker_side": "yes",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+							"yes_price_dollars": "0.1000"
+						},
+						"timestamp": 1781279105842,
+						"datetime": "2026-06-12T15:45:05.842Z",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+						"outcomeId": "KXELONMARS-99",
+						"label": "YES",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.1,
+						"amount": 0.94,
+						"cost": 0.094,
+						"fee": {
+							"cost": null,
+							"currency": null
+						},
+						"fees": [],
+						"event": null
+					},
+					{
+						"id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+						"info": {
+							"count_fp": "9.40",
+							"created_time": "2026-06-12T17:11:11.927591Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9000",
+							"taker_book_side": "bid",
+							"taker_outcome_side": "yes",
+							"taker_side": "yes",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+							"yes_price_dollars": "0.1000"
+						},
+						"timestamp": 1781284271927,
+						"datetime": "2026-06-12T17:11:11.927Z",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+						"outcomeId": "KXELONMARS-99",
+						"label": "YES",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.1,
+						"amount": 9.4,
+						"cost": 0.9400000000000001,
+						"fee": {
+							"cost": null,
+							"currency": null
+						},
+						"fees": [],
+						"event": null
+					}
+				]
 			}
 		],
 		"fetchOHLCV": [
@@ -769,6 +872,223 @@
 					]
 				]
 			}
+		],
+		"fetchPositions": [
+			{
+				"description": "fetchPositions filtered by a NO outcome handle matches the market-level position",
+				"method": "fetchPositions",
+				"options": {
+					"loadAllOutcomes": true
+				},
+				"input": [
+					[
+						"ELON_MUSK_VISIT_MARS_AUG_1_2099:NO"
+					]
+				],
+				"httpResponse": {
+					"market_positions": [
+						{
+							"ticker": "KXELONMARS-99",
+							"position": -12,
+							"market_exposure": 480,
+							"realized_pnl": 0,
+							"total_traded": 480,
+							"resting_orders_count": 0,
+							"fees_paid": 6
+						},
+						{
+							"ticker": "KXOTHERMARKET-21",
+							"position": 5,
+							"market_exposure": 250,
+							"realized_pnl": 100,
+							"total_traded": 350,
+							"resting_orders_count": 1,
+							"fees_paid": 3
+						}
+					],
+					"event_positions": []
+				},
+				"parsedResponse": [
+					{
+						"id": null,
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+						"outcomeId": "KXELONMARS-99",
+						"label": "YES",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"timestamp": null,
+						"datetime": null,
+						"contracts": 12,
+						"contractSize": 1,
+						"side": "short",
+						"notional": null,
+						"leverage": 1,
+						"unrealizedPnl": null,
+						"realizedPnl": null,
+						"collateral": null,
+						"entryPrice": null,
+						"markPrice": null,
+						"liquidationPrice": null,
+						"hedged": false,
+						"maintenanceMargin": null,
+						"maintenanceMarginPercentage": null,
+						"initialMargin": null,
+						"initialMarginPercentage": null,
+						"marginRatio": null,
+						"marginMode": "cross",
+						"marginType": "cross",
+						"percentage": null,
+						"info": {
+							"ticker": "KXELONMARS-99",
+							"position": -12,
+							"market_exposure": 480,
+							"realized_pnl": 0,
+							"total_traded": 480,
+							"resting_orders_count": 0,
+							"fees_paid": 6
+						},
+						"event": null
+					}
+				]
+			}
+		],
+		"fetchOpenOrders": [
+			{
+				"description": "fetchOpenOrders parses both legs with the right outcome identity and prices",
+				"method": "fetchOpenOrders",
+				"options": {
+					"loadAllOutcomes": true
+				},
+				"input": [],
+				"httpResponse": {
+					"orders": [
+						{
+							"order_id": "a1111111-2222-3333-4444-555555555555",
+							"ticker": "KXELONMARS-99",
+							"side": "yes",
+							"action": "buy",
+							"status": "resting",
+							"type": "limit",
+							"yes_price_dollars": "0.0800",
+							"no_price_dollars": "0.9200",
+							"initial_count_fp": "10.00",
+							"remaining_count_fp": "10.00",
+							"fill_count_fp": "0.00",
+							"created_time": "2026-06-12T14:00:00.000000Z"
+						},
+						{
+							"order_id": "b1111111-2222-3333-4444-666666666666",
+							"ticker": "KXELONMARS-99",
+							"side": "no",
+							"action": "sell",
+							"status": "resting",
+							"type": "limit",
+							"yes_price_dollars": "0.0700",
+							"no_price_dollars": "0.9300",
+							"initial_count_fp": "5.00",
+							"remaining_count_fp": "5.00",
+							"fill_count_fp": "0.00",
+							"created_time": "2026-06-12T15:00:00.000000Z"
+						}
+					],
+					"cursor": ""
+				},
+				"parsedResponse": [
+					{
+						"id": "a1111111-2222-3333-4444-555555555555",
+						"clientOrderId": null,
+						"info": {
+							"order_id": "a1111111-2222-3333-4444-555555555555",
+							"ticker": "KXELONMARS-99",
+							"side": "yes",
+							"action": "buy",
+							"status": "resting",
+							"type": "limit",
+							"yes_price_dollars": "0.0800",
+							"no_price_dollars": "0.9200",
+							"initial_count_fp": "10.00",
+							"remaining_count_fp": "10.00",
+							"fill_count_fp": "0.00",
+							"created_time": "2026-06-12T14:00:00.000000Z"
+						},
+						"timestamp": 1781272800000,
+						"datetime": "2026-06-12T14:00:00.000Z",
+						"lastTradeTimestamp": null,
+						"status": "open",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+						"outcomeId": "KXELONMARS-99",
+						"label": "YES",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"type": "limit",
+						"timeInForce": "GTC",
+						"postOnly": false,
+						"side": "buy",
+						"price": 0.08,
+						"stopPrice": null,
+						"triggerPrice": null,
+						"average": null,
+						"amount": 10,
+						"cost": 0,
+						"filled": 0,
+						"remaining": 10,
+						"fee": null,
+						"trades": [],
+						"fees": [],
+						"lastUpdateTimestamp": null,
+						"reduceOnly": null,
+						"takeProfitPrice": null,
+						"stopLossPrice": null,
+						"event": null
+					},
+					{
+						"id": "b1111111-2222-3333-4444-666666666666",
+						"clientOrderId": null,
+						"info": {
+							"order_id": "b1111111-2222-3333-4444-666666666666",
+							"ticker": "KXELONMARS-99",
+							"side": "no",
+							"action": "sell",
+							"status": "resting",
+							"type": "limit",
+							"yes_price_dollars": "0.0700",
+							"no_price_dollars": "0.9300",
+							"initial_count_fp": "5.00",
+							"remaining_count_fp": "5.00",
+							"fill_count_fp": "0.00",
+							"created_time": "2026-06-12T15:00:00.000000Z"
+						},
+						"timestamp": 1781276400000,
+						"datetime": "2026-06-12T15:00:00.000Z",
+						"lastTradeTimestamp": null,
+						"status": "open",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:NO",
+						"outcomeId": "KXELONMARS-99-NO",
+						"label": "NO",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"type": "limit",
+						"timeInForce": "GTC",
+						"postOnly": false,
+						"side": "sell",
+						"price": 0.93,
+						"stopPrice": null,
+						"triggerPrice": null,
+						"average": null,
+						"amount": 5,
+						"cost": 0,
+						"filled": 0,
+						"remaining": 5,
+						"fee": null,
+						"trades": [],
+						"fees": [],
+						"lastUpdateTimestamp": null,
+						"reduceOnly": null,
+						"takeProfitPrice": null,
+						"stopLossPrice": null,
+						"event": null
+					}
+				]
+			}
 		]
-	}
+	},
+	"apiKey": "test-api-key",
+	"privateKey": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA5nvtn11mQ5nI+kArEf8Pa+9+JmdUDck2mP0rFIm3OPAydvDu\nM0i8dQFFBBKcvlPpuZk+gdzFGMWaY35F+bg6JJPJIufa0sfSvKyybJe1IY8BHZ1w\nF0s183F8Lt0/YnKRRO8G7dYqBwzwVbytZmRP03dWMYMQzqcWnNb4KDn2QvheZe28\n/MKJWODpQtARAXTv4ZGAEXGeJXZZpEULeMNP9F2GhLj966Yol8Z7kSCJa6cEcJnz\nqSBEzGtuSJLrNYfdVaM10Ha/Gmp1hCUpmoRKDaF3PTK3WU/+OTsCTH3+6qP6SBQS\nXYNkFyRPM4ivT/sHPkTCAi04Z0auf1i4hry9IQIDAQABAoIBAADAN5p0ze/7cMWr\n7tf8qjqySYlrfcEbvjNKY9kJx9CGK8vqZgRBwOdqrSRhwSP3lwPVRXhb1UKK5kFb\nuHOjT4EuABI+ih50qzGVKHGlHuBwnFLR3/sbch4MaRin/Nxfvixo0O92aqWiO6gz\n2KbEPeRU97FqmWPq9G5nXuCWq8A1GFf4ccORHhZnoNoOEwDbVQQWYQ7cK+HUrJFe\nZi9612jZGy9YeYhaZMWF0NW/a7MEuIcIXPx2FDx0VzSZy104dnp6PQbZJ10edz2I\n0jj2VsbWwquhcyulEqKqf15ofHO2V5cFrYJm8s3kNuMvEosFcd8DxdfjVq4bV5OV\n/5t0y28CgYEA/0UXUTBky0173vyHwTrCteQ5jDRbWcOUONkSUBCsdmuE7monSv5H\nrAwv2fZF9CawjBZIYSBvqCDAY4TPA9EntKNTxhT1sbfdI08OSFCkUG7t5q8pduhb\nduDLvwpGZeDWlGpRevI9zSJBxzmVXLLlKAGPJyczQpdAaXzE28JFvBMCgYEA5ySw\nXphZXEtJJ26KMK7piTlsKYjgnk86+vjNWKEDMqM04edq4Bk5KoJ9nyFxIQiBgaQx\nLNL0H1QLX/fsts/mNygodjkwdfnWofHeN0gAqas/PoyxW+f4Y6/Oi+pCjpu8P6iu\nK2hTIaPs/QHK4coQmvBlcBiCklsW1i7aYB6DIHsCgYEAzTfvUe8U6TiGoDLmtJqX\n1IEBHs0sr5KDQ9yHU2TEMYOo377pjem1FwTJJ3JMtMax4j07vRHFkiWaZadsggYQ\n5LD1dWZ+S3ykRHGW6t4h6yPzECS7sgOFHKIGSrRo+hhyieibTrsWoiarOQ37HQYZ\nIjt2qaRjGmLcfrG21XFufI8CgYAD28Lt8VEcj00rUVcRNPpFBiZeEyDcw6nSYrDa\n1+U7xSmu07QfBYzEvuTl8SL4UDIJPfpsKyFUHI0MDxFug83uAcebIZ1DeuYwUd9J\nwPPx4R/vJV4YkKi+0UJ7Z2+w/byIu4Icy2MH3rqoBo2ic0MPsw+ebWpQkyCwdpvC\nmv/JXQKBgQD8Z4ohktbGRO2AjkpbGKwB+4AOs64qe1Lp8e0UuqlrytjEYMSLO8yJ\n2FITWHhC+GlTZGJ8lcd+9MsR6exxNzfmP9Bwk45UhZIu6r+vFP9Gv96P68t5++1Q\nqqRdCyi9tzKwQMYJA5QlS8HZs3d13mcw/w7ZFbZFndGn0tzJZv6eJw==\n-----END RSA PRIVATE KEY-----\n"
 }

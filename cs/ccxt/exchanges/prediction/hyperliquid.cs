@@ -1653,7 +1653,7 @@ public partial class hyperliquid : PredictionExchange
                 { "ccxtStatus", "open" },
             }));
         }
-        object parsed = this.parseOrders(ordersWithStatus, null, since, null);
+        object parsed = this.parsePredictionOrders(ordersWithStatus, null, since);
         object outcomeHandle = null;
         if (isTrue(!isEqual(outcome, null)))
         {
@@ -1716,7 +1716,7 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         object dedupedValues = new List<object>(((IDictionary<string,object>)deduped).Values);
-        object parsed = this.parseOrders(dedupedValues, null, since, null);
+        object parsed = this.parsePredictionOrders(dedupedValues, null, since);
         object outcomeHandle = null;
         if (isTrue(!isEqual(outcome, null)))
         {
@@ -1925,7 +1925,7 @@ public partial class hyperliquid : PredictionExchange
         // recentTrades returns the coin's most recent public trades (newest first)
         object response = await this.publicPostInfo(this.extend(request, parameters));
         object trades = ((bool) isTrue((isTrue(!isEqual(response, null)) && isTrue(!isEqual(response, null))))) ? response : new List<object>() {};
-        return this.parseTrades(trades, ((object)outcomeObj), since, limit);
+        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
 
     /**
@@ -1944,11 +1944,44 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(outcome, null)))
+        object outcomeHandle = null;
+        if (isTrue(!isEqual(outcome, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires an outcome argument")) ;
+            object outcomeObj = await this.loadOutcome(outcome);
+            outcomeHandle = this.safeString(outcomeObj, "outcome");
+        } else
+        {
+            // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
+            // cache (one market load) so parseTrade can resolve the unified outcome identity
+            await this.loadOutcomes();
         }
-        return await this.fetchTrades(outcome, since, limit, parameters);
+        object userAddress = null;
+        var userAddressparametersVariable = this.handlePublicAddress("fetchMyTrades", parameters);
+        userAddress = ((IList<object>)userAddressparametersVariable)[0];
+        parameters = ((IList<object>)userAddressparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "user", userAddress },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["type"] = "userFillsByTime";
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        } else
+        {
+            ((IDictionary<string,object>)request)["type"] = "userFills";
+        }
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        }
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        object fills = ((bool) isTrue((isTrue(!isEqual(response, null)) && isTrue(!isEqual(response, null))))) ? response : new List<object>() {};
+        // parse without an outcome fallback — fills span every market the wallet traded, so a
+        // requested-outcome fallback would mislabel fills whose market is no longer listed
+        object parsedTrades = this.parsePredictionTrades((IList<object>)(fills), null);
+        return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
     }
 
     /**
