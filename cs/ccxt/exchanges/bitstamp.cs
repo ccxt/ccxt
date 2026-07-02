@@ -453,6 +453,7 @@ public partial class bitstamp : Exchange
                 { "UST", "USTC" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "mica", true },
                 { "networksById", new Dictionary<string, object>() {
                     { "bitcoin-cash", "BCH" },
                     { "bitcoin", "BTC" },

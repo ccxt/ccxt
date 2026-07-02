@@ -186,7 +186,9 @@ type Exchange struct {
 	// tests only
 	FetchResponse any
 
-	IsSandboxModeEnabled bool
+	IsSandboxModeEnabled  bool
+	FetchHistoryCacheSize int
+	FetchHistoryCache     *ConcurrentListForRequests
 
 	// ws
 	WsClients   map[string]any // one websocket client per URL
@@ -218,6 +220,7 @@ const (
 
 func (this *Exchange) InitParent(userConfig map[string]any, exchangeConfig map[string]any, itf any) {
 	// this = &Exchange{}
+	this.FetchHistoryCache = &ConcurrentListForRequests{}
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
 	}
@@ -283,6 +286,9 @@ func (this *Exchange) InitParent(userConfig map[string]any, exchangeConfig map[s
 }
 
 func (this *Exchange) Init(userConfig map[string]any) {
+	if this.FetchHistoryCache == nil {
+		this.FetchHistoryCache = &ConcurrentListForRequests{}
+	}
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
 	}
@@ -2195,3 +2201,44 @@ func (this *Exchange) UnlockId() bool {
 	this.idMutex.Unlock()
 	return true
 }
+
+// ############ Requests data ############
+
+type ConcurrentListForRequests struct {
+	mu    sync.Mutex
+	items []any
+}
+
+func (cl *ConcurrentListForRequests) Lock()   { cl.mu.Lock() }
+func (cl *ConcurrentListForRequests) Unlock() { cl.mu.Unlock() }
+
+func (cl *ConcurrentListForRequests) Add(item any) {
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
+	cl.items = append(cl.items, item)
+}
+
+func (cl *ConcurrentListForRequests) GetAll() []any {
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
+	cp := make([]any, len(cl.items))
+	copy(cp, cl.items)
+	return cp
+}
+
+func (e *Exchange) AddFetchCache(item any) {
+
+	e.FetchHistoryCache.Lock()
+	defer e.FetchHistoryCache.Unlock()
+
+	e.FetchHistoryCache.items = append(e.FetchHistoryCache.items, item)
+
+	if e.FetchHistoryCacheSize > 0 && len(e.FetchHistoryCache.items) > e.FetchHistoryCacheSize {
+		e.FetchHistoryCache.items = e.FetchHistoryCache.items[1:]
+	}
+}
+func (e *Exchange) GetFetchCache() []any {
+	return e.FetchHistoryCache.GetAll()
+}
+
+// #########################################

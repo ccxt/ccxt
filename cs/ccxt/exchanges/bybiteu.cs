@@ -52,6 +52,9 @@ public partial class bybiteu : bybit
                 { "future", false },
                 { "option", null },
             } },
+            { "options", new Dictionary<string, object>() {
+                { "mica", true },
+            } },
         });
     }
 }

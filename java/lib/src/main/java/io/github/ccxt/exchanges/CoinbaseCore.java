@@ -359,6 +359,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "CGLD", "CELO" );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
                 put( "usePrivate", false );
                 put( "brokerId", "ccxt" );
                 put( "stablePairs", new java.util.ArrayList<Object>(java.util.Arrays.asList("BUSD-USD", "CBETH-ETH", "DAI-USD", "GUSD-USD", "GYEN-USD", "PAX-USD", "PAX-USDT", "USDC-EUR", "USDC-GBP", "USDT-EUR", "USDT-GBP", "USDT-USD", "USDT-USDC", "WBTC-BTC")) );

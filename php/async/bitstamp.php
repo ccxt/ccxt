@@ -490,6 +490,7 @@ class bitstamp extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
+                'mica' => true,
                 'networksById' => array(
                     'bitcoin-cash' => 'BCH',
                     'bitcoin' => 'BTC',

@@ -1160,7 +1160,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             }
             Object uuid = this.uuid();
             Object baseUrl = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -1308,7 +1308,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object swapMessageHash = "swap:balance";
             Object messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
             Object subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotSubHash : swapSubHash;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = null;
             Object baseUrl = null;
             Object uuid = this.uuid();
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
@@ -1317,6 +1317,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " watchBalance is not supported for inverse swap markets yet")) ;
                 }
+                // swap balance updates are pushed automatically over the listenKey connection,
+                // so we must not send a subscription message (an empty one is rejected with 80014)
                 baseUrl = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), ((String)subType));
             } else
             {

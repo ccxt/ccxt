@@ -501,6 +501,7 @@ class bitstamp(Exchange, ImplicitAPI):
             },
             # exchange-specific options
             'options': {
+                'mica': True,
                 'networksById': {
                     'bitcoin-cash': 'BCH',
                     'bitcoin': 'BTC',

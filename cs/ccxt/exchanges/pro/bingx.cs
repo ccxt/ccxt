@@ -1084,7 +1084,7 @@ public partial class bingx : ccxt.bingx
         }
         object uuid = this.uuid();
         object baseUrl = null;
-        object request = new Dictionary<string, object>() {};
+        object request = null;
         if (isTrue(isEqual(type, "swap")))
         {
             if (isTrue(isEqual(subType, "inverse")))
@@ -1219,7 +1219,7 @@ public partial class bingx : ccxt.bingx
         object swapMessageHash = "swap:balance";
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
         object subscriptionHash = ((bool) isTrue(isSpot)) ? spotSubHash : swapSubHash;
-        object request = new Dictionary<string, object>() {};
+        object request = null;
         object baseUrl = null;
         object uuid = this.uuid();
         if (isTrue(isEqual(type, "swap")))
@@ -1228,6 +1228,8 @@ public partial class bingx : ccxt.bingx
             {
                 throw new NotSupported ((string)add(this.id, " watchBalance is not supported for inverse swap markets yet")) ;
             }
+            // swap balance updates are pushed automatically over the listenKey connection,
+            // so we must not send a subscription message (an empty one is rejected with 80014)
             baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
         } else
         {

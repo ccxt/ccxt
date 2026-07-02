@@ -31,7 +31,7 @@ class kucoin extends kucoin$1["default"] {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': true,
                 'borrowCrossMargin': true,

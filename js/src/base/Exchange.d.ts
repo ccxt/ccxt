@@ -119,6 +119,8 @@ export default class Exchange {
     last_request_body: any;
     last_request_url: string;
     last_request_path: string;
+    fetchHistoryCache: Dictionary<any>[];
+    fetchHistoryCacheSize: number;
     id: string;
     markets: Dictionary<any>;
     has: Dictionary<boolean | 'emulated' | undefined>;
@@ -312,6 +314,8 @@ export default class Exchange {
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     loadHttpProxyAgent(): Promise<any>;
     getHttpAgentIfNeeded(url: any): any;
+    addFetchCache(data: any): void;
+    getFetchCache(): Dictionary<any>[];
     isBinaryMessage(msg: any): msg is ArrayBuffer | Uint8Array<ArrayBufferLike>;
     stringToBinary(content: any): Uint8Array<ArrayBufferLike>;
     binaryToString(binary: any): string;
@@ -471,7 +475,12 @@ export default class Exchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {};
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+        url: any;
+        method: any;
+        headers: any;
+        body: any;
+    };
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

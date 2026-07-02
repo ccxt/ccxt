@@ -29,6 +29,9 @@ func (this *KucoineuCore) Describe() any {
 			"www": "https://www.kucoin.com/en-eu",
 			"doc": []any{"https://www.kucoin.com/en-eu/docs-new"},
 		},
+		"options": map[string]any{
+			"mica": true,
+		},
 	})
 }
 

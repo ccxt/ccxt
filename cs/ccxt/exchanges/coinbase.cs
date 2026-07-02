@@ -347,6 +347,7 @@ public partial class coinbase : Exchange
                 { "CGLD", "CELO" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "mica", true },
                 { "usePrivate", false },
                 { "brokerId", "ccxt" },
                 { "stablePairs", new List<object>() {"BUSD-USD", "CBETH-ETH", "DAI-USD", "GUSD-USD", "GYEN-USD", "PAX-USD", "PAX-USDT", "USDC-EUR", "USDC-GBP", "USDT-EUR", "USDT-GBP", "USDT-USD", "USDT-USDC", "WBTC-BTC"} },

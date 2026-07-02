@@ -22,7 +22,7 @@ public partial class kucoin : Exchange
                 { "spot", true },
                 { "margin", true },
                 { "swap", true },
-                { "future", false },
+                { "future", true },
                 { "option", false },
                 { "addMargin", true },
                 { "borrowCrossMargin", true },

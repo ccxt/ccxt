@@ -1297,7 +1297,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
-        return array();
+        return array( 'url' => null, 'method' => null, 'headers' => null, 'body' => null );
     }
 
     public function fetch_accounts($params = array()) {
@@ -4009,13 +4009,30 @@ class Exchange extends \ccxt\Exchange {
             list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
             $retryDelay = null;
             list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
+            $fetchData = null;
+            $fetchDataCacheEnabled = $this->fetchHistoryCacheSize > 0;
             for ($i = 0; $i < $retries + 1; $i++) {
+                if ($fetchDataCacheEnabled) {
+                    $fetchData = array( 'request' => null, 'response' => array( 'body' => null ), 'error' => null );
+                }
                 try {
                     $this->set_last_rest_request_timestamp();
                     $request = $this->sign($path, $api, $method, $params, $headers, $body);
+                    if ($fetchDataCacheEnabled) {
+                        $fetchData['request'] = $request;
+                    }
                     $this->set_last_request($request);
-                    return Async\await($this->fetch($request['url'], $request['method'], $request['headers'], $request['body']));
+                    $response = Async\await($this->fetch($request['url'], $request['method'], $request['headers'], $request['body']));
+                    if ($fetchDataCacheEnabled) {
+                        $fetchData['response']['body'] = $response;
+                        $this->add_fetch_cache($fetchData);
+                    }
+                    return $response;
                 } catch (Exception $e) {
+                    if ($fetchDataCacheEnabled) {
+                        $fetchData['error'] = $e;
+                        $this->add_fetch_cache($fetchData);
+                    }
                     if ($e instanceof OperationFailed) {
                         if ($i < $retries) {
                             if ($this->verbose) {
