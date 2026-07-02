@@ -62,8 +62,6 @@ async function vssEverything () {
     vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'",                                                   version)
     vss ('./python/ccxt/pro/__init__.py',                "__version__ = '{version}'",                                                   version)
     vss ('./python/ccxt/prediction/__init__.py',         "__version__ = '{version}'",                                                   version)
-    vss ('./python/ccxt/prediction/async_support/__init__.py', "__version__ = '{version}'",                                             version)
-    vss ('./python/ccxt/prediction/pro/__init__.py',     "__version__ = '{version}'",                                                   version)
     vss ('./cs/ccxt/base/Exchange.MetaData.cs',          "public static string ccxtVersion = \"{version}\";",                           version)
     vss ('./cs/ccxt/ccxt.csproj',                         "<PackageVersion>{version}</PackageVersion>",                                 version)
     vss ('./cs/ccxt/ccxt.csproj',                         "<AssemblyVersion>{version}</AssemblyVersion>",                               version)
