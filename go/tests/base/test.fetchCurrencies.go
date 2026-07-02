@@ -45,8 +45,10 @@ func TestFetchCurrencies(exchange ccxt.ICoreExchange, skippedProperties any) <-c
 				var code any = exchange.SafeString(currency, "code")
 				var withdraw any = exchange.SafeBool(currency, "withdraw")
 				var deposit any = exchange.SafeBool(currency, "deposit")
-				if IsTrue(exchange.InArray(code, requiredActiveCurrencies)) {
-					Assert(IsTrue(skipMajorCurrencyCheck) || IsTrue((IsTrue(withdraw) && IsTrue(deposit))), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
+				var isMicaCompliant any = exchange.SafeBool(exchange.GetOptions(), "mica", false)
+				var skipUsdtForMica any = IsTrue(isMicaCompliant) && IsTrue(IsEqual(code, "USDT"))
+				if IsTrue(IsTrue(IsTrue(exchange.InArray(code, requiredActiveCurrencies)) && !IsTrue(skipMajorCurrencyCheck)) && !IsTrue(skipUsdtForMica)) {
+					Assert(IsTrue(withdraw) && IsTrue(deposit), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
 				}
 			}
 			// check at least X% of currencies are active

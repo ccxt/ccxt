@@ -29,7 +29,7 @@ func (this *KucoinCore) Describe() any {
 			"spot":                                 true,
 			"margin":                               true,
 			"swap":                                 true,
-			"future":                               false,
+			"future":                               true,
 			"option":                               false,
 			"addMargin":                            true,
 			"borrowCrossMargin":                    true,

@@ -58,6 +58,7 @@ func (this *GateeuCore) Describe() any {
 			"fetchMarkets": map[string]any{
 				"types": []any{"spot"},
 			},
+			"mica": true,
 		},
 	})
 }
