@@ -46,11 +46,49 @@
         ],
         "fetchTicker": [
             {
-                "description": "fetchTicker",
+                "description": "generation 1 fetchTicker",
                 "method": "fetchTicker",
-                "url": "https://api.bithumb.com/public/ticker/BTC_KRW",
+                "url": "https://api.bithumb.com/public/ticker/USDC_BTC",
                 "input": [
-                    "BTC/KRW"
+                    "USDC/BTC",
+                    {
+                        "generation": 1
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.bithumb.com/v1/ticker?markets=BTC-USDC",
+                "input": [
+                    "USDC/BTC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "generation 1 fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://api.bithumb.com/public/ticker/ALL_KRW",
+                "input": [
+                    [
+                        "USDC/BTC",
+                        "ETH/BTC"
+                    ],
+                    {
+                        "generation": 1
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://api.bithumb.com/v1/ticker?markets=BTC-USDC%2CBTC-ETH",
+                "input": [
+                    [
+                        "USDC/BTC",
+                        "ETH/BTC"
+                    ]
                 ]
             }
         ],

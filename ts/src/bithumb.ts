@@ -344,10 +344,33 @@ export default class bithumb extends Exchange {
      * @ignore
      */
     async loadMarketsGeneration (generation: Int): Promise<Dictionary<Market>> {
-        // Check if we've tracked this market load via our sentinel
-        // If sentinel is undefined, it means markets were loaded by CLI preload (outside our control)
-        const loadedMarketsGeneration = this.safeInteger (this.options, 'loadedMarketsGeneration');
-        // Force reload if: (1) markets not loaded, (2) sentinel undefined (untracked external load), or (3) wrong generation
+        let loadedMarketsGeneration = this.safeInteger (this.options, 'loadedMarketsGeneration');
+        if ((loadedMarketsGeneration === undefined) && (this.markets !== undefined)) {
+            // Infer generation from market ids when markets were loaded externally (e.g. CLI preload)
+            // Gen 2 ids are quote-base (KRW-BTC), Gen 1 ids are base-only (BTC)
+            const marketSymbols = Object.keys (this.markets);
+            let hasGeneration1Ids = false;
+            let hasGeneration2Ids = false;
+            const maxMarketsToCheck = Math.min (marketSymbols.length, 10);
+            for (let i = 0; i < maxMarketsToCheck; i++) {
+                const symbol = marketSymbols[i];
+                const market = this.safeDict (this.markets, symbol, {});
+                const marketId = this.safeString (market, 'id');
+                if (marketId === undefined) {
+                    continue;
+                }
+                if (marketId.indexOf ('-') > -1) {
+                    hasGeneration2Ids = true;
+                } else {
+                    hasGeneration1Ids = true;
+                }
+            }
+            if (hasGeneration2Ids && !hasGeneration1Ids) {
+                loadedMarketsGeneration = 2;
+            } else if (hasGeneration1Ids && !hasGeneration2Ids) {
+                loadedMarketsGeneration = 1;
+            }
+        }
         const reloadMarkets = (this.markets === undefined) || (loadedMarketsGeneration === undefined) || (loadedMarketsGeneration !== generation);
         const markets = await this.loadMarkets (reloadMarkets, { 'generation': generation });
         this.options['loadedMarketsGeneration'] = generation;
@@ -763,7 +786,7 @@ export default class bithumb extends Exchange {
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
-        // fetchTicker, fetchTickers
+        // generation 1: fetchTicker, fetchTickers
         //
         //     {
         //         "opening_price":"227100",
@@ -780,32 +803,61 @@ export default class bithumb extends Exchange {
         //         "date":"1587710327264", // fetchTickers inject this
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'date');
-        const symbol = this.safeSymbol (undefined, market);
-        const open = this.safeString (ticker, 'opening_price');
-        const close = this.safeString (ticker, 'closing_price');
-        const baseVolume = this.safeString (ticker, 'units_traded_24H');
-        const quoteVolume = this.safeString (ticker, 'acc_trade_value_24H');
+        // generation 2: fetchTicker, fetchTickers
+        //
+        //     {
+        //         "market": "BTC-USDC",
+        //         "trade_date": "20260701",
+        //         "trade_time": "233533",
+        //         "trade_date_kst": "20260702",
+        //         "trade_time_kst": "083533",
+        //         "trade_timestamp": 1782981333650,
+        //         "opening_price": 0.00001667,
+        //         "high_price": 0.00001667,
+        //         "low_price": 0.00001645,
+        //         "trade_price": 0.00001659,
+        //         "prev_closing_price": 0.00001673,
+        //         "change": "FALL",
+        //         "change_price": 1.4E-7,
+        //         "change_rate": 0.0084,
+        //         "signed_change_price": -1.4E-7,
+        //         "signed_change_rate": -0.0084,
+        //         "trade_volume": 1.43724182,
+        //         "acc_trade_price": 0.77934383561689,
+        //         "acc_trade_price_24h": 1.76373410121466379999997512,
+        //         "acc_trade_volume": 47175.3220805,
+        //         "acc_trade_volume_24h": 104565.90238645676844763,
+        //         "highest_52_week_price": 0.00006592,
+        //         "highest_52_week_date": "2025-11-05",
+        //         "lowest_52_week_price": 0.00000782,
+        //         "lowest_52_week_date": "2026-02-22",
+        //         "timestamp": 1782981333650
+        //     }
+        //
+        const timestamp = this.safeInteger2 (ticker, 'date', 'trade_timestamp');
+        const marketId = this.safeString (ticker, 'market');
+        const symbol = this.safeSymbol (marketId, market);
+        const close = this.safeString2 (ticker, 'closing_price', 'trade_price');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'max_price'),
-            'low': this.safeString (ticker, 'min_price'),
+            'high': this.safeString2 (ticker, 'max_price', 'high_price'),
+            'low': this.safeString2 (ticker, 'min_price', 'low_price'),
             'bid': this.safeString (ticker, 'buy_price'),
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'sell_price'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': this.safeString (ticker, 'opening_price'),
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': this.safeString (ticker, 'change_price'),
+            'percentage': this.safeString (ticker, 'change_rate'),
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': this.safeString2 (ticker, 'units_traded_24H', 'trade_volume'),
+            'quoteVolume': this.safeString2 (ticker, 'acc_trade_value_24H', 'acc_trade_volume_24h'),
             'info': ticker,
         }, market);
     }
@@ -815,59 +867,106 @@ export default class bithumb extends Exchange {
      * @name bithumb#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+     * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A1%B0%ED%9A%8C
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'generation', 2);
+        await this.loadMarketsGeneration (generation);
+        const request: Dict = {};
         const result: Dict = {};
-        const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
-        const quotes = Object.keys (quoteCurrencies);
-        const promises: any[] = [];
-        for (let i = 0; i < quotes.length; i++) {
-            const request: Dict = {
-                'quoteId': quotes[i],
-            };
-            promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));
-        }
-        const responses = await Promise.all (promises);
-        for (let i = 0; i < quotes.length; i++) {
-            const quote = quotes[i];
-            const response = responses[i];
+        if (generation === 2) {
+            request['markets'] = this.marketIds (symbols).join (',');
+            const response = await this.publicGetV1Ticker (this.extend (request, params));
             //
-            //     {
-            //         "status":"0000",
-            //         "data":{
-            //             "BTC":{
-            //                 "opening_price":"9045000",
-            //                 "closing_price":"9132000",
-            //                 "min_price":"8938000",
-            //                 "max_price":"9168000",
-            //                 "units_traded":"4619.79967497",
-            //                 "acc_trade_value":"42021363832.5187",
-            //                 "prev_closing_price":"9041000",
-            //                 "units_traded_24H":"8793.5045804",
-            //                 "acc_trade_value_24H":"78933458515.4962",
-            //                 "fluctate_24H":"530000",
-            //                 "fluctate_rate_24H":"6.16"
-            //             },
-            //             "date":"1587710878669"
-            //         }
-            //     }
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
             //
-            const data = this.safeDict (response, 'data', {});
-            const timestamp = this.safeInteger (data, 'date');
-            const tickers = this.omit (data, 'date');
-            const currencyIds = Object.keys (tickers);
-            for (let j = 0; j < currencyIds.length; j++) {
-                const currencyId = currencyIds[j];
-                const ticker = data[currencyId];
-                const base = this.safeCurrencyCode (currencyId);
-                const symbol = base + '/' + quote;
-                const market = this.safeMarket (symbol);
-                ticker['date'] = timestamp;
-                result[symbol] = this.parseTicker (ticker, market);
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const marketId = this.safeString (entry, 'market');
+                const market = this.market (marketId);
+                const symbol = this.safeSymbol (marketId, market);
+                result[symbol] = this.parseTicker (entry, market);
+            }
+        } else {
+            const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
+            const quotes = Object.keys (quoteCurrencies);
+            const promises: any[] = [];
+            for (let i = 0; i < quotes.length; i++) {
+                request['quoteId'] = quotes[i];
+                promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));
+                //
+                //     {
+                //         "status":"0000",
+                //         "data":{
+                //             "BTC":{
+                //                 "opening_price":"9045000",
+                //                 "closing_price":"9132000",
+                //                 "min_price":"8938000",
+                //                 "max_price":"9168000",
+                //                 "units_traded":"4619.79967497",
+                //                 "acc_trade_value":"42021363832.5187",
+                //                 "prev_closing_price":"9041000",
+                //                 "units_traded_24H":"8793.5045804",
+                //                 "acc_trade_value_24H":"78933458515.4962",
+                //                 "fluctate_24H":"530000",
+                //                 "fluctate_rate_24H":"6.16"
+                //             },
+                //             "date":"1587710878669"
+                //         }
+                //     }
+                //
+            }
+            const responses = await Promise.all (promises);
+            for (let i = 0; i < quotes.length; i++) {
+                const quote = quotes[i];
+                const response = responses[i];
+                const data = this.safeDict (response, 'data', {});
+                const timestamp = this.safeInteger (data, 'date');
+                const tickers = this.omit (data, 'date');
+                const currencyIds = Object.keys (tickers);
+                for (let j = 0; j < currencyIds.length; j++) {
+                    const currencyId = currencyIds[j];
+                    const ticker = data[currencyId];
+                    const base = this.safeCurrencyCode (currencyId);
+                    const symbol = base + '/' + quote;
+                    const market = this.safeMarket (symbol);
+                    ticker['date'] = timestamp;
+                    result[symbol] = this.parseTicker (ticker, market);
+                }
             }
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
@@ -878,38 +977,81 @@ export default class bithumb extends Exchange {
      * @name bithumb#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'generation', 2);
+        await this.loadMarketsGeneration (generation);
         const market = this.market (symbol);
-        const request: Dict = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
-        };
-        const response = await this.publicGetPublicTickerBaseIdQuoteId (this.extend (request, params));
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "opening_price":"227100",
-        //             "closing_price":"228400",
-        //             "min_price":"222300",
-        //             "max_price":"230000",
-        //             "units_traded":"82618.56075337",
-        //             "acc_trade_value":"18767376138.6031",
-        //             "prev_closing_price":"227100",
-        //             "units_traded_24H":"151871.13484676",
-        //             "acc_trade_value_24H":"34247610416.8974",
-        //             "fluctate_24H":"8700",
-        //             "fluctate_rate_24H":"3.96",
-        //             "date":"1587710327264"
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
+        const request: Dict = {};
+        let response = undefined;
+        let data: Dict = {};
+        if (generation === 2) {
+            request['markets'] = market['id'];
+            response = await this.publicGetV1Ticker (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
+            //
+            data = this.safeDict (response, 0, {});
+        } else {
+            request['baseId'] = market['baseId'];
+            request['quoteId'] = market['quoteId'];
+            response = await this.publicGetPublicTickerBaseIdQuoteId (this.extend (request, params));
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "opening_price":"227100",
+            //             "closing_price":"228400",
+            //             "min_price":"222300",
+            //             "max_price":"230000",
+            //             "units_traded":"82618.56075337",
+            //             "acc_trade_value":"18767376138.6031",
+            //             "prev_closing_price":"227100",
+            //             "units_traded_24H":"151871.13484676",
+            //             "acc_trade_value_24H":"34247610416.8974",
+            //             "fluctate_24H":"8700",
+            //             "fluctate_rate_24H":"3.96",
+            //             "date":"1587710327264"
+            //         }
+            //     }
+            //
+            data = this.safeDict (response, 'data', {});
+        }
         return this.parseTicker (data, market);
     }
 
