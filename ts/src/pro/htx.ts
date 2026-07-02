@@ -826,6 +826,7 @@ export default class htx extends htxRest {
         let market: Market = undefined;
         let messageHash: Str = undefined;
         let channel: Str = undefined;
+        let trades = undefined;
         let subType: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
