@@ -1,5 +1,6 @@
 {
     "exchange": "limitless",
+    "asyncOnly": true,
     "skipKeys": [],
     "outputType": "json",
     "methods": {

@@ -3377,8 +3377,12 @@ if (isMainEntry(metaFileUrl)) {
         transpiler.addGeneratedHeaderToJs ('./js/')
     } else {
         (async () => {
-            // --prediction transpiles the given exchange(s) from ts/src/prediction/
-            const prediction = process.argv.includes ('--prediction')
+            // --prediction transpiles the given exchange(s) from ts/src/prediction/; bare
+            // prediction-only ids (e.g. `transpile.ts kalshi`) auto-route there so scoped
+            // CI steps don't need to know the namespace
+            const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
+            const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => exchangesPredictionIds.includes (x) && !exchangeIds.includes (x))
+            const prediction = process.argv.includes ('--prediction') || allArePredictionOnly
             await transpiler.transpileEverything (force, child, prediction)
         })()
     }

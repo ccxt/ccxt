@@ -1,5 +1,6 @@
 {
     "exchange": "kalshi",
+    "asyncOnly": true,
     "skipKeys": [],
     "outputType": "json",
     "methods": {

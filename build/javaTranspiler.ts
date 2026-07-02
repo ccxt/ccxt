@@ -3148,7 +3148,11 @@ class NewTranspiler {
 
 async function runMain() {
     const ws = process.argv.includes('--ws')
-    const prediction = process.argv.includes('--prediction')
+    // bare prediction-only ids (e.g. `javaTranspiler.ts kalshi`) auto-route to the
+    // prediction namespace so scoped CI steps don't need to know it
+    const cliExchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
+    const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every(x => (exchanges.prediction || []).includes(x) && !exchangeIds.includes(x))
+    const prediction = process.argv.includes('--prediction') || allArePredictionOnly
     const baseOnly = process.argv.includes('--baseTests')
     const test = process.argv.includes('--test') || process.argv.includes('--tests')
     const examples = process.argv.includes('--examples');

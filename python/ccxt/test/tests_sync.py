@@ -502,6 +502,11 @@ class testMainClass:
         return symbol
 
     def test_exchange(self, exchange, provided_symbol=None):
+        # prediction-market exchanges have no spot/swap markets and address methods by an
+        # outcome handle (not a market symbol), so they take a dedicated test flow
+        if exchange.safe_bool(exchange.has, 'prediction', False):
+            self.run_prediction_tests(exchange)
+            return True
         spot_symbols = None
         swap_symbols = None
         if provided_symbol is not None:
@@ -549,6 +554,169 @@ class testMainClass:
             if exchange.has['swap'] and swap_symbols is not None:
                 exchange.options['defaultType'] = 'swap'
                 self.run_private_tests(exchange, swap_symbols)
+        return True
+
+    def run_prediction_tests(self, exchange):
+        # loadMarkets (already called by loadExchange) populates the markets and their outcome
+        # tokens; resolve a tradeable outcome handle from them (works in every language since
+        # exchange.markets is typed on the base, unlike the prediction-only outcomes cache),
+        # then fetchEvents for an event id and run every method by that outcome handle
+        # a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
+        # many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
+        outcome_symbol = exchange.safe_string(self.skipped_settings_for_exchange, 'preferredPredictionOutcome')
+        if outcome_symbol is None:
+            market_keys = list(exchange.markets.keys())
+            for i in range(0, len(market_keys)):
+                market = exchange.markets[market_keys[i]]
+                outcomes_list = exchange.safe_list(market, 'outcomes', [])
+                outcomes_list_length = len(outcomes_list)
+                if outcomes_list_length > 0:
+                    outcome_symbol = exchange.safe_string(outcomes_list[0], 'outcome')
+                    if outcome_symbol is not None:
+                        break
+        if outcome_symbol is None:
+            dump('[TEST_FAILURE]', exchange.id, 'no tradeable outcome available in loaded markets')
+            return False
+        # fetchEvents/fetchEvent are prediction-only and not on every language's typed base
+        # (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
+        # inline rather than through a per-method test file
+        event_id = None
+        if not self.ws_tests:
+            try:
+                # a skip-tests.json preferredEventQuery supplies a query that matches their markets
+                event_query = exchange.safe_string(self.skipped_settings_for_exchange, 'preferredEventQuery')
+                event_params = {}
+                if event_query is not None:
+                    event_params['query'] = event_query
+                events = call_exchange_method_dynamically(exchange, 'fetchEvents', [event_params])
+                assert events is not None, exchange.id + ' fetchEvents returned undefined'
+                # coerce the dynamic (any) result to a typed list via safeList (on the core interface)
+                events_list = exchange.safe_list({
+                    'events': events,
+                }, 'events', [])
+                self.assert_prediction_events(exchange, events_list)
+                events_length = len(events_list)
+                if events_length > 0:
+                    event_id = exchange.safe_string(events_list[0], 'id')
+                if (event_id is not None) and exchange.safe_bool(exchange.has, 'fetchEvent', False):
+                    event = call_exchange_method_dynamically(exchange, 'fetchEvent', [event_id])
+                    assert exchange.is_dictionary(event), exchange.id + ' fetchEvent should return an event structure'
+                    assert exchange.safe_string(event, 'id') is not None, exchange.id + ' fetchEvent returned no id'
+            except Exception as e:
+                dump('[TEST_FAILURE]', exchange.id, 'fetchEvents/fetchEvent failed:', exception_message(e))
+                return False
+        dump('[INFO:MAIN] Selected prediction OUTCOME:', outcome_symbol, '| EVENT:', exchange.json(event_id))
+        public_tests = {
+            'fetchStatus': [],
+            'fetchTime': [],
+            'fetchTradingFee': [outcome_symbol],
+            'fetchOpenInterest': [outcome_symbol],
+            'fetchTicker': [outcome_symbol],
+            'fetchTickers': [outcome_symbol],
+            'fetchOrderBook': [outcome_symbol],
+            'fetchOHLCV': [outcome_symbol],
+            'fetchTrades': [outcome_symbol],
+        }
+        if self.ws_tests:
+            public_tests = {
+                'watchTicker': [outcome_symbol],
+                'watchOrderBook': [outcome_symbol],
+                'watchTrades': [outcome_symbol],
+            }
+        if not self.private_test_only:
+            self.run_tests(exchange, public_tests, True)
+        if (self.private_test or self.private_test_only) and not self.ws_tests:
+            private_tests = {
+                'fetchBalance': [],
+                'fetchPositions': [outcome_symbol],
+                'fetchMyTrades': [outcome_symbol],
+                'fetchOrders': [outcome_symbol],
+                'fetchOpenOrders': [outcome_symbol],
+                'fetchClosedOrders': [outcome_symbol],
+                'fetchOrder': [outcome_symbol],
+            }
+            self.run_tests(exchange, private_tests, False)
+            # order placement is real money — gated behind --fundedTests, like crypto createOrder
+            if get_cli_arg_value('--fundedTests'):
+                self.test_prediction_create_cancel_order(exchange, outcome_symbol)
+        return True
+
+    def assert_prediction_events(self, exchange, events):
+        assert isinstance(events, list), exchange.id + ' fetchEvents/fetchEvent should return a list'
+        events_length = len(events)
+        for i in range(0, events_length):
+            event = events[i]
+            assert exchange.is_dictionary(event), exchange.id + ' event should be a dict'
+            assert exchange.safe_string(event, 'id') is not None, exchange.id + ' event missing id'
+            assert exchange.safe_list(event, 'markets') is not None, exchange.id + ' event missing markets'
+        return True
+
+    def test_prediction_create_cancel_order(self, exchange, outcome):
+        # place a deliberately non-marketable limit BUY (low fixed price * tiny amount), assert
+        # it, then always cancel it. Safe by construction: 5 shares @ 0.02 = 0.10 USD notional,
+        # far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
+        # createOrder/cancelOrder are invoked dynamically since they aren't on every language's
+        # typed core-exchange interface (e.g. Go's ICoreExchange).
+        if not exchange.safe_bool(exchange.has, 'createOrder', False):
+            return True
+        # honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
+        # and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
+        create_order_skip = self.get_skips(exchange, 'createOrder')
+        if isinstance(create_order_skip, str):
+            dump('[INFO] skipping prediction createOrder test', exchange.id, create_order_skip)
+            return True
+        can_cancel = exchange.safe_bool(exchange.has, 'cancelOrder', False) or exchange.safe_bool(exchange.has, 'cancelAllOrders', False)
+        if not can_cancel:
+            dump('[INFO] skipping prediction createOrder test', exchange.id, 'no cancelOrder/cancelAllOrders')
+            return True
+        if not exchange.check_required_credentials(False):
+            dump('[INFO] skipping prediction createOrder test', exchange.id, 'keys not found')
+            return True
+        # default 5 @ 0.02 = 0.10 USD notional. a venue with a higher minimum (e.g. hyperliquid
+        # testnet's 10 USD min) overrides amount/price via skip-tests.json fundedAmount/fundedPrice;
+        # any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
+        price = exchange.parse_to_numeric('0.02')
+        amount = exchange.parse_to_numeric('5')
+        funded_price = exchange.safe_string(self.skipped_settings_for_exchange, 'fundedPrice')
+        if funded_price is not None:
+            price = exchange.parse_to_numeric(funded_price)
+        funded_amount = exchange.safe_string(self.skipped_settings_for_exchange, 'fundedAmount')
+        if funded_amount is not None:
+            amount = exchange.parse_to_numeric(funded_amount)
+        dump('[INFO:MAIN] prediction createOrder', exchange.id, outcome, 'buy', amount, '@', price)
+        # no try/finally and no re-throw from the catch (the typed-lang lambdas can't do
+        # either): record any failure, ALWAYS attempt the cancel, then report the failure
+        order = None
+        placed_id = None
+        failure = None
+        try:
+            order = call_exchange_method_dynamically(exchange, 'createOrder', [outcome, 'limit', 'buy', amount, price])
+            assert order is not None, 'createOrder returned undefined for ' + exchange.id
+            assert exchange.is_dictionary(order), 'createOrder did not return an order structure for ' + exchange.id
+            placed_id = exchange.safe_string(order, 'id')
+            assert placed_id is not None, 'createOrder returned no order id for ' + exchange.id
+            returned_outcome = exchange.safe_string(order, 'outcome')
+            assert (returned_outcome is None) or (returned_outcome == outcome), 'createOrder outcome "' + exchange.json(returned_outcome) + '" should match requested "' + outcome + '" for ' + exchange.id
+        except Exception as e:
+            failure = exception_message(e)
+        # always cancel any placed order (cancelPredictionOrder swallows its own errors)
+        self.cancel_prediction_order(exchange, placed_id, outcome)
+        if failure is not None:
+            dump('[TEST_FAILURE]', exchange.id, 'prediction createOrder failed:', failure)
+            return False
+        return True
+
+    def cancel_prediction_order(self, exchange, order_id, outcome):
+        if order_id is None:
+            return True
+        try:
+            if exchange.safe_bool(exchange.has, 'cancelOrder', False):
+                call_exchange_method_dynamically(exchange, 'cancelOrder', [order_id, outcome])
+            else:
+                call_exchange_method_dynamically(exchange, 'cancelAllOrders', [outcome])
+            dump('[INFO:MAIN] prediction order cancelled', exchange.id, order_id)
+        except Exception as e:
+            dump('[WARN] prediction order cancel failed', exchange.id, order_id, exception_message(e))
         return True
 
     def run_private_tests(self, exchange, symbol):
@@ -1055,6 +1223,8 @@ class testMainClass:
             options['secret'] = ''
         exchange = init_exchange(exchange_name, options)
         exchange.currencies = currencies
+        # prediction exchanges resolve outcomes lazily from the injected markets (loadOutcome ->
+        # populateOutcomes) the first time a method is called, so no explicit setMarkets here
         # not working in python if assigned  in the config dict
         return exchange
 
@@ -1189,6 +1359,12 @@ class testMainClass:
 
     def check_if_exchange_is_disabled(self, exchange_name, exchange_data):
         exchange = init_exchange('Exchange', {})
+        # prediction-market exchanges exist only in the namespaces in python/php,
+        # so their fixtures declare asyncOnly and the sync harness skips them
+        is_async_only = exchange.safe_bool(exchange_data, 'asyncOnly', False)
+        if is_async_only and is_sync():
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is async-only, skipped by the sync test harness')
+            return True
         is_disabled_py = exchange.safe_bool(exchange_data, 'disabledPy', False)
         if is_disabled_py and (self.lang == 'PY'):
             dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in python')

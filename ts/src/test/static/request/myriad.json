@@ -1,5 +1,6 @@
 {
     "exchange": "myriad",
+    "asyncOnly": true,
     "skipKeys": [],
     "outputType": "json",
     "methods": {

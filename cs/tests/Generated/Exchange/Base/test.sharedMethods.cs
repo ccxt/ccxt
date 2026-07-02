@@ -49,7 +49,15 @@ public partial class testMainClass : BaseTest
             object same_numeric = isTrue(((entryKeyVal is Int64 || entryKeyVal is int || entryKeyVal is float || entryKeyVal is double))) && isTrue(((formatKeyVal is Int64 || formatKeyVal is int || formatKeyVal is float || formatKeyVal is double)));
             object same_boolean = isTrue((isTrue((isEqual(entryKeyVal, true))) || isTrue((isEqual(entryKeyVal, false))))) && isTrue((isTrue((isEqual(formatKeyVal, true))) || isTrue((isEqual(formatKeyVal, false)))));
             object same_array = isTrue(((entryKeyVal is IList<object>) || (entryKeyVal.GetType().IsGenericType && entryKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) && isTrue(((formatKeyVal is IList<object>) || (formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
-            object same_object = isTrue(exchange.isDictionary(entryKeyVal)) && isTrue(exchange.isDictionary(formatKeyVal));
+            // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+            // returns false for an empty {} format marker — accept a dict entry against an empty-array format
+            object formatIsEmptyArray = false;
+            if (isTrue(((formatKeyVal is IList<object>) || (formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                object formatLen = getArrayLength(formatKeyVal);
+                formatIsEmptyArray = (isEqual(formatLen, 0));
+            }
+            object same_object = isTrue(exchange.isDictionary(entryKeyVal)) && isTrue((isTrue(exchange.isDictionary(formatKeyVal)) || isTrue(formatIsEmptyArray)));
             object result = isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(entryKeyVal, null))) || isTrue(same_string)) || isTrue(same_numeric)) || isTrue(same_boolean)) || isTrue(same_array)) || isTrue(same_object);
             return result;
         }

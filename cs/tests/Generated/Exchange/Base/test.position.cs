@@ -9,6 +9,30 @@ public partial class testMainClass : BaseTest
 {
     public static void testPosition(Exchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
     {
+        // a prediction position is a simple outcome-share holding keyed by an outcome handle (not a
+        // `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
+        // leverage / margin / mark-price / liquidation / pnl fields that don't apply
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new Dictionary<string, object>() {
+                { "symbol", true },
+                { "timestamp", true },
+                { "datetime", true },
+                { "leverage", true },
+                { "initialMargin", true },
+                { "initialMarginPercentage", true },
+                { "maintenanceMargin", true },
+                { "maintenanceMarginPercentage", true },
+                { "entryPrice", true },
+                { "notional", true },
+                { "unrealizedPnl", true },
+                { "marginRatio", true },
+                { "liquidationPrice", true },
+                { "markPrice", true },
+                { "collateral", true },
+                { "percentage", true },
+            }, skippedProperties);
+        }
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "XYZ/USDT" },

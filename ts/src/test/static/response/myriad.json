@@ -1,1569 +1,1570 @@
 {
-	"exchange": "myriad",
-	"skipKeys": [
-		"timestamp",
-		"datetime"
-	],
-	"options": {},
-	"methods": {
-		"fetchTicker": [
-			{
-				"description": "fetchTicker for an outcome",
-				"method": "fetchTicker",
-				"input": [
-					"POLYMARKET_KALSHI:POLYMARKET"
-				],
-				"httpResponse": {
-					"id": "549",
-					"networkId": "2741",
-					"slug": "polymarket-or-kalshi",
-					"title": "Polymarket or Kalshi?",
-					"shortName": null,
-					"ctaName": null,
-					"description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
-					"publishedAt": "2025-11-08T11:02:20.000Z",
-					"expiresAt": "2100-01-01T00:01:00.000Z",
-					"resolvesAt": null,
-					"fees": {
-						"buy": {
-							"fee": "0",
-							"treasury_fee": "0",
-							"distributor_fee": "0"
-						},
-						"sell": {
-							"fee": "0",
-							"treasury_fee": "0",
-							"distributor_fee": "0"
-						},
-						"treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-						"distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-					},
-					"state": "open",
-					"voided": false,
-					"resolvedOutcomeId": "-1",
-					"topics": [
-						"Sentiment"
-					],
-					"tags": [],
-					"resolutionSource": "https://x.com/myriadmarkets",
-					"resolutionTitle": "You",
-					"token": {
-						"name": "Bridged USDC (Stargate)",
-						"address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-						"symbol": "USDC.e",
-						"decimals": "6"
-					},
-					"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-					"bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
-					"ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
-					"liquidity": "1000",
-					"liquidityPrice": "0.89296615",
-					"volume": "11792850.814653",
-					"volume24h": "1.029",
-					"volumeNotional": "15796115.564182",
-					"volumeNotional24h": "1.418676",
-					"users": "1071",
-					"shares": "2240.415558",
-					"featured": false,
-					"featuredAt": null,
-					"inPlay": false,
-					"inPlayStartsAt": null,
-					"perpetual": true,
-					"moneyline": false,
-					"executionMode": "0",
-					"tradingModel": "amm",
-					"topHolders": [
-						"0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
-						"0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
-						"0x304fc7881ce775dd94607B4165006b70D885b441"
-					],
-					"outcomes": [
-						{
-							"id": "0",
-							"title": "Polymarket",
-							"shares": "615.670527",
-							"sharesHeld": "1559.441408",
-							"price": "0.72519807",
-							"closingPrice": null,
-							"priceChange24h": "-0.00034775",
-							"bestBid": null,
-							"bestAsk": null,
-							"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-							"holders": "122",
-							"tokenId": "1098"
-						},
-						{
-							"id": "1",
-							"title": "Kalshi",
-							"shares": "1624.745031",
-							"sharesHeld": "550.366904",
-							"price": "0.27480193",
-							"closingPrice": null,
-							"priceChange24h": "0.00091887",
-							"bestBid": null,
-							"bestAsk": null,
-							"imageUrl": null,
-							"holders": "10",
-							"tokenId": "1099"
-						}
-					],
-					"eventId": null,
-					"outcomeIndex": null,
-					"negRisk": false,
-					"oracle": {
-						"address": null,
-						"name": "Myriad",
-						"url": "https://myriad.markets",
-						"image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
-						"data": null
-					},
-					"externalSources": []
-				},
-				"parsedResponse": {
-					"outcome": "POLYMARKET_KALSHI:POLYMARKET",
-					"outcomeId": "2741:549/0",
-					"label": "Polymarket",
-					"market": "POLYMARKET_KALSHI:POLYMARKET",
-					"timestamp": 1781915900351,
-					"datetime": "2026-06-20T00:38:20.351Z",
-					"high": null,
-					"low": null,
-					"bid": 0.72519807,
-					"bidVolume": null,
-					"ask": 0.72519807,
-					"askVolume": null,
-					"vwap": 1.3786938775510205,
-					"open": 0.72554582,
-					"close": 0.72519807,
-					"last": 0.72519807,
-					"previousClose": null,
-					"change": -0.00034775,
-					"percentage": -0.00034775,
-					"average": 0.72519807,
-					"baseVolume": 1.029,
-					"quoteVolume": 1.418676,
-					"info": {
-						"id": "549",
-						"networkId": "2741",
-						"slug": "polymarket-or-kalshi",
-						"title": "Polymarket or Kalshi?",
-						"shortName": null,
-						"ctaName": null,
-						"description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
-						"publishedAt": "2025-11-08T11:02:20.000Z",
-						"expiresAt": "2100-01-01T00:01:00.000Z",
-						"resolvesAt": null,
-						"fees": {
-							"buy": {
-								"fee": "0",
-								"treasury_fee": "0",
-								"distributor_fee": "0"
-							},
-							"sell": {
-								"fee": "0",
-								"treasury_fee": "0",
-								"distributor_fee": "0"
-							},
-							"treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-							"distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-						},
-						"state": "open",
-						"voided": false,
-						"resolvedOutcomeId": "-1",
-						"topics": [
-							"Sentiment"
-						],
-						"tags": [],
-						"resolutionSource": "https://x.com/myriadmarkets",
-						"resolutionTitle": "You",
-						"token": {
-							"name": "Bridged USDC (Stargate)",
-							"address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-							"symbol": "USDC.e",
-							"decimals": "6"
-						},
-						"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-						"bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
-						"ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
-						"liquidity": "1000",
-						"liquidityPrice": "0.89296615",
-						"volume": "11792850.814653",
-						"volume24h": "1.029",
-						"volumeNotional": "15796115.564182",
-						"volumeNotional24h": "1.418676",
-						"users": "1071",
-						"shares": "2240.415558",
-						"featured": false,
-						"featuredAt": null,
-						"inPlay": false,
-						"inPlayStartsAt": null,
-						"perpetual": true,
-						"moneyline": false,
-						"executionMode": "0",
-						"tradingModel": "amm",
-						"topHolders": [
-							"0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
-							"0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
-							"0x304fc7881ce775dd94607B4165006b70D885b441"
-						],
-						"outcomes": [
-							{
-								"id": "0",
-								"title": "Polymarket",
-								"shares": "615.670527",
-								"sharesHeld": "1559.441408",
-								"price": "0.72519807",
-								"closingPrice": null,
-								"priceChange24h": "-0.00034775",
-								"bestBid": null,
-								"bestAsk": null,
-								"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-								"holders": "122",
-								"tokenId": "1098"
-							},
-							{
-								"id": "1",
-								"title": "Kalshi",
-								"shares": "1624.745031",
-								"sharesHeld": "550.366904",
-								"price": "0.27480193",
-								"closingPrice": null,
-								"priceChange24h": "0.00091887",
-								"bestBid": null,
-								"bestAsk": null,
-								"imageUrl": null,
-								"holders": "10",
-								"tokenId": "1099"
-							}
-						],
-						"eventId": null,
-						"outcomeIndex": null,
-						"negRisk": false,
-						"oracle": {
-							"address": null,
-							"name": "Myriad",
-							"url": "https://myriad.markets",
-							"image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
-							"data": null
-						},
-						"externalSources": []
-					},
-					"indexPrice": null,
-					"markPrice": null,
-					"event": null
-				}
-			}
-		],
-		"fetchTickers": [
-			{
-				"description": "fetchTickers with two outcomes of the same market",
-				"method": "fetchTickers",
-				"input": [
-					[
-						"POLYMARKET_KALSHI:POLYMARKET",
-						"POLYMARKET_KALSHI:KALSHI"
-					]
-				],
-				"httpResponse": {
-					"id": "549",
-					"networkId": "2741",
-					"slug": "polymarket-or-kalshi",
-					"title": "Polymarket or Kalshi?",
-					"shortName": null,
-					"ctaName": null,
-					"description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
-					"publishedAt": "2025-11-08T11:02:20.000Z",
-					"expiresAt": "2100-01-01T00:01:00.000Z",
-					"resolvesAt": null,
-					"fees": {
-						"buy": {
-							"fee": "0",
-							"treasury_fee": "0",
-							"distributor_fee": "0"
-						},
-						"sell": {
-							"fee": "0",
-							"treasury_fee": "0",
-							"distributor_fee": "0"
-						},
-						"treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-						"distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-					},
-					"state": "open",
-					"voided": false,
-					"resolvedOutcomeId": "-1",
-					"topics": [
-						"Sentiment"
-					],
-					"tags": [],
-					"resolutionSource": "https://x.com/myriadmarkets",
-					"resolutionTitle": "You",
-					"token": {
-						"name": "Bridged USDC (Stargate)",
-						"address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-						"symbol": "USDC.e",
-						"decimals": "6"
-					},
-					"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-					"bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
-					"ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
-					"liquidity": "1000",
-					"liquidityPrice": "0.89296615",
-					"volume": "11792850.814653",
-					"volume24h": "1.029",
-					"volumeNotional": "15796115.564182",
-					"volumeNotional24h": "1.418676",
-					"users": "1071",
-					"shares": "2240.415558",
-					"featured": false,
-					"featuredAt": null,
-					"inPlay": false,
-					"inPlayStartsAt": null,
-					"perpetual": true,
-					"moneyline": false,
-					"executionMode": "0",
-					"tradingModel": "amm",
-					"topHolders": [
-						"0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
-						"0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
-						"0x304fc7881ce775dd94607B4165006b70D885b441"
-					],
-					"outcomes": [
-						{
-							"id": "0",
-							"title": "Polymarket",
-							"shares": "615.670527",
-							"sharesHeld": "1559.441408",
-							"price": "0.72519807",
-							"closingPrice": null,
-							"priceChange24h": "-0.00034775",
-							"bestBid": null,
-							"bestAsk": null,
-							"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-							"holders": "122",
-							"tokenId": "1098"
-						},
-						{
-							"id": "1",
-							"title": "Kalshi",
-							"shares": "1624.745031",
-							"sharesHeld": "550.366904",
-							"price": "0.27480193",
-							"closingPrice": null,
-							"priceChange24h": "0.00091887",
-							"bestBid": null,
-							"bestAsk": null,
-							"imageUrl": null,
-							"holders": "10",
-							"tokenId": "1099"
-						}
-					],
-					"eventId": null,
-					"outcomeIndex": null,
-					"negRisk": false,
-					"oracle": {
-						"address": null,
-						"name": "Myriad",
-						"url": "https://myriad.markets",
-						"image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
-						"data": null
-					},
-					"externalSources": []
-				},
-				"parsedResponse": {
-					"POLYMARKET_KALSHI:POLYMARKET": {
-						"outcome": "POLYMARKET_KALSHI:POLYMARKET",
-						"outcomeId": "2741:549/0",
-						"label": "Polymarket",
-						"market": "POLYMARKET_KALSHI:POLYMARKET",
-						"timestamp": 1781915900552,
-						"datetime": "2026-06-20T00:38:20.552Z",
-						"high": null,
-						"low": null,
-						"bid": 0.72519807,
-						"bidVolume": null,
-						"ask": 0.72519807,
-						"askVolume": null,
-						"vwap": 1.3786938775510205,
-						"open": 0.72554582,
-						"close": 0.72519807,
-						"last": 0.72519807,
-						"previousClose": null,
-						"change": -0.00034775,
-						"percentage": -0.00034775,
-						"average": 0.72519807,
-						"baseVolume": 1.029,
-						"quoteVolume": 1.418676,
-						"info": {
-							"id": "549",
-							"networkId": "2741",
-							"slug": "polymarket-or-kalshi",
-							"title": "Polymarket or Kalshi?",
-							"shortName": null,
-							"ctaName": null,
-							"description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
-							"publishedAt": "2025-11-08T11:02:20.000Z",
-							"expiresAt": "2100-01-01T00:01:00.000Z",
-							"resolvesAt": null,
-							"fees": {
-								"buy": {
-									"fee": "0",
-									"treasury_fee": "0",
-									"distributor_fee": "0"
-								},
-								"sell": {
-									"fee": "0",
-									"treasury_fee": "0",
-									"distributor_fee": "0"
-								},
-								"treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-								"distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-							},
-							"state": "open",
-							"voided": false,
-							"resolvedOutcomeId": "-1",
-							"topics": [
-								"Sentiment"
-							],
-							"tags": [],
-							"resolutionSource": "https://x.com/myriadmarkets",
-							"resolutionTitle": "You",
-							"token": {
-								"name": "Bridged USDC (Stargate)",
-								"address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-								"symbol": "USDC.e",
-								"decimals": "6"
-							},
-							"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-							"bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
-							"ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
-							"liquidity": "1000",
-							"liquidityPrice": "0.89296615",
-							"volume": "11792850.814653",
-							"volume24h": "1.029",
-							"volumeNotional": "15796115.564182",
-							"volumeNotional24h": "1.418676",
-							"users": "1071",
-							"shares": "2240.415558",
-							"featured": false,
-							"featuredAt": null,
-							"inPlay": false,
-							"inPlayStartsAt": null,
-							"perpetual": true,
-							"moneyline": false,
-							"executionMode": "0",
-							"tradingModel": "amm",
-							"topHolders": [
-								"0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
-								"0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
-								"0x304fc7881ce775dd94607B4165006b70D885b441"
-							],
-							"outcomes": [
-								{
-									"id": "0",
-									"title": "Polymarket",
-									"shares": "615.670527",
-									"sharesHeld": "1559.441408",
-									"price": "0.72519807",
-									"closingPrice": null,
-									"priceChange24h": "-0.00034775",
-									"bestBid": null,
-									"bestAsk": null,
-									"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-									"holders": "122",
-									"tokenId": "1098"
-								},
-								{
-									"id": "1",
-									"title": "Kalshi",
-									"shares": "1624.745031",
-									"sharesHeld": "550.366904",
-									"price": "0.27480193",
-									"closingPrice": null,
-									"priceChange24h": "0.00091887",
-									"bestBid": null,
-									"bestAsk": null,
-									"imageUrl": null,
-									"holders": "10",
-									"tokenId": "1099"
-								}
-							],
-							"eventId": null,
-							"outcomeIndex": null,
-							"negRisk": false,
-							"oracle": {
-								"address": null,
-								"name": "Myriad",
-								"url": "https://myriad.markets",
-								"image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
-								"data": null
-							},
-							"externalSources": []
-						},
-						"indexPrice": null,
-						"markPrice": null,
-						"event": null
-					},
-					"POLYMARKET_KALSHI:KALSHI": {
-						"outcome": "POLYMARKET_KALSHI:KALSHI",
-						"outcomeId": "2741:549/1",
-						"label": "Kalshi",
-						"market": "POLYMARKET_KALSHI:KALSHI",
-						"timestamp": 1781915900552,
-						"datetime": "2026-06-20T00:38:20.552Z",
-						"high": null,
-						"low": null,
-						"bid": 0.27480193,
-						"bidVolume": null,
-						"ask": 0.27480193,
-						"askVolume": null,
-						"vwap": 1.3786938775510205,
-						"open": 0.27388306,
-						"close": 0.27480193,
-						"last": 0.27480193,
-						"previousClose": null,
-						"change": 0.00091887,
-						"percentage": 0.00091887,
-						"average": 0.27480193,
-						"baseVolume": 1.029,
-						"quoteVolume": 1.418676,
-						"info": {
-							"id": "549",
-							"networkId": "2741",
-							"slug": "polymarket-or-kalshi",
-							"title": "Polymarket or Kalshi?",
-							"shortName": null,
-							"ctaName": null,
-							"description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
-							"publishedAt": "2025-11-08T11:02:20.000Z",
-							"expiresAt": "2100-01-01T00:01:00.000Z",
-							"resolvesAt": null,
-							"fees": {
-								"buy": {
-									"fee": "0",
-									"treasury_fee": "0",
-									"distributor_fee": "0"
-								},
-								"sell": {
-									"fee": "0",
-									"treasury_fee": "0",
-									"distributor_fee": "0"
-								},
-								"treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-								"distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-							},
-							"state": "open",
-							"voided": false,
-							"resolvedOutcomeId": "-1",
-							"topics": [
-								"Sentiment"
-							],
-							"tags": [],
-							"resolutionSource": "https://x.com/myriadmarkets",
-							"resolutionTitle": "You",
-							"token": {
-								"name": "Bridged USDC (Stargate)",
-								"address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-								"symbol": "USDC.e",
-								"decimals": "6"
-							},
-							"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-							"bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
-							"ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
-							"liquidity": "1000",
-							"liquidityPrice": "0.89296615",
-							"volume": "11792850.814653",
-							"volume24h": "1.029",
-							"volumeNotional": "15796115.564182",
-							"volumeNotional24h": "1.418676",
-							"users": "1071",
-							"shares": "2240.415558",
-							"featured": false,
-							"featuredAt": null,
-							"inPlay": false,
-							"inPlayStartsAt": null,
-							"perpetual": true,
-							"moneyline": false,
-							"executionMode": "0",
-							"tradingModel": "amm",
-							"topHolders": [
-								"0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
-								"0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
-								"0x304fc7881ce775dd94607B4165006b70D885b441"
-							],
-							"outcomes": [
-								{
-									"id": "0",
-									"title": "Polymarket",
-									"shares": "615.670527",
-									"sharesHeld": "1559.441408",
-									"price": "0.72519807",
-									"closingPrice": null,
-									"priceChange24h": "-0.00034775",
-									"bestBid": null,
-									"bestAsk": null,
-									"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-									"holders": "122",
-									"tokenId": "1098"
-								},
-								{
-									"id": "1",
-									"title": "Kalshi",
-									"shares": "1624.745031",
-									"sharesHeld": "550.366904",
-									"price": "0.27480193",
-									"closingPrice": null,
-									"priceChange24h": "0.00091887",
-									"bestBid": null,
-									"bestAsk": null,
-									"imageUrl": null,
-									"holders": "10",
-									"tokenId": "1099"
-								}
-							],
-							"eventId": null,
-							"outcomeIndex": null,
-							"negRisk": false,
-							"oracle": {
-								"address": null,
-								"name": "Myriad",
-								"url": "https://myriad.markets",
-								"image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
-								"data": null
-							},
-							"externalSources": []
-						},
-						"indexPrice": null,
-						"markPrice": null,
-						"event": null
-					}
-				}
-			}
-		],
-		"fetchOrderBook": [
-			{
-				"description": "fetchOrderBook for an amm market",
-				"method": "fetchOrderBook",
-				"input": [
-					"POLYMARKET_KALSHI:POLYMARKET"
-				],
-				"httpResponse": {
-					"id": "549",
-					"networkId": "2741",
-					"slug": "polymarket-or-kalshi",
-					"title": "Polymarket or Kalshi?",
-					"shortName": null,
-					"ctaName": null,
-					"description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
-					"publishedAt": "2025-11-08T11:02:20.000Z",
-					"expiresAt": "2100-01-01T00:01:00.000Z",
-					"resolvesAt": null,
-					"fees": {
-						"buy": {
-							"fee": "0",
-							"treasury_fee": "0",
-							"distributor_fee": "0"
-						},
-						"sell": {
-							"fee": "0",
-							"treasury_fee": "0",
-							"distributor_fee": "0"
-						},
-						"treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-						"distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-					},
-					"state": "open",
-					"voided": false,
-					"resolvedOutcomeId": "-1",
-					"topics": [
-						"Sentiment"
-					],
-					"tags": [],
-					"resolutionSource": "https://x.com/myriadmarkets",
-					"resolutionTitle": "You",
-					"token": {
-						"name": "Bridged USDC (Stargate)",
-						"address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-						"symbol": "USDC.e",
-						"decimals": "6"
-					},
-					"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-					"bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
-					"ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
-					"liquidity": "1000",
-					"liquidityPrice": "0.89296615",
-					"volume": "11792850.814653",
-					"volume24h": "1.029",
-					"volumeNotional": "15796115.564182",
-					"volumeNotional24h": "1.418676",
-					"users": "1071",
-					"shares": "2240.415558",
-					"featured": false,
-					"featuredAt": null,
-					"inPlay": false,
-					"inPlayStartsAt": null,
-					"perpetual": true,
-					"moneyline": false,
-					"executionMode": "0",
-					"tradingModel": "amm",
-					"topHolders": [
-						"0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
-						"0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
-						"0x304fc7881ce775dd94607B4165006b70D885b441"
-					],
-					"outcomes": [
-						{
-							"id": "0",
-							"title": "Polymarket",
-							"shares": "615.670527",
-							"sharesHeld": "1559.441408",
-							"price": "0.72519807",
-							"closingPrice": null,
-							"priceChange24h": "-0.00034775",
-							"bestBid": null,
-							"bestAsk": null,
-							"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-							"holders": "122",
-							"tokenId": "1098"
-						},
-						{
-							"id": "1",
-							"title": "Kalshi",
-							"shares": "1624.745031",
-							"sharesHeld": "550.366904",
-							"price": "0.27480193",
-							"closingPrice": null,
-							"priceChange24h": "0.00091887",
-							"bestBid": null,
-							"bestAsk": null,
-							"imageUrl": null,
-							"holders": "10",
-							"tokenId": "1099"
-						}
-					],
-					"eventId": null,
-					"outcomeIndex": null,
-					"negRisk": false,
-					"oracle": {
-						"address": null,
-						"name": "Myriad",
-						"url": "https://myriad.markets",
-						"image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
-						"data": null
-					},
-					"externalSources": []
-				},
-				"parsedResponse": {
-					"outcome": "POLYMARKET_KALSHI:POLYMARKET",
-					"bids": [
-						[
-							0.72419807,
-							9999
-						]
-					],
-					"asks": [
-						[
-							0.72619807,
-							9999
-						]
-					],
-					"timestamp": 1781915900754,
-					"datetime": "2026-06-20T00:38:20.754Z",
-					"nonce": null,
-					"outcomeId": "2741:549/0",
-					"market": "POLYMARKET_KALSHI"
-				}
-			}
-		],
-		"fetchTrades": [
-			{
-				"description": "fetchTrades with limit",
-				"method": "fetchTrades",
-				"input": [
-					"POLYMARKET_KALSHI:POLYMARKET",
-					null,
-					3
-				],
-				"httpResponse": {
-					"data": [
-						{
-							"user": "0xD567662886faC76A73537c7a0cb18f4D5c2D841F",
-							"action": "sell",
-							"marketTitle": "Polymarket or Kalshi?",
-							"marketSlug": "polymarket-or-kalshi",
-							"marketId": "549",
-							"networkId": "2741",
-							"outcomeTitle": "Polymarket",
-							"outcomeId": "0",
-							"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-							"shares": "1.418676",
-							"value": "1.029",
-							"timestamp": "1780852609",
-							"blockNumber": "68248304",
-							"token": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-							"txId": "0x7cb221d8f840a7f5fb4d2655d34df7092b4b40762c34ebdd2233e81daa60365d"
-						},
-						{
-							"user": "0x43De6c46B54f4dd51F4ECDaaeEed11ac4D11301e",
-							"action": "sell",
-							"marketTitle": "Polymarket or Kalshi?",
-							"marketSlug": "polymarket-or-kalshi",
-							"marketId": "549",
-							"networkId": "2741",
-							"outcomeTitle": "Kalshi",
-							"outcomeId": "1",
-							"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-							"shares": "46.494609",
-							"value": "12.959",
-							"timestamp": "1779777188",
-							"blockNumber": "65022091",
-							"token": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-							"txId": "0xb456979a025926006e603017ef724db4ff50639257c2b5903c3d24e2f28bf1dc"
-						},
-						{
-							"user": "0x0458DcB6A70776f7d13F5E4c170E2ec3c1F53976",
-							"action": "sell",
-							"marketTitle": "Polymarket or Kalshi?",
-							"marketSlug": "polymarket-or-kalshi",
-							"marketId": "549",
-							"networkId": "2741",
-							"outcomeTitle": "Kalshi",
-							"outcomeId": "1",
-							"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-							"shares": "32.614935",
-							"value": "9.325553",
-							"timestamp": "1779684631",
-							"blockNumber": "64775443",
-							"token": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-							"txId": "0xbff632359aefef69d307b8297cda73fe2084fe5a2dfb608070e4914875fcc2c4"
-						}
-					],
-					"pagination": {
-						"page": "1",
-						"limit": "3",
-						"total": "401250",
-						"totalPages": "133750",
-						"hasNext": true,
-						"hasPrev": false
-					}
-				},
-				"parsedResponse": [
-					{
-						"id": "0x7cb221d8f840a7f5fb4d2655d34df7092b4b40762c34ebdd2233e81daa60365d",
-						"info": {
-							"user": "0xD567662886faC76A73537c7a0cb18f4D5c2D841F",
-							"action": "sell",
-							"marketTitle": "Polymarket or Kalshi?",
-							"marketSlug": "polymarket-or-kalshi",
-							"marketId": "549",
-							"networkId": "2741",
-							"outcomeTitle": "Polymarket",
-							"outcomeId": "0",
-							"imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
-							"shares": "1.418676",
-							"value": "1.029",
-							"timestamp": "1780852609",
-							"blockNumber": "68248304",
-							"token": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-							"txId": "0x7cb221d8f840a7f5fb4d2655d34df7092b4b40762c34ebdd2233e81daa60365d"
-						},
-						"timestamp": 1780852609000,
-						"datetime": "2026-06-07T17:16:49.000Z",
-						"outcome": "POLYMARKET_KALSHI:POLYMARKET",
-						"outcomeId": "2741:549/0",
-						"label": "Polymarket",
-						"market": "POLYMARKET_KALSHI:POLYMARKET",
-						"order": null,
-						"type": null,
-						"side": "sell",
-						"takerOrMaker": "taker",
-						"price": 0.7253241754988454,
-						"amount": 1.418676,
-						"cost": 1.029,
-						"fee": {
-							"cost": null,
-							"currency": null
-						},
-						"fees": [],
-						"event": null
-					}
-				]
-			}
-		],
-		"fetchOHLCV": [
-			{
-				"description": "fetchOHLCV daily",
-				"method": "fetchOHLCV",
-				"input": [
-					"FEAR_GREED:FEAR",
-					"1d"
-				],
-				"httpResponse": {
-					"id": "449",
-					"networkId": "2741",
-					"slug": "fear-or-greed",
-					"title": "Fear or Greed?",
-					"shortName": null,
-					"ctaName": null,
-					"description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nMarkets move on emotion, and none matter more than **Fear** and **Gr",
-					"publishedAt": "2025-10-07T15:48:47.000Z",
-					"expiresAt": "2100-01-01T00:01:00.000Z",
-					"resolvesAt": null,
-					"fees": {
-						"buy": {
-							"fee": "0",
-							"treasury_fee": "0",
-							"distributor_fee": "0"
-						},
-						"sell": {
-							"fee": "0",
-							"treasury_fee": "0",
-							"distributor_fee": "0"
-						},
-						"treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-						"distributor": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3"
-					},
-					"state": "open",
-					"voided": false,
-					"resolvedOutcomeId": "-1",
-					"topics": [
-						"Crypto",
-						"Sentiment"
-					],
-					"tags": [],
-					"resolutionSource": "https://x.com/myriadmarkets",
-					"resolutionTitle": "You",
-					"token": {
-						"name": "Bridged USDC (Stargate)",
-						"address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-						"symbol": "USDC.e",
-						"decimals": "6"
-					},
-					"imageUrl": "https://cdn.polkamarkets.com/QmWkt7sqJ74vGeFvSSLkFuW5ukAA2zKt24eHD7KRbwV2rz",
-					"bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/bb255b5e-03ff-4960-7d42-fdcdb0354a00/public",
-					"ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/9cf5170f-fb63-4a0a-8743-04d701f49a00/public",
-					"liquidity": "1000",
-					"liquidityPrice": "0.99769669",
-					"volume": "1122416.505018",
-					"volume24h": "1.039",
-					"volumeNotional": "2215102.718962",
-					"volumeNotional24h": "1.944775",
-					"users": "1258",
-					"shares": "2004.66888",
-					"featured": false,
-					"featuredAt": null,
-					"inPlay": false,
-					"inPlayStartsAt": null,
-					"perpetual": true,
-					"moneyline": false,
-					"executionMode": "0",
-					"tradingModel": "amm",
-					"topHolders": [
-						"0x950a42a5E748455Dc5d8B33F8A0c344Ba9cdb384",
-						"0x7988E00745d107B5605EE9935A49Ff3ECD4D3ED9",
-						"0x5497dbf37b8553f0C3d36D3458C558c0195685C5"
-					],
-					"outcomes": [
-						{
-							"id": "0",
-							"title": "Fear",
-							"shares": "1070.514885",
-							"sharesHeld": "743.109033",
-							"price": "0.46598917",
-							"closingPrice": null,
-							"priceChange24h": "0.00103708",
-							"bestBid": null,
-							"bestAsk": null,
-							"imageUrl": "https://cdn.polkamarkets.com/QmWkt7sqJ74vGeFvSSLkFuW5ukAA2zKt24eHD7KRbwV2rz",
-							"holders": "40",
-							"tokenId": "898",
-							"price_charts": [
-								{
-									"timeframe": "30d",
-									"prices": [
-										{
-											"value": "0.4776",
-											"timestamp": "1778702400",
-											"date": "2026-05-13T20:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778716800",
-											"date": "2026-05-14T00:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778731200",
-											"date": "2026-05-14T04:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778745600",
-											"date": "2026-05-14T08:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778760000",
-											"date": "2026-05-14T12:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778774400",
-											"date": "2026-05-14T16:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778788800",
-											"date": "2026-05-14T20:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778803200",
-											"date": "2026-05-15T00:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778817600",
-											"date": "2026-05-15T04:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778832000",
-											"date": "2026-05-15T08:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778846400",
-											"date": "2026-05-15T12:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778860800",
-											"date": "2026-05-15T16:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778875200",
-											"date": "2026-05-15T20:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778889600",
-											"date": "2026-05-16T00:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778904000",
-											"date": "2026-05-16T04:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778918400",
-											"date": "2026-05-16T08:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778932800",
-											"date": "2026-05-16T12:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778947200",
-											"date": "2026-05-16T16:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778961600",
-											"date": "2026-05-16T20:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778976000",
-											"date": "2026-05-17T00:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1778990400",
-											"date": "2026-05-17T04:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1779004800",
-											"date": "2026-05-17T08:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1779019200",
-											"date": "2026-05-17T12:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1779033600",
-											"date": "2026-05-17T16:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1779048000",
-											"date": "2026-05-17T20:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1779062400",
-											"date": "2026-05-18T00:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1779076800",
-											"date": "2026-05-18T04:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1779091200",
-											"date": "2026-05-18T08:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1779105600",
-											"date": "2026-05-18T12:00:00.000Z"
-										},
-										{
-											"value": "0.4776",
-											"timestamp": "1779120000",
-											"date": "2026-05-18T16:00:00.000Z"
-										}
-									],
-									"change_percent": "-0.024288107202680063"
-								}
-							]
-						},
-						{
-							"id": "1",
-							"title": "Greed",
-							"shares": "934.153995",
-							"sharesHeld": "879.469923",
-							"price": "0.53401083",
-							"closingPrice": null,
-							"priceChange24h": "-0.00090323",
-							"bestBid": null,
-							"bestAsk": null,
-							"imageUrl": null,
-							"holders": "53",
-							"tokenId": "899",
-							"price_charts": [
-								{
-									"timeframe": "30d",
-									"prices": [
-										{
-											"value": "0.5224",
-											"timestamp": "1778702400",
-											"date": "2026-05-13T20:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778716800",
-											"date": "2026-05-14T00:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778731200",
-											"date": "2026-05-14T04:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778745600",
-											"date": "2026-05-14T08:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778760000",
-											"date": "2026-05-14T12:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778774400",
-											"date": "2026-05-14T16:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778788800",
-											"date": "2026-05-14T20:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778803200",
-											"date": "2026-05-15T00:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778817600",
-											"date": "2026-05-15T04:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778832000",
-											"date": "2026-05-15T08:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778846400",
-											"date": "2026-05-15T12:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778860800",
-											"date": "2026-05-15T16:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778875200",
-											"date": "2026-05-15T20:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778889600",
-											"date": "2026-05-16T00:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778904000",
-											"date": "2026-05-16T04:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778918400",
-											"date": "2026-05-16T08:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778932800",
-											"date": "2026-05-16T12:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778947200",
-											"date": "2026-05-16T16:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778961600",
-											"date": "2026-05-16T20:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778976000",
-											"date": "2026-05-17T00:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1778990400",
-											"date": "2026-05-17T04:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1779004800",
-											"date": "2026-05-17T08:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1779019200",
-											"date": "2026-05-17T12:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1779033600",
-											"date": "2026-05-17T16:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1779048000",
-											"date": "2026-05-17T20:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1779062400",
-											"date": "2026-05-18T00:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1779076800",
-											"date": "2026-05-18T04:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1779091200",
-											"date": "2026-05-18T08:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1779105600",
-											"date": "2026-05-18T12:00:00.000Z"
-										},
-										{
-											"value": "0.5224",
-											"timestamp": "1779120000",
-											"date": "2026-05-18T16:00:00.000Z"
-										}
-									],
-									"change_percent": "0.022205206738131807"
-								}
-							]
-						}
-					],
-					"eventId": null,
-					"outcomeIndex": null,
-					"negRisk": false,
-					"oracle": {
-						"address": null,
-						"name": "Myriad",
-						"url": "https://myriad.markets",
-						"image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
-						"data": null
-					},
-					"externalSources": []
-				},
-				"parsedResponse": [
-					[
-						1778702400000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778716800000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778731200000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778745600000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778760000000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778774400000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778788800000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778803200000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778817600000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778832000000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778846400000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778860800000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778875200000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778889600000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778904000000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778918400000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778932800000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778947200000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778961600000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778976000000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1778990400000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1779004800000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1779019200000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1779033600000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1779048000000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1779062400000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1779076800000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1779091200000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1779105600000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					],
-					[
-						1779120000000,
-						0.4776,
-						0.4776,
-						0.4776,
-						0.4776,
-						0
-					]
-				]
-			}
-		]
-	}
+    "exchange": "myriad",
+    "asyncOnly": true,
+    "skipKeys": [
+        "timestamp",
+        "datetime"
+    ],
+    "options": {},
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker for an outcome",
+                "method": "fetchTicker",
+                "input": [
+                    "POLYMARKET_KALSHI:POLYMARKET"
+                ],
+                "httpResponse": {
+                    "id": "549",
+                    "networkId": "2741",
+                    "slug": "polymarket-or-kalshi",
+                    "title": "Polymarket or Kalshi?",
+                    "shortName": null,
+                    "ctaName": null,
+                    "description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
+                    "publishedAt": "2025-11-08T11:02:20.000Z",
+                    "expiresAt": "2100-01-01T00:01:00.000Z",
+                    "resolvesAt": null,
+                    "fees": {
+                        "buy": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "sell": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                        "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+                    },
+                    "state": "open",
+                    "voided": false,
+                    "resolvedOutcomeId": "-1",
+                    "topics": [
+                        "Sentiment"
+                    ],
+                    "tags": [],
+                    "resolutionSource": "https://x.com/myriadmarkets",
+                    "resolutionTitle": "You",
+                    "token": {
+                        "name": "Bridged USDC (Stargate)",
+                        "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                        "symbol": "USDC.e",
+                        "decimals": "6"
+                    },
+                    "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                    "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
+                    "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
+                    "liquidity": "1000",
+                    "liquidityPrice": "0.89296615",
+                    "volume": "11792850.814653",
+                    "volume24h": "1.029",
+                    "volumeNotional": "15796115.564182",
+                    "volumeNotional24h": "1.418676",
+                    "users": "1071",
+                    "shares": "2240.415558",
+                    "featured": false,
+                    "featuredAt": null,
+                    "inPlay": false,
+                    "inPlayStartsAt": null,
+                    "perpetual": true,
+                    "moneyline": false,
+                    "executionMode": "0",
+                    "tradingModel": "amm",
+                    "topHolders": [
+                        "0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
+                        "0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
+                        "0x304fc7881ce775dd94607B4165006b70D885b441"
+                    ],
+                    "outcomes": [
+                        {
+                            "id": "0",
+                            "title": "Polymarket",
+                            "shares": "615.670527",
+                            "sharesHeld": "1559.441408",
+                            "price": "0.72519807",
+                            "closingPrice": null,
+                            "priceChange24h": "-0.00034775",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                            "holders": "122",
+                            "tokenId": "1098"
+                        },
+                        {
+                            "id": "1",
+                            "title": "Kalshi",
+                            "shares": "1624.745031",
+                            "sharesHeld": "550.366904",
+                            "price": "0.27480193",
+                            "closingPrice": null,
+                            "priceChange24h": "0.00091887",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": null,
+                            "holders": "10",
+                            "tokenId": "1099"
+                        }
+                    ],
+                    "eventId": null,
+                    "outcomeIndex": null,
+                    "negRisk": false,
+                    "oracle": {
+                        "address": null,
+                        "name": "Myriad",
+                        "url": "https://myriad.markets",
+                        "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                        "data": null
+                    },
+                    "externalSources": []
+                },
+                "parsedResponse": {
+                    "outcome": "POLYMARKET_KALSHI:POLYMARKET",
+                    "outcomeId": "2741:549/0",
+                    "label": "Polymarket",
+                    "market": "POLYMARKET_KALSHI:POLYMARKET",
+                    "timestamp": 1781915900351,
+                    "datetime": "2026-06-20T00:38:20.351Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 0.72519807,
+                    "bidVolume": null,
+                    "ask": 0.72519807,
+                    "askVolume": null,
+                    "vwap": 1.3786938775510205,
+                    "open": 0.72554582,
+                    "close": 0.72519807,
+                    "last": 0.72519807,
+                    "previousClose": null,
+                    "change": -0.00034775,
+                    "percentage": -0.00034775,
+                    "average": 0.72519807,
+                    "baseVolume": 1.029,
+                    "quoteVolume": 1.418676,
+                    "info": {
+                        "id": "549",
+                        "networkId": "2741",
+                        "slug": "polymarket-or-kalshi",
+                        "title": "Polymarket or Kalshi?",
+                        "shortName": null,
+                        "ctaName": null,
+                        "description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
+                        "publishedAt": "2025-11-08T11:02:20.000Z",
+                        "expiresAt": "2100-01-01T00:01:00.000Z",
+                        "resolvesAt": null,
+                        "fees": {
+                            "buy": {
+                                "fee": "0",
+                                "treasury_fee": "0",
+                                "distributor_fee": "0"
+                            },
+                            "sell": {
+                                "fee": "0",
+                                "treasury_fee": "0",
+                                "distributor_fee": "0"
+                            },
+                            "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                            "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+                        },
+                        "state": "open",
+                        "voided": false,
+                        "resolvedOutcomeId": "-1",
+                        "topics": [
+                            "Sentiment"
+                        ],
+                        "tags": [],
+                        "resolutionSource": "https://x.com/myriadmarkets",
+                        "resolutionTitle": "You",
+                        "token": {
+                            "name": "Bridged USDC (Stargate)",
+                            "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                            "symbol": "USDC.e",
+                            "decimals": "6"
+                        },
+                        "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                        "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
+                        "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
+                        "liquidity": "1000",
+                        "liquidityPrice": "0.89296615",
+                        "volume": "11792850.814653",
+                        "volume24h": "1.029",
+                        "volumeNotional": "15796115.564182",
+                        "volumeNotional24h": "1.418676",
+                        "users": "1071",
+                        "shares": "2240.415558",
+                        "featured": false,
+                        "featuredAt": null,
+                        "inPlay": false,
+                        "inPlayStartsAt": null,
+                        "perpetual": true,
+                        "moneyline": false,
+                        "executionMode": "0",
+                        "tradingModel": "amm",
+                        "topHolders": [
+                            "0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
+                            "0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
+                            "0x304fc7881ce775dd94607B4165006b70D885b441"
+                        ],
+                        "outcomes": [
+                            {
+                                "id": "0",
+                                "title": "Polymarket",
+                                "shares": "615.670527",
+                                "sharesHeld": "1559.441408",
+                                "price": "0.72519807",
+                                "closingPrice": null,
+                                "priceChange24h": "-0.00034775",
+                                "bestBid": null,
+                                "bestAsk": null,
+                                "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                                "holders": "122",
+                                "tokenId": "1098"
+                            },
+                            {
+                                "id": "1",
+                                "title": "Kalshi",
+                                "shares": "1624.745031",
+                                "sharesHeld": "550.366904",
+                                "price": "0.27480193",
+                                "closingPrice": null,
+                                "priceChange24h": "0.00091887",
+                                "bestBid": null,
+                                "bestAsk": null,
+                                "imageUrl": null,
+                                "holders": "10",
+                                "tokenId": "1099"
+                            }
+                        ],
+                        "eventId": null,
+                        "outcomeIndex": null,
+                        "negRisk": false,
+                        "oracle": {
+                            "address": null,
+                            "name": "Myriad",
+                            "url": "https://myriad.markets",
+                            "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                            "data": null
+                        },
+                        "externalSources": []
+                    },
+                    "indexPrice": null,
+                    "markPrice": null,
+                    "event": null
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers with two outcomes of the same market",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "POLYMARKET_KALSHI:POLYMARKET",
+                        "POLYMARKET_KALSHI:KALSHI"
+                    ]
+                ],
+                "httpResponse": {
+                    "id": "549",
+                    "networkId": "2741",
+                    "slug": "polymarket-or-kalshi",
+                    "title": "Polymarket or Kalshi?",
+                    "shortName": null,
+                    "ctaName": null,
+                    "description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
+                    "publishedAt": "2025-11-08T11:02:20.000Z",
+                    "expiresAt": "2100-01-01T00:01:00.000Z",
+                    "resolvesAt": null,
+                    "fees": {
+                        "buy": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "sell": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                        "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+                    },
+                    "state": "open",
+                    "voided": false,
+                    "resolvedOutcomeId": "-1",
+                    "topics": [
+                        "Sentiment"
+                    ],
+                    "tags": [],
+                    "resolutionSource": "https://x.com/myriadmarkets",
+                    "resolutionTitle": "You",
+                    "token": {
+                        "name": "Bridged USDC (Stargate)",
+                        "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                        "symbol": "USDC.e",
+                        "decimals": "6"
+                    },
+                    "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                    "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
+                    "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
+                    "liquidity": "1000",
+                    "liquidityPrice": "0.89296615",
+                    "volume": "11792850.814653",
+                    "volume24h": "1.029",
+                    "volumeNotional": "15796115.564182",
+                    "volumeNotional24h": "1.418676",
+                    "users": "1071",
+                    "shares": "2240.415558",
+                    "featured": false,
+                    "featuredAt": null,
+                    "inPlay": false,
+                    "inPlayStartsAt": null,
+                    "perpetual": true,
+                    "moneyline": false,
+                    "executionMode": "0",
+                    "tradingModel": "amm",
+                    "topHolders": [
+                        "0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
+                        "0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
+                        "0x304fc7881ce775dd94607B4165006b70D885b441"
+                    ],
+                    "outcomes": [
+                        {
+                            "id": "0",
+                            "title": "Polymarket",
+                            "shares": "615.670527",
+                            "sharesHeld": "1559.441408",
+                            "price": "0.72519807",
+                            "closingPrice": null,
+                            "priceChange24h": "-0.00034775",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                            "holders": "122",
+                            "tokenId": "1098"
+                        },
+                        {
+                            "id": "1",
+                            "title": "Kalshi",
+                            "shares": "1624.745031",
+                            "sharesHeld": "550.366904",
+                            "price": "0.27480193",
+                            "closingPrice": null,
+                            "priceChange24h": "0.00091887",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": null,
+                            "holders": "10",
+                            "tokenId": "1099"
+                        }
+                    ],
+                    "eventId": null,
+                    "outcomeIndex": null,
+                    "negRisk": false,
+                    "oracle": {
+                        "address": null,
+                        "name": "Myriad",
+                        "url": "https://myriad.markets",
+                        "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                        "data": null
+                    },
+                    "externalSources": []
+                },
+                "parsedResponse": {
+                    "POLYMARKET_KALSHI:POLYMARKET": {
+                        "outcome": "POLYMARKET_KALSHI:POLYMARKET",
+                        "outcomeId": "2741:549/0",
+                        "label": "Polymarket",
+                        "market": "POLYMARKET_KALSHI:POLYMARKET",
+                        "timestamp": 1781915900552,
+                        "datetime": "2026-06-20T00:38:20.552Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 0.72519807,
+                        "bidVolume": null,
+                        "ask": 0.72519807,
+                        "askVolume": null,
+                        "vwap": 1.3786938775510205,
+                        "open": 0.72554582,
+                        "close": 0.72519807,
+                        "last": 0.72519807,
+                        "previousClose": null,
+                        "change": -0.00034775,
+                        "percentage": -0.00034775,
+                        "average": 0.72519807,
+                        "baseVolume": 1.029,
+                        "quoteVolume": 1.418676,
+                        "info": {
+                            "id": "549",
+                            "networkId": "2741",
+                            "slug": "polymarket-or-kalshi",
+                            "title": "Polymarket or Kalshi?",
+                            "shortName": null,
+                            "ctaName": null,
+                            "description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
+                            "publishedAt": "2025-11-08T11:02:20.000Z",
+                            "expiresAt": "2100-01-01T00:01:00.000Z",
+                            "resolvesAt": null,
+                            "fees": {
+                                "buy": {
+                                    "fee": "0",
+                                    "treasury_fee": "0",
+                                    "distributor_fee": "0"
+                                },
+                                "sell": {
+                                    "fee": "0",
+                                    "treasury_fee": "0",
+                                    "distributor_fee": "0"
+                                },
+                                "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                                "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+                            },
+                            "state": "open",
+                            "voided": false,
+                            "resolvedOutcomeId": "-1",
+                            "topics": [
+                                "Sentiment"
+                            ],
+                            "tags": [],
+                            "resolutionSource": "https://x.com/myriadmarkets",
+                            "resolutionTitle": "You",
+                            "token": {
+                                "name": "Bridged USDC (Stargate)",
+                                "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                                "symbol": "USDC.e",
+                                "decimals": "6"
+                            },
+                            "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                            "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
+                            "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
+                            "liquidity": "1000",
+                            "liquidityPrice": "0.89296615",
+                            "volume": "11792850.814653",
+                            "volume24h": "1.029",
+                            "volumeNotional": "15796115.564182",
+                            "volumeNotional24h": "1.418676",
+                            "users": "1071",
+                            "shares": "2240.415558",
+                            "featured": false,
+                            "featuredAt": null,
+                            "inPlay": false,
+                            "inPlayStartsAt": null,
+                            "perpetual": true,
+                            "moneyline": false,
+                            "executionMode": "0",
+                            "tradingModel": "amm",
+                            "topHolders": [
+                                "0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
+                                "0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
+                                "0x304fc7881ce775dd94607B4165006b70D885b441"
+                            ],
+                            "outcomes": [
+                                {
+                                    "id": "0",
+                                    "title": "Polymarket",
+                                    "shares": "615.670527",
+                                    "sharesHeld": "1559.441408",
+                                    "price": "0.72519807",
+                                    "closingPrice": null,
+                                    "priceChange24h": "-0.00034775",
+                                    "bestBid": null,
+                                    "bestAsk": null,
+                                    "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                                    "holders": "122",
+                                    "tokenId": "1098"
+                                },
+                                {
+                                    "id": "1",
+                                    "title": "Kalshi",
+                                    "shares": "1624.745031",
+                                    "sharesHeld": "550.366904",
+                                    "price": "0.27480193",
+                                    "closingPrice": null,
+                                    "priceChange24h": "0.00091887",
+                                    "bestBid": null,
+                                    "bestAsk": null,
+                                    "imageUrl": null,
+                                    "holders": "10",
+                                    "tokenId": "1099"
+                                }
+                            ],
+                            "eventId": null,
+                            "outcomeIndex": null,
+                            "negRisk": false,
+                            "oracle": {
+                                "address": null,
+                                "name": "Myriad",
+                                "url": "https://myriad.markets",
+                                "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                                "data": null
+                            },
+                            "externalSources": []
+                        },
+                        "indexPrice": null,
+                        "markPrice": null,
+                        "event": null
+                    },
+                    "POLYMARKET_KALSHI:KALSHI": {
+                        "outcome": "POLYMARKET_KALSHI:KALSHI",
+                        "outcomeId": "2741:549/1",
+                        "label": "Kalshi",
+                        "market": "POLYMARKET_KALSHI:KALSHI",
+                        "timestamp": 1781915900552,
+                        "datetime": "2026-06-20T00:38:20.552Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 0.27480193,
+                        "bidVolume": null,
+                        "ask": 0.27480193,
+                        "askVolume": null,
+                        "vwap": 1.3786938775510205,
+                        "open": 0.27388306,
+                        "close": 0.27480193,
+                        "last": 0.27480193,
+                        "previousClose": null,
+                        "change": 0.00091887,
+                        "percentage": 0.00091887,
+                        "average": 0.27480193,
+                        "baseVolume": 1.029,
+                        "quoteVolume": 1.418676,
+                        "info": {
+                            "id": "549",
+                            "networkId": "2741",
+                            "slug": "polymarket-or-kalshi",
+                            "title": "Polymarket or Kalshi?",
+                            "shortName": null,
+                            "ctaName": null,
+                            "description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
+                            "publishedAt": "2025-11-08T11:02:20.000Z",
+                            "expiresAt": "2100-01-01T00:01:00.000Z",
+                            "resolvesAt": null,
+                            "fees": {
+                                "buy": {
+                                    "fee": "0",
+                                    "treasury_fee": "0",
+                                    "distributor_fee": "0"
+                                },
+                                "sell": {
+                                    "fee": "0",
+                                    "treasury_fee": "0",
+                                    "distributor_fee": "0"
+                                },
+                                "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                                "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+                            },
+                            "state": "open",
+                            "voided": false,
+                            "resolvedOutcomeId": "-1",
+                            "topics": [
+                                "Sentiment"
+                            ],
+                            "tags": [],
+                            "resolutionSource": "https://x.com/myriadmarkets",
+                            "resolutionTitle": "You",
+                            "token": {
+                                "name": "Bridged USDC (Stargate)",
+                                "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                                "symbol": "USDC.e",
+                                "decimals": "6"
+                            },
+                            "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                            "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
+                            "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
+                            "liquidity": "1000",
+                            "liquidityPrice": "0.89296615",
+                            "volume": "11792850.814653",
+                            "volume24h": "1.029",
+                            "volumeNotional": "15796115.564182",
+                            "volumeNotional24h": "1.418676",
+                            "users": "1071",
+                            "shares": "2240.415558",
+                            "featured": false,
+                            "featuredAt": null,
+                            "inPlay": false,
+                            "inPlayStartsAt": null,
+                            "perpetual": true,
+                            "moneyline": false,
+                            "executionMode": "0",
+                            "tradingModel": "amm",
+                            "topHolders": [
+                                "0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
+                                "0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
+                                "0x304fc7881ce775dd94607B4165006b70D885b441"
+                            ],
+                            "outcomes": [
+                                {
+                                    "id": "0",
+                                    "title": "Polymarket",
+                                    "shares": "615.670527",
+                                    "sharesHeld": "1559.441408",
+                                    "price": "0.72519807",
+                                    "closingPrice": null,
+                                    "priceChange24h": "-0.00034775",
+                                    "bestBid": null,
+                                    "bestAsk": null,
+                                    "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                                    "holders": "122",
+                                    "tokenId": "1098"
+                                },
+                                {
+                                    "id": "1",
+                                    "title": "Kalshi",
+                                    "shares": "1624.745031",
+                                    "sharesHeld": "550.366904",
+                                    "price": "0.27480193",
+                                    "closingPrice": null,
+                                    "priceChange24h": "0.00091887",
+                                    "bestBid": null,
+                                    "bestAsk": null,
+                                    "imageUrl": null,
+                                    "holders": "10",
+                                    "tokenId": "1099"
+                                }
+                            ],
+                            "eventId": null,
+                            "outcomeIndex": null,
+                            "negRisk": false,
+                            "oracle": {
+                                "address": null,
+                                "name": "Myriad",
+                                "url": "https://myriad.markets",
+                                "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                                "data": null
+                            },
+                            "externalSources": []
+                        },
+                        "indexPrice": null,
+                        "markPrice": null,
+                        "event": null
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for an amm market",
+                "method": "fetchOrderBook",
+                "input": [
+                    "POLYMARKET_KALSHI:POLYMARKET"
+                ],
+                "httpResponse": {
+                    "id": "549",
+                    "networkId": "2741",
+                    "slug": "polymarket-or-kalshi",
+                    "title": "Polymarket or Kalshi?",
+                    "shortName": null,
+                    "ctaName": null,
+                    "description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nPolymarket vs Kalshi: Both have emerged as strong contenders in the ",
+                    "publishedAt": "2025-11-08T11:02:20.000Z",
+                    "expiresAt": "2100-01-01T00:01:00.000Z",
+                    "resolvesAt": null,
+                    "fees": {
+                        "buy": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "sell": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                        "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+                    },
+                    "state": "open",
+                    "voided": false,
+                    "resolvedOutcomeId": "-1",
+                    "topics": [
+                        "Sentiment"
+                    ],
+                    "tags": [],
+                    "resolutionSource": "https://x.com/myriadmarkets",
+                    "resolutionTitle": "You",
+                    "token": {
+                        "name": "Bridged USDC (Stargate)",
+                        "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                        "symbol": "USDC.e",
+                        "decimals": "6"
+                    },
+                    "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                    "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
+                    "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
+                    "liquidity": "1000",
+                    "liquidityPrice": "0.89296615",
+                    "volume": "11792850.814653",
+                    "volume24h": "1.029",
+                    "volumeNotional": "15796115.564182",
+                    "volumeNotional24h": "1.418676",
+                    "users": "1071",
+                    "shares": "2240.415558",
+                    "featured": false,
+                    "featuredAt": null,
+                    "inPlay": false,
+                    "inPlayStartsAt": null,
+                    "perpetual": true,
+                    "moneyline": false,
+                    "executionMode": "0",
+                    "tradingModel": "amm",
+                    "topHolders": [
+                        "0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
+                        "0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
+                        "0x304fc7881ce775dd94607B4165006b70D885b441"
+                    ],
+                    "outcomes": [
+                        {
+                            "id": "0",
+                            "title": "Polymarket",
+                            "shares": "615.670527",
+                            "sharesHeld": "1559.441408",
+                            "price": "0.72519807",
+                            "closingPrice": null,
+                            "priceChange24h": "-0.00034775",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                            "holders": "122",
+                            "tokenId": "1098"
+                        },
+                        {
+                            "id": "1",
+                            "title": "Kalshi",
+                            "shares": "1624.745031",
+                            "sharesHeld": "550.366904",
+                            "price": "0.27480193",
+                            "closingPrice": null,
+                            "priceChange24h": "0.00091887",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": null,
+                            "holders": "10",
+                            "tokenId": "1099"
+                        }
+                    ],
+                    "eventId": null,
+                    "outcomeIndex": null,
+                    "negRisk": false,
+                    "oracle": {
+                        "address": null,
+                        "name": "Myriad",
+                        "url": "https://myriad.markets",
+                        "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                        "data": null
+                    },
+                    "externalSources": []
+                },
+                "parsedResponse": {
+                    "outcome": "POLYMARKET_KALSHI:POLYMARKET",
+                    "bids": [
+                        [
+                            0.72419807,
+                            9999
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.72619807,
+                            9999
+                        ]
+                    ],
+                    "timestamp": 1781915900754,
+                    "datetime": "2026-06-20T00:38:20.754Z",
+                    "nonce": null,
+                    "outcomeId": "2741:549/0",
+                    "market": "POLYMARKET_KALSHI"
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with limit",
+                "method": "fetchTrades",
+                "input": [
+                    "POLYMARKET_KALSHI:POLYMARKET",
+                    null,
+                    3
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "user": "0xD567662886faC76A73537c7a0cb18f4D5c2D841F",
+                            "action": "sell",
+                            "marketTitle": "Polymarket or Kalshi?",
+                            "marketSlug": "polymarket-or-kalshi",
+                            "marketId": "549",
+                            "networkId": "2741",
+                            "outcomeTitle": "Polymarket",
+                            "outcomeId": "0",
+                            "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                            "shares": "1.418676",
+                            "value": "1.029",
+                            "timestamp": "1780852609",
+                            "blockNumber": "68248304",
+                            "token": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                            "txId": "0x7cb221d8f840a7f5fb4d2655d34df7092b4b40762c34ebdd2233e81daa60365d"
+                        },
+                        {
+                            "user": "0x43De6c46B54f4dd51F4ECDaaeEed11ac4D11301e",
+                            "action": "sell",
+                            "marketTitle": "Polymarket or Kalshi?",
+                            "marketSlug": "polymarket-or-kalshi",
+                            "marketId": "549",
+                            "networkId": "2741",
+                            "outcomeTitle": "Kalshi",
+                            "outcomeId": "1",
+                            "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                            "shares": "46.494609",
+                            "value": "12.959",
+                            "timestamp": "1779777188",
+                            "blockNumber": "65022091",
+                            "token": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                            "txId": "0xb456979a025926006e603017ef724db4ff50639257c2b5903c3d24e2f28bf1dc"
+                        },
+                        {
+                            "user": "0x0458DcB6A70776f7d13F5E4c170E2ec3c1F53976",
+                            "action": "sell",
+                            "marketTitle": "Polymarket or Kalshi?",
+                            "marketSlug": "polymarket-or-kalshi",
+                            "marketId": "549",
+                            "networkId": "2741",
+                            "outcomeTitle": "Kalshi",
+                            "outcomeId": "1",
+                            "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                            "shares": "32.614935",
+                            "value": "9.325553",
+                            "timestamp": "1779684631",
+                            "blockNumber": "64775443",
+                            "token": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                            "txId": "0xbff632359aefef69d307b8297cda73fe2084fe5a2dfb608070e4914875fcc2c4"
+                        }
+                    ],
+                    "pagination": {
+                        "page": "1",
+                        "limit": "3",
+                        "total": "401250",
+                        "totalPages": "133750",
+                        "hasNext": true,
+                        "hasPrev": false
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0x7cb221d8f840a7f5fb4d2655d34df7092b4b40762c34ebdd2233e81daa60365d",
+                        "info": {
+                            "user": "0xD567662886faC76A73537c7a0cb18f4D5c2D841F",
+                            "action": "sell",
+                            "marketTitle": "Polymarket or Kalshi?",
+                            "marketSlug": "polymarket-or-kalshi",
+                            "marketId": "549",
+                            "networkId": "2741",
+                            "outcomeTitle": "Polymarket",
+                            "outcomeId": "0",
+                            "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                            "shares": "1.418676",
+                            "value": "1.029",
+                            "timestamp": "1780852609",
+                            "blockNumber": "68248304",
+                            "token": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                            "txId": "0x7cb221d8f840a7f5fb4d2655d34df7092b4b40762c34ebdd2233e81daa60365d"
+                        },
+                        "timestamp": 1780852609000,
+                        "datetime": "2026-06-07T17:16:49.000Z",
+                        "outcome": "POLYMARKET_KALSHI:POLYMARKET",
+                        "outcomeId": "2741:549/0",
+                        "label": "Polymarket",
+                        "market": "POLYMARKET_KALSHI:POLYMARKET",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 0.7253241754988454,
+                        "amount": 1.418676,
+                        "cost": 1.029,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [],
+                        "event": null
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV daily",
+                "method": "fetchOHLCV",
+                "input": [
+                    "FEAR_GREED:FEAR",
+                    "1d"
+                ],
+                "httpResponse": {
+                    "id": "449",
+                    "networkId": "2741",
+                    "slug": "fear-or-greed",
+                    "title": "Fear or Greed?",
+                    "shortName": null,
+                    "ctaName": null,
+                    "description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either option.**\n\nMarkets move on emotion, and none matter more than **Fear** and **Gr",
+                    "publishedAt": "2025-10-07T15:48:47.000Z",
+                    "expiresAt": "2100-01-01T00:01:00.000Z",
+                    "resolvesAt": null,
+                    "fees": {
+                        "buy": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "sell": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                        "distributor": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3"
+                    },
+                    "state": "open",
+                    "voided": false,
+                    "resolvedOutcomeId": "-1",
+                    "topics": [
+                        "Crypto",
+                        "Sentiment"
+                    ],
+                    "tags": [],
+                    "resolutionSource": "https://x.com/myriadmarkets",
+                    "resolutionTitle": "You",
+                    "token": {
+                        "name": "Bridged USDC (Stargate)",
+                        "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                        "symbol": "USDC.e",
+                        "decimals": "6"
+                    },
+                    "imageUrl": "https://cdn.polkamarkets.com/QmWkt7sqJ74vGeFvSSLkFuW5ukAA2zKt24eHD7KRbwV2rz",
+                    "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/bb255b5e-03ff-4960-7d42-fdcdb0354a00/public",
+                    "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/9cf5170f-fb63-4a0a-8743-04d701f49a00/public",
+                    "liquidity": "1000",
+                    "liquidityPrice": "0.99769669",
+                    "volume": "1122416.505018",
+                    "volume24h": "1.039",
+                    "volumeNotional": "2215102.718962",
+                    "volumeNotional24h": "1.944775",
+                    "users": "1258",
+                    "shares": "2004.66888",
+                    "featured": false,
+                    "featuredAt": null,
+                    "inPlay": false,
+                    "inPlayStartsAt": null,
+                    "perpetual": true,
+                    "moneyline": false,
+                    "executionMode": "0",
+                    "tradingModel": "amm",
+                    "topHolders": [
+                        "0x950a42a5E748455Dc5d8B33F8A0c344Ba9cdb384",
+                        "0x7988E00745d107B5605EE9935A49Ff3ECD4D3ED9",
+                        "0x5497dbf37b8553f0C3d36D3458C558c0195685C5"
+                    ],
+                    "outcomes": [
+                        {
+                            "id": "0",
+                            "title": "Fear",
+                            "shares": "1070.514885",
+                            "sharesHeld": "743.109033",
+                            "price": "0.46598917",
+                            "closingPrice": null,
+                            "priceChange24h": "0.00103708",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": "https://cdn.polkamarkets.com/QmWkt7sqJ74vGeFvSSLkFuW5ukAA2zKt24eHD7KRbwV2rz",
+                            "holders": "40",
+                            "tokenId": "898",
+                            "price_charts": [
+                                {
+                                    "timeframe": "30d",
+                                    "prices": [
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778702400",
+                                            "date": "2026-05-13T20:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778716800",
+                                            "date": "2026-05-14T00:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778731200",
+                                            "date": "2026-05-14T04:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778745600",
+                                            "date": "2026-05-14T08:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778760000",
+                                            "date": "2026-05-14T12:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778774400",
+                                            "date": "2026-05-14T16:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778788800",
+                                            "date": "2026-05-14T20:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778803200",
+                                            "date": "2026-05-15T00:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778817600",
+                                            "date": "2026-05-15T04:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778832000",
+                                            "date": "2026-05-15T08:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778846400",
+                                            "date": "2026-05-15T12:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778860800",
+                                            "date": "2026-05-15T16:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778875200",
+                                            "date": "2026-05-15T20:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778889600",
+                                            "date": "2026-05-16T00:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778904000",
+                                            "date": "2026-05-16T04:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778918400",
+                                            "date": "2026-05-16T08:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778932800",
+                                            "date": "2026-05-16T12:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778947200",
+                                            "date": "2026-05-16T16:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778961600",
+                                            "date": "2026-05-16T20:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778976000",
+                                            "date": "2026-05-17T00:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1778990400",
+                                            "date": "2026-05-17T04:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1779004800",
+                                            "date": "2026-05-17T08:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1779019200",
+                                            "date": "2026-05-17T12:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1779033600",
+                                            "date": "2026-05-17T16:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1779048000",
+                                            "date": "2026-05-17T20:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1779062400",
+                                            "date": "2026-05-18T00:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1779076800",
+                                            "date": "2026-05-18T04:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1779091200",
+                                            "date": "2026-05-18T08:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1779105600",
+                                            "date": "2026-05-18T12:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.4776",
+                                            "timestamp": "1779120000",
+                                            "date": "2026-05-18T16:00:00.000Z"
+                                        }
+                                    ],
+                                    "change_percent": "-0.024288107202680063"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "1",
+                            "title": "Greed",
+                            "shares": "934.153995",
+                            "sharesHeld": "879.469923",
+                            "price": "0.53401083",
+                            "closingPrice": null,
+                            "priceChange24h": "-0.00090323",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": null,
+                            "holders": "53",
+                            "tokenId": "899",
+                            "price_charts": [
+                                {
+                                    "timeframe": "30d",
+                                    "prices": [
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778702400",
+                                            "date": "2026-05-13T20:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778716800",
+                                            "date": "2026-05-14T00:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778731200",
+                                            "date": "2026-05-14T04:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778745600",
+                                            "date": "2026-05-14T08:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778760000",
+                                            "date": "2026-05-14T12:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778774400",
+                                            "date": "2026-05-14T16:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778788800",
+                                            "date": "2026-05-14T20:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778803200",
+                                            "date": "2026-05-15T00:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778817600",
+                                            "date": "2026-05-15T04:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778832000",
+                                            "date": "2026-05-15T08:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778846400",
+                                            "date": "2026-05-15T12:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778860800",
+                                            "date": "2026-05-15T16:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778875200",
+                                            "date": "2026-05-15T20:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778889600",
+                                            "date": "2026-05-16T00:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778904000",
+                                            "date": "2026-05-16T04:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778918400",
+                                            "date": "2026-05-16T08:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778932800",
+                                            "date": "2026-05-16T12:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778947200",
+                                            "date": "2026-05-16T16:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778961600",
+                                            "date": "2026-05-16T20:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778976000",
+                                            "date": "2026-05-17T00:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1778990400",
+                                            "date": "2026-05-17T04:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1779004800",
+                                            "date": "2026-05-17T08:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1779019200",
+                                            "date": "2026-05-17T12:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1779033600",
+                                            "date": "2026-05-17T16:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1779048000",
+                                            "date": "2026-05-17T20:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1779062400",
+                                            "date": "2026-05-18T00:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1779076800",
+                                            "date": "2026-05-18T04:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1779091200",
+                                            "date": "2026-05-18T08:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1779105600",
+                                            "date": "2026-05-18T12:00:00.000Z"
+                                        },
+                                        {
+                                            "value": "0.5224",
+                                            "timestamp": "1779120000",
+                                            "date": "2026-05-18T16:00:00.000Z"
+                                        }
+                                    ],
+                                    "change_percent": "0.022205206738131807"
+                                }
+                            ]
+                        }
+                    ],
+                    "eventId": null,
+                    "outcomeIndex": null,
+                    "negRisk": false,
+                    "oracle": {
+                        "address": null,
+                        "name": "Myriad",
+                        "url": "https://myriad.markets",
+                        "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                        "data": null
+                    },
+                    "externalSources": []
+                },
+                "parsedResponse": [
+                    [
+                        1778702400000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778716800000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778731200000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778745600000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778760000000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778774400000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778788800000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778803200000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778817600000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778832000000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778846400000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778860800000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778875200000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778889600000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778904000000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778918400000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778932800000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778947200000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778961600000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778976000000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1778990400000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1779004800000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1779019200000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1779033600000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1779048000000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1779062400000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1779076800000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1779091200000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1779105600000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ],
+                    [
+                        1779120000000,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0.4776,
+                        0
+                    ]
+                ]
+            }
+        ]
+    }
 }

@@ -733,6 +733,13 @@ public partial class testMainClass
 
     public async virtual Task<object> testExchange(Exchange exchange, object providedSymbol = null)
     {
+        // prediction-market exchanges have no spot/swap markets and address methods by an
+        // outcome handle (not a market symbol), so they take a dedicated test flow
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            await this.runPredictionTests(exchange);
+            return true;
+        }
         object spotSymbols = null;
         object swapSymbols = null;
         if (isTrue(!isEqual(providedSymbol, null)))
@@ -813,6 +820,234 @@ public partial class testMainClass
                 ((IDictionary<string,object>)exchange.options)["defaultType"] = "swap";
                 await this.runPrivateTests(exchange, swapSymbols);
             }
+        }
+        return true;
+    }
+
+    public async virtual Task<object> runPredictionTests(Exchange exchange)
+    {
+        // loadMarkets (already called by loadExchange) populates the markets and their outcome
+        // tokens; resolve a tradeable outcome handle from them (works in every language since
+        // exchange.markets is typed on the base, unlike the prediction-only outcomes cache),
+        // then fetchEvents for an event id and run every method by that outcome handle
+        // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
+        // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
+        object outcomeSymbol = exchange.safeString(this.skippedSettingsForExchange, "preferredPredictionOutcome");
+        if (isTrue(isEqual(outcomeSymbol, null)))
+        {
+            object marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
+            {
+                object market = getValue(exchange.markets, getValue(marketKeys, i));
+                object outcomesList = exchange.safeList(market, "outcomes", new List<object>() {});
+                object outcomesListLength = getArrayLength(outcomesList);
+                if (isTrue(isGreaterThan(outcomesListLength, 0)))
+                {
+                    outcomeSymbol = exchange.safeString(getValue(outcomesList, 0), "outcome");
+                    if (isTrue(!isEqual(outcomeSymbol, null)))
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+        if (isTrue(isEqual(outcomeSymbol, null)))
+        {
+            dump("[TEST_FAILURE]", exchange.id, "no tradeable outcome available in loaded markets");
+            return false;
+        }
+        // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
+        // (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
+        // inline rather than through a per-method test file
+        object eventId = null;
+        if (!isTrue(this.wsTests))
+        {
+            try
+            {
+                // some venues require fetchEvents to be scoped (e.g. hyperliquid's requireEventQuery);
+                // a skip-tests.json preferredEventQuery supplies a query that matches their markets
+                object eventQuery = exchange.safeString(this.skippedSettingsForExchange, "preferredEventQuery");
+                object eventParams = new Dictionary<string, object>() {};
+                if (isTrue(!isEqual(eventQuery, null)))
+                {
+                    ((IDictionary<string,object>)eventParams)["query"] = eventQuery;
+                }
+                object events = await callExchangeMethodDynamically(exchange, "fetchEvents", new List<object>() {eventParams});
+                assert(!isEqual(events, null), add(exchange.id, " fetchEvents returned undefined"));
+                // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
+                object eventsList = exchange.safeList(new Dictionary<string, object>() {
+                    { "events", events },
+                }, "events", new List<object>() {});
+                this.assertPredictionEvents(exchange, eventsList);
+                object eventsLength = getArrayLength(eventsList);
+                if (isTrue(isGreaterThan(eventsLength, 0)))
+                {
+                    eventId = exchange.safeString(getValue(eventsList, 0), "id");
+                }
+                if (isTrue(isTrue((!isEqual(eventId, null))) && isTrue(exchange.safeBool(exchange.has, "fetchEvent", false))))
+                {
+                    object eventVar = await callExchangeMethodDynamically(exchange, "fetchEvent", new List<object>() {eventId});
+                    assert(exchange.isDictionary(eventVar), add(exchange.id, " fetchEvent should return an event structure"));
+                    assert(!isEqual(exchange.safeString(eventVar, "id"), null), add(exchange.id, " fetchEvent returned no id"));
+                }
+            } catch(Exception e)
+            {
+                dump("[TEST_FAILURE]", exchange.id, "fetchEvents/fetchEvent failed:", exceptionMessage(e));
+                return false;
+            }
+        }
+        dump("[INFO:MAIN] Selected prediction OUTCOME:", outcomeSymbol, "| EVENT:", exchange.json(eventId));
+        object publicTests = new Dictionary<string, object>() {
+            { "fetchStatus", new List<object>() {} },
+            { "fetchTime", new List<object>() {} },
+            { "fetchTradingFee", new List<object>() {outcomeSymbol} },
+            { "fetchOpenInterest", new List<object>() {outcomeSymbol} },
+            { "fetchTicker", new List<object>() {outcomeSymbol} },
+            { "fetchTickers", new List<object>() {outcomeSymbol} },
+            { "fetchOrderBook", new List<object>() {outcomeSymbol} },
+            { "fetchOHLCV", new List<object>() {outcomeSymbol} },
+            { "fetchTrades", new List<object>() {outcomeSymbol} },
+        };
+        if (isTrue(this.wsTests))
+        {
+            publicTests = new Dictionary<string, object>() {
+                { "watchTicker", new List<object>() {outcomeSymbol} },
+                { "watchOrderBook", new List<object>() {outcomeSymbol} },
+                { "watchTrades", new List<object>() {outcomeSymbol} },
+            };
+        }
+        if (!isTrue(this.privateTestOnly))
+        {
+            await this.runTests(exchange, publicTests, true);
+        }
+        if (isTrue(isTrue((isTrue(this.privateTest) || isTrue(this.privateTestOnly))) && !isTrue(this.wsTests)))
+        {
+            object privateTests = new Dictionary<string, object>() {
+                { "fetchBalance", new List<object>() {} },
+                { "fetchPositions", new List<object>() {outcomeSymbol} },
+                { "fetchMyTrades", new List<object>() {outcomeSymbol} },
+                { "fetchOrders", new List<object>() {outcomeSymbol} },
+                { "fetchOpenOrders", new List<object>() {outcomeSymbol} },
+                { "fetchClosedOrders", new List<object>() {outcomeSymbol} },
+                { "fetchOrder", new List<object>() {outcomeSymbol} },
+            };
+            await this.runTests(exchange, privateTests, false);
+            // order placement is real money — gated behind --fundedTests, like crypto createOrder
+            if (isTrue(getCliArgValue("--fundedTests")))
+            {
+                await this.testPredictionCreateCancelOrder(exchange, outcomeSymbol);
+            }
+        }
+        return true;
+    }
+
+    public virtual object assertPredictionEvents(Exchange exchange, object events)
+    {
+        assert(((events is IList<object>) || (events.GetType().IsGenericType && events.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(exchange.id, " fetchEvents/fetchEvent should return a list"));
+        object eventsLength = getArrayLength(events);
+        for (object i = 0; isLessThan(i, eventsLength); postFixIncrement(ref i))
+        {
+            object eventVar = getValue(events, i);
+            assert(exchange.isDictionary(eventVar), add(exchange.id, " event should be a dict"));
+            assert(!isEqual(exchange.safeString(eventVar, "id"), null), add(exchange.id, " event missing id"));
+            assert(!isEqual(exchange.safeList(eventVar, "markets"), null), add(exchange.id, " event missing markets"));
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testPredictionCreateCancelOrder(Exchange exchange, object outcome)
+    {
+        // place a deliberately non-marketable limit BUY (low fixed price * tiny amount), assert
+        // it, then always cancel it. Safe by construction: 5 shares @ 0.02 = 0.10 USD notional,
+        // far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
+        // createOrder/cancelOrder are invoked dynamically since they aren't on every language's
+        // typed core-exchange interface (e.g. Go's ICoreExchange).
+        if (!isTrue(exchange.safeBool(exchange.has, "createOrder", false)))
+        {
+            return true;
+        }
+        // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
+        // and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
+        object createOrderSkip = this.getSkips(exchange, "createOrder");
+        if (isTrue((createOrderSkip is string)))
+        {
+            dump("[INFO] skipping prediction createOrder test", exchange.id, createOrderSkip);
+            return true;
+        }
+        object canCancel = isTrue(exchange.safeBool(exchange.has, "cancelOrder", false)) || isTrue(exchange.safeBool(exchange.has, "cancelAllOrders", false));
+        if (!isTrue(canCancel))
+        {
+            dump("[INFO] skipping prediction createOrder test", exchange.id, "no cancelOrder/cancelAllOrders");
+            return true;
+        }
+        if (!isTrue(exchange.checkRequiredCredentials(false)))
+        {
+            dump("[INFO] skipping prediction createOrder test", exchange.id, "keys not found");
+            return true;
+        }
+        // default 5 @ 0.02 = 0.10 USD notional. a venue with a higher minimum (e.g. hyperliquid
+        // testnet's 10 USD min) overrides amount/price via skip-tests.json fundedAmount/fundedPrice;
+        // any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
+        object price = exchange.parseToNumeric("0.02");
+        object amount = exchange.parseToNumeric("5");
+        object fundedPrice = exchange.safeString(this.skippedSettingsForExchange, "fundedPrice");
+        if (isTrue(!isEqual(fundedPrice, null)))
+        {
+            price = exchange.parseToNumeric(fundedPrice);
+        }
+        object fundedAmount = exchange.safeString(this.skippedSettingsForExchange, "fundedAmount");
+        if (isTrue(!isEqual(fundedAmount, null)))
+        {
+            amount = exchange.parseToNumeric(fundedAmount);
+        }
+        dump("[INFO:MAIN] prediction createOrder", exchange.id, outcome, "buy", amount, "@", price);
+        // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
+        // either): record any failure, ALWAYS attempt the cancel, then report the failure
+        object order = null;
+        object placedId = null;
+        object failure = null;
+        try
+        {
+            order = await callExchangeMethodDynamically(exchange, "createOrder", new List<object>() {outcome, "limit", "buy", amount, price});
+            assert(!isEqual(order, null), add("createOrder returned undefined for ", exchange.id));
+            assert(exchange.isDictionary(order), add("createOrder did not return an order structure for ", exchange.id));
+            placedId = exchange.safeString(order, "id");
+            assert(!isEqual(placedId, null), add("createOrder returned no order id for ", exchange.id));
+            object returnedOutcome = exchange.safeString(order, "outcome");
+            assert(isTrue((isEqual(returnedOutcome, null))) || isTrue((isEqual(returnedOutcome, outcome))), add(add(add(add(add("createOrder outcome \"", exchange.json(returnedOutcome)), "\" should match requested \""), outcome), "\" for "), exchange.id));
+        } catch(Exception e)
+        {
+            failure = exceptionMessage(e);
+        }
+        // always cancel any placed order (cancelPredictionOrder swallows its own errors)
+        await this.cancelPredictionOrder(exchange, placedId, outcome);
+        if (isTrue(!isEqual(failure, null)))
+        {
+            dump("[TEST_FAILURE]", exchange.id, "prediction createOrder failed:", failure);
+            return false;
+        }
+        return true;
+    }
+
+    public async virtual Task<object> cancelPredictionOrder(Exchange exchange, object orderId, object outcome)
+    {
+        if (isTrue(isEqual(orderId, null)))
+        {
+            return true;
+        }
+        try
+        {
+            if (isTrue(exchange.safeBool(exchange.has, "cancelOrder", false)))
+            {
+                await callExchangeMethodDynamically(exchange, "cancelOrder", new List<object>() {orderId, outcome});
+            } else
+            {
+                await callExchangeMethodDynamically(exchange, "cancelAllOrders", new List<object>() {outcome});
+            }
+            dump("[INFO:MAIN] prediction order cancelled", exchange.id, orderId);
+        } catch(Exception e)
+        {
+            dump("[WARN] prediction order cancel failed", exchange.id, orderId, exceptionMessage(e));
         }
         return true;
     }
@@ -1541,6 +1776,8 @@ public partial class testMainClass
         }
         Exchange exchange = initExchange(exchangeName, options);
         exchange.currencies = currencies;
+        // prediction exchanges resolve outcomes lazily from the injected markets (loadOutcome ->
+        // populateOutcomes) the first time a method is called, so no explicit setMarkets here
         // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1749,6 +1986,14 @@ public partial class testMainClass
     public virtual object checkIfExchangeIsDisabled(object exchangeName, object exchangeData)
     {
         Exchange exchange = initExchange("Exchange", new Dictionary<string, object>() {});
+        // prediction-market exchanges exist only in the async namespaces in python/php,
+        // so their fixtures declare asyncOnly and the sync harness skips them
+        object isAsyncOnly = exchange.safeBool(exchangeData, "asyncOnly", false);
+        if (isTrue(isTrue(isAsyncOnly) && isTrue(isSync())))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is async-only, skipped by the sync test harness"));
+            return true;
+        }
         object isDisabledPy = exchange.safeBool(exchangeData, "disabledPy", false);
         if (isTrue(isTrue(isDisabledPy) && isTrue((isEqual(this.lang, "PY")))))
         {

@@ -10,6 +10,13 @@ namespace ccxt;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
 
 function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
+    // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+    // is impractical and the "every active market has a ticker" check doesn't apply — test
+    // fetchTickers by the outcome handle instead
+    if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
+        $prediction_result = fetch_tickers_helper_test($exchange, $skipped_properties, [$symbol]);
+        return [$prediction_result];
+    }
     $without_symbol = fetch_tickers_helper_test($exchange, $skipped_properties, null);
     $with_symbol = fetch_tickers_helper_test($exchange, $skipped_properties, [$symbol]);
     $results = [$without_symbol, $with_symbol];

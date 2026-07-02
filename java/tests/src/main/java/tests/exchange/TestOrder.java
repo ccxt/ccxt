@@ -12,6 +12,13 @@ import io.github.ccxt.errors.*;
 public class TestOrder extends BaseTest {
     public static void testOrder(Exchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
     {
+        // prediction-market orders are keyed by an outcome handle, not a `symbol`
+        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new java.util.HashMap<String, Object>() {{
+                put( "symbol", true );
+            }}, skippedProperties);
+        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "123" );

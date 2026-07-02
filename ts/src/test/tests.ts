@@ -1800,6 +1800,13 @@ class testMainClass {
 
     checkIfExchangeIsDisabled (exchangeName: string, exchangeData: object) {
         const exchange = initExchange ('Exchange', {});
+        // prediction-market exchanges exist only in the async namespaces in python/php,
+        // so their fixtures declare asyncOnly and the sync harness skips them
+        const isAsyncOnly = exchange.safeBool (exchangeData, 'asyncOnly', false);
+        if (isAsyncOnly && isSync ()) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is async-only, skipped by the sync test harness');
+            return true;
+        }
         const isDisabledPy = exchange.safeBool (exchangeData, 'disabledPy', false);
         if (isDisabledPy && (this.lang === 'PY')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in python');

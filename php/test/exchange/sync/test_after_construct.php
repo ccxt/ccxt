@@ -21,7 +21,10 @@ function test_options_networks($exchange, $skipped_properties) {
     if (!(is_array($skipped_properties) && array_key_exists('networks', $skipped_properties))) {
         // only allow these whitelisted unified networkCodes to be repeated
         $allowed_unified_aliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'SPL', 'SOL', 'POLYGON', 'MATIC', 'CARDANO', 'ADA'];
-        $networks = $exchange->options['networks'];
+        // safeDict, not exchange.options['networks']: a direct missing-key access throws
+        // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
+        // hyperliquid prediction market)
+        $networks = $exchange->safe_dict($exchange->options, 'networks');
         if ($networks === null) {
             return;
         }

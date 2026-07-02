@@ -9,6 +9,14 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchTickers(Exchange exchange, object skippedProperties, object symbol)
     {
+        // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+        // is impractical and the "every active market has a ticker" check doesn't apply — test
+        // fetchTickers by the outcome handle instead
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            object predictionResult = await fetchTickersHelperTest(exchange, skippedProperties, new List<object>() {symbol});
+            return new List<object>() {predictionResult};
+        }
         object withoutSymbol = fetchTickersHelperTest(exchange, skippedProperties, null);
         object withSymbol = fetchTickersHelperTest(exchange, skippedProperties, new List<object>() {symbol});
         object results = await promiseAll(new List<object>() {withoutSymbol, withSymbol});
