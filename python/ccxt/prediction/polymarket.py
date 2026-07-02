@@ -12,8 +12,12 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
 from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionTradingFee, PredictionOrderRequest
 from typing import List
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -267,6 +271,24 @@ class polymarket(PredictionExchange, ImplicitAPI):
                             'v1/maker/quotes/cancel': 1,
                         },
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'not enough balance / allowance': InsufficientFunds,
+                    'invalid signature': AuthenticationError,
+                    'api key not found': AuthenticationError,
+                },
+                'broad': {
+                    'No orderbook exists': BadSymbol,
+                    'not enough balance': InsufficientFunds,
+                    'allowance': InsufficientFunds,
+                    'invalid amount': InvalidOrder,
+                    'invalid price': InvalidOrder,
+                    'minimum tick size': InvalidOrder,
+                    'geoblocked': PermissionDenied,
+                    'restricted jurisdiction': PermissionDenied,
+                    'Unauthorized': AuthenticationError,
                 },
             },
             'requiredCredentials': {
@@ -2093,6 +2115,19 @@ class polymarket(PredictionExchange, ImplicitAPI):
             rawEvent = rawEvents[i]
             result.append(self.parse_event(rawEvent))
         return result
+
+    def handle_errors(self, code: Int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+        # the CLOB api returns {"error": "..."}(and createOrder variants use "errorMsg")
+        # map the known messages so callers can distinguish a dead book or a rejected order
+        # from a transport outage(the base otherwise maps a bare 404 to a retryable error)
+        if not response:
+            return None
+        errorMessage = self.safe_string_2(response, 'error', 'errorMsg')
+        if errorMessage is not None:
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+        return None
 
     def sign(self, path: Any, api: Any = 'gamma', method='GET', params={}, headers: Any = None, body: Any = None):
         """

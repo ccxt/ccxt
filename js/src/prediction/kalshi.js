@@ -14,7 +14,7 @@ export default class kalshi extends Exchange {
             'id': 'kalshi',
             'name': 'Kalshi',
             'countries': ['US'],
-            'rateLimit': 100,
+            'rateLimit': 200,
             'certified': false,
             'pro': false,
             'has': {

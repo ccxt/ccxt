@@ -1803,10 +1803,12 @@ export default class hyperliquid extends Exchange {
     async fetchEvents(params = {}) {
         this.requireEventQuery(params);
         const queries = this.parseSearchQueries(params);
-        // hyperliquid has no dedicated events endpoint — events are grouped from the outcome
-        // markets, so fetch them directly rather than relying on this.markets (which may be
-        // unloaded or hold the non-prediction hyperliquid markets)
-        const marketValues = await this.fetchMarkets();
+        // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
+        // markets. use the cached load so the handles advertised here always match the
+        // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
+        // disagree with a previously warmed cache within the same session)
+        const marketsDict = await this.loadMarkets();
+        const marketValues = this.toArray(marketsDict);
         // Group markets by parentSymbol
         const groupMap = {};
         const lowerQueries = [];

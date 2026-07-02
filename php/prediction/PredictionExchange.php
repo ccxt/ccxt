@@ -401,6 +401,10 @@ class PredictionExchange extends \ccxt\async\Exchange {
                     return $this->outcomes_by_id[$outcomeSymbol];
                 }
             }
+            // remember whether the cache was already warm => a miss against a warm cache may just
+            // be staleness (prediction listings churn and some venues re-assign outcome ids), so
+            // it earns one forced refresh; a miss against a freshly loaded cache is authoritative
+            $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
             $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', true);
             if ($loadAll) {
                 Async\await($this->load_outcomes());
@@ -410,6 +414,17 @@ class PredictionExchange extends \ccxt\async\Exchange {
                     }
                     if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
                         return $this->outcomes_by_id[$outcomeSymbol];
+                    }
+                }
+                if ($wasWarm) {
+                    Async\await($this->load_outcomes(true));
+                    if ($this->outcomes !== null) {
+                        if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
+                            return $this->outcomes[$outcomeSymbol];
+                        }
+                        if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
+                            return $this->outcomes_by_id[$outcomeSymbol];
+                        }
                     }
                 }
             }

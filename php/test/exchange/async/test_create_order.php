@@ -104,7 +104,7 @@ function tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_p
             assert_in_array($exchange, $skipped_properties, 'fetchedOrder', $fetched_order, 'side', [null, $buy_or_sell]);
             \React\Async\await(tco_cancel_order($exchange, $symbol, $created_order['id']));
         } catch(\Throwable $e) {
-            throw new Exception($log_prefix . ' failed for Scenario 1: ' . ((string) $e));
+            throw new Error($log_prefix . ' failed for Scenario 1: ' . ((string) $e));
         }
         return true;
     }) ();
@@ -143,7 +143,7 @@ function tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_pro
             $exitorder_fetched = \React\Async\await(fetch_order($exchange, $symbol, $exitorder_filled['id'], $skipped_properties));
             tco_assert_filled_order($exchange, $market, $log_prefix, $skipped_properties, $exitorder_filled, $exitorder_fetched, $exit_side, $amount_to_close);
         } catch(\Throwable $e) {
-            throw new Exception('failed for Scenario 2: ' . ((string) $e));
+            throw new Error('failed for Scenario 2: ' . ((string) $e));
         }
         return true;
     }) ();
@@ -185,7 +185,7 @@ function tco_cancel_order($exchange, $symbol, $order_id = null) {
             $used_method = 'cancelAllOrders';
             $cancel_result = \React\Async\await($exchange->cancel_all_orders($symbol));
         } elseif ($exchange->has['cancelOrders']) {
-            throw new Exception($log_prefix . ' cancelOrders method is not unified yet, coming soon...');
+            throw new Error($log_prefix . ' cancelOrders method is not unified yet, coming soon...');
         }
         tco_debug($exchange, $symbol, 'canceled order using ' . $used_method . ':' . $cancel_result['id']);
         // todo:

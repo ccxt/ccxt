@@ -107,6 +107,8 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "editOrder": true,
     "editOrderWithClientOrderId": true,
     "fetchAccounts": true,
+    "fetchEvents": true, // prediction base -> venue override (loadEventsHelper)
+    "fetchOutcome": true, // prediction base -> venue override (kalshi on-demand loadOutcome)
     "fetchBalance": true,
     "fetchClosedOrders": true,
     "fetchDepositAddressesByNetwork": true,

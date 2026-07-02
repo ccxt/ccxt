@@ -25,7 +25,7 @@ public class KalshiCore extends KalshiApi
             put( "id", "kalshi" );
             put( "name", "Kalshi" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("US")) );
-            put( "rateLimit", 100 );
+            put( "rateLimit", 200 );
             put( "certified", false );
             put( "pro", false );
             put( "has", new java.util.HashMap<String, Object>() {{

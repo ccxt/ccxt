@@ -99,16 +99,6 @@ export default class limitless extends Exchange {
      */
     fetchOHLCV(outcome: Str, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     /**
-     * @ignore
-     * @method
-     * @name limitless#parseOHLCV
-     * @description parses a single limitless price tick into a synthetic CCXT OHLCV tuple (all four OHLC fields set to price)
-     * @param {object} ohlcv the raw price tick object
-     * @param {object} [market] the outcome object the candle belongs to
-     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
-     */
-    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    /**
      * @method
      * @name limitless#fetchOrders
      * @description fetches orders for the authenticated user for a single outcome

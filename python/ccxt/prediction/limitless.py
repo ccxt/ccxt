@@ -1247,48 +1247,46 @@ class limitless(PredictionExchange, ImplicitAPI):
                         selectedSeries = series
                         break
                 history = self.safe_list(selectedSeries, 'prices', [])
-        usableHistory = []
+        # the endpoint returns raw price points, not candles - bucket them into
+        # timeframe-aligned candles(single points would carry unaligned timestamps)
+        pseudoTrades = []
         for i in range(0, len(history)):
             point = history[i]
             pointPrice = self.safe_number(point, 'price')
-            pointTs = self.safe_string(point, 'timestamp')
+            pointTs = self.safe_integer(point, 'timestamp')
+            if pointTs is None:
+                tsString = self.safe_string(point, 'timestamp')
+                pointTs = self.parse8601(tsString) if tsString else None
+            elif pointTs < 1000000000000:
+                # old responses may return unix seconds
+                pointTs = pointTs * 1000
             if (pointPrice is not None) and (pointTs is not None):
-                usableHistory.append(point)
-        return self.parse_ohlcvs(usableHistory, outcomeObj, timeframe, since, limit)
-
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
-        """
- @ignore
-        parses a single limitless price tick into a synthetic CCXT OHLCV tuple(all four OHLC fields set to price)
-        :param dict ohlcv: the raw price tick object
-        :param dict [market]: the outcome object the candle belongs to
-        :returns int[]: a candle ordered, open, high, low, close, volume
-        """
-        #
-        #     {
-        #         "timestamp": 1705318200000,
-        #         "price": 0.1655
-        #     }
-        #
-        #     {
-        #         "price": 0.75,
-        #         "timestamp": "2024-01-15T10:30:00Z"
-        #     }
-        #
-        ts = self.safe_integer(ohlcv, 'timestamp')
-        if ts is None:
-            tsString = self.safe_string(ohlcv, 'timestamp')
-            ts = self.parse8601(tsString) if tsString else None
-        elif ts < 1000000000000:
-            # old responses may return unix seconds
-            ts = ts * 1000
-        price = self.safe_number(ohlcv, 'price')
-        volume = self.safe_number(ohlcv, 'volume', 0)   # history endpoint has no volume → 0
-        return [
-            ts,
-            price, price, price, price,   # synthetic OHLC from single tick
-            volume,
-        ]
+                pseudoTrades.append({'timestamp': pointTs, 'price': pointPrice, 'amount': 0})
+        # the endpoint returns chronological points - keep input order(a re-sort breaks
+        # timestamp ties differently across languages and skews open/close within a bucket)
+        sorted = pseudoTrades
+        ms = self.parse_timeframe(timeframe) * 1000
+        candles = {}
+        bucketOrder = []
+        for i in range(0, len(sorted)):
+            point = sorted[i]
+            pTs = self.safe_integer(point, 'timestamp')
+            pPrice = self.safe_number(point, 'price')
+            bucket = self.parse_to_int(pTs / ms) * ms
+            key = str(bucket)
+            if not (key in candles):
+                candles[key] = [bucket, pPrice, pPrice, pPrice, pPrice, 0]
+                bucketOrder.append(key)
+            else:
+                candle = candles[key]
+                candle[2] = max(candle[2], pPrice)
+                candle[3] = min(candle[3], pPrice)
+                candle[4] = pPrice
+                candles[key] = candle  # php arrays are value types - write the mutation back
+        result = []
+        for i in range(0, len(bucketOrder)):
+            result.append(candles[bucketOrder[i]])
+        return self.filter_by_since_limit(result, since, limit, 0)
 
     async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
         """

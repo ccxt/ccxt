@@ -18,7 +18,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'id': 'kalshi',
             'name': 'Kalshi',
             'countries': ['US'],
-            'rateLimit': 100,
+            'rateLimit': 200,
             'certified': False,
             'pro': False,
             'has': {

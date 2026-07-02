@@ -29,6 +29,9 @@ public class TestAfterConstruct extends BaseTest {
         {
             // only allow these whitelisted unified networkCodes to be repeated
             Object allowedUnifiedAliases = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SPL", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA"));
+            // safeDict, not exchange.options['networks']: a direct missing-key access throws
+            // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
+            // hyperliquid prediction market)
             Object networks = exchange.safeDict(exchange.options, "networks");
             if (Helpers.isTrue(Helpers.isEqual(networks, null)))
             {

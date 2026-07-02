@@ -389,6 +389,10 @@ export default class PredictionExchange extends Exchange {
                 return this.outcomes_by_id[outcomeSymbol];
             }
         }
+        // remember whether the cache was already warm: a miss against a warm cache may just
+        // be staleness (prediction listings churn and some venues re-assign outcome ids), so
+        // it earns one forced refresh; a miss against a freshly loaded cache is authoritative
+        const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
         const loadAll = this.safeBool (this.options, 'loadAllOutcomes', true);
         if (loadAll) {
             await this.loadOutcomes ();
@@ -398,6 +402,17 @@ export default class PredictionExchange extends Exchange {
                 }
                 if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
                     return this.outcomes_by_id[outcomeSymbol];
+                }
+            }
+            if (wasWarm) {
+                await this.loadOutcomes (true);
+                if (this.outcomes !== undefined) {
+                    if (outcomeSymbol in this.outcomes) {
+                        return this.outcomes[outcomeSymbol];
+                    }
+                    if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
+                        return this.outcomes_by_id[outcomeSymbol];
+                    }
                 }
             }
         }

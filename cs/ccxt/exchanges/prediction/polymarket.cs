@@ -252,6 +252,24 @@ public partial class polymarket : PredictionExchange
                     } },
                 } },
             } },
+            { "exceptions", new Dictionary<string, object>() {
+                { "exact", new Dictionary<string, object>() {
+                    { "not enough balance / allowance", typeof(InsufficientFunds) },
+                    { "invalid signature", typeof(AuthenticationError) },
+                    { "api key not found", typeof(AuthenticationError) },
+                } },
+                { "broad", new Dictionary<string, object>() {
+                    { "No orderbook exists", typeof(BadSymbol) },
+                    { "not enough balance", typeof(InsufficientFunds) },
+                    { "allowance", typeof(InsufficientFunds) },
+                    { "invalid amount", typeof(InvalidOrder) },
+                    { "invalid price", typeof(InvalidOrder) },
+                    { "minimum tick size", typeof(InvalidOrder) },
+                    { "geoblocked", typeof(PermissionDenied) },
+                    { "restricted jurisdiction", typeof(PermissionDenied) },
+                    { "Unauthorized", typeof(AuthenticationError) },
+                } },
+            } },
             { "requiredCredentials", new Dictionary<string, object>() {
                 { "apiKey", false },
                 { "secret", false },
@@ -2552,6 +2570,25 @@ public partial class polymarket : PredictionExchange
             ((IList<object>)result).Add(this.parseEvent(rawEvent));
         }
         return result;
+    }
+
+    public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
+        // map the known messages so callers can distinguish a dead book or a rejected order
+        // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
+        if (!isTrue(response))
+        {
+            return null;
+        }
+        object errorMessage = this.safeString2(response, "error", "errorMsg");
+        if (isTrue(!isEqual(errorMessage, null)))
+        {
+            object feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+        }
+        return null;
     }
 
     /**

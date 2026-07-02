@@ -1471,58 +1471,68 @@ public class LimitlessCore extends LimitlessApi
                     history = this.safeList(selectedSeries, "prices", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 }
             }
-            Object usableHistory = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            // the endpoint returns raw price points, not candles - bucket them into
+            // timeframe-aligned candles (single points would carry unaligned timestamps)
+            Object pseudoTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(history)); i++)
             {
                 Object point = Helpers.GetValue(history, i);
                 Object pointPrice = this.safeNumber(point, "price");
-                Object pointTs = this.safeString(point, "timestamp");
+                Object pointTs = this.safeInteger(point, "timestamp");
+                if (Helpers.isTrue(Helpers.isEqual(pointTs, null)))
+                {
+                    Object tsString = this.safeString(point, "timestamp");
+                    pointTs = ((Helpers.isTrue(tsString))) ? this.parse8601(tsString) : null;
+                } else if (Helpers.isTrue(Helpers.isLessThan(pointTs, 1000000000000L)))
+                {
+                    // old responses may return unix seconds
+                    pointTs = Helpers.multiply(pointTs, 1000);
+                }
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(pointPrice, null))) && Helpers.isTrue((!Helpers.isEqual(pointTs, null)))))
                 {
-                    ((java.util.List<Object>)usableHistory).add(point);
+    final Object finalPointTs = pointTs;
+                    final Object finalPointPrice = pointPrice;
+                                    ((java.util.List<Object>)pseudoTrades).add(new java.util.HashMap<String, Object>() {{
+                        put( "timestamp", finalPointTs );
+                        put( "price", finalPointPrice );
+                        put( "amount", 0 );
+                    }});
                 }
             }
-            return this.parseOHLCVs(usableHistory, outcomeObj, timeframe, since, limit);
+            // the endpoint returns chronological points - keep input order (a re-sort breaks
+            // timestamp ties differently across languages and skews open/close within a bucket)
+            Object sorted = pseudoTrades;
+            Object ms = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Object candles = new java.util.HashMap<String, Object>() {{}};
+            Object bucketOrder = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sorted)); i++)
+            {
+                Object point = Helpers.GetValue(sorted, i);
+                Object pTs = this.safeInteger(point, "timestamp");
+                Object pPrice = this.safeNumber(point, "price");
+                Object bucket = Helpers.multiply(this.parseToInt(Helpers.divide(pTs, ms)), ms);
+                Object key = String.valueOf(bucket);
+                if (!Helpers.isTrue((Helpers.inOp(candles, key))))
+                {
+                    Helpers.addElementToObject(candles, key, new java.util.ArrayList<Object>(java.util.Arrays.asList(bucket, pPrice, pPrice, pPrice, pPrice, 0)));
+                    ((java.util.List<Object>)bucketOrder).add(key);
+                } else
+                {
+                    Object candle = Helpers.GetValue(candles, key);
+                    Helpers.addElementToObject(candle, 2, Helpers.mathMax(Helpers.GetValue(candle, 2), pPrice));
+                    Helpers.addElementToObject(candle, 3, Helpers.mathMin(Helpers.GetValue(candle, 3), pPrice));
+                    Helpers.addElementToObject(candle, 4, pPrice);
+                    Helpers.addElementToObject(candles, key, candle); // php arrays are value types - write the mutation back
+                }
+            }
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bucketOrder)); i++)
+            {
+                ((java.util.List<Object>)result).add(Helpers.GetValue(candles, Helpers.GetValue(bucketOrder, i)));
+            }
+            return this.filterBySinceLimit(result, since, limit, 0);
         });
 
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name limitless#parseOHLCV
-     * @description parses a single limitless price tick into a synthetic CCXT OHLCV tuple (all four OHLC fields set to price)
-     * @param {object} ohlcv the raw price tick object
-     * @param {object} [market] the outcome object the candle belongs to
-     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
-     */
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        //
-        //     {
-        //         "timestamp": 1705318200000,
-        //         "price": 0.1655
-        //     }
-        //
-        //     {
-        //         "price": 0.75,
-        //         "timestamp": "2024-01-15T10:30:00Z"
-        //     }
-        //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object ts = this.safeInteger(ohlcv, "timestamp");
-        if (Helpers.isTrue(Helpers.isEqual(ts, null)))
-        {
-            Object tsString = this.safeString(ohlcv, "timestamp");
-            ts = ((Helpers.isTrue(tsString))) ? this.parse8601(tsString) : null;
-        } else if (Helpers.isTrue(Helpers.isLessThan(ts, 1000000000000L)))
-        {
-            // old responses may return unix seconds
-            ts = Helpers.multiply(ts, 1000);
-        }
-        Object price = this.safeNumber(ohlcv, "price");
-        Object volume = this.safeNumber(ohlcv, "volume", 0); // history endpoint has no volume → 0
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(ts, price, price, price, price, volume));
     }
 
     /**

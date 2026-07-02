@@ -18,7 +18,7 @@ class kalshi extends Exchange {
             'id' => 'kalshi',
             'name' => 'Kalshi',
             'countries' => array( 'US' ),
-            'rateLimit' => 100,
+            'rateLimit' => 200,
             'certified' => false,
             'pro' => false,
             'has' => array(

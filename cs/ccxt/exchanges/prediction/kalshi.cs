@@ -12,7 +12,7 @@ public partial class kalshi : PredictionExchange
             { "id", "kalshi" },
             { "name", "Kalshi" },
             { "countries", new List<object>() {"US"} },
-            { "rateLimit", 100 },
+            { "rateLimit", 200 },
             { "certified", false },
             { "pro", false },
             { "has", new Dictionary<string, object>() {

@@ -14,7 +14,7 @@ import type {
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
     fetchEventsParams,
 } from '../base/types.js';
-import { ArgumentsRequired, BadRequest, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -268,6 +268,24 @@ export default class polymarket extends Exchange {
                             'v1/maker/quotes/cancel': 1,
                         },
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'not enough balance / allowance': InsufficientFunds,
+                    'invalid signature': AuthenticationError,
+                    'api key not found': AuthenticationError,
+                },
+                'broad': {
+                    'No orderbook exists': BadSymbol,
+                    'not enough balance': InsufficientFunds,
+                    'allowance': InsufficientFunds,
+                    'invalid amount': InvalidOrder,
+                    'invalid price': InvalidOrder,
+                    'minimum tick size': InvalidOrder,
+                    'geoblocked': PermissionDenied,
+                    'restricted jurisdiction': PermissionDenied,
+                    'Unauthorized': AuthenticationError,
                 },
             },
             'requiredCredentials': {
@@ -2258,6 +2276,22 @@ export default class polymarket extends Exchange {
             result.push (this.parseEvent (rawEvent));
         }
         return result;
+    }
+
+    handleErrors (code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
+        // map the known messages so callers can distinguish a dead book or a rejected order
+        // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
+        if (!response) {
+            return undefined;
+        }
+        const errorMessage = this.safeString2 (response, 'error', 'errorMsg');
+        if (errorMessage !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+        }
+        return undefined;
     }
 
     /**

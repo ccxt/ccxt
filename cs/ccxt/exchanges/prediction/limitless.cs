@@ -1406,55 +1406,64 @@ public partial class limitless : PredictionExchange
                 history = this.safeList(selectedSeries, "prices", new List<object>() {});
             }
         }
-        object usableHistory = new List<object>() {};
+        // the endpoint returns raw price points, not candles - bucket them into
+        // timeframe-aligned candles (single points would carry unaligned timestamps)
+        object pseudoTrades = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(history)); postFixIncrement(ref i))
         {
             object point = getValue(history, i);
             object pointPrice = this.safeNumber(point, "price");
-            object pointTs = this.safeString(point, "timestamp");
+            object pointTs = this.safeInteger(point, "timestamp");
+            if (isTrue(isEqual(pointTs, null)))
+            {
+                object tsString = this.safeString(point, "timestamp");
+                pointTs = ((bool) isTrue(tsString)) ? this.parse8601(tsString) : null;
+            } else if (isTrue(isLessThan(pointTs, 1000000000000)))
+            {
+                // old responses may return unix seconds
+                pointTs = multiply(pointTs, 1000);
+            }
             if (isTrue(isTrue((!isEqual(pointPrice, null))) && isTrue((!isEqual(pointTs, null)))))
             {
-                ((IList<object>)usableHistory).Add(point);
+                ((IList<object>)pseudoTrades).Add(new Dictionary<string, object>() {
+                    { "timestamp", pointTs },
+                    { "price", pointPrice },
+                    { "amount", 0 },
+                });
             }
         }
-        return this.parseOHLCVs(usableHistory, outcomeObj, timeframe, since, limit);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name limitless#parseOHLCV
-     * @description parses a single limitless price tick into a synthetic CCXT OHLCV tuple (all four OHLC fields set to price)
-     * @param {object} ohlcv the raw price tick object
-     * @param {object} [market] the outcome object the candle belongs to
-     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
-     */
-    public override object parseOHLCV(object ohlcv, object market = null)
-    {
-        //
-        //     {
-        //         "timestamp": 1705318200000,
-        //         "price": 0.1655
-        //     }
-        //
-        //     {
-        //         "price": 0.75,
-        //         "timestamp": "2024-01-15T10:30:00Z"
-        //     }
-        //
-        object ts = this.safeInteger(ohlcv, "timestamp");
-        if (isTrue(isEqual(ts, null)))
+        // the endpoint returns chronological points - keep input order (a re-sort breaks
+        // timestamp ties differently across languages and skews open/close within a bucket)
+        object sorted = pseudoTrades;
+        object ms = multiply(this.parseTimeframe(timeframe), 1000);
+        object candles = new Dictionary<string, object>() {};
+        object bucketOrder = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(sorted)); postFixIncrement(ref i))
         {
-            object tsString = this.safeString(ohlcv, "timestamp");
-            ts = ((bool) isTrue(tsString)) ? this.parse8601(tsString) : null;
-        } else if (isTrue(isLessThan(ts, 1000000000000)))
-        {
-            // old responses may return unix seconds
-            ts = multiply(ts, 1000);
+            object point = getValue(sorted, i);
+            object pTs = this.safeInteger(point, "timestamp");
+            object pPrice = this.safeNumber(point, "price");
+            object bucket = multiply(this.parseToInt(divide(pTs, ms)), ms);
+            object key = ((object)bucket).ToString();
+            if (!isTrue((inOp(candles, key))))
+            {
+                ((IDictionary<string,object>)candles)[(string)key] = new List<object>() {bucket, pPrice, pPrice, pPrice, pPrice, 0};
+                ((IList<object>)bucketOrder).Add(key);
+            } else
+            {
+                object candle = getValue(candles, key);
+                ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), pPrice);
+                ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(getValue(candle, 3), pPrice);
+                ((List<object>)candle)[Convert.ToInt32(4)] = pPrice;
+                ((IDictionary<string,object>)candles)[(string)key] = candle; // php arrays are value types - write the mutation back
+            }
         }
-        object price = this.safeNumber(ohlcv, "price");
-        object volume = this.safeNumber(ohlcv, "volume", 0); // history endpoint has no volume → 0
-        return new List<object>() {ts, price, price, price, price, volume};
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(bucketOrder)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(getValue(candles, getValue(bucketOrder, i)));
+        }
+        return this.filterBySinceLimit(result, since, limit, 0);
     }
 
     /**

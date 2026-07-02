@@ -268,6 +268,24 @@ class polymarket extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array(
+                'exact' => array(
+                    'not enough balance / allowance' => '\\ccxt\\InsufficientFunds',
+                    'invalid signature' => '\\ccxt\\AuthenticationError',
+                    'api key not found' => '\\ccxt\\AuthenticationError',
+                ),
+                'broad' => array(
+                    'No orderbook exists' => '\\ccxt\\BadSymbol',
+                    'not enough balance' => '\\ccxt\\InsufficientFunds',
+                    'allowance' => '\\ccxt\\InsufficientFunds',
+                    'invalid amount' => '\\ccxt\\InvalidOrder',
+                    'invalid price' => '\\ccxt\\InvalidOrder',
+                    'minimum tick size' => '\\ccxt\\InvalidOrder',
+                    'geoblocked' => '\\ccxt\\PermissionDenied',
+                    'restricted jurisdiction' => '\\ccxt\\PermissionDenied',
+                    'Unauthorized' => '\\ccxt\\AuthenticationError',
+                ),
+            ),
             'requiredCredentials' => array(
                 // dual auth => either pass the L2 api credentials directly
                 // apiKey=POLY_API_KEY, secret=POLY_API_SECRET, password=POLY_PASSPHRASE
@@ -2293,6 +2311,22 @@ class polymarket extends Exchange {
             $result[] = $this->parse_event($rawEvent);
         }
         return $result;
+    }
+
+    public function handle_errors(?int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        // the CLOB api returns array( "error" => "..." ) (and createOrder variants use "errorMsg");
+        // map the known messages so callers can distinguish a dead book or a rejected order
+        // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
+        if (!$response) {
+            return null;
+        }
+        $errorMessage = $this->safe_string_2($response, 'error', 'errorMsg');
+        if ($errorMessage !== null) {
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessage, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+        }
+        return null;
     }
 
     public function sign(mixed $path, mixed $api = 'gamma', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {

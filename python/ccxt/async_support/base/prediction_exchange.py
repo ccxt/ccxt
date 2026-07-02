@@ -322,6 +322,10 @@ class PredictionExchange(Exchange):
                 return self.outcomes[outcomeSymbol]
             if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
                 return self.outcomes_by_id[outcomeSymbol]
+        # remember whether the cache was already warm: a miss against a warm cache may just
+        # be staleness(prediction listings churn and some venues re-assign outcome ids), so
+        # it earns one forced refresh; a miss against a freshly loaded cache is authoritative
+        wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
         loadAll = self.safe_bool(self.options, 'loadAllOutcomes', True)
         if loadAll:
             await self.load_outcomes()
@@ -330,6 +334,13 @@ class PredictionExchange(Exchange):
                     return self.outcomes[outcomeSymbol]
                 if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
                     return self.outcomes_by_id[outcomeSymbol]
+            if wasWarm:
+                await self.load_outcomes(True)
+                if self.outcomes is not None:
+                    if outcomeSymbol in self.outcomes:
+                        return self.outcomes[outcomeSymbol]
+                    if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
+                        return self.outcomes_by_id[outcomeSymbol]
         return await self.fetch_outcome(outcomeSymbol)
 
     async def fetch_outcome(self, outcomeSymbol: str):

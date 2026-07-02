@@ -1645,10 +1645,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         """
         self.require_event_query(params)
         queries = self.parse_search_queries(params)
-        # hyperliquid has no dedicated events endpoint — events are grouped from the outcome
-        # markets, so fetch them directly rather than relying on self.markets(which may be
-        # unloaded or hold the non-prediction hyperliquid markets)
-        marketValues = await self.fetch_markets()
+        # hyperliquid has no dedicated events endpoint - events are grouped from the outcome
+        # markets. use the cached load so the handles advertised here always match the
+        # outcome cache(hyperliquid re-assigns outcome ids over time; a fresh fetch could
+        # disagree with a previously warmed cache within the same session)
+        marketsDict = await self.load_markets()
+        marketValues = self.to_array(marketsDict)
         # Group markets by parentSymbol
         groupMap = {}
         lowerQueries = []

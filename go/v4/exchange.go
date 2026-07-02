@@ -2227,6 +2227,19 @@ func (this *Exchange) UnlockId() bool {
 	return true
 }
 
+// FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.
+// Prediction exchanges override it (kalshi resolves a single outcome on demand).
+func (this *Exchange) FetchOutcome(outcomeSymbol any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		_ = outcomeSymbol
+		panic(NotSupported(Add(this.Id, " fetchOutcome() is not supported yet")))
+	}()
+	return ch
+}
+
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
 func (this *Exchange) FetchEvents(optionalArgs ...any) <-chan any {

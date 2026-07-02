@@ -886,6 +886,35 @@ public class TestMain extends BaseTest
             // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
             // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
             Object outcomeSymbol = exchange.safeString(this.skippedSettingsForExchange, "preferredPredictionOutcome");
+            if (Helpers.isTrue(!Helpers.isEqual(outcomeSymbol, null)))
+            {
+                // validate the pin against the live listing - venues can rotate ids/handles
+                // (hyperliquid re-assigns outcome ids), which would strand a stale pin
+                Object pinFound = false;
+                Object pinnedKeys = Helpers.objectKeys(exchange.markets);
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pinnedKeys)); i++)
+                {
+                    Object pinnedMarket = Helpers.GetValue(exchange.markets, Helpers.GetValue(pinnedKeys, i));
+                    Object pinnedOutcomes = exchange.safeList(pinnedMarket, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(pinnedOutcomes)); j++)
+                    {
+                        if (Helpers.isTrue(Helpers.isEqual(exchange.safeString(Helpers.GetValue(pinnedOutcomes, j), "outcome"), outcomeSymbol)))
+                        {
+                            pinFound = true;
+                            break;
+                        }
+                    }
+                    if (Helpers.isTrue(pinFound))
+                    {
+                        break;
+                    }
+                }
+                if (!Helpers.isTrue(pinFound))
+                {
+                    dump("[INFO:MAIN] preferredPredictionOutcome", outcomeSymbol, "not in the live listing (stale pin?) - falling back to market scan");
+                    outcomeSymbol = null;
+                }
+            }
             if (Helpers.isTrue(Helpers.isEqual(outcomeSymbol, null)))
             {
                 Object marketKeys = Helpers.objectKeys(exchange.markets);

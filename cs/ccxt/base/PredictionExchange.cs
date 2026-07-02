@@ -470,6 +470,10 @@ public partial class PredictionExchange : Exchange
                 return getValue(this.outcomes_by_id, outcomeSymbol);
             }
         }
+        // remember whether the cache was already warm: a miss against a warm cache may just
+        // be staleness (prediction listings churn and some venues re-assign outcome ids), so
+        // it earns one forced refresh; a miss against a freshly loaded cache is authoritative
+        object wasWarm = isTrue((!isEqual(this.outcomes, null))) && !isTrue(this.isEmpty(this.outcomes));
         object loadAll = this.safeBool(this.options, "loadAllOutcomes", true);
         if (isTrue(loadAll))
         {
@@ -483,6 +487,21 @@ public partial class PredictionExchange : Exchange
                 if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeSymbol)))))
                 {
                     return getValue(this.outcomes_by_id, outcomeSymbol);
+                }
+            }
+            if (isTrue(wasWarm))
+            {
+                await this.loadOutcomes(true);
+                if (isTrue(!isEqual(this.outcomes, null)))
+                {
+                    if (isTrue(inOp(this.outcomes, outcomeSymbol)))
+                    {
+                        return getValue(this.outcomes, outcomeSymbol);
+                    }
+                    if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeSymbol)))))
+                    {
+                        return getValue(this.outcomes_by_id, outcomeSymbol);
+                    }
                 }
             }
         }

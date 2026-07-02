@@ -696,6 +696,29 @@ class testMainClass {
         // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
         // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
         $outcome_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredPredictionOutcome');
+        if ($outcome_symbol !== null) {
+            // validate the pin against the live listing - venues can rotate ids/handles
+            // (hyperliquid re-assigns outcome ids), which would strand a stale pin
+            $pin_found = false;
+            $pinned_keys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
+            for ($i = 0; $i < count($pinned_keys); $i++) {
+                $pinned_market = $exchange->markets[$pinned_keys[$i]];
+                $pinned_outcomes = $exchange->safe_list($pinned_market, 'outcomes', []);
+                for ($j = 0; $j < count($pinned_outcomes); $j++) {
+                    if ($exchange->safe_string($pinned_outcomes[$j], 'outcome') === $outcome_symbol) {
+                        $pin_found = true;
+                        break;
+                    }
+                }
+                if ($pin_found) {
+                    break;
+                }
+            }
+            if (!$pin_found) {
+                dump('[INFO:MAIN] preferredPredictionOutcome', $outcome_symbol, 'not in the live listing (stale pin?) - falling back to market scan');
+                $outcome_symbol = null;
+            }
+        }
         if ($outcome_symbol === null) {
             $market_keys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
             for ($i = 0; $i < count($market_keys); $i++) {

@@ -1330,54 +1330,52 @@ export default class limitless extends Exchange {
                 history = this.safeList (selectedSeries, 'prices', []);
             }
         }
-        const usableHistory = [];
+        // the endpoint returns raw price points, not candles - bucket them into
+        // timeframe-aligned candles (single points would carry unaligned timestamps)
+        const pseudoTrades = [];
         for (let i = 0; i < history.length; i++) {
             const point = history[i];
             const pointPrice = this.safeNumber (point, 'price');
-            const pointTs = this.safeString (point, 'timestamp');
+            let pointTs = this.safeInteger (point, 'timestamp');
+            if (pointTs === undefined) {
+                const tsString = this.safeString (point, 'timestamp');
+                pointTs = tsString ? this.parse8601 (tsString) : undefined;
+            } else if (pointTs < 1000000000000) {
+                // old responses may return unix seconds
+                pointTs = pointTs * 1000;
+            }
             if ((pointPrice !== undefined) && (pointTs !== undefined)) {
-                usableHistory.push (point);
+                pseudoTrades.push ({ 'timestamp': pointTs, 'price': pointPrice, 'amount': 0 });
             }
         }
-        return this.parseOHLCVs (usableHistory, outcomeObj, timeframe, since, limit);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name limitless#parseOHLCV
-     * @description parses a single limitless price tick into a synthetic CCXT OHLCV tuple (all four OHLC fields set to price)
-     * @param {object} ohlcv the raw price tick object
-     * @param {object} [market] the outcome object the candle belongs to
-     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
-     */
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        //
-        //     {
-        //         "timestamp": 1705318200000,
-        //         "price": 0.1655
-        //     }
-        //
-        //     {
-        //         "price": 0.75,
-        //         "timestamp": "2024-01-15T10:30:00Z"
-        //     }
-        //
-        let ts = this.safeInteger (ohlcv, 'timestamp');
-        if (ts === undefined) {
-            const tsString = this.safeString (ohlcv, 'timestamp');
-            ts = tsString ? this.parse8601 (tsString) : undefined;
-        } else if (ts < 1000000000000) {
-            // old responses may return unix seconds
-            ts = ts * 1000;
+        // the endpoint returns chronological points - keep input order (a re-sort breaks
+        // timestamp ties differently across languages and skews open/close within a bucket)
+        const sorted = pseudoTrades;
+        const ms = this.parseTimeframe (timeframe) * 1000;
+        const candles: Dict = {};
+        const bucketOrder = [];
+        for (let i = 0; i < sorted.length; i++) {
+            const point = sorted[i];
+            const pTs = this.safeInteger (point, 'timestamp');
+            const pPrice = this.safeNumber (point, 'price');
+            const bucket = this.parseToInt (pTs / ms) * ms;
+            const key = bucket.toString ();
+            if (!(key in candles)) {
+                candles[key] = [ bucket, pPrice, pPrice, pPrice, pPrice, 0 ];
+                bucketOrder.push (key);
+            } else {
+                const candle = candles[key];
+                candle[2] = Math.max (candle[2], pPrice);
+                candle[3] = Math.min (candle[3], pPrice);
+                candle[4] = pPrice;
+                candles[key] = candle; // php arrays are value types - write the mutation back
+            }
         }
-        const price = this.safeNumber (ohlcv, 'price');
-        const volume = this.safeNumber (ohlcv, 'volume', 0);   // history endpoint has no volume → 0
-        return [
-            ts,
-            price, price, price, price,   // synthetic OHLC from single tick
-            volume,
-        ];
+        const result = [];
+        for (let i = 0; i < bucketOrder.length; i++) {
+            result.push (candles[bucketOrder[i]]);
+        }
+        return this.filterBySinceLimit (result, since, limit, 0) as OHLCV[];
     }
 
     /**

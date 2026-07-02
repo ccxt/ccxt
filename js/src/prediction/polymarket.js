@@ -6,7 +6,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import { ArgumentsRequired, BadRequest, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied } from '../base/errors.js';
 // ---------------------------------------------------------------------------
 /**
  * @class polymarket
@@ -258,6 +258,24 @@ export default class polymarket extends Exchange {
                             'v1/maker/quotes/cancel': 1,
                         },
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'not enough balance / allowance': InsufficientFunds,
+                    'invalid signature': AuthenticationError,
+                    'api key not found': AuthenticationError,
+                },
+                'broad': {
+                    'No orderbook exists': BadSymbol,
+                    'not enough balance': InsufficientFunds,
+                    'allowance': InsufficientFunds,
+                    'invalid amount': InvalidOrder,
+                    'invalid price': InvalidOrder,
+                    'minimum tick size': InvalidOrder,
+                    'geoblocked': PermissionDenied,
+                    'restricted jurisdiction': PermissionDenied,
+                    'Unauthorized': AuthenticationError,
                 },
             },
             'requiredCredentials': {
@@ -2215,6 +2233,21 @@ export default class polymarket extends Exchange {
             result.push(this.parseEvent(rawEvent));
         }
         return result;
+    }
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
+        // map the known messages so callers can distinguish a dead book or a rejected order
+        // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
+        if (!response) {
+            return undefined;
+        }
+        const errorMessage = this.safeString2(response, 'error', 'errorMsg');
+        if (errorMessage !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorMessage, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+        }
+        return undefined;
     }
     /**
      * @ignore

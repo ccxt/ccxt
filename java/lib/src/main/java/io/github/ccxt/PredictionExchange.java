@@ -521,6 +521,10 @@ public Object isPrediction()
                     return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
                 }
             }
+            // remember whether the cache was already warm: a miss against a warm cache may just
+            // be staleness (prediction listings churn and some venues re-assign outcome ids), so
+            // it earns one forced refresh; a miss against a freshly loaded cache is authoritative
+            Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
             Object loadAll = this.safeBool(this.options, "loadAllOutcomes", true);
             if (Helpers.isTrue(loadAll))
             {
@@ -534,6 +538,21 @@ public Object isPrediction()
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))))
                     {
                         return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
+                    }
+                }
+                if (Helpers.isTrue(wasWarm))
+                {
+                    (this.loadOutcomes(true)).join();
+                    if (Helpers.isTrue(!Helpers.isEqual(this.outcomes, null)))
+                    {
+                        if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
+                        {
+                            return Helpers.GetValue(this.outcomes, outcomeSymbol);
+                        }
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))))
+                        {
+                            return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
+                        }
                     }
                 }
             }

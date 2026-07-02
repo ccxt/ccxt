@@ -2232,10 +2232,12 @@ public class HyperliquidCore extends HyperliquidApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.requireEventQuery(parameters);
             Object queries = this.parseSearchQueries(parameters);
-            // hyperliquid has no dedicated events endpoint — events are grouped from the outcome
-            // markets, so fetch them directly rather than relying on this.markets (which may be
-            // unloaded or hold the non-prediction hyperliquid markets)
-            Object marketValues = (this.fetchMarketsAsync()).join();
+            // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
+            // markets. use the cached load so the handles advertised here always match the
+            // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
+            // disagree with a previously warmed cache within the same session)
+            Object marketsDict = (this.loadMarkets()).join();
+            Object marketValues = this.toArray(marketsDict);
             // Group markets by parentSymbol
             Object groupMap = new java.util.HashMap<String, Object>() {{}};
             Object lowerQueries = new java.util.ArrayList<Object>(java.util.Arrays.asList());

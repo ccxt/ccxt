@@ -754,6 +754,29 @@ class testMainClass {
         // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
         // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
         let outcomeSymbol = exchange.safeString(this.skippedSettingsForExchange, 'preferredPredictionOutcome');
+        if (outcomeSymbol !== undefined) {
+            // validate the pin against the live listing - venues can rotate ids/handles
+            // (hyperliquid re-assigns outcome ids), which would strand a stale pin
+            let pinFound = false;
+            const pinnedKeys = Object.keys(exchange.markets);
+            for (let i = 0; i < pinnedKeys.length; i++) {
+                const pinnedMarket = exchange.markets[pinnedKeys[i]];
+                const pinnedOutcomes = exchange.safeList(pinnedMarket, 'outcomes', []);
+                for (let j = 0; j < pinnedOutcomes.length; j++) {
+                    if (exchange.safeString(pinnedOutcomes[j], 'outcome') === outcomeSymbol) {
+                        pinFound = true;
+                        break;
+                    }
+                }
+                if (pinFound) {
+                    break;
+                }
+            }
+            if (!pinFound) {
+                dump('[INFO:MAIN] preferredPredictionOutcome', outcomeSymbol, 'not in the live listing (stale pin?) - falling back to market scan');
+                outcomeSymbol = undefined;
+            }
+        }
         if (outcomeSymbol === undefined) {
             const marketKeys = Object.keys(exchange.markets);
             for (let i = 0; i < marketKeys.length; i++) {

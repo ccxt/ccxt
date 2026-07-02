@@ -1254,11 +1254,11 @@ class limitless extends Exchange {
              * @see https://docs.limitless.exchange/api-reference/trading/historical-price
              *
              * @param {string} $outcome outcome, e.g. "TRUMP_OUT:YES"
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum number of candles to fetch
+             * @param {string} $timeframe the length of time each $candle represents
+             * @param {int} [$since] timestamp in $ms of the earliest $candle to fetch
+             * @param {int} [$limit] the maximum number of $candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} a list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -1321,53 +1321,53 @@ class limitless extends Exchange {
                     $history = $this->safe_list($selectedSeries, 'prices', array());
                 }
             }
-            $usableHistory = array();
+            // the endpoint returns raw price points, not $candles - $bucket them into
+            // $timeframe-aligned $candles (single points would carry unaligned timestamps)
+            $pseudoTrades = array();
             for ($i = 0; $i < count($history); $i++) {
                 $point = $history[$i];
                 $pointPrice = $this->safe_number($point, 'price');
-                $pointTs = $this->safe_string($point, 'timestamp');
+                $pointTs = $this->safe_integer($point, 'timestamp');
+                if ($pointTs === null) {
+                    $tsString = $this->safe_string($point, 'timestamp');
+                    $pointTs = $tsString ? $this->parse8601($tsString) : null;
+                } elseif ($pointTs < 1000000000000) {
+                    // old responses may return unix seconds
+                    $pointTs = $pointTs * 1000;
+                }
                 if (($pointPrice !== null) && ($pointTs !== null)) {
-                    $usableHistory[] = $point;
+                    $pseudoTrades[] = array( 'timestamp' => $pointTs, 'price' => $pointPrice, 'amount' => 0 );
                 }
             }
-            return $this->parse_ohlcvs($usableHistory, $outcomeObj, $timeframe, $since, $limit);
+            // the endpoint returns chronological points - keep input order (a re-sort breaks
+            // timestamp ties differently across languages and skews open/close within a $bucket)
+            $sorted = $pseudoTrades;
+            $ms = $this->parse_timeframe($timeframe) * 1000;
+            $candles = array();
+            $bucketOrder = array();
+            for ($i = 0; $i < count($sorted); $i++) {
+                $point = $sorted[$i];
+                $pTs = $this->safe_integer($point, 'timestamp');
+                $pPrice = $this->safe_number($point, 'price');
+                $bucket = $this->parse_to_int($pTs / $ms) * $ms;
+                $key = (string) $bucket;
+                if (!(is_array($candles) && array_key_exists($key, $candles))) {
+                    $candles[$key] = array( $bucket, $pPrice, $pPrice, $pPrice, $pPrice, 0 );
+                    $bucketOrder[] = $key;
+                } else {
+                    $candle = $candles[$key];
+                    $candle[2] = max($candle[2], $pPrice);
+                    $candle[3] = min($candle[3], $pPrice);
+                    $candle[4] = $pPrice;
+                    $candles[$key] = $candle; // php arrays are value types - write the mutation back
+                }
+            }
+            $result = array();
+            for ($i = 0; $i < count($bucketOrder); $i++) {
+                $result[] = $candles[$bucketOrder[$i]];
+            }
+            return $this->filter_by_since_limit($result, $since, $limit, 0);
         })();
-    }
-
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
-        /**
-         * @ignore
-         * parses a single limitless $price tick into a synthetic CCXT OHLCV tuple (all four OHLC fields set to $price)
-         * @param {array} $ohlcv the raw $price tick object
-         * @param {array} [$market] the outcome object the candle belongs to
-         * @return {int[]} a candle ordered, open, high, low, close, $volume
-         */
-        //
-        //     {
-        //         "timestamp" => 1705318200000,
-        //         "price" => 0.1655
-        //     }
-        //
-        //     {
-        //         "price" => 0.75,
-        //         "timestamp" => "2024-01-15T10:30:00Z"
-        //     }
-        //
-        $ts = $this->safe_integer($ohlcv, 'timestamp');
-        if ($ts === null) {
-            $tsString = $this->safe_string($ohlcv, 'timestamp');
-            $ts = $tsString ? $this->parse8601($tsString) : null;
-        } elseif ($ts < 1000000000000) {
-            // old responses may return unix seconds
-            $ts = $ts * 1000;
-        }
-        $price = $this->safe_number($ohlcv, 'price');
-        $volume = $this->safe_number($ohlcv, 'volume', 0);   // history endpoint has no $volume → 0
-        return array(
-            $ts,
-            $price, $price, $price, $price,   // synthetic OHLC from single tick
-            $volume,
-        );
     }
 
     public function fetch_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

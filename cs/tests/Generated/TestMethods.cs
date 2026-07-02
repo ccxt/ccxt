@@ -833,6 +833,35 @@ public partial class testMainClass
         // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
         // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
         object outcomeSymbol = exchange.safeString(this.skippedSettingsForExchange, "preferredPredictionOutcome");
+        if (isTrue(!isEqual(outcomeSymbol, null)))
+        {
+            // validate the pin against the live listing - venues can rotate ids/handles
+            // (hyperliquid re-assigns outcome ids), which would strand a stale pin
+            object pinFound = false;
+            object pinnedKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(pinnedKeys)); postFixIncrement(ref i))
+            {
+                object pinnedMarket = getValue(exchange.markets, getValue(pinnedKeys, i));
+                object pinnedOutcomes = exchange.safeList(pinnedMarket, "outcomes", new List<object>() {});
+                for (object j = 0; isLessThan(j, getArrayLength(pinnedOutcomes)); postFixIncrement(ref j))
+                {
+                    if (isTrue(isEqual(exchange.safeString(getValue(pinnedOutcomes, j), "outcome"), outcomeSymbol)))
+                    {
+                        pinFound = true;
+                        break;
+                    }
+                }
+                if (isTrue(pinFound))
+                {
+                    break;
+                }
+            }
+            if (!isTrue(pinFound))
+            {
+                dump("[INFO:MAIN] preferredPredictionOutcome", outcomeSymbol, "not in the live listing (stale pin?) - falling back to market scan");
+                outcomeSymbol = null;
+            }
+        }
         if (isTrue(isEqual(outcomeSymbol, null)))
         {
             object marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);

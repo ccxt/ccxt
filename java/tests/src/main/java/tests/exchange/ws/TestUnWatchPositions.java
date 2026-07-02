@@ -88,7 +88,7 @@ public class TestUnWatchPositions extends BaseTest {
             {
                 throw new RuntimeException(e);
             }
-            throw new RuntimeException((String)Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
+            throw new Error((String)Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
         }
         // Verify resubscription works
         Assert(Helpers.isArray(resubscribeResponse), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));

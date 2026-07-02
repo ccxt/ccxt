@@ -265,6 +265,24 @@ public class PolymarketCore extends PolymarketApi
                     }} );
                 }} );
             }} );
+            put( "exceptions", new java.util.HashMap<String, Object>() {{
+                put( "exact", new java.util.HashMap<String, Object>() {{
+                    put( "not enough balance / allowance", InsufficientFunds.class );
+                    put( "invalid signature", AuthenticationError.class );
+                    put( "api key not found", AuthenticationError.class );
+                }} );
+                put( "broad", new java.util.HashMap<String, Object>() {{
+                    put( "No orderbook exists", BadSymbol.class );
+                    put( "not enough balance", InsufficientFunds.class );
+                    put( "allowance", InsufficientFunds.class );
+                    put( "invalid amount", InvalidOrder.class );
+                    put( "invalid price", InvalidOrder.class );
+                    put( "minimum tick size", InvalidOrder.class );
+                    put( "geoblocked", PermissionDenied.class );
+                    put( "restricted jurisdiction", PermissionDenied.class );
+                    put( "Unauthorized", AuthenticationError.class );
+                }} );
+            }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
                 put( "apiKey", false );
                 put( "secret", false );
@@ -2761,6 +2779,25 @@ final Object finalMarketSymbol = marketSymbol;
             ((java.util.List<Object>)result).add(this.parseEvent(rawEvent));
         }
         return result;
+    }
+
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    {
+        // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
+        // map the known messages so callers can distinguish a dead book or a rejected order
+        // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
+        if (!Helpers.isTrue(response))
+        {
+            return null;
+        }
+        Object errorMessage = this.safeString2(response, "error", "errorMsg");
+        if (Helpers.isTrue(!Helpers.isEqual(errorMessage, null)))
+        {
+            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorMessage, feedback);
+            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errorMessage, feedback);
+        }
+        return null;
     }
 
     /**

@@ -564,6 +564,23 @@ class testMainClass:
         # a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
         # many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
         outcome_symbol = exchange.safe_string(self.skipped_settings_for_exchange, 'preferredPredictionOutcome')
+        if outcome_symbol is not None:
+            # validate the pin against the live listing - venues can rotate ids/handles
+            # (hyperliquid re-assigns outcome ids), which would strand a stale pin
+            pin_found = False
+            pinned_keys = list(exchange.markets.keys())
+            for i in range(0, len(pinned_keys)):
+                pinned_market = exchange.markets[pinned_keys[i]]
+                pinned_outcomes = exchange.safe_list(pinned_market, 'outcomes', [])
+                for j in range(0, len(pinned_outcomes)):
+                    if exchange.safe_string(pinned_outcomes[j], 'outcome') == outcome_symbol:
+                        pin_found = True
+                        break
+                if pin_found:
+                    break
+            if not pin_found:
+                dump('[INFO:MAIN] preferredPredictionOutcome', outcome_symbol, 'not in the live listing (stale pin?) - falling back to market scan')
+                outcome_symbol = None
         if outcome_symbol is None:
             market_keys = list(exchange.markets.keys())
             for i in range(0, len(market_keys)):
