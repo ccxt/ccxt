@@ -265,6 +265,7 @@ public partial class onetrading : Exchange
                 { "MIOTA", "IOTA" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "mica", true },
                 { "fetchTradingFees", new Dictionary<string, object>() {
                     { "method", "fetchPrivateTradingFees" },
                 } },

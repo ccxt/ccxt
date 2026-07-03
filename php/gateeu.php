@@ -54,6 +54,7 @@ class gateeu extends gate {
                 'fetchMarkets' => array(
                     'types' => array( 'spot' ),
                 ),
+                'mica' => true,
             ),
         ));
     }

@@ -30,7 +30,7 @@ class okxus extends \ccxt\pro\okx {
                 ),
             ),
             'has' => array(
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
             ),

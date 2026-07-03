@@ -31,7 +31,7 @@ public class LighterCore extends LighterApi
             put( "quoteJsonNumbers", false );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", false );
+                put( "spot", true );
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", false );

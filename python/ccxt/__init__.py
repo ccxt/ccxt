@@ -87,7 +87,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.aftermath import aftermath                                  # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
-from ccxt.ascendex import ascendex                                    # noqa: F401
 from ccxt.aster import aster                                          # noqa: F401
 from ccxt.backpack import backpack                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
@@ -129,7 +128,6 @@ from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F4
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
-from ccxt.coinmetro import coinmetro                                  # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
 from ccxt.coinsph import coinsph                                      # noqa: F401
 from ccxt.coinspot import coinspot                                    # noqa: F401
@@ -171,7 +169,6 @@ from ccxt.mexc import mexc                                            # noqa: F4
 from ccxt.modetrade import modetrade                                  # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
-from ccxt.novadax import novadax                                      # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
@@ -196,7 +193,6 @@ exchanges = [
     'aftermath',
     'alpaca',
     'apex',
-    'ascendex',
     'aster',
     'backpack',
     'bequant',
@@ -238,7 +234,6 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinmate',
-    'coinmetro',
     'coinone',
     'coinsph',
     'coinspot',
@@ -280,7 +275,6 @@ exchanges = [
     'modetrade',
     'myokx',
     'ndax',
-    'novadax',
     'okx',
     'okxus',
     'onetrading',

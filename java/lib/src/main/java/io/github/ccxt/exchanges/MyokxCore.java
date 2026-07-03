@@ -59,6 +59,9 @@ public class MyokxCore extends MyokxApi
                     put( "inverse", null );
                 }} );
             }} );
+            put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
+            }} );
         }});
     }
 }

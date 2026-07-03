@@ -32,7 +32,7 @@ class lighter(Exchange, ImplicitAPI):
             'quoteJsonNumbers': False,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,

@@ -42,7 +42,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': None,  # has but not fully implemented
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,

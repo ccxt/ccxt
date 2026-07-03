@@ -29,7 +29,7 @@ class poloniex extends poloniex$1["default"] {
                 'spot': true,
                 'margin': undefined, // has but not fully implemented
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,

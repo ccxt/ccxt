@@ -401,6 +401,7 @@ public class BitvavoCore extends BitvavoApi
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
                 put( "currencyToPrecisionRoundingMode", TRUNCATE );
                 put( "BITVAVO-ACCESS-WINDOW", 10000 );
                 put( "networks", new java.util.HashMap<String, Object>() {{

@@ -26,7 +26,7 @@ func (this *ExtendedCore) Describe() any {
 		"dex":           true,
 		"has": map[string]any{
 			"CORS":                                 nil,
-			"spot":                                 false,
+			"spot":                                 true,
 			"margin":                               false,
 			"swap":                                 true,
 			"future":                               false,

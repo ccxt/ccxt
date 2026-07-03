@@ -22,6 +22,9 @@ public partial class kucoineu : kucoin
                 { "www", "https://www.kucoin.com/en-eu" },
                 { "doc", new List<object>() {"https://www.kucoin.com/en-eu/docs-new"} },
             } },
+            { "options", new Dictionary<string, object>() {
+                { "mica", true },
+            } },
         });
     }
 }
