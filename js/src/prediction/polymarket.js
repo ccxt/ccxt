@@ -2078,22 +2078,21 @@ export default class polymarket extends Exchange {
             const parsedEvent = this.parseEvent(eventForParsing);
             result.push(parsedEvent);
         }
-        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
-        // from the markets registered above
-        this.setEvents(result);
+        // populateOutcomes rebuilds the outcome cache from the markets registered above; the
+        // shared applyEventFetchParams then caches (setEvents) and applies the unified
+        // eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
         this.populateOutcomes();
-        // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
-        // client-side (searchIn defaults to 'title', matching the reference behaviour)
-        let filtered = result;
+        let effectiveParams = params;
         if (queriesLength > 0) {
-            filtered = this.filterEventsByStatus(filtered, this.safeString(params, 'status', 'active'));
-            filtered = this.filterEventsBySearchIn(filtered, queries, this.safeString(params, 'searchIn', 'title'));
+            // the gamma search endpoint is fuzzy, so default to refining by active status and a
+            // title match (the caller can override); the other venues search exactly and need no
+            // such default. inject the defaults as explicit params so the shared pipeline stays
+            // the single behaviour definition
+            effectiveParams = this.extend({}, params);
+            effectiveParams['status'] = this.safeString(params, 'status', 'active');
+            effectiveParams['searchIn'] = this.safeString(params, 'searchIn', 'title');
         }
-        const finalLimit = this.safeInteger(params, 'limit');
-        if (finalLimit !== undefined) {
-            filtered = this.arraySlice(filtered, 0, finalLimit);
-        }
-        return filtered;
+        return this.applyEventFetchParams(result, effectiveParams, queries);
     }
     /**
      * @method

@@ -32,7 +32,6 @@ export default class PredictionExchange extends Exchange {
     shortenSlug(slug: string): string;
     slugToMarketSymbol(eventSlug: string, marketSlug: string): string;
     slugToOutcomeSymbol(eventSlug: string, marketSlug: string, outcome: string): string;
-    slugToMarketId(eventSlug: string, marketSlug: string, outcome: string): string;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     indexMarketOutcomes(market: any): void;
     populateOutcomes(): void;
@@ -334,4 +333,14 @@ export default class PredictionExchange extends Exchange {
     amountToPredictionPrecision(outcome: string, amount: any): string;
     priceToPredictionPrecision(outcome: string, price: any): string;
     costToPredictionPrecision(outcome: string, cost: any): string;
+    padHexToEven(hex: string): string;
+    padHexAddress(address: string): string;
+    rlpEncodeBytes(hex: string): string;
+    rlpEncodeList(items: string[]): string;
+    intToRlpHex(value: number): string;
+    hexToRlpBytes(hexValue: string): string;
+    signEvmTransaction(tx: Dict, privateKey: string): string;
+    ethRpc(rpcUrl: string, method: string, rpcParams: any[]): Promise<any>;
+    sendEvmTransaction(rpcUrl: string, chainId: number, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string>;
+    waitForTransactionReceipt(rpcUrl: string, txHash: string, timeout?: number): Promise<any>;
 }

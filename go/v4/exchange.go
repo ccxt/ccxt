@@ -2240,6 +2240,14 @@ func (this *Exchange) FetchOutcome(outcomeSymbol any) <-chan any {
 	return ch
 }
 
+// SignEvmTransaction is a default stub so every exchange satisfies IDerivedExchange.
+// EVM prediction exchanges (limitless, myriad) override it — it needs the noble crypto imports.
+func (this *Exchange) SignEvmTransaction(tx any, privateKey any) any {
+	_ = tx
+	_ = privateKey
+	panic(NotSupported(Add(this.Id, " signEvmTransaction() is not supported yet")))
+}
+
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
 func (this *Exchange) FetchEvents(optionalArgs ...any) <-chan any {

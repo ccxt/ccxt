@@ -464,58 +464,6 @@ class myriad(PredictionExchange, ImplicitAPI):
             'info': quote,
         }
 
-    def rlp_encode_bytes(self, hex: str) -> str:
-        # RLP-encodes a single byte string(hex without 0x) per the Ethereum RLP spec
-        byteLength = self.parse_to_int(len(hex) / 2)
-        if byteLength == 0:
-            return '80'
-        if (byteLength == 1) and (hex < '80'):
-            return hex
-        if byteLength < 56:
-            return self.int_to_base16(128 + byteLength) + hex
-        lengthHex = self.int_to_base16(byteLength)
-        if (len(lengthHex) % 2) != 0:
-            lengthHex = '0' + lengthHex
-        lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
-        return self.int_to_base16(183 + lengthOfLength) + lengthHex + hex
-
-    def rlp_encode_list(self, items: List[str]) -> str:
-        concatenated = ''
-        for i in range(0, len(items)):
-            concatenated = concatenated + items[i]
-        byteLength = self.parse_to_int(len(concatenated) / 2)
-        if byteLength < 56:
-            return self.int_to_base16(192 + byteLength) + concatenated
-        lengthHex = self.int_to_base16(byteLength)
-        if (len(lengthHex) % 2) != 0:
-            lengthHex = '0' + lengthHex
-        lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
-        return self.int_to_base16(247 + lengthOfLength) + lengthHex + concatenated
-
-    def int_to_rlp_hex(self, value: float) -> str:
-        # an integer minimal big-endian byte hex; 0 is the empty byte string
-        if value == 0:
-            return ''
-        hex = self.int_to_base16(value)
-        if (len(hex) % 2) != 0:
-            hex = '0' + hex
-        return hex
-
-    def hex_to_rlp_bytes(self, hexValue: str) -> str:
-        # a hex value(e.g. an RPC result) big-endian byte hex; leading zero bytes
-        # are stripped and 0 becomes the empty byte string(RLP integer encoding)
-        h = self.remove0x_prefix(hexValue)
-        start = 0
-        total = len(h)
-        while((start < total) and (h[start:start + 1] == '0')):
-            start = start + 1
-        h = h[start:]
-        if h == '':
-            return ''
-        if (len(h) % 2) != 0:
-            h = '0' + h
-        return h
-
     def sign_evm_transaction(self, tx: dict, privateKey: str) -> str:
         # builds and signs an EIP-1559(type 0x02) transaction, returning the signed raw tx hex.
         # tx fields(nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -561,36 +509,6 @@ class myriad(PredictionExchange, ImplicitAPI):
         # safeString would coerce a receipt object to "[object Object]"
         return self.safe_value(response, 'result')
 
-    def pad_hex_address(self, address: str) -> str:
-        # left-pads a 20-byte address to a 32-byte ABI word(24 leading zero bytes)
-        stripped = self.remove0x_prefix(address)
-        return '000000000000000000000000' + stripped
-
-    async def send_evm_transaction(self, rpcUrl: str, networkId: str, fromAddress: str, to: str, value: str, data: str, gasLimit: str) -> str:
-        nonce = await self.eth_rpc(rpcUrl, 'eth_getTransactionCount', [fromAddress, 'pending'])
-        gasPrice = await self.eth_rpc(rpcUrl, 'eth_gasPrice', [])
-        tx = {
-            'chainId': self.parse_to_int(networkId),
-            'nonce': nonce,
-            'maxPriorityFeePerGas': gasPrice,
-            'maxFeePerGas': gasPrice,
-            'gasLimit': gasLimit,
-            'to': to,
-            'value': value,
-            'data': data,
-        }
-        signed = self.sign_evm_transaction(tx, self.privateKey)
-        return await self.eth_rpc(rpcUrl, 'eth_sendRawTransaction', [signed])
-
-    async def wait_for_transaction_receipt(self, rpcUrl: str, txHash: str, timeout=60000) -> dict:
-        start = self.milliseconds()
-        while((self.milliseconds() - start) < timeout):
-            receipt = await self.eth_rpc(rpcUrl, 'eth_getTransactionReceipt', [txHash])
-            if receipt:
-                return receipt
-            await self.sleep(2000)
-        raise ExchangeError(self.id + ' transaction ' + txHash + ' not mined within timeout')
-
     async def ensure_erc20_allowance(self, rpcUrl: str, networkId: str, token: str, owner: str, spender: str) -> Any:
         # allowance(owner, spender)
         allowanceData = '0xdd62ed3e' + self.pad_hex_address(owner) + self.pad_hex_address(spender)
@@ -602,7 +520,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # approve(spender, maxUint256)
         maxUint = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
         approveData = '0x095ea7b3' + self.pad_hex_address(spender) + maxUint
-        approveHash = await self.send_evm_transaction(rpcUrl, networkId, owner, token, '0x0', approveData, '0x186a0')
+        approveHash = await self.send_evm_transaction(rpcUrl, self.parse_to_int(networkId), owner, token, '0x0', approveData, '0x186a0')
         await self.wait_for_transaction_receipt(rpcUrl, approveHash)
         return None
 
@@ -812,7 +730,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # a buy spends the collateral token, so the prediction-market contract must be approved first
         if (sideStr == 'buy') and (tokenAddress is not None):
             await self.ensure_erc20_allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)
-        txHash = await self.send_evm_transaction(rpcUrl, networkId, fromAddress, predictionMarket, '0x0', calldata, gasLimit)
+        txHash = await self.send_evm_transaction(rpcUrl, self.parse_to_int(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit)
         return self.parse_trade_tx(txHash, quote, outcomeObj, sideStr)
 
     def sign_orderbook_typed_data(self, types: dict, message: dict, networkId: str) -> str:

@@ -10,7 +10,6 @@ import hashlib
 import math
 from ccxt.base.types import Account, Any, Bool, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from typing import List
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
@@ -1977,66 +1976,6 @@ class limitless(PredictionExchange, ImplicitAPI):
     def sign_message(self, message, privateKey):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    def rlp_encode_bytes(self, hex: str) -> str:
-        # RLP-encodes a single byte string(hex without 0x) per the Ethereum RLP spec
-        byteLength = self.parse_to_int(len(hex) / 2)
-        if byteLength == 0:
-            return '80'
-        if (byteLength == 1) and (hex < '80'):
-            return hex
-        if byteLength < 56:
-            return self.int_to_base16(128 + byteLength) + hex
-        lengthHex = self.int_to_base16(byteLength)
-        lengthHex = self.pad_hex_to_even(lengthHex)
-        lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
-        return self.int_to_base16(183 + lengthOfLength) + lengthHex + hex
-
-    def rlp_encode_list(self, items: List[str]) -> str:
-        concatenated = ''
-        for i in range(0, len(items)):
-            concatenated = concatenated + items[i]
-        byteLength = self.parse_to_int(len(concatenated) / 2)
-        if byteLength < 56:
-            return self.int_to_base16(192 + byteLength) + concatenated
-        lengthHex = self.int_to_base16(byteLength)
-        lengthHex = self.pad_hex_to_even(lengthHex)
-        lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
-        return self.int_to_base16(247 + lengthOfLength) + lengthHex + concatenated
-
-    def int_to_rlp_hex(self, value: float) -> str:
-        # an integer minimal big-endian byte hex; 0 is the empty byte string
-        if value == 0:
-            return ''
-        hex = self.int_to_base16(value)
-        hex = self.pad_hex_to_even(hex)
-        return hex
-
-    def hex_to_rlp_bytes(self, hexValue: str) -> str:
-        # a hex value(e.g. an RPC result) big-endian byte hex; leading zero bytes
-        # are stripped and 0 becomes the empty byte string(RLP integer encoding)
-        h = self.remove0x_prefix(hexValue)
-        start = 0
-        total = len(h)
-        while((start < total) and (h[start:start + 1] == '0')):
-            start = start + 1
-        h = h[start:]
-        if h == '':
-            return ''
-        h = self.pad_hex_to_even(h)
-        return h
-
-    def pad_hex_to_even(self, hex: str) -> str:
-        # prepend a nibble so the hex has an even number of characters(whole bytes)
-        hexLength = len(hex)
-        if (hexLength % 2) != 0:
-            return '0' + hex
-        return hex
-
-    def pad_hex_address(self, address: str) -> str:
-        # left-pads a 20-byte address to a 32-byte ABI word(24 leading zero bytes)
-        stripped = self.remove0x_prefix(address)
-        return '000000000000000000000000' + stripped
-
     def sign_evm_transaction(self, tx: dict, privateKey: str) -> str:
         # builds and signs an EIP-1559(type 0x02) transaction, returning the signed raw tx hex
         accessList = self.rlp_encode_list([])
@@ -2066,41 +2005,6 @@ class limitless(PredictionExchange, ImplicitAPI):
         signedFields.append(self.rlp_encode_bytes(rHex))
         signedFields.append(self.rlp_encode_bytes(sHex))
         return '0x02' + self.rlp_encode_list(signedFields)
-
-    async def eth_rpc(self, rpcUrl: str, method: str, rpcParams: List[Any]):
-        payload = {'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams}
-        headers = {'Content-Type': 'application/json'}
-        response = await self.fetch(rpcUrl, 'POST', headers, self.json(payload))
-        rpcError = self.safe_value(response, 'error')
-        if rpcError is not None:
-            raise ExchangeError(self.id + ' rpc ' + method + ' error: ' + self.json(rpcError))
-        # the result is either a hex string(nonce/gasPrice/txhash) or an object(receipt)
-        return self.safe_value(response, 'result')
-
-    async def send_evm_transaction(self, rpcUrl: str, chainId: float, fromAddress: str, to: str, value: str, data: str, gasLimit: str) -> str:
-        nonce = await self.eth_rpc(rpcUrl, 'eth_getTransactionCount', [fromAddress, 'pending'])
-        gasPrice = await self.eth_rpc(rpcUrl, 'eth_gasPrice', [])
-        tx = {
-            'chainId': chainId,
-            'nonce': nonce,
-            'maxPriorityFeePerGas': gasPrice,
-            'maxFeePerGas': gasPrice,
-            'gasLimit': gasLimit,
-            'to': to,
-            'value': value,
-            'data': data,
-        }
-        signed = self.sign_evm_transaction(tx, self.privateKey)
-        return await self.eth_rpc(rpcUrl, 'eth_sendRawTransaction', [signed])
-
-    async def wait_for_transaction_receipt(self, rpcUrl: str, txHash: str, timeout=60000) -> Any:
-        start = self.milliseconds()
-        while((self.milliseconds() - start) < timeout):
-            receipt = await self.eth_rpc(rpcUrl, 'eth_getTransactionReceipt', [txHash])
-            if receipt:
-                return receipt
-            await self.sleep(2000)
-        raise ExchangeError(self.id + ' transaction ' + txHash + ' not mined within timeout')
 
     async def approve(self, params={}) -> Any:
         """

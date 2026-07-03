@@ -1967,20 +1967,20 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 self.markets[m['symbol']] = m
             parsedEvent = self.parse_event(eventForParsing)
             result.append(parsedEvent)
-        # setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
-        # from the markets registered above
-        self.set_events(result)
+        # populateOutcomes rebuilds the outcome cache from the markets registered above; the
+        # shared applyEventFetchParams then caches(setEvents) and applies the unified
+        # eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
         self.populate_outcomes()
-        # the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
-        # client-side(searchIn defaults to 'title', matching the reference behaviour)
-        filtered = result
+        effectiveParams = params
         if queriesLength > 0:
-            filtered = self.filter_events_by_status(filtered, self.safe_string(params, 'status', 'active'))
-            filtered = self.filter_events_by_search_in(filtered, queries, self.safe_string(params, 'searchIn', 'title'))
-        finalLimit = self.safe_integer(params, 'limit')
-        if finalLimit is not None:
-            filtered = self.array_slice(filtered, 0, finalLimit)
-        return filtered
+            # the gamma search endpoint is fuzzy, so default to refining by active status and a
+            # title match(the caller can override); the other venues search exactly and need no
+            # such default. inject the defaults params so the shared pipeline stays
+            # the single behaviour definition
+            effectiveParams = self.extend({}, params)
+            effectiveParams['status'] = self.safe_string(params, 'status', 'active')
+            effectiveParams['searchIn'] = self.safe_string(params, 'searchIn', 'title')
+        return self.apply_event_fetch_params(result, effectiveParams, queries)
 
     async def fetch_event(self, id: str, params={}) -> PredictionEvent:
         """

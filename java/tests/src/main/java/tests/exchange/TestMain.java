@@ -970,8 +970,7 @@ public class TestMain extends BaseTest
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventId, null))) && Helpers.isTrue(exchange.safeBool(exchange.has, "fetchEvent", false))))
                     {
                         Object eventVar = (callExchangeMethodDynamically(exchange, "fetchEvent", new java.util.ArrayList<Object>(java.util.Arrays.asList(eventId)))).join();
-                        Assert(exchange.isDictionary(eventVar), Helpers.add(exchange.id, " fetchEvent should return an event structure"));
-                        Assert(!Helpers.isEqual(exchange.safeString(eventVar, "id"), null), Helpers.add(exchange.id, " fetchEvent returned no id"));
+                        this.AssertPredictionEvent(exchange, eventVar);
                     }
                 } catch(Exception e)
                 {
@@ -1034,11 +1033,42 @@ public class TestMain extends BaseTest
         Object eventsLength = Helpers.getArrayLength(events);
         for (var i = 0; Helpers.isLessThan(i, eventsLength); i++)
         {
-            Object eventVar = Helpers.GetValue(events, i);
-            Assert(exchange.isDictionary(eventVar), Helpers.add(exchange.id, " event should be a dict"));
-            Assert(!Helpers.isEqual(exchange.safeString(eventVar, "id"), null), Helpers.add(exchange.id, " event missing id"));
-            Assert(!Helpers.isEqual(exchange.safeList(eventVar, "markets"), null), Helpers.add(exchange.id, " event missing markets"));
+            this.AssertPredictionEvent(exchange, Helpers.GetValue(events, i));
         }
+        return true;
+    }
+
+    public Object AssertPredictionEvent(Exchange exchange, Object eventVar)
+    {
+        // validates one PredictionEvent structure (id, event handle, markets each carrying an
+        // outcomes list, and the optional typed fields when present)
+        Object logText = Helpers.add(" event: ", exchange.json(eventVar));
+        Assert(exchange.isDictionary(eventVar), Helpers.add(Helpers.add(exchange.id, " event should be a dict"), logText));
+        Assert(!Helpers.isEqual(exchange.safeString(eventVar, "id"), null), Helpers.add(Helpers.add(exchange.id, " event missing id"), logText));
+        Assert(!Helpers.isEqual(exchange.safeString(eventVar, "event"), null), Helpers.add(Helpers.add(exchange.id, " event missing the unified event handle"), logText));
+        Object markets = exchange.safeList(eventVar, "markets");
+        Assert(!Helpers.isEqual(markets, null), Helpers.add(Helpers.add(exchange.id, " event missing markets"), logText));
+        Object marketsLength = Helpers.getArrayLength(markets);
+        for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
+        {
+            Object market = Helpers.GetValue(markets, i);
+            Assert(exchange.isDictionary(market), Helpers.add(Helpers.add(exchange.id, " event market should be a dict"), logText));
+            Object outcomes = exchange.safeList(market, "outcomes");
+            Assert(!Helpers.isEqual(outcomes, null), Helpers.add(Helpers.add(exchange.id, " event market missing outcomes"), logText));
+        }
+        // optional typed fields must have the right type when present
+        Object active = exchange.safeValue(eventVar, "active");
+        if (Helpers.isTrue(!Helpers.isEqual(active, null)))
+        {
+            Assert(Helpers.isTrue((Helpers.isEqual(active, true))) || Helpers.isTrue((Helpers.isEqual(active, false))), Helpers.add(Helpers.add(exchange.id, " event active must be a bool"), logText));
+        }
+        Object tags = exchange.safeValue(eventVar, "tags");
+        if (Helpers.isTrue(!Helpers.isEqual(tags, null)))
+        {
+            Assert(Helpers.isArray(tags), Helpers.add(Helpers.add(exchange.id, " event tags must be a list"), logText));
+        }
+        Object info = exchange.safeValue(eventVar, "info");
+        Assert(!Helpers.isEqual(info, null), Helpers.add(Helpers.add(exchange.id, " event missing info"), logText));
         return true;
     }
 

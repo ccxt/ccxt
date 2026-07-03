@@ -222,16 +222,7 @@ export default class limitless extends Exchange {
     hashMessage(message: any): string;
     signHash(hash: any, privateKey: any): string;
     signMessage(message: any, privateKey: any): string;
-    rlpEncodeBytes(hex: string): string;
-    rlpEncodeList(items: string[]): string;
-    intToRlpHex(value: number): string;
-    hexToRlpBytes(hexValue: string): string;
-    padHexToEven(hex: string): string;
-    padHexAddress(address: string): string;
     signEvmTransaction(tx: Dict, privateKey: string): string;
-    ethRpc(rpcUrl: string, method: string, rpcParams: any[]): Promise<any>;
-    sendEvmTransaction(rpcUrl: string, chainId: number, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string>;
-    waitForTransactionReceipt(rpcUrl: string, txHash: string, timeout?: number): Promise<any>;
     /**
      * @method
      * @name limitless#approve

@@ -7,7 +7,6 @@ namespace ccxt\prediction;
 
 use Exception; // a common import
 use ccxt\abstract\prediction\limitless as Exchange;
-use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidAddress;
@@ -2120,81 +2119,6 @@ class limitless extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function rlp_encode_bytes(string $hex): string {
-        // RLP-encodes a single byte string ($hex without 0x) per the Ethereum RLP spec
-        $byteLength = $this->parse_to_int(strlen($hex) / 2);
-        if ($byteLength === 0) {
-            return '80';
-        }
-        if (($byteLength === 1) && ($hex < '80')) {
-            return $hex;
-        }
-        if ($byteLength < 56) {
-            return $this->int_to_base16(128 . $byteLength) . $hex;
-        }
-        $lengthHex = $this->int_to_base16($byteLength);
-        $lengthHex = $this->pad_hex_to_even($lengthHex);
-        $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
-        return $this->int_to_base16(183 . $lengthOfLength) . $lengthHex . $hex;
-    }
-
-    public function rlp_encode_list(array $items): string {
-        $concatenated = '';
-        for ($i = 0; $i < count($items); $i++) {
-            $concatenated = $concatenated . $items[$i];
-        }
-        $byteLength = $this->parse_to_int(strlen($concatenated) / 2);
-        if ($byteLength < 56) {
-            return $this->int_to_base16(192 . $byteLength) . $concatenated;
-        }
-        $lengthHex = $this->int_to_base16($byteLength);
-        $lengthHex = $this->pad_hex_to_even($lengthHex);
-        $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
-        return $this->int_to_base16(247 . $lengthOfLength) . $lengthHex . $concatenated;
-    }
-
-    public function int_to_rlp_hex(float $value): string {
-        // an integer minimal big-endian byte $hex; 0 is the empty byte string
-        if ($value === 0) {
-            return '';
-        }
-        $hex = $this->int_to_base16($value);
-        $hex = $this->pad_hex_to_even($hex);
-        return $hex;
-    }
-
-    public function hex_to_rlp_bytes(string $hexValue): string {
-        // a hex value (e.g. an RPC result) big-endian byte hex; leading zero bytes
-        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-        $h = $this->remove0x_prefix($hexValue);
-        $start = 0;
-        $total = count($h);
-        while (($start < $total) && (mb_substr($h, $start, $start + 1 - $start) === '0')) {
-            $start = $start + 1;
-        }
-        $h = mb_substr($h, $start);
-        if ($h === '') {
-            return '';
-        }
-        $h = $this->pad_hex_to_even($h);
-        return $h;
-    }
-
-    public function pad_hex_to_even(string $hex): string {
-        // prepend a nibble so the $hex has an even number of characters (whole bytes)
-        $hexLength = count($hex);
-        if ((fmod($hexLength, 2)) !== 0) {
-            return '0' . $hex;
-        }
-        return $hex;
-    }
-
-    public function pad_hex_address(string $address): string {
-        // left-pads a 20-byte $address to a 32-byte ABI word (24 leading zero bytes)
-        $stripped = $this->remove0x_prefix($address);
-        return '000000000000000000000000' . $stripped;
-    }
-
     public function sign_evm_transaction(array $tx, string $privateKey): string {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw $tx hex
         $accessList = $this->rlp_encode_list(array());
@@ -2225,53 +2149,6 @@ class limitless extends Exchange {
         $signedFields[] = $this->rlp_encode_bytes($rHex);
         $signedFields[] = $this->rlp_encode_bytes($sHex);
         return '0x02' . $this->rlp_encode_list($signedFields);
-    }
-
-    public function eth_rpc(string $rpcUrl, string $method, array $rpcParams) {
-        return Async\async(function () use ($rpcUrl, $method, $rpcParams) {
-            $payload = array( 'jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $rpcParams );
-            $headers = array( 'Content-Type' => 'application/json' );
-            $response = Async\await($this->fetch($rpcUrl, 'POST', $headers, $this->json($payload)));
-            $rpcError = $this->safe_value($response, 'error');
-            if ($rpcError !== null) {
-                throw new ExchangeError($this->id . ' rpc ' . $method . ' error => ' . $this->json($rpcError));
-            }
-            // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt)
-            return $this->safe_value($response, 'result');
-        })();
-    }
-
-    public function send_evm_transaction(string $rpcUrl, float $chainId, string $fromAddress, string $to, string $value, string $data, string $gasLimit): PromiseInterface {
-        return Async\async(function () use ($rpcUrl, $chainId, $fromAddress, $to, $value, $data, $gasLimit) {
-            $nonce = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionCount', array( $fromAddress, 'pending' )));
-            $gasPrice = Async\await($this->eth_rpc($rpcUrl, 'eth_gasPrice', array()));
-            $tx = array(
-                'chainId' => $chainId,
-                'nonce' => $nonce,
-                'maxPriorityFeePerGas' => $gasPrice,
-                'maxFeePerGas' => $gasPrice,
-                'gasLimit' => $gasLimit,
-                'to' => $to,
-                'value' => $value,
-                'data' => $data,
-            );
-            $signed = $this->sign_evm_transaction($tx, $this->privateKey);
-            return Async\await($this->eth_rpc($rpcUrl, 'eth_sendRawTransaction', array( $signed )));
-        })();
-    }
-
-    public function wait_for_transaction_receipt(string $rpcUrl, string $txHash, $timeout = 60000): PromiseInterface {
-        return Async\async(function () use ($rpcUrl, $txHash, $timeout) {
-            $start = $this->milliseconds();
-            while (($this->milliseconds() - $start) < $timeout) {
-                $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));
-                if ($receipt) {
-                    return $receipt;
-                }
-                Async\await($this->sleep(2000));
-            }
-            throw new ExchangeError($this->id . ' transaction ' . $txHash . ' not mined within timeout');
-        })();
     }
 
     public function approve($params = array()): PromiseInterface {

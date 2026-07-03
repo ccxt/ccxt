@@ -518,91 +518,7 @@ public partial class myriad : PredictionExchange
         };
     }
 
-    public virtual object rlpEncodeBytes(object hex)
-    {
-        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        object byteLength = this.parseToInt(divide(((string)hex).Length, 2));
-        if (isTrue(isEqual(byteLength, 0)))
-        {
-            return "80";
-        }
-        if (isTrue(isTrue((isEqual(byteLength, 1))) && isTrue((isLessThan(hex, "80")))))
-        {
-            return hex;
-        }
-        if (isTrue(isLessThan(byteLength, 56)))
-        {
-            return add(this.intToBase16(add(128, byteLength)), hex);
-        }
-        object lengthHex = this.intToBase16(byteLength);
-        if (isTrue(!isEqual((mod(((string)lengthHex).Length, 2)), 0)))
-        {
-            lengthHex = add("0", lengthHex);
-        }
-        object lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
-        return add(add(this.intToBase16(add(183, lengthOfLength)), lengthHex), hex);
-    }
-
-    public virtual object rlpEncodeList(object items)
-    {
-        object concatenated = "";
-        for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
-        {
-            concatenated = add(concatenated, getValue(items, i));
-        }
-        object byteLength = this.parseToInt(divide(((string)concatenated).Length, 2));
-        if (isTrue(isLessThan(byteLength, 56)))
-        {
-            return add(this.intToBase16(add(192, byteLength)), concatenated);
-        }
-        object lengthHex = this.intToBase16(byteLength);
-        if (isTrue(!isEqual((mod(((string)lengthHex).Length, 2)), 0)))
-        {
-            lengthHex = add("0", lengthHex);
-        }
-        object lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
-        return add(add(this.intToBase16(add(247, lengthOfLength)), lengthHex), concatenated);
-    }
-
-    public virtual object intToRlpHex(object value)
-    {
-        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if (isTrue(isEqual(value, 0)))
-        {
-            return "";
-        }
-        object hex = this.intToBase16(value);
-        if (isTrue(!isEqual((mod(((string)hex).Length, 2)), 0)))
-        {
-            hex = add("0", hex);
-        }
-        return hex;
-    }
-
-    public virtual object hexToRlpBytes(object hexValue)
-    {
-        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
-        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-        object h = this.remove0xPrefix(hexValue);
-        object start = 0;
-        object total = getArrayLength(h);
-        while (isTrue((isLessThan(start, total))) && isTrue((isEqual(slice(h, start, add(start, 1)), "0"))))
-        {
-            start = add(start, 1);
-        }
-        h = slice(h, start, null);
-        if (isTrue(isEqual(h, "")))
-        {
-            return "";
-        }
-        if (isTrue(!isEqual((mod(getArrayLength(h), 2)), 0)))
-        {
-            h = add("0", h);
-        }
-        return h;
-    }
-
-    public virtual object signEvmTransaction(object tx, object privateKey)
+    public override object signEvmTransaction(object tx, object privateKey)
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -634,7 +550,7 @@ public partial class myriad : PredictionExchange
         return add("0x02", this.rlpEncodeList(signedFields));
     }
 
-    public async virtual Task<object> ethRpc(object rpcUrl, object method, object rpcParams)
+    public async override Task<object> ethRpc(object rpcUrl, object method, object rpcParams)
     {
         object payload = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -656,47 +572,6 @@ public partial class myriad : PredictionExchange
         return this.safeValue(response, "result");
     }
 
-    public virtual object padHexAddress(object address)
-    {
-        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        object stripped = this.remove0xPrefix(address);
-        return add("000000000000000000000000", stripped);
-    }
-
-    public async virtual Task<object> sendEvmTransaction(object rpcUrl, object networkId, object fromAddress, object to, object value, object data, object gasLimit)
-    {
-        object nonce = await this.ethRpc(rpcUrl, "eth_getTransactionCount", new List<object>() {fromAddress, "pending"});
-        object gasPrice = await this.ethRpc(rpcUrl, "eth_gasPrice", new List<object>() {});
-        object tx = new Dictionary<string, object>() {
-            { "chainId", this.parseToInt(networkId) },
-            { "nonce", nonce },
-            { "maxPriorityFeePerGas", gasPrice },
-            { "maxFeePerGas", gasPrice },
-            { "gasLimit", gasLimit },
-            { "to", to },
-            { "value", value },
-            { "data", data },
-        };
-        object signed = this.signEvmTransaction(tx, this.privateKey);
-        return await this.ethRpc(rpcUrl, "eth_sendRawTransaction", new List<object>() {signed});
-    }
-
-    public async virtual Task<object> waitForTransactionReceipt(object rpcUrl, object txHash, object timeout = null)
-    {
-        timeout ??= 60000;
-        object start = this.milliseconds();
-        while (isLessThan((subtract(this.milliseconds(), start)), timeout))
-        {
-            object receipt = await this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new List<object>() {txHash});
-            if (isTrue(receipt))
-            {
-                return ((object)receipt);
-            }
-            await this.sleep(2000);
-        }
-        throw new ExchangeError ((string)add(add(add(this.id, " transaction "), txHash), " not mined within timeout")) ;
-    }
-
     public async virtual Task<object> ensureErc20Allowance(object rpcUrl, object networkId, object token, object owner, object spender)
     {
         // allowance(owner, spender)
@@ -714,7 +589,7 @@ public partial class myriad : PredictionExchange
         // approve(spender, maxUint256)
         object maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
         object approveData = add(add("0x095ea7b3", this.padHexAddress(spender)), maxUint);
-        object approveHash = await this.sendEvmTransaction(rpcUrl, networkId, owner, token, "0x0", approveData, "0x186a0");
+        object approveHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), owner, token, "0x0", approveData, "0x186a0");
         await this.waitForTransactionReceipt(rpcUrl, approveHash);
         return null;
     }
@@ -991,7 +866,7 @@ public partial class myriad : PredictionExchange
         {
             await this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
-        object txHash = await this.sendEvmTransaction(rpcUrl, networkId, fromAddress, predictionMarket, "0x0", calldata, gasLimit);
+        object txHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, "0x0", calldata, gasLimit);
         return this.parseTradeTx(txHash, quote, ((object)outcomeObj), sideStr);
     }
 

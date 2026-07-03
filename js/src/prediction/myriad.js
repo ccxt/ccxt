@@ -495,70 +495,6 @@ export default class myriad extends Exchange {
             'info': quote,
         };
     }
-    rlpEncodeBytes(hex) {
-        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        const byteLength = this.parseToInt(hex.length / 2);
-        if (byteLength === 0) {
-            return '80';
-        }
-        if ((byteLength === 1) && (hex < '80')) {
-            return hex;
-        }
-        if (byteLength < 56) {
-            return this.intToBase16(128 + byteLength) + hex;
-        }
-        let lengthHex = this.intToBase16(byteLength);
-        if ((lengthHex.length % 2) !== 0) {
-            lengthHex = '0' + lengthHex;
-        }
-        const lengthOfLength = this.parseToInt(lengthHex.length / 2);
-        return this.intToBase16(183 + lengthOfLength) + lengthHex + hex;
-    }
-    rlpEncodeList(items) {
-        let concatenated = '';
-        for (let i = 0; i < items.length; i++) {
-            concatenated = concatenated + items[i];
-        }
-        const byteLength = this.parseToInt(concatenated.length / 2);
-        if (byteLength < 56) {
-            return this.intToBase16(192 + byteLength) + concatenated;
-        }
-        let lengthHex = this.intToBase16(byteLength);
-        if ((lengthHex.length % 2) !== 0) {
-            lengthHex = '0' + lengthHex;
-        }
-        const lengthOfLength = this.parseToInt(lengthHex.length / 2);
-        return this.intToBase16(247 + lengthOfLength) + lengthHex + concatenated;
-    }
-    intToRlpHex(value) {
-        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if (value === 0) {
-            return '';
-        }
-        let hex = this.intToBase16(value);
-        if ((hex.length % 2) !== 0) {
-            hex = '0' + hex;
-        }
-        return hex;
-    }
-    hexToRlpBytes(hexValue) {
-        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
-        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-        let h = this.remove0xPrefix(hexValue);
-        let start = 0;
-        const total = h.length;
-        while ((start < total) && (h.slice(start, start + 1) === '0')) {
-            start = start + 1;
-        }
-        h = h.slice(start);
-        if (h === '') {
-            return '';
-        }
-        if ((h.length % 2) !== 0) {
-            h = '0' + h;
-        }
-        return h;
-    }
     signEvmTransaction(tx, privateKey) {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -608,38 +544,6 @@ export default class myriad extends Exchange {
         // safeString would coerce a receipt object to "[object Object]"
         return this.safeValue(response, 'result');
     }
-    padHexAddress(address) {
-        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        const stripped = this.remove0xPrefix(address);
-        return '000000000000000000000000' + stripped;
-    }
-    async sendEvmTransaction(rpcUrl, networkId, fromAddress, to, value, data, gasLimit) {
-        const nonce = await this.ethRpc(rpcUrl, 'eth_getTransactionCount', [fromAddress, 'pending']);
-        const gasPrice = await this.ethRpc(rpcUrl, 'eth_gasPrice', []);
-        const tx = {
-            'chainId': this.parseToInt(networkId),
-            'nonce': nonce,
-            'maxPriorityFeePerGas': gasPrice,
-            'maxFeePerGas': gasPrice,
-            'gasLimit': gasLimit,
-            'to': to,
-            'value': value,
-            'data': data,
-        };
-        const signed = this.signEvmTransaction(tx, this.privateKey);
-        return await this.ethRpc(rpcUrl, 'eth_sendRawTransaction', [signed]);
-    }
-    async waitForTransactionReceipt(rpcUrl, txHash, timeout = 60000) {
-        const start = this.milliseconds();
-        while ((this.milliseconds() - start) < timeout) {
-            const receipt = await this.ethRpc(rpcUrl, 'eth_getTransactionReceipt', [txHash]);
-            if (receipt) {
-                return receipt;
-            }
-            await this.sleep(2000);
-        }
-        throw new ExchangeError(this.id + ' transaction ' + txHash + ' not mined within timeout');
-    }
     async ensureErc20Allowance(rpcUrl, networkId, token, owner, spender) {
         // allowance(owner, spender)
         const allowanceData = '0xdd62ed3e' + this.padHexAddress(owner) + this.padHexAddress(spender);
@@ -652,7 +556,7 @@ export default class myriad extends Exchange {
         // approve(spender, maxUint256)
         const maxUint = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
         const approveData = '0x095ea7b3' + this.padHexAddress(spender) + maxUint;
-        const approveHash = await this.sendEvmTransaction(rpcUrl, networkId, owner, token, '0x0', approveData, '0x186a0');
+        const approveHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), owner, token, '0x0', approveData, '0x186a0');
         await this.waitForTransactionReceipt(rpcUrl, approveHash);
         return undefined;
     }
@@ -888,7 +792,7 @@ export default class myriad extends Exchange {
         if ((sideStr === 'buy') && (tokenAddress !== undefined)) {
             await this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
-        const txHash = await this.sendEvmTransaction(rpcUrl, networkId, fromAddress, predictionMarket, '0x0', calldata, gasLimit);
+        const txHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
         return this.parseTradeTx(txHash, quote, outcomeObj, sideStr);
     }
     /**

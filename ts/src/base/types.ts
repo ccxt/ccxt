@@ -129,7 +129,7 @@ export interface PredictionEvent {
     slug?: Str;
     category?: Str;
     tags?: string[];
-    markets: PredictionMarket[]; // grouped markets (does not re-derive outcomes)
+    markets: Market[];           // grouped ccxt market rows (each with its outcomes list)
     mutuallyExclusive?: Bool;    // exactly one market in the event resolves YES
     active?: Bool;
     resolved?: Bool;

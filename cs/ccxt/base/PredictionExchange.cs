@@ -480,11 +480,6 @@ public partial class PredictionExchange : Exchange
         return add(add(this.shortenSlug(marketSlug), ":"), ((string)outcome).ToUpper());
     }
 
-    public virtual object slugToMarketId(object eventSlug, object marketSlug, object outcome)
-    {
-        return this.slugToOutcomeSymbol(eventSlug, marketSlug, outcome);
-    }
-
     public override object setMarkets(object markets, object currencies = null)
     {
         object result = base.setMarkets(markets, currencies);
@@ -949,8 +944,10 @@ public partial class PredictionExchange : Exchange
      */
     public async override Task<object> createMarketBuyOrderWithCost(object outcome, object cost, object parameters = null)
     {
+        // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
+        // when the option is undeclared (it is for every prediction exchange)
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isTrue(getValue(this.options, "createMarketBuyOrderRequiresPrice")) || isTrue(getValue(this.has, "createMarketBuyOrderWithCost"))))
+        if (isTrue(isTrue(this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false)) || isTrue(this.safeBool(this.has, "createMarketBuyOrderWithCost", false))))
         {
             return await this.createOrder(outcome, "market", "buy", cost, 1, parameters);
         }
@@ -969,7 +966,7 @@ public partial class PredictionExchange : Exchange
     public async override Task<object> createMarketSellOrderWithCost(object outcome, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isTrue(getValue(this.options, "createMarketSellOrderRequiresPrice")) || isTrue(getValue(this.has, "createMarketSellOrderWithCost"))))
+        if (isTrue(isTrue(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || isTrue(this.safeBool(this.has, "createMarketSellOrderWithCost", false))))
         {
             return await this.createOrder(outcome, "market", "sell", cost, 1, parameters);
         }
@@ -1216,6 +1213,164 @@ public partial class PredictionExchange : Exchange
         object outcomeObj = this.outcome(outcome);
         object marketSymbol = this.safeString(outcomeObj, "market");
         return this.costToPrecision(marketSymbol, cost);
+    }
+
+    // ------------------------------------------------------------------------
+    // shared EVM helpers — RLP encoding + a minimal JSON-RPC client + raw-tx
+    // broadcast, used by the on-chain (EOA) trading paths of EVM prediction
+    // venues (limitless, myriad). signEvmTransaction stays per-exchange because
+    // it needs the noble crypto imports (keccak/ecdsa/secp256k1) which the
+    // per-language prediction base skeletons don't carry; this base
+    // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
+    public virtual object padHexToEven(object hex)
+    {
+        // prepend a nibble so the hex has an even number of characters (whole bytes)
+        object hexLength = ((string)hex).Length;
+        if (isTrue(!isEqual((mod(hexLength, 2)), 0)))
+        {
+            return add("0", hex);
+        }
+        return hex;
+    }
+
+    public virtual object padHexAddress(object address)
+    {
+        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
+        object stripped = this.remove0xPrefix(address);
+        return add("000000000000000000000000", stripped);
+    }
+
+    public virtual object rlpEncodeBytes(object hex)
+    {
+        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
+        object byteLength = this.parseToInt(divide(((string)hex).Length, 2));
+        if (isTrue(isEqual(byteLength, 0)))
+        {
+            return "80";
+        }
+        if (isTrue(isTrue((isEqual(byteLength, 1))) && isTrue((isLessThan(hex, "80")))))
+        {
+            return hex;
+        }
+        if (isTrue(isLessThan(byteLength, 56)))
+        {
+            return add(this.intToBase16(add(128, byteLength)), hex);
+        }
+        object lengthHex = this.intToBase16(byteLength);
+        lengthHex = this.padHexToEven(lengthHex);
+        object lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
+        return add(add(this.intToBase16(add(183, lengthOfLength)), lengthHex), hex);
+    }
+
+    public virtual object rlpEncodeList(object items)
+    {
+        object concatenated = "";
+        for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
+        {
+            concatenated = add(concatenated, getValue(items, i));
+        }
+        object byteLength = this.parseToInt(divide(((string)concatenated).Length, 2));
+        if (isTrue(isLessThan(byteLength, 56)))
+        {
+            return add(this.intToBase16(add(192, byteLength)), concatenated);
+        }
+        object lengthHex = this.intToBase16(byteLength);
+        lengthHex = this.padHexToEven(lengthHex);
+        object lengthOfLength = this.parseToInt(divide(((string)lengthHex).Length, 2));
+        return add(add(this.intToBase16(add(247, lengthOfLength)), lengthHex), concatenated);
+    }
+
+    public virtual object intToRlpHex(object value)
+    {
+        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
+        if (isTrue(isEqual(value, 0)))
+        {
+            return "";
+        }
+        object hex = this.intToBase16(value);
+        hex = this.padHexToEven(hex);
+        return hex;
+    }
+
+    public virtual object hexToRlpBytes(object hexValue)
+    {
+        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
+        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        object h = this.remove0xPrefix(hexValue);
+        object start = 0;
+        object total = getArrayLength(h);
+        while (isTrue((isLessThan(start, total))) && isTrue((isEqual(slice(h, start, add(start, 1)), "0"))))
+        {
+            start = add(start, 1);
+        }
+        h = slice(h, start, null);
+        if (isTrue(isEqual(h, "")))
+        {
+            return "";
+        }
+        h = this.padHexToEven(h);
+        return h;
+    }
+
+    public virtual object signEvmTransaction(object tx, object privateKey)
+    {
+        throw new NotSupported ((string)add(this.id, " signEvmTransaction() must be overridden by the exchange")) ;
+    }
+
+    public async virtual Task<object> ethRpc(object rpcUrl, object method, object rpcParams)
+    {
+        object payload = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "id", 1 },
+            { "method", method },
+            { "params", rpcParams },
+        };
+        object headers = new Dictionary<string, object>() {
+            { "Content-Type", "application/json" },
+        };
+        object response = await this.fetch(rpcUrl, "POST", headers, this.json(payload));
+        object rpcError = this.safeValue(response, "error");
+        if (isTrue(!isEqual(rpcError, null)))
+        {
+            throw new ExchangeError ((string)add(add(add(add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
+        }
+        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+        // safeString would coerce a receipt object to "[object Object]"
+        return this.safeValue(response, "result");
+    }
+
+    public async virtual Task<object> sendEvmTransaction(object rpcUrl, object chainId, object fromAddress, object to, object value, object data, object gasLimit)
+    {
+        object nonce = await this.ethRpc(rpcUrl, "eth_getTransactionCount", new List<object>() {fromAddress, "pending"});
+        object gasPrice = await this.ethRpc(rpcUrl, "eth_gasPrice", new List<object>() {});
+        object tx = new Dictionary<string, object>() {
+            { "chainId", chainId },
+            { "nonce", nonce },
+            { "maxPriorityFeePerGas", gasPrice },
+            { "maxFeePerGas", gasPrice },
+            { "gasLimit", gasLimit },
+            { "to", to },
+            { "value", value },
+            { "data", data },
+        };
+        object signed = this.signEvmTransaction(tx, this.privateKey);
+        return await this.ethRpc(rpcUrl, "eth_sendRawTransaction", new List<object>() {signed});
+    }
+
+    public async virtual Task<object> waitForTransactionReceipt(object rpcUrl, object txHash, object timeout = null)
+    {
+        timeout ??= 60000;
+        object start = this.milliseconds();
+        while (isLessThan((subtract(this.milliseconds(), start)), timeout))
+        {
+            object receipt = await this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new List<object>() {txHash});
+            if (isTrue(receipt))
+            {
+                return receipt;
+            }
+            await this.sleep(2000);
+        }
+        throw new ExchangeError ((string)add(add(add(this.id, " transaction "), txHash), " not mined within timeout")) ;
     }
 }
 

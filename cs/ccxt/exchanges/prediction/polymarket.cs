@@ -2384,24 +2384,22 @@ public partial class polymarket : PredictionExchange
             object parsedEvent = this.parseEvent(eventForParsing);
             ((IList<object>)result).Add(parsedEvent);
         }
-        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
-        // from the markets registered above
-        this.setEvents(result);
+        // populateOutcomes rebuilds the outcome cache from the markets registered above; the
+        // shared applyEventFetchParams then caches (setEvents) and applies the unified
+        // eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
         this.populateOutcomes();
-        // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
-        // client-side (searchIn defaults to 'title', matching the reference behaviour)
-        object filtered = result;
+        object effectiveParams = parameters;
         if (isTrue(isGreaterThan(queriesLength, 0)))
         {
-            filtered = this.filterEventsByStatus(filtered, this.safeString(parameters, "status", "active"));
-            filtered = this.filterEventsBySearchIn(filtered, queries, this.safeString(parameters, "searchIn", "title"));
+            // the gamma search endpoint is fuzzy, so default to refining by active status and a
+            // title match (the caller can override); the other venues search exactly and need no
+            // such default. inject the defaults as explicit params so the shared pipeline stays
+            // the single behaviour definition
+            effectiveParams = this.extend(new Dictionary<string, object>() {}, parameters);
+            ((IDictionary<string,object>)effectiveParams)["status"] = this.safeString(parameters, "status", "active");
+            ((IDictionary<string,object>)effectiveParams)["searchIn"] = this.safeString(parameters, "searchIn", "title");
         }
-        object finalLimit = this.safeInteger(parameters, "limit");
-        if (isTrue(!isEqual(finalLimit, null)))
-        {
-            filtered = this.arraySlice(filtered, 0, finalLimit);
-        }
-        return filtered;
+        return this.applyEventFetchParams(result, effectiveParams, queries);
     }
 
     /**

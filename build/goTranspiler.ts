@@ -109,6 +109,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchAccounts": true,
     "fetchEvents": true, // prediction base -> venue override (loadEventsHelper)
     "fetchOutcome": true, // prediction base -> venue override (kalshi on-demand loadOutcome)
+    "signEvmTransaction": false, // sync (returns hex string, not a channel); prediction base sendEvmTransaction -> venue override
     "fetchBalance": true,
     "fetchClosedOrders": true,
     "fetchDepositAddressesByNetwork": true,

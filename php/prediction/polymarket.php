@@ -2147,22 +2147,21 @@ class polymarket extends Exchange {
                 $parsedEvent = $this->parse_event($eventForParsing);
                 $result[] = $parsedEvent;
             }
-            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
-            // from the markets registered above
-            $this->set_events($result);
+            // populateOutcomes rebuilds the outcome cache from the markets registered above; the
+            // shared applyEventFetchParams then caches (setEvents) and applies the unified
+            // eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
             $this->populate_outcomes();
-            // the gamma search endpoint is fuzzy, so refine the search path by status and searchIn
-            // client-side (searchIn defaults to 'title', matching the reference behaviour)
-            $filtered = $result;
+            $effectiveParams = $params;
             if ($queriesLength > 0) {
-                $filtered = $this->filter_events_by_status($filtered, $this->safe_string($params, 'status', 'active'));
-                $filtered = $this->filter_events_by_search_in($filtered, $queries, $this->safe_string($params, 'searchIn', 'title'));
+                // the gamma search endpoint is fuzzy, so default to refining by active status and a
+                // title match (the caller can override); the other venues search exactly and need no
+                // such default. inject the defaults $params so the shared pipeline stays
+                // the single behaviour definition
+                $effectiveParams = $this->extend(array(), $params);
+                $effectiveParams['status'] = $this->safe_string($params, 'status', 'active');
+                $effectiveParams['searchIn'] = $this->safe_string($params, 'searchIn', 'title');
             }
-            $finalLimit = $this->safe_integer($params, 'limit');
-            if ($finalLimit !== null) {
-                $filtered = $this->array_slice($filtered, 0, $finalLimit);
-            }
-            return $filtered;
+            return $this->apply_event_fetch_params($result, $effectiveParams, $queries);
         })();
     }
 

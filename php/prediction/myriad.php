@@ -496,74 +496,6 @@ class myriad extends Exchange {
         );
     }
 
-    public function rlp_encode_bytes(string $hex): string {
-        // RLP-encodes a single byte string ($hex without 0x) per the Ethereum RLP spec
-        $byteLength = $this->parse_to_int(strlen($hex) / 2);
-        if ($byteLength === 0) {
-            return '80';
-        }
-        if (($byteLength === 1) && ($hex < '80')) {
-            return $hex;
-        }
-        if ($byteLength < 56) {
-            return $this->int_to_base16(128 . $byteLength) . $hex;
-        }
-        $lengthHex = $this->int_to_base16($byteLength);
-        if ((strlen(fmod($lengthHex), 2)) !== 0) {
-            $lengthHex = '0' . $lengthHex;
-        }
-        $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
-        return $this->int_to_base16(183 . $lengthOfLength) . $lengthHex . $hex;
-    }
-
-    public function rlp_encode_list(array $items): string {
-        $concatenated = '';
-        for ($i = 0; $i < count($items); $i++) {
-            $concatenated = $concatenated . $items[$i];
-        }
-        $byteLength = $this->parse_to_int(strlen($concatenated) / 2);
-        if ($byteLength < 56) {
-            return $this->int_to_base16(192 . $byteLength) . $concatenated;
-        }
-        $lengthHex = $this->int_to_base16($byteLength);
-        if ((strlen(fmod($lengthHex), 2)) !== 0) {
-            $lengthHex = '0' . $lengthHex;
-        }
-        $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
-        return $this->int_to_base16(247 . $lengthOfLength) . $lengthHex . $concatenated;
-    }
-
-    public function int_to_rlp_hex(float $value): string {
-        // an integer minimal big-endian byte $hex; 0 is the empty byte string
-        if ($value === 0) {
-            return '';
-        }
-        $hex = $this->int_to_base16($value);
-        if ((strlen(fmod($hex), 2)) !== 0) {
-            $hex = '0' . $hex;
-        }
-        return $hex;
-    }
-
-    public function hex_to_rlp_bytes(string $hexValue): string {
-        // a hex value (e.g. an RPC result) big-endian byte hex; leading zero bytes
-        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-        $h = $this->remove0x_prefix($hexValue);
-        $start = 0;
-        $total = count($h);
-        while (($start < $total) && (mb_substr($h, $start, $start + 1 - $start) === '0')) {
-            $start = $start + 1;
-        }
-        $h = mb_substr($h, $start);
-        if ($h === '') {
-            return '';
-        }
-        if ((strlen(fmod($h), 2)) !== 0) {
-            $h = '0' . $h;
-        }
-        return $h;
-    }
-
     public function sign_evm_transaction(array $tx, string $privateKey): string {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw $tx hex.
         // $tx $fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -617,45 +549,6 @@ class myriad extends Exchange {
         })();
     }
 
-    public function pad_hex_address(string $address): string {
-        // left-pads a 20-byte $address to a 32-byte ABI word (24 leading zero bytes)
-        $stripped = $this->remove0x_prefix($address);
-        return '000000000000000000000000' . $stripped;
-    }
-
-    public function send_evm_transaction(string $rpcUrl, string $networkId, string $fromAddress, string $to, string $value, string $data, string $gasLimit): PromiseInterface {
-        return Async\async(function () use ($rpcUrl, $networkId, $fromAddress, $to, $value, $data, $gasLimit) {
-            $nonce = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionCount', array( $fromAddress, 'pending' )));
-            $gasPrice = Async\await($this->eth_rpc($rpcUrl, 'eth_gasPrice', array()));
-            $tx = array(
-                'chainId' => $this->parse_to_int($networkId),
-                'nonce' => $nonce,
-                'maxPriorityFeePerGas' => $gasPrice,
-                'maxFeePerGas' => $gasPrice,
-                'gasLimit' => $gasLimit,
-                'to' => $to,
-                'value' => $value,
-                'data' => $data,
-            );
-            $signed = $this->sign_evm_transaction($tx, $this->privateKey);
-            return Async\await($this->eth_rpc($rpcUrl, 'eth_sendRawTransaction', array( $signed )));
-        })();
-    }
-
-    public function wait_for_transaction_receipt(string $rpcUrl, string $txHash, $timeout = 60000): PromiseInterface {
-        return Async\async(function () use ($rpcUrl, $txHash, $timeout) {
-            $start = $this->milliseconds();
-            while (($this->milliseconds() - $start) < $timeout) {
-                $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));
-                if ($receipt) {
-                    return $receipt;
-                }
-                Async\await($this->sleep(2000));
-            }
-            throw new ExchangeError($this->id . ' transaction ' . $txHash . ' not mined within timeout');
-        })();
-    }
-
     public function ensure_erc20_allowance(string $rpcUrl, string $networkId, string $token, string $owner, string $spender): PromiseInterface {
         return Async\async(function () use ($rpcUrl, $networkId, $token, $owner, $spender) {
             // allowance($owner, $spender)
@@ -669,7 +562,7 @@ class myriad extends Exchange {
             // approve($spender, maxUint256)
             $maxUint = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
             $approveData = '0x095ea7b3' . $this->pad_hex_address($spender) . $maxUint;
-            $approveHash = Async\await($this->send_evm_transaction($rpcUrl, $networkId, $owner, $token, '0x0', $approveData, '0x186a0'));
+            $approveHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $owner, $token, '0x0', $approveData, '0x186a0'));
             Async\await($this->wait_for_transaction_receipt($rpcUrl, $approveHash));
             return null;
         })();
@@ -914,7 +807,7 @@ class myriad extends Exchange {
             if (($sideStr === 'buy') && ($tokenAddress !== null)) {
                 Async\await($this->ensure_erc20_allowance($rpcUrl, $networkId, $tokenAddress, $fromAddress, $predictionMarket));
             }
-            $txHash = Async\await($this->send_evm_transaction($rpcUrl, $networkId, $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
+            $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
             return $this->parse_trade_tx($txHash, $quote, $outcomeObj, $sideStr);
         })();
     }

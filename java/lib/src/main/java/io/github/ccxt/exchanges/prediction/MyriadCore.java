@@ -568,90 +568,6 @@ public class MyriadCore extends MyriadApi
         }};
     }
 
-    public Object rlpEncodeBytes(Object hex)
-    {
-        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        Object byteLength = this.parseToInt(Helpers.divide(((String)hex).length(), 2));
-        if (Helpers.isTrue(Helpers.isEqual(byteLength, 0)))
-        {
-            return "80";
-        }
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(byteLength, 1))) && Helpers.isTrue((Helpers.isLessThan(hex, "80")))))
-        {
-            return hex;
-        }
-        if (Helpers.isTrue(Helpers.isLessThan(byteLength, 56)))
-        {
-            return Helpers.add(this.intToBase16(Helpers.add(128, byteLength)), hex);
-        }
-        Object lengthHex = this.intToBase16(byteLength);
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(((String)lengthHex).length(), 2)), 0)))
-        {
-            lengthHex = Helpers.add("0", lengthHex);
-        }
-        Object lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
-        return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(183, lengthOfLength)), lengthHex), hex);
-    }
-
-    public Object rlpEncodeList(Object items)
-    {
-        Object concatenated = "";
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
-        {
-            concatenated = Helpers.add(concatenated, Helpers.GetValue(items, i));
-        }
-        Object byteLength = this.parseToInt(Helpers.divide(((String)concatenated).length(), 2));
-        if (Helpers.isTrue(Helpers.isLessThan(byteLength, 56)))
-        {
-            return Helpers.add(this.intToBase16(Helpers.add(192, byteLength)), concatenated);
-        }
-        Object lengthHex = this.intToBase16(byteLength);
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(((String)lengthHex).length(), 2)), 0)))
-        {
-            lengthHex = Helpers.add("0", lengthHex);
-        }
-        Object lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
-        return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(247, lengthOfLength)), lengthHex), concatenated);
-    }
-
-    public Object intToRlpHex(Object value)
-    {
-        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if (Helpers.isTrue(Helpers.isEqual(value, 0)))
-        {
-            return "";
-        }
-        Object hex = this.intToBase16(value);
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(((String)hex).length(), 2)), 0)))
-        {
-            hex = Helpers.add("0", hex);
-        }
-        return hex;
-    }
-
-    public Object hexToRlpBytes(Object hexValue)
-    {
-        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
-        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-        Object h = this.remove0xPrefix(hexValue);
-        Object start = 0;
-        Object total = Helpers.getArrayLength(h);
-        while (Helpers.isTrue((Helpers.isLessThan(start, total))) && Helpers.isTrue((Helpers.isEqual(Helpers.slice(h, start, Helpers.add(start, 1)), "0"))))
-        {
-            start = Helpers.add(start, 1);
-        }
-        h = Helpers.slice(h, start, null);
-        if (Helpers.isTrue(Helpers.isEqual(h, "")))
-        {
-            return "";
-        }
-        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(Helpers.getArrayLength(h), 2)), 0)))
-        {
-            h = Helpers.add("0", h);
-        }
-        return h;
-    }
-
     public Object signEvmTransaction(Object tx, Object privateKey)
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
@@ -711,57 +627,6 @@ public class MyriadCore extends MyriadApi
 
     }
 
-    public Object padHexAddress(Object address)
-    {
-        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        Object stripped = this.remove0xPrefix(address);
-        return Helpers.add("000000000000000000000000", stripped);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object> sendEvmTransaction(Object rpcUrl, Object networkId, Object fromAddress, Object to, Object value, Object data, Object gasLimit)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object nonce = (this.ethRpc(rpcUrl, "eth_getTransactionCount", new java.util.ArrayList<Object>(java.util.Arrays.asList(fromAddress, "pending")))).join();
-            Object gasPrice = (this.ethRpc(rpcUrl, "eth_gasPrice", new java.util.ArrayList<Object>(java.util.Arrays.asList()))).join();
-            Object tx = new java.util.HashMap<String, Object>() {{
-                put( "chainId", MyriadCore.this.parseToInt(networkId) );
-                put( "nonce", nonce );
-                put( "maxPriorityFeePerGas", gasPrice );
-                put( "maxFeePerGas", gasPrice );
-                put( "gasLimit", gasLimit );
-                put( "to", to );
-                put( "value", value );
-                put( "data", data );
-            }};
-            Object signed = this.signEvmTransaction(tx, this.privateKey);
-            return (this.ethRpc(rpcUrl, "eth_sendRawTransaction", new java.util.ArrayList<Object>(java.util.Arrays.asList(signed)))).join();
-        });
-
-    }
-
-    public java.util.concurrent.CompletableFuture<Object> waitForTransactionReceipt(Object rpcUrl, Object txHash, Object... optionalArgs)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object timeout = Helpers.getArg(optionalArgs, 0, 60000);
-            Object start = this.milliseconds();
-            while (Helpers.isLessThan((Helpers.subtract(this.milliseconds(), start)), timeout))
-            {
-                Object receipt = (this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new java.util.ArrayList<Object>(java.util.Arrays.asList(txHash)))).join();
-                if (Helpers.isTrue(receipt))
-                {
-                    return receipt;
-                }
-                (this.sleep(2000)).join();
-            }
-            throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " transaction "), txHash), " not mined within timeout")) ;
-        });
-
-    }
-
     public java.util.concurrent.CompletableFuture<Object> ensureErc20Allowance(Object rpcUrl, Object networkId, Object token, Object owner, Object spender)
     {
 
@@ -782,7 +647,7 @@ public class MyriadCore extends MyriadApi
             // approve(spender, maxUint256)
             Object maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
             Object approveData = Helpers.add(Helpers.add("0x095ea7b3", this.padHexAddress(spender)), maxUint);
-            Object approveHash = (this.sendEvmTransaction(rpcUrl, networkId, owner, token, "0x0", approveData, "0x186a0")).join();
+            Object approveHash = (this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), owner, token, "0x0", approveData, "0x186a0")).join();
             (this.waitForTransactionReceipt(rpcUrl, approveHash)).join();
             return null;
         });
@@ -1096,7 +961,7 @@ public class MyriadCore extends MyriadApi
             {
                 (this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)).join();
             }
-            Object txHash = (this.sendEvmTransaction(rpcUrl, networkId, fromAddress, predictionMarket, "0x0", calldata, gasLimit)).join();
+            Object txHash = (this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, "0x0", calldata, gasLimit)).join();
             return this.parseTradeTx(txHash, quote, ((Object)outcomeObj), sideStr);
         });
 

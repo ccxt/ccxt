@@ -523,11 +523,6 @@ public Object isPrediction()
         return Helpers.add(Helpers.add(this.shortenSlug(marketSlug), ":"), ((String)outcome).toUpperCase());
     }
 
-    public Object slugToMarketId(Object eventSlug, Object marketSlug, Object outcome)
-    {
-        return this.slugToOutcomeSymbol(eventSlug, marketSlug, outcome);
-    }
-
     public Object setMarkets(Object markets, Object... optionalArgs)
     {
         Object currencies = Helpers.getArg(optionalArgs, 0, null);
@@ -1124,8 +1119,10 @@ public Object isPrediction()
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
+            // when the option is undeclared (it is for every prediction exchange)
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.options, "createMarketBuyOrderRequiresPrice")) || Helpers.isTrue(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"))))
+            if (Helpers.isTrue(Helpers.isTrue(this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false)) || Helpers.isTrue(this.safeBool(this.has, "createMarketBuyOrderWithCost", false))))
             {
                 return (this.createOrder(outcome, "market", "buy", cost, 1, parameters)).join();
             }
@@ -1149,7 +1146,7 @@ public Object isPrediction()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.options, "createMarketSellOrderRequiresPrice")) || Helpers.isTrue(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"))))
+            if (Helpers.isTrue(Helpers.isTrue(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || Helpers.isTrue(this.safeBool(this.has, "createMarketSellOrderWithCost", false))))
             {
                 return (this.createOrder(outcome, "market", "sell", cost, 1, parameters)).join();
             }
@@ -1444,5 +1441,178 @@ public Object isPrediction()
         Object outcomeObj = this.outcome(outcome);
         Object marketSymbol = this.safeString(outcomeObj, "market");
         return this.costToPrecision(marketSymbol, cost);
+    }
+
+    // ------------------------------------------------------------------------
+    // shared EVM helpers — RLP encoding + a minimal JSON-RPC client + raw-tx
+    // broadcast, used by the on-chain (EOA) trading paths of EVM prediction
+    // venues (limitless, myriad). signEvmTransaction stays per-exchange because
+    // it needs the noble crypto imports (keccak/ecdsa/secp256k1) which the
+    // per-language prediction base skeletons don't carry; this base
+    // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
+    public Object padHexToEven(Object hex)
+    {
+        // prepend a nibble so the hex has an even number of characters (whole bytes)
+        Object hexLength = ((String)hex).length();
+        if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(hexLength, 2)), 0)))
+        {
+            return Helpers.add("0", hex);
+        }
+        return hex;
+    }
+
+    public Object padHexAddress(Object address)
+    {
+        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
+        Object stripped = this.remove0xPrefix(address);
+        return Helpers.add("000000000000000000000000", stripped);
+    }
+
+    public Object rlpEncodeBytes(Object hex)
+    {
+        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
+        Object byteLength = this.parseToInt(Helpers.divide(((String)hex).length(), 2));
+        if (Helpers.isTrue(Helpers.isEqual(byteLength, 0)))
+        {
+            return "80";
+        }
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(byteLength, 1))) && Helpers.isTrue((Helpers.isLessThan(hex, "80")))))
+        {
+            return hex;
+        }
+        if (Helpers.isTrue(Helpers.isLessThan(byteLength, 56)))
+        {
+            return Helpers.add(this.intToBase16(Helpers.add(128, byteLength)), hex);
+        }
+        Object lengthHex = this.intToBase16(byteLength);
+        lengthHex = this.padHexToEven(lengthHex);
+        Object lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
+        return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(183, lengthOfLength)), lengthHex), hex);
+    }
+
+    public Object rlpEncodeList(Object items)
+    {
+        Object concatenated = "";
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
+        {
+            concatenated = Helpers.add(concatenated, Helpers.GetValue(items, i));
+        }
+        Object byteLength = this.parseToInt(Helpers.divide(((String)concatenated).length(), 2));
+        if (Helpers.isTrue(Helpers.isLessThan(byteLength, 56)))
+        {
+            return Helpers.add(this.intToBase16(Helpers.add(192, byteLength)), concatenated);
+        }
+        Object lengthHex = this.intToBase16(byteLength);
+        lengthHex = this.padHexToEven(lengthHex);
+        Object lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
+        return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(247, lengthOfLength)), lengthHex), concatenated);
+    }
+
+    public Object intToRlpHex(Object value)
+    {
+        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
+        if (Helpers.isTrue(Helpers.isEqual(value, 0)))
+        {
+            return "";
+        }
+        Object hex = this.intToBase16(value);
+        hex = this.padHexToEven(hex);
+        return hex;
+    }
+
+    public Object hexToRlpBytes(Object hexValue)
+    {
+        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
+        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        Object h = this.remove0xPrefix(hexValue);
+        Object start = 0;
+        Object total = Helpers.getArrayLength(h);
+        while (Helpers.isTrue((Helpers.isLessThan(start, total))) && Helpers.isTrue((Helpers.isEqual(Helpers.slice(h, start, Helpers.add(start, 1)), "0"))))
+        {
+            start = Helpers.add(start, 1);
+        }
+        h = Helpers.slice(h, start, null);
+        if (Helpers.isTrue(Helpers.isEqual(h, "")))
+        {
+            return "";
+        }
+        h = this.padHexToEven(h);
+        return h;
+    }
+
+    public Object signEvmTransaction(Object tx, Object privateKey)
+    {
+        throw new NotSupported((String)Helpers.add(this.id, " signEvmTransaction() must be overridden by the exchange")) ;
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> ethRpc(Object rpcUrl, Object method, Object rpcParams)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object payload = new java.util.HashMap<String, Object>() {{
+                put( "jsonrpc", "2.0" );
+                put( "id", 1 );
+                put( "method", method );
+                put( "params", rpcParams );
+            }};
+            Object headers = new java.util.HashMap<String, Object>() {{
+                put( "Content-Type", "application/json" );
+            }};
+            Object response = (this.fetch(rpcUrl, "POST", headers, this.json(payload))).join();
+            Object rpcError = this.safeValue(response, "error");
+            if (Helpers.isTrue(!Helpers.isEqual(rpcError, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
+            }
+            // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+            // safeString would coerce a receipt object to "[object Object]"
+            return this.safeValue(response, "result");
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> sendEvmTransaction(Object rpcUrl, Object chainId, Object fromAddress, Object to, Object value, Object data, Object gasLimit)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object nonce = (this.ethRpc(rpcUrl, "eth_getTransactionCount", new java.util.ArrayList<Object>(java.util.Arrays.asList(fromAddress, "pending")))).join();
+            Object gasPrice = (this.ethRpc(rpcUrl, "eth_gasPrice", new java.util.ArrayList<Object>(java.util.Arrays.asList()))).join();
+            Object tx = new java.util.HashMap<String, Object>() {{
+                put( "chainId", chainId );
+                put( "nonce", nonce );
+                put( "maxPriorityFeePerGas", gasPrice );
+                put( "maxFeePerGas", gasPrice );
+                put( "gasLimit", gasLimit );
+                put( "to", to );
+                put( "value", value );
+                put( "data", data );
+            }};
+            Object signed = this.signEvmTransaction(tx, this.privateKey);
+            return (this.ethRpc(rpcUrl, "eth_sendRawTransaction", new java.util.ArrayList<Object>(java.util.Arrays.asList(signed)))).join();
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> waitForTransactionReceipt(Object rpcUrl, Object txHash, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object timeout = Helpers.getArg(optionalArgs, 0, 60000);
+            Object start = this.milliseconds();
+            while (Helpers.isLessThan((Helpers.subtract(this.milliseconds(), start)), timeout))
+            {
+                Object receipt = (this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new java.util.ArrayList<Object>(java.util.Arrays.asList(txHash)))).join();
+                if (Helpers.isTrue(receipt))
+                {
+                    return receipt;
+                }
+                (this.sleep(2000)).join();
+            }
+            throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " transaction "), txHash), " not mined within timeout")) ;
+        });
+
     }
 }

@@ -23,7 +23,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import Exchange from '../abstract/prediction/limitless.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions.js';
 // ---------------------------------------------------------------------------
@@ -2104,75 +2104,6 @@ export default class limitless extends Exchange {
     signMessage(message, privateKey) {
         return this.signHash(this.hashMessage(message), privateKey.slice(-64));
     }
-    rlpEncodeBytes(hex) {
-        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        const byteLength = this.parseToInt(hex.length / 2);
-        if (byteLength === 0) {
-            return '80';
-        }
-        if ((byteLength === 1) && (hex < '80')) {
-            return hex;
-        }
-        if (byteLength < 56) {
-            return this.intToBase16(128 + byteLength) + hex;
-        }
-        let lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven(lengthHex);
-        const lengthOfLength = this.parseToInt(lengthHex.length / 2);
-        return this.intToBase16(183 + lengthOfLength) + lengthHex + hex;
-    }
-    rlpEncodeList(items) {
-        let concatenated = '';
-        for (let i = 0; i < items.length; i++) {
-            concatenated = concatenated + items[i];
-        }
-        const byteLength = this.parseToInt(concatenated.length / 2);
-        if (byteLength < 56) {
-            return this.intToBase16(192 + byteLength) + concatenated;
-        }
-        let lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven(lengthHex);
-        const lengthOfLength = this.parseToInt(lengthHex.length / 2);
-        return this.intToBase16(247 + lengthOfLength) + lengthHex + concatenated;
-    }
-    intToRlpHex(value) {
-        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if (value === 0) {
-            return '';
-        }
-        let hex = this.intToBase16(value);
-        hex = this.padHexToEven(hex);
-        return hex;
-    }
-    hexToRlpBytes(hexValue) {
-        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
-        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-        let h = this.remove0xPrefix(hexValue);
-        let start = 0;
-        const total = h.length;
-        while ((start < total) && (h.slice(start, start + 1) === '0')) {
-            start = start + 1;
-        }
-        h = h.slice(start);
-        if (h === '') {
-            return '';
-        }
-        h = this.padHexToEven(h);
-        return h;
-    }
-    padHexToEven(hex) {
-        // prepend a nibble so the hex has an even number of characters (whole bytes)
-        const hexLength = hex.length;
-        if ((hexLength % 2) !== 0) {
-            return '0' + hex;
-        }
-        return hex;
-    }
-    padHexAddress(address) {
-        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        const stripped = this.remove0xPrefix(address);
-        return '000000000000000000000000' + stripped;
-    }
     signEvmTransaction(tx, privateKey) {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         const accessList = this.rlpEncodeList([]);
@@ -2203,44 +2134,6 @@ export default class limitless extends Exchange {
         signedFields.push(this.rlpEncodeBytes(rHex));
         signedFields.push(this.rlpEncodeBytes(sHex));
         return '0x02' + this.rlpEncodeList(signedFields);
-    }
-    async ethRpc(rpcUrl, method, rpcParams) {
-        const payload = { 'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams };
-        const headers = { 'Content-Type': 'application/json' };
-        const response = await this.fetch(rpcUrl, 'POST', headers, this.json(payload));
-        const rpcError = this.safeValue(response, 'error');
-        if (rpcError !== undefined) {
-            throw new ExchangeError(this.id + ' rpc ' + method + ' error: ' + this.json(rpcError));
-        }
-        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt)
-        return this.safeValue(response, 'result');
-    }
-    async sendEvmTransaction(rpcUrl, chainId, fromAddress, to, value, data, gasLimit) {
-        const nonce = await this.ethRpc(rpcUrl, 'eth_getTransactionCount', [fromAddress, 'pending']);
-        const gasPrice = await this.ethRpc(rpcUrl, 'eth_gasPrice', []);
-        const tx = {
-            'chainId': chainId,
-            'nonce': nonce,
-            'maxPriorityFeePerGas': gasPrice,
-            'maxFeePerGas': gasPrice,
-            'gasLimit': gasLimit,
-            'to': to,
-            'value': value,
-            'data': data,
-        };
-        const signed = this.signEvmTransaction(tx, this.privateKey);
-        return await this.ethRpc(rpcUrl, 'eth_sendRawTransaction', [signed]);
-    }
-    async waitForTransactionReceipt(rpcUrl, txHash, timeout = 60000) {
-        const start = this.milliseconds();
-        while ((this.milliseconds() - start) < timeout) {
-            const receipt = await this.ethRpc(rpcUrl, 'eth_getTransactionReceipt', [txHash]);
-            if (receipt) {
-                return receipt;
-            }
-            await this.sleep(2000);
-        }
-        throw new ExchangeError(this.id + ' transaction ' + txHash + ' not mined within timeout');
     }
     /**
      * @method

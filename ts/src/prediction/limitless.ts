@@ -2122,81 +2122,6 @@ export default class limitless extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    rlpEncodeBytes (hex: string): string {
-        // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        const byteLength = this.parseToInt (hex.length / 2);
-        if (byteLength === 0) {
-            return '80';
-        }
-        if ((byteLength === 1) && (hex < '80')) {
-            return hex;
-        }
-        if (byteLength < 56) {
-            return this.intToBase16 (128 + byteLength) + hex;
-        }
-        let lengthHex = this.intToBase16 (byteLength);
-        lengthHex = this.padHexToEven (lengthHex);
-        const lengthOfLength = this.parseToInt (lengthHex.length / 2);
-        return this.intToBase16 (183 + lengthOfLength) + lengthHex + hex;
-    }
-
-    rlpEncodeList (items: string[]): string {
-        let concatenated = '';
-        for (let i = 0; i < items.length; i++) {
-            concatenated = concatenated + items[i];
-        }
-        const byteLength = this.parseToInt (concatenated.length / 2);
-        if (byteLength < 56) {
-            return this.intToBase16 (192 + byteLength) + concatenated;
-        }
-        let lengthHex = this.intToBase16 (byteLength);
-        lengthHex = this.padHexToEven (lengthHex);
-        const lengthOfLength = this.parseToInt (lengthHex.length / 2);
-        return this.intToBase16 (247 + lengthOfLength) + lengthHex + concatenated;
-    }
-
-    intToRlpHex (value: number): string {
-        // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if (value === 0) {
-            return '';
-        }
-        let hex = this.intToBase16 (value);
-        hex = this.padHexToEven (hex);
-        return hex;
-    }
-
-    hexToRlpBytes (hexValue: string): string {
-        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
-        // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-        let h = this.remove0xPrefix (hexValue);
-        let start = 0;
-        const total = h.length;
-        while ((start < total) && (h.slice (start, start + 1) === '0')) {
-            start = start + 1;
-        }
-        h = h.slice (start);
-        if (h === '') {
-            return '';
-        }
-        h = this.padHexToEven (h);
-        return h;
-    }
-
-    padHexToEven (hex: string): string {
-        // prepend a nibble so the hex has an even number of characters (whole bytes)
-        const hexLength = hex.length;
-        if ((hexLength % 2) !== 0) {
-            return '0' + hex;
-        }
-        return hex;
-    }
-
-    padHexAddress (address: string): string {
-        // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        const stripped = this.remove0xPrefix (address);
-        return '000000000000000000000000' + stripped;
-    }
-
     signEvmTransaction (tx: Dict, privateKey: string): string {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         const accessList = this.rlpEncodeList ([]);
@@ -2227,47 +2152,6 @@ export default class limitless extends Exchange {
         signedFields.push (this.rlpEncodeBytes (rHex));
         signedFields.push (this.rlpEncodeBytes (sHex));
         return '0x02' + this.rlpEncodeList (signedFields);
-    }
-
-    async ethRpc (rpcUrl: string, method: string, rpcParams: any[]) {
-        const payload: Dict = { 'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams };
-        const headers: Dict = { 'Content-Type': 'application/json' };
-        const response = await this.fetch (rpcUrl, 'POST', headers, this.json (payload));
-        const rpcError = this.safeValue (response, 'error');
-        if (rpcError !== undefined) {
-            throw new ExchangeError (this.id + ' rpc ' + method + ' error: ' + this.json (rpcError));
-        }
-        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt)
-        return this.safeValue (response, 'result');
-    }
-
-    async sendEvmTransaction (rpcUrl: string, chainId: number, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string> {
-        const nonce = await this.ethRpc (rpcUrl, 'eth_getTransactionCount', [ fromAddress, 'pending' ]);
-        const gasPrice = await this.ethRpc (rpcUrl, 'eth_gasPrice', []);
-        const tx: Dict = {
-            'chainId': chainId,
-            'nonce': nonce,
-            'maxPriorityFeePerGas': gasPrice,
-            'maxFeePerGas': gasPrice,
-            'gasLimit': gasLimit,
-            'to': to,
-            'value': value,
-            'data': data,
-        };
-        const signed = this.signEvmTransaction (tx, this.privateKey);
-        return await this.ethRpc (rpcUrl, 'eth_sendRawTransaction', [ signed ]);
-    }
-
-    async waitForTransactionReceipt (rpcUrl: string, txHash: string, timeout = 60000): Promise<any> {
-        const start = this.milliseconds ();
-        while ((this.milliseconds () - start) < timeout) {
-            const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);
-            if (receipt) {
-                return receipt;
-            }
-            await this.sleep (2000);
-        }
-        throw new ExchangeError (this.id + ' transaction ' + txHash + ' not mined within timeout');
     }
 
     /**

@@ -97,15 +97,8 @@ export default class myriad extends Exchange {
      * @returns {object} a quote object
      */
     parseTradeQuote(quote: Dict, market?: any): Dict;
-    rlpEncodeBytes(hex: string): string;
-    rlpEncodeList(items: string[]): string;
-    intToRlpHex(value: number): string;
-    hexToRlpBytes(hexValue: string): string;
     signEvmTransaction(tx: Dict, privateKey: string): string;
     ethRpc(rpcUrl: string, method: string, rpcParams: any[]): Promise<any>;
-    padHexAddress(address: string): string;
-    sendEvmTransaction(rpcUrl: string, networkId: string, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string>;
-    waitForTransactionReceipt(rpcUrl: string, txHash: string, timeout?: number): Promise<Dict>;
     ensureErc20Allowance(rpcUrl: string, networkId: string, token: string, owner: string, spender: string): Promise<any>;
     /**
      * @method
