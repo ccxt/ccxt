@@ -78,6 +78,7 @@ Exchange::$exchanges = array(
     'luno',
     'mexc',
     'modetrade',
+    'mudrex',
     'myokx',
     'ndax',
     'okx',
