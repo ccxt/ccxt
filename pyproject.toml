@@ -52,6 +52,22 @@ dependencies = [
     "aiodns==4.0.4",
     "yarl==1.24.2",
     "coincurve==21.0.0; python_version <= \"3.13\"",
+    # transitive dependencies of aiohttp
+    "aiohappyeyeballs==2.7.1",
+    "aiosignal==1.4.0",
+    "attrs==26.1.0",
+    "frozenlist==1.8.0",
+    "multidict==6.7.1",
+    "propcache==0.5.2",
+    # transitive dependencies of aiodns
+    "pycares==5.0.1",
+    # transitive dependencies of cryptography
+    "cffi==2.0.0",
+    "pycparser==3.0",
+    # transitive dependencies of requests
+    "charset_normalizer==3.4.7",
+    "idna==3.18",
+    "urllib3==2.7.0",
 ]
 
 [project.optional-dependencies]

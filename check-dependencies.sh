@@ -229,7 +229,11 @@ for dep in deps:
     if not match:
         continue
     name, version = match.group(1), match.group(2).strip()
-    if version and re.search(r'[\^~>=<\*\|\-]', version):
+    if not version:
+        continue
+    # In Python, '==X.Y.Z' is an exact pin and is allowed. Any other
+    # operator (^, ~, >, >=, <, <=, *, |, -) is a range and not allowed.
+    if not re.match(r'^==[0-9][0-9A-Za-z.\-+]*$', version):
         print(f'{name}: {version}')
 ")
 
