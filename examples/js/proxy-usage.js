@@ -55,7 +55,7 @@ const exchange = new ccxt.binance ({
 // (custom tls options, proxy headers, pooling limits, ...)
 
 const { ProxyAgent } = require ('undici');
-exchange.fetchProxyDispatchers[socks] = new ProxyAgent ({ 'uri': socks });
+exchange.proxyDictionaries[socks] = new ProxyAgent ({ 'uri': socks });
 
 // websocket connections still use node-style agents ("npm i socks-proxy-agent" first):
 

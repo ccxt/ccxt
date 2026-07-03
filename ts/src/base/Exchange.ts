@@ -260,8 +260,6 @@ export default class Exchange {
     zlibModule: any = undefined;  // node:zlib, for transparent response decompression on the undici.request path
     httpStatusTexts: any = {};  // node:http STATUS_CODES, undici.request carries no reason phrases
     fetchDispatcher: any = undefined;  // shared keep-alive undici Agent (node only)
-    fetchProxyDispatchers: Dictionary<any> = {};  // proxyUrl -> undici dispatcher (node only)
-    fetchProxyDispatchersMaxSize: number = 8;  // FIFO cap on cached proxy dispatchers - each entry holds ~23KB of eagerly-allocated pool state, so rotating-proxy setups would otherwise grow the cache without bound; evicted dispatchers are closed gracefully
 
     validateServerSsl: boolean = true;
     validateClientSsl: boolean = false;
@@ -421,7 +419,8 @@ export default class Exchange {
     httpsProxyAgentModule: any = undefined;
     socksProxyAgentModule: any = undefined;
     socksProxyAgentModuleChecked: boolean = false;
-    proxyDictionaries: Dictionary<any> = {};
+    proxyDictionaries: Dictionary<any> = {};  // proxyUrl -> undici dispatcher (native fetch path) or node-style agent (legacy fetchImplementation / ws paths), distinguished by the 'dispatch' method
+    proxyDictionariesMaxSize: number = 8;  // FIFO cap - an undici dispatcher entry holds ~23KB of eagerly-allocated pool state, so rotating-proxy setups would otherwise grow the cache without bound; evicted undici dispatchers are closed gracefully, evicted legacy agents are just dropped (they may still back live ws connections)
     proxiesModulesLoading: Promise<any> = undefined;
     alias: boolean = false;
 
@@ -782,16 +781,19 @@ export default class Exchange {
             if (this.httpProxyAgentModule === undefined) {
                 throw new NotSupported (this.id + ' - to use httpProxy with ccxt, at first you need install module "npm i http-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
-            if (!(httpProxy in this.proxyDictionaries)) {
-                this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent (httpProxy);
+            const cachedHttpAgent = this.proxyDictionaries[httpProxy];
+            if ((cachedHttpAgent === undefined) || (typeof cachedHttpAgent.dispatch === 'function')) {
+                // absent, or the url is occupied by an undici dispatcher from the native fetch path - (re)create the node-style agent
+                this.cacheProxyDictionary (httpProxy, new this.httpProxyAgentModule.HttpProxyAgent (httpProxy));
             }
             chosenAgent = this.proxyDictionaries[httpProxy];
         } else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
                 throw new NotSupported (this.id + ' - to use httpsProxy with ccxt, at first you need install module "npm i https-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
-            if (!(httpsProxy in this.proxyDictionaries)) {
-                this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent (httpsProxy);
+            const cachedHttpsAgent = this.proxyDictionaries[httpsProxy];
+            if ((cachedHttpsAgent === undefined) || (typeof cachedHttpsAgent.dispatch === 'function')) {
+                this.cacheProxyDictionary (httpsProxy, new this.httpsProxyAgentModule.HttpsProxyAgent (httpsProxy));
             }
             chosenAgent = this.proxyDictionaries[httpsProxy];
             chosenAgent.keepAlive = true;
@@ -799,8 +801,9 @@ export default class Exchange {
             if (this.socksProxyAgentModule === undefined) {
                 throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
-            if (!(socksProxy in this.proxyDictionaries)) {
-                this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent (socksProxy);
+            const cachedSocksAgent = this.proxyDictionaries[socksProxy];
+            if ((cachedSocksAgent === undefined) || (typeof cachedSocksAgent.dispatch === 'function')) {
+                this.cacheProxyDictionary (socksProxy, new this.socksProxyAgentModule.SocksProxyAgent (socksProxy));
             }
             chosenAgent = this.proxyDictionaries[socksProxy];
         }
@@ -1045,32 +1048,64 @@ export default class Exchange {
     /**
      * @ignore
      * @method
+     * @name Exchange#cacheProxyDictionary
+     * @description stores a per-proxy-url transport handle (undici dispatcher or legacy node-style agent) in this.proxyDictionaries, evicting the oldest entry beyond proxyDictionariesMaxSize so rotating-proxy setups cannot grow the cache without bound - evicted or replaced undici dispatchers are closed gracefully (in-flight requests finish first), legacy agents are just dropped because live ws connections may still hold them
+     * @param {string} proxyUrl the proxy url the handle serves
+     * @param {any} value an undici dispatcher or a node-style agent
+     * @returns {any} the cached value
+     */
+    cacheProxyDictionary (proxyUrl, value) {
+        const existing = this.proxyDictionaries[proxyUrl];
+        if (existing !== undefined) {
+            // same url switching between the dispatcher and agent families
+            this.releaseProxyDictionaryEntry (existing);
+        } else {
+            const cachedProxyUrls = Object.keys (this.proxyDictionaries);
+            if (cachedProxyUrls.length >= this.proxyDictionariesMaxSize) {
+                const oldestProxyUrl = cachedProxyUrls[0]; // js objects preserve string-key insertion order
+                const oldestEntry = this.proxyDictionaries[oldestProxyUrl];
+                delete this.proxyDictionaries[oldestProxyUrl];
+                this.releaseProxyDictionaryEntry (oldestEntry);
+            }
+        }
+        this.proxyDictionaries[proxyUrl] = value;
+        return value;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#releaseProxyDictionaryEntry
+     * @description closes an undici dispatcher that left this.proxyDictionaries - close () drains in-flight requests before releasing sockets, and any close failure is irrelevant because the dispatcher is already unreferenced; legacy node-style agents are left untouched (never destroyed, matching the long-standing behavior, because live ws connections may still use them)
+     * @param {any} entry the evicted or replaced proxyDictionaries value
+     */
+    releaseProxyDictionaryEntry (entry) {
+        if ((entry !== undefined) && (entry !== null) && (typeof entry.dispatch === 'function') && (typeof entry.close === 'function')) {
+            entry.close ().catch (() => {});
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name Exchange#getFetchProxyDispatcher
-     * @description returns a cached undici ProxyAgent dispatcher for the given proxy url - undici handles http, https, socks5 and socks schemes natively; the cache is FIFO-capped at fetchProxyDispatchersMaxSize entries so rotating-proxy setups cannot grow it without bound, evicted dispatchers are closed gracefully (in-flight requests finish first)
+     * @description returns a cached undici ProxyAgent dispatcher for the given proxy url - undici handles http, https, socks5 and socks schemes natively; dispatchers share this.proxyDictionaries with the legacy node-style agents (entries are distinguished by the 'dispatch' method) and the cache is FIFO-capped at proxyDictionariesMaxSize entries so rotating-proxy setups cannot grow it without bound
      * @param {string} proxyUrl the proxy url, e.g. http://user:pass@host:port or socks5://host:port
      * @returns {any} an undici dispatcher
      */
     getFetchProxyDispatcher (proxyUrl) {
-        if (!(proxyUrl in this.fetchProxyDispatchers)) {
-            const lowercaseProxyUrl = proxyUrl.toLowerCase ();
-            if ((lowercaseProxyUrl.indexOf ('socks4:') === 0) || (lowercaseProxyUrl.indexOf ('socks4a:') === 0)) {
-                throw new NotSupported (this.id + ' - socks4 proxies are not supported by the built-in fetch, please use a socks5:// proxy');
-            }
-            const cachedProxyUrls = Object.keys (this.fetchProxyDispatchers);
-            if (cachedProxyUrls.length >= this.fetchProxyDispatchersMaxSize) {
-                // evict the oldest entry (js objects preserve string-key insertion order);
-                // close () drains in-flight requests before releasing sockets, and any close
-                // failure is irrelevant because the dispatcher is already unreferenced
-                const oldestProxyUrl = cachedProxyUrls[0];
-                const oldestDispatcher = this.fetchProxyDispatchers[oldestProxyUrl];
-                delete this.fetchProxyDispatchers[oldestProxyUrl];
-                oldestDispatcher.close ().catch (() => {});
-            }
-            const options = this.getDispatcherOptions (false);
-            options['uri'] = proxyUrl;
-            this.fetchProxyDispatchers[proxyUrl] = new this.undiciModule.ProxyAgent (options);
+        const cached = this.proxyDictionaries[proxyUrl];
+        if ((cached !== undefined) && (typeof cached.dispatch === 'function')) {
+            return cached;
         }
-        return this.fetchProxyDispatchers[proxyUrl];
+        // absent, or the url is occupied by a legacy node-style agent - (re)create the dispatcher
+        const lowercaseProxyUrl = proxyUrl.toLowerCase ();
+        if ((lowercaseProxyUrl.indexOf ('socks4:') === 0) || (lowercaseProxyUrl.indexOf ('socks4a:') === 0)) {
+            throw new NotSupported (this.id + ' - socks4 proxies are not supported by the built-in fetch, please use a socks5:// proxy');
+        }
+        const options = this.getDispatcherOptions (false);
+        options['uri'] = proxyUrl;
+        return this.cacheProxyDictionary (proxyUrl, new this.undiciModule.ProxyAgent (options));
     }
 
     /**

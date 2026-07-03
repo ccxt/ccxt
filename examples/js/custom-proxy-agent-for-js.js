@@ -22,4 +22,4 @@ const myDispatcher = new ProxyAgent({
     'connections': 256,
     'pipelining': 1,
 });
-kraken.fetchProxyDispatchers[proxy] = myDispatcher;
+kraken.proxyDictionaries[proxy] = myDispatcher;
