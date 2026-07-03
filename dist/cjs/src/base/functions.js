@@ -14,7 +14,7 @@ var throttle = require('./functions/throttle.js');
 var misc = require('./functions/misc.js');
 var io = require('./functions/io.js');
 
-// ----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;

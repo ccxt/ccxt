@@ -3941,7 +3941,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "margin_mode", marginMode );
             }};
-            return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privatePutUsersMarginMode", new Object[] { this.extend(request, parameters) })).join();
+            return (this.privatePutUsersMarginMode(this.extend(request, parameters))).join();
         });
 
     }

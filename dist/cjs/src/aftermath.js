@@ -8,7 +8,6 @@ var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
 var errors = require('./base/errors.js');
 
-// ----------------------------------------------------------------------------
 /**
  * @class aftermath
  * @augments Exchange

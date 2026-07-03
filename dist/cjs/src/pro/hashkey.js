@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var hashkey$1 = require('../hashkey.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class hashkey extends hashkey$1["default"] {
     describe() {
@@ -166,7 +166,7 @@ class hashkey extends hashkey$1["default"] {
     }
     /**
      * @method
-     * @name hahskey#watchTicker
+     * @name hashkey#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for

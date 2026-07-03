@@ -13,7 +13,6 @@ var time = require('../functions/time.js');
 require('../functions/io.js');
 var base = require('@scure/base');
 
-// ----------------------------------------------------------------------------
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;

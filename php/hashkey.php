@@ -25,7 +25,7 @@ class hashkey extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'addMargin' => false,
+                'addMargin' => true,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
                 'borrowMargin' => false,
@@ -140,13 +140,13 @@ class hashkey extends Exchange {
                 'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
-                'reduceMargin' => false,
+                'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
                 'sandbox' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
-                'setMarginMode' => false,
+                'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
@@ -217,10 +217,12 @@ class hashkey extends Exchange {
                         'api/v1/futures/riskLimit' => 1,
                         'api/v1/futures/commissionRate' => 1,
                         'api/v1/futures/getBestOrder' => 1,
+                        'api/v1/coinInfo' => 1,
                         'api/v1/account/vipInfo' => 1,
                         'api/v1/account' => 1,
                         'api/v1/account/trades' => 5,
                         'api/v1/account/type' => 5,
+                        'api/v1/account/chainType' => 1,
                         'api/v1/account/checkApiKey' => 1,
                         'api/v1/account/balanceFlow' => 5,
                         'api/v1/spot/subAccount/openOrders' => 1,
@@ -241,6 +243,8 @@ class hashkey extends Exchange {
                         'api/v1/spot/batchOrders' => 5,
                         'api/v1/futures/leverage' => 1,
                         'api/v1/futures/order' => 1,
+                        'api/v1/futures/marginType' => 1,
+                        'api/v1/futures/positionMargin' => 1,
                         'api/v1/futures/position/trading-stop' => 3,
                         'api/v1/futures/batchOrders' => 5,
                         'api/v1/account/assetTransfer' => 1,
@@ -4074,6 +4078,128 @@ class hashkey extends Exchange {
         return $this->parse_leverage($response, $market);
     }
 
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): array {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+         *
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $marginMode = strtoupper($marginMode);
+        if ($marginMode === 'CROSSED') {
+            $marginMode = 'CROSS';
+        }
+        if (($marginMode !== 'CROSS') && ($marginMode !== 'ISOLATED')) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be either cross or isolated');
+        }
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' setMarginMode() supports swap markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'marginType' => $marginMode,
+        );
+        return $this->privatePostApiV1FuturesMarginType($this->extend($request, $params));
+    }
+
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
+        /**
+         * add margin
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->side position side, either 'long' or 'short'
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
+         */
+        return $this->modify_margin_helper($symbol, $amount, 'add', $params);
+    }
+
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
+        /**
+         * remove margin from a position
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount the $amount of margin to remove
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->side position side, either 'long' or 'short'
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
+         */
+        return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+    }
+
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' modifyMarginHelper() supports swap markets only');
+        }
+        $side = null;
+        list($side, $params) = $this->handle_param_string($params, 'side');
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' ' . $type . 'Margin() requires a $params["side"] argument, either "long" or "short"');
+        }
+        $side = strtoupper($side);
+        if (($side !== 'LONG') && ($side !== 'SHORT')) {
+            throw new ArgumentsRequired($this->id . ' ' . $type . 'Margin() $params["side"] must be either long or short');
+        }
+        $amountString = $this->number_to_string($amount);
+        if ($type === 'reduce') {
+            $amountString = Precise::string_mul($amountString, '-1');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => $side,
+            'amount' => $amountString,
+        );
+        $response = $this->privatePostApiV1FuturesPositionMargin($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => "0000",
+        //         "symbol" => "BTCUSDT-PERPETUAL",
+        //         "margin" => "12344.345",
+        //         "timestamp" => "1726869763318"
+        //     }
+        //
+        return $this->extend($this->parse_margin_modification($response, $market), array(
+            'type' => $type,
+            'amount' => $amount,
+        ));
+    }
+
+    public function parse_margin_modification(array $data, ?array $market = null): array {
+        $marketId = $this->safe_string($data, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'swap');
+        $timestamp = $this->safe_integer($data, 'timestamp');
+        $errorCode = $this->safe_string($data, 'code');
+        $success = $errorCode === '0000';
+        return array(
+            'info' => $data,
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
+            'total' => $this->safe_number($data, 'margin'),
+            'code' => $market['settle'],
+            'status' => ($success) ? 'ok' : 'failed',
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
     public function fetch_leverage_tiers(?array $symbols = null, $params = array()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
@@ -4195,7 +4321,7 @@ class hashkey extends Exchange {
         /**
          * fetch the trading fees for a $market
          *
-         * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
          *
          * @param {string} $symbol unified $market $symbol
@@ -4229,7 +4355,7 @@ class hashkey extends Exchange {
         /**
          * *for spot markets only* fetch the trading fees for multiple markets
          *
-         * @see https://developers.binance.com/docs/wallet/asset/trade-$fee
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
