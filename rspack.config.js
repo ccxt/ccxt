@@ -10,22 +10,20 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);;
 
 const outputFilename = process.env['CCXT_OUTPUT_FILENAME'] || 'ccxt.browser.js';
+const minimizedFilename = outputFilename.replace (/\.js$/, '.min.js');
 
 // Vendored node_modules (e.g. protobufjs) ship with CRLF and pass through
 // verbatim; rewrite the emitted bundle to LF to match git's eol=lf.
-const outputPath = path.join (outputDirectory, outputFilename);
-const forceLf = (compiler) => compiler.hooks.afterEmit.tap ('forceLf', () => {
+const forceLf = (filename) => (compiler) => compiler.hooks.afterEmit.tap ('forceLf:' + filename, () => {
   const fs = require ('fs');
-  fs.writeFileSync (outputPath, fs.readFileSync (outputPath, 'utf8').replace (/\r\n/g, '\n'));
+  const filePath = path.join (outputDirectory, filename);
+  fs.writeFileSync (filePath, fs.readFileSync (filePath, 'utf8').replace (/\r\n/g, '\n'));
 });
 
-export default {
+const baseConfig = {
   entry : './ts/ccxt.ts',
-  devtool: 'source-map',
   output: {
     path: outputDirectory,
-    filename: outputFilename,
-    sourceMapFilename: outputFilename + '.map',
     library: {
       type: 'self', // we are targeting the browser (including webworkers)
       name: 'ccxt',
@@ -70,7 +68,6 @@ export default {
   mode: 'production',
   target: 'web',
   optimization: {
-    minimize: true,
     usedExports: true, // these two lines line turns on tree shaking
     concatenateModules: false,
     splitChunks: false,
@@ -80,11 +77,48 @@ export default {
   },
   plugins: [
     new rspack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
-    forceLf,
   ],
   ignoreWarnings: [
     {
       message: /Critical dependency: the request of a dependency is an expression/,
     },
   ],
-}
+};
+
+// Non-minimized build.
+const unminimizedConfig = {
+  ...baseConfig,
+  output: {
+    ...baseConfig.output,
+    filename: outputFilename,
+  },
+  optimization: {
+    ...baseConfig.optimization,
+    minimize: false,
+  },
+  plugins: [
+    ...baseConfig.plugins,
+    forceLf (outputFilename),
+  ],
+};
+
+// Minimized build with a source map.
+const minimizedConfig = {
+  ...baseConfig,
+  devtool: 'source-map',
+  output: {
+    ...baseConfig.output,
+    filename: minimizedFilename,
+    sourceMapFilename: minimizedFilename + '.map',
+  },
+  optimization: {
+    ...baseConfig.optimization,
+    minimize: true,
+  },
+  plugins: [
+    ...baseConfig.plugins,
+    forceLf (minimizedFilename),
+  ],
+};
+
+export default [unminimizedConfig, minimizedConfig];
