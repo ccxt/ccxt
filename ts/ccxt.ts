@@ -81,6 +81,7 @@ import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
 import bybiteu from  './src/bybiteu.js'
 import bydfi from  './src/bydfi.js'
+import byteexchange from  './src/byteexchange.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
 import coinbaseexchange from  './src/coinbaseexchange.js'
@@ -268,6 +269,7 @@ const exchanges = {
     'bybit':                  bybit,
     'bybiteu':                bybiteu,
     'bydfi':                  bydfi,
+    'byteexchange':           byteexchange,
     'cex':                    cex,
     'coinbase':               coinbase,
     'coinbaseexchange':       coinbaseexchange,
@@ -599,6 +601,7 @@ export {
     bybit,
     bybiteu,
     bydfi,
+    byteexchange,
     cex,
     coinbase,
     coinbaseexchange,

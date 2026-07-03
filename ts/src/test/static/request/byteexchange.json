@@ -1,0 +1,78 @@
+{
+    "exchange": "byteexchange",
+    "skipKeys": [],
+    "options": {},
+    "outputType": "json",
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://bexc.io/api/v1/orderbook/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch recent trades",
+                "method": "fetchTrades",
+                "url": "https://bexc.io/api/v1/trades/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv candles",
+                "method": "fetchOHLCV",
+                "url": "https://bexc.io/api/v1/klines?symbol=BTC_USDT&interval=1h",
+                "input": [
+                    "BTC/USDT",
+                    "1h"
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create a limit buy order",
+                "method": "createOrder",
+                "url": "https://bexc.io/api/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    50000
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"order_type\":\"limit\",\"quantity\":\"1\",\"price\":\"50000\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel an order by id",
+                "method": "cancelOrder",
+                "url": "https://bexc.io/api/v1/order/cancel",
+                "input": [
+                    "1"
+                ],
+                "output": "{\"order_id\":\"1\"}"
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw funds",
+                "method": "withdraw",
+                "url": "https://bexc.io/api/v1/wallet/withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x0000000000000000000000000000000000000000"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"10\",\"address\":\"0x0000000000000000000000000000000000000000\"}"
+            }
+        ]
+    }
+}
