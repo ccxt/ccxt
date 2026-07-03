@@ -746,30 +746,24 @@ export default class Exchange {
         // when loading markets, multiple parallel calls are made, so need one promise
         if (this.proxiesModulesLoading === undefined) {
             this.proxiesModulesLoading = (async () => {
-                // we have to handle it with below nested way, because of dynamic
-                // import issues (https://github.com/ccxt/ccxt/pull/20687)
+                // the vendored proxy agents were removed together with the node-fetch transport -
+                // the native fetch paths handle proxies through undici (see getFetchProxyDispatcher),
+                // so the node-style agent modules below back only the legacy paths (user-supplied
+                // fetchImplementation and ws connections) and are optional user-installed packages
                 try {
-                    // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-                    this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-                    this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+                    // @ts-ignore
+                    this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
+                    // @ts-ignore
+                    this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
                 } catch (e) {
-                    // if several users are using those frameworks which cause exceptions,
-                    // let them to be able to load modules still, by installing them
-                    try {
-                        // @ts-ignore
-                        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
-                        // @ts-ignore
-                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
-                    } catch (err) {
-                        // TODO: handle error
-                    }
+                    // optional modules, setProxyAgents raises NotSupported with install instructions when they are actually needed
                 }
                 if (this.socksProxyAgentModuleChecked === false) {
                     try {
                         // @ts-ignore
                         this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
                     } catch (e) {
-                        // TODO: handle error
+                        // optional module, setProxyAgents raises NotSupported with install instructions when it is actually needed
                     }
                     this.socksProxyAgentModuleChecked = true;
                 }
@@ -786,7 +780,7 @@ export default class Exchange {
         }
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported (this.id + ' - to use httpProxy with ccxt, at first you need install module "npm i http-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
             if (!(httpProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent (httpProxy);
@@ -794,7 +788,7 @@ export default class Exchange {
             chosenAgent = this.proxyDictionaries[httpProxy];
         } else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported (this.id + ' - to use httpsProxy with ccxt, at first you need install module "npm i https-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
             if (!(httpsProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent (httpsProxy);
