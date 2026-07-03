@@ -9,7 +9,6 @@ const outputDirectory = path.normalize (path.join (path.dirname (cwd), 'dist'))
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);;
 
-const minimize = process.env['CCXT_MINIMIZE'] === 'true';
 const outputFilename = process.env['CCXT_OUTPUT_FILENAME'] || 'ccxt.browser.js';
 
 // Vendored node_modules (e.g. protobufjs) ship with CRLF and pass through
@@ -22,9 +21,11 @@ const forceLf = (compiler) => compiler.hooks.afterEmit.tap ('forceLf', () => {
 
 export default {
   entry : './ts/ccxt.ts',
+  devtool: 'source-map',
   output: {
     path: outputDirectory,
     filename: outputFilename,
+    sourceMapFilename: outputFilename + '.map',
     library: {
       type: 'self', // we are targeting the browser (including webworkers)
       name: 'ccxt',
@@ -69,7 +70,7 @@ export default {
   mode: 'production',
   target: 'web',
   optimization: {
-    minimize: minimize,
+    minimize: true,
     usedExports: true, // these two lines line turns on tree shaking
     concatenateModules: false,
     splitChunks: false,
