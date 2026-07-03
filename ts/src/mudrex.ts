@@ -444,8 +444,8 @@ export default class mudrex extends Exchange {
         const aggregated = [];
         let offset = 0;
         const pageLimit = 100;
-        let paging = true;
-        while (paging) {
+        let paging: boolean = true;
+        while (paging === true) {
             const q = this.extend ({ 'limit': pageLimit, 'offset': offset }, params);
             const response = await this.privateGetFutures (q);
             const data = this.safeValue (response, 'data', []);
