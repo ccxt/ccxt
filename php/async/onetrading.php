@@ -321,6 +321,7 @@ class onetrading extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
+                'mica' => true,
                 'fetchTradingFees' => array(
                     'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 ),

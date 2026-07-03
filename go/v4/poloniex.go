@@ -26,7 +26,7 @@ func (this *PoloniexCore) Describe() any {
 			"spot":                           true,
 			"margin":                         nil,
 			"swap":                           true,
-			"future":                         true,
+			"future":                         false,
 			"option":                         false,
 			"addMargin":                      true,
 			"cancelAllOrders":                true,

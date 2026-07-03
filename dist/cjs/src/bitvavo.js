@@ -404,6 +404,7 @@ class bitvavo extends bitvavo$1["default"] {
                 },
             },
             'options': {
+                'mica': true,
                 'currencyToPrecisionRoundingMode': number.TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW': 10000, // default 10 sec
                 'networks': {

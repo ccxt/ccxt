@@ -47,7 +47,6 @@ const version = '4.5.63';
 import aftermath from  './src/aftermath.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
-import ascendex from  './src/ascendex.js'
 import aster from  './src/aster.js'
 import backpack from  './src/backpack.js'
 import bequant from  './src/bequant.js'
@@ -89,7 +88,6 @@ import coinbaseinternational from  './src/coinbaseinternational.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinmate from  './src/coinmate.js'
-import coinmetro from  './src/coinmetro.js'
 import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
@@ -131,7 +129,6 @@ import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
 import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
-import novadax from  './src/novadax.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
@@ -157,7 +154,6 @@ import zebpay from  './src/zebpay.js'
 import aftermathPro from  './src/pro/aftermath.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
-import ascendexPro from  './src/pro/ascendex.js'
 import asterPro from  './src/pro/aster.js'
 import backpackPro from  './src/pro/backpack.js'
 import bequantPro from  './src/pro/bequant.js'
@@ -238,7 +234,6 @@ const exchanges = {
     'aftermath':              aftermath,
     'alpaca':                 alpaca,
     'apex':                   apex,
-    'ascendex':               ascendex,
     'aster':                  aster,
     'backpack':               backpack,
     'bequant':                bequant,
@@ -280,7 +275,6 @@ const exchanges = {
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinmate':               coinmate,
-    'coinmetro':              coinmetro,
     'coinone':                coinone,
     'coinsph':                coinsph,
     'coinspot':               coinspot,
@@ -322,7 +316,6 @@ const exchanges = {
     'modetrade':              modetrade,
     'myokx':                  myokx,
     'ndax':                   ndax,
-    'novadax':                novadax,
     'okx':                    okx,
     'okxus':                  okxus,
     'onetrading':             onetrading,
@@ -348,7 +341,6 @@ const pro = {
     'aftermath':              aftermathPro,
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
-    'ascendex':               ascendexPro,
     'aster':                  asterPro,
     'backpack':               backpackPro,
     'bequant':                bequantPro,
@@ -573,7 +565,6 @@ export {
     aftermath,
     alpaca,
     apex,
-    ascendex,
     aster,
     backpack,
     bequant,
@@ -615,7 +606,6 @@ export {
     coincheck,
     coinex,
     coinmate,
-    coinmetro,
     coinone,
     coinsph,
     coinspot,
@@ -657,7 +647,6 @@ export {
     modetrade,
     myokx,
     ndax,
-    novadax,
     okx,
     okxus,
     onetrading,

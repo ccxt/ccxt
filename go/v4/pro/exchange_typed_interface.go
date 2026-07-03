@@ -25,9 +25,6 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     case "apex":
         itf := NewApex(options)
         return itf
-    case "ascendex":
-        itf := NewAscendex(options)
-        return itf
     case "aster":
         itf := NewAster(options)
         return itf

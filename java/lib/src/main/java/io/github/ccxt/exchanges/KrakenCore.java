@@ -232,6 +232,7 @@ public class KrakenCore extends KrakenApi
                 put( "ZUSD", "USD" );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
                 put( "timeDifference", 0 );
                 put( "adjustForTimeDifference", false );
                 put( "marketsByAltname", new java.util.HashMap<String, Object>() {{}} );

@@ -359,6 +359,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "CGLD", "CELO" );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
                 put( "usePrivate", false );
                 put( "brokerId", "ccxt" );
                 put( "stablePairs", new java.util.ArrayList<Object>(java.util.Arrays.asList("BUSD-USD", "CBETH-ETH", "DAI-USD", "GUSD-USD", "GYEN-USD", "PAX-USD", "PAX-USDT", "USDC-EUR", "USDC-GBP", "USDT-EUR", "USDT-GBP", "USDT-USD", "USDT-USDC", "WBTC-BTC")) );
@@ -1520,8 +1521,8 @@ public class CoinbaseCore extends CoinbaseApi
                             put( "type", "spot" );
                             put( "spot", true );
                             put( "margin", false );
-                            put( "swap", false );
-                            put( "future", false );
+                            put( "swap", true );
+                            put( "future", true );
                             put( "option", false );
                             put( "active", null );
                             put( "contract", false );

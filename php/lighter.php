@@ -22,7 +22,7 @@ class lighter extends Exchange {
             'quoteJsonNumbers' => false,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,

@@ -118,7 +118,7 @@ class bitmex extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchVolatilityHistory' => false,
-                'index' => true,
+                'index' => false,
                 'reduceMargin' => null,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
