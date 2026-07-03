@@ -52,7 +52,7 @@ func (this *Grvt) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions)
  * @method
  * @name grvt#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://docs.backpack.exchange/#tag/Streams/Public/ccxt.Ticker
+ * @see https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
