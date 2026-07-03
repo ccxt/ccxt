@@ -632,7 +632,7 @@ export default class kraken extends krakenRest {
         const ohlcvsLength = data.length;
         for (let i = 0; i < ohlcvsLength; i++) {
             const candle = data[ohlcvsLength - i - 1];
-            const datetime = this.safeString(candle, 'timestamp');
+            const datetime = this.safeString(candle, 'interval_begin');
             const timestamp = this.parse8601(datetime);
             const parsed = [
                 timestamp,

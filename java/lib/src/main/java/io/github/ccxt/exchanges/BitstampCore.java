@@ -31,7 +31,7 @@ public class BitstampCore extends BitstampApi
                 put( "CORS", true );
                 put( "spot", true );
                 put( "margin", false );
-                put( "swap", false );
+                put( "swap", true );
                 put( "future", false );
                 put( "option", false );
                 put( "addMargin", false );

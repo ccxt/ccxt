@@ -199,6 +199,9 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     case "modetrade":
         itf := NewModetrade(options)
         return itf
+    case "mudrex":
+        itf := NewMudrex(options)
+        return itf
     case "myokx":
         itf := NewMyokx(options)
         return itf

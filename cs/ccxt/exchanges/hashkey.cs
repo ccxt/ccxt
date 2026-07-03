@@ -22,7 +22,7 @@ public partial class hashkey : Exchange
                 { "swap", true },
                 { "future", false },
                 { "option", false },
-                { "addMargin", false },
+                { "addMargin", true },
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
                 { "borrowMargin", false },
@@ -137,13 +137,13 @@ public partial class hashkey : Exchange
                 { "fetchUnderlyingAssets", false },
                 { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
-                { "reduceMargin", false },
+                { "reduceMargin", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
                 { "sandbox", false },
                 { "setLeverage", true },
                 { "setMargin", false },
-                { "setMarginMode", false },
+                { "setMarginMode", true },
                 { "setPositionMode", false },
                 { "transfer", true },
                 { "withdraw", true },
@@ -214,10 +214,12 @@ public partial class hashkey : Exchange
                         { "api/v1/futures/riskLimit", 1 },
                         { "api/v1/futures/commissionRate", 1 },
                         { "api/v1/futures/getBestOrder", 1 },
+                        { "api/v1/coinInfo", 1 },
                         { "api/v1/account/vipInfo", 1 },
                         { "api/v1/account", 1 },
                         { "api/v1/account/trades", 5 },
                         { "api/v1/account/type", 5 },
+                        { "api/v1/account/chainType", 1 },
                         { "api/v1/account/checkApiKey", 1 },
                         { "api/v1/account/balanceFlow", 5 },
                         { "api/v1/spot/subAccount/openOrders", 1 },
@@ -238,6 +240,8 @@ public partial class hashkey : Exchange
                         { "api/v1/spot/batchOrders", 5 },
                         { "api/v1/futures/leverage", 1 },
                         { "api/v1/futures/order", 1 },
+                        { "api/v1/futures/marginType", 1 },
+                        { "api/v1/futures/positionMargin", 1 },
                         { "api/v1/futures/position/trading-stop", 3 },
                         { "api/v1/futures/batchOrders", 5 },
                         { "api/v1/account/assetTransfer", 1 },
@@ -3990,6 +3994,147 @@ public partial class hashkey : Exchange
 
     /**
      * @method
+     * @name hashkey#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        marginMode = ((string)marginMode).ToUpper();
+        if (isTrue(isEqual(marginMode, "CROSSED")))
+        {
+            marginMode = "CROSS";
+        }
+        if (isTrue(isTrue((!isEqual(marginMode, "CROSS"))) && isTrue((!isEqual(marginMode, "ISOLATED")))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+        }
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports swap markets only")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "marginType", marginMode },
+        };
+        return await this.privatePostApiV1FuturesMarginType(this.extend(request, parameters));
+    }
+
+    /**
+     * @method
+     * @name hashkey#addMargin
+     * @description add margin
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.modifyMarginHelper(symbol, amount, "add", parameters);
+    }
+
+    /**
+     * @method
+     * @name hashkey#reduceMargin
+     * @description remove margin from a position
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
+    }
+
+    public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new BadSymbol ((string)add(this.id, " modifyMarginHelper() supports swap markets only")) ;
+        }
+        object side = null;
+        var sideparametersVariable = this.handleParamString(parameters, "side");
+        side = ((IList<object>)sideparametersVariable)[0];
+        parameters = ((IList<object>)sideparametersVariable)[1];
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), type), "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
+        }
+        side = ((string)side).ToUpper();
+        if (isTrue(isTrue((!isEqual(side, "LONG"))) && isTrue((!isEqual(side, "SHORT")))))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), type), "Margin() params[\"side\"] must be either long or short")) ;
+        }
+        object amountString = this.numberToString(amount);
+        if (isTrue(isEqual(type, "reduce")))
+        {
+            amountString = Precise.stringMul(amountString, "-1");
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "side", side },
+            { "amount", amountString },
+        };
+        object response = await this.privatePostApiV1FuturesPositionMargin(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0000",
+        //         "symbol": "BTCUSDT-PERPETUAL",
+        //         "margin": "12344.345",
+        //         "timestamp": "1726869763318"
+        //     }
+        //
+        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+            { "type", type },
+            { "amount", amount },
+        });
+    }
+
+    public override object parseMarginModification(object data, object market = null)
+    {
+        object marketId = this.safeString(data, "symbol");
+        market = this.safeMarket(marketId, market, null, "swap");
+        object timestamp = this.safeInteger(data, "timestamp");
+        object errorCode = this.safeString(data, "code");
+        object success = isEqual(errorCode, "0000");
+        return new Dictionary<string, object>() {
+            { "info", data },
+            { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", this.safeNumber(data, "margin") },
+            { "code", getValue(market, "settle") },
+            { "status", ((bool) isTrue((success))) ? "ok" : "failed" },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
+    }
+
+    /**
+     * @method
      * @name hashkey#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
@@ -4113,7 +4258,7 @@ public partial class hashkey : Exchange
      * @method
      * @name hashkey#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4146,7 +4291,7 @@ public partial class hashkey : Exchange
      * @method
      * @name hashkey#fetchTradingFees
      * @description *for spot markets only* fetch the trading fees for multiple markets
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */

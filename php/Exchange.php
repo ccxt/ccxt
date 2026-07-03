@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.63';
+$version = '4.5.64';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,10 +63,10 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.63';
+    const VERSION = '4.5.64';
 
     // this is updated by vss.js when building
-    public static $ccxt_version = '4.5.63';
+    public static $ccxt_version = '4.5.64';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -416,6 +416,7 @@ class Exchange {
         'mercado',
         'mexc',
         'modetrade',
+        'mudrex',
         'myokx',
         'ndax',
         'okx',

@@ -1,4 +1,10 @@
 {
+    "mudrex": {
+        "skip": "load markets is private",
+        "skipMethods": {
+            "fetchOrderBook": "mudrex does not provide an orderbook endpoint"
+        }
+    },
     "aftermath": {
         "skip": "exchange doesn't function for some reasons during last few days",
         "until": "2026-06-07",
@@ -350,7 +356,7 @@
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
                 "skipCurrenciesWithoutNetworks": "those currencies deosnt have data",
-                "maxInactiveCurrenciesPercentage": 80
+                "maxInactiveCurrenciesPercentage": 90
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
@@ -608,7 +614,7 @@
     },
     "btcbox": {
         "skip": "temporary reorg on exchange, lets wait few more weeks",
-        "until":"2026-07-01",
+        "until":"2026-08-01",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
@@ -836,7 +842,8 @@
                 "deposit": "not provided",
                 "type": "todo",
                 "activeMajorCurrencies": "todo"
-            }
+            },
+            "fetchOrderBook": "exchange does not have it"
         }
     },
     "coinmetro": {

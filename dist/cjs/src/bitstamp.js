@@ -29,7 +29,7 @@ class bitstamp extends bitstamp$1["default"] {
                 'CORS': true,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,

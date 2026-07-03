@@ -12352,8 +12352,10 @@ final Object finalMinNotional = minNotional;
                     }
                     url = Helpers.add(url, queryInner);
                     // bitget signs the raw (non-percent-encoded) query string, so the
-                    // signature must use the decoded values (e.g. non-ascii market ids)
-                    auth = Helpers.add(auth, Helpers.add("?", this.rawencode(sortedParams)));
+                    // signature must use the decoded values (e.g. non-ascii market ids).
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    auth = Helpers.add(auth, Helpers.add("?", this.rawencode(sortedParams, true)));
                 }
             }
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");

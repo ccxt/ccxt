@@ -1521,8 +1521,8 @@ public class CoinbaseCore extends CoinbaseApi
                             put( "type", "spot" );
                             put( "spot", true );
                             put( "margin", false );
-                            put( "swap", false );
-                            put( "future", false );
+                            put( "swap", true );
+                            put( "future", true );
                             put( "option", false );
                             put( "active", null );
                             put( "contract", false );
