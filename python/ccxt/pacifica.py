@@ -41,7 +41,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'spot': False,
                 'margin': False,
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': False,
                 'borrowCrossMargin': False,

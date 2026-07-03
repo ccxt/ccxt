@@ -19,7 +19,7 @@ public partial class poloniex : Exchange
                 { "spot", true },
                 { "margin", null },
                 { "swap", true },
-                { "future", true },
+                { "future", false },
                 { "option", false },
                 { "addMargin", true },
                 { "cancelAllOrders", true },

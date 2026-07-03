@@ -19,7 +19,7 @@ public partial class extended : Exchange
             { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
-                { "spot", false },
+                { "spot", true },
                 { "margin", false },
                 { "swap", true },
                 { "future", false },

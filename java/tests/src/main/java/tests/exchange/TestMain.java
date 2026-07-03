@@ -814,7 +814,7 @@ public class TestMain extends BaseTest
                     // tests rather than crashing on `undefined.replace(...)`.
                     if (Helpers.isTrue(!Helpers.isEqual(primarySymbol, null)))
                     {
-                        Object secondarySymbol = Helpers.replace((String)primarySymbol, (String)"BTC", (String)"ETH"); // this should work any exchange
+                        Object secondarySymbol = Helpers.replaceAll((String)primarySymbol, (String)"BTC", (String)"ETH"); // this should work any exchange
                         swapSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol, secondarySymbol));
                     }
                 }

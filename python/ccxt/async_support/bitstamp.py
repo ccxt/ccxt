@@ -41,7 +41,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'CORS': True,
                 'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'addMargin': False,
@@ -501,6 +501,7 @@ class bitstamp(Exchange, ImplicitAPI):
             },
             # exchange-specific options
             'options': {
+                'mica': True,
                 'networksById': {
                     'bitcoin-cash': 'BCH',
                     'bitcoin': 'BTC',

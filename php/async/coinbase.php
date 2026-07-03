@@ -391,6 +391,7 @@ class coinbase extends Exchange {
                 'CGLD' => 'CELO',
             ),
             'options' => array(
+                'mica' => true,
                 'usePrivate' => false,
                 'brokerId' => 'ccxt',
                 'stablePairs' => array( 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ),
@@ -1413,8 +1414,8 @@ class coinbase extends Exchange {
                             'type' => 'spot',
                             'spot' => true,
                             'margin' => false,
-                            'swap' => false,
-                            'future' => false,
+                            'swap' => true,
+                            'future' => true,
                             'option' => false,
                             'active' => null,
                             'contract' => false,

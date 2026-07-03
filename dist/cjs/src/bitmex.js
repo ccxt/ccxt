@@ -115,7 +115,7 @@ class bitmex extends bitmex$1["default"] {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchVolatilityHistory': false,
-                'index': true,
+                'index': false,
                 'reduceMargin': undefined,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,

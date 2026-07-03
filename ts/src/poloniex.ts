@@ -29,7 +29,7 @@ export default class poloniex extends Exchange {
                 'spot': true,
                 'margin': undefined, // has but not fully implemented
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
