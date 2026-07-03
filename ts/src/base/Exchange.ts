@@ -3831,7 +3831,6 @@ export default class Exchange {
                 'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
                 'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
             },
-            'allowedNetworkAliases': [ 'BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'SPL', 'SOL', 'POLYGON', 'MATIC', 'CARDANO', 'ADA', 'ATOM', 'COSMOS' ],
         };
     }
 
