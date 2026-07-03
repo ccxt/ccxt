@@ -257,6 +257,8 @@ export default class Exchange {
     fetchImplementationLoading: Promise<any> = undefined;
     fetchIsNative: boolean = false;
     undiciModule: any = undefined;
+    zlibModule: any = undefined;  // node:zlib, for transparent response decompression on the undici.request path
+    httpStatusTexts: any = {};  // node:http STATUS_CODES, undici.request carries no reason phrases
     fetchDispatcher: any = undefined;  // shared keep-alive undici Agent (node only)
     fetchProxyDispatchers: Dictionary<any> = {};  // proxyUrl -> undici dispatcher (node only)
 
@@ -934,18 +936,27 @@ export default class Exchange {
                 // node: prefer the undici module for tunable pooling and proxy support
                 try {
                     // undici is the engine behind node's built-in fetch - importing it directly gives us
-                    // tunable connection pooling (keep-alive) and ProxyAgent support with guaranteed
-                    // interop between the dispatchers and the fetch function (same module instance)
+                    // tunable connection pooling (keep-alive), ProxyAgent support, and the low-level
+                    // undici.request api used in undiciRequest (~2x faster than undici.fetch, profiled
+                    // in bench-request.mjs: no WHATWG Response/Headers/web-streams machinery)
                     //
                     // note: undici is pinned to 7.27.x in package.json - starting with 7.28/8.x undici
                     // unconditionally defers every write on an idle kept-alive socket behind a
-                    // setTimeout(0) tick ("idle socket validation"), which adds ~1.3ms to every
-                    // sequential request; 7.27.x is the last line without that penalty (profiled
-                    // against a localhost server: 0.22ms/req on 7.27.2 vs 1.3ms/req on 8.5.0)
+                    // setTimeout(0) tick ("idle socket validation", the mitigation for GHSA-35p6-xmwp-9g52),
+                    // which adds ~1.3ms to every sequential request; 7.27.x is the last line without that
+                    // penalty (profiled against a localhost server: 0.22ms/req on 7.27.2 vs 1.3ms/req on
+                    // 8.5.0) - see https://github.com/nodejs/undici/issues/5493 for the upstream fix
                     const undiciModule = await import (/* webpackIgnore: true */ 'undici');
                     this.undiciModule = undiciModule;
                     this.fetchImplementation = undiciModule.fetch;
-                    this.fetchDispatcher = new undiciModule.Agent (this.getDispatcherOptions (true));
+                    // follow redirects like fetch does (undici.request follows none by default)
+                    const redirect = undiciModule.interceptors.redirect ({ 'maxRedirections': 10 });
+                    this.fetchDispatcher = new undiciModule.Agent (this.getDispatcherOptions (true)).compose (redirect);
+                    // node:zlib for transparent gzip/br/deflate response decompression (see undiciBody),
+                    // node:http for the reason phrases that undici.request responses do not carry
+                    this.zlibModule = await import (/* webpackIgnore: true */ 'node:zlib');
+                    const httpModule = await import (/* webpackIgnore: true */ 'node:http');
+                    this.httpStatusTexts = httpModule.STATUS_CODES;
                     this.fetchIsNative = true;
                     return;
                 } catch (e) {
@@ -1051,9 +1062,70 @@ export default class Exchange {
             }
             const options = this.getDispatcherOptions (false);
             options['uri'] = proxyUrl;
-            this.fetchProxyDispatchers[proxyUrl] = new this.undiciModule.ProxyAgent (options);
+            const redirect = this.undiciModule.interceptors.redirect ({ 'maxRedirections': 10 });
+            this.fetchProxyDispatchers[proxyUrl] = new this.undiciModule.ProxyAgent (options).compose (redirect);
         }
         return this.fetchProxyDispatchers[proxyUrl];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#undiciRequest
+     * @description dispatches through the low-level undici.request api and adapts the result to the minimal fetch-Response surface that handleRestResponse consumes - profiled ~2x faster end-to-end than undici.fetch (node streams instead of the WHATWG Response/Headers/web-streams machinery)
+     * @param {string} url the request url
+     * @param {object} params fetch-style request params ('method', 'headers', 'body', 'signal', 'dispatcher')
+     * @returns {Promise<object>} an object with 'status', 'statusText', 'headers' (plain object), 'text' and 'arrayBuffer' methods
+     */
+    async undiciRequest (url, params) {
+        const headers = params['headers'];
+        if (!('Accept-Encoding' in headers) && !('accept-encoding' in headers)) {
+            headers['Accept-Encoding'] = 'gzip, deflate, br'; // fetch/node-fetch parity, inflated in undiciBody
+        }
+        const res = await this.undiciModule.request (url, { 'method': params['method'], 'headers': headers, 'body': params['body'], 'signal': params['signal'], 'dispatcher': params['dispatcher'] });
+        return {
+            'status': res.statusCode,
+            'statusText': this.httpStatusTexts[res.statusCode] || '',
+            'headers': res.headers,
+            'text': () => this.undiciBody (res, false),
+            'arrayBuffer': () => this.undiciBody (res, true),
+        };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#undiciBody
+     * @description reads an undici.request response body, transparently decompressing gzip/br/deflate content-encodings via node:zlib (undici.request performs no decompression, unlike fetch)
+     * @param {object} res an undici.request response
+     * @param {boolean} [binary] true to return a Buffer, false to return a utf8 string
+     * @returns {Promise<any>} the response body
+     */
+    async undiciBody (res, binary = false) {
+        let contentEncoding = res.headers['content-encoding'];
+        if ((res.statusCode === 204) || (res.statusCode === 304)) {
+            contentEncoding = undefined; // bodyless statuses, nothing to inflate
+        }
+        let decompressor = undefined;
+        if ((contentEncoding === 'gzip') || (contentEncoding === 'x-gzip')) {
+            decompressor = this.zlibModule.createGunzip ();
+        } else if (contentEncoding === 'br') {
+            decompressor = this.zlibModule.createBrotliDecompress ();
+        } else if (contentEncoding === 'deflate') {
+            decompressor = this.zlibModule.createInflate ();
+        }
+        // ponytail: chained content-encodings ('gzip, br') are not handled - no exchange sends them,
+        // and neither did the previous node-fetch implementation
+        if (decompressor === undefined) {
+            return binary ? await res.body.arrayBuffer () : await res.body.text ();
+        }
+        const chunks = [];
+        res.body.pipe (decompressor);
+        for await (const chunk of decompressor) {
+            chunks.push (chunk);
+        }
+        const buffer = Buffer.concat (chunks);
+        return binary ? buffer : buffer.toString ('utf8');
     }
 
     /**
@@ -1176,7 +1248,11 @@ export default class Exchange {
         }, this.timeout);
         let response = undefined;
         try {
-            response = await fetchImplementation (url, params);
+            if (this.fetchIsNative && (this.undiciModule !== undefined)) {
+                response = await this.undiciRequest (url, params);
+            } else {
+                response = await fetchImplementation (url, params);
+            }
         } catch (e: any) {
             if ((e instanceof this.AbortError) || ((e !== undefined) && ((e.name === 'AbortError') || (e.name === 'TimeoutError')))) {
                 throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
@@ -1186,7 +1262,7 @@ export default class Exchange {
             if ((e instanceof this.FetchError) || (e instanceof TypeError)) {
                 throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed' + causeMessage);
             }
-            // bun and other runtimes signal connection failures with runtime-specific error classes carrying a string code
+            // undici.request and other runtimes signal connection failures with error classes carrying a string code
             const networkErrorCodes = [ 'ConnectionRefused', 'ConnectionClosed', 'ConnectionReset', 'DNSError', 'FailedToOpenSocket', 'ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT', 'EPIPE', 'EAI_AGAIN', 'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT' ];
             if ((e !== undefined) && (typeof e.code === 'string') && (networkErrorCodes.indexOf (e.code) !== -1)) {
                 throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed: ' + e.message);
@@ -1215,10 +1291,26 @@ export default class Exchange {
 
     getResponseHeaders (response) {
         const result = {};
-        response.headers.forEach ((value, key) => {
-            key = key.split ('-').map ((word) => this.capitalize (word)).join ('-');
-            result[key] = value;
-        });
+        const headers = response.headers;
+        if (typeof headers.forEach === 'function') {
+            // fetch Headers object
+            headers.forEach ((value, key) => {
+                key = key.split ('-').map ((word) => this.capitalize (word)).join ('-');
+                result[key] = value;
+            });
+            return result;
+        }
+        // undici.request responses carry a plain object (repeated headers arrive as arrays)
+        const keys = Object.keys (headers);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            let value = headers[key];
+            if (Array.isArray (value)) {
+                value = value.join (', ');
+            }
+            const capitalizedKey = key.split ('-').map ((word) => this.capitalize (word)).join ('-');
+            result[capitalizedKey] = value;
+        }
         return result;
     }
 
