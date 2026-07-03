@@ -11152,8 +11152,10 @@ export default class bitget extends Exchange {
                     }
                     url += queryInner;
                     // bitget signs the raw (non-percent-encoded) query string, so the
-                    // signature must use the decoded values (e.g. non-ascii market ids)
-                    auth += '?' + this.rawencode (sortedParams);
+                    // signature must use the decoded values (e.g. non-ascii market ids).
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    auth += '?' + this.rawencode (sortedParams, true);
                 }
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
