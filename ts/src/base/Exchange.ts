@@ -261,6 +261,7 @@ export default class Exchange {
     httpStatusTexts: any = {};  // node:http STATUS_CODES, undici.request carries no reason phrases
     fetchDispatcher: any = undefined;  // shared keep-alive undici Agent (node only)
     fetchProxyDispatchers: Dictionary<any> = {};  // proxyUrl -> undici dispatcher (node only)
+    fetchProxyDispatchersMaxSize: number = 8;  // FIFO cap on cached proxy dispatchers - each entry holds ~23KB of eagerly-allocated pool state, so rotating-proxy setups would otherwise grow the cache without bound; evicted dispatchers are closed gracefully
 
     validateServerSsl: boolean = true;
     validateClientSsl: boolean = false;
@@ -949,9 +950,10 @@ export default class Exchange {
                     const undiciModule = await import (/* webpackIgnore: true */ 'undici');
                     this.undiciModule = undiciModule;
                     this.fetchImplementation = undiciModule.fetch;
-                    // follow redirects like fetch does (undici.request follows none by default)
-                    const redirect = undiciModule.interceptors.redirect ({ 'maxRedirections': 10 });
-                    this.fetchDispatcher = new undiciModule.Agent (this.getDispatcherOptions (true)).compose (redirect);
+                    // redirects are never followed - exchange rest apis do not redirect legitimately,
+                    // so a redirect response raises NetworkError instead (see undiciRequest, and the
+                    // 'redirect': 'error' request param on the whatwg-fetch paths)
+                    this.fetchDispatcher = new undiciModule.Agent (this.getDispatcherOptions (true));
                     // node:zlib for transparent gzip/br/deflate response decompression (see undiciBody),
                     // node:http for the reason phrases that undici.request responses do not carry
                     this.zlibModule = await import (/* webpackIgnore: true */ 'node:zlib');
@@ -1050,7 +1052,7 @@ export default class Exchange {
      * @ignore
      * @method
      * @name Exchange#getFetchProxyDispatcher
-     * @description returns a cached undici ProxyAgent dispatcher for the given proxy url - undici handles http, https, socks5 and socks schemes natively
+     * @description returns a cached undici ProxyAgent dispatcher for the given proxy url - undici handles http, https, socks5 and socks schemes natively; the cache is FIFO-capped at fetchProxyDispatchersMaxSize entries so rotating-proxy setups cannot grow it without bound, evicted dispatchers are closed gracefully (in-flight requests finish first)
      * @param {string} proxyUrl the proxy url, e.g. http://user:pass@host:port or socks5://host:port
      * @returns {any} an undici dispatcher
      */
@@ -1060,10 +1062,19 @@ export default class Exchange {
             if ((lowercaseProxyUrl.indexOf ('socks4:') === 0) || (lowercaseProxyUrl.indexOf ('socks4a:') === 0)) {
                 throw new NotSupported (this.id + ' - socks4 proxies are not supported by the built-in fetch, please use a socks5:// proxy');
             }
+            const cachedProxyUrls = Object.keys (this.fetchProxyDispatchers);
+            if (cachedProxyUrls.length >= this.fetchProxyDispatchersMaxSize) {
+                // evict the oldest entry (js objects preserve string-key insertion order);
+                // close () drains in-flight requests before releasing sockets, and any close
+                // failure is irrelevant because the dispatcher is already unreferenced
+                const oldestProxyUrl = cachedProxyUrls[0];
+                const oldestDispatcher = this.fetchProxyDispatchers[oldestProxyUrl];
+                delete this.fetchProxyDispatchers[oldestProxyUrl];
+                oldestDispatcher.close ().catch (() => {});
+            }
             const options = this.getDispatcherOptions (false);
             options['uri'] = proxyUrl;
-            const redirect = this.undiciModule.interceptors.redirect ({ 'maxRedirections': 10 });
-            this.fetchProxyDispatchers[proxyUrl] = new this.undiciModule.ProxyAgent (options).compose (redirect);
+            this.fetchProxyDispatchers[proxyUrl] = new this.undiciModule.ProxyAgent (options);
         }
         return this.fetchProxyDispatchers[proxyUrl];
     }
@@ -1083,6 +1094,20 @@ export default class Exchange {
             headers['Accept-Encoding'] = 'gzip, deflate, br'; // fetch/node-fetch parity, inflated in undiciBody
         }
         const res = await this.undiciModule.request (url, { 'method': params['method'], 'headers': headers, 'body': params['body'], 'signal': params['signal'], 'dispatcher': params['dispatcher'] });
+        // undici.request follows no redirects by default and none are composed onto the
+        // dispatchers - exchange rest apis do not redirect legitimately, so surface a
+        // redirect response as a NetworkError instead of following it or handing its
+        // (usually empty) body to handleRestResponse
+        const statusCode = res.statusCode;
+        const location = res.headers['location'];
+        if ((statusCode >= 300) && (statusCode < 400) && (location !== undefined)) {
+            try {
+                await res.body.dump (); // drain the body so the socket returns to the keep-alive pool
+            } catch (e) {
+                // a drain failure only costs the connection, the throw below is what matters
+            }
+            throw new NetworkError (this.id + ' ' + params['method'] + ' ' + url + ' redirect to ' + location + ' was not followed (HTTP ' + statusCode + ', following redirects is disabled)');
+        }
         return {
             'status': res.statusCode,
             'statusText': this.httpStatusTexts[res.statusCode] || '',
@@ -1230,6 +1255,10 @@ export default class Exchange {
         const fetchImplementation = this.fetchImplementation;
         const params = { method, headers, body };
         if (this.fetchIsNative) {
+            // never follow redirects: the whatwg-fetch paths (browser / bun / global-fetch
+            // fallback) reject with TypeError on a redirect response, which the catch below
+            // surfaces as NetworkError; the undici.request path raises in undiciRequest instead
+            params['redirect'] = 'error';
             this.setFetchProxyOptions (params, httpProxy, httpsProxy, socksProxy);
         } else {
             // backwards compatibility for user-supplied fetchImplementation functions
