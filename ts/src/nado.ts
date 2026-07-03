@@ -155,6 +155,9 @@ export default class nado extends Exchange {
                 'editOrder': {
                     'placeRequiresUnfilled': true,
                 },
+                "builderFee": true,
+                "builder": "",
+                "feeRate": "10"
             },
             'timeframes': {
                 '1m': 60,
