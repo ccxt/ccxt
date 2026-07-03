@@ -659,8 +659,6 @@ export default class mudrex extends Exchange {
         };
         params = this.omit (params, [ 'marginType' ]);
         const response = await this.privatePostFuturesAssetIdLeverage (this.extend (request, params));
-        const leverages = this.safeDict (this.options, 'leverages', {});
-        this.options['leverages'] = this.extend (leverages, { [market['symbol']]: leverage });
         return response;
     }
 
