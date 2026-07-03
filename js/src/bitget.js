@@ -6388,7 +6388,7 @@ export default class bitget extends Exchange {
             //     {
             //         "code": "00000",
             //         "msg": "success",
-            //         "requestTime": "1680008815965",
+            //         "requestTime": "1680008815966",
             //         "data": {
             //             "successList": [
             //                 {
