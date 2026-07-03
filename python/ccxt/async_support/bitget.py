@@ -10632,8 +10632,10 @@ class bitget(Exchange, ImplicitAPI):
                         queryInner = queryInner.replace('%24', '$')
                     url += queryInner
                     # bitget signs the raw(non-percent-encoded) query string, so the
-                    # signature must use the decoded values(e.g. non-ascii market ids)
-                    auth += '?' + self.rawencode(sortedParams)
+                    # signature must use the decoded values(e.g. non-ascii market ids).
+                    # sort explicitly(True) so the signed order matches the url order in Go,
+                    # where map iteration is not ordered(keysort's order is otherwise lost)
+                    auth += '?' + self.rawencode(sortedParams, True)
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             broker = self.safe_string(self.options, 'broker')
             headers = {

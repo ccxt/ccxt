@@ -868,7 +868,10 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook['datetime'] = self.iso8601(timestamp)
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
             isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
-            if not isSnapshot and checksum:
+            # UTA order books do not provide a crc32 checksum(they rely on seq/pseq for integrity),
+            # so only validate the checksum when the exchange actually sends one
+            responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
+            if not isSnapshot and checksum and (responseChecksum is not None):
                 storedAsks = storedOrderBook['asks']
                 storedBids = storedOrderBook['bids']
                 asksLength = len(storedAsks)
@@ -883,12 +886,7 @@ class bitget(ccxt.async_support.bitget):
                         payloadArray.append(storedAsks[i][2][1])
                 payload = ':'.join(payloadArray)
                 calculatedChecksum = self.crc32(payload, True)
-                responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
                 if calculatedChecksum != responseChecksum:
-                    # if messageHash in client.subscriptions:
-                    #     # del client.subscriptions[messageHash]
-                    #     # del self.orderbooks[symbol]
-                    # }
                     self.spawn(self.handle_check_sum_error, client, symbol, messageHash)
                     return
         else:
@@ -2549,10 +2547,14 @@ class bitget(ccxt.async_support.bitget):
         #
         #    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         #
+        # UTA
+        #
+        #    {"event":"unsubscribe","arg":{"instType":"spot","topic":"books","symbol":"BTCUSDT"}}
+        #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
         type = 'spot' if (instType == 'spot') else 'contract'
-        instId = self.safe_string(arg, 'instId')
+        instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
         symbol = market['symbol']
         messageHash = 'unsubscribe:orderbook:' + market['symbol']
