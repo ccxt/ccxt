@@ -45,9 +45,9 @@ public class AsterCore extends AsterApi
             }} );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", false );
+                put( "spot", true );
                 put( "margin", false );
-                put( "swap", false );
+                put( "swap", true );
                 put( "future", false );
                 put( "option", false );
                 put( "addMargin", true );

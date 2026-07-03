@@ -319,6 +319,7 @@ class onetrading extends onetrading$1["default"] {
             },
             // exchange-specific options
             'options': {
+                'mica': true,
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 },

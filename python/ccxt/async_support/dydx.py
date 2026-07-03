@@ -577,7 +577,7 @@ class dydx(Exchange, ImplicitAPI):
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
-        retrieves data on all markets for hyperliquid
+        retrieves data on all markets for dydx
 
         https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
 
@@ -660,7 +660,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+        https://docs.dydx.xyz/indexer-client/http#get-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch

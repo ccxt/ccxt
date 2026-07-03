@@ -25,6 +25,7 @@ var FunctionsMap = map[string]any{
 	"ethMethods":                      TestEthMethods,
 	"extend":                          TestExtend,
 	"extractParams":                   TestExtractParams,
+	"fetchHistory":                    TestFetchHistory,
 	"filterBy":                        TestFilterBy,
 	"groupBy":                         TestGroupBy,
 	"handleMethods":                   TestHandleMethods,

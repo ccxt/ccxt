@@ -54,6 +54,9 @@ func (this *MyokxCore) Describe() any {
 				"inverse": nil,
 			},
 		},
+		"options": map[string]any{
+			"mica": true,
+		},
 	})
 }
 

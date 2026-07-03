@@ -63,6 +63,7 @@ public class GateeuCore extends GateeuApi
                 put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
                     put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot")) );
                 }} );
+                put( "mica", true );
             }} );
         }});
     }

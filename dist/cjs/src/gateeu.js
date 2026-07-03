@@ -52,6 +52,7 @@ class gateeu extends gate["default"] {
                 'fetchMarkets': {
                     'types': ['spot'],
                 },
+                'mica': true,
             },
         });
     }

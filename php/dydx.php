@@ -570,7 +570,7 @@ class dydx extends Exchange {
 
     public function fetch_markets($params = array()): array {
         /**
-         * retrieves $data on all $markets for hyperliquid
+         * retrieves $data on all $markets for dydx
          *
          * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-$markets
          *
@@ -655,7 +655,7 @@ class dydx extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+         * @see https://docs.dydx.xyz/indexer-client/http#get-trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch

@@ -59,6 +59,9 @@ class bybiteu extends bybit {
                 'future' => false,
                 'option' => null,
             ),
+            'options' => array(
+                'mica' => true,
+            ),
         ));
     }
 }

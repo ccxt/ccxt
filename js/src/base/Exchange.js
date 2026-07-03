@@ -49,7 +49,7 @@ let SignMode = undefined;
  */
 export default class Exchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.63'; }
+    static { this.ccxtVersion = '4.5.64'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.api = undefined;
@@ -121,6 +121,8 @@ export default class Exchange {
         this.last_request_body = undefined;
         this.last_request_url = undefined;
         this.last_request_path = undefined;
+        this.fetchHistoryCache = [];
+        this.fetchHistoryCacheSize = 0;
         this.id = 'Exchange';
         this.markets = undefined;
         this.features = undefined;
@@ -573,6 +575,18 @@ export default class Exchange {
             }
         }
         return undefined;
+    }
+    addFetchCache(data) {
+        if (this.fetchHistoryCacheSize <= 0) {
+            return;
+        }
+        if (this.fetchHistoryCache.length >= this.fetchHistoryCacheSize) {
+            this.fetchHistoryCache.shift();
+        }
+        this.fetchHistoryCache.push(data);
+    }
+    getFetchCache() {
+        return this.fetchHistoryCache;
     }
     isBinaryMessage(msg) {
         return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
@@ -2625,7 +2639,7 @@ export default class Exchange {
         this.options['enableDemoTrading'] = enable;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return {};
+        return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
     async fetchAccounts(params = {}) {
         throw new NotSupported(this.id + ' fetchAccounts() is not supported yet');
@@ -5198,14 +5212,31 @@ export default class Exchange {
         [retries, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', 0);
+        let fetchData = undefined;
+        const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
+            if (fetchDataCacheEnabled) {
+                fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
+            }
             try {
                 this.setLastRestRequestTimestamp();
                 const request = this.sign(path, api, method, params, headers, body);
+                if (fetchDataCacheEnabled) {
+                    fetchData['request'] = request;
+                }
                 this.setLastRequest(request);
-                return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
+                const response = await this.fetch(request['url'], request['method'], request['headers'], request['body']);
+                if (fetchDataCacheEnabled) {
+                    fetchData['response']['body'] = response;
+                    this.addFetchCache(fetchData);
+                }
+                return response;
             }
             catch (e) {
+                if (fetchDataCacheEnabled) {
+                    fetchData['error'] = e;
+                    this.addFetchCache(fetchData);
+                }
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {

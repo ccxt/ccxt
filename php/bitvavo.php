@@ -398,6 +398,7 @@ class bitvavo extends Exchange {
                 ),
             ),
             'options' => array(
+                'mica' => true,
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW' => 10000, // default 10 sec
                 'networks' => array(

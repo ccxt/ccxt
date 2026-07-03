@@ -34,7 +34,7 @@ public class KucoinCore extends KucoinApi
                 put( "spot", true );
                 put( "margin", true );
                 put( "swap", true );
-                put( "future", false );
+                put( "future", true );
                 put( "option", false );
                 put( "addMargin", true );
                 put( "borrowCrossMargin", true );

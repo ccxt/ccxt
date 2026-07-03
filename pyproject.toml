@@ -1,17 +1,17 @@
 [build-system]
-requires = ["setuptools>=60.9.0"]
+requires = ["setuptools==82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ccxt"
-version = "4.5.63"
+version = "4.5.64"
 description = "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go"
 readme = "python/README.md"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
     { name = "Igor Kroitor", email = "igor.kroitor@gmail.com" },
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 keywords = [
     "algorithmic", "algotrading", "altcoin", "altcoins", "api", "arbitrage", "backtest", "backtesting", "bitcoin", "bot",
     "btc", "crypto", "cryptocurrency", "crypto currency", "crypto market", "currency", "currencies", "darkcoin",
@@ -29,49 +29,66 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "Topic :: Software Development :: Build Tools",
     "Topic :: Office/Business :: Financial :: Investment",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: JavaScript",
     "Programming Language :: PHP",
     "Operating System :: OS Independent",
     "Environment :: Console",
 ]
+# all dependencies are pinned to exact versions to protect against
+# malicious or vulnerable releases of downstream dependencies
 dependencies = [
-    "setuptools>=60.9.0",
-    "certifi>=2018.1.18",
-    "requests>=2.18.4",
-    "cryptography>=2.6.1",
-    "typing_extensions>=4.4.0",
-    "aiohttp>=3.10.11; python_version >= \"3.5.2\"",
-    "aiodns>=1.1.1; python_version >= \"3.5.2\"",
-    "yarl>=1.7.2; python_version >= \"3.5.2\"",
-    "coincurve==21.0.0; python_version >= \"3.9\" and python_version <= \"3.13\"",
+    "setuptools==82.0.1",
+    "certifi==2026.6.17",
+    "requests==2.34.2",
+    "cryptography==49.0.0",
+    "typing_extensions==4.16.0",
+    "aiohttp==3.14.1",
+    "aiodns==4.0.4",
+    "yarl==1.24.2",
+    "coincurve==21.0.0; python_version <= \"3.13\"",
+    # transitive dependencies of aiohttp
+    "aiohappyeyeballs==2.7.1",
+    "aiosignal==1.4.0",
+    "attrs==26.1.0",
+    "frozenlist==1.8.0",
+    "multidict==6.7.1",
+    "propcache==0.5.2",
+    # transitive dependencies of aiodns
+    "pycares==5.0.1",
+    # transitive dependencies of cryptography
+    "cffi==2.0.0",
+    "pycparser==3.0",
+    # transitive dependencies of requests
+    "charset_normalizer==3.4.7",
+    "idna==3.18",
+    "urllib3==2.7.0",
 ]
 
 [project.optional-dependencies]
 qa = [
     "ruff==0.0.292",
-    "tox>=4.8.0",
+    "tox==4.56.1",
 ]
 type = [
     "mypy==1.6.1",
 ]
 dev = [
-    "setuptools>=60.9.0",
-    "certifi>=2018.1.18",
-    "requests>=2.18.4",
-    "cryptography>=2.6.1",
-    "typing_extensions>=4.4.0",
-    "aiohttp>=3.10.11",
-    "aiodns>=1.1.1",
-    "yarl>=1.7.2",
+    "setuptools==82.0.1",
+    "certifi==2026.6.17",
+    "requests==2.34.2",
+    "cryptography==49.0.0",
+    "typing_extensions==4.16.0",
+    "aiohttp==3.14.1",
+    "aiodns==4.0.4",
+    "yarl==1.24.2",
     "ruff==0.0.292",
-    "tox>=4.8.0",
+    "tox==4.56.1",
     "mypy==1.6.1",
 ]
 

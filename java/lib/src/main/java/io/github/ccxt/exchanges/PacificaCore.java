@@ -34,7 +34,7 @@ public class PacificaCore extends PacificaApi
                 put( "spot", false );
                 put( "margin", false );
                 put( "swap", true );
-                put( "future", true );
+                put( "future", false );
                 put( "option", false );
                 put( "addMargin", false );
                 put( "borrowCrossMargin", false );

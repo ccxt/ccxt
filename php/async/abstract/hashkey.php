@@ -91,6 +91,9 @@ abstract class hashkey extends \ccxt\async\Exchange {
     public function private_get_api_v1_futures_getbestorder($params = array()) {
         return $this->request('api/v1/futures/getBestOrder', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_api_v1_coininfo($params = array()) {
+        return $this->request('api/v1/coinInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_api_v1_account_vipinfo($params = array()) {
         return $this->request('api/v1/account/vipInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -102,6 +105,9 @@ abstract class hashkey extends \ccxt\async\Exchange {
     }
     public function private_get_api_v1_account_type($params = array()) {
         return $this->request('api/v1/account/type', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_api_v1_account_chaintype($params = array()) {
+        return $this->request('api/v1/account/chainType', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_api_v1_account_checkapikey($params = array()) {
         return $this->request('api/v1/account/checkApiKey', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -156,6 +162,12 @@ abstract class hashkey extends \ccxt\async\Exchange {
     }
     public function private_post_api_v1_futures_order($params = array()) {
         return $this->request('api/v1/futures/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_api_v1_futures_margintype($params = array()) {
+        return $this->request('api/v1/futures/marginType', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_api_v1_futures_positionmargin($params = array()) {
+        return $this->request('api/v1/futures/positionMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_api_v1_futures_position_trading_stop($params = array()) {
         return $this->request('api/v1/futures/position/trading-stop', 'private', 'POST', $params, null, null, array("cost" => 3));
@@ -280,6 +292,9 @@ abstract class hashkey extends \ccxt\async\Exchange {
     public function privateGetApiV1FuturesGetBestOrder($params = array()) {
         return $this->request('api/v1/futures/getBestOrder', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetApiV1CoinInfo($params = array()) {
+        return $this->request('api/v1/coinInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetApiV1AccountVipInfo($params = array()) {
         return $this->request('api/v1/account/vipInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -291,6 +306,9 @@ abstract class hashkey extends \ccxt\async\Exchange {
     }
     public function privateGetApiV1AccountType($params = array()) {
         return $this->request('api/v1/account/type', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetApiV1AccountChainType($params = array()) {
+        return $this->request('api/v1/account/chainType', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetApiV1AccountCheckApiKey($params = array()) {
         return $this->request('api/v1/account/checkApiKey', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -345,6 +363,12 @@ abstract class hashkey extends \ccxt\async\Exchange {
     }
     public function privatePostApiV1FuturesOrder($params = array()) {
         return $this->request('api/v1/futures/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostApiV1FuturesMarginType($params = array()) {
+        return $this->request('api/v1/futures/marginType', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostApiV1FuturesPositionMargin($params = array()) {
+        return $this->request('api/v1/futures/positionMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostApiV1FuturesPositionTradingStop($params = array()) {
         return $this->request('api/v1/futures/position/trading-stop', 'private', 'POST', $params, null, null, array("cost" => 3));

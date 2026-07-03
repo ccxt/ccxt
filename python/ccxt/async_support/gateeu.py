@@ -55,5 +55,6 @@ class gateeu(gate, ImplicitAPI):
                 'fetchMarkets': {
                     'types': ['spot'],
                 },
+                'mica': True,
             },
         })

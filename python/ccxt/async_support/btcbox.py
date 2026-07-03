@@ -575,7 +575,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         #     {
         #         "result":true,
-        #         "id":"11"
+        #         "id":"12"
         #     }
         #
         return self.parse_order(response, market)

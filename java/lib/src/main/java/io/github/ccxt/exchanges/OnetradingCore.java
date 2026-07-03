@@ -277,6 +277,7 @@ public class OnetradingCore extends OnetradingApi
                 put( "MIOTA", "IOTA" );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
                 put( "fetchTradingFees", new java.util.HashMap<String, Object>() {{
                     put( "method", "fetchPrivateTradingFees" );
                 }} );

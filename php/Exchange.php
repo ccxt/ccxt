@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.63';
+$version = '4.5.64';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,10 +63,10 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.63';
+    const VERSION = '4.5.64';
 
     // this is updated by vss.js when building
-    public static $ccxt_version = '4.5.63';
+    public static $ccxt_version = '4.5.64';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -306,6 +306,8 @@ class Exchange {
     public $last_request_headers = null;
     public $last_request_body = null;
     public $last_request_url = null;
+    public $fetchHistoryCache = [];
+    public $fetchHistoryCacheSize = 0;
 
     public $rateLimit = 2000;
 
@@ -334,7 +336,6 @@ class Exchange {
         'aftermath',
         'alpaca',
         'apex',
-        'ascendex',
         'aster',
         'backpack',
         'bequant',
@@ -376,7 +377,6 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinmate',
-        'coinmetro',
         'coinone',
         'coinsph',
         'coinspot',
@@ -416,9 +416,9 @@ class Exchange {
         'mercado',
         'mexc',
         'modetrade',
+        'mudrex',
         'myokx',
         'ndax',
-        'novadax',
         'okx',
         'okxus',
         'onetrading',
@@ -1315,6 +1315,20 @@ class Exchange {
     public function exists_file(string $path) {
         $this->ensure_whitelisted_file($path);
         return file_exists($path);
+    }
+
+    public function add_fetch_cache($data) {
+        if ($this->fetchHistoryCacheSize <= 0) {
+            return;
+        }
+        if (count($this->fetchHistoryCache) >= $this->fetchHistoryCacheSize) {
+            array_shift($this->fetchHistoryCache);
+        }
+        $this->fetchHistoryCache[] = $data;
+    }
+
+    public function get_fetch_cache() {
+        return $this->fetchHistoryCache;
     }
 
     public static function base64_to_base64url(string $base64, bool $stripPadding = true): string {
@@ -3638,7 +3652,7 @@ class Exchange {
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
-        return array();
+        return array( 'url' => null, 'method' => null, 'headers' => null, 'body' => null );
     }
 
     public function fetch_accounts($params = array()) {
@@ -6331,13 +6345,30 @@ class Exchange {
         list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
         $retryDelay = null;
         list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
+        $fetchData = null;
+        $fetchDataCacheEnabled = $this->fetchHistoryCacheSize > 0;
         for ($i = 0; $i < $retries + 1; $i++) {
+            if ($fetchDataCacheEnabled) {
+                $fetchData = array( 'request' => null, 'response' => array( 'body' => null ), 'error' => null );
+            }
             try {
                 $this->set_last_rest_request_timestamp();
                 $request = $this->sign($path, $api, $method, $params, $headers, $body);
+                if ($fetchDataCacheEnabled) {
+                    $fetchData['request'] = $request;
+                }
                 $this->set_last_request($request);
-                return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
+                $response = $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
+                if ($fetchDataCacheEnabled) {
+                    $fetchData['response']['body'] = $response;
+                    $this->add_fetch_cache($fetchData);
+                }
+                return $response;
             } catch (Exception $e) {
+                if ($fetchDataCacheEnabled) {
+                    $fetchData['error'] = $e;
+                    $this->add_fetch_cache($fetchData);
+                }
                 if ($e instanceof OperationFailed) {
                     if ($i < $retries) {
                         if ($this->verbose) {

@@ -31,7 +31,7 @@ export default class pacifica extends Exchange {
                 'spot': false,
                 'margin': false,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
