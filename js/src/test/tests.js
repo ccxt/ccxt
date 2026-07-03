@@ -706,7 +706,7 @@ class testMainClass {
                 // getValidSymbol returns undefined in that case — skip swap
                 // tests rather than crashing on `undefined.replace(...)`.
                 if (primarySymbol !== undefined) {
-                    const secondarySymbol = primarySymbol.replace('BTC', 'ETH'); // this should work any exchange
+                    const secondarySymbol = primarySymbol.replaceAll('BTC', 'ETH'); // this should work any exchange
                     swapSymbols = [primarySymbol, secondarySymbol];
                 }
             }
