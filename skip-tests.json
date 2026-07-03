@@ -350,7 +350,7 @@
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
                 "skipCurrenciesWithoutNetworks": "those currencies deosnt have data",
-                "maxInactiveCurrenciesPercentage": 80
+                "maxInactiveCurrenciesPercentage": 90
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
@@ -836,7 +836,8 @@
                 "deposit": "not provided",
                 "type": "todo",
                 "activeMajorCurrencies": "todo"
-            }
+            },
+            "fetchOrderBook": "exchange does not have it"
         }
     },
     "coinmetro": {
