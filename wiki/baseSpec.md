@@ -30,6 +30,7 @@ add margin
 * [kucoin](/exchanges/kucoin.md#addmargin)
 * [lighter](/exchanges/lighter.md#addmargin)
 * [mexc](/exchanges/mexc.md#addmargin)
+* [mudrex](/exchanges/mudrex.md#addmargin)
 * [okx](/exchanges/okx.md#addmargin)
 * [poloniex](/exchanges/poloniex.md#addmargin)
 * [weex](/exchanges/weex.md#addmargin)
@@ -422,6 +423,7 @@ cancels an open order
 * [mercado](/exchanges/mercado.md#cancelorder)
 * [mexc](/exchanges/mexc.md#cancelorder)
 * [modetrade](/exchanges/modetrade.md#cancelorder)
+* [mudrex](/exchanges/mudrex.md#cancelorder)
 * [ndax](/exchanges/ndax.md#cancelorder)
 * [okx](/exchanges/okx.md#cancelorder)
 * [onetrading](/exchanges/onetrading.md#cancelorder)
@@ -718,6 +720,7 @@ closes open positions for a market
 * [hitbtc](/exchanges/hitbtc.md#closeposition)
 * [htx](/exchanges/htx.md#closeposition)
 * [kucoin](/exchanges/kucoin.md#closeposition)
+* [mudrex](/exchanges/mudrex.md#closeposition)
 * [okx](/exchanges/okx.md#closeposition)
 * [weex](/exchanges/weex.md#closeposition)
 * [zebpay](/exchanges/zebpay.md#closeposition)
@@ -1127,6 +1130,7 @@ create a trade order
 * [mercado](/exchanges/mercado.md#createorder)
 * [mexc](/exchanges/mexc.md#createorder)
 * [modetrade](/exchanges/modetrade.md#createorder)
+* [mudrex](/exchanges/mudrex.md#createorder)
 * [ndax](/exchanges/ndax.md#createorder)
 * [okx](/exchanges/okx.md#createorder)
 * [onetrading](/exchanges/onetrading.md#createorder)
@@ -1609,6 +1613,7 @@ edit a trade order
 * [kucoin](/exchanges/kucoin.md#editorder)
 * [lighter](/exchanges/lighter.md#editorder)
 * [modetrade](/exchanges/modetrade.md#editorder)
+* [mudrex](/exchanges/mudrex.md#editorder)
 * [okx](/exchanges/okx.md#editorder)
 * [pacifica](/exchanges/pacifica.md#editorder)
 * [paradex](/exchanges/paradex.md#editorder)
@@ -1944,6 +1949,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [mercado](/exchanges/mercado.md#fetchbalance)
 * [mexc](/exchanges/mexc.md#fetchbalance)
 * [modetrade](/exchanges/modetrade.md#fetchbalance)
+* [mudrex](/exchanges/mudrex.md#fetchbalance)
 * [ndax](/exchanges/ndax.md#fetchbalance)
 * [okx](/exchanges/okx.md#fetchbalance)
 * [onetrading](/exchanges/onetrading.md#fetchbalance)
@@ -2265,6 +2271,7 @@ fetches information on multiple closed orders made by the user
 * [luno](/exchanges/luno.md#fetchclosedorders)
 * [mexc](/exchanges/mexc.md#fetchclosedorders)
 * [modetrade](/exchanges/modetrade.md#fetchclosedorders)
+* [mudrex](/exchanges/mudrex.md#fetchclosedorders)
 * [okx](/exchanges/okx.md#fetchclosedorders)
 * [onetrading](/exchanges/onetrading.md#fetchclosedorders)
 * [p2b](/exchanges/p2b.md#fetchclosedorders)
@@ -3611,6 +3618,7 @@ fetch the set leverage for a market
 * [kucoin](/exchanges/kucoin.md#fetchleverage)
 * [mexc](/exchanges/mexc.md#fetchleverage)
 * [modetrade](/exchanges/modetrade.md#fetchleverage)
+* [mudrex](/exchanges/mudrex.md#fetchleverage)
 * [okx](/exchanges/okx.md#fetchleverage)
 * [pacifica](/exchanges/pacifica.md#fetchleverage)
 * [paradex](/exchanges/paradex.md#fetchleverage)
@@ -3814,6 +3822,28 @@ fetches margin mode of the user
 
 ---
 
+<a name="fetchMarkOHLCV" id="fetchmarkohlcv"></a>
+
+## fetchMarkOHLCV
+fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [mudrex](/exchanges/mudrex.md#fetchmarkohlcv)
+
+---
+
 <a name="fetchMarkPrice" id="fetchmarkprice"></a>
 
 ## fetchMarkPrice
@@ -3973,6 +4003,7 @@ retrieves data on all markets for woo
 * [mercado](/exchanges/mercado.md#fetchmarkets)
 * [mexc](/exchanges/mexc.md#fetchmarkets)
 * [modetrade](/exchanges/modetrade.md#fetchmarkets)
+* [mudrex](/exchanges/mudrex.md#fetchmarkets)
 * [ndax](/exchanges/ndax.md#fetchmarkets)
 * [okx](/exchanges/okx.md#fetchmarkets)
 * [onetrading](/exchanges/onetrading.md#fetchmarkets)
@@ -4224,6 +4255,7 @@ fetch all trades made by the user
 * [mercado](/exchanges/mercado.md#fetchmytrades)
 * [mexc](/exchanges/mexc.md#fetchmytrades)
 * [modetrade](/exchanges/modetrade.md#fetchmytrades)
+* [mudrex](/exchanges/mudrex.md#fetchmytrades)
 * [ndax](/exchanges/ndax.md#fetchmytrades)
 * [okx](/exchanges/okx.md#fetchmytrades)
 * [onetrading](/exchanges/onetrading.md#fetchmytrades)
@@ -4357,6 +4389,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [gemini](/exchanges/gemini.md#fetchohlcv)
 * [grvt](/exchanges/grvt.md#fetchohlcv)
 * [hashkey](/exchanges/hashkey.md#fetchohlcv)
+* [hibachi](/exchanges/hibachi.md#fetchohlcv)
 * [hitbtc](/exchanges/hitbtc.md#fetchohlcv)
 * [hollaex](/exchanges/hollaex.md#fetchohlcv)
 * [htx](/exchanges/htx.md#fetchohlcv)
@@ -4371,6 +4404,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [mercado](/exchanges/mercado.md#fetchohlcv)
 * [mexc](/exchanges/mexc.md#fetchohlcv)
 * [modetrade](/exchanges/modetrade.md#fetchohlcv)
+* [mudrex](/exchanges/mudrex.md#fetchohlcv)
 * [ndax](/exchanges/ndax.md#fetchohlcv)
 * [okx](/exchanges/okx.md#fetchohlcv)
 * [onetrading](/exchanges/onetrading.md#fetchohlcv)
@@ -4633,6 +4667,7 @@ fetch all unfilled currently open orders
 * [mercado](/exchanges/mercado.md#fetchopenorders)
 * [mexc](/exchanges/mexc.md#fetchopenorders)
 * [modetrade](/exchanges/modetrade.md#fetchopenorders)
+* [mudrex](/exchanges/mudrex.md#fetchopenorders)
 * [ndax](/exchanges/ndax.md#fetchopenorders)
 * [okx](/exchanges/okx.md#fetchopenorders)
 * [onetrading](/exchanges/onetrading.md#fetchopenorders)
@@ -4821,6 +4856,7 @@ fetches information on an order made by the user
 * [mercado](/exchanges/mercado.md#fetchorder)
 * [mexc](/exchanges/mexc.md#fetchorder)
 * [modetrade](/exchanges/modetrade.md#fetchorder)
+* [mudrex](/exchanges/mudrex.md#fetchorder)
 * [ndax](/exchanges/ndax.md#fetchorder)
 * [okx](/exchanges/okx.md#fetchorder)
 * [onetrading](/exchanges/onetrading.md#fetchorder)
@@ -5149,6 +5185,7 @@ fetches information on multiple orders made by the user
 * [mercado](/exchanges/mercado.md#fetchorders)
 * [mexc](/exchanges/mexc.md#fetchorders)
 * [modetrade](/exchanges/modetrade.md#fetchorders)
+* [mudrex](/exchanges/mudrex.md#fetchorders)
 * [ndax](/exchanges/ndax.md#fetchorders)
 * [pacifica](/exchanges/pacifica.md#fetchorders)
 * [paradex](/exchanges/paradex.md#fetchorders)
@@ -5501,6 +5538,7 @@ fetch all open positions
 * [lighter](/exchanges/lighter.md#fetchpositions)
 * [mexc](/exchanges/mexc.md#fetchpositions)
 * [modetrade](/exchanges/modetrade.md#fetchpositions)
+* [mudrex](/exchanges/mudrex.md#fetchpositions)
 * [okx](/exchanges/okx.md#fetchpositions)
 * [pacifica](/exchanges/pacifica.md#fetchpositions)
 * [paradex](/exchanges/paradex.md#fetchpositions)
@@ -5595,6 +5633,7 @@ fetches historical positions
 * [gate](/exchanges/gate.md#fetchpositionshistory)
 * [kucoin](/exchanges/kucoin.md#fetchpositionshistory)
 * [mexc](/exchanges/mexc.md#fetchpositionshistory)
+* [mudrex](/exchanges/mudrex.md#fetchpositionshistory)
 * [okx](/exchanges/okx.md#fetchpositionshistory)
 
 ---
@@ -5887,6 +5926,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [luno](/exchanges/luno.md#fetchticker)
 * [mercado](/exchanges/mercado.md#fetchticker)
 * [mexc](/exchanges/mexc.md#fetchticker)
+* [mudrex](/exchanges/mudrex.md#fetchticker)
 * [ndax](/exchanges/ndax.md#fetchticker)
 * [okx](/exchanges/okx.md#fetchticker)
 * [onetrading](/exchanges/onetrading.md#fetchticker)
@@ -6002,6 +6042,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [lighter](/exchanges/lighter.md#fetchtickers)
 * [luno](/exchanges/luno.md#fetchtickers)
 * [mexc](/exchanges/mexc.md#fetchtickers)
+* [mudrex](/exchanges/mudrex.md#fetchtickers)
 * [okx](/exchanges/okx.md#fetchtickers)
 * [onetrading](/exchanges/onetrading.md#fetchtickers)
 * [p2b](/exchanges/p2b.md#fetchtickers)
@@ -6913,6 +6954,7 @@ remove margin from a position
 * [hyperliquid](/exchanges/hyperliquid.md#reducemargin)
 * [lighter](/exchanges/lighter.md#reducemargin)
 * [mexc](/exchanges/mexc.md#reducemargin)
+* [mudrex](/exchanges/mudrex.md#reducemargin)
 * [okx](/exchanges/okx.md#reducemargin)
 * [poloniex](/exchanges/poloniex.md#reducemargin)
 * [weex](/exchanges/weex.md#reducemargin)
@@ -7103,6 +7145,7 @@ set the level of leverage for a market
 * [lighter](/exchanges/lighter.md#setleverage)
 * [mexc](/exchanges/mexc.md#setleverage)
 * [modetrade](/exchanges/modetrade.md#setleverage)
+* [mudrex](/exchanges/mudrex.md#setleverage)
 * [okx](/exchanges/okx.md#setleverage)
 * [pacifica](/exchanges/pacifica.md#setleverage)
 * [paradex](/exchanges/paradex.md#setleverage)
@@ -7351,6 +7394,7 @@ transfer currency internally between wallets on the same account
 * [latoken](/exchanges/latoken.md#transfer)
 * [lighter](/exchanges/lighter.md#transfer)
 * [mexc](/exchanges/mexc.md#transfer)
+* [mudrex](/exchanges/mudrex.md#transfer)
 * [okx](/exchanges/okx.md#transfer)
 * [pacifica](/exchanges/pacifica.md#transfer)
 * [paymium](/exchanges/paymium.md#transfer)

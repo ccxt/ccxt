@@ -91,6 +91,7 @@ var luno = require('./src/luno.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
 var modetrade = require('./src/modetrade.js');
+var mudrex = require('./src/mudrex.js');
 var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
 var okx = require('./src/okx.js');
@@ -173,6 +174,7 @@ var lighter$1 = require('./src/pro/lighter.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
+var mudrex$1 = require('./src/pro/mudrex.js');
 var myokx$1 = require('./src/pro/myokx.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okx$1 = require('./src/pro/okx.js');
@@ -278,6 +280,7 @@ const exchanges = {
     'mercado': mercado["default"],
     'mexc': mexc["default"],
     'modetrade': modetrade["default"],
+    'mudrex': mudrex["default"],
     'myokx': myokx["default"],
     'ndax': ndax["default"],
     'okx': okx["default"],
@@ -362,6 +365,7 @@ const pro = {
     'luno': luno$1["default"],
     'mexc': mexc$1["default"],
     'modetrade': modetrade$1["default"],
+    'mudrex': mudrex$1["default"],
     'myokx': myokx$1["default"],
     'ndax': ndax$1["default"],
     'okx': okx$1["default"],
@@ -514,6 +518,7 @@ exports.luno = luno["default"];
 exports.mercado = mercado["default"];
 exports.mexc = mexc["default"];
 exports.modetrade = modetrade["default"];
+exports.mudrex = mudrex["default"];
 exports.myokx = myokx["default"];
 exports.ndax = ndax["default"];
 exports.okx = okx["default"];
