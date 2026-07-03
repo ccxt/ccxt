@@ -10,7 +10,7 @@ var errors = require('../utils/errors.js');
 var properties = require('../utils/properties.js');
 var data = require('../utils/data.js');
 
-//import { TypedDataDomain, TypedDataField } from "@ethersproject/providerabstract-signer";
+// ----------------------------------------------------------------------------
 const { base16ToBinary } = functions;
 const padding = new Uint8Array(32);
 padding.fill(0);

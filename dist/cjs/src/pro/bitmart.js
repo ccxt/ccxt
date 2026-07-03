@@ -8,7 +8,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var OrderBookSide = require('../base/ws/OrderBookSide.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bitmart extends bitmart$1["default"] {
     describe() {

@@ -32,6 +32,7 @@ var net__namespace = /*#__PURE__*/_interopNamespace(net);
 var tls__namespace = /*#__PURE__*/_interopNamespace(tls);
 var assert__default = /*#__PURE__*/_interopDefaultLegacy(assert);
 
+// ----------------------------------------------------------------------------
 /**
  * The `HttpsProxyAgent` implements an HTTP Agent subclass that connects to
  * the specified "HTTP(s) proxy server" in order to proxy HTTPS requests.

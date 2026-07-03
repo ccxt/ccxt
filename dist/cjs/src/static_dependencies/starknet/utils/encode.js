@@ -4,6 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 require('@scure/base');
 
+// ----------------------------------------------------------------------------
 /**
  * Convert utf8-string to Uint8Array
  *
